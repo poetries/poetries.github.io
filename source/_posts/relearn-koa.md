@@ -39,7 +39,7 @@ npm install --save koa / cnpm install --save koa
 
 **简单使用**
 
-![](http://blog.poetries.top/img-repo/2019/10/494.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/494.png)
 
 # 二、koa 路由 get传值、动态路由
 
@@ -55,7 +55,7 @@ npm install --save koa / cnpm install --save koa
 npm install --save koa-router
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/495.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/495.png)
 
 ## 2.2 Koa 路由 get 传值
 
@@ -64,19 +64,19 @@ npm install --save koa-router
 - `query`:返回的是格式化好的参数对象。 
 - `querystring`:返回的是请求字符串
 
-![](http://blog.poetries.top/img-repo/2019/10/496.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/496.png)
 
 
 ## 2.3 Koa 动态路由
 
-![](http://blog.poetries.top/img-repo/2019/10/497.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/497.png)
 
 
 # 三、koa 中间件及执行流程
 
 ## 3.1 koa中间件的洋葱图执行流程
 
-![](http://blog.poetries.top/img-repo/2019/10/498.gif)
+![](https://poetries1.gitee.io/img-repo/2019/10/498.gif)
 
 
 
@@ -101,26 +101,26 @@ npm install --save koa-router
 
 **1. 应用级中间件**
 
-![](http://blog.poetries.top/img-repo/2019/10/499.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/499.png)
 
 **2. 路由中间件**
 
-![](http://blog.poetries.top/img-repo/2019/10/500.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/500.png)
 
 **3. 错误处理中间件**
 
-![](http://blog.poetries.top/img-repo/2019/10/501.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/501.png)
 
 
 **4. 第三方中间件**
 
-![](http://blog.poetries.top/img-repo/2019/10/502.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/502.png)
 
 ### 3.2.3 Koa 中间件的执行顺序
 
 > `Koa` 的中间件和 `Express` 不同，`Koa` 选择了洋葱圈模型
 
-![](http://blog.poetries.top/img-repo/2019/10/503.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/503.png)
 
 
 # 四、koa ejs模板引擎使用 以及ejs配置全局数据
@@ -266,9 +266,9 @@ app.use(static(
 - 中文文档: http://aui.github.io/art-template/zh-cn/docs
 
 
-![](http://blog.poetries.top/img-repo/2019/10/504.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/504.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/505.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/505.png)
 
 
 ## 7.2 在 Koa 中使用 art-template 模板引擎
@@ -311,7 +311,7 @@ ctx.cookies.set(name, value, [options])
 
 > 通过 `options` 设置 `cookie name` 的 `value` 
 
-![](http://blog.poetries.top/img-repo/2019/10/506.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/506.png)
 
 **2. Koa 中获取 Cookie 的值**
 
@@ -426,8 +426,8 @@ npm start
 2. 在 `routes` 里面配置对应的子页面
 3. 比如在 `routes` 新建 `index.js`
 
-![](http://blog.poetries.top/img-repo/2019/10/507.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/507.png)
 
 4. 然后在主应用中加载子路由模块:
 
-![](http://blog.poetries.top/img-repo/2019/10/508.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/508.png)

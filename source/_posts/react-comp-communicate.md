@@ -8,7 +8,7 @@ categories: Front-End
 ---
 
 
-![](http://blog.poetries.top/img-repo/2019/10/413.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/413.png)
 
 
 > 组件之进行通信的几种情况

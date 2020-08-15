@@ -18,7 +18,7 @@ categories: Front-End
 
 浏览器发送请求-->服务器返回`HTML`-->浏览器发送`bundle.js`请求-->服务器返回`bundle.js`-->浏览器执行`bundle.js`中的`react`代码完成渲染
 
-![](http://blog.poetries.top/img-repo/2019/10/446.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/446.png)
 
 
 ### 1.2 什么是服务端渲染
@@ -56,7 +56,7 @@ categories: Front-End
 
 > 但是，`SSR` 这种理念的实现，并非易事。我们来看一下在 `React` 中实现 `SSR` 技术的架构图：
 
-![](http://blog.poetries.top/img-repo/2019/10/447.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/447.png)
 
 - 使用 `SSR` 这种技术，将使原本简单的 `React` 项目变得非常复杂，项目的可维护性会降低，代码问题的追溯也会变得困难
 - 所以，使用 `SSR` 在解决问题的同时，也会带来非常多的副作用，有的时候，这些副作用的伤害比起 `SSR` 技术带来的优势要大的多。从个人经验上来说，我一般建议大家，除非你的项目特别依赖搜索引擎流量，或者对首屏时间有特殊的要求，否则不建议使用 `SSR`
@@ -338,7 +338,7 @@ export default (content,store,styles)=>`
 
 > 在 `SSR` 架构中，一般 Node 只是一个中间层，用来做 `React` 代码的服务器端渲染，而 `Node` 需要的数据通常由 API 服务器单独提供
 
-![](http://blog.poetries.top/img-repo/2019/10/448.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/448.png)
 
 > 服务器端渲染时，直接请求 `API` 服务器的接口获取数据没有任何问题。但是在客户端，就有可能存在跨域的问题了，所以，这个时候，我们需要在服务器端搭建 `Proxy` 代理功能，客户端不直接请求 `API` 服务器，而是请求 `Node` 服务器，经过代理转发，拿到 `API` 服务器的数据
 

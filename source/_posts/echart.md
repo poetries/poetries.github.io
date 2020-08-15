@@ -12,7 +12,7 @@ categories: Front-End
 
 - 时间轴，每个图表最多仅有一个时间轴控件
 
-![](http://blog.poetries.top/img-repo/2019/10/45.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/45.png)
 
 二、Title选项
 ---
@@ -21,7 +21,7 @@ categories: Front-End
 
 > 可以对标题文字的大小样式进行设置
 
-![](http://blog.poetries.top/img-repo/2019/10/46.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/46.png)
 
 
 三、toolbox
@@ -29,7 +29,7 @@ categories: Front-End
 
 - 工具箱，每个图表最多仅有一个工具箱。工具箱里面可以实现图表类型的切换，保存图片，刷新，查看数据等功能。可以对其像素进行设置
 
-![](http://blog.poetries.top/img-repo/2019/10/47.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/47.png)
 
 
 ```javascript
@@ -164,21 +164,21 @@ categories: Front-End
 
 - 提示框，鼠标悬浮交互时的信息提示
 
-![](http://blog.poetries.top/img-repo/2019/10/48.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/48.png)
 
 五、legend
 ---
 
 - 图例，每个图表最多仅有一个图例，混搭图表共享
 
-![](http://blog.poetries.top/img-repo/2019/10/49.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/49.png)
 
 六、dataRange
 ---
 
 - 值域选择，每个图表最多仅有一个值域控件
 
-![](http://blog.poetries.top/img-repo/2019/10/50.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/50.png)
 
 七、dataZoom
 ---
@@ -190,14 +190,14 @@ roamController
 
 - [缩放漫游组件](http://echarts.baidu.com/echarts2/doc/example/map1.html)，仅对地图有效
 
-![](http://blog.poetries.top/img-repo/2019/10/51.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/51.png)
 
 八、grid
 ---
 
 > 直角坐标系内绘图网格
 
-![](http://blog.poetries.top/img-repo/2019/10/52.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/52.png)
 
 九、xAxis
 ---

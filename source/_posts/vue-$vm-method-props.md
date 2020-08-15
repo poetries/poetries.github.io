@@ -7,7 +7,7 @@ categories: Front-End
 
 ## 一、Vue之实例属性
 
-![](http://blog.poetries.top/img-repo/2019/10/613.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/613.png)
 
 > `Vue` 实例暴露了一些有用的实例属性与方法。这些属性与方法都有前缀 `$`，以便与代理的数据属性区分
 

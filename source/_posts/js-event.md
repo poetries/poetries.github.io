@@ -27,7 +27,7 @@ categories: Front-End
 
 无论是事件捕获还是事件冒泡，它们都有一个共同的行为，就是事件传播
 
-![](http://blog.poetries.top/img-repo/2019/10/319.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/319.png)
 
 ## 二、捕获和冒泡
 
@@ -57,7 +57,7 @@ categories: Front-End
 
 ## 三、事件对象
 
-![](http://blog.poetries.top/img-repo/2019/10/320.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/320.png)
 
 
 ## 四、事件流阻止

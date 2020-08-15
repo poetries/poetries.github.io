@@ -16,7 +16,7 @@ categories: Front-End
 
 > 下面检查你的设备是否能正确连接到 ADB（Android Debug Bridge），使用`adb devices`命令
 
-![](http://blog.poetries.top/img-repo/20190926/1.png)
+![](https://poetries1.gitee.io/img-repo/20190926/1.png)
 
 ## 运行应用
 
@@ -35,4 +35,4 @@ categories: Front-End
 
 > 摇晃手机即可弹出开发者工具
 
-![](http://blog.poetries.top/img-repo/20190926/2.png)
+![](https://poetries1.gitee.io/img-repo/20190926/2.png)

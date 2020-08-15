@@ -19,7 +19,7 @@ categories: Front-End
 
 > 当我们打开网站时，网页的渲染过程就是一大堆同步任务，比如页面骨架和页面元素的渲染。而像加载图片音乐之类占用资源大耗时久的任务，就是异步任务。关于这部分有严格的文字定义，但本文的目的是用最小的学习成本彻底弄懂执行机制，所以我们用导图来说明
 
-![](http://blog.poetries.top/img-repo/20190922/event-loop-1.png)
+![](https://poetries1.gitee.io/img-repo/20190922/event-loop-1.png)
 
 - 同步和异步任务分别进入不同的执行"场所"，同步的进入主线程，异步的进入`Event Table`并注册函数。
 - 当指定的事情完成时，`Event Table`会将这个函数移入`Event Queue`。
@@ -181,7 +181,7 @@ console.log('console');
 > 事件循环，宏任务，微任务的关系如图所示：
 
 
-![](http://blog.poetries.top/img-repo/20190922/event-loop-2.png)
+![](https://poetries1.gitee.io/img-repo/20190922/event-loop-2.png)
 
 > 我们来分析一段较复杂的代码，看看你是否真的掌握了js的执行机制
 

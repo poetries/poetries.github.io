@@ -9,7 +9,7 @@ categories: Front-End
 ---
 
 
-![](http://blog.poetries.top/img-repo/2019/10/662.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/662.png)
 
 - 小程序内通过`wx.login`接口获得`code`
 - 将`code`传入后台，后台对微信服务器发起一个`https`请求换取`openid`、`session_key`(解密`encryptedData`、`iv`得到的)
@@ -42,7 +42,7 @@ wx.getUserInfo({
 
 返回的信息
 
-![](http://blog.poetries.top/img-repo/2019/10/663.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/663.png)
 
 **需要传输的信息有7个参数**
 

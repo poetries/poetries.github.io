@@ -31,8 +31,8 @@ categories: DataBase
 
 - 在任意目录创建几个文件夹
 
-![](http://blog.poetries.top/img-repo/2019/12/182.png)
-![](http://blog.poetries.top/img-repo/2019/12/183.png)
+![](https://poetries1.gitee.io/img-repo/2019/12/182.png)
+![](https://poetries1.gitee.io/img-repo/2019/12/183.png)
 
 
 **通过命令行启动服务**
@@ -44,7 +44,7 @@ categories: DataBase
 C:\Program Files\MongoDB\Server\3.4\bin\mongod --dbpath d:\mongodb\data
 ```
 
-![](http://blog.poetries.top/img-repo/2019/12/184.png)
+![](https://poetries1.gitee.io/img-repo/2019/12/184.png)
 
 **通配置启动服务**
 
@@ -82,7 +82,7 @@ httpinterface=true
 C:\Program Files\MongoDB\Server\3.4\bin\mongod --config d:\mongodb\data 
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/349.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/349.png)
 
 
 **更加简洁的启动方式**
@@ -92,13 +92,13 @@ C:\Program Files\MongoDB\Server\3.4\bin\mongod --config d:\mongodb\data
 C:\Program Files\MongoDB\Server\3.4\bin\mongod --config d:\mongodb\data --install --serviceName "MongoDB"
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/350.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/350.png)
 
 
 **使用MongoVue连接数据库**
 
-![](http://blog.poetries.top/img-repo/2019/10/351.png)
-![](http://blog.poetries.top/img-repo/2019/10/352.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/351.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/352.png)
 
 
 ## 1.3 linux下mongodb环境搭建
@@ -248,14 +248,14 @@ db.addUser # 2.x
 db.auth("admin","admin") # 账号、密码
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/353.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/353.png)
 
 
 **3. 给使用的数据库添加用户**
 
 1. 创建用户
 
-![](http://blog.poetries.top/img-repo/2019/10/354.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/354.png)
 
 2. 然后在授权登录试一下
 

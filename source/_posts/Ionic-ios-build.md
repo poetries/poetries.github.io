@@ -31,20 +31,20 @@ sudo cnpm install -g cordova ionic
 
 **可能遇到的错误以及解决方案**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/1.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/1.png)
 
 - 使用软件中的提供的翻墙工具重试，如果不行继续看第二步骤
 - 手机开启热点，让电脑连接手机用手机的网络下载
 
 **找到对应目录下面的文件双击用 Xcode 打开**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/2.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/2.png)
 
 > 注意:xcode 用最新的版本
 
 **如果双击遇到权限问题如下**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/3.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/3.png)
 
 > 可以用命令修改权限，cd 到要修改权限的目录执行下面命令
 
@@ -54,7 +54,7 @@ sudo chmod -R 777 *
 
 **在 xcode 中选择对应模拟器运行**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/4.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/4.png)
 
 > 注意:调整模拟器大小只需要拉动模拟器边缘即可
 
@@ -69,12 +69,12 @@ sudo chmod -R 777 *
 
 **1. 获取iPhone手机的uuid，手机连接电脑，打开iTunes软件，点击序列号字母处**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/5.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/6.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/5.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/6.png)
 
 **2. 配置iPhone手机的uuid，打开平台开发者中心进行配置**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/7.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/7.png)
 
 ### 2.3 xcode 自动管理证书文件
 
@@ -86,35 +86,35 @@ sudo chmod -R 777 *
 
 **1、点击 xcode 选择 Preference，如下图**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/8.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/8.png)
 
 **2、弹出下面界面输入自己的账户名和密码**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/9.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/9.png)
 
 **3、选择对应的项目 选择 General->勾选自动管理签名->设置 Team 开发者账户->选择开发的 设备**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/10.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/10.png)
 
 **4、设置所有工程的 Build settings 为 Automatic (默认可以不用管)**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/11.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/12.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/11.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/12.png)
 
 ### 2.4 真机调试
 
 - 连上手机，然后在手机上面选择信任此电脑
 - 选择调试设备为自己的手机
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/13.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/13.png)
 
 - 点击运行
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/14.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/14.png)
 
 - 点击允许
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/15.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/15.png)
 
 > 注意：每次修改代码后，都需要重新执行 ` sudo ionic build --prod` 以及 `sudo ionic cordova prepare`。这样比较麻烦，建议在浏览器端调试好了在调试ios、安卓端的
 
@@ -125,83 +125,83 @@ sudo chmod -R 777 *
 - 打包测试证书需要连接 `iphone` 手机，不然 Archive 会是灰色的
 - 选择 `product – Archive` 进行打包--(具体步骤如下)
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/20.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/21.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/22.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/23.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/24.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/25.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/26.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/27.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/20.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/21.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/22.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/23.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/24.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/25.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/26.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/27.png)
 
 **可能遇到的错误**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/28.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/28.png)
 
 > 如果是 code sign 相关的错误
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/29.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/29.png)
 
 ## 四、发布到 appstore
 
 **1. 需要登录到苹果开发者中心`Itunes connect` 创建应用**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/37.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/38.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/39.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/40.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/41.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/42.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/43.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/44.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/37.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/38.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/39.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/40.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/41.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/42.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/43.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/44.png)
 
 **2. 配置好开发者证书以打包正式包**
 
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/30.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/31.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/45.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/46.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/30.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/31.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/45.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/46.png)
 
 > 这里选择直接导出上传
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/47.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/48.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/49.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/50.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/47.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/48.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/49.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/50.png)
 
 
 **3. 使用 `Application Loader` 把本地的正式包发布到 `App Store Connect`，也可以使用 Xcode把应用发布到 App Store**
 
 > 打开application loader上传应用包
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/33.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/34.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/51.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/52.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/53.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/54.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/33.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/34.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/51.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/52.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/53.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/54.png)
 
 > 应用升级需要修改版本号，然后build上传
-![](http://blog.poetries.top/img-repo/2019/10/ionic/55.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/55.png)
 
 > 然后在这里可以有多个版本，选择一个提交审核即可
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/56.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/57.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/56.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/57.png)
 
 > 保存之后提交审核
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/58.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/58.png)
 
 
 **登录 Application Loader 报错**
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/35.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/35.png)
 
 > 登录:https://appleid.apple.com/account/manage
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/36.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/36.png)
 
 > 然后用生成的密码作为登录密码
 
@@ -210,15 +210,15 @@ sudo chmod -R 777 *
 
 > 修改版本后，选择achieve
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/59.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/60.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/61.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/62.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/59.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/60.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/61.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/62.png)
 
 > 然后可以在开发者中心选择上传的版本
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/63.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/64.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/63.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/64.png)
 
 > 提交审核后一般七个工作日左右
 
@@ -230,7 +230,7 @@ sudo chmod -R 777 *
 
 > 项目调用了摄像机，需要配置一下权限
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/65.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/65.png)
 
 > 为了保护隐私，最终用户必须明确的允许应用程序访问提醒信号、照片、位置、联系人、和日历数 据。为了说服用户接受，它有助于解释应用程序可以怎样使用这类数据，并且说明访问他的原因。给 位于 `Info.plist` 文件顶层的以下键分配字符串值。当 iOS 提示用户有关特定资源的权限时，他将显示 这些字符串，作为他的标准对话框的一部分。
 
@@ -248,5 +248,5 @@ sudo chmod -R 777 *
 - 蓝牙 `NSBluetoothPeripheralUsageDescription`
 - 媒体资料库 `NSAppleMusicUsageDescription`
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/66.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/66.png)
 

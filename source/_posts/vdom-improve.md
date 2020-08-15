@@ -11,7 +11,7 @@ categories: Front-End
 
 > 先介绍浏览器加载一个`HTML`文件需要做哪些事，帮助我们理解为什么我们需要虚拟`DOM`。`webkit`引擎的处理流程
 
-![](http://blog.poetries.top/img-repo/2019/10/605.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/605.png)
 
 > 所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建`DOM tree` –> 创建`Style Rules` -> 构建`Render tree` -> 布局`Layout` –> 绘制`Painting
 `
@@ -26,7 +26,7 @@ categories: Front-End
 
 - 即使计算机硬件一直在更新迭代，操作`DOM`的代价仍旧是昂贵的，频繁操作还是会出现页面卡顿，影响用户的体验。真实的`DOM`节点，哪怕一个最简单的div也包含着很多属性，可以打印出来直观感受一下
 
-![](http://blog.poetries.top/img-repo/2019/10/606.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/606.png)
 
 > 虚拟`DOM`就是为了解决这个浏览器性能问题而被设计出来的。例如前面的例子，假如一次操作中有`10`次更新`DOM`的动作，虚拟`DOM`不会立即操作`DOM`，而是将这`10`次更新的`diff`内容保存到本地的一个`js`对象中，最终将这个js对象一次性`attach`到`DOM`树上，通知浏览器去执行绘制工作，这样可以避免大量的无谓的计算量
 
@@ -88,7 +88,7 @@ function Element(tagName, props, children) {
 
 > 第一个参数是节点名（如`div`），第二个参数是节点的属性（如`class`），第三个参数是子节点（如`ul`的`li`）。除了这三个参数会被保存在对象上外，还保存了`key`和`count`
 
-![](http://blog.poetries.top/img-repo/2019/10/607.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/607.png)
 
 > 有了`js`对象后，最终还需要将其映射成真实的`DOM`
 
@@ -139,7 +139,7 @@ const newTree = Element('div', { id: 'virtual-container' }, [
 
 > 第一种是最简单的，节点类型变了，例如下图中的`P`变成了`h3`。我们将这个过程称之为`REPLACE`。直接将旧节点卸载（`componentWillUnmount`）并装载新节点（`componentWillMount`）就行了
 
-![](http://blog.poetries.top/img-repo/2019/10/608.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/608.png)
 
 旧节点包括下面的子节点都将被卸载，如果新节点和旧节点仅仅是类型不同，但下面的所有子节点都一样时，这样做显得效率不高。但为了避免`O(n^3)`的时间复杂度，这样做是值得的。这也提醒了`React`开发者，应该避免无谓的节点类型的变化，例如运行时将`div`变成`p`就没什么太大意义
 
@@ -186,19 +186,19 @@ function diffProps(oldNode, newNode) {
 - 第三种是文本变了，文本对也是一个`Text Node`，也比较简单，直接修改文字内容就行了，我们将这个过程称之为`TEXT`
 - 第四种是移动，增加，删除子节点，我们将这个过程称之为`REORDER`
 
-![](http://blog.poetries.top/img-repo/2019/10/609.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/609.png)
 
 > 在中间插入一个节点，程序员写代码很简单：$(B).after(F)。但如何高效地插入呢？简单粗暴的做法是：卸载C，装载F，卸载D，装载C，卸载E，装载D，装载E。如下图
 
-![](http://blog.poetries.top/img-repo/2019/10/610.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/610.png)
 
 > 我们写`JSX`代码时，如果没有给数组或枚举类型定义一个`key`，就会看到下面这样的`warning`。`React`提醒我们，没有`key`的话，涉及到移动，增加，删除子节点的操作时，就会用上面那种简单粗暴的做法来更新。虽然程序运行不会有错，但效率太低，因此`React`会给我们一个`warning`
 
-![](http://blog.poetries.top/img-repo/2019/10/611.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/611.png)
 
 > 如果我们在`JSX`里为数组或枚举型元素增加上`key`后，`React`就能根据`key`，直接找到具体的位置进行操作，效率比较高。如下图
 
-![](http://blog.poetries.top/img-repo/2019/10/612.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/612.png)
 
 > 常见的最小编辑距离问题，可以用`Levenshtein Distance`算法来实现，时间复杂度是`O(M*N)`，但通常我们只要一些简单的移动就能满足需要，降低点精确性，将时间复杂度降低到`O(max(M, N)`即可
 

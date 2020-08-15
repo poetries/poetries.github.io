@@ -16,7 +16,7 @@ categories: DataBase
 brew install mysql
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/355.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/355.png)
 
 ```bash
 # 启动

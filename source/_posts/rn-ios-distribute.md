@@ -37,26 +37,26 @@ categories: Front-End
 
 > 这样打包只需要在根目录下输入`npm run bundle-ios` 即可（切记一定要先在`项目-->ios下新建bundle`文件夹，不然会报错）
 
-![](http://blog.poetries.top/img-repo/2019/10/711.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/711.png)
 
 > 之后你会发现bundle文件下面已经有了内容（如下图）
 
-![](http://blog.poetries.top/img-repo/2019/10/712.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/712.png)
 
 ### 1.2 添加离线资源到项目中
 
 > 在`Xcode`中添加资源到项目中，必须使用`Create folder references`的方式(也就是文件夹的方式)添加`bundle`文件
 夹
 
-![](http://blog.poetries.top/img-repo/2019/10/713.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/713.png)
 
 > 必须使用`Create folder references`的方式添加：
 
-![](http://blog.poetries.top/img-repo/2019/10/714.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/714.png)
 
 > 添加成功后`bundle`文件夹为蓝色（如下图）
 
-![](http://blog.poetries.top/img-repo/2019/10/715.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/715.png)
 
 ### 1.3 修改 AppDelegate.m 文件
 
@@ -87,42 +87,42 @@ categories: Front-End
 
 > 在mac上搜索钥匙串打开
 
-![](http://blog.poetries.top/img-repo/2019/10/726.png)
-![](http://blog.poetries.top/img-repo/2019/10/727.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/726.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/727.png)
 
 > 到 `https://developer.apple.com` 去申请证书
 
-![](http://blog.poetries.top/img-repo/2019/10/728.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/728.png)
 
 > 新建证书
 
-![](http://blog.poetries.top/img-repo/2019/10/729.png)
-![](http://blog.poetries.top/img-repo/2019/10/730.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/729.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/730.png)
 
 > 上传之前的钥匙串文件
 
-![](http://blog.poetries.top/img-repo/2019/10/731.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/731.png)
 
 > 下载证书。双击即可安装到钥匙串中
 
-![](http://blog.poetries.top/img-repo/2019/10/732.png)
-![](http://blog.poetries.top/img-repo/2019/10/733.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/732.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/733.png)
 
 > 新建`Identifiers`
 
-![](http://blog.poetries.top/img-repo/2019/10/734.png)
-![](http://blog.poetries.top/img-repo/2019/10/735.png)
-![](http://blog.poetries.top/img-repo/2019/10/736.png)
-![](http://blog.poetries.top/img-repo/2019/10/737.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/734.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/735.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/736.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/737.png)
 
 > 新增Profiles 把设备证书以及id关联起来
 
-![](http://blog.poetries.top/img-repo/2019/10/738.png)
-![](http://blog.poetries.top/img-repo/2019/10/739.png)
-![](http://blog.poetries.top/img-repo/2019/10/740.png)
-![](http://blog.poetries.top/img-repo/2019/10/741.png)
-![](http://blog.poetries.top/img-repo/2019/10/742.png)
-![](http://blog.poetries.top/img-repo/2019/10/743.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/738.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/739.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/740.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/741.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/742.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/743.png)
 
 > 到此证书部分添加完毕。接下来是根据已经配置的证书去打包。xcode会自动同步证书信息过来
 
@@ -130,43 +130,43 @@ categories: Front-End
 
 1. 在 `Xcode` 添加前面申请证书的开发者账号（`Xcode->Preferences->Accounts`）
 
-![](http://blog.poetries.top/img-repo/2019/10/716.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/716.png)
 
 2. 这里的 `Bundle Idetifier` 应该为之前在开发者平台上添加的 `App ID` 如下图
 
-![](http://blog.poetries.top/img-repo/2019/10/717.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/717.png)
 
 3. 配置一下`code sign` 。选择 `Code Signing Identity` 安装证书
 
 > 程序会自动选择设置
 
-![](http://blog.poetries.top/img-repo/2019/10/718.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/718.png)
 
 > 或者手动选择证书
 
-![](http://blog.poetries.top/img-repo/2019/10/719.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/719.png)
 
 4. 点击设备，选择通用 iOS 设备
 
-![](http://blog.poetries.top/img-repo/2019/10/720.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/720.png)
 
 5. 点击 `Product->Archive` 开始打包
 
 > 打包完成后如下
 
-![](http://blog.poetries.top/img-repo/2019/10/721.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/721.png)
 
 > 点击`distribute App`
 
-![](http://blog.poetries.top/img-repo/2019/10/ionic/16.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/17.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/18.png)
-![](http://blog.poetries.top/img-repo/2019/10/ionic/19.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/16.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/17.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/18.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/ionic/19.png)
 
 
 > 最后打包成`ipa`文件
 
-![](http://blog.poetries.top/img-repo/2019/10/725.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/725.png)
 
 
 ## 四、发布到内测分发平台
@@ -177,7 +177,7 @@ categories: Front-End
 
 > 在Xcode的导航栏上选择`window->Devices and Simulators`，点击弹出页面里面的+号，选择`ipa`所在的文件夹,添加`ipa`，安装成功
 
-![](http://blog.poetries.top/img-repo/2019/10/709.png)
-![](http://blog.poetries.top/img-repo/2019/10/710.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/709.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/710.png)
 
 > 以上只是测试版本打包，打包成`disctibute App`发布版本同理，这里不再赘述

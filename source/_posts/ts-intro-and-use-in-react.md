@@ -34,7 +34,7 @@ var = "poet"
 
 > 首先我们在命令行执行`tsc --init`来生成配置文件，然后我们在目录下看到生成了一个`tsconfig.json`文件
 
-![](http://blog.poetries.top/img-repo/2019/10/545.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/545.png)
 
 > 这个`json`文件里有很多选项
 
@@ -46,7 +46,7 @@ var = "poet"
 
 > 接下来我们需要开启监控了，在`vscode`任务栏中
 
-![](http://blog.poetries.top/img-repo/2019/10/546.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/546.png)
 
 **Typescript在线编辑器**
 
@@ -194,7 +194,7 @@ btn.style.color = "blue";
 > 此时我们发现在`ts`中会报错
 
 
-![](http://blog.poetries.top/img-repo/2019/10/547.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/547.png)
 
 - 因为我们取这个`dom`节点，有可能取到，也有可能没取到，当没取到的时候，相当于是`null`，是没有`style`这个属性的。
 - 那么我们可以给它添加一个类型为`any`
@@ -1507,7 +1507,7 @@ export default reducers;
 
 到目前为止，我们完成了`reducers`的合并了，那么我们看看效果如何，首先我们给`./src/index.tsc`添加`Counter2`组件，这样的目的是与`Counter`组件完全独立，互不影响，但是又能够最终合并到`readucers`
 
-![](http://blog.poetries.top/img-repo/2019/10/548.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/548.png)
 
 ### 2.3 路由
 
@@ -1566,7 +1566,7 @@ ReactDom.render((
 ),document.getElementById("app"))
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/549.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/549.png)
 
 > 但是有个很大的问题，就是我们直接访问`http://localhost:8080/counter`会找不到路由
 

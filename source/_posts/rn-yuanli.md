@@ -44,7 +44,7 @@ categories: Front-End
 
 ## 三、React Native 架构
 
-![](http://blog.poetries.top/img-repo/2019/10/680.jpeg)
+![](https://poetries1.gitee.io/img-repo/2019/10/680.jpeg)
 
 - 绿色的是我们应用开发的部分。我们写的代码基本上都是在这一层
 - 蓝色代表公用的跨平台的代码和工具引擎，一般我们不会动蓝色部分的代码
@@ -237,17 +237,17 @@ categories: Front-End
 
 **内部机制**
 
-![](http://blog.poetries.top/img-repo/2019/10/681.jpg)
+![](https://poetries1.gitee.io/img-repo/2019/10/681.jpg)
 
 **JS用时序**
 
-![](http://blog.poetries.top/img-repo/2019/10/682.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/682.png)
 
 ## 八、总结
 
 ### 8.1 React Native 框架分析
 
-![](http://blog.poetries.top/img-repo/2019/10/683.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/683.png)
 
 ### 8.2 层次架构
 
@@ -312,13 +312,13 @@ ReactReconciler : 用于管理顶层组件或子组件的挂载、卸载、重�
 
 > Java通过注册表调用到CatalystInstance实例，透过ReactBridge的jni，调用到Onload.cpp中的callFunction，最后通过javascriptCore，调用BatchedBridge.js，根据参数｛moduleID,methodID｝require相应Js模块执行。流程如下图：
 
-![](http://blog.poetries.top/img-repo/2019/10/684.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/684.png)
 
 **Js 调用Java**
 
 > 如果消息队列中有等待Java 处理的逻辑，而且 Java 超过 5ms 都没有来取走，那么 JavaScript 就会主动调用 Java 的方法,在需要调用调Java模块方法时，会把参数｛moduleID,methodID｝等数据存在MessageQueue中，等待Java的事件触发，把MessageQueue中的｛moduleID,methodID｝返回给Java，再根据模块注册表找到相应模块处理。流程如下图：
 
-![](http://blog.poetries.top/img-repo/2019/10/685.webp)
+![](https://poetries1.gitee.io/img-repo/2019/10/685.webp)
 
 
 ## 九、更多参考

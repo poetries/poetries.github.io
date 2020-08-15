@@ -59,19 +59,19 @@ react-native run-ios
 - `ctrl + R`刷新
 - `ctrl + D` 选择对应的工具调试
 
-![](http://blog.poetries.top/img-repo/2019/10/513.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/513.png)
 
 **Enable Live Reload**
 
 > 当你的js代码发生变化后，`React Native`会自动生成bundle然后传输到模拟器或手机上
 
-![](http://blog.poetries.top/img-repo/2019/10/514.gif)
+![](https://poetries1.gitee.io/img-repo/2019/10/514.gif)
 
 
 
 > 在浏览器中打开 http://localhost:8081/debugger-ui
 
-![](http://blog.poetries.top/img-repo/2019/10/515.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/515.png)
 
 **巧用Sources面板**
 
@@ -84,7 +84,7 @@ react-native run-ios
 - 你可以使用`--simulator`参数，在其后加上要使用的设备名称来指定要模拟的设备类型（目前默认为`"iPhone X"`）。如果你要模拟 `iPhone 4s`，那么这样运行命令即可：`react-native run-ios --simulator "iPhone 4s"`。
 - 你可以在终端中运行`xcrun simctl list devices`来查看具体可用的设备名称
 
-![](http://blog.poetries.top/img-repo/2019/10/516.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/516.png)
 
 #### 1.1.2 安卓环境搭建
 
@@ -125,14 +125,14 @@ npm install -g yarn react-native-cli
 
 你可以在 `Android Studio` 的欢迎界面中找到 `SDK Manager`。点击"`Configure`"，然后就能看到"`SDK Manager`"。
 
-![](http://blog.poetries.top/img-repo/2019/10/517.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/517.png)
 
 > 在 `SDK Manager `中选择"`SDK Platforms`"选项卡，然后在右下角勾选"`Show Package Details`"。展开`Android 8.1 (Oreo)`选项，确保勾选了下面这些组件（重申你必须使用稳定的翻墙工具，否则可能都看不到这个界面）：
 
 - `Android SDK Platform 27`
 - `Intel x86 Atom_64 System Image`（官方模拟器镜像文件，使用非官方模拟器不需要安装此组件）
 
-![](http://blog.poetries.top/img-repo/2019/10/518.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/518.png)
 
 
 > `SDK Manager` 还可以在` Android Studio` 的"Preferences"菜单中找到。具体路径是`Appearance & Behavior → System Settings → Android SDK`
@@ -140,7 +140,7 @@ npm install -g yarn react-native-cli
 
 - 然后点击"`SDK Tools`"选项卡，同样勾中右下角的"`Show Package Details`"。展开"`Android SDK Build-Tools`"选项，确保选中了 `React Native` 所必须的`27.0.3`版本。你可以同时安装多个其他版本
 
-![](http://blog.poetries.top/img-repo/2019/10/519.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/519.png)
 
 > 最后点击"`Apply`"来下载和安装这些组件。
 
@@ -169,25 +169,25 @@ export PATH=$PATH:$ANDROID_HOME/emulator
 
 **Android Studio自带工具运行**
 
-![](http://blog.poetries.top/img-repo/2019/10/520.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/520.png)
 
 **使用genymotion模拟器**
 
 > 去官网需要注册并下载https://www.genymotion.com/，需要注册登录再下载的。注意下载`with virtualBox`版本，然后安装完成后需要登录，就是刚才注册的账号。登录后进入这个页面做两个操作
 
-![](http://blog.poetries.top/img-repo/2019/10/521.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/521.png)
 
 > 点击`settings`，选择`adb`设置`sdk`就是刚才一直用的`sdk`安装路径,如下
 
-![](http://blog.poetries.top/img-repo/2019/10/522.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/522.png)
 
 > 启动项目，点击`genymotion`里的`start`启动我们刚才安装好的的虚拟设备，是这个样子的，此时我们刚才初始化的项目还没连上虚拟设备
 
-![](http://blog.poetries.top/img-repo/2019/10/523.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/523.png)
 
 > 然后在我们的工程项目里执行`adb devices`会列出当前启动的虚拟设备，能检测到说明没问题，如下图里最后一行显示的就是刚才我们开启的`genymotion`那台虚拟设备
 
-![](http://blog.poetries.top/img-repo/2019/10/524.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/524.png)
 
 
 最后项目目录里执行
@@ -200,17 +200,17 @@ react-native run-android
 
 - 第一次默认不是热加载形式，就是改变文件内容需要手动刷新的，这里设置一下热加载，以后内容这里就会自动刷新，`mac`是执行`command+r`，选择第四个`hot reloading`
 
-![](http://blog.poetries.top/img-repo/2019/10/525.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/525.png)
 
 > 运行`react-native run-andriod` 会下载很多东西，然后出现这个标志说明编译没有问题，还缺少一个模拟设备
 
-![](http://blog.poetries.top/img-repo/2019/10/526.png)
-![](http://blog.poetries.top/img-repo/2019/10/527.png)
-![](http://blog.poetries.top/img-repo/2019/10/528.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/526.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/527.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/528.png)
 
 **如果是安卓5.0以下需要配置一下IP**
 
-![](http://blog.poetries.top/img-repo/2019/10/529.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/529.png)
 
 ### 1.2 安卓设备真机调试
 
@@ -222,7 +222,7 @@ react-native run-android
 
 > 下面检查你的设备是否能正确连接到 `ADB（Android Debug Bridge）`，使用`adb devices`命令：
 
-![](http://blog.poetries.top/img-repo/2019/10/530.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/530.png)
 
 **3. 运行应用**
 
@@ -233,7 +233,7 @@ react-native run-android
 - 运行`adb reverse tcp:8081 tcp:8081`
 - 在命令行执行 `adb shell input keyevent 82`弹出开发者工具。打开热更新和远程调试
 
-![](http://blog.poetries.top/img-repo/2019/10/531.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/531.png)
 
 ### 1.3 移除vscode装饰器报错
 
@@ -280,7 +280,7 @@ rnpm link react-native-vector-icons
 
 > 找到项目`node_modules/react-native-vector-icons/Fonts`，里面有很多已经内置的图标库字体文件，依照自己的需求，复制你需要的字体文件到 `android/app/src/main/assets/fonts`，（如果没有这个目录就自行创建）
 
-![](http://blog.poetries.top/img-repo/2019/10/532.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/532.png)
 
 
 - 第二步：配置 `android/settings.gradle`
@@ -322,21 +322,21 @@ import com.oblador.vectoricons.VectorIconsPackage;
 
 
 
-![](http://blog.poetries.top/img-repo/2019/10/533.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/533.png)
 
 ### 2.2 IOS平台
 
 > 打开你的`Xcode`项目工程，右键工程文件，选择`react`项目下的`node_modules/react-native-vector-icons/Fonts`文件
 
-![](http://blog.poetries.top/img-repo/2019/10/534.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/534.png)
 
 **在xcode的Info.plist文件中,加入: Fonts provided by application数组**
 
-![](http://blog.poetries.top/img-repo/2019/10/535.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/535.png)
 
 > 打开终端，输入：`rnpm link`，回车后会看到`Fonts provided by application`下加入如下字体
 
-![](http://blog.poetries.top/img-repo/2019/10/536.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/536.png)
 
 > 重新运行`react`项目，终端输入：`react-native run-ios`，可以看到效果了
 
@@ -521,7 +521,7 @@ export default class PageTwo extends Component {
 
 运行就可以看到下面的效果：
 
-![](http://blog.poetries.top/img-repo/2019/10/537.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/537.png)
 
 简单就完成了两个页面之间的切换
 
@@ -633,7 +633,7 @@ const Root = () => {
 此时运行就可以看到页面数据传递的效果了
 
 
-![](http://blog.poetries.top/img-repo/2019/10/538.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/538.png)
 
 > 可以看到从 `PageThree` 回到 `PageTwo` 数据传递并刷新页面的效果，不过如果需要实时刷新当前页面呢？这时就需要使用 `Actions.refresh` 方法了
 
@@ -711,7 +711,7 @@ const Root = () => {
 };
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/539.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/539.png)
 
 ### 3.3 react-native-router-flux之API
 
@@ -1623,7 +1623,7 @@ class HomeScreen extends React.Component {
 
 > 找到根目录`/android/app/src/main/res`
 
-![](http://blog.poetries.top/img-repo/2019/10/540.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/540.png)
 
 **启动页**
 
@@ -1631,7 +1631,7 @@ class HomeScreen extends React.Component {
 > - 使用插件 `import SplashScreen from 'react-native-splash-screen';`
 > - https://github.com/crazycodeboy/react-native-splash-screen
 
-![](http://blog.poetries.top/img-repo/2019/10/541.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/541.png)
 
 **react-native ios端icon和启动图的设置**
 
@@ -1645,7 +1645,7 @@ class HomeScreen extends React.Component {
 keytool -genkey -v -keystore my-release-key.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/542.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/542.png)
 
 ```
 MYAPP_RELEASE_STORE_FILE=my-release-key.keystore
@@ -1677,11 +1677,11 @@ signingConfigs {
  ```
  
  
- ![](http://blog.poetries.top/img-repo/2019/10/543.png)
+ ![](https://poetries1.gitee.io/img-repo/2019/10/543.png)
  
  **3. 减少打包apk大小**
  
-![](http://blog.poetries.top/img-repo/2019/10/544.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/544.png)
  
 
  **4. 输出目录**

@@ -189,7 +189,7 @@ require("./image.png");
   - `output` 出口 让`webpack`把处理完成的文件放在哪里
   - `module` 模块 要用什么不同的模块来处理各种类型的文件
 
-![](http://blog.poetries.top/img-repo/2019/10/661.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/661.png)
 
 ### 2.4 安装
 ---

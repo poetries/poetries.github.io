@@ -9,7 +9,7 @@ categories: Front-End
 
 > iOS证书配置
 
-![](http://blog.poetries.top/img-repo/2019/10/693.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/693.png)
 
 ## 一、Overview
 
@@ -40,7 +40,7 @@ categories: Front-End
 
 > ps:打`Ad-hoc`包的时候，如果遇到刚添加的设备`UDID`没添加进去，可以将开发模式的配置文件下载下来，打包后直接选中即可
 
-![](http://blog.poetries.top/img-repo/2019/10/694.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/694.png)
 
 在配置证书之前我们需要有一个开发账号。个人账号和公司账号类似，每年都需要支付99刀，其中公司账号需要邓白氏编码而个人账号并不需要。
 
@@ -56,11 +56,11 @@ categories: Front-End
 
 **1、打开电脑上的钥匙串访问，选中证书助理；**
 
-![](http://blog.poetries.top/img-repo/2019/10/695.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/695.png)
 
 **2、用户电子邮件地址填开发者账号的邮箱，名称可以随意填，然后保存到磁盘上。**
 
-![](http://blog.poetries.top/img-repo/2019/10/696.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/696.png)
 
 **3、Keychain将生成一个包含开发者身份信息的CSR（Certificate Signing Request）文件。同时，Keychain Access->Keys（密钥）中增加一对Public/Private Key Pair**
 
@@ -68,11 +68,11 @@ categories: Front-End
 
 **1、登录苹果开发者中心,或者直接登录Apple Member Center选择Certificates,Identifiers & Profiles**
 
-![](http://blog.poetries.top/img-repo/2019/10/697.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/697.png)
 
 **2、选择Identifiers 中的 App IDs，然后点上方的加号；**
 
-![](http://blog.poetries.top/img-repo/2019/10/698.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/698.png)
 
 **3、添加App ID Description和Bundle ID**
 
@@ -87,15 +87,15 @@ categories: Front-End
 
 **1、选择Certificates,然后选择上方的加号；**
 
-![](http://blog.poetries.top/img-repo/2019/10/699.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/699.png)
 
 **2、选择相应的证书，因为开发调试证书、生产发布证书、开发环境推送证书、生产环境推送证书基本都类似，所以这里只选择开发调试证书为例。**
 
-![](http://blog.poetries.top/img-repo/2019/10/699.jpg)
+![](https://poetries1.gitee.io/img-repo/2019/10/699.jpg)
 
 **3、一路点击Continue, 到Generate后选择一开始生成的CSR文件上传，然后再继续点击Continue**
 
-![](http://blog.poetries.top/img-repo/2019/10/701.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/701.png)
 
 **4、生成完开发调试、生成调试证书 和 开发环境推送证书、生成环境推送证书，可以在“Certificates”->“All”中查看该证书，并进行下载或删除**
 
@@ -110,30 +110,30 @@ categories: Front-End
 
 **1、由上一步创建了开发环境的推送证书和生成环境的推送证书，下载到电脑上后，直接双击即可安装到钥匙串中。**
 
-![](http://blog.poetries.top/img-repo/2019/10/702.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/702.png)
 
 **2、选中相应证书（开发环境推送证书或生成环境推送证书）右键 导出；**
 
-![](http://blog.poetries.top/img-repo/2019/10/703.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/703.png)
 
 **3、点击存储后需要输入密码，密码要记住，上传到友盟（极光）后台时，需要用到**
 
-![](http://blog.poetries.top/img-repo/2019/10/704.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/704.png)
 
 ### 创建配置文件（Provisioning Profiles）
 
 **1、选中Provisioning Profiles 然后选中上方的加号。**
 
-![](http://blog.poetries.top/img-repo/2019/10/705.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/705.png)
 
 **2、配置文件也分为开发和发布，我们这里以Ad Hoc为例，因为我们打测试包的时候，如果有些设备的UDID未添加进配置文件中，我们需要下载配置文件手动选择。而其他的的配置文件目前的Xcode会自动请求，所以一般不需要我们自己手动创建**
 
-![](http://blog.poetries.top/img-repo/2019/10/706.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/706.png)
 
 **3、选择刚创建的App ID,选择相应证书、选择测试的设备，然后创建名称一直点击Continue即可，最后下载下来**
 
-![](http://blog.poetries.top/img-repo/2019/10/707.png)
-![](http://blog.poetries.top/img-repo/2019/10/708.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/707.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/708.png)
 
 到此为止证书和配置文件之类的都创建完了~~
 

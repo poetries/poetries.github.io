@@ -69,7 +69,7 @@ cordova create cordovademo02  com.baidu.cordova  Cordovademo
 - 修改`config.xml`里面的包名称
 - 修改完成以后重新执行`cordova platform add android`
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/2.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/2.png)
 
 > cd 到项目里面 `cd cordovademo02`
 
@@ -78,35 +78,35 @@ cordova create cordovademo02  com.baidu.cordova  Cordovademo
 
 > 导入`platform`下的`Android`文件
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/3.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/3.png)
 
 **导入android studio可能遇到的错误解决方法**
 
 1. 导入后提示：`Android Studio Error:Connection timed out: connect`
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/4.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/4.png)
 
 > 解决方案参考：https://blog.csdn.net/u013020000/article/details/73159754
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/5.png)
-![](http://blog.poetries.top/img-repo/2019/10/cordova/6.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/5.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/6.png)
 
 2. 遇到错误 `failed  to  find with hash string  'android-26'`
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/7.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/7.png)
 
 > 解决方案点击 图上蓝色链接进行安装
 
 3. `Gradle build` 没有反应如
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/8.png)
-![](http://blog.poetries.top/img-repo/2019/10/cordova/9.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/8.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/9.png)
 
 > 解决方案 ：点击`build`见图箭头。如果有下载内容 耐心等待 （30分钟-2小时）
 
 4. 提示 `please configure Android SDK`
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/10.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/10.png)
 
 > 解决方案：点击蓝色 `configure`，然后选择对应的sdk   （前提是sdk已经安装）
 
@@ -115,7 +115,7 @@ cordova create cordovademo02  com.baidu.cordova  Cordovademo
 - 关闭或者卸载自己电脑上面的360手机助手或者其他连手机的软件
 - 安装你手机对应的`sdk`
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/11.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/11.png)
 
 > 建议 `android 5-到android8` sdk都安装 （安装sdk  ： Tools->SDK Manager）
 
@@ -123,7 +123,7 @@ cordova create cordovademo02  com.baidu.cordova  Cordovademo
 
 > 查看当前连接上的手机
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/12.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/12.png)
 
 - 手机必须开启调试模式（百度搜 xxx手机开启调试模式）
 - 手机拔下来重启`android studio`，重新插入手机重试
@@ -279,11 +279,11 @@ vue init webpack-simple  #项目名称
 - 修改：`config/index.js` 把 `assetsPublicPath: '/'`,	
 - 修改成 `assetsPublicPath: './'`
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/14.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/14.png)
 
 > ios下打开效果。这样很方便打包原有的项目为app
 
-![](http://blog.poetries.top/img-repo/2019/10/cordova/16.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/cordova/16.png)
 
 ### 4.2 vue调用cordova插件
 

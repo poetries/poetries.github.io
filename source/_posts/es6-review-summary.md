@@ -7,7 +7,7 @@ tags:
 categories: Front-End
 ---
 
-![](http://blog.poetries.top/img-repo/2019/11/123.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/123.png)
 
 ## 一、前言
 
@@ -16,11 +16,11 @@ categories: Front-End
 
 > 所以有些文章上提到的ES7(实质上是ES2016)、ES8(实质上是ES2017)、ES9(实质上是ES2018)、ES10(实质上是ES2019)，实质上都是一些不规范的概念。从ES1到ES6，每个标准都是花了好几年甚至十多年才制定下来，你一个ES6到ES7，ES7到ES8，才用了一年，按照这样的定义下去，那不是很快就ES20了。用正确的概念来说ES6目前涵盖了ES2015、ES2016、ES2017、ES2018、ES2019
 
-![](http://blog.poetries.top/img-repo/2019/11/124.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/124.png)
 
 ## 二、ES2015
 
-![](http://blog.poetries.top/img-repo/2019/11/125.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/125.png)
 
 ### 声明
 
@@ -987,7 +987,7 @@ print().next("hello");
 
 ## ES2016
 
-![](http://blog.poetries.top/img-repo/2019/11/126.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/126.png)
 
 ### 数值扩展
 
@@ -999,7 +999,7 @@ print().next("hello");
 
 ## ES2017
 
-![](http://blog.poetries.top/img-repo/2019/11/127.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/127.png)
 
 **声明**
  
@@ -1066,7 +1066,7 @@ print().next("hello");
 ## ES2018
 
 
-![](http://blog.poetries.top/img-repo/2019/11/128.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/128.png)
 
 ### 字符串扩展
 
@@ -1111,7 +1111,7 @@ print().next("hello");
 
 ## ES2019
 
-![](http://blog.poetries.top/img-repo/2019/11/129.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/129.png)
 
 ### 字符串扩展
 
@@ -1140,7 +1140,7 @@ print().next("hello");
 
 ## ES提案
 
-![](http://blog.poetries.top/img-repo/2019/11/130.png)
+![](https://poetries1.gitee.io/img-repo/2019/11/130.png)
 
 ### 声明
 

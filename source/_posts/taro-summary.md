@@ -8,11 +8,11 @@ categories: Front-End
 
 ## 一、小程序开发框架
 
-![image.png](http://blog.poetries.top/img-repo/20190930/1.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/1.png)
 
 **Vue-like、React-like 代码，如何在小程序中运行?**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/2.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/2.png)
 
 
 ### 1.1 基本原理
@@ -25,18 +25,18 @@ categories: Front-End
 > 源代码->词法/语法/语义分析->抽象语法树->转换->目标代码
 
 
-![image.png](http://blog.poetries.top/img-repo/20190930/3.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/3.png)
 
 
 **抽象语法树 AST**
 
 
-![image.png](http://blog.poetries.top/img-repo/20190930/4.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/4.png)
 
 
 ### 1.2 小程序框架多端支持情况
 
-![image.png](http://blog.poetries.top/img-repo/20190930/5.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/5.png)
 
 
 ## 二、Taro原理
@@ -44,18 +44,18 @@ categories: Front-End
 > Taro: 多端统一开发框架，支持用 React 的开发方式编写一次代
 码，生成能运行在微信小程序、H5、React Native 等的应用
 
-![image.png](http://blog.poetries.top/img-repo/20190930/6.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/7.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/8.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/9.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/6.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/7.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/8.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/9.png)
 
 
 **多端能力：提供对应端的runtime、组件、redux、router等实现**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/10.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/11.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/12.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/13.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/10.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/11.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/12.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/13.png)
 
 - 提供相应端的 `Runtime` 实现，具备适配 `API` 的能力
 - 提供统一的基础组件，编译时替换为相应端的组件实现
@@ -66,27 +66,27 @@ categories: Front-End
 
 **1、React-like，不完全等同 React**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/14.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/14.png)
 
 
 **2、端能力差异不可避免：某些功能在相应端上没有支持**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/15.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/15.png)
 
 **3、样式支持、写法上存在差异**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/16.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/17.png)
-![image.png](http://blog.poetries.top/img-repo/20190930/18.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/16.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/17.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/18.png)
 
 **4、还没有真正支持多端的 UI 组件库能在 Taro 上使用**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/19.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/19.png)
 
 
 **5、React Native 的 view 不支持 click 事件，需要用 Touchable 组件**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/20.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/20.png)
 
 **6、React Native 不支持 text-overflow，而是提供原生支持（Text 组件传入 numberOfLines={num} 属性）**
 
@@ -97,7 +97,7 @@ categories: Front-End
 - 主要差异1: 小程序的页面、组件样式都是独立的，H5会受同名样式影响
 - 主要差异2: 小程序的组件多了一层标签
 
-![image.png](http://blog.poetries.top/img-repo/20190930/21.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/21.png)
 
 **7、多端要求较高**
 
@@ -107,7 +107,7 @@ categories: Front-End
 
 **8、多端填坑方式**
 
-![image.png](http://blog.poetries.top/img-repo/20190930/22.png)
+![image.png](https://poetries1.gitee.io/img-repo/20190930/22.png)
 
 **多端实践经验**
 

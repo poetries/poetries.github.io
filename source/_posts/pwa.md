@@ -104,7 +104,7 @@ categories: Front-End
 
 > `Service Worker` 是 Chrome 团队提出和力推的一个 WEB API，用于给 web 应用提供高级的可持续的后台处理能力
 
-![](http://blog.poetries.top/img-repo/2019/10/401.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/401.png)
 
 > `Service Workers` 就像介于服务器和网页之间的拦截器，能够拦截进出的HTTP 请求，从而完全控制你的网站
 
@@ -121,7 +121,7 @@ categories: Front-End
 
 ### 2.2.3 生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/402.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/402.png)
 
 > 当用户首次导航至 URL 时，服务器会返回响应的网页。
 
@@ -232,7 +232,7 @@ Clone the request—a request is a stream and can only be consumed once
 
 > chrome浏览器打开`https://googlechrome.github.io/samples/service-worker/basic/index.html`，这是一个实现了`service worker`离线缓存功能的网站，打开调试工具
 
-![](http://blog.poetries.top/img-repo/2019/10/403.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/403.png)
 
 - 勾选可以模拟网站离线情况，勾选后`network`会有一个黄色警告图标，该网站已经离线。此时刷新页面，页面仍然能够正常显示
 - 当前`service worker`的`scope`。它能够拦截`https://googlechrome.github.i`...，同样也能够拦截`https://googlechrome.github.i.`..*/*.html下的请求
@@ -241,7 +241,7 @@ Clone the request—a request is a stream and can only be consumed once
 
 ## 2.3 serice worker实现消息推送
 
-![](http://blog.poetries.top/img-repo/2019/10/404.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/404.png)
 
 - 步骤一、提示用户并获得他们的订阅详细信息
 - 步骤二、将这些详细信息保存在服务器上

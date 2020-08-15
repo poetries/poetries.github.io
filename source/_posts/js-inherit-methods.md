@@ -11,7 +11,7 @@ categories: Front-End
 
 - 原型、实例、构造函数、原型链之间的关系
 
-![](http://blog.poetries.top/img-repo/2019/10/321.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/321.png)
 
 ## 一、借助构造函数实现继承
 

@@ -49,7 +49,7 @@ categories: Front-End
 
 > 打开浏览器的控制面板，随便输入一个`JS`内置的构造器函数，比如`Array`，控制台输出的是一个名为`Array`的函数体，这好像并没有什么稀奇的，但是，当你接着输入`Array.prototype`，控制面板输出了一堆我们经常用到的`Array`构造器的方法，把目光转移到最下方，有一个叫`__proto__`的属性，好奇的点开。列表列出的不是`Object`构造器的方法么，里边有我们非常熟悉的`hasOwnProperty`还有`toString`等方法。如果`Array`是构造器，那么控制面板输出的`Array.prototype`的所有属性中`constructor`又是什么构造器？点开看看，之后就像身处德罗斯特效应中一样，`__proto__`和`constructor`，还有`Array`构造器中常用的方法名不断的出现，一层套一层，一层层展开，没有尽头
 
-![](http://blog.poetries.top/img-repo/2019/10/343.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/343.png)
 
 > 拿`Array`举例，`Array.prototype`中有一个`constructor`属性，这个属性的值就是`Array`构造器自己
 
@@ -181,11 +181,11 @@ let a = { b: 1 }
 
 > `JS`内置的构造器函数都可以使用`new`关键字实例化一个对象，我们称实例化后的这个对象就是某某构造器的一个实例
 
-![](http://blog.poetries.top/img-repo/2019/10/344.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/344.png)
 
 > 我们试试`JSON` 和`Math` 能不能实例化对象
 
-![](http://blog.poetries.top/img-repo/2019/10/345.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/345.png)
 
 > `JSON`和`Math`不是构造器函数，他们是普通的对象。只有构造器函数才能使用`new `关键字实例化一个对象，而`JSON`和`Math`已经是对象了，所以我们可以不用实例化直接使用`JSON`和`Math`中的属性和方法
 

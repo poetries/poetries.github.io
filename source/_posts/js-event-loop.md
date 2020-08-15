@@ -33,7 +33,7 @@ categories: Front-End
 
 主线程和任务队列的示意图
 
-![](http://blog.poetries.top/img-repo/2019/10/316.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/316.png)
 
 > 只要主线程空了，就会去读取"任务队列"，这就是`JavaScript`的运行机制。这个过程会不断重复
 
@@ -50,7 +50,7 @@ categories: Front-End
 
 > 主线程从"任务队列"中读取事件，这个过程是循环不断的，所以整个的这种运行机制又称为Event Loop（事件循环）
 
-![](http://blog.poetries.top/img-repo/2019/10/317.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/317.png)
 
 > 上图中，主线程运行的时候，产生堆（heap）和栈（stack），栈中的代码调用各种外部API，它们在"任务队列"中加入各种事件（click，load，done）。只要栈中的代码执行完毕，主线程就会去读取"任务队列"，依次执行那些事件所对应的回调函数
 
@@ -123,7 +123,7 @@ console.log('script end');
 - `Node.js`也是单线程的`Event Loop`，但是它的运行机制不同于浏览器环境
 - `Node` 的 `Event loop` 分为`6`个阶段，它们会按照顺序反复运行
 
-![](http://blog.poetries.top/img-repo/2019/10/318.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/318.png)
 
 ### 5.1 Node.js的运行机制
 

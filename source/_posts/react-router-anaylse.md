@@ -288,7 +288,7 @@ React.render(<App />, document.body)
 
 ### 2.3 用户点击了Link组件后路由系统中到底发生了哪些变化
 
-![](http://blog.poetries.top/img-repo/2019/10/429.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/429.png)
 
 > `Link` 组件最终会渲染为 `HTML` 标签 `<a>`，它的 `to`、`query`、`hash`属性会被组合在一起并渲染为 `href` 属性。虽然 `Link` 被渲染为超链接，但在内部实现上使用脚本拦截了浏览器的默认行为，然后调用了`history.pushState` 方法
 
@@ -306,6 +306,6 @@ nextState = {
 
 > 在 `Router` 组件的 `componentWillMount` 生命周期方法中调用了 `history.listen(listener)` 方法。`listener` 会在上述 `matchRoutes` 方法执行成功后执行`listener(nextState)`，`nextState`对象每个属性的具体含义已经在上述代码中注释，接下来执行`this.setState(nextState)` 就可以实现重新渲染 `Router`组件。举个简单的例子，当 URL（准确的说应该是 `location.pathname`） 为 `/archives/posts` 时，应用的匹配结果如下图所示
 
-![](http://blog.poetries.top/img-repo/2019/10/430.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/430.png)
 
 > 到这里，系统已经完成了当用户点击一个由 `Link` 组件渲染出的超链接到页面刷新的全过程

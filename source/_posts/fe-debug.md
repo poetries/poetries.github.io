@@ -11,7 +11,7 @@ Chrome 开发者工具有很多重要的面板，比如与性能相关的有网�
 
 你可以在浏览器窗口的右上方选择 `Chrome` 菜单，然后选择“更多工具–> 开发者工具”来打开` Chrome` 开发者工具。打开的页面如下图所示
 
-![](http://blog.poetries.top/img-repo/2020/03/7.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/7.png)
 
 从图中可以看出，它一共包含了 10 个功能面板，包括了 
 
@@ -28,7 +28,7 @@ Chrome 开发者工具有很多重要的面板，比如与性能相关的有网�
 
 **10 个面板的大致功能**
 
-![](http://blog.poetries.top/img-repo/2020/03/8.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/8.png)
 
 简单来说，`Chrome` 开发者工具为我们提供了通过界面访问或者编辑 `DOM` 和 `CSSOM` 的能力，还提供了强大的调试功能和查看性能指标的能力。
 
@@ -62,13 +62,13 @@ console.log("%c我是%c自定义样式","font-size:20px;color:green","font-size:
 
 > 网络面板由控制器、过滤器、抓图信息、时间线、详细列表和下载信息概要这 6 个区域构成（如下图所示）
 
-![](http://blog.poetries.top/img-repo/2020/03/9.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/9.png)
 
 1. 控制器
 
 其中，控制器有 4 个比较重要的功能，我们按照下文中的这张图来简单介绍下
 
-![](http://blog.poetries.top/img-repo/2020/03/10.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/10.png)
 
 - 红色圆点的按钮，表示“开始 / 暂停抓包”，这个功能很常见，很容易理解
 - “全局搜索”按钮，这个功能就非常重要了，可以在所有下载资源中搜索相关内容，还可以快速定位到某几个你想要的文件上
@@ -112,13 +112,13 @@ console.log("%c我是%c自定义样式","font-size:20px;color:green","font-size:
 
 另外，你也可以按照列表的属性来给列表排序，默认情况下，列表是按请求发起的时间来排序的，最早发起请求的资源在顶部。当然也可以按照返回状态码、请求类型、请求时长、内容大小等基础属性排序，只需点击相应属性即可。
 
-![](http://blog.poetries.top/img-repo/2020/03/11.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/11.png)
 
 2. 详细信息
 
 如果你选中详细列表中的一项，右边就会出现该项的详细信息，如下所示：
 
-![](http://blog.poetries.top/img-repo/2020/03/12.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/12.png)
 
 你可以在此查看请求列表中任意一项的请求行和请求头信息，还可以查看响应行、响应头和响应体。然后你可以根据这些查看的信息来判断你的业务逻辑是否正确，或者有时候也可以用来逆向推导别人网站的业务逻辑。
 
@@ -130,7 +130,7 @@ console.log("%c我是%c自定义样式","font-size:20px;color:green","font-size:
 
 > 那详细列表中是如何表示出这个流程的呢？这就要重点看下时间线面板了
 
-![](http://blog.poetries.top/img-repo/2020/03/14.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/14.png)
 
 **那面板中这各项到底是什么含义呢？**
 
@@ -170,7 +170,7 @@ console.log("%c我是%c自定义样式","font-size:20px;color:green","font-size:
 
 ## 1.3 source面板
 
-![](http://blog.poetries.top/img-repo/2020/03/40.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/40.png)
 
 > 我们可以在这里断点调试JS
 
@@ -192,7 +192,7 @@ console.log("%c我是%c自定义样式","font-size:20px;color:green","font-size:
 - （右粗箭头，点击一下多一个斜线，再次点击就取消了）deactivate breakpoints or activate breakpoints –>禁用断点/启用断点
 - （圆形等号）pause on execution –>暂停执行
 
-![](http://blog.poetries.top/img-repo/2020/03/15.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/15.png)
 
 #### 1.3.1.2 行断点
 
@@ -203,7 +203,7 @@ console.log("%c我是%c自定义样式","font-size:20px;color:green","font-size:
 - 转至代码行。
 - 代码行的左侧是行号列。 点击行号列。 行号列顶部将显示一个蓝色图标。
 
-![](http://blog.poetries.top/img-repo/2020/03/16.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/16.png)
 
 
 **2. 条件代码行断点**
@@ -223,11 +223,11 @@ console.log('c');
 - 右键点击条目可以移除相应的断点。
 - 点击代码可以跳转到断点对应位置
 
-![](http://blog.poetries.top/img-repo/2020/03/17.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/17.png)
 
 > 右键点击 Breakpoints 窗格中的任意位置可以取消激活所有断点、停用所有断点，或移除所有断点。 停用所有断点相当于取消选中每个断点。 取消激活所有断点可让 DevTools 忽略所有代码行断点，但同时会继续保持其启用状态，以使这些断点的状态与取消激活之前相同。
 
-![](http://blog.poetries.top/img-repo/2020/03/18.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/18.png)
 
 #### 1.3.1.3 DOM 更改断点
 
@@ -242,11 +242,11 @@ console.log('c');
 > - Attributes modifications：在当前所选节点上添加或移除属性，或属性值发生变化时触发这类断点。
 > - Node Removal：在移除当前选定的节点时会触发
 
-![](http://blog.poetries.top/img-repo/2020/03/19.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/19.png)
 
 > 图为DOM断点在source面板的窗格
 
-![](http://blog.poetries.top/img-repo/2020/03/20.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/20.png)
 
 
 #### 1.3.1.4 XHR/Fetch 断点
@@ -257,7 +257,7 @@ console.log('c');
 - 输入要对其设置断点的字符串。 `DevTools `会在 XHR 的请求网址的任意位置显示此字符串时暂停。
 - 按 Enter 键以确认。
 
-![](http://blog.poetries.top/img-repo/2020/03/21.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/21.png)
 
 #### 1.3.1.5 事件侦听器断点
 
@@ -265,7 +265,7 @@ console.log('c');
 - 展开 `Event Listener Breakpoints` 窗格。 `DevTools` 会显示 `Animation` 等事件类别列表。
 - 勾选这些类别之一以在触发该类别的任何事件时暂停，或者展开类别并勾选特定事件
 
-![](http://blog.poetries.top/img-repo/2020/03/22.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/22.png)
 
 #### 1.3.1.6 异常断点
 
@@ -274,13 +274,13 @@ console.log('c');
 - 点击 Sources 标签。
 - 点击 Pause on exceptions 引发异常时暂停。 启用后，此按钮变为蓝色
 
-![](http://blog.poetries.top/img-repo/2020/03/23.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/23.png)
 
 ### 1.3.2 Filesystem
 
 > 在 Chrome DevTools上调试 css 或 JavaScript时，修改的属性值在重新刷新页面时，所有的修改都会被重置。如果你想把修改的值保存下来并且同步到本地，可以使用Source的Filesystem，来与本地目录进行映射，前提是必须拥有，如果本地没有代码，那么更改不会被保存同步
 
-![](http://blog.poetries.top/img-repo/2020/03/24.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/24.png)
 
 ### 1.3.3 Overrides
 
@@ -346,8 +346,8 @@ new VConsole(option) // 初始化
 
 > 在手动 new 实例化之前，`vConsole` 不会被插入到网页中
 
-![](http://blog.poetries.top/img-repo/2020/03/25.png)
-![](http://blog.poetries.top/img-repo/2020/03/26.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/25.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/26.png)
 
 
 **日志类型**
@@ -420,8 +420,8 @@ xhr.send();
 - 是 app 中的一个组件（ app 可以有 webview ，也可以没有）
 - 用于加载 h5 页面，即一个小型的浏览器内核
 
-![](http://blog.poetries.top/img-repo/2020/03/27.png)
-![](http://blog.poetries.top/img-repo/2020/03/28.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/27.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/28.png)
 
 ## 3.2 原理
 
@@ -432,7 +432,7 @@ xhr.send();
 - 其实在一开始接触 `html`开发，就已经使用了 `file` 协议
 - 只不过你当时没有“协议”“标准”等这些概念
 
-![](http://blog.poetries.top/img-repo/2020/03/29.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/29.png)
 
 ### 3.2.2 具体实现
 
@@ -448,7 +448,7 @@ xhr.send();
 - 客户端在一个 webview 中
 - 使用 file 协议加载静态页面
 
-![](http://blog.poetries.top/img-repo/2020/03/30.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/30.png)
 
 ## 3.3 webview的基本使用
 
@@ -495,9 +495,9 @@ webview.loadUrl(testHTML,'text/html',null)
 3. `Chrome`会自动检测手机上打开的`App`，并列出可调试的`WebView`页面
 4. 点击`Inspect`。出现空白页面的话(国内开发者经常会出现`404 Not Found`错误)
 
-![](http://blog.poetries.top/img-repo/2020/03/45.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/45.png)
 
-![](http://blog.poetries.top/img-repo/2020/03/46.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/46.png)
 
 > 问题就出现在这里，对于国内的程序猿来说，由于无法访问 `https://chrome-devtools-frontend.appspot.com`，只能出现空白页面：
 
@@ -518,7 +518,7 @@ Chrome为什么要去访问那个网址呢？而不是提供本地的解决方�
 - 关闭然后重新打开USB调试开关，刺激一下chrome，我的魅族手机有时需要这样操作一下。
 - 华为手机，打开USB调试和仅充电模式下允许ADB调试。如下图所示
 
-![](http://blog.poetries.top/img-repo/2020/03/42.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/42.png)
 
 > 如果还不行，请安装华为手机助手，插上手机后会提示安装的。不安装的话，可能会出现不稳定的情况。
 
@@ -538,7 +538,7 @@ import android.content.pm.ApplicationInfo;
 import android.webkit.WebView;
 ```
 
-![](http://blog.poetries.top/img-repo/2020/03/44.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/44.png)
 
 > 找到`onCreate()` 方法，添加如下代码
 
@@ -564,10 +564,10 @@ if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 
 > 如果不打开TBS开关，Inspect时会检测不到任何微信的H5页面
 
-![](http://blog.poetries.top/img-repo/2020/03/49.png)
-![](http://blog.poetries.top/img-repo/2020/03/50.png)
-![](http://blog.poetries.top/img-repo/2020/03/47.png)
-![](http://blog.poetries.top/img-repo/2020/03/48.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/49.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/50.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/47.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/48.png)
 
 
 
@@ -582,11 +582,11 @@ if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 
 1. 在iphone中设置safari，开启web检查
 
-![](http://blog.poetries.top/img-repo/2020/03/31.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/31.png)
 
 2. `USB`线连上`Mac`，然后打开Mac中的safari，点开开发者工具，就可以看到你的移动设备，然后可以调试其中的网页和webview
 
-![](http://blog.poetries.top/img-repo/2020/03/32.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/32.png)
 
 > 就这样简单两步，就可对`ios`设备进行真机调试
 
@@ -669,17 +669,17 @@ listen 3000 port: http://localhost:3000
 
 1. 访问`chrome://inspect`
 
-![](http://blog.poetries.top/img-repo/2020/03/debug.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/debug.png)
 
 2. chrome开发者工具，点击node图标也可以进入开发者模式
 
-![](http://blog.poetries.top/img-repo/2020/03/debug2.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/debug2.png)
 
 3. 访问`127.0.0.1:9229/json`元信息中的 `devtoolsFrontendUrl`地址即可
 
 调试工具有四个面板，其实就是开发者工具的定制版，省去了很多没用到的功能  
 
-![](http://blog.poetries.top/img-repo/2020/03/debug3.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/debug3.png)
 
 - `Console`：控制台
 - `Memory`：内存
@@ -688,7 +688,7 @@ listen 3000 port: http://localhost:3000
 
 这里主要介绍sources中设置断点的形式
 
-![](http://blog.poetries.top/img-repo/2020/03/debug4.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/debug4.png)
 
 > 可以看到右侧面板的一些变量的状态，我们也可以在`watch`的那栏添加需要监听的变量
 
@@ -717,13 +717,13 @@ $ ps ax | grep bin/www
 4. 启动项目
 5. 打开 `http://localhost:3000/poetries`
 
-![](http://blog.poetries.top/img-repo/2020/03/debug5.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/debug5.png)
 
 > 把项目跑起来，我们就可以调试代码了，非常方便
 
 进入断点，调试界面如下
 
-![](http://blog.poetries.top/img-repo/2020/03/debug6.png)
+![](https://poetries1.gitee.io/img-repo/2020/03/debug6.png)
 
 - 在界面的左边，可以查看当前上下文环境，也可以设置变量监听
 - 将鼠标防止在断点前的变量或者参数上，也可以查看该变量当前的数值，体验与`Chrome`开发者工具的调试一致

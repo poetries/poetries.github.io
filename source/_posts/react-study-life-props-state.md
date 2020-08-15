@@ -10,12 +10,12 @@ categories: Front-End
 一、什么是生命周期
 ---
 
-![](http://blog.poetries.top/img-repo/2019/10/464.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/464.png)
 
 - 组件本质是状态机，输入确定，输出一定确定
 - 一个`state`对应一个`render`，状态转换的时候会触发不同的函数，从而让开发者有机会做出响应，可以用事件的思路理解状态，但是事件与事件之间没有关联，而状态与状态之间可能会有关联
 
-![](http://blog.poetries.top/img-repo/2019/10/465.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/465.png)
 
 二、初始化阶段
 ---

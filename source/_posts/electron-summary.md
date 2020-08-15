@@ -145,7 +145,7 @@ npm start
 
 ## 3.1 Electron 运行的流程
 
- ![](http://blog.poetries.top/img-repo/20191001/48.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/48.png)
 
 ## 3.2 Electron 主进程和渲染进程
 
@@ -154,9 +154,9 @@ npm start
 - 由于 `Electron` 使用了 `Chromium`(谷歌浏览器)来展示 `web` 页面，所以 `Chromium` 的 多进程架构也被使用到。 每个 `Electron` 中的 `web` 页面运行在它自己的渲染进程中。
 - 主进程使用 `BrowserWindow` 实例创建页面。每个 `BrowserWindow` 实例都在自己的渲 染进程里运行页面。 当一个 `BrowserWindow`实例被销毁后，相应的渲染进程也会被终止
 
- ![](http://blog.poetries.top/img-repo/20191001/49.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/49.png)
 
-![](http://blog.poetries.top/img-repo/20191001/50.png)
+![](https://poetries1.gitee.io/img-repo/20191001/50.png)
 
 
 - 进程:进程是计算机中的程序关于某数据集合上的一次运行活动，是 系统进行资源分配和调度的基本单位，是操作系统结构的基础。
@@ -187,7 +187,7 @@ button.addEventListener('click',function(e){
  mainWindow.webContents.openDevTools();
  ```
  
-![](http://blog.poetries.top/img-repo/20191001/51.png)
+![](https://poetries1.gitee.io/img-repo/20191001/51.png)
 
 
 # 四、Electron 模块介绍
@@ -196,7 +196,7 @@ button.addEventListener('click',function(e){
 
 ## 4.1 Electron 主进程和渲染进程中的模块
 
-![](http://blog.poetries.top/img-repo/20191001/52.png)
+![](https://poetries1.gitee.io/img-repo/20191001/52.png)
 
 ## 4.2 Electron remote 模块
 
@@ -291,12 +291,12 @@ btn.onclick = () => {
 }
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/53.png)
+![](https://poetries1.gitee.io/img-repo/20191001/53.png)
 
 
 # 五、自定义顶部菜单/右键菜单
 
-![](http://blog.poetries.top/img-repo/20191001/54.png)
+![](https://poetries1.gitee.io/img-repo/20191001/54.png)
 
 ## 5.1 主进程中调用Menu模块-自定义软件顶部菜单
 
@@ -373,11 +373,11 @@ const createWindow = () => {
 
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/55.png)
+![](https://poetries1.gitee.io/img-repo/20191001/55.png)
 
 > 我们给菜单绑定事件，在命令行控制台可以看到
 
-![](http://blog.poetries.top/img-repo/20191001/56.png)
+![](https://poetries1.gitee.io/img-repo/20191001/56.png)
 
 ## 5.2 渲染进程中调用Menu模块
 
@@ -471,7 +471,7 @@ window.addEventListener('contextmenu', (e)=>{
 }, false)
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/57.png)
+![](https://poetries1.gitee.io/img-repo/20191001/57.png)
 
 
 **2. 引入**
@@ -484,7 +484,7 @@ window.addEventListener('contextmenu', (e)=>{
 
 # 六、进程通信
 
-![](http://blog.poetries.top/img-repo/20191001/58.png)
+![](https://poetries1.gitee.io/img-repo/20191001/58.png)
 
 - 渲染进程 https://electronjs.org/docs/api/ipc-renderer
 - 主进程 https://electronjs.org/docs/api/ipc-main
@@ -556,7 +556,7 @@ ipcMain.on('sendMsg', (event, data)=> {
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/59.png)
+![](https://poetries1.gitee.io/img-repo/20191001/59.png)
 
 ### 6.1.2 渲染进程发送消息，主进程接收消息并反馈
 
@@ -630,7 +630,7 @@ ipcRenderer.on('sendFeedbackToRender', (e, data)=>{
 ```
 
 
-![](http://blog.poetries.top/img-repo/20191001/60.png)
+![](https://poetries1.gitee.io/img-repo/20191001/60.png)
 
 ### 6.1.3 渲染进程给主进程发送同步消息
 
@@ -684,7 +684,7 @@ ipcMain.on('sendsync', (event, data)=> {
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/61.png)
+![](https://poetries1.gitee.io/img-repo/20191001/61.png)
 
 ### 6.1.4 渲染进程广播通知主进程打开窗口
 
@@ -753,7 +753,7 @@ ipcMain.on('openwindow', (e, data)=> {
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/62.png)
+![](https://poetries1.gitee.io/img-repo/20191001/62.png)
 
 
 ## 6.2 渲染进程与渲染进程之间的通信
@@ -999,13 +999,13 @@ ipcRenderer.on('toNews',(e, userInfo)=>{
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/63.png)
+![](https://poetries1.gitee.io/img-repo/20191001/63.png)
 
-![](http://blog.poetries.top/img-repo/20191001/64.png)
+![](https://poetries1.gitee.io/img-repo/20191001/64.png)
 
 > 那么，这里有一个问题，`news`进程接收到了广播后如何给出反馈呢？
 
-![](http://blog.poetries.top/img-repo/20191001/65.png)
+![](https://poetries1.gitee.io/img-repo/20191001/65.png)
 
 **1. 在主进程中获取窗口ID传递**
 
@@ -1096,11 +1096,11 @@ ipcRenderer.on('toIndex', (e, data)=>{
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/66.png)
+![](https://poetries1.gitee.io/img-repo/20191001/66.png)
 
 # 七、Electron Shell 模块
 
-![](http://blog.poetries.top/img-repo/20191001/67.png)
+![](https://poetries1.gitee.io/img-repo/20191001/67.png)
 
 ## 7.1 Shell 模块使用
 
@@ -1284,12 +1284,12 @@ const createWindow = () => {
 };
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/68.png)
+![](https://poetries1.gitee.io/img-repo/20191001/68.png)
 
 
 # 八、Electron dialog 弹出框
 
-![](http://blog.poetries.top/img-repo/20191001/69.png)
+![](https://poetries1.gitee.io/img-repo/20191001/69.png)
 
 
 > 文档 https://electronjs.org/docs/api/dialog
@@ -1370,7 +1370,7 @@ saveDialog.onclick = function () {
 remote.dialog.showErrorBox('警告', '操作有误')
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/70.png)
+![](https://poetries1.gitee.io/img-repo/20191001/70.png)
 
 **showMessageBox**
 
@@ -1385,7 +1385,7 @@ remote.dialog.showMessageBox({
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/71.png)
+![](https://poetries1.gitee.io/img-repo/20191001/71.png)
 
 **showOpenDialog**
 
@@ -1401,7 +1401,7 @@ remote.dialog.showOpenDialog({
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/72.png)
+![](https://poetries1.gitee.io/img-repo/20191001/72.png)
 
 **showSaveDialog**
 
@@ -1422,7 +1422,7 @@ remote.dialog.showSaveDialog({
 })
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/73.png)
+![](https://poetries1.gitee.io/img-repo/20191001/73.png)
 
 # 九、实现一个类似EditPlus的简易记事本代码编辑器
 
@@ -1431,7 +1431,7 @@ remote.dialog.showSaveDialog({
 
 # 十、系统托盘、托盘右键菜单、托盘图标闪烁 
 
-![](http://blog.poetries.top/img-repo/20191001/74.png)
+![](https://poetries1.gitee.io/img-repo/20191001/74.png)
 
 > 文档 https://electronjs.org/docs/api/tray
 
@@ -1484,7 +1484,7 @@ appIcon.setToolTip('hello poetries');
 appIcon.setContextMenu(menu);
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/75.png)
+![](https://poetries1.gitee.io/img-repo/20191001/75.png)
 
 **3. 监听任务栏图标的单击、双击事件**
 
@@ -1582,7 +1582,7 @@ document.querySelector('#showNotification').onclick = function () {
 
 `mac`上的消息通知
 
-![](http://blog.poetries.top/img-repo/20191001/76.png)
+![](https://poetries1.gitee.io/img-repo/20191001/76.png)
 
 ## 11.2 监听网络变化
 
@@ -1622,7 +1622,7 @@ document.querySelector('#showNotification').onclick = function () {
  });
  ```
  
- ![](http://blog.poetries.top/img-repo/20191001/77.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/77.png)
  
  
 # 十二、注册全局快捷键/剪切板事件/nativeImage 模块
@@ -1632,7 +1632,7 @@ document.querySelector('#showNotification').onclick = function () {
 
 ## 12.1 注册全局快捷键
 
-![](http://blog.poetries.top/img-repo/20191001/78.png)
+![](https://poetries1.gitee.io/img-repo/20191001/78.png)
 
 - [keyboard-shortcuts文档]( https://electronjs.org/docs/tutorial/keyboard-shortcuts)
 - [app模块参考文档](https://electronjs.org/docs/api/app)
@@ -1672,7 +1672,7 @@ require('./main/shortCut.js')
 
 ## 12.2  剪切板clipboard、nativeImage 模块
 
-![](http://blog.poetries.top/img-repo/20191001/79.png)
+![](https://poetries1.gitee.io/img-repo/20191001/79.png)
 
 
 - [剪切板clipboard文档](https://electronjs.org/docs/api/clipboard)
@@ -1768,7 +1768,7 @@ yarn run dev # or npm run dev
 
 **3. electron-vue 目录结构分析**
 
-![](http://blog.poetries.top/img-repo/20191001/80.png)
+![](https://poetries1.gitee.io/img-repo/20191001/80.png)
 
 ## 13.2 electron-vue 中使用 sass/ElementUi
 
@@ -2183,7 +2183,7 @@ npm run build
 
 **1. 修改package.json**
 
-![](http://blog.poetries.top/img-repo/20191001/81.png)
+![](https://poetries1.gitee.io/img-repo/20191001/81.png)
 
 **2. 修改src/index.ejs标题信息**
 
@@ -2203,9 +2203,9 @@ var tray = new Tray(path.join(__static,'favicon.ico'))
 
 **2. 模块问题可能会遇到的错误**
 
-![](http://blog.poetries.top/img-repo/20191001/82.png)
+![](https://poetries1.gitee.io/img-repo/20191001/82.png)
 
-![](http://blog.poetries.top/img-repo/20191001/83.png)
+![](https://poetries1.gitee.io/img-repo/20191001/83.png)
 
 **解决办法**
 
@@ -2215,7 +2215,7 @@ var tray = new Tray(path.join(__static,'favicon.ico'))
 
 > 最后执行`yarn run build`即可
 
-![](http://blog.poetries.top/img-repo/20191001/84.png)
+![](https://poetries1.gitee.io/img-repo/20191001/84.png)
 
 
 > 项目源码 https://github.com/poetries/yuqing-monitor-electron

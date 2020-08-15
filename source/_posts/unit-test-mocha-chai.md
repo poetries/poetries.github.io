@@ -45,7 +45,7 @@ npm install --save-dev mocha chai  istanbul
 
 - 运行`npm run cover`和`npm run cover:check`，就可以生成测试报告，前者生成测试报告，后者则是检查测试覆盖率是否达到要求
 
-![](http://blog.poetries.top/img-repo/2019/10/586.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/586.png)
 
 **配置Istanbul**
 

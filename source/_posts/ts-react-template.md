@@ -95,7 +95,7 @@ render()
 > 但是这时候你会发现有一个错误没有处理
 
 
-![](http://blog.poetries.top/img-repo/2019/10/550.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/550.png)
 
 > 这是因为在`tsconfig`里面没有指定`JSX`的版本，这时候在`tsconfig`的`compilerOptions`中添加`"jsx": "react"`配置项即可消除错误
 
@@ -154,7 +154,7 @@ module.exports = {
 - **编译目标** 这时候我们切回`tsconfig`配置中，会发现在`compilerOptions`配置项的`target`是`es5`，也就是说把`ts`代码编译成`es5`规范的代码，如果不做兼容的话，我们可以将它设置为`es6`，使其编译成`es6`的代码
 - **模块处理** 在`module`项中，会发现生成的是`commonjs`的模块系统，因为不考虑兼容，所以这里我也将其设定为最新的`esnext`，并且将模块处理方式改为用`node`来处理，设置`moduleResolution`项为`node`，不做模块处理方式设置的话可能会有报错
 
-![](http://blog.poetries.top/img-repo/2019/10/551.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/551.png)
 
 
 9. 项目启动
@@ -193,15 +193,15 @@ npm install -D node-sass sass-loader style-loader css-loader
 
 > `webpack`进行`loader`编译的顺序是从下到上的:知道上面的顺序后我们在`webpack`中的配置就非常简单了，直接在`module.rules`下面加上`.scss`文件类型的编译配置即可
 
-![](http://blog.poetries.top/img-repo/2019/10/552.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/552.png)
 
 
 > 查看效果,这时候我们在`src`下面新建一个`index.scss`，然后在`index.tsx`里面引入这个文件查看
 
-![](http://blog.poetries.top/img-repo/2019/10/553.png)
-![](http://blog.poetries.top/img-repo/2019/10/554.png)
-![](http://blog.poetries.top/img-repo/2019/10/555.png)
-![](http://blog.poetries.top/img-repo/2019/10/556.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/553.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/554.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/555.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/556.png)
 
 ## 2.2 支持css module
 
@@ -215,31 +215,31 @@ npm install -D typings-for-css-modules-loader
 
 > 配置`webpack` 这个配置接非常简单了，因为要用`typings-for-css-modules-loader`替代`css-loader`的功能，所以直接替换即可，将前面`sass`的配置修改为如下:
 
-![](http://blog.poetries.top/img-repo/2019/10/557.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/557.png)
 
 
 > 修改为这样既可，但是同时我们也发现一个问题:
 
-![](http://blog.poetries.top/img-repo/2019/10/558.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/558.png)
 
 - 这个问题导致的原因是因为`.scss`文件中并没有类似`export`这样的关键词用于导出一个模块，所以也就导致报错找不到模块，这个问题可以通过`ts`的模块声明(`declare module`)来解决。
 - 解决模块声明问题,这时候我们在根目录下新建一个`typings`文件夹，用于存放`.scss`的模块声明，以及后续需要用到的全局校验接口，然后新建`typed-css-modules.d.ts`文件用于存放`.scss`模块声明，目录结构和声明内容如下
 
-![](http://blog.poetries.top/img-repo/2019/10/559.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/559.png)
 
 > 这个时候回到`index.tsx`文件中你会发现错误标红消失了，然后我们在`index.scss`文件中新增如下代码
 
-![](http://blog.poetries.top/img-repo/2019/10/560.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/560.png)
 
 
 > 保存后你会发现当前目录下新增了一个`index.scss.d.ts`文件，打开里面可以发现是针对每个类名的类型校验，当以后新增类名的时候，`typed-css-modules.d.ts`都会自动在`index.scss.d.ts`里面新增对应的类型校验
 
-![](http://blog.poetries.top/img-repo/2019/10/561.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/561.png)
 
 
 这时候回到页面查看，你会发现类名变成了一个`hash`值，这样可以有效地避免类名全局污染问题
 
-![](http://blog.poetries.top/img-repo/2019/10/562.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/562.png)
 
 
 ## 2.3 配置公共sass属性
@@ -250,44 +250,44 @@ npm install -D typings-for-css-modules-loader
 
 > 首先在`src`目录下新建`styles`文件夹，然后在`styles`文件夹下新建`var.scss`文件用于存放样式变量。 之后在`var.scss`文件里写入一个颜色变量和一个样式:
 
-![](http://blog.poetries.top/img-repo/2019/10/563.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/563.png)
 
 2. 查看效果 
 
 > 然后在`index.scss`文件里面引入`var.scss`，接着就可以直接使用里面的变量了
 
-![](http://blog.poetries.top/img-repo/2019/10/564.png)
-![](http://blog.poetries.top/img-repo/2019/10/565.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/564.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/565.png)
 
 3. 优化
 
 > 上面的效果其实已经达成，但还是存在一个不好的问题，就是在引入`var.scss`的路径上要根据每个文件夹的路径相对来引入非常麻烦，那么我们能否做到只需要`@import var.scss`就行呢？答案是可以的，我们可以使用一个`node-sass`的属性`includePaths`进行路径优化:
 
 
-![](http://blog.poetries.top/img-repo/2019/10/566.png)
-![](http://blog.poetries.top/img-repo/2019/10/567.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/566.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/567.png)
 
 
 ## 2.4 支持装饰器
 
 > 前置工作 在`src`目录下新建一个`components`文件夹，用于存放通用组件，然后在`components`文件及里面新建一个组件`Test`，然后在网页入口引入这个组件，如下图所示:
 
-![](http://blog.poetries.top/img-repo/2019/10/568.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/568.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/569.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/569.png)
 
 > 什么是装饰器，为什么需要装饰器 装饰器本质上就是一个函数，这个函数对类(`class`)本身进行一些处理，也可以将装饰器的写法当做一种语法糖，如果不用装饰器的话，可以写成下图这样
 
-![](http://blog.poetries.top/img-repo/2019/10/570.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/570.png)
 
 > 设置装饰器可用 根据装饰器的语法，我们可以将上面的代码写成如下:
 
-![](http://blog.poetries.top/img-repo/2019/10/571.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/571.png)
 
 
 > 但是你会发现这里报了一个错误，这是因为装饰器语法在`es6`标准中还只是一个提案，并未正式支持，但是在`ts`中，装饰器已经被正式支持了，不用`ts`的可以自行安装`babel`相关包进行支持
 
-![](http://blog.poetries.top/img-repo/2019/10/572.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/572.png)
 
 
 > 那么怎么解决这个错误呢？我们根据错误提示进入到`tsconfig`文件中，将`experimentalDecorators`设置为`true`即可，然后回到页面查看`log`装饰器已经生效了
@@ -311,11 +311,11 @@ import Test from '@comonents/Test'
 
 > 这里针对路径的优化有两种方案，第一种是直接在`webpack.resolve.alias`中进行路径配置:
 
-![](http://blog.poetries.top/img-repo/2019/10/573.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/573.png)
 
 > 但是在这里我们使用了`ts`，所以还需要在`tsconfig`中进行配置:
 
-![](http://blog.poetries.top/img-repo/2019/10/574.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/574.png)
 
 > 这样也能用，不过我们还可以用`tsconfig-paths-webpack-plugin`这个包将`tsconfig`中对路径的设置映射`到webpack`配置中去，这样就不需要在`webpack`中再进行一次路径的配置了，首先安装:
 
@@ -332,11 +332,11 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 
 > 接着在`webpack.resolve`中新增配置项`plugins`(这里要注意的是新增的不是`webpack.plugins`，而是`webpack.resolve.plugins`)，配置如下代码
 
-![](http://blog.poetries.top/img-repo/2019/10/575.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/575.png)
 
 接着我们就可以愉快地使用简化后的路径了：
 
-![](http://blog.poetries.top/img-repo/2019/10/576.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/576.png)
 
 ## 2.6 构建缓存
 
@@ -344,12 +344,12 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 
 - **对比** 我们拿一个较大的项目来看区别。 注: 左边是没有设置构建缓存，右边进行了构建缓存。 首先进行对比的是第一次构建时候的时间花销:
 
-![](http://blog.poetries.top/img-repo/2019/10/577.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/577.png)
 
 
 - 然后是第二次构建的时间花销
 
-![](http://blog.poetries.top/img-repo/2019/10/578.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/578.png)
 
 
 可以看出在第二次构建的时候时间花销减少了百分之五十以上。
@@ -378,15 +378,15 @@ npm install -D cache-loader
 > 然后在对`.scss`文件类型的转换配置中使用它，在这里我们主要是针对转换出来的`css`进行缓存，所以需要写在`typings-for-css-modules-loader`配置的前面:
 
 
-![](http://blog.poetries.top/img-repo/2019/10/579.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/579.png)
 
 > 这样就配置好当前的构建缓存了，当你`npm run dev`的时候会发现根目录下生成了缓存文件`.cache-loader`
 
-![](http://blog.poetries.top/img-repo/2019/10/580.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/580.png)
 
 打开它看会发现有对应的缓存代码:
 
-![](http://blog.poetries.top/img-repo/2019/10/581.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/581.png)
 
 
 # 三、整理杂项
@@ -404,7 +404,7 @@ npm install -D cache-loader
 
 在做这一步的时候首先我们来看看现在的项目结构是怎么样的
 
-![](http://blog.poetries.top/img-repo/2019/10/582.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/582.png)
 
 
 > 那么当前最先需要做的工作就是进行build文件夹下`webapck`的配置项整理

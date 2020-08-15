@@ -23,7 +23,7 @@ categories: Front-End
 1. 安卓下替换`andriod/app/src/main/res/`下的mipmap文件即可
 2. iOS下替换如下
 
-![](http://blog.poetries.top/img-repo/2019/10/750.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/750.png)
 
 **各种尺寸启动图图标生成**
 
@@ -31,13 +31,13 @@ categories: Front-End
 
 1. 安卓下拷贝生成的文件到`andriod/app/src/main/res/`目录下
 
-![](http://blog.poetries.top/img-repo/2019/10/751.png)
-![](http://blog.poetries.top/img-repo/2019/10/750.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/751.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/750.png)
 
 2. iOS下拷贝生成的该文件夹替换即可
 
-![](http://blog.poetries.top/img-repo/2019/10/752.png)
-![](http://blog.poetries.top/img-repo/2019/10/753.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/752.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/753.png)
 
 ## 安卓端
 
@@ -45,7 +45,7 @@ categories: Front-End
 
 > 找到根目录`/android/app/src/main/res`
 
-![](http://blog.poetries.top/img-repo/2019/10/540.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/540.png)
 
 **启动页**
 
@@ -55,7 +55,7 @@ categories: Front-End
 
 > 把生成好的启动页按这个格式处理即可
 
-![](http://blog.poetries.top/img-repo/2019/10/541.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/541.png)
 
 
 ## iOS端
@@ -76,8 +76,8 @@ categories: Front-End
 
 > 这里直接从 Sketch iOS 图标设计模板中选取了一张图片，生成后的结果如下
 
-![](http://blog.poetries.top/img-repo/2019/10/744.png)
-![](http://blog.poetries.top/img-repo/2019/10/745.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/744.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/745.png)
 
 > 我们可以直接用生成好的内容替换默认的图标即可
 
@@ -176,15 +176,15 @@ drawable-xxxhdpi
 
 > 用 XCode 打开项目，选中 `LaunchScreen.xib` 中的 `View`，取消选中 `Use Launch Screen`
 
-![](http://blog.poetries.top/img-repo/2019/10/746.webp)
+![](https://poetries1.gitee.io/img-repo/2019/10/746.webp)
 
 > 选中项目，在 `General` 配置中设置 `Launch Images Srouce`，点击 `Use Asset Catalog`，弹出对话框中使用默认即可（此操作会在 `Images.xcassets` 中创建 `LaunchImage`），然后设置 `Launch Screen File` 为空
 
-![](http://blog.poetries.top/img-repo/2019/10/747.webp)
+![](https://poetries1.gitee.io/img-repo/2019/10/747.webp)
 
-![](http://blog.poetries.top/img-repo/2019/10/754.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/754.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/755.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/755.png)
 
 > 点击 `Images.xcassets > LaunchImage`，在右侧属性栏处选择要支持的设备。接着，添加对应分辨率的图片，分辨率对照如下
 
@@ -210,6 +210,6 @@ drawable-xxxhdpi
 |`xxhdpi:`|`1125*2001`|
 |`xxxhdpi:`|`1500*2668`|
 
-![](http://blog.poetries.top/img-repo/2019/10/748.webp)
+![](https://poetries1.gitee.io/img-repo/2019/10/748.webp)
 
 完成上述操作之后，重新安装 APP 再启动时就可以看到启动页

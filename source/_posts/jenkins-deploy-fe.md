@@ -13,7 +13,7 @@ categories: CI
 
 > 传统的网站部署，大家在运维过程中，网站部署是运维的工作之一，网站部署的流程大致分为：需求分析—原型设计—开发代码—提交测试—内网部署—确认上线—备份数据—外网更新-最终测试，如果发现外网部署的代码有异常，需要及时回滚。（如下图所示）
 
-![](http://blog.poetries.top/img-repo/2020/01/1.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/1.png)
 
 ### 1.2 目前主流网站部署的流程
 
@@ -25,7 +25,7 @@ categories: CI
 - 运维人员：减轻人工干预的错误率，同时解放运维人员繁杂的上传代码、手动备份、更新。
 - 测试人员：可以通过`jenkins`进行简单的代码及网站测试。
 
-![](http://blog.poetries.top/img-repo/2020/01/2.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/2.png)
 
 ### 1.3 Jenkins持续集成简介
 
@@ -127,7 +127,7 @@ COMMIT
 
 > 打开地址 127.0.0.1:8888
 
-![](http://blog.poetries.top/img-repo/2020/01/3.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/3.png)
 
 出现此提示说明，启动成功！因为是第一次安装，所以得输入默认密码，默认密码在红框标注的位置。
 
@@ -141,24 +141,24 @@ COMMIT
 
 **安装插件**
 
-![](http://blog.poetries.top/img-repo/2020/01/4.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/4.png)
 
-![](http://blog.poetries.top/img-repo/2020/01/5.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/5.png)
 
 
 ### 2.2 基础环境配置
 
 #### 2.2.1 插件安装
 
-![](http://blog.poetries.top/img-repo/2020/01/6.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/6.png)
 
 > 安装Publish Over SSH用于执行构建后的操作
 
-![](http://blog.poetries.top/img-repo/2020/01/7.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/7.png)
 
 > 安装nodejs环境
 
-![](http://blog.poetries.top/img-repo/2020/01/8.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/8.png)
 
 #### 2.2.2 配置信息
 
@@ -166,34 +166,34 @@ COMMIT
 
 > whereis git
 
-![](http://blog.poetries.top/img-repo/2020/01/9.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/9.png)
 
 **配置node信息**
 
-![](http://blog.poetries.top/img-repo/2020/01/10.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/10.png)
 
 **配置git账户及ssh用户信息**
 
-![](http://blog.poetries.top/img-repo/2020/01/11.png)
-![](http://blog.poetries.top/img-repo/2020/01/12.png)
-![](http://blog.poetries.top/img-repo/2020/01/13.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/11.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/12.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/13.png)
 
 ### 2.3 创建项目
 
-![](http://blog.poetries.top/img-repo/2020/01/14.png)
-![](http://blog.poetries.top/img-repo/2020/01/15.png)
-![](http://blog.poetries.top/img-repo/2020/01/16.png)
-![](http://blog.poetries.top/img-repo/2020/01/17.png)
-![](http://blog.poetries.top/img-repo/2020/01/18.png)
-![](http://blog.poetries.top/img-repo/2020/01/19.png)
-![](http://blog.poetries.top/img-repo/2020/01/20.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/14.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/15.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/16.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/17.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/18.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/19.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/20.png)
 
 ### 2.4 git提交自动触发构建
 
 > 根据下面填写地址，以`bitbucket git`仓库配置为例子
 
-![](http://blog.poetries.top/img-repo/2020/01/17.png)
-![](http://blog.poetries.top/img-repo/2020/01/21.png)
-![](http://blog.poetries.top/img-repo/2020/01/22.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/17.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/21.png)
+![](https://poetries1.gitee.io/img-repo/2020/01/22.png)
 
 > 这样提交git代码触发`git hooks`操作去请求 `http://192.168.1.43:8991/job/test/build?token=cxk`启动`jenkins`任务，以达成自动部署任务

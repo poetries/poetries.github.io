@@ -21,7 +21,7 @@ categories: Front-End
 
 > `Typescript`和`es6`、`es5`关系
 
-![](http://blog.poetries.top/img-repo/2019/10/583.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/583.png)
 
 **TypeScript 增加了代码的可读性和可维护性**
 
@@ -79,7 +79,7 @@ var = "poet"
 
 > 首先我们在命令行执行`tsc --init`来生成配置文件，然后我们在目录下看到生成了一个`tsconfig.json`文件
 
-![](http://blog.poetries.top/img-repo/2019/10/584.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/584.png)
 
 > 这个`json`文件里有很多选项
 
@@ -91,7 +91,7 @@ var = "poet"
 
 > 接下来我们需要开启监控了，在`vscode`任务栏中
 
-![](http://blog.poetries.top/img-repo/2019/10/585.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/585.png)
 
 
 

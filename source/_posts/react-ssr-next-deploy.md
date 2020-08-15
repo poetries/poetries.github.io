@@ -218,7 +218,7 @@ scp -P36000  -r deployBuildFiles/.next user_00@192.168.1.201:/home/data/services
 
 - 在Nginx目录`/etc/nginx`下执行 `sudo /usr/sbin/nginx -t` 检测配置文件是否成功
 
-![](http://blog.poetries.top/img-repo/2019/10/435.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/435.png)
 
 ```nginx
 upstream goodsapp { // website项目的目录名称
@@ -299,18 +299,18 @@ sudo /usr/local/nginx/sbin/nginx -t
 
 本机`ip`
 
-![](http://blog.poetries.top/img-repo/2019/10/437.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/437.png)
 
 公网`ip`
 
-![](http://blog.poetries.top/img-repo/2019/10/438.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/438.png)
 
 
 - 阿里云防火墙规则设置
 
 > 这里访问了 `8080`需要在阿里云后台配置一下
 
-![](http://blog.poetries.top/img-repo/2019/10/436.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/436.png)
 
 **第二步：pm2部署到服务器**
 
@@ -324,22 +324,22 @@ npm i pm2 -g
 
 > 一定要做建立软链这步，否则出现如下问题
 
-![](http://blog.poetries.top/img-repo/2019/10/439.png)
-![](http://blog.poetries.top/img-repo/2019/10/440.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/439.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/440.png)
 
 
 > 建立`npm` 软链
 
-![](http://blog.poetries.top/img-repo/2019/10/441.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/441.png)
 
 > 建立`node` 软链
 
 
-![](http://blog.poetries.top/img-repo/2019/10/442.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/442.png)
 
 > 建立`pm2` 软链
 
-![](http://blog.poetries.top/img-repo/2019/10/443.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/443.png)
 
 **正式部署**
 
@@ -386,11 +386,11 @@ npm i pm2 -g
 
 - `pm2 list`查看启动的项目
 
-![](http://blog.poetries.top/img-repo/2019/10/444.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/444.png)
 
 - `pm2 logs`查看启动日志
 
-![](http://blog.poetries.top/img-repo/2019/10/445.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/445.png)
 
 > 然后在浏览器访问`http://39.108.74.36:8080`（http://公网ip:端口）即可看到，到此部署结束
 

@@ -94,7 +94,7 @@ console,log(test.clientHeight); // 200
 console.log(test.clientWidth); // 
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/322.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/322.png)
 
 - **小结clientWidth和clientHeight**
 
@@ -269,14 +269,14 @@ document.body.scrollWidth; //
 - 无滚动轴时：
   - scrollWidth = clientWidth = 盒子宽度 + 盒子padding*2 
 
-![](http://blog.poetries.top/img-repo/2019/10/323.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/323.png)
 
 - 有滚动轴时：
   - scrollWidth = 实际内容的宽度 + padding*2
   - scrollHeight = 实际内容的高度 + padding*2
 
 
-![](http://blog.poetries.top/img-repo/2019/10/324.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/324.png)
 
 - **document.body.scrollLeft**
 - **document.body.scrollTop**
@@ -305,7 +305,7 @@ mydiv.scrollTop = 20;
 console.log(mydiv.scrollTop)
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/325.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/325.png)
 
 **obj.style.width和obj.style.height**
 
@@ -342,7 +342,7 @@ console.log(document.documentElement); //html
 console.log(document.body); //body
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/326.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/326.png)
 
 - 兼容问题推荐使用 获取浏览器窗口可视区域大小
 
@@ -354,7 +354,7 @@ document.body.clientHeight || document.documentElement.clientHeight;
 ### 三、Event对象的5种坐标
 ---
 
-![](http://blog.poetries.top/img-repo/2019/10/327.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/327.png)
 
 例：
 
@@ -374,7 +374,7 @@ example.onclick = function(e){
 }
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/328.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/328.png)
 
 ### 四、 js各种宽高的应用
 ---
@@ -382,7 +382,7 @@ example.onclick = function(e){
 - **example1：可视区域加载**
 
 
-![](http://blog.poetries.top/img-repo/2019/10/329.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/329.png)
 
 ```html
 <div id="example1" ></div>
@@ -545,12 +545,12 @@ div.onscroll = divScroll;
 ### 五、js中的宽高属性总结
 
 
-![](http://blog.poetries.top/img-repo/2019/10/330.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/330.png)
 
 ![](https://camo.githubusercontent.com/3318530334bbc8f5e7ce267866c43ba72fa01f32/687474703a2f2f6f61376436647871742e626b742e636c6f7564646e2e636f6d2f626c6f672f696d616765732f3038313734323039323736363338392e6a7067)
 
-![](http://blog.poetries.top/img-repo/2019/10/331.png)
-![](http://blog.poetries.top/img-repo/2019/10/332.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/331.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/332.png)
 
 
 ## 第二部分 jQuery中的宽高属性
@@ -562,22 +562,22 @@ div.onscroll = divScroll;
 - **1.1 width()**
   - 特殊元素`window.document`只可以读，普通元素可以读写，`width()`返回结果无单位，`css("width")`的结果有单位
 
-![](http://blog.poetries.top/img-repo/2019/10/333.png)
-![](http://blog.poetries.top/img-repo/2019/10/334.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/333.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/334.png)
 
 - **1.2 innerWidth()**
   - 包含padding（不推荐window,document调用）
 - **1.3 innerHeight()**
 
-![](http://blog.poetries.top/img-repo/2019/10/335.png)
-![](http://blog.poetries.top/img-repo/2019/10/336.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/335.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/336.png)
 
 - **1.4 outerWidth()**
   - 包含padding和border，当传true时包含marging，不传时不包含marging（不推荐window,document调用）
 - **1.5 outerHeight()**
 
-![](http://blog.poetries.top/img-repo/2019/10/337.png)
-![](http://blog.poetries.top/img-repo/2019/10/338.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/337.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/338.png)
 
 - **1.6 scrollLeft():**
   - 相对于水平滚动条左边的距离，如果滚动条非常左、或者元素不能被滚动，这个值为0；
@@ -590,14 +590,14 @@ div.onscroll = divScroll;
   - 相对于offset parent的当前坐标值(相对于offset parent元素的左上角的left、top的值)
 
 
-![](http://blog.poetries.top/img-repo/2019/10/339.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/339.png)
 
 ### 二、jquery相关宽高举例
 ---
 
 **2.1 exmaple1**
 
-![](http://blog.poetries.top/img-repo/2019/10/340.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/340.png)
 
 ```html
 	<div class="parentDiv">
@@ -669,8 +669,8 @@ console.log('$(".childrenDiv").position().top '+$(".childrenDiv").position().lef
 
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/341.png)
-![](http://blog.poetries.top/img-repo/2019/10/342.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/341.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/342.png)
 
 
 [在线演示](http://codepen.io/poetries/pen/yVRqZO)

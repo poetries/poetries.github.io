@@ -69,7 +69,7 @@ render(
 
 > `styled.h1`函数返回一个`React Component`，`styled components`会为这个`React Component`添加一个`class`，该`class`的值为一个随机字符串。传给styled.h1的模板字符串参数的值实际上是CSS语法，这些CSS会附加到该`React Component`的`class`中，从而为`React Component`添加样式
 
-![](http://blog.poetries.top/img-repo/2019/10/469.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/469.png)
 
 二、基于 props 定制主题
 ---

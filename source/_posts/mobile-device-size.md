@@ -9,4 +9,4 @@ categories: Front-End
 
 > 来源 https://www.paintcodeapp.com/news/ultimate-guide-to-iphone-resolutions
 
-![](http://blog.poetries.top/img-repo/2019/10/348.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/348.png)

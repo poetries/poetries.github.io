@@ -9,10 +9,10 @@ categories: Front-End
 
 > 我们的开发都是围绕着`options`来的
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/1.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/1.png)
 
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/2.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/2.png)
 
 ```html
 <template>
@@ -87,7 +87,7 @@ export default {
 
 ## 二、组件的核心概念-事件
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/3.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/3.png)
 
 ```html
 <template>
@@ -128,7 +128,7 @@ export default {
 
 ## 三、组件的核心概念-插槽
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/4.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/4.png)
 
 ```html
  <a-tab-pane key="slot" tab="插槽">
@@ -187,7 +187,7 @@ export default {
 ```
 
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/5.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/5.png)
 
 **大属性例子**
 
@@ -256,17 +256,17 @@ export default {
 
 ## 四、双向绑定和单项数据流并不冲突
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/6.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/6.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/7.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/7.png)
 
 ## 五、如何触发组件的更新
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/8.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/8.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/9.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/9.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/11.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/11.png)
 
 ## 六、合理应用计算属性和监听器
 
@@ -423,13 +423,13 @@ export default {
 
 ### 7.1 生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/12.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/12.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/13.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/13.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/14.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/14.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/15.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/15.png)
 
 ```html
 <template>
@@ -564,7 +564,7 @@ export default {
 
 ### 8.1 内置指令
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/16.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/16.png)
 
 ```html
 <template>
@@ -612,7 +612,7 @@ export default {
 
 ### 8.2 自定义指令
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/17.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/17.png)
 
 ```html
 <template>
@@ -955,12 +955,12 @@ export default {
 ## 十、为什么需要vuex
 
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/19.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/19.png)
 
 **Vuex运行机制**
 
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/20.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/20.png)
 
 **基本例子**
 
@@ -1036,12 +1036,12 @@ export default {
 
 ### 11.1 核心概念
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/23.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/23.png)
 
 
 ### 11.2 底层原理
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/22.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/22.png)
 
 **简化版本的vuex**
 
@@ -1078,17 +1078,17 @@ export default {Store}
 
 ### 12.1 核心概念
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/23.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/23.png)
 
 ### 12.2 使用常量代替Mutation事件类型
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/24.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/24.png)
 
 ### 12.3 命名空间
 
 > 对所有模块开启命名空间
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/25.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/25.png)
 
 
 ### 12.4 实践例子
@@ -1100,11 +1100,11 @@ export default {Store}
 
 ### 13.1 解决的问题
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/26.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/26.png)
 
 ### 13.2 使用方式
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/27.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/27.png)
 
 ### 13.3 例子
 
@@ -1209,4 +1209,4 @@ export default routes
 
 **原理**
 
-![](http://blog.poetries.top/img-repo/2019/10/vue/28.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/vue/28.png)

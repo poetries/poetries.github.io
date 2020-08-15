@@ -10,11 +10,11 @@ categories: Front-End
 一、编写事件处理函数
 ---
 
-![](http://blog.poetries.top/img-repo/2019/10/456.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/456.png)
 
 - 在函数体中进行一些操作，常见的有：更新页面内容，更新组件状态，与后台交互
 
-![](http://blog.poetries.top/img-repo/2019/10/457.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/457.png)
 
 
 **书写方式**
@@ -102,21 +102,21 @@ ReactDOM.render(<Demo/>,document.getElementById('app'))
 - 通用：所有的事件都有事件属性
 
 
-![](http://blog.poetries.top/img-repo/2019/10/458.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/458.png)
 
 
 - 键盘：键盘事件拥有的事件属性
 
-![](http://blog.poetries.top/img-repo/2019/10/459.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/459.png)
 
 - 鼠标：鼠标事件拥有的事件属性
 
-![](http://blog.poetries.top/img-repo/2019/10/460.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/460.png)
 
 - 滚动：滚动事件拥有的事件属性
   - 为什么会有三个，因为有的设备可以实现三个方向的移动
   
-![](http://blog.poetries.top/img-repo/2019/10/461.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/461.png)
 
 四、事件与状态关联
 ---

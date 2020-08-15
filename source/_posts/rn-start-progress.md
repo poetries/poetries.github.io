@@ -451,7 +451,7 @@ public class CatalystInstanceImpl {
 
 我们先看下源码的结构图
 
-![](http://blog.poetries.top/img-repo/2019/10/677.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/677.png)
 
 ## CatalystInstanceImpl.cpp
 
@@ -686,8 +686,8 @@ runApplication(appKey: string, appParameters: any): void {
 
 ## 系统框架图
 
-![](http://blog.poetries.top/img-repo/2019/10/678.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/678.png)
 
 ## 启动流程图
 
-![](http://blog.poetries.top/img-repo/2019/10/679.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/679.png)

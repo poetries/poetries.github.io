@@ -44,7 +44,7 @@ let wsValue = socketConnect('ws://121.40.165.18:8800'); // websocket对象
 
 > 上述栗子中`WebSocket`的接口地址出自：`WebSocket` 在线测试，在开发的时候也可以用于测试后端给的地址是否可用
 
-![](http://blog.poetries.top/img-repo/2019/10/389.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/389.png)
 
 ## 二、webSocket的class类
 
@@ -326,8 +326,8 @@ server.listen(3000,"127.0.0.1",function(){
 
 > `socket对象`
 
-![](http://blog.poetries.top/img-repo/2019/10/390.png)
-![](http://blog.poetries.top/img-repo/2019/10/391.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/390.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/391.png)
 
 
 
@@ -373,7 +373,7 @@ server.listen(3000,"127.0.0.1",function(){
 });
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/392.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/392.png)
 
 > 每一个连接上来的用户，都有一个 `socket`。由于我们的 `emit` 语句，是 `socket.emit()`发 出的，所以指的是向这个客户端发出语句。
 广播，就是给所有当前连接的用户发送信息:
@@ -398,8 +398,8 @@ io.on('connection',function(socket) {
 })
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/393.png)
-![](http://blog.poetries.top/img-repo/2019/10/394.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/393.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/394.png)
 
 
 

@@ -31,7 +31,7 @@ categories: Front-End
 - 先找到`usr/local`目录，也可以直接命令行完成，建议`windows`可以这样操作，自己`mac`系统直接命令行出现了错误，找不到改目录，于是手动移动安装目录。
 - 主要分为两步，先是打开访达，`command+shift+G`跳转目录
 
-![](http://blog.poetries.top/img-repo/20191001/1.png)
+![](https://poetries1.gitee.io/img-repo/20191001/1.png)
 
 - 编译安装 `sudo make install`
 
@@ -40,18 +40,18 @@ categories: Front-End
 
 > 执行`redis-cli`发现没有连接上
 
-![](http://blog.poetries.top/img-repo/20191001/2.png)
+![](https://poetries1.gitee.io/img-repo/20191001/2.png)
 
 > 修改默认配置文件 `$ vi /usr/local/etc/redis.conf`
 
 - 在安装好`redis`扩展 尝试连接`redis`时，客户端打不开，原因是需要先开启服务端，这需要先配置
 - 找到`redis.conf` 并修改 `daemonize no` 为 `daemonize yes` ，这样就可以默认启动就后台运行
 
-![](http://blog.poetries.top/img-repo/20191001/3.png)
+![](https://poetries1.gitee.io/img-repo/20191001/3.png)
 
 **开启客户端要确保服务端启动**
 
-![](http://blog.poetries.top/img-repo/20191001/4.png)
+![](https://poetries1.gitee.io/img-repo/20191001/4.png)
 
 > 再次执行 `redis-cli`启动客户端
 
@@ -88,7 +88,7 @@ yarn build
 
 **1、启动redis服务**
 
-![](http://blog.poetries.top/img-repo/20191001/4.png)
+![](https://poetries1.gitee.io/img-repo/20191001/4.png)
 
 **2、启动MongoDB服务**
 
@@ -102,13 +102,13 @@ brew services start mongodb
 
 **4、pm2守护进程**
 
-![](http://blog.poetries.top/img-repo/20191001/5.png)
+![](https://poetries1.gitee.io/img-repo/20191001/5.png)
 
-![](http://blog.poetries.top/img-repo/20191001/6.png)
+![](https://poetries1.gitee.io/img-repo/20191001/6.png)
 
 > 打开网址 http://127.0.0.1:7300/
 
-![](http://blog.poetries.top/img-repo/20191001/7.png)
+![](https://poetries1.gitee.io/img-repo/20191001/7.png)
 
 ## 四、Easy Mock 线上项目迁移
 

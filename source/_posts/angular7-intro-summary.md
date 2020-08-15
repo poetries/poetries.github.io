@@ -19,7 +19,7 @@ categories: Front-End
 
 > 目前 2018 年 11 月 25 日 `angular` 最新版本 `angular7.x`。根据官方介绍，`Angular` 每过几个月 就会更新一个版本。此教程同样适用于后期更新的 `Angular8.x`、`Angular9.x` 
 
-![](http://blog.poetries.top/img-repo/20191001/17.png)
+![](https://poetries1.gitee.io/img-repo/20191001/17.png)
 
 
 **学习 Angular 必备基础**
@@ -52,12 +52,12 @@ cnpm install -g @angular/cli
 ```
 > `ng v` 查看版本信息 
 
-![](http://blog.poetries.top/img-repo/20191001/18.png)
+![](https://poetries1.gitee.io/img-repo/20191001/18.png)
 
 
 **4. 安装插件**
 
-![](http://blog.poetries.top/img-repo/20191001/19.png)
+![](https://poetries1.gitee.io/img-repo/20191001/19.png)
 
 
 **5. 安装chrome扩展**
@@ -66,7 +66,7 @@ cnpm install -g @angular/cli
 
 >  用`augury`查看`component`结构，更方便调试
 
-![](http://blog.poetries.top/img-repo/20191001/20.png)
+![](https://poetries1.gitee.io/img-repo/20191001/20.png)
 
 ## 2.2 创建项目
 
@@ -82,7 +82,7 @@ ng serve --open
 
 ## 2.3 目录结构分析
 
-![](http://blog.poetries.top/img-repo/20191001/21.png)
+![](https://poetries1.gitee.io/img-repo/20191001/21.png)
 
 > 详情参考 https://www.angular.cn/guide/file-structure
 
@@ -91,13 +91,13 @@ ng serve --open
 > `app`目录是我们要编写的代码目录。我们写的代码都是放在这个目录。 
 一个`Angular`程序至少需要一个模块和一个组件。在我们新建项目的时候命令行已经默认生成出来了
 
-![](http://blog.poetries.top/img-repo/20191001/22.png)
+![](https://poetries1.gitee.io/img-repo/20191001/22.png)
 
 - `app.component.ts`：这个文件表示组件， 
 - 组件是`Angular`应用的基本构建模块，可以理解为一段带有业务逻辑和数据的`Html` 
 我们来看看`app.component.ts`中的代码，并解释下代码的意义
 
-![](http://blog.poetries.top/img-repo/20191001/23.png)
+![](https://poetries1.gitee.io/img-repo/20191001/23.png)
 
 ```js
 /*这里是从Angular核心模块里面引入了component装饰器*/
@@ -142,7 +142,7 @@ export class AppComponent {
 
 > 组件的中关系就如下图所示
 
-![](http://blog.poetries.top/img-repo/20191001/24.png)
+![](https://poetries1.gitee.io/img-repo/20191001/24.png)
 
 下面我们来看看模块文件 
 
@@ -183,7 +183,7 @@ export class AppModule { }
 
 > 通过`ng g`列出当前命令
 
-![](http://blog.poetries.top/img-repo/20191001/25.png)
+![](https://poetries1.gitee.io/img-repo/20191001/25.png)
 
 **1. 创建新组件 `ng generate component component-name`**
 
@@ -191,7 +191,7 @@ export class AppModule { }
 
 该命令会把生成的组件，添加到 `src/app/app.module.ts` 文件中 `@NgModule` 的 `declarations` 列表中声明
 
-![](http://blog.poetries.top/img-repo/20191001/26.png)
+![](https://poetries1.gitee.io/img-repo/20191001/26.png)
 
 **2. 使用 Angular CLI 创建一个名叫 hero 的服务**
 
@@ -278,7 +278,7 @@ ng g component components/header
 
 > 定义数据几种方式
 
-![](http://blog.poetries.top/img-repo/20191001/27.png)
+![](https://poetries1.gitee.io/img-repo/20191001/27.png)
 
 
 ```html
@@ -314,7 +314,7 @@ ng g component components/header
   <div [id]="id" [title]="msg">调试工具看看我的属性</div>
  ```
  
- ![](http://blog.poetries.top/img-repo/20191001/28.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/28.png)
 
 ## 3.5 数据循环 *ngFor
 
@@ -622,7 +622,7 @@ export class RepeatPipe implements PipeTransform {
 
 ## 3.13 实现一个人员登记表单-案例
 
- ![](http://blog.poetries.top/img-repo/20191001/29.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/29.png)
 
 
 ```bash
@@ -750,7 +750,7 @@ h2{
 
 ## 3.14 实现一个完整的ToDo-案例
 
- ![](http://blog.poetries.top/img-repo/20191001/30.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/30.png)
 
 **基础版**
 
@@ -938,7 +938,7 @@ export class SearchComponent implements OnInit {
 
 > 定义公共的方法，使得方法在组件之间共享调用
 
- ![](http://blog.poetries.top/img-repo/20191001/31.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/31.png)
 
 **1. 创建服务命令**
 
@@ -1142,7 +1142,7 @@ let attrEl = this.myattr.nativeElement;
 }
 ```
 
- ![](http://blog.poetries.top/img-repo/20191001/32.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/32.png)
 
 **3. 父子组件中通过 ViewChild 调用子组件 的方法**
 
@@ -1174,7 +1174,7 @@ let attrEl = this.myattr.nativeElement;
 
 # 六、Angular 父子组件以及组件之间通讯
 
- ![](http://blog.poetries.top/img-repo/20191001/33.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/33.png)
 
 
 ## 6.1 父组件给子组件传值-@input
@@ -1338,7 +1338,7 @@ run(){ this.footer.footerRun();
 - `ngAfterViewInit`
 - `ngAfterViewChecked`
 
- ![](http://blog.poetries.top/img-repo/20191001/34.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/34.png)
 
 **2. 生命周期钩子的作用及调用顺序**
 
@@ -1408,7 +1408,7 @@ export class LifecircleComponent {
 
 > 点击按钮/双向数据绑定此时触发了以下生命周期。只要数据改变
 
- ![](http://blog.poetries.top/img-repo/20191001/35.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/35.png)
 
 
 > 可以在`check`做一些操作
@@ -1468,7 +1468,7 @@ export class AppComponent {
 
 > 此时改变`title`会触发`ngOnChanges`生命周期，并且也会触发
 
- ![](http://blog.poetries.top/img-repo/20191001/36.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/36.png)
 
 
 ### 7.2.3 ngOnInit()--掌握
@@ -1753,26 +1753,26 @@ npm install --save rxjs-compat
 
 **2.1 Imports 方式改变**
 
- ![](http://blog.poetries.top/img-repo/20191001/37.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/37.png)
 
 
 > 从`rxjs`中类似像导入`observable` `subject` 等的不再进一步导入，而是止于`rxjs`, `rxjs6`在包的结构上进行了改变
 
 **2.2 operator的改变**
 
- ![](http://blog.poetries.top/img-repo/20191001/38.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/38.png)
 
 > 总而言之： 类似于创建之类的用的`API`都是从`rxjs`引入的，类似于`map` 之类的操作都是从`rxjs/operators`引入的
 
- ![](http://blog.poetries.top/img-repo/20191001/39.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/39.png)
 
 **2.3 pipeable observable**
 
- ![](http://blog.poetries.top/img-repo/20191001/40.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/40.png)
 
 **2.4 被重新命名的API**
 
- ![](http://blog.poetries.top/img-repo/20191001/41.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/41.png)
 
 > `RXJS6` 改变了包的结构，主要变化在 `import` 方式和 `operator` 上面以及使用 `pipe()`
 

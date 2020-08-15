@@ -7,7 +7,7 @@ tags:
 categories: Front-End
 ---
 
-![](http://blog.poetries.top/img-repo/2019/10/72.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/72.png)
 
 ## 一、hybrid 是什么，为何会用 hybrid
 
@@ -18,7 +18,7 @@ categories: Front-End
 - 某些环节也可能涉及到 `server` 端
 - PS：不要以为自己的前端就可以不理会客户端的知识
 
-![](http://blog.poetries.top/img-repo/2019/10/73.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/73.png)
 
 ### 1.2 hybrid 存在价值
 
@@ -31,20 +31,20 @@ categories: Front-End
 - 是 `app` 中的一个组件（ `app` 可以有 `webview` ，也可以没有）
 - 于加载 `h5` 页面，即一个小型的浏览器内核
 
-![](http://blog.poetries.top/img-repo/2019/10/74.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/74.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/75.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/75.png)
 
 ### 1.4 file 协议
 
 - 其实在一开始接触 `html `开发，就已经使用了 `file` 协议
 - 只不过你当时没有“协议”“标准”等这些概念
 
-![](http://blog.poetries.top/img-repo/2019/10/76.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/76.png)
 
 ### 1.5 http(s) 协议
 
-![](http://blog.poetries.top/img-repo/2019/10/77.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/77.png)
 
 ### 1.6 两者区别
 
@@ -65,17 +65,17 @@ categories: Front-End
 - 客户端在一个 `webview` 中
 - 使用 `file` 协议加载静态页面
 
-![](http://blog.poetries.top/img-repo/2019/10/78.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/78.png)
 
 ## 二、hybrid 更新上线流程
 
 ### 2.1 具体流程图
 
-![](http://blog.poetries.top/img-repo/2019/10/79.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/79.png)
 
 **思考（目的，可行途径）**
 
-![](http://blog.poetries.top/img-repo/2019/10/80.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/80.png)
 
 - 要替换每个客户端的静态文件
 - 只能客户端来做（客户端是我们开发的）
@@ -84,7 +84,7 @@ categories: Front-End
 
 ### 2.2 完整流程
 
-![](http://blog.poetries.top/img-repo/2019/10/81.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/81.png)
 
 - 分版本，有版本号，如 `201803211015`
 - 将静态文件压缩成 `zip `包，上传到服务端
@@ -122,26 +122,26 @@ categories: Front-End
 - `JS` 访问客户端能力，传递参数和回调函数
 - 客户端通过回调函数返回内容
 
-![](http://blog.poetries.top/img-repo/2019/10/82.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/82.png)
 
 ### 4.2 schema 协议简介和使用
 
 - 之前介绍了 `http(s)` 和 `file` 协议
 - `schema` 协议 —— 前端和客户端通讯的约定
 
-![](http://blog.poetries.top/img-repo/2019/10/83.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/83.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/84.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/84.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/85.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/85.png)
 
 ### 4.3 schema 使用的封装
 
-![](http://blog.poetries.top/img-repo/2019/10/86.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/86.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/87.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/87.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/88.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/88.png)
 
 
 ### 4.4 内置上线

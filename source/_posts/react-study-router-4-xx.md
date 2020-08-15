@@ -320,7 +320,7 @@ render(<App />, document.getElementById("root"));
 - 基本使用
 
 
-![](http://blog.poetries.top/img-repo/2019/10/468.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/468.png)
 
 > `react-router 4.0` 对于接受参数采用 `{ this.props.match.params.id }` 如下例子：`<Route path="list/:id"></Router> `、 ` <Link to="list/123456"></Link>`
 

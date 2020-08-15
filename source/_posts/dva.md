@@ -81,7 +81,7 @@ dva = React-Router + Redux + Redux-saga
 
 ## 2.2 Dva的五个API
 
- ![](http://blog.poetries.top/img-repo/20191001/43.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/43.png)
 
 
 ### 2.2.1 app = dva(Opts)
@@ -211,7 +211,7 @@ app.use(createLoading(opts));
 
 > `app.model(ModelObject)`：这个是你数据逻辑处理，数据流动的地方
 
- ![](http://blog.poetries.top/img-repo/20191001/44.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/44.png)
 
 
 ### 2.2.4 app.unmodel(namespace)
@@ -563,7 +563,7 @@ export default connect(mapStateToProps)(App);
 
 ## 2.4 整体架构
 
- ![](http://blog.poetries.top/img-repo/20191001/45.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/45.png)
 
 
 - 首先我们根据 `url` 访问相关的 `Route-Component`，在组件中我们通过 `dispatch `发送 `action` 到 `model` 里面的 `effect` 或者直接 `Reducer`
@@ -577,7 +577,7 @@ export default connect(mapStateToProps)(App);
 
 > `React` 只负责页面渲染, 而不负责页面逻辑, 页面逻辑可以从中单独抽取出来, 变成 `store`
 
- ![](http://blog.poetries.top/img-repo/20191001/46.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/46.png)
 
 
 > 使用 `Middleware` 拦截 `action`, 这样一来异步的网络操作也就很方便了, 做成一个 `Middleware`就行了, 这里使用` redux-saga` 这个类库
@@ -587,7 +587,7 @@ export default connect(mapStateToProps)(App);
 
 **图解二：Dva表示法**
 
- ![](http://blog.poetries.top/img-repo/20191001/47.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/47.png)
 
 > dva做了 3 件很重要的事情
 

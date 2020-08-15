@@ -17,7 +17,7 @@ categories: Front-End
 UI—————>action（plain）—————>reducer——————>state——————>UI
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/484.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/484.png)
 
 - `redux`是遵循函数式编程的规则，上述的数据流中，`action`是一个原始js对象（`plain object`）且`reducer`是一个纯函数，对于同步且没有副作用的操作，上述的数据流起到可以管理数据，从而控制视图层更新的目的
 - 如果存在副作用函数，那么我们需要首先处理副作用函数，然后生成原始的js对象。如何处理副作用操作，在`redux`中选择在发出`action`，到`reducer`处理函数之间使用中间件处理副作用
@@ -28,7 +28,7 @@ UI—————>action（plain）—————>reducer——————>sta
 UI——>action(side function)—>middleware—>action(plain)—>reducer—>state—>UI
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/485.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/485.png)
 
 > 在有副作用的`action`和原始的`action`之间增加中间件处理，从图中我们也可以看出，中间件的作用就是：
 
@@ -157,7 +157,7 @@ sagaMiddleware.run(helloSaga);
 
 > `action1(side function)`—>`redux-thunk`监听—>执行相应的有副作用的方法—>`action2(plain object)`
 
-![](http://blog.poetries.top/img-repo/2019/10/486.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/486.png)
 
 
 > 转化到`action2`是一个原始`js`对象形式的`action`，然后执行`reducer`函数就会更新`store`中的`state`
@@ -166,7 +166,7 @@ sagaMiddleware.run(helloSaga);
 
 > action1(plain object)——>redux-saga监听—>执行相应的Effect方法——>返回描述对象—>恢复执行异步和副作用函数—>action2(plain object)
 
-![](http://blog.poetries.top/img-repo/2019/10/487.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/487.png)
 
 > 对比`redux-thunk`我们发现，`redux-saga`中监听到了原始`js`对象`action`，并不会马上执行副作用操作，会先通过`Effect`方法将其转化成一个描述对象，然后再将描述对象，作为标识，再恢复执行副作用函数
 
@@ -232,7 +232,7 @@ UI——>action1————>redux-saga中间件————>action2————
 
 > 从工作流中，我们发现`redux-saga`执行完副作用函数后，必须发出`action`，然后这个`action`被`reducer`监听，从而达到更新`state`的目的。相应的这里的`put`对应与`redux`中的`dispatch`，工作流程图如下
 
-![](http://blog.poetries.top/img-repo/2019/10/488.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/488.png)
 
 > 可以看出`redux-saga`执行副作用方法转化`action`时，`put`这个`Effect`方法跟`redux`原始的`dispatch`相似，都是可以发出`action`，且发出的`action`都会被`reducer`监听到。`put`的使用方法
 
@@ -273,11 +273,11 @@ takeLatest('login',loginFunc)
 
 > 接着我们来实现一个`redux-saga`样例，存在一个登陆页，登陆成功后，显示列表页，并且，在列表页，可以点击登出，返回到登陆页。例子的最终展示效果如下
 
-![](http://blog.poetries.top/img-repo/2019/10/489.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/489.png)
 
 > 样例的功能流程图为
 
-![](http://blog.poetries.top/img-repo/2019/10/490.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/490.png)
 
 ### 5.1 LoginPanel(登陆页)
 
@@ -440,7 +440,7 @@ yield call(getList)
 - 如果`call(getList)`存在延迟，`call(getList)`之后的语句 `const action2=yieldtake('TO_LOGIN_OUT')`在`call`方法返回结果之前无法执行
 - 在延迟期间的登出操作会被忽略
 
-![](http://blog.poetries.top/img-repo/2019/10/491.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/491.png)
 
 **无阻塞调用**
 

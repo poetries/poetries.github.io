@@ -12,7 +12,7 @@ categories: Front-End
 
 **效果展示**
 
-![](http://blog.poetries.top/img-repo/2019/10/676.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/676.png)
 
 **配置**
 

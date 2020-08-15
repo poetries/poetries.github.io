@@ -96,7 +96,7 @@ docker build -t mynodeapp .
 
 构建完后查看一下我们的镜像
 
- ![](http://blog.poetries.top/img-repo/20191001/42.png)
+ ![](https://poetries1.gitee.io/img-repo/20191001/42.png)
 
 **运行镜像**
 

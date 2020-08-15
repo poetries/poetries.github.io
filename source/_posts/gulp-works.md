@@ -14,7 +14,7 @@ categories: Build
 ###  一、目录结构
 
 
-![](http://blog.poetries.top/img-repo/2019/10/221.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/221.png)
 
 
 ### 二、 package.json

@@ -25,7 +25,7 @@ webpack --help
 
 > webpack 本质上是一个打包工具，它会根据代码的内容解析模块依赖，帮助我们把多个模块的代码打包
 
-![](http://blog.poetries.top/img-repo/2019/10/638.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/638.png)
 
 > webpack 会把我们项目中使用到的多个代码模块（可以是不同文件类型），打包构建成项目运行仅需要的几个静态文件
 

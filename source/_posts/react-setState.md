@@ -12,11 +12,11 @@ categories: Front-End
 - 我们都知道，`React`通过`this.state`来访问`state`，通过`this.setState()`方法来更新`state`。当`this.setState()`方法被调用的时候，`React`会重新调用`render`方法来重新渲染`UI`
 - 首先如果直接在`setState`后面获取`state`的值是获取不到的。在`React`内部机制能检测到的地方， `setState`就是异步的；`在React`检测不到的地方，例如`setInterval`,`setTimeout`，`setState`就是同步更新的
 
-![](http://blog.poetries.top/img-repo/2019/10/431.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/431.png)
 
 > 因为`setState`是可以接受两个参数的，一个`state`，一个回调函数。因此我们可以在回调函数里面获取值
 
-![](http://blog.poetries.top/img-repo/2019/10/432.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/432.png)
 
 - `setState`方法通过一个队列机制实现`state`更新，当执行`setState`的时候，会将需要更新的`state`合并之后放入状态队列，而不会立即更新`this.state`
 - 如果我们不使用`setState`而是使用`this.state.key`来修改，将不会触发组件的`re-render`。
@@ -26,12 +26,12 @@ categories: Front-End
 
 > 在`react`生命周期和合成事件执行前后都有相应的钩子，分别是`pre`钩子和`post`钩子，`pre`钩子会调用`batchedUpdate`方法将`isBatchingUpdates`变量置为`true`，开启批量更新，而`post`钩子会将`isBatchingUpdates`置为`false`
 
-![](http://blog.poetries.top/img-repo/2019/10/433.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/433.png)
 
 - `isBatchingUpdates`变量置为`true`，则会走批量更新分支，`setState`的更新会被存入队列中，待同步代码执行完后，再执行队列中的`state`更新。 `isBatchingUpdates `为 `true`，则把当前组件（即调用了 `setState `的组件）放入 `dirtyComponents` 数组中；否则 `batchUpdate` 所有队列中的更新
 - 而在原生事件和异步操作中，不会执行`pre`钩子，或者生命周期的中的异步操作之前执行了`pre`钩子，但是`pos`钩子也在异步操作之前执行完了，`isBatchingUpdates`必定为`false`，也就不会进行批量更新
 
-![](http://blog.poetries.top/img-repo/2019/10/434.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/434.png)
 
 > `enqueueUpdate`包含了`React`避免重复`render`的逻辑。`mountComponent`和`updateComponent`方法在执行的最开始，会调用到`batchedUpdates`进行批处理更新，此时会将`isBatchingUpdates`设置为`true`，也就是将状态标记为现在正处于更新阶段了。 `isBatchingUpdates `为 `true`，则把当前组件（即调用了 `setState` 的组件）放入` dirtyComponents` 数组中；否则 `batchUpdate` 所有队列中的更新
 

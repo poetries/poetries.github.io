@@ -52,6 +52,6 @@ var str = 'hfrom_handle=206438&dnid=&dgroup_items__x_countz_=1&dgroup_items=1&dg
 
 - 提交后表单处理的结果是这样：
 
-![](http://blog.poetries.top/img-repo/2019/10/311.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/311.png)
 
  

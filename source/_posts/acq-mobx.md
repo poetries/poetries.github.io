@@ -12,11 +12,11 @@ categories: Front-End
 
 > 打印`mobx`，看看`mobx`中有什么
 
-![mobx](http://blog.poetries.top/img-repo/20191001/8.png)
+![mobx](https://poetries1.gitee.io/img-repo/20191001/8.png)
 
 > `MobX`的整个流程
 
-![mobx](http://blog.poetries.top/img-repo/20191001/9.png)
+![mobx](https://poetries1.gitee.io/img-repo/20191001/9.png)
 
 
 **MobX 和 Redux 的比较**
@@ -47,7 +47,7 @@ categories: Front-End
 
 ## 二、核心API
 
-![mobx](http://blog.poetries.top/img-repo/20191001/10.png)
+![mobx](https://poetries1.gitee.io/img-repo/20191001/10.png)
 
 
 ### 2.1 @observable

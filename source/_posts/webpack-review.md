@@ -14,11 +14,11 @@ categories: Front-End
 
 ### 1.1 版本更迭
 
-![](http://blog.poetries.top/img-repo/2019/10/644.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/644.png)
 
 **大版本变化**
 
-![](http://blog.poetries.top/img-repo/2019/10/645.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/645.png)
 
 ### 1.2 功能进化
 
@@ -436,7 +436,7 @@ module.exports = {
 }
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/646.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/646.png)
 
 
 ### 3.4 代码分割和懒加载
@@ -499,7 +499,7 @@ export default 'pageA'
 
 运行打包这时`loadash`提取到`vendor`中
 
-![](http://blog.poetries.top/img-repo/2019/10/647.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/647.png)
 
 这时候还不是我们想要的
 
@@ -529,11 +529,11 @@ require.ensure(['lodash'],function(){
 export default 'pageA'
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/648.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/648.png)
 
 > 这时候这有`pageA`中才有`moduleA`
 
-![](http://blog.poetries.top/img-repo/2019/10/649.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/649.png)
 
 > 新建一个html验证是否动态加载
 
@@ -546,7 +546,7 @@ export default 'pageA'
 ```
 
 
-![](http://blog.poetries.top/img-repo/2019/10/650.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/650.png)
 
 
 **import()动态加载的写法**
@@ -584,11 +584,11 @@ export default 'pageA'
 
 合并了`subPageA`和`subPageB`
 
-![](http://blog.poetries.top/img-repo/2019/10/651.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/651.png)
 
 来看看打包后的文件，既有A、B
 
-![](http://blog.poetries.top/img-repo/2019/10/652.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/652.png)
 
 **在`webpack`代码分割中使用`async`异步加载**
 
@@ -720,8 +720,8 @@ if(page === 'subPageA'){
 export default 'pageB'
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/653.png)
-![](http://blog.poetries.top/img-repo/2019/10/654.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/653.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/654.png)
 
 
 > 这样就把`subpageA`和`subPageB`共同依赖的`moduleA`异步提取出来
@@ -957,7 +957,7 @@ module.exports = {
 }
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/655.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/655.png)
 
 ### 3.6 PostCSS in Webpack
 
@@ -2546,7 +2546,7 @@ app.listen(port, function(){
 
 > 现在我们来优化这个时间
 
-![](http://blog.poetries.top/img-repo/2019/10/656.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/656.png)
 
 **第一步：新建`webpack.dll.conf.js`**
 
@@ -2589,7 +2589,7 @@ module.exports = {
 
 > 执行`npm run dll`
 
-![](http://blog.poetries.top/img-repo/2019/10/657.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/657.png)
 
 **第三步： 在plugins中增加配置**
 
@@ -2612,7 +2612,7 @@ module.exports = {
 
 > 再次执行`npm run build`
 
-![](http://blog.poetries.top/img-repo/2019/10/658.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/658.png)
 
 编译时间大大减少了
 
@@ -2672,7 +2672,7 @@ exports.module = {
 
 这时的编译时间也减小了一些
 
-![](http://blog.poetries.top/img-repo/2019/10/659.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/659.png)
 
 
 #### 6.2.4 方法四：较少babel-loader编译时间
@@ -2715,7 +2715,7 @@ output: {
 }
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/660.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/660.png)
 
 > 每次打包`vendor`都不会变化，这样就达到了缓存的目的（服务端开启`cache-ctrol`）
 

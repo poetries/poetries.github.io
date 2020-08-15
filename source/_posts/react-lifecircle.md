@@ -9,7 +9,7 @@ categories: Front-End
 
 ## 一、React v16.0前的生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/417.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/417.png)
 
 ### 1.1 第一个是组件初始化(initialization)阶段
 
@@ -149,7 +149,7 @@ ps：这边也可以看出，就算`componentWillReceiveProps()`中执行了`thi
 
 **React v16.4 的生命周期图**
 
-![](http://blog.poetries.top/img-repo/2019/10/418.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/418.png)
 
 ### 2.1 变更缘由
 
@@ -177,7 +177,7 @@ ps：这边也可以看出，就算`componentWillReceiveProps()`中执行了`thi
 
 **React v16.3 的生命周期图**
 
-![](http://blog.poetries.top/img-repo/2019/10/419.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/419.png)
 
 > 这样的话理解起来有点乱，在`React v16.4`中改正了这一点，让`getDerivedStateFromProps`无论是`Mounting`还是`Updating`，也无论是因为什么引起的`Updating`，全部都会被调用，具体可看`React v16.4 `的生命周期图
 

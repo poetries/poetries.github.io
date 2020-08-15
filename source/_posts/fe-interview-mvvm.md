@@ -7,17 +7,17 @@ tags:
 categories: Front-End
 ---
 
-![](http://blog.poetries.top/img-repo/2019/10/89.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/89.png)
 
 ## 一、说一下使用 jquery 和使用框架的区别
 
 ### 1.1  jQuery 实现 todo-list
 
-![](http://blog.poetries.top/img-repo/2019/10/90.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/90.png)
 
 ### 1.2 vue 实现 todo-list
 
-![](http://blog.poetries.top/img-repo/2019/10/91.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/91.png)
 
 
 ### 1.3 jQuery 和框架的区别
@@ -33,8 +33,8 @@ categories: Front-End
 - `V - View` 视图、界面
 - `C - Controller` 控制器、逻辑处理
 
-![](http://blog.poetries.top/img-repo/2019/10/92.png)
-![](http://blog.poetries.top/img-repo/2019/10/93.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/92.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/93.png)
 
 
 ### 2.2 MVVM
@@ -43,7 +43,7 @@ categories: Front-End
 - `View` - 视图、模板（视图和模型是分离的）
 - `ViewModel` - 连接 `Model` 和 `View `
 
-![](http://blog.poetries.top/img-repo/2019/10/94.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/94.png)
 
 
 ### 2.3 关于 ViewModel
@@ -52,8 +52,8 @@ categories: Front-End
 - 但其中的 `ViewModel` 确实一种创新
 - 真正结合前端场景应用的创建
 
-![](http://blog.poetries.top/img-repo/2019/10/95.png)
-![](http://blog.poetries.top/img-repo/2019/10/96.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/95.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/96.png)
 
 ### 2.4 MVVM 框架的三大要素
 
@@ -68,19 +68,19 @@ categories: Front-End
 - 修改 data 属性之后，vue 立刻监听到
 - data 属性被代理到 vm 上
 
-![](http://blog.poetries.top/img-repo/2019/10/97.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/97.png)
 
 ### 3.2 Object.defineProperty
 
-![](http://blog.poetries.top/img-repo/2019/10/98.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/98.png)
 
 
 ### 3.3 模拟实现
 
 
-![](http://blog.poetries.top/img-repo/2019/10/99.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/99.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/100.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/100.png)
 
 ## 四、vue 中如何解析模板
 
@@ -98,7 +98,7 @@ categories: Front-End
 - 因此，模板最重要转换成一个 `JS` 函数（`render` 函数）
 
 
-![](http://blog.poetries.top/img-repo/2019/10/101.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/101.png)
 
 
 ### 4.2 render 函数
@@ -108,20 +108,20 @@ categories: Front-End
 - `price` 即 `this.price` 即 `vm.price`，即 `data` 中的 `price`
 - `_c` 即 `this._c` 即 `vm._c`
 
-![](http://blog.poetries.top/img-repo/2019/10/102.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/102.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/103.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/103.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/104.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/104.png)
 
 ### 4.3 render 函数与 vdom
 
 - `vm._c` 其实就相当于 `snabbdom `中的 `h` 函数
 - `render` 函数执行之后，返回的是 `vnode`
 
-![](http://blog.poetries.top/img-repo/2019/10/105.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/105.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/106.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/106.png)
 
 
 - `updateComponent `中实现了 `vdom` 的 `patch`
@@ -135,18 +135,18 @@ categories: Front-End
 - 第三步：首次渲染，显示页面，且绑定依赖
 - 第四步：`data` 属性变化，触发 `rerender`
 
-![](http://blog.poetries.top/img-repo/2019/10/107.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/107.png)
 
 ### 5.1 第一步：解析模板成 render 函数
 
 
-![](http://blog.poetries.top/img-repo/2019/10/108.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/108.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/109.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/109.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/110.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/110.png)
 
-![](http://blog.poetries.top/img-repo/2019/10/111.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/111.png)
 
 - 模板中的所有信息都被 `render `函数包含
 - 模板中用到的 `data` 中的属性，都变成了 `JS` 变量
@@ -158,7 +158,7 @@ categories: Front-End
 - `Object.defineProperty`
 - 将 `data` 的属性代理到 `vm `上
 
-![](http://blog.poetries.top/img-repo/2019/10/112.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/112.png)
 
 ### 5.3 第三步：首次渲染，显示页面，且绑定依赖
 
@@ -168,8 +168,8 @@ categories: Front-End
 - 执行 `updateComponent` ，会走到 `vdom` 的 `patch` 方法
 - `patch` 将 `vnode `渲染成 `DOM` ，初次渲染完成
 
-![](http://blog.poetries.top/img-repo/2019/10/113.png)
-![](http://blog.poetries.top/img-repo/2019/10/114.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/113.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/114.png)
 
 **为何要监听 get ，直接监听 set 不行吗？**
 
@@ -178,12 +178,12 @@ categories: Front-End
 - 未走到 `get` 中的属性，`set `的时候我们也无需关心
 - 避免不必要的重复渲染
 
-![](http://blog.poetries.top/img-repo/2019/10/115.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/115.png)
 
 ### 5.4 第四步：data 属性变化
 
-![](http://blog.poetries.top/img-repo/2019/10/116.png)
-![](http://blog.poetries.top/img-repo/2019/10/117.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/116.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/117.png)
 
 - 修改属性，被响应式的 `set` 监听到
 - `set `中执行 `updateComponent`
@@ -192,4 +192,4 @@ categories: Front-End
 - 渲染到 `html` 中
 
 
-![](http://blog.poetries.top/img-repo/2019/10/118.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/118.png)

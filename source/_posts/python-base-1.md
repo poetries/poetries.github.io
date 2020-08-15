@@ -141,7 +141,7 @@ x=eval(input("请输入："))
 
 ### 文件操作
 
-![](http://blog.poetries.top/img-repo/2019/12/107.png)
+![](https://poetries1.gitee.io/img-repo/2019/12/107.png)
 
 ```py
 # 使用with操作文件
@@ -149,15 +149,15 @@ with open(os.path.dirname(__file__) + '/blog.text','w') as f:
     f.write(json.dumps(data))
 ```
 
-![路径操作模块](http://blog.poetries.top/img-repo/2019/12/131.png)
-![图片](http://blog.poetries.top/img-repo/2019/12/132.png)
-![Excel](http://blog.poetries.top/img-repo/2019/12/133.png)
-![文本其他](http://blog.poetries.top/img-repo/2019/12/134.png)
+![路径操作模块](https://poetries1.gitee.io/img-repo/2019/12/131.png)
+![图片](https://poetries1.gitee.io/img-repo/2019/12/132.png)
+![Excel](https://poetries1.gitee.io/img-repo/2019/12/133.png)
+![文本其他](https://poetries1.gitee.io/img-repo/2019/12/134.png)
 
 
 ## 三、基本类型
 
-![python基本数据类型](http://blog.poetries.top/img-repo/2019/12/112.png)
+![python基本数据类型](https://poetries1.gitee.io/img-repo/2019/12/112.png)
 
 
 **类型判断两个方式**
@@ -276,9 +276,9 @@ oct(0b100)
 - `max(list)`
 - `min(list)`
 
-![序列](http://blog.poetries.top/img-repo/2019/12/109.png)
+![序列](https://poetries1.gitee.io/img-repo/2019/12/109.png)
 
-![序列基本操作](http://blog.poetries.top/img-repo/2019/12/108.png)
+![序列基本操作](https://poetries1.gitee.io/img-repo/2019/12/108.png)
 
 **可变类型**
 
@@ -314,12 +314,12 @@ year,month,day = (2019,10,12)
 
 > 如果只有一个元素，应该这样表示元组 `(1,)`,一个元素都没有的元组 `type( () )`
 
-![python类型转换](http://blog.poetries.top/img-repo/2019/12/126.png)
+![python类型转换](https://poetries1.gitee.io/img-repo/2019/12/126.png)
 
 
 ## 五、运算符
 
-![python运算符](http://blog.poetries.top/img-repo/2019/12/113.png)
+![python运算符](https://poetries1.gitee.io/img-repo/2019/12/113.png)
 
 **列表元组都可以比较**
 
@@ -451,7 +451,7 @@ print(VIP(1)) # VIP.yellow
 
 ### 模块
 
-![模块](http://blog.poetries.top/img-repo/2019/12/110.png)
+![模块](https://poetries1.gitee.io/img-repo/2019/12/110.png)
 
 ```js
 // 在文件中写`__init__.py` 只是标注这是一个包 可以什么都不用写
@@ -624,7 +624,7 @@ f2('静观流叶','1')
 
 ## 十、面向对象
 
-![类](http://blog.poetries.top/img-repo/2019/12/115.png)
+![类](https://poetries1.gitee.io/img-repo/2019/12/115.png)
 
 ```py
 '''
@@ -769,7 +769,7 @@ re.findall('python?', 'pythonnn')
 
 https://docs.python.org/3/library/functions.html
 
-![内建函数](http://blog.poetries.top/img-repo/2019/12/114.png)
+![内建函数](https://poetries1.gitee.io/img-repo/2019/12/114.png)
 
 ## 十三、标准库
 
@@ -791,7 +791,7 @@ https://docs.python.org/3/library/functions.html
 
 ## 十四、异常处理
 
-![python异常类型](http://blog.poetries.top/img-repo/2019/12/127.png)
+![python异常类型](https://poetries1.gitee.io/img-repo/2019/12/127.png)
 
 > `try-except`语句
 
@@ -872,7 +872,7 @@ json.dumps([{name: 'poetries'])
 
 ## 十六、爬虫
 
-![模块](http://blog.poetries.top/img-repo/2019/12/111.png)
+![模块](https://poetries1.gitee.io/img-repo/2019/12/111.png)
 
 ```py
 ''' 
@@ -1158,7 +1158,7 @@ def test():
 
 ## 十九、Python知识体系
 
-![Python知识体系](http://blog.poetries.top/img-repo/2019/12/181.png)
+![Python知识体系](https://poetries1.gitee.io/img-repo/2019/12/181.png)
 
 ## 二十、更多参考
 

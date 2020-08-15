@@ -82,7 +82,7 @@ Immutable.fromJS({a:1, b:2, c:3}).map(function(value, key) { /* do some thing */
 
 > 打印`immutableJS`看看有什么东西
 
-![](http://blog.poetries.top/img-repo/2019/10/462.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/462.png)
 
 **一个说明不可变的例子**
 

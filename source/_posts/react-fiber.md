@@ -31,7 +31,7 @@ categories: Front-End
 
 > 假如有A,B,C,D组件，层级结构为：
 
-![](http://blog.poetries.top/img-repo/2019/10/414.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/414.png)
 
 我们知道组件的生命周期为：
 
@@ -55,7 +55,7 @@ categories: Front-End
 那么在挂载阶段，A,B,C,D的生命周期渲染顺序是如何的呢？
 
 
-![](http://blog.poetries.top/img-repo/2019/10/415.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/415.png)
 
 > 以`render()`函数为分界线。从顶层组件开始，一直往下，直至最底层子组件。然后再往上
 
@@ -70,7 +70,7 @@ categories: Front-End
 
 > 看一下fiber架构 组建的渲染顺序
 
-![](http://blog.poetries.top/img-repo/2019/10/416.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/416.png)
 
 > 加入`fiber`的`react`将组件更新分为两个时期
 

@@ -16,13 +16,13 @@ categories: Front-End
 
 ## 二、设计一个需求场景
 
-![](http://blog.poetries.top/img-repo/2019/10/587.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/587.png)
 
 **用jQuery实现**
 
-![](http://blog.poetries.top/img-repo/2019/10/588.png)
-![](http://blog.poetries.top/img-repo/2019/10/589.png)
-![](http://blog.poetries.top/img-repo/2019/10/590.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/588.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/589.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/590.png)
 
 **遇到的问题**
 
@@ -31,26 +31,26 @@ categories: Front-End
 - 项目越复杂，影响就越严重
 - vdom 即可解决这个问题
 
-![](http://blog.poetries.top/img-repo/2019/10/591.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/591.png)
 
 ## 三、vdom 的如何应用，核心 API 是什么
 
 **什么是 vdom**
 
-![](http://blog.poetries.top/img-repo/2019/10/592.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/592.png)
 
 **介绍 snabbdom**
 
-![](http://blog.poetries.top/img-repo/2019/10/593.png)
-![](http://blog.poetries.top/img-repo/2019/10/594.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/593.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/594.png)
 
 **介绍 snabbdom - h 函数**
 
-![](http://blog.poetries.top/img-repo/2019/10/595.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/595.png)
 
 **介绍 snabbdom - patch 函数**
 
-![](http://blog.poetries.top/img-repo/2019/10/596.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/596.png)
 
 **重做jQuery的demo**
 
@@ -60,7 +60,7 @@ categories: Front-End
 - 修改 `data` 之后，用新 `data` 生成 `newVnode`
 - 将 `vnode` 和 `newVnode` 对比
 
-![](http://blog.poetries.top/img-repo/2019/10/597.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/597.png)
 
 **核心 API**
 
@@ -77,19 +77,19 @@ categories: Front-End
 - 找出本次 DOM 必须更新的节点来更新，其他的不更新
 - 这个“找出”的过程，就需要 diff 算法
 
-![](http://blog.poetries.top/img-repo/2019/10/598.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/598.png)
 
 **patch(container, vnode)**
 
-![](http://blog.poetries.top/img-repo/2019/10/599.png)
-![](http://blog.poetries.top/img-repo/2019/10/600.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/599.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/600.png)
 
 **演示过程**
 
-![](http://blog.poetries.top/img-repo/2019/10/601.png)
-![](http://blog.poetries.top/img-repo/2019/10/602.png)
-![](http://blog.poetries.top/img-repo/2019/10/603.png)
-![](http://blog.poetries.top/img-repo/2019/10/604.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/601.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/602.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/603.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/604.png)
 
 ### 4.2 diff 实现过程
 

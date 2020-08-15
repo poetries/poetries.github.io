@@ -50,22 +50,22 @@ categories: Front-End
 
 在上面几中技术中，除了`XmlHttpRequest`对象以外，其它所有的技术都是基于`web`标准并且已经得到了广泛使用的，`XMLHttpRequest`虽然目前还没有被`W3C`所采纳，但是它已经是一个事实的标准，因为目前几乎所有的主流浏览器都支持它
 
-![](http://blog.poetries.top/img-repo/20191001/11.png)
+![](https://poetries1.gitee.io/img-repo/20191001/11.png)
 
 - 第一张图尤其说明了传统` Web` 应用程序的结构与采用了 `AJAX` 技术的 `Web`
 应用程序的结构上的差别
 - 主要的差别，其实不是 `JavaScript`，不是 `HTML/XHTML `和 `CSS`，而是采用
 了 `XMLHttpRequest` 来向服务器异步的请求 `XML` 数据
 
-![](http://blog.poetries.top/img-repo/20191001/12.png)
+![](https://poetries1.gitee.io/img-repo/20191001/12.png)
 
 
 - 再来看第二张图，传统的 `Web` 应用模式，用户的体验是割裂的，点击->等待->
 看到新的页面->再点击->再等待。而采用了`AJAX`技术之后，大部分的计算工作，都是在用户不察觉的情况下，交由服务器去完成了
 
-![](http://blog.poetries.top/img-repo/20191001/13.png)
+![](https://poetries1.gitee.io/img-repo/20191001/13.png)
 
-![](http://blog.poetries.top/img-repo/20191001/14.png)
+![](https://poetries1.gitee.io/img-repo/20191001/14.png)
 
 
 ### 二、创建ajax的步骤
@@ -201,7 +201,7 @@ var sales = JSON.parse(responseText);
 }
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/15.png)
+![](https://poetries1.gitee.io/img-repo/20191001/15.png)
 
 
 #### 5、封装例子
@@ -271,7 +271,7 @@ function ajax(url, success, fail){
 }
 ```
 
-![](http://blog.poetries.top/img-repo/20191001/16.png)
+![](https://poetries1.gitee.io/img-repo/20191001/16.png)
 
 ##### 谈谈JSONP
 

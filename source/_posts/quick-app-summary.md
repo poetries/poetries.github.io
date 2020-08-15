@@ -108,7 +108,7 @@ npm run watch
 
 > https://www.quickapp.cn/docCenter/post/69
 
-![](http://blog.poetries.top/img-repo/2019/10/405.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/405.png)
 
 ## 1.4 连接手机进行调试
 
@@ -126,12 +126,12 @@ npm run server
 
 > 打开之前安装的快应用调试助手扫描即可预览
 
-![](http://blog.poetries.top/img-repo/2019/10/406.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/406.png)
 
 > 扫描二维码之后点击开始调试，会调出devtool工具本地调试
 
-![](http://blog.poetries.top/img-repo/2019/10/407.png)
-![](http://blog.poetries.top/img-repo/2019/10/408.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/407.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/408.png)
 
 ## 1.5 安装Hap Extension
 
@@ -904,7 +904,7 @@ export default {
 
 > 当前为APP的生命周期提供了两个回调函数：`onCreate`, `onDestroy`；可在`app.ux`中定义回调函数
 
-![](http://blog.poetries.top/img-repo/2019/10/409.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/409.png)
 
 ```javascript
 import {
@@ -1570,7 +1570,7 @@ npm run release -- --debug
 
 > 快应用注册账号 https://www.quickapp.cn/docCenter/post/74
 
-![](http://blog.poetries.top/img-repo/2019/10/410.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/410.png)
 
 # 十六、一些问题
 

@@ -20,7 +20,7 @@ categories: Front-End
 
 > 首先由于微信对小程序直播功能类目有限制，限定了特定类目的小程序使用
 
-![](http://blog.poetries.top/img-repo/2020/06/8.webp)
+![](https://poetries1.gitee.io/img-repo/2020/06/8.webp)
 
 **另外需要注意的两点：**
 
@@ -30,21 +30,21 @@ categories: Front-End
 
 > 在小程序管理后台，「开发」-「接口设置」中自助开通对应的权限，如下图所示：
 
-![](http://blog.poetries.top/img-repo/2020/06/9.png)
+![](https://poetries1.gitee.io/img-repo/2020/06/9.png)
 
 
-![](http://blog.poetries.top/img-repo/2020/06/7.webp)
+![](https://poetries1.gitee.io/img-repo/2020/06/7.webp)
 
 > 微信小程序原生实现直播功能流程如上图所示，录制端小程序通过`[live-pusher]`组件对手机和麦克风的数据进行采集和编码推流到服务器，服务器端对数据进行加工处理并分发给多个客户端，播放端小程序通过`[live-player]`组件从云端拉流并进行实时无差异的解码和渲染，从而实现直播小程序完整互动功能
 
 
 **1. 推流 API 调用流程图**
 
-![](http://blog.poetries.top/img-repo/2020/06/1.jpg)
+![](https://poetries1.gitee.io/img-repo/2020/06/1.jpg)
 
 **2. 拉流 API 调用流程图**
 
-![](http://blog.poetries.top/img-repo/2020/06/2.jpg)
+![](https://poetries1.gitee.io/img-repo/2020/06/2.jpg)
 
 ## 三、小程序直播实现过程
 
@@ -113,7 +113,7 @@ categories: Front-End
 
 > 由于自己搭`rtmp`（例如`Nginx rtmp`）成本较高，技术实现难度大，考虑云服务商提供的视频直播服务产品，生成推流地址和播放地址，目前市面上主流的云直播产品有：腾讯云、阿里云、七牛云等。
 
-![](http://blog.poetries.top/img-repo/2020/06/10.png)
+![](https://poetries1.gitee.io/img-repo/2020/06/10.png)
 
 > 各平台均提供内容接入与分发和分布式实时视频处理技术，每个平台提供的功能大同小异但各有千秋，平均费用大概 20-30元/100G，100G流量可以满足100人同时在线直播4小时
 
@@ -123,11 +123,11 @@ categories: Front-End
 2. 域名管理，在这里面会看到两个域名 一个是推流域名 一个是播放域名，域名可以用自己的 （建议配置自己的域名，2019/2/26上线查看时发现赠送的播放域名已失效）。具体看下面的文档 https://cloud.tencent.com/document/product/267/20381
 
 
-![](http://blog.poetries.top/img-repo/2020/06/11.png)
+![](https://poetries1.gitee.io/img-repo/2020/06/11.png)
 
 > 由于腾讯云不再赠送播放域名，所以需要租用或者使用自己的域名生成播放地址，自己的播放域名不能直接访问，需要完成CNAME配置
 
-![](http://blog.poetries.top/img-repo/2020/06/12.png)
+![](https://poetries1.gitee.io/img-repo/2020/06/12.png)
 
 3. 最后，小程序直播组件API接入
 
@@ -208,7 +208,7 @@ Page({
 
 > 实现效果
 
-![](http://blog.poetries.top/img-repo/2020/06/13.png)
+![](https://poetries1.gitee.io/img-repo/2020/06/13.png)
 
 > 部分代码参考 https://github.com/poetries/weapp-live
 

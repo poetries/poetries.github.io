@@ -83,7 +83,7 @@ var vm = new Vue({
   })
 ```
 
-![](http://blog.poetries.top/img-repo/2019/10/627.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/627.png)
 
 
 ## 二、生命周期详解
@@ -100,12 +100,12 @@ var vm = new Vue({
 
 > created钩子函数和beforeMount间的生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/628.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/628.png)
 
 - 首先会判断对象是否有el选项。如果有的话就继续向下编译，如果没有`el`选项，则停止编译，也就意味着停止了生命周期，直到在该vue实例上调用`vm.$mount(el)`。
 - 此时注释掉代码中 `el: '#app',` 然后运行可以看到到`created`的时候就停止了
 
-![](http://blog.poetries.top/img-repo/2019/10/629.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/629.png)
 
 
 > 如果我们在后面继续调用`vm.$mount(el)`,可以发现代码继续向下执行了
@@ -172,13 +172,13 @@ new Vue({
 
 > beforeMount和mounted钩子函数间的生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/630.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/630.png)
 
 > 可以看到此时是给`vue`实例对象添加`$el`成员，并且替换掉挂在的`DOM`元素。因为在之前`console`中打印的结果可以看到`beforeMount`之前`el`上还是`undefined`
 
 ### 2.4 mounted
 
-![](http://blog.poetries.top/img-repo/2019/10/631.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/631.png)
 
 > 在`mounted`之前h1中还是通过`{message}`进行占位的，因为此时还有挂在到页面上，还是JavaScript中的虚拟DOM形式存在的。在`mounted`之后可以看到h1中的内容发生了变化
 
@@ -186,7 +186,7 @@ new Vue({
 
 > `beforeUpdate`钩子函数和`updated`钩子函数间的生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/632.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/632.png)
 
 > 当vue发现data中的数据发生了改变，会触发对应组件的重新渲染，先后调用`beforeUpdate`和`updated`钩子函数。我们在console中输入
 
@@ -196,14 +196,14 @@ vm.message = '触发组件更新'
 
 发现触发了组件的更新
 
-![](http://blog.poetries.top/img-repo/2019/10/633.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/633.png)
 
 
 ### 2.6 beforeDestroy、destroyed
 
 > `beforeDestroy`和`destroyed`钩子函数间的生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/634.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/634.png)
 
 - `beforeDestroy`钩子函数在实例销毁之前调用。在这一步，实例仍然完全可用。
 - `destroyed`钩子函数在`Vue` 实例销毁后调用。调用后，`Vue`实例指示的所有东西都会解绑定，所有的事件监听器会被移除，所有的子实例也会被销毁

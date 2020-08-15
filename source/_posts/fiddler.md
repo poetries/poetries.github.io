@@ -16,8 +16,8 @@ categories: Tools
 - 客户端的所有请求都要先经过`Fiddler`，然后转发到相应的服务器，反之，服务器端的所有响应，也都会先经过`Fiddler`然后发送到客户端
 - 使用了`Fiddler`之后，web客户端和服务器的请求如下所示
 
-![](http://blog.poetries.top/img-repo/2019/10/187.png)
-![](http://blog.poetries.top/img-repo/2019/10/188.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/187.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/188.png)
 
 
 **主界面中主要包括四个常用的块**
@@ -26,13 +26,13 @@ categories: Tools
 - `Fiddler`的工具栏,上图红色部分。包括`Fiddler`针对当前`view`的操作（暂停，清除`session`,`decode`模式、清除缓存等）。
 - `web Session`面板，上图黄色区域，主要是`Fiddler`抓取到的每条`http`请求（每一条称为一个`session`）,主要包含了请求的`url`，协议，状态码，`body`等信息，详细的字段含义如下图所示
 
-![](http://blog.poetries.top/img-repo/2019/10/189.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/189.png)
 
 二、HTTP请求图标说明
 ---
 
-![](http://blog.poetries.top/img-repo/2019/10/190.png)
-![](http://blog.poetries.top/img-repo/2019/10/191.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/190.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/191.png)
 
 
 三、Statistic
@@ -40,7 +40,7 @@ categories: Tools
 
 > 关于HTTP请求的性能和其他数据分析
 
-![](http://blog.poetries.top/img-repo/2019/10/192.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/192.png)
 
 
 > 我们可以从中看出一些基本性能数据：如DNS解析的时间消耗是`8ms`,建立`TCP/IP`连接的时间消耗是`8ms`等等信息
@@ -74,7 +74,7 @@ categories: Tools
 
 - 期望：只想抓取自己想要的请求
 
-![](http://blog.poetries.top/img-repo/2019/10/193.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/193.png)
 
 
 七、Response乱码时的处理方法
@@ -82,12 +82,12 @@ categories: Tools
 
 > 问题：有时候我们看到`Response`中的`HTML`是乱码的， 这是因为`HTML`被压缩了， 我们可以通过两种方法去解压缩
 
-![](http://blog.poetries.top/img-repo/2019/10/194.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/194.png)
 
 
 - 方法二：选中工具栏中的"Decode"。  这样会自动解压缩
 
-![](http://blog.poetries.top/img-repo/2019/10/195.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/195.png)
 
 八、反向代理-AutoResponder
 ---
@@ -98,27 +98,27 @@ categories: Tools
 - 选中序号`16`记录，右击-勾选`“Unlock fo Editing”`,选择`Fiddler`右侧`reponse`块下的`TextView`，这里修改`title`,如图：
 
 
-![](http://blog.poetries.top/img-repo/2019/10/196.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/196.png)
 
 - 选择`Fiddler`右侧`reponse`块下的`TextView`，这里修改`title`,如图：
 
-![](http://blog.poetries.top/img-repo/2019/10/197.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/197.png)
 
 - 去掉`“Unlock for Editing”`，再选择右侧上方的`AutoResponder`,勾选下方的`checkbox`选框，并将序号`16`托到下方，同时，里面会多条记录，如下图：
 
-![](http://blog.poetries.top/img-repo/2019/10/198.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/198.png)
 
 
 - 回到浏览器，刷新页面，如图，标题变为上面改的内容
 
-![](http://blog.poetries.top/img-repo/2019/10/199.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/199.png)
 
 九、fiddler提供了一个功能，让我们模拟低速网路环境
 ---
 
 > 启用方法如：Rules → Performances → Simulate Modem Speeds
 
-![](http://blog.poetries.top/img-repo/2019/10/200.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/200.png)
 
 
 十、直接在fiddler上配置host
@@ -126,7 +126,7 @@ categories: Tools
 
 > 点击`tools>>hosts`,在里面填写自己想要设置的`host`即可
 
-![](http://blog.poetries.top/img-repo/2019/10/201.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/201.png)
 
 
 十一、Fiddler显示请求服务器的ip及系统环境的配置方法
@@ -153,16 +153,16 @@ FiddlerObject.UI.lvSessions.AddBoundColumn("HostIP", 50, "x-hostIP");
 
 - 设置后重启`fiddler`，效果如下
 
-![](http://blog.poetries.top/img-repo/2019/10/202.png)
-![](http://blog.poetries.top/img-repo/2019/10/203.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/202.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/203.png)
 
 十二、fiddler断点调试
 ---
 
 > 第一种方法：菜单栏 `Rules` –》 `Automatic Breakpoints` –》 `Before Requests`(请求被发送到服务器端之前)；或者 `After Responses`(响应返回客户端之前)，这种设置对客户机发出的所有请求都进行拦截
 
-![](http://blog.poetries.top/img-repo/2019/10/204.png)
-![](http://blog.poetries.top/img-repo/2019/10/205.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/204.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/205.png)
 
 十三、配合SwitchySharp插件使用
 ---
@@ -170,8 +170,8 @@ FiddlerObject.UI.lvSessions.AddBoundColumn("HostIP", 50, "x-hostIP");
 > 为`fiddler`创建一个规则，代理到本地的`8888`端口（`fiddler`所用的端口）
 > `google`设置代理的方法：下载`SwitchySharp`插件，设置如下：
 
-![](http://blog.poetries.top/img-repo/2019/10/206.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/206.png)
 
 - 接着点击保存即可~ 这样在需要的时候可以切换到`Fiddler`
 
-![](http://blog.poetries.top/img-repo/2019/10/207.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/207.png)

@@ -6,7 +6,7 @@ categories: Front-End
 ---
 
 
-![](http://blog.poetries.top/img-repo/2019/10/620.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/620.png)
 
 ### 一、常用指令
 

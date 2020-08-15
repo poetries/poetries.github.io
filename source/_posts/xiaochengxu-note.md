@@ -8,7 +8,7 @@ categories: Front-End
 
 ## 一、小程序代码组成
 
-![](http://blog.poetries.top/img-repo/2019/10/664.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/664.png)
 
 **须知**
 
@@ -114,12 +114,12 @@ tabBar  配置小程序tab栏的样式和对应的页面
 
 > 传统的视图和数据绑定
 
-![](http://blog.poetries.top/img-repo/2019/10/665.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/665.png)
 
 
 **那么微信小程序是通过什么方法来管理视图和对象绑定的呢,状态模式-单向数据流**
 
-![](http://blog.poetries.top/img-repo/2019/10/666.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/666.png)
 
 
 > 数据流向是单向的，即视图变化不会影响对象状态
@@ -127,7 +127,7 @@ tabBar  配置小程序tab栏的样式和对应的页面
 - 用户触发事件不仅要考虑当前`UI`元素更新，还会通过当前元素更新其他视图。
 - 所以视图上的数据都必须用过事件传递给对象，只有用户操作视图，才能获取到数据，并更新对象状态
 
-![](http://blog.poetries.top/img-repo/2019/10/667.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/667.png)
 
 
 > `.wxml` 中的动态数据都来自`Page`中的`data`。数据绑定使用数据绑定使用双大括号将变量包起来，可以作用于内容、组件属性(需要在双引号之内)、控制属性(需要在双引号之内)、关键字(需要在双引号之内)
@@ -266,7 +266,7 @@ Page({
 
 ### 3.1 App()应用生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/668.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/668.png)
 
 - 用户首次打开小程序，触发 `onLaunch`（全局只触发一次）。
 - 小程序初始化完成后，触发`onShow`方法，监听小程序显示。
@@ -300,7 +300,7 @@ App({
 
 > 每个页面也有自己的生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/669.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/669.png)
 
 - 小程序注册完成后，加载页面，触发`onLoad`方法。
 - 页面载入后触发`onShow`方法，显示页面。
@@ -333,7 +333,7 @@ Page({
 
 ### 3.3 应用生命周期影响页面生命周期
 
-![](http://blog.poetries.top/img-repo/2019/10/670.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/670.png)
 
 - 小程序初始化完成后，页面首次加载触发`onLoad`，只会触发一次。
 - 当小程序进入到后台，先执行页面`onHide`方法再执行应用`onHide`方法。
@@ -444,23 +444,23 @@ url?key=value&key1=value1
 
 **使用wx.navigateTo每新开一个页面，页面栈大小加1,直到页面栈大小为5为止**
 
-![](http://blog.poetries.top/img-repo/2019/10/671.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/671.png)
 
 **使用wx.navigateTo重复打开界面**
 
-![](http://blog.poetries.top/img-repo/2019/10/672.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/672.png)
 
 > 假如使用wx.navigateTo从四级页面跳转到二级页面，此时会在页面栈顶添加一个与二级页面初始状态一样的界面，但两个页面状态是独立的。页面栈大小会加1，如果页面栈大小为5，则wx.navigateTo无效
 
 **使用wx.redirectTo重定向**
 
-![](http://blog.poetries.top/img-repo/2019/10/673.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/673.png)
 
 > 假如使用wx.redirectTo从四级页面重定向到二级页面，此时会将关闭四级页面，并使用二级页面替换四级页面，但两个页面状态是独立的。此时的页面栈大小不变，请注意和使用wx.navigateTo的区别
 
 **使用wx.navigateBack返回**
 
-![](http://blog.poetries.top/img-repo/2019/10/674.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/674.png)
 
 **总结**
 
@@ -742,4 +742,4 @@ function assignObject(o, n) {
 
 ## 八、小程序组件
 
-![](http://blog.poetries.top/img-repo/2019/10/675.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/675.png)

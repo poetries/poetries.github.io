@@ -58,7 +58,7 @@ console.log(h.next());//{ value: 'undefined', done: true }
 
 > 经过上面的分析，`yield`实际就是暂缓执行的标示，每执行一次`next()`，相当于指针移动到下一个`yield`位置
 
-![](http://blog.poetries.top/img-repo/2019/10/54.png)
+![](https://poetries1.gitee.io/img-repo/2019/10/54.png)
 
 **总结一下**，`Generator`函数是`ES6`提供的一种异步编程解决方案。通过`yield`标识位和`next()`方法调用，实现函数的分段执行
 
