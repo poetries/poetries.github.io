@@ -16,9 +16,7 @@ categories: 工欲善其事必先利其器
 
 ### **创建储存空间**
 
-![image-20210207094854180](http://interview.poetries.top/blog-img-repo/image-20210207094854180.png)
-
-
+![image-20210207102313573](http://img-repo.poetries.top/images/image-20210207102313573.png)
 
 - 存储空间名称：按规则随便取
 - 存储区域：选择离靠近的地区
@@ -32,17 +30,15 @@ categories: 工欲善其事必先利其器
 
 > 需要前往域名服务商创建解析
 
-![image-20210207095156443](http://interview.poetries.top/blog-img-repo/image-20210207095156443.png)
-
-
+![image-20210207102411339](http://img-repo.poetries.top/images/image-20210207102411339.png)
 
 **获取访问OSS的秘钥**
 
 
 
-![image-20210207095407260](http://interview.poetries.top/blog-img-repo/image-20210207095407260.png)
+![image-20210207102428005](http://img-repo.poetries.top/images/image-20210207102428005.png)
 
-![image-20210207095440307](http://interview.poetries.top/blog-img-repo/image-20210207095440307.png)
+![image-20210207102438448](http://img-repo.poetries.top/images/image-20210207102438448.png)
 
 ## 图床管理工具PicGo设置
 
@@ -56,7 +52,7 @@ PicGo[下载地址](https://github.com/Molunerfinn/PicGo/releases)，选择版�
 
 
 
-![image-20210207095548548](http://interview.poetries.top/blog-img-repo/image-20210207095548548.png)
+![image-20210207102450970](http://img-repo.poetries.top/images/image-20210207102450970.png)
 
 
 
@@ -64,7 +60,7 @@ PicGo[下载地址](https://github.com/Molunerfinn/PicGo/releases)，选择版�
 
 
 
-![image-20210207095624957](http://interview.poetries.top/blog-img-repo/image-20210207095624957.png)
+![image-20210207102501215](http://img-repo.poetries.top/images/image-20210207102501215.png)
 
 
 
@@ -72,7 +68,7 @@ PicGo[下载地址](https://github.com/Molunerfinn/PicGo/releases)，选择版�
 
 
 
-![image-20210207095752809](http://interview.poetries.top/blog-img-repo/image-20210207095752809.png)
+![image-20210207102511487](http://img-repo.poetries.top/images/image-20210207102511487.png)
 
 
 
@@ -87,11 +83,9 @@ PicGo[下载地址](https://github.com/Molunerfinn/PicGo/releases)，选择版�
 
 我们需要设置`PicGo Server`，如下图所示。
 
+![image-20210207102521859](http://img-repo.poetries.top/images/image-20210207102521859.png)
 
-
-![image-20210207095903111](http://interview.poetries.top/blog-img-repo/image-20210207095903111.png)
-
-![image-20210207095912384](http://interview.poetries.top/blog-img-repo/image-20210207095912384.png)
+![image-20210207102534331](http://img-repo.poetries.top/images/image-20210207102534331.png)
 
 
 
@@ -105,9 +99,7 @@ PicGo[下载地址](https://github.com/Molunerfinn/PicGo/releases)，选择版�
 
 设置好PicGo后来到Typora进行配置，打开Typora的文件菜单，选择“偏好设置”，选择“图像”，如下图所示。
 
-
-
-![image-20210207100005792](http://interview.poetries.top/blog-img-repo/image-20210207100005792.png)
+![image-20210207102543849](http://img-repo.poetries.top/images/image-20210207102543849.png)
 
 
 
