@@ -112,4 +112,8 @@ element.someObject =null;
 
 ## 参考
 
+<<<<<<< HEAD
 - [JavaScript 内存泄漏教程](http://www.ruanyifeng.com/blog/2017/04/memory-leak.html)
+=======
+- [JavaScript 内存泄漏教程](http://www.ruanyifeng.com/blog/2017/04/memory-leak.html)
+>>>>>>> 7c58ba165b59a7a915f47ba206b544c01c8425a5
