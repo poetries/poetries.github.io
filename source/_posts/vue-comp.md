@@ -794,6 +794,21 @@ export default create
 
 > 另一种创建组件实例的方式: `Vue.extend(Component)`
 
+```js
+const Ctor = Vue.extend(Component) 
+const comp = new Ctor({
+    propsData: props
+}) 
+comp.$mount();
+
+document.body.appendChild(comp.$el) 
+
+comp.remove = () = >{
+    // 移除dom document.body.removeChild(comp.$el) // 销毁组件
+    comp.$destroy();
+}
+```
+
 ### 通知组件
 
 建通知组件，Notice.vue
@@ -862,5 +877,18 @@ export default {
   margin-bottom: 8px;
 }
 </style>
+```
+
+> 使用插件进一步封装便于使用，`create.js`
+
+```js
+import Notice from '@/components/Notice.vue' //...
+export default {
+  install(Vue) {
+      Vue.prototype.$notice = function(options) {
+          return create(Notice, options)
+      }
+  }
+}
 ```
 
