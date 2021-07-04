@@ -46,6 +46,19 @@ npm install
 
 ![](https://hyzmj.oss-cn-shenzhen.aliyuncs.com/compile/23981618901112_.pic_hd.jpg)
 
+> 使用adb命令快速拉取 `adb pull /data/data/com.tencent.mm/MicroMsg/056e5e31623203e0efe74762a2584f40/appbrand/pkg`
+
+**主流安卓模拟器连接方式:**
+
+- 夜神模拟器：`adb connect 127.0.0.1:62001`
+- 逍遥安卓模拟器：`adb connect 127.0.0.1:21503`
+- 天天模拟器：`adb connect 127.0.0.1:6555`
+- 海马玩模拟器：`adb connect 127.0.0.1:53001`
+- 网易MUMU模拟器：`adb connect 127.0.0.1:7555` MacOS: `adb connect 127.0.0.1:5555`
+- genymotion模拟器：`adb connect 127.0.0.1:5555`
+- 谷歌原生模拟器：`adb connect <设备的IP地址>：5555`
+
+
 ## 编译主包
 
 **执行命令**
