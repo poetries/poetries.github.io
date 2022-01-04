@@ -1,6 +1,6 @@
 ---
 title: 教你如何使用vercel服务免费部署前端项目和serverless api
-date: 2021-01-04 18:21:43
+date: 2022-01-04 18:21:43
 tags: 
   - vercel
   - 部署
