@@ -227,7 +227,7 @@ dep.notify()
 式的订阅者与发布者之间是存在依赖的
 - **发布/订阅模式**由统一调度中心调用，因此发布者和订阅者不需要知道对方的存在
 
-![](http://img-repo.poetries.top/images/20210328214834.png)
+![](https://img.poetries.top/static/images/20210328214834.png)
 
 ## Vue 响应式原理模拟
 
@@ -237,7 +237,7 @@ dep.notify()
 - 打印 Vue 实例观察
 - 整体结构
 
-![](http://img-repo.poetries.top/images/20210328214931.png)
+![](https://img.poetries.top/static/images/20210328214931.png)
 
 - `Vue`: 把 `data` 中的成员注入到 `Vue` 实例，并且把 `data` 中的成员转成 `getter/setter`
 - `Observer`：能够对数据对象的所有属性进行监听，如有变动可拿到最新值并通知 `Dep`
@@ -254,7 +254,7 @@ dep.notify()
   - 负责调用 `compiler` 解析指令/插值表达式
 - 结构
 
-![](http://img-repo.poetries.top/images/20210328215207.png)
+![](https://img.poetries.top/static/images/20210328215207.png)
 
 ```js
 class Vue {
@@ -298,7 +298,7 @@ class Vue {
   - 数据变化发送通知
 - 结构
 
-![](http://img-repo.poetries.top/images/20210328215538.png)
+![](https://img.poetries.top/static/images/20210328215538.png)
 
 ```js
 // 负责数据劫持
@@ -350,7 +350,7 @@ class Observer {
   - 当数据变化后重新渲染视图
 - 结构
 
-![](http://img-repo.poetries.top/images/20210328215943.png)
+![](https://img.poetries.top/static/images/20210328215943.png)
 
 **1. compile()**
 
@@ -463,14 +463,14 @@ modelUpdater (node, value) {
 
 ### Dep(Dependency)
 
-![](http://img-repo.poetries.top/images/20210328220733.png)
+![](https://img.poetries.top/static/images/20210328220733.png)
 
 - 功能
   - 收集依赖，添加观察者(`watcher`)
   - 通知所有观察者
 - 结构
 
-![](http://img-repo.poetries.top/images/20210328220757.png)
+![](https://img.poetries.top/static/images/20210328220757.png)
 
 ```js
 class Dep {
@@ -509,14 +509,14 @@ dep.notify()
 
 ### Watcher
 
-![](http://img-repo.poetries.top/images/20210328221004.png)
+![](https://img.poetries.top/static/images/20210328221004.png)
 
 - 功能
   - 当数据变化触发依赖， `dep` 通知所有的 `Watcher` 实例更新视图
   - 自身实例化的时候往 `dep` 对象中添加自己
 -结构
 
-![](http://img-repo.poetries.top/images/20210328221037.png)
+![](https://img.poetries.top/static/images/20210328221037.png)
 
 ```js
 class Watcher {
@@ -580,7 +580,7 @@ modelUpdater (node, value, key) {
 
 通过下图回顾整体流程
 
-![](http://img-repo.poetries.top/images/20210328221437.png)
+![](https://img.poetries.top/static/images/20210328221437.png)
 
 - Vue
   - 记录传入的选项，设置 `$data/$el`

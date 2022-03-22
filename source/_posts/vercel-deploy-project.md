@@ -20,17 +20,17 @@ categories: Front-End
 - `vercel`还支持自动配置`https`，不用自己去`FreeSSL`申请证书，更是省去了一大堆证书的配置
 - `vercel`目前的部署模板有31种之多
 
-![vercel template](http://img-repo.poetries.top/images/20220104154330.png)
+![vercel template](https://img.poetries.top/static/images/20220104154330.png)
 
 ## 二、起步
 
 打开`vercel`主页`https://vercel.com/signup`
 
-![vercel主页](http://img-repo.poetries.top/images/20220104154552.png)
+![vercel主页](https://img.poetries.top/static/images/20220104154552.png)
 
 使用`GitHub`账号去关联`vercel`，后续代码提交到`vercel`可以自动触发部署
 
-![GitHub授权给vercel](http://img-repo.poetries.top/images/20220104154810.png)
+![GitHub授权给vercel](https://img.poetries.top/static/images/20220104154810.png)
 
 出现授权页面，点击`Authorize Vercel`。
 
@@ -40,47 +40,47 @@ categories: Front-End
 
 选择一个vercel提供的模板部署，当然你也可以把代码提交到GitHub上，再去vercel选择即可
 
-![](http://img-repo.poetries.top/images/20220104160617.png)
+![](https://img.poetries.top/static/images/20220104160617.png)
 
 创建一个GitHub项目，代码会自动在GitHub账号上创建
 
-![](http://img-repo.poetries.top/images/20220104160823.png)
+![](https://img.poetries.top/static/images/20220104160823.png)
 
 创建完成后，等待vercel构建
 
-![](http://img-repo.poetries.top/images/20220104160941.png)
+![](https://img.poetries.top/static/images/20220104160941.png)
 
 创建成功后自动跳到主页
 
-![](http://img-repo.poetries.top/images/20220104161004.png)
-![](http://img-repo.poetries.top/images/20220104161135.png)
+![](https://img.poetries.top/static/images/20220104161004.png)
+![](https://img.poetries.top/static/images/20220104161135.png)
 
 点击visit即可访问创建好的服务 https://hexo-seven-blush.vercel.app ，vercel会分配给我们一个默认的域名，当然你也可以自定义修改。
 
-![](http://img-repo.poetries.top/images/20220104161311.png)
+![](https://img.poetries.top/static/images/20220104161311.png)
 
 我们可以查看打包日志，如果构建过程出现问题，在这里看即可
 
-![](http://img-repo.poetries.top/images/20220104161400.png)
+![](https://img.poetries.top/static/images/20220104161400.png)
 
 > 点击`view domain` 绑定自定义域名
 
-![](http://img-repo.poetries.top/images/20220104161653.png)
+![](https://img.poetries.top/static/images/20220104161653.png)
 
 然后我们去域名解析处理解析`CNAME`到`cname.vercel-dns.com`
 
-![](http://img-repo.poetries.top/images/20220104162009.png)
+![](https://img.poetries.top/static/images/20220104162009.png)
 
 > 最后解析完成，访问`hexo.poetries.com`自定义域名即可。到此我们把博客hexo项目部署到vercel上，后期当你在GitHub提交代码会自动触发vercel打包构建
 
 你也可以从Github选择代码来创建项目
 
-![](http://img-repo.poetries.top/images/20220104162313.png)
+![](https://img.poetries.top/static/images/20220104162313.png)
 
 导入GitHub账号上的项目
 
-![](http://img-repo.poetries.top/images/20220104162344.png)
-![](http://img-repo.poetries.top/images/20220104162448.png)
+![](https://img.poetries.top/static/images/20220104162344.png)
+![](https://img.poetries.top/static/images/20220104162448.png)
 
 部署vue、react等前端项目过程也类似，这里不再演示
 
@@ -91,7 +91,7 @@ categories: Front-End
 
 简单演示部署api接口服务
 
-![](http://img-repo.poetries.top/images/20220104163025.png)
+![](https://img.poetries.top/static/images/20220104163025.png)
 
 
 配置`vercel.json`，更多配置在vercel官网查 `https://vercel.com/docs`
@@ -157,15 +157,15 @@ module.exports = app.database();
 
 > 访问该链接获取secretId、secretKey填入即可 https://console.cloud.tencent.com/cam/capi
 
-![](http://img-repo.poetries.top/images/20220104175640.png)
+![](https://img.poetries.top/static/images/20220104175640.png)
 
 > 来到腾讯云控制台，创建环境获取环境ID
 
-![](http://img-repo.poetries.top/images/20220104175831.png)
+![](https://img.poetries.top/static/images/20220104175831.png)
 
 选择`数据库-创建新的集合users`
 
-![](http://img-repo.poetries.top/images/20220104175945.png)
+![](https://img.poetries.top/static/images/20220104175945.png)
 
 ```js
 // api/query-all-users.js

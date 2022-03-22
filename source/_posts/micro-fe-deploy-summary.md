@@ -252,7 +252,7 @@ Jenkins 功能包括：
 
 ### 需要安装的插件
 
-- `Extended Choice Parameter` 插件，该插件可以使用多选框 ![](http://img-repo.poetries.top/images/20211117095347.png)
+- `Extended Choice Parameter` 插件，该插件可以使用多选框 ![](https://img.poetries.top/static/images/20211117095347.png)
 
 - Git plugin 
 
@@ -260,27 +260,27 @@ Jenkins 功能包括：
 
 - Send build artifacts over SSH，使用该插件需要在`系统管理->插件管理`中安装，该插件主要功能为将构建好的部署包按照一定规则发送到部署服务器，并且在这之后可在部署服务器执行一定的 shell 操作。安装插件后还需要在`系统管理->系统配置->Publish over SSH`添加 SSH Services。
 
-  ![](http://img-repo.poetries.top/images/20211117095208.png)
+  ![](https://img.poetries.top/static/images/20211117095208.png)
 
   
 
-  在`系统管理->系统配置->Publish over SSH`添加![](http://img-repo.poetries.top/images/20211117095542.png)
+  在`系统管理->系统配置->Publish over SSH`添加![](https://img.poetries.top/static/images/20211117095542.png)
 
   ### Jenkins完整配置搭建
 
   **效果演示**
 
-  ![](http://img-repo.poetries.top/images/20211117092944.png)
-  ![](http://img-repo.poetries.top/images/20211117093241.png)
+  ![](https://img.poetries.top/static/images/20211117092944.png)
+  ![](https://img.poetries.top/static/images/20211117093241.png)
 
   **配置流程**
 
-  ![](http://img-repo.poetries.top/images/20211117085757.png)
+  ![](https://img.poetries.top/static/images/20211117085757.png)
 
-  ![](http://img-repo.poetries.top/images/20211117090018.png)
-  ![](http://img-repo.poetries.top/images/20211117091728.png)
-  ![](http://img-repo.poetries.top/images/20211117091930.png)
-  ![](http://img-repo.poetries.top/images/20211117092045.png)
+  ![](https://img.poetries.top/static/images/20211117090018.png)
+  ![](https://img.poetries.top/static/images/20211117091728.png)
+  ![](https://img.poetries.top/static/images/20211117091930.png)
+  ![](https://img.poetries.top/static/images/20211117092045.png)
 
   构建的shell代码
 
@@ -338,7 +338,7 @@ Jenkins 功能包括：
   done
   ```
 
-  ![](http://img-repo.poetries.top/images/20211117092331.png)
+  ![](https://img.poetries.top/static/images/20211117092331.png)
 
   构建后操作shell代码
 
@@ -471,9 +471,9 @@ Jenkins 功能包括：
 
   https://help.aliyun.com/document_detail/209974.html
 
-![](http://img-repo.poetries.top/images/20211117102935.png)
+![](https://img.poetries.top/static/images/20211117102935.png)
 
 
 ---
 
-![](http://img-repo.poetries.top/images/20211117112123.png)
+![](https://img.poetries.top/static/images/20211117112123.png)

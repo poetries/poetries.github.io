@@ -27,7 +27,7 @@ categories: Front-End
 
 ## 1.3 ReactiveX宝石图
 
-![image-20210208204624236](http://img-repo.poetries.top/images/image-20210208204624236.png)
+![image-20210208204624236](https://img.poetries.top/static/images/image-20210208204624236.png)
 
 - 中间的带箭头的线就像传送带，用来表示数据序列，这个数据序列被称为“流”。上方的流叫做输入流，下方的流叫做输出流。输入流可能有多个，但是输出流只会有一个（不过，流中的每个数据项也可以是别的流）
 - 数据序列上的每个圆圈表示一个数据项，圆圈的位置表示数据出现的先后顺序，但是一般不会表示精确的时间比例，比如在一毫秒内接连出现的两个数据之间仍然会有较大的距离。只有少数涉及到时间的操作，其宝石图才会表现出精确的时间比例
@@ -125,19 +125,19 @@ of(1,2,3).pipe(
 
 ### 3.2.1  of – 单一值转为流
 
-![image-20210208204644634](http://img-repo.poetries.top/images/image-20210208204644634.png)
+![image-20210208204644634](https://img.poetries.top/static/images/image-20210208204644634.png)
 
 > 它接收任意多个参数，参数可以是任意类型，然后它会把这些参数逐个放入流中
 
 ### 3.2.2 from – 数组转为流
 
-![image-20210208204656811](http://img-repo.poetries.top/images/image-20210208204656811.png)
+![image-20210208204656811](https://img.poetries.top/static/images/image-20210208204656811.png)
 
 > 它接受一个数组型参数，数组中可以有任意数据，然后把数组的每个元素逐个放入流中
 
 ### 3.2.3 range – 范围转为流
 
-![image-20210208204705194](http://img-repo.poetries.top/images/image-20210208204705194.png)
+![image-20210208204705194](https://img.poetries.top/static/images/image-20210208204705194.png)
 
 > 它接受两个数字型参数，一个起点，一个终点，然后按 `1` 递增，把中间的每个数字（含边界值）放入流中
 
@@ -149,21 +149,21 @@ of(1,2,3).pipe(
 
 ### 3.2.5 defer – 惰性创建流
 
-![image-20210208204715704](http://img-repo.poetries.top/images/image-20210208204715704.png)
+![image-20210208204715704](https://img.poetries.top/static/images/image-20210208204715704.png)
 
 - 它的参数是一个用来生产流的工厂函数。也就是说，当消费方需要流（注意不是需要流中的值）的时候，就会调用这个函数，创建一个流，并从这个流中进行消费（取数据）
 - 因此，当我们定义 `defer`的时候，实际上还不存在一个真正的流，只是给出了创建这个流的方法，所以叫惰性创建流
 
 ### 3.2.6 timer – 定时器流
 
-![image-20210208204727266](http://img-repo.poetries.top/images/image-20210208204727266.png)
+![image-20210208204727266](https://img.poetries.top/static/images/image-20210208204727266.png)
 
 - 它有两个数字型的参数，第一个是首次等待时间，第二个是重复间隔时间。从图上可以看出，它实际上是个无尽流 —— 没有终止线。因此它会按照预定的规则往流中不断重复发出数据。
 - 要注意，虽然名字有相关性，但它不是 `setTimeout`的等价物，事实上它的行为更像是 `setInterval`
 
 ### 3.2.7 interval – 定时器流
 
-![image-20210208204736607](http://img-repo.poetries.top/images/image-20210208204736607.png)
+![image-20210208204736607](https://img.poetries.top/static/images/image-20210208204736607.png)
 
 - 它和 `timer` 唯一的差别是它只接受一个参数。事实上，它就是一个语法糖，相当于 `timer(1000, 1000)`，也就是说初始等待时间和间隔时间是一样的。
 - 如果需求确实是 `interval` 的语义，那么就优先使用这个语法糖，毕竟，从行为上它和 `setInterval` 几乎是一样的
@@ -181,7 +181,7 @@ of(1,2,3).pipe(
 
 ### 3.4.1 merge – 并联
 
-![img](http://img-repo.poetries.top/images/1240.png)
+![img](https://img.poetries.top/static/images/1240.png)
 
 
 - 从图上我们可以看到两个流中的内容被合并到了一个流中。只要任何一个流中出现了值就会立刻被输出，哪怕其中一个流是完全空的也不影响结果 —— 等同于原始流。
@@ -190,7 +190,7 @@ of(1,2,3).pipe(
 
 ### 3.4.2 concat – 串联
 
-![img](http://img-repo.poetries.top/images/1240-20210208204820976.png)
+![img](https://img.poetries.top/static/images/1240-20210208204820976.png)
 
 - 从图中我们可以看到两个流中的内容被按照顺序放进了输出流中。前面的流尚未结束时（注意竖线），后面的流就会一直等待
 - 这种工作方式非常像电路中的串联行为，因此我称其为串联创建器。
@@ -198,7 +198,7 @@ of(1,2,3).pipe(
 
 ### 3.4.3 zip – 拉链
 
-![image-20210208204828426](http://img-repo.poetries.top/images/image-20210208204828426.png)
+![image-20210208204828426](https://img.poetries.top/static/images/image-20210208204828426.png)
 
 - `zip` 的直译就是拉链，事实上，有些压缩软件的图标就是一个带拉链的钥匙包。拉链的特点是两边各有一个“齿”，两者会啮合在一起。这里的 `zip` 操作也是如此。
 
@@ -213,7 +213,7 @@ of(1,2,3).pipe(
 
 ### 3.5.1 retry – 失败时重试
 
-![image-20210208204837805](http://img-repo.poetries.top/images/image-20210208204837805.png)
+![image-20210208204837805](https://img.poetries.top/static/images/image-20210208204837805.png)
 
 - 有些错误是可以通过重试进行恢复的，比如临时性的网络丢包。甚至一些流程的设计还会故意借助重试机制，比如当你发起请求时，如果后端发现你没有登录过，就会给你一个 `401` 错误，然后你可以完成登录并重新开始整个流程。
 - `retry` 操作符就是负责在失败时自动发起重试的，它可以接受一个参数，用来指定最大重试次数。
@@ -222,7 +222,7 @@ of(1,2,3).pipe(
 
 ### 3.5.2 repeat – 成功时重试
 
-![image-20210208204846757](http://img-repo.poetries.top/images/image-20210208204846757.png)
+![image-20210208204846757](https://img.poetries.top/static/images/image-20210208204846757.png)
 
 
 - 除了重复的条件之外，`repeat` 的行为几乎和 `retry` 一模一样。
@@ -230,28 +230,28 @@ of(1,2,3).pipe(
 
 ### 3.5.3 delay – 延迟
 
-![image-20210208204856423](http://img-repo.poetries.top/images/image-20210208204856423.png)
+![image-20210208204856423](https://img.poetries.top/static/images/image-20210208204856423.png)
 
 - 这才是真正的 `setTimeout` 的等价操作。它接受一个毫秒数（图中是 `20` 毫秒），每当它从输入流中读取一个数据之后，会先等待 `20` 毫秒，然后再放到输出流中。
 - 可以看到，输入流和输出流内容是完全一样的，只是时机上，输出流中的每个条目都恰好比输入流晚 `20` 毫秒出现
 
 ### 3.5.4 toArray – 收集为数组
 
-![image-20210208204905368](http://img-repo.poetries.top/images/image-20210208204905368.png)
+![image-20210208204905368](https://img.poetries.top/static/images/image-20210208204905368.png)
 
 - 事实上，你几乎可以把它看做是 `from` 的逆运算。 `from` 把数组打散了逐个放进流中，而 `toArray` 恰好相反，把流中的内容收集到一个数组中 —— 直到这个流结束。
 - 这个操作符几乎总是放在最后一步，因为 `RxJS` 的各种 `operator` 本身就可以对流中的数据进行很多类似数组的操作，比如查找最小值、最大值、过滤等。所以通常会先使用各种 operator 对数据流进行处理，等到要脱离 `RxJS` 的体系时，再转换成数组传出去
 
 ### 3.5.5 debounceTime – 防抖
 
-![image-20210208204912979](http://img-repo.poetries.top/images/image-20210208204912979.png)
+![image-20210208204912979](https://img.poetries.top/static/images/image-20210208204912979.png)
 
 - 在 `underscore/lodash` 中这是常用函数。 所谓防抖其实就是“等它平静下来”。比如预输入（type ahead）功能，当用户正在快速打字的时候，你没必要立刻去查服务器，否则可能直接让服务器挂了，而应该等用户稍作停顿（平静下来）时再发起查询。
 - `debounceTime` 就是这样，你传入一个最小平静时间，在这个时间窗口内连续过来的数据一概被忽略，一旦平静时间超过它，就会往把接收到的下一条数据放到流中。这样消费者就只能看到平静时间超时之后发来的最后一条数据
 
 ### 3.5.6 switchMap – 切换成另一个流
 
-![image-20210208204929447](http://img-repo.poetries.top/images/image-20210208204929447.png)
+![image-20210208204929447](https://img.poetries.top/static/images/image-20210208204929447.png)
 
 - 有时候，我们会希望根据一个立即数发起一个远程查询，并且把这个异步取回的结果放进流中。比如，流中是一些学生的 `id`，每过来一个 `id`，你要发起一个 `Ajax` 请求来根据这个 `id` 获取这个学生的详情，并且把详情放进输出流中。
 - 注意，这是一个异步操作，所以你没法用普通的 `map` 来实现，否则映射出来的结果就会是一个个 `Observable` 对象。

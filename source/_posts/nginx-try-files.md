@@ -17,7 +17,7 @@ categories: Back-end
 - 默认值：无
 - 作用域：`server location`
 
-![image-20210208093424322](http://img-repo.poetries.top/images/image-20210208093424322.png)
+![image-20210208093424322](https://img.poetries.top/static/images/image-20210208093424322.png)
 
 - 当用户在浏览器输入`blog.zsc.com`或者`blog.zsc.com/index.html`或者`blog.zsc.com/index.php`时，根据`try_files`规则，可以找到该域名对应的`web`页面
 - 当用户在浏览器输入`blog.zsc.com/fjdklfjaldkfjlads/zjklfjdslfjds`等不存在的域名时，根据`try_files`规则，`“$uri”`和`“$uri”`都不符合，所以`nginx`就自动把域名转换为`blog.zsc.com/index.php`，然后将`blog.zsc.com/index.php`页面内容反馈给客户端。
@@ -25,7 +25,7 @@ categories: Back-end
 
 > 需要注意的是，只有最后一个参数可以引起一个内部重定向，之前的参数只设置内部URI的指向（如下图）。最后一个参数是回退`URI`且必须存在，否则会出现内部`500`错误。命名的`location`也可以使用在最后一个参数中。与`rewrite`指令不同，如果回退`URI`不是命名的`location`那么`$args`不会自动保留，如果你想保留`$args`，则必须明确声明。
 
-![image-20210208093626879](http://img-repo.poetries.top/images/image-20210208093626879.png)
+![image-20210208093626879](https://img.poetries.top/static/images/image-20210208093626879.png)
 
 
 

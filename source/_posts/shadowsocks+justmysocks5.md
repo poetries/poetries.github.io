@@ -43,7 +43,7 @@ categories: Tools
 
 **配置描述:**
 
-![](http://img-repo.poetries.top/images/20220104123619.png)
+![](https://img.poetries.top/static/images/20220104123619.png)
 
 - `自动代理模式`：表示连接国内不通过vpn，可加快访问速度
 - `全局模式`：所有连接都通过vpn
@@ -110,12 +110,12 @@ Enjoy it!
 
 > 自己搭建的会有被封ip的风险。推荐使用`justmysocks5`(https://justmysocks5.net/members/cart.php)去代理，这些一个月一个月续费就好，不要一次性买几个月。因为不知道是不是用一段时间就费封了。不推荐使用蓝灯，蓝灯不稳定，容易被封杀。现在国内的防火墙封杀蓝灯一抓一个准，只要是国内有两会、或者其他敏感政治事件。基本上都会被封杀。
 
-![](http://img-repo.poetries.top/images/20220104130036.png)
-![](http://img-repo.poetries.top/images/20220104130233.png)
+![](https://img.poetries.top/static/images/20220104130036.png)
+![](https://img.poetries.top/static/images/20220104130233.png)
 
 购买后填入地址、端口、密码即可
 
-![](http://img-repo.poetries.top/images/20220104124637.png)
-![](http://img-repo.poetries.top/images/20220104124612.png)
+![](https://img.poetries.top/static/images/20220104124637.png)
+![](https://img.poetries.top/static/images/20220104124612.png)
 
 > 我是程序员小月，专注分享前端领域编程经验和技术干货，更多干货在公 号：前端进阶之旅

@@ -10,11 +10,11 @@ categories: Front-End
 
 ## 1.1 什么是serverless
 
-![](http://img-repo.poetries.top/images/20210909143647.png)
-![](http://img-repo.poetries.top/images/20210909105911.png)
-![](http://img-repo.poetries.top/images/20210909174718.png)
-![](http://img-repo.poetries.top/images/20210909174744.png)
-![](http://img-repo.poetries.top/images/20210909174732.png)
+![](https://img.poetries.top/static/images/20210909143647.png)
+![](https://img.poetries.top/static/images/20210909105911.png)
+![](https://img.poetries.top/static/images/20210909174718.png)
+![](https://img.poetries.top/static/images/20210909174744.png)
+![](https://img.poetries.top/static/images/20210909174732.png)
 
 我们使用函数的时候不用关心后端IP、域名，只需要调用函数，后端的服务是一个函数。serverless并不是没有服务器，只是服务器部署在云上面的，比我们去自己维护更方便多
 
@@ -24,14 +24,14 @@ categories: Front-End
 > - 第一种：`狭义 Serverless`（最常见）= `Serverless computing 架构` = `FaaS 架构` = `Trigger（事件驱动）+ FaaS（函数即服务）+ BaaS`（后端即服务，持久化或第三方服务）= `FaaS + BaaS`
 > - 第二种：广义 `Serverless` = `服务端免运维` = `具备 Serverless 特性的云服务`
 
-![](http://img-repo.poetries.top/images/20210909172246.png)
+![](https://img.poetries.top/static/images/20210909172246.png)
 
 > - FAAS：函数及服务，通俗来说就是我们可以写一个函数，在该函数内执行业务逻辑，函数由fas平台运行
 > - BAAS：后端及服务，通常指云服务，该云服务常指中间件服务，
 
 FAAS+BAAS 构成了Serverless架构
 
-![](http://img-repo.poetries.top/images/20210901173327.png)
+![](https://img.poetries.top/static/images/20210901173327.png)
 
 整体架构十分简单明了, 用 FC 替代了 Web 服务器，但是换来的是免运维，弹性扩容，按需付费等一系列优点
 
@@ -54,11 +54,11 @@ FAAS+BAAS 构成了Serverless架构
 
 这就是serverless做的事情。如下图，我们只需要关心业务代码，不需要关心服务器的基础设施。
 
-![](http://img-repo.poetries.top/images/20210909175241.png)
+![](https://img.poetries.top/static/images/20210909175241.png)
 
 ## 1.4 Serverless和函数计算的区别
 
-![](http://img-repo.poetries.top/images/20210909174858.png)
+![](https://img.poetries.top/static/images/20210909174858.png)
 
 ## 1.5 Serverless 的技术特点
 
@@ -68,7 +68,7 @@ FAAS+BAAS 构成了Serverless架构
 - Serverless 应用不会类似于原有的「监听 - 处理」类型的应用一直在线，而是按需启动
 - 事件的定义可以很丰富，一次 http 请求，一个文件上传，一次数据库条目修改，一条消息发送，都可以定义为事件
 
-![](http://img-repo.poetries.top/images/20210909215157.png)
+![](https://img.poetries.top/static/images/20210909215157.png)
 
 **单事件处理**
 
@@ -76,7 +76,7 @@ FAAS+BAAS 构成了Serverless架构
 - 无需在代码内考虑高并发高可靠性，代码可以专注于业务，开发更简单
 - 通过云函数实例的高并发能力，实现业务高并发
 
-![](http://img-repo.poetries.top/images/20210909215226.png)
+![](https://img.poetries.top/static/images/20210909215226.png)
 
 **自动弹性伸缩**
 
@@ -84,7 +84,7 @@ FAAS+BAAS 构成了Serverless架构
 - 针对业务的实际事件或请求数，云函数自动弹性合适的处理实例来承载实际业务量
 - 在没有事件或请求时，无实例运行，不占用资源
 
-![](http://img-repo.poetries.top/images/20210909215252.png)
+![](https://img.poetries.top/static/images/20210909215252.png)
 
 
 **无状态开发**
@@ -93,24 +93,24 @@ FAAS+BAAS 构成了Serverless架构
 - 分布式应用开发中，均需要保持应用的无状态，以便于水平伸缩
 - 可以利用外部服务、产品，例如数据库或缓存，实现状态数据的保存
 
-![](http://img-repo.poetries.top/images/20210909215322.png)
+![](https://img.poetries.top/static/images/20210909215322.png)
 
 ## 1.6 传统服务器架构 VS Serverless架构
 
 1. 传统的开发模式
 
-![](http://img-repo.poetries.top/images/20210909180123.png)
-![](http://img-repo.poetries.top/images/20210909175657.png)
-![](http://img-repo.poetries.top/images/20210908093108.png)
+![](https://img.poetries.top/static/images/20210909180123.png)
+![](https://img.poetries.top/static/images/20210909175657.png)
+![](https://img.poetries.top/static/images/20210908093108.png)
 
 2. 新型的`serverless`开发模式
 
-![](http://img-repo.poetries.top/images/20210909180137.png)
-![](http://img-repo.poetries.top/images/20210908093115.png)
+![](https://img.poetries.top/static/images/20210909180137.png)
+![](https://img.poetries.top/static/images/20210908093115.png)
 
 正常来说，用户开发 Server 端服务，常常面临开发效率，运维成本高，机器资源弹性伸缩等痛点，而使用 Serverless 架构可以很好的解决上述问题。下面是传统架构和 Serverless 架构的对比：
 
-![](http://img-repo.poetries.top/images/20210901173249.png)
+![](https://img.poetries.top/static/images/20210901173249.png)
 
 云函数计算是一个事件驱动的全托管计算服务。通过函数计算，您无需管理服务器等基础设施，只需编写代码并上传。函数计算会为您准备好计算资源，以弹性、可靠的方式运行您的代码，并提供日志查询，性能监控，报警等功能。借助于函数计算，您可以快速构建任何类型的应用和服务，无需管理和运维。
 
@@ -122,7 +122,7 @@ FAAS+BAAS 构成了Serverless架构
 2. **资源分配**: 在 `Serverless` 架构中，你不用关心应用运行的资源(比如服务配置、磁盘大小)只提供一份代码就行。
 3. **计费方式**: 在` Serverless` 架构中，计费方式按实际使用量计费(比如函数调用次数、运 行时长)，不按传统的执行代码所需的资源计费(比如固定 `CPU`)。计费粒度也精确到了毫 秒级，而不是传统的小时级别。个别云厂商推出了每个月的免费额度，比如腾讯云提供了每 个月 40 万 GBs 的资源使用额度和 100 万次调用次数的免费额度。中小企业的网站访问量不 是特别大的话完全可以免费使用。
 
-![](http://img-repo.poetries.top/images/20210908093139.png)
+![](https://img.poetries.top/static/images/20210908093139.png)
 
 4. **弹性伸缩**:` Serverless` 架构的弹性伸缩更自动化、更精确，可以快速根据业务并发扩容更 多的实例，甚至允许缩容到零实例状态来实现零费用，对用户来说是完全无感知的。而传统 架构对服务器(虚拟机)进行扩容，虚拟机的启动速度也比较慢，需要几分钟甚至更久。
 
@@ -157,7 +157,7 @@ FaaS中的函数可以通过供应商定义的事件类型触发。对于亚马�
 
 ## 1.9 Serverless计算如何工作？
 
-![](http://img-repo.poetries.top/images/20210909175448.png)
+![](https://img.poetries.top/static/images/20210909175448.png)
 
 
 > 同步调用的特性是，客户端期待服务端立即返回计算结果。请求到达函数计算时，会立即分配执行环境执行函数。
@@ -174,7 +174,7 @@ FaaS中的函数可以通过供应商定义的事件类型触发。对于亚马�
 
 FaaS 中的冷启动是指从调用函数开始到函数实例准备完成的整个过程。 冷启动我们关注的是启动时间，启动时间越短，我们对资源的利用率就越高。现在的云服务商，基于不同的语言特性，冷启动平均耗时基本在 100～700 毫秒之间。得益于 Google 的 JavaScript 引擎 Just In Time 特性，Node.js 在冷启动方面速度是最快的。
 
-![](http://img-repo.poetries.top/images/20210909175826.png)
+![](https://img.poetries.top/static/images/20210909175826.png)
 
 请求第一次访问时，云服务商就可以利用构建好的缓存镜像，直接跳过冷启动的下载函数代码步骤，从镜像启动容器，这个也叫预热冷启动。所以如果我们有些业务场景对响应时间比较敏感，我们就可以通过预热冷启动或预留实例策略，加速或绕过冷启动时间。
 
@@ -184,11 +184,11 @@ FaaS 中的冷启动是指从调用函数开始到函数实例准备完成的整
 - 运行时runtime
 - 具体函数代码
 
-![](http://img-repo.poetries.top/images/20210909175855.png)
+![](https://img.poetries.top/static/images/20210909175855.png)
 
 云服务商负责的就是容器和 Runtime 的准备阶段了。而开发者自己负责的则是函数执行阶段。一旦容器 &Runtime 启动后，就会维持一段时间，这段时间内的这个函数实例就可以直接处理用户数据请求。当一段时间内没有用户请求事件发生（各个云服务商维持实例的时间和策略不同），则会销毁这个函数实例。
 
-![](http://img-repo.poetries.top/images/20210909175920.png)
+![](https://img.poetries.top/static/images/20210909175920.png)
 
 SFF（Serverless For Frontend）指前端数据请求过来，函数触发器触发我们的函数服务；我们的函数启动后，调用后端提供的元数据接口，并将返回的元数据加工成前端需要的数据格式；我们的 FaaS 函数完全就可以休息了。
 
@@ -198,11 +198,11 @@ SFF（Serverless For Frontend）指前端数据请求过来，函数触发器触
 
 BaaS 化的核心思想就是将后端应用转换成 NoOps 的数据接口，这样 FaaS 在 SFF 层就可以放开手脚，而不用再考虑冷启动时间了。
 
-![](http://img-repo.poetries.top/images/20210909180012.png)
+![](https://img.poetries.top/static/images/20210909180012.png)
 
 ## 2.3 Serverless使用场景
 
-![](http://img-repo.poetries.top/images/20210909175547.png)
+![](https://img.poetries.top/static/images/20210909175547.png)
 
 **发送通知**
 
@@ -244,7 +244,7 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 前后台联调时间有时候更多，等项目上线需要考虑更多运维的问题，买域名买服务器等
 
-![](http://img-repo.poetries.top/images/20210909110747.png)
+![](https://img.poetries.top/static/images/20210909110747.png)
 
 ## 2.2 云开发正在改变小程序的开发模式
 
@@ -254,7 +254,7 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 简单的说，就是云开发是一套综合类服务的技术产品，通常开发一个完整的应用（小程序也好，Web、移动应用也好）都需要数据库、存储、CDN、后端函数、静态托管、用户登录等等，但是云开发将这些服务都集成到了一起，而且以一种全新的开发方式，让开发一个应用更加快速、方便、便宜且强大，引领未来技术开发的新趋势。
 
-![](http://img-repo.poetries.top/images/20210909144650.png)
+![](https://img.poetries.top/static/images/20210909144650.png)
 
 我们不需要区分那部分是前端那部分是后端，我们只需要调用函数一样去哪里这个流程就可以，云函数也可以在本地调式，调式云函数就像调式我们的代码一样的
 
@@ -268,31 +268,31 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 **小程序云开发提供哪些基础能力**
 
-![](http://img-repo.poetries.top/images/20210909111446.png)
+![](https://img.poetries.top/static/images/20210909111446.png)
 
 ## 2.3 小程序云函数计费
 
 **产品定价**
 
-![](http://img-repo.poetries.top/images/20210908110237.png)
+![](https://img.poetries.top/static/images/20210908110237.png)
 
 **支持地域**
 
-![](http://img-repo.poetries.top/images/20210908110111.png)
+![](https://img.poetries.top/static/images/20210908110111.png)
 
 **免费额度**
 
 每个月的免费额度，会在每月开始时刻重置，不会进行累积
 
-![](http://img-repo.poetries.top/images/20210908110147.png)
+![](https://img.poetries.top/static/images/20210908110147.png)
 
 **配额限制说明**
 
-![](http://img-repo.poetries.top/images/20210908110721.png)
+![](https://img.poetries.top/static/images/20210908110721.png)
 
 ## 2.4 小程序云开发项目的创建与配置
 
-![](http://img-repo.poetries.top/images/20210830105322.png)
+![](https://img.poetries.top/static/images/20210830105322.png)
 
 ### 云开发项目初始化
 
@@ -300,14 +300,14 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 > 用户在开通云开发之后就创建了一个云开发环境，微信小程序可拥有最多两个环境，每个环境都对应一整套独立的云开发资源，包括数据库、云存储、云函数、静态托管等，各个环境是相互独立的。每个环境都有一个唯一的环境ID（环境名称不唯一）。
 
-![](http://img-repo.poetries.top/images/20210830110227.png)
-![](http://img-repo.poetries.top/images/20210830110241.png)
+![](https://img.poetries.top/static/images/20210830110227.png)
+![](https://img.poetries.top/static/images/20210830110241.png)
 
 **指定开发者工具的云开发环境**
 
 > 当云开发服务开通后，我们可以在小程序源代码cloudfunctions文件夹名看到你的环境名称。如果在cloudfunctions文件夹名显示的不是环境名称，而是“未指定环境”，可以鼠标右键该文件夹，可以看到弹窗的第一项为“当前环境”，有个小三角，在这里可以选择或切换已经建好的云开发环境。如果环境为空白，重启开发者工具，再来选择。
 
-![](http://img-repo.poetries.top/images/20210830110613.png)
+![](https://img.poetries.top/static/images/20210830110613.png)
 
 **指定小程序的云开发环境**
 
@@ -324,7 +324,7 @@ wx.cloud.init({
 })
 ```
 
-![](http://img-repo.poetries.top/images/20210830110805.png)
+![](https://img.poetries.top/static/images/20210830110805.png)
 
 > 在 env: 'my-env-id'处改成你的环境ID，注意需要填入的是你的环境ID而不是环境名称哦，结果如下：
 
@@ -342,15 +342,15 @@ wx.cloud.init({
 
 **小程序云开发控制台**
 
-![](http://img-repo.poetries.top/images/20210830111520.png)
+![](https://img.poetries.top/static/images/20210830111520.png)
 
 **腾讯云云开发网页控制台**
 
 > 我们还可以使用腾讯云云开发网页控制台来管理云开发资源，需要注意两点，一个是登录方式需要选择其他登录方式里的微信公众号，点击然后使用手机微信扫码，在微信上选择你要登录的小程序；二是要进入腾讯云后台之后切换选择云开发Cloudbase。
 
-![](http://img-repo.poetries.top/images/20210830111557.png)
-![](http://img-repo.poetries.top/images/20210830111607.png)
-![](http://img-repo.poetries.top/images/20210830111625.png)
+![](https://img.poetries.top/static/images/20210830111557.png)
+![](https://img.poetries.top/static/images/20210830111607.png)
+![](https://img.poetries.top/static/images/20210830111625.png)
 
 ### 其他工具与方式
 
@@ -359,7 +359,7 @@ wx.cloud.init({
 - CloudBase CLI：我们可以使用云开发提供的命令行工具 [CloudBase CLI](https://docs.cloudbase.net/cli/intro.html) 对云开发环境里面的资源进行批量管理，比如云函数批量下载更新；云存储里面的文件夹批量下载和上传等等；
 - `Tencent CloudBase Toolkit`：Tencent CloudBase Toolkit是一款Visual Studio Code的云开发插件，使用这个插件可以更好地在本地进行云开发项目开发和代码调试，并且轻松将项目部署到云端；
 
-![](http://img-repo.poetries.top/images/20210830111817.png)
+![](https://img.poetries.top/static/images/20210830111817.png)
 
 ### 部署并上传云函数
 
@@ -387,18 +387,18 @@ cloudfunctions里放的是云函数，miniprogram放的是小程序的页面，�
 
 ### 小程序云开发对比不同方式获取用户信息的应用场景
 
-![](http://img-repo.poetries.top/images/20210909114318.png)
-![](http://img-repo.poetries.top/images/20210909115128.png)
-![](http://img-repo.poetries.top/images/20210909115658.png)
+![](https://img.poetries.top/static/images/20210909114318.png)
+![](https://img.poetries.top/static/images/20210909115128.png)
+![](https://img.poetries.top/static/images/20210909115658.png)
 
 ### 小程序码
 
-![](http://img-repo.poetries.top/images/20210909115740.png)
+![](https://img.poetries.top/static/images/20210909115740.png)
 
 ### 图片上传
 
-![](http://img-repo.poetries.top/images/20210905154352.png)
-![](http://img-repo.poetries.top/images/20210905154454.png)
+![](https://img.poetries.top/static/images/20210905154352.png)
+![](https://img.poetries.top/static/images/20210905154454.png)
 
 
 ### 云函数路由优化tcb-router
@@ -407,13 +407,13 @@ cloudfunctions里放的是云函数，miniprogram放的是小程序的页面，�
 npm i tcb-router
 ```
 
-![](http://img-repo.poetries.top/images/20210909112822.png)
-![](http://img-repo.poetries.top/images/20210909112915.png)
-![](http://img-repo.poetries.top/images/20210909112943.png)
+![](https://img.poetries.top/static/images/20210909112822.png)
+![](https://img.poetries.top/static/images/20210909112915.png)
+![](https://img.poetries.top/static/images/20210909112943.png)
 
 ### 云函数超时时间
 
-![](http://img-repo.poetries.top/images/20210905143347.png)
+![](https://img.poetries.top/static/images/20210905143347.png)
 
 
 ### 订阅消息
@@ -450,15 +450,15 @@ subscribeNew:function(){
 }
 ```
 
-![](http://img-repo.poetries.top/images/20210906134316.png)
+![](https://img.poetries.top/static/images/20210906134316.png)
 
-![](http://img-repo.poetries.top/images/20210905171014.png)
-![](http://img-repo.poetries.top/images/20210905171103.png)
-![](http://img-repo.poetries.top/images/20210905171125.png)
+![](https://img.poetries.top/static/images/20210905171014.png)
+![](https://img.poetries.top/static/images/20210905171103.png)
+![](https://img.poetries.top/static/images/20210905171125.png)
 
-![](http://img-repo.poetries.top/images/20210909113952.png)
+![](https://img.poetries.top/static/images/20210909113952.png)
 
-![](http://img-repo.poetries.top/images/20210905171621.png)
+![](https://img.poetries.top/static/images/20210905171621.png)
 
 3、调用接口下发订阅消息：`subscribeMessage.send`
 
@@ -514,7 +514,7 @@ exports.main = async (event, context) => {
 }
 ```
 
-![](http://img-repo.poetries.top/images/20210909114130.png)
+![](https://img.poetries.top/static/images/20210909114130.png)
 
 当用户订阅消息之后，就可以给用户下发消息了。
 
@@ -547,57 +547,57 @@ sendNew:function(){
 
 最后将云函数上传部署，使用手机测试，成功后，在微信的服务通知就会收到了订阅的消息
 
-![](http://img-repo.poetries.top/images/20210906134517.png)
+![](https://img.poetries.top/static/images/20210906134517.png)
 
 
 ### 定时触发器
 
 每天指定时间执行云函数
 
-![](http://img-repo.poetries.top/images/20210905143230.png)
-![](http://img-repo.poetries.top/images/20210905143302.png)
+![](https://img.poetries.top/static/images/20210905143230.png)
+![](https://img.poetries.top/static/images/20210905143302.png)
 
 ## 2.6 云数据库
 
 **1. 云数据库获取100条数据突破**
 
-![](http://img-repo.poetries.top/images/20210905142630.png)
+![](https://img.poetries.top/static/images/20210905142630.png)
 
 **2. 分页查询数据库**
 
-![](http://img-repo.poetries.top/images/20210905143553.png)
+![](https://img.poetries.top/static/images/20210905143553.png)
 
 **3. 模糊查询**
 
-![](http://img-repo.poetries.top/images/20210909113505.png)
-![](http://img-repo.poetries.top/images/20210909113515.png)
+![](https://img.poetries.top/static/images/20210909113505.png)
+![](https://img.poetries.top/static/images/20210909113515.png)
 
 **4. 数据权限管理**
 
-![](http://img-repo.poetries.top/images/20210909113617.png)
+![](https://img.poetries.top/static/images/20210909113617.png)
 
 **5. 云数据库中1对N关系的三种设计方式**
 
-![](http://img-repo.poetries.top/images/20210905165740.png)
-![](http://img-repo.poetries.top/images/20210905170014.png)
-![](http://img-repo.poetries.top/images/20210905170132.png)
+![](https://img.poetries.top/static/images/20210905165740.png)
+![](https://img.poetries.top/static/images/20210905170014.png)
+![](https://img.poetries.top/static/images/20210905170132.png)
 
 ## 2.7 小程序云函数调试
 
 ### 控制台调试
 
-![](http://img-repo.poetries.top/images/20210904213740.png)
-![](http://img-repo.poetries.top/images/20210904214040.png)
+![](https://img.poetries.top/static/images/20210904213740.png)
+![](https://img.poetries.top/static/images/20210904214040.png)
 
 ### vscode本地调试
 
 选择“云端函数”列表右侧的 ，向云端函数发送触发事件。
 
-![](http://img-repo.poetries.top/images/20210908143618.png)
+![](https://img.poetries.top/static/images/20210908143618.png)
 
 ## 2.8 小程序云开发部署管理后台演示-触发云函数的运用
 
-![](http://img-repo.poetries.top/images/20210909123158.png)
+![](https://img.poetries.top/static/images/20210909123158.png)
 
 ### 接口调用凭证access_token的缓存与更新
 
@@ -617,7 +617,7 @@ const fileName = path.resolve(__dirname, './access_token.json')
 
 const URL = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${APPID}&secret=${SECRET}`
 
-// ![](http://img-repo.poetries.top/images/20210905185325.png)
+// ![](https://img.poetries.top/static/images/20210905185325.png)
 const updateAccessToken = async ()=>{
   const resStr = await rp(URL)
   const res = JSON.parse(resStr)
@@ -841,7 +841,7 @@ router.get('/day/list', async (ctx, next) => {
 
 **Web 函数运行原理如下图所示：**
 
-![](http://img-repo.poetries.top/images/20210908112127.png)
+![](https://img.poetries.top/static/images/20210908112127.png)
 
 用户发送的 HTTP 请求经过 API 网关后，网关侧将原生请求直接透传的同时，在请求头部添加了网关触发函数时需要的函数名、函数地域等内容，并一起传递到函数环境，触发后端函数执行。
 
@@ -867,7 +867,7 @@ router.get('/day/list', async (ctx, next) => {
 - 解析函数文件，并执行函数调用前所需的全局操作或初始化程序（如开发工具包客户端 HTTP CLIENT 等初始化、数据库连接池创建等），便于调用阶段复用。
 - 启动安全、监控等插件。
 
-![](http://img-repo.poetries.top/images/20210908113308.png)
+![](https://img.poetries.top/static/images/20210908113308.png)
 
 **使用前提**
 
@@ -879,11 +879,11 @@ router.get('/day/list', async (ctx, next) => {
 
 **标准语言环境绝对路径**
 
-![](http://img-repo.poetries.top/images/20210908113549.png)
+![](https://img.poetries.top/static/images/20210908113549.png)
 
 **常见 Web Server 启动命令模版**
 
-![](http://img-repo.poetries.top/images/20210908113613.png)
+![](https://img.poetries.top/static/images/20210908113613.png)
 
 ### 2、serverless fromework及控制台部署
 
@@ -893,16 +893,16 @@ router.get('/day/list', async (ctx, next) => {
 
 部署koa2管理端接口
 
-![](http://img-repo.poetries.top/images/20210907164116.png)
-![](http://img-repo.poetries.top/images/20210907164233.png)
-![](http://img-repo.poetries.top/images/20210907164300.png)
-![](http://img-repo.poetries.top/images/20210907164312.png)
+![](https://img.poetries.top/static/images/20210907164116.png)
+![](https://img.poetries.top/static/images/20210907164233.png)
+![](https://img.poetries.top/static/images/20210907164300.png)
+![](https://img.poetries.top/static/images/20210907164312.png)
 
 > 官方demo https://github.com/tencentyun/serverless-demo/blob/master/WebFunc-KoaDemo/src/app.js
 
 仓库关联GitHub，提交git代码自动更新
 
-![](http://img-repo.poetries.top/images/20210907171452.png)
+![](https://img.poetries.top/static/images/20210907171452.png)
 
 **2. 命令行部署-Serverless Framework方式**
 
@@ -949,7 +949,7 @@ serverless
 选择对应的模板
 
 
-![](http://img-repo.poetries.top/images/20210909134505.png)
+![](https://img.poetries.top/static/images/20210909134505.png)
 
 
 部署上线
@@ -958,9 +958,9 @@ serverless
 serverless deploy
 ```
 
-![](http://img-repo.poetries.top/images/20210909135902.png)
-![](http://img-repo.poetries.top/images/20210909134955.png)
-![](http://img-repo.poetries.top/images/20210909135104.png)
+![](https://img.poetries.top/static/images/20210909135902.png)
+![](https://img.poetries.top/static/images/20210909134955.png)
+![](https://img.poetries.top/static/images/20210909135104.png)
 
 **serverless.yml配置详情**
 
@@ -968,41 +968,41 @@ serverless deploy
 
 部署上线后可以在这里查看你的项目
 
-![](http://img-repo.poetries.top/images/20210907222947.png)
+![](https://img.poetries.top/static/images/20210907222947.png)
 
 测试部署的项目
 
-![](http://img-repo.poetries.top/images/20210907222956.png)
+![](https://img.poetries.top/static/images/20210907222956.png)
 
 删除部署的项目
 
-![](http://img-repo.poetries.top/images/20210909140209.png)
+![](https://img.poetries.top/static/images/20210909140209.png)
 
 
 **3. 在vscode中配置插件来开发serverless**
 
 在`vscode`上安装插件
 
-![](http://img-repo.poetries.top/images/20210908093524.png)
+![](https://img.poetries.top/static/images/20210908093524.png)
 
 在`vscode`安装后插件登录并且拉取应用
 
-![](http://img-repo.poetries.top/images/20210908093544.png)
+![](https://img.poetries.top/static/images/20210908093544.png)
 
 关于登录账号及密钥[查看地址](https://console.cloud.tencent.com/cam/capi)
 
 远程拉取代码
 
-![](http://img-repo.poetries.top/images/20210908093655.png)
+![](https://img.poetries.top/static/images/20210908093655.png)
 
 下载后的代码如果想上传也可以直接上传的
 
-![](http://img-repo.poetries.top/images/20210908093704.png)
+![](https://img.poetries.top/static/images/20210908093704.png)
 
 **WebIDE创建云函数实践**
 
-![](http://img-repo.poetries.top/images/20210908094739.png)
-![](http://img-repo.poetries.top/images/20210908094748.png)
+![](https://img.poetries.top/static/images/20210908094739.png)
+![](https://img.poetries.top/static/images/20210908094748.png)
 
 ### 3、serverless部署前端项目
 
@@ -1096,11 +1096,11 @@ inputs:
 - 先本地根据项目命令打包好
 - 在云产品中选择静态文件托管
 
-![](http://img-repo.poetries.top/images/20210908100907.png)
+![](https://img.poetries.top/static/images/20210908100907.png)
 
 - 直接将上传你打包后的代码
 
-![](http://img-repo.poetries.top/images/20210908100915.png)
+![](https://img.poetries.top/static/images/20210908100915.png)
 
 ### 4、在serverless中连接mysql
 
@@ -1131,7 +1131,7 @@ root
 
 > 在函数服务中选择`mysql`数据库模板来创建数据库云函数应用。<font color="#f00">注意选择的语音和区域</font>
 
-![](http://img-repo.poetries.top/images/20210908101905.png)
+![](https://img.poetries.top/static/images/20210908101905.png)
 
 > 在自己的数据库中创建数据库及数据表
 
@@ -1156,7 +1156,7 @@ insert into account(username, password) values('张三', '123456');
 
 > 打开云函数的代码管理修改数据库的连接配置
 
-![](http://img-repo.poetries.top/images/20210908101915.png)
+![](https://img.poetries.top/static/images/20210908101915.png)
 
 > 进入代码编辑界面的函数代码编辑代码
 
@@ -1194,15 +1194,15 @@ exports.main_handler = async (event, context, callback) => {
 
 > 修改完成后点击部署和测试
 
-![](http://img-repo.poetries.top/images/20210908101926.png)
+![](https://img.poetries.top/static/images/20210908101926.png)
 
 出现下面界面表示你已经在云函数中连接`mysql`成功了
 
-![](http://img-repo.poetries.top/images/20210908101935.png)
+![](https://img.poetries.top/static/images/20210908101935.png)
 
 > 如果你想在浏览器上测试访问，可以点击**触发管理**
 
-![](http://img-repo.poetries.top/images/20210908101943.png)
+![](https://img.poetries.top/static/images/20210908101943.png)
 
 ### 5、云开发与serverless的区别
 
@@ -1214,19 +1214,19 @@ exports.main_handler = async (event, context, callback) => {
 
 在产品中选择云开发产品
 
-![](http://img-repo.poetries.top/images/20210908102916.png)
+![](https://img.poetries.top/static/images/20210908102916.png)
 
 创建一个项目,注意点:这里要选择好区域，下次创建了项目，区域不一样，可能项目就看不到
 
-![](http://img-repo.poetries.top/images/20210908102926.png)
+![](https://img.poetries.top/static/images/20210908102926.png)
 
 使用模板创建
 
-![](http://img-repo.poetries.top/images/20210908102935.png)
+![](https://img.poetries.top/static/images/20210908102935.png)
 
 查看自己创建应用并且访问
 
-![](http://img-repo.poetries.top/images/20210908102946.png)
+![](https://img.poetries.top/static/images/20210908102946.png)
 
 **使用脚手架的方式创建**
 
@@ -1258,7 +1258,7 @@ tcb new nest-cloundbase nest-starter
 
 选择自己已经创建的环境,如果没有就 创建新环境,这时候会打开浏览器
 
-![](http://img-repo.poetries.top/images/20210908102958.png)
+![](https://img.poetries.top/static/images/20210908102958.png)
 
 本地打开项目并且安装依赖包
 
@@ -1272,13 +1272,13 @@ npm run dev
 npm run deploy
 ```
 
-![](http://img-repo.poetries.top/images/20210908103013.png)
+![](https://img.poetries.top/static/images/20210908103013.png)
 
 **在云开发中使用`NoSQL`**
 
 在面板上创建一个`NoSQL`的数据库，[参考地址](https://docs.cloudbase.net/database/introduce.html)
 
-![](http://img-repo.poetries.top/images/20210908103028.png)
+![](https://img.poetries.top/static/images/20210908103028.png)
 
 在项目中安装连接数据库的`SDK`[参考文档](https://docs.cloudbase.net/api-reference/server/node-sdk/introduction.html)
 
@@ -1308,15 +1308,15 @@ const db = app.database();
 
 - `env`的获取地址
 
-![](http://img-repo.poetries.top/images/20210908103040.png)
+![](https://img.poetries.top/static/images/20210908103040.png)
 
 - `secretId` 和`secretKey`获取
 
-![](http://img-repo.poetries.top/images/20210908103051.png)
+![](https://img.poetries.top/static/images/20210908103051.png)
 
 - 点击`test`用户进入
 
-![](http://img-repo.poetries.top/images/20210908103101.png)
+![](https://img.poetries.top/static/images/20210908103101.png)
 
 根据文档，我们将插入一条数据(**同样先忽视类型检测**)
 
@@ -1366,12 +1366,12 @@ const app = cloudbase.init({
 
 ## 3.2 阿里云函数部署
 
-![](http://img-repo.poetries.top/images/20210907200749.png)
+![](https://img.poetries.top/static/images/20210907200749.png)
 
 ## 3.3 vercel部署
 
 > 国外挺好用的一个serverless免费平台
 
-![](http://img-repo.poetries.top/images/20210909140036.png)
-![](http://img-repo.poetries.top/images/20210909140058.png)
+![](https://img.poetries.top/static/images/20210909140036.png)
+![](https://img.poetries.top/static/images/20210909140058.png)
 

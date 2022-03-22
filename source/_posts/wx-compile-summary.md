@@ -19,7 +19,7 @@ categories: Front-End
 - 微信：登录上模拟器微信打开需要下载的小程序
 - RE文件管理器：需要设置root权限，设置-权限（查看小程序压缩包）
 
-![](http://img-repo.poetries.top/images/20210704101200.png)
+![](https://img.poetries.top/static/images/20210704101200.png)
 
 4. [下载反编译工具](https://github.com/xuedingmiaojun/wxappUnpacker)
 

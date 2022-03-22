@@ -9,7 +9,7 @@ categories: Front-End
 
 ### 1、Network
 
-![image-20210208102537169](http://img-repo.poetries.top/images/image-20210208102537169.png)
+![image-20210208102537169](https://img.poetries.top/static/images/image-20210208102537169.png)
 
 这里可以看到资源加载详情，初步评估影响`页面性能`的因素。鼠标右键可以自定义选项卡，页面底部是当前加载资源的一个概览。`DOMContentLoaded` DOM渲染完成的时间，`Load`：当前页面所有资源加载完成的时间
 
@@ -17,15 +17,15 @@ categories: Front-End
 
 **shift + cmd + P 调出控制台的扩展工具，添加规则**
 
-![image-20210208102549961](http://img-repo.poetries.top/images/image-20210208102549961.png)
+![image-20210208102549961](https://img.poetries.top/static/images/image-20210208102549961.png)
 
 **监控页面性能变化**
 
-![image-20210208102650825](http://img-repo.poetries.top/images/image-20210208102650825.png)
+![image-20210208102650825](https://img.poetries.top/static/images/image-20210208102650825.png)
 
 #### 瀑布流waterfal
 
-![image-20210208102723253](http://img-repo.poetries.top/images/image-20210208102723253.png)
+![image-20210208102723253](https://img.poetries.top/static/images/image-20210208102723253.png)
 
 - `Queueing` 浏览器将资源放入队列时间
 
@@ -44,7 +44,7 @@ categories: Front-End
 
 ### 2、Lighthouse
 
-![image-20210208102851752](http://img-repo.poetries.top/images/image-20210208102851752.png)
+![image-20210208102851752](https://img.poetries.top/static/images/image-20210208102851752.png)
 
 - `First Contentful Paint` 首屏渲染时间，1s以内绿色
 - `Speed Index` 速度指数，4s以内绿色
@@ -56,7 +56,7 @@ categories: Front-End
 
 
 
-![image-20210208102949596](http://img-repo.poetries.top/images/image-20210208102949596.png)
+![image-20210208102949596](https://img.poetries.top/static/images/image-20210208102949596.png)
 
 对网站最专业的分析
 
@@ -64,15 +64,15 @@ categories: Front-End
 
 > 可以模拟不同场景下访问的情况，比如模拟不同浏览器、不同国家等等，在线测试地址：[webPageTest](https://www.webpagetest.org/)
 
-![image-20210208103032419](http://img-repo.poetries.top/images/image-20210208103032419.png)
+![image-20210208103032419](https://img.poetries.top/static/images/image-20210208103032419.png)
 
-![image-20210208103054016](http://img-repo.poetries.top/images/image-20210208103054016.png)
+![image-20210208103054016](https://img.poetries.top/static/images/image-20210208103054016.png)
 
 ### 5、资源打包分析
 
 #### webpack-bundle-analyzer
 
-![image-20210208103127992](http://img-repo.poetries.top/images/image-20210208103127992.png)
+![image-20210208103127992](https://img.poetries.top/static/images/image-20210208103127992.png)
 
 ```js
 npm install --save-dev webpack-bundle-analyzer
@@ -119,7 +119,7 @@ package.json
 
 npm run analyze
 
-![image-20210208103321371](http://img-repo.poetries.top/images/image-20210208103321371.png)
+![image-20210208103321371](https://img.poetries.top/static/images/image-20210208103321371.png)
 
 
 
@@ -221,7 +221,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
 关于雅虎军规，你知道的有多少条，平时写用到的又有哪些？针对以下规则，我们可以做很多优化工作
 
-![image-20210208103918197](http://img-repo.poetries.top/images/image-20210208103918197.png)
+![image-20210208103918197](https://img.poetries.top/static/images/image-20210208103918197.png)
 
 ### 1、减少cookie传输
 
@@ -289,7 +289,7 @@ let cards = document.getElementsByClassName("MuiPaper-rounded");
 
 
 
-![image-20210208104535672](http://img-repo.poetries.top/images/image-20210208104535672.png)
+![image-20210208104535672](https://img.poetries.top/static/images/image-20210208104535672.png)
 
 >  还有一种方式：打包的时候生成gz文件，上传到服务器端，这样就不需要nginx来压缩了，可以降低服务器压力。 可参考：[gzip压缩文件&webPack配置Compression-webpack-plugin](https://segmentfault.com/a/1190000020976930)
 
@@ -329,7 +329,7 @@ package.json
 "start": "npm run build && node server.js",
 ```
 
-![image-20210208104641677](http://img-repo.poetries.top/images/image-20210208104641677.png)
+![image-20210208104641677](https://img.poetries.top/static/images/image-20210208104641677.png)
 
 ### 3、JavaScript、Css、Html压缩
 
@@ -564,7 +564,7 @@ new ManifestPlugin({
 }),
 ```
 
-![image-20210208105415279](http://img-repo.poetries.top/images/image-20210208105415279.png)
+![image-20210208105415279](https://img.poetries.top/static/images/image-20210208105415279.png)
 
 
 
@@ -578,7 +578,7 @@ new ManifestPlugin({
 
 
 
-![image-20210208105446451](http://img-repo.poetries.top/images/image-20210208105446451.png)
+![image-20210208105446451](https://img.poetries.top/static/images/image-20210208105446451.png)
 
 加入preload：
 
@@ -590,7 +590,7 @@ new ManifestPlugin({
 <link rel="preload" href="https://fonts.gstatic.com/s/longcang/v5/LYjAdGP8kkgoTec8zkRgqHAtXN-dRp6ohF_hzzTtOcBgYoCKmPpHHEBiM6LIGv3EnKLjtw.116.woff2" as="font" crossorigin="anonymous"/> 
 ```
 
-![image-20210208105522277](http://img-repo.poetries.top/images/image-20210208105522277.png)
+![image-20210208105522277](https://img.poetries.top/static/images/image-20210208105522277.png)
 
 ### 2、prefetch
 
@@ -602,7 +602,7 @@ new ManifestPlugin({
 
 
 
-![image-20210208105625448](http://img-repo.poetries.top/images/image-20210208105625448.png)
+![image-20210208105625448](https://img.poetries.top/static/images/image-20210208105625448.png)
 
 webpack也是支持这两个属性的:[webpackPrefetch 和 webpackPreload](https://www.cnblogs.com/skychx/p/webpack-webpackChunkName-webpackPreload-webpackPreload.html)
 
@@ -614,11 +614,11 @@ webpack也是支持这两个属性的:[webpackPrefetch 和 webpackPreload](https
 
 机械图片
 
-![image-20210208105717958](http://img-repo.poetries.top/images/image-20210208105717958.png)
+![image-20210208105717958](https://img.poetries.top/static/images/image-20210208105717958.png)
 
 `渐进式图片（类似高斯模糊）` 需要UI小姐姐出稿的时候指定这种格式
 
-![image-20210208105747314](http://img-repo.poetries.top/images/image-20210208105747314.png)
+![image-20210208105747314](https://img.poetries.top/static/images/image-20210208105747314.png)
 
 
 

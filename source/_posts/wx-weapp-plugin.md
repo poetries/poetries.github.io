@@ -62,7 +62,7 @@ categories: Front-End
 
 > 没有插件appId的，我们需要去申请一个，用来开发插件
 
-![](http://img-repo.poetries.top/images/20210419092828.png)
+![](https://img.poetries.top/static/images/20210419092828.png)
 
 - `miniprogram` 目录：放置一个小程序，用于调试插件。
   - 文件夹是一个普通小程序项目，用来编写小程序插件的使用 Demo，上传插件代码时这个 Demo 会一起上传，并作为小程序插件的发布的审核依据.
@@ -76,7 +76,7 @@ categories: Front-End
     - GitHub（github.com）
   - 编辑 `README.md` 之后，可以在开发者工具左侧资源管理器的文件栏中右键单击`README.md`，并选择上传文档。发布上传文档后，文档不会立刻发布。此时可以使用帐号和密码登录 管理后台 ，在 `小程序插件 > 基本设置` 中预览、发布插件文档
   - 插件文档`总大小不能大于 2M`，超过时上传将返回错误码 80051
-  ![](http://img-repo.poetries.top/images/20210419093822.png)
+  ![](https://img.poetries.top/static/images/20210419093822.png)
 
 ### 2.1 插件目录结构
 
@@ -152,7 +152,7 @@ plugin
 
 - **添加插件**
  - 在使用插件前，首先要在小程序管理后台的`“设置-第三方服务-插件管理”`中添加插件。开发者可登录小程序管理后台，通过 appid 查找插件并添加。如果插件无需申请，添加后可直接使用；否则需要申请并等待插件开发者通过后，方可在小程序中使用相应的插件。
-  ![](http://img-repo.poetries.top/images/20210416164731.png)
+  ![](https://img.poetries.top/static/images/20210416164731.png)
 - **引入插件代码包**
   - 使用插件前，使用者要在 `app.json` 中声明需要使用的插件，例如
     - **在主包中使用插件**
@@ -235,9 +235,9 @@ plugin
       "export": "exportToPlugin.js"
     }
   ```
-  ![](http://img-repo.poetries.top/images/20210419141729.png)
+  ![](https://img.poetries.top/static/images/20210419141729.png)
   - 导出的内容可以被这个插件用全局函数获得。例如，在上面的文件中，使用插件的小程序做了如下导出：
-  ![](http://img-repo.poetries.top/images/20210419141948.png)
+  ![](https://img.poetries.top/static/images/20210419141948.png)
 
 **为插件提供小程序自定义组件**
 

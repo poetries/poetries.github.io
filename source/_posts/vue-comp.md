@@ -10,7 +10,7 @@ categories: Front-End
 
 >  vue组件系统提供了一种抽象，让我们可以使用独立可复用的组件来构建大型应用，任意类型的应用界 面都可以抽象为一个组件树。组件化能提高开发效率，方便重复使用，简化调试步骤，提升项目可维护 性，便于多人协同开发。
 
-![](http://img-repo.poetries.top/images/20210313133919.png)
+![](https://img.poetries.top/static/images/20210313133919.png)
 
 ## 组件通信常用方式
 
