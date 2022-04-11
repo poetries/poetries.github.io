@@ -33,7 +33,7 @@ $ ulimit -a
 -n: file descriptors                256
 ```
 
-![](https://img.poetries.top/static/images/202202161407524.png)
+![](https://blog.poetries.top/img/static/images/202202161407524.png)
 
 可以通过修改系统配置，但是不太推荐
 

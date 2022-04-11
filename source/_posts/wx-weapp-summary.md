@@ -12,7 +12,7 @@ categories: Front-End
 
 小程序的双线程指的就是渲染线程和逻辑线程，这两个线程分别承担UI的渲染和执行 JavaScript 代码的工作
 
-![](https://img.poetries.top/static/images/20210418200413.png)
+![](https://blog.poetries.top/img/static/images/20210418200413.png)
 
 > 渲染线程使用 Webview 进行 UI 的渲染呈现。Webview 是一个完整的类浏览器运行环境，本身具备运行 JavaScript 的能力，但是小程序并不是将逻辑脚本放到 Webview 中运行，而是将逻辑层独立为一个与 Webview 平行的线程，使用客户端提供的 JavaScript 引擎运行代码，iOS 的JavaScriptCore、安卓是腾讯 X5 内核提供的 JsCore 环境以及 IDE 工具的 nwjs 
 
@@ -44,11 +44,11 @@ categories: Front-End
 
 微信小程序完整的登录流程
 
-![](https://img.poetries.top/static/images/20210418202857.png)
+![](https://blog.poetries.top/img/static/images/20210418202857.png)
 
 > 整个登录流程中描述了三种角色和六个术语，了解它们的定位和作用，是理解小程序登录流程的基础。
 
-![](https://img.poetries.top/static/images/20210418202914.png)
+![](https://blog.poetries.top/img/static/images/20210418202914.png)
 
 **登录流程里的三个角色**
 
@@ -72,7 +72,7 @@ categories: Front-End
   - **这里你要注意，很多开发者容易走入一个误区：** 误将 openid 理解为用户的唯一 ID。这句话如果放在某个小程序的特定语境下是没有问题的，但是如果放在微信生态的全局角度上是错误的。为什么呢？
   - 微信对于用户 openid 的定义是：微信号在某个应用程序中的唯一 ID。这里的“某个应用程序”指的是小程序、公众号、接入开放平台的应用。微信生态中目前有公众平台和开放平台两种，其中公众平台又细分为小程序和公众号，开放平台可以接入网站、移动应用等。同一个微信号在不同的应用程序中有不同的 openid。
   - 在微信生态下另外有一个标记微信号的唯一 ID：UnionId。这个 ID 跟应用程序无关。所以，可以简单地理解为 UnionId 与 appid 综合加密后的结果，见下图：
-  ![](https://img.poetries.top/static/images/20210418203102.png)
+  ![](https://blog.poetries.top/img/static/images/20210418203102.png)
   - `UnionId 通常用来关联在不同应用程序中各个 openid `，比如同一个微信号在小程序和公众号内需要配置同样的权限，仅通过 openid 无法实现，便需要获取此微信号的 UnionId。虽然获取 UnionId 的流程并不在这节课的讨论范围之内，但我相信你在后续工作中一定会遇到处理 UnionId 和 openid 的场景，所以先了解一下没啥坏处
 - **session_key**
   - session_key 是对用户数据进行加密签名的密钥，微信服务器使用它将用户的数据进行加密和解密。你可以简单地将 session_key 理解为获取用户数据的“绿卡”，登录之后所有涉及访问微信服务器的请求一般都需要带上它，微信服务器会校验 session_key 的合法性。
@@ -112,7 +112,7 @@ categories: Front-End
 
 > 创建微信小程序自定义组件需要使用 Component 构造器，这是微信小程序结构体系内最小粒度的构造器，外层是 Page 构造器，最外层的是 App 构造器，三者的关系如下图：
 
-![](https://img.poetries.top/static/images/20210418203745.png)
+![](https://blog.poetries.top/img/static/images/20210418203745.png)
 
 ```json
 Component({
@@ -136,7 +136,7 @@ Component({
 
 **自定义组件的生命周期**
 
-![](https://img.poetries.top/static/images/20210418204017.png)
+![](https://blog.poetries.top/img/static/images/20210418204017.png)
 
 **组件间的通信流程**
 
@@ -144,7 +144,7 @@ Component({
 
 假设小程序的某个页面中存在两个组件，两个组件均依赖父组件（Page）的部分属性，这部分属性通过 properties 传递给子组件
 
-![](https://img.poetries.top/static/images/20210418204124.png)
+![](https://blog.poetries.top/img/static/images/20210418204124.png)
 
 当组件 A 需要与组件 B 进行通信时，会抛出一个事件通知父组件 Page，父组件接收到事件之后提取事件携带的信息，然后通过 properties 传递给组件 B。这样便完成了子组件之间的消息传递。
 
@@ -154,7 +154,7 @@ Component({
 
 > 微信 IDE 的小程序评分功能位于`调试器-> Audits 面板中`
 
-![](https://img.poetries.top/static/images/20210418204322.png)
+![](https://blog.poetries.top/img/static/images/20210418204322.png)
 
 > 点击“运行”之后，微信 IDE 会对当前的小程序项目进行评测（包括代码层面的检测、通过记录用户交互行为的体验检测）。最终从性能、体验和最佳实践三个维度分别打分以及综合分：
 
@@ -184,7 +184,7 @@ Component({
 
 `节点数目会影响渲染性能`，要理解这句话，你要对浏览器的渲染流程有大概了解，来看下面这张图：
 
-![](https://img.poetries.top/static/images/20210418204601.png)
+![](https://blog.poetries.top/img/static/images/20210418204601.png)
 
 > - HTML 是 XML 的变体，在渲染的时候首先会被浏览器内核解析为 DOM 树，这是一种树形结构，然后会解析每个节点标签的类型、属性等要素，最后与 JavaScript 脚本和 CSS 结合起来进而在经过布局和绘制完成整个渲染流程
 > - 理论上 HTML 的节点数目和深度是没有限制的，但是从浏览器的渲染流程中不难看出，DOM 树的结构越复杂，渲染的管线就会越慢
@@ -252,7 +252,7 @@ Component({
 
 开发者在使用 npm 模块之前必须使用微信 IDE 菜单栏中的“工具”-“构建 npm”，将原始的 npm 模块（即node_modules 目录中的模块）进行一次预构建，预构建的产出目录便是 `miniprogram_npm` ，最后才可以在小程序源码中引入（流程如下图所示）
 
-![](https://img.poetries.top/static/images/20210418205903.png)
+![](https://blog.poetries.top/img/static/images/20210418205903.png)
 
 而且，小程序预构建 npm 模块的过程并不是简单地将原始模块从拷贝 `node_modules 目录到miniprogram_npm 目录`，而是会`将原始模块的所有散列文件打包成一个单 js 文件`，然后再将这个 `js 文件作为模块入口暴露出去`
 
@@ -263,7 +263,7 @@ Component({
 - 分析模块的入口 js 文件引用了哪些子文件
 - 将所有文件打包为一个单 js 文件
 
-![](https://img.poetries.top/static/images/20210418210030.png)
+![](https://blog.poetries.top/img/static/images/20210418210030.png)
 
 你要注意，在执行第四步时，微信 IDE 并不会将原始 npm 模块所依赖的其他 npm 模块一并打包。 比如，现实工作中的网络请求模块 axios ，这个基础模块可能被某个 npm 模块（假设为模块 A）依赖，如下
 
@@ -283,18 +283,18 @@ import axios from 'axios';
 
 一个未经修改的微信小程序源码目录如下图所示：
 
-![](https://img.poetries.top/static/images/20210418210229.png)
+![](https://blog.poetries.top/img/static/images/20210418210229.png)
 
 其中 cloudfunctions 是云函数的根目录，miniprogram 中的文件是小程序本体的源码，包括小程序的业务代码和 npm 模块
 
 > 使用 Webpack 打造的构建体系通常会另外建立一个与 `cloudfunctions 和 miniprogram` 平行的目录用于管理源码，然后将 miniprogram 目录作为构建产出目录，如下：
 
 
-![](https://img.poetries.top/static/images/20210418210317.png)
+![](https://blog.poetries.top/img/static/images/20210418210317.png)
 
 > 同时禁用微信 IDE 编译相关的功能，把这些工作全部交给 Webpack：
 
-![](https://img.poetries.top/static/images/20210418210334.png)
+![](https://blog.poetries.top/img/static/images/20210418210334.png)
 
 > 这样一来，在自建的构建体系下，我们不仅可以使用标准的 npm 模块管理方式，同时可以发挥 Webpack 对于研发效率的加持，比如 Tree-Shaking 减小打包文件体积、结合 Babel 使用最新的 ECMAScript 特性、结合 Lint 工具统一代码规范等。这是接下来我们要讨论使用 Webpack 完成的几项具体工作的基础
 
@@ -309,7 +309,7 @@ import axios from 'axios';
 - 减少用户打开小程序（或某个页面）后的等待时间，这部分的性能称为启动性能；
 - 提高用户操作小程序的流畅度，这部分的性能称为运行时性能。
 
-![](https://img.poetries.top/static/images/20210418210634.png)
+![](https://blog.poetries.top/img/static/images/20210418210634.png)
 
 **2. 用户数据**
 
@@ -320,7 +320,7 @@ import axios from 'axios';
 - 用户在某个页面的停留时长；
 - 用户的留存率；
 
-![](https://img.poetries.top/static/images/20210418210728.png)
+![](https://blog.poetries.top/img/static/images/20210418210728.png)
 
 **3. 异常数据**
 
@@ -330,13 +330,13 @@ import axios from 'axios';
 - 服务异常，不过这类异常情况不仅仅是小程序服务端的问题，也可能是用户设备所在网络环境造成的 HTTP 请求失败；
 - 行为异常，最常见的一种就是爬虫脚本频繁地请求某个服务接口。
 
-![](https://img.poetries.top/static/images/20210418210758.png)
+![](https://blog.poetries.top/img/static/images/20210418210758.png)
 
 性能数据、用户数据和异常数据三者相对独立，而我们统计数据的目的并不是收集这些独立的数据，而是希望将它们综合在一起进行分析，这样才能从多维度、多方面获取数据隐藏的信息。也就是将所有数据通过一定的联系归属到在更上一层的领域内分析
 
 > 在小程序场景下，把这三种类型数据联系到一起的上层领域就是小程序的每个页面-Page。页面再上一层的领域就是小程序的运行环境（包括用户设备信息和小程序的版本信息）。由此我们可以总结出小程序的数据统计所使用的的数据模型，如下图所示
 
-![](https://img.poetries.top/static/images/20210418210837.png)
+![](https://blog.poetries.top/img/static/images/20210418210837.png)
 
 确定了数据模型，接下来就是制定针对每种数据的采集方案。
 
@@ -361,7 +361,7 @@ import axios from 'axios';
 
 异常数据的采集也可以称为异常监控，采集到异常本身并不是主要目标，更重要的是能够采集到引起异常的用户行为路径。 比如对于电商小程序典型的购买商品的链路：用户点击了商品详情页的“购买”按钮，首先跳转到“购物车”页面，然后继续点击“下单”跳转到订单页面，最后点击“支付”调起微信支付。这个过程用户一共需要四个步骤：
 
-![](https://img.poetries.top/static/images/20210418211347.png)
+![](https://blog.poetries.top/img/static/images/20210418211347.png)
 
 假如在这条链路中的“购物车”页面出现了异常，我们要采集的并不仅仅是当前页面脚本抛出的异常本身，而是要同时获取到引起异常的前序路径，即“商品页”信息。
 
@@ -501,7 +501,7 @@ Page({
 
 整体的数据监控体系可以简化为下面这张图：
 
-![](https://img.poetries.top/static/images/20210418212057.png)
+![](https://blog.poetries.top/img/static/images/20210418212057.png)
 
 ### 总结
 
@@ -523,7 +523,7 @@ Page({
 > - 小程序的资源是托管在微信服务器上的，跟网站不同，微信不会在用户每次打开小程序时，从服务器拉取最新的小程序资源，而是尽可能地发挥缓存的优势
 
 
-![](https://img.poetries.top/static/images/20210418212807.png)
+![](https://blog.poetries.top/img/static/images/20210418212807.png)
 
 > 当用户打开小程序时，微信客户端会先从缓存中拉取小程序的端侧资源，有的话就展示给用户，没有的话会从微信服务器拉取，这时，拉取的肯定是最新版本，然后放入缓存并展示给用户。
 
@@ -538,17 +538,17 @@ Page({
 
 `如果小程序处于未启动状态`， 微信客户端会在“若干个时机”去检查缓存中的小程序有没有新版本，如果有会默默把新版本资源拉取到本地缓存中
 
-![](https://img.poetries.top/static/images/20210418212955.png)
+![](https://blog.poetries.top/img/static/images/20210418212955.png)
 
 `如果小程序处于冷启动状态`，微信客户端会主动检查是否有新版本，同时会向用户展示缓存中的旧版本。有新版本的话会默默地拉取到本地，然后在用户再次触发小程序冷启动时展示给用户。也就是说，需要两次冷启动才能将最新版本的小程序展示给用户。整个流程如下图所示：
 
-![](https://img.poetries.top/static/images/20210418213042.png)
+![](https://blog.poetries.top/img/static/images/20210418213042.png)
 
 > 从上述内容中，你可以得出一个结论：`当你发布一个新版本后，用户并不能“立即”获得更新。`
 
 小程序未启动时最慢 24 小时可以覆盖全部用户，或者需要经历两次冷启动，这对一些紧急的版本更新来说太慢了，所以在现实工作中往往要将小程序的更新提速，让用户尽可能快地获取到新版本。具体实施方法是通过小程序的 `UpdateManager` 对象，在代码里主动检查并应用更新信息。我们对照流程图和代码讲解，来看下面这张图：
 
-![](https://img.poetries.top/static/images/20210418213144.png)
+![](https://blog.poetries.top/img/static/images/20210418213144.png)
 
 ```js
 const axios = require('axios')
@@ -592,22 +592,22 @@ updateManager.onUpdateReady(function () {
 > - 第一种简单粗暴，比如你有 10 台服务器，其中 2 台部署了新版本的服务，负载均衡器会在接收到用户请求时按照 20% 的概率随机转发到新版本服务器上，剩余的转发到旧版本服务器。
 > - 第二种需要进行一定的编码工作，比如 Nginx 配置 Lua 脚本，当接收到用户请求时，从请求中获取到用户的 ID ，在小程序场景下就是用户的 OpenId ，然后匹配转发策略中是否这个 ID 在新版本服务的白名单中，如果是的话便转发到新版本服务，否则转发到旧版本服务。如下图所示：
 
-![](https://img.poetries.top/static/images/20210418213424.png)
+![](https://blog.poetries.top/img/static/images/20210418213424.png)
 
 ## 八、云开发：云原生一体化应用开发平台
 
 > - 云开发其实是一种后端服务，和服务器所扮演的角色类似，都是服务端角色。不过云开发把服务所需要的一些资源（比如计算、存储、消息推送等）封装打包，以方便开发者使用。整体上讲，云开发包括了云函数、云数据库、云存储、云托管等一些基础服务资源，以及云上的各种扩展能力（比如图像处理、客服服务等）。
 > - 在调用方式上， 云开发的使用方法和前端开发差不多，它将触手可及的各种资源以接口 SDK 的形式给到开发者。举个例子，如果开发微信小程序，需要存储用户的个人数据以方便应用业务，你可以用云开发的接口把数据存入数据库，这个接口并不是 URL 地址，而是一个函数方法（function），举例如下：
 
-![](https://img.poetries.top/static/images/20210418213614.png)
+![](https://blog.poetries.top/img/static/images/20210418213614.png)
 
 如果你想对这些数据进行一些复杂的处理（比如对数据做分析，生成报表）涉及其他的数据，可以把处理的逻辑放到云开发云函数中进行，而云函数也可以在小程序中用函数方法（function）的形式调用，举例如下：
 
-![](https://img.poetries.top/static/images/20210418213639.png)
+![](https://blog.poetries.top/img/static/images/20210418213639.png)
 
 再深一步，如果你的微信小程序想存储一些文件，也可以直接使用云开发接口，调用上传文件，文件可以同时被小程序端和云函数端获取到，方便应用功能的开发，举例如下：
 
-![](https://img.poetries.top/static/images/20210418213655.png)
+![](https://blog.poetries.top/img/static/images/20210418213655.png)
 
 **以上在开发小程序时所用到的数据库、云函数、云存储都是云开发提供的资源：**
 

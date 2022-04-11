@@ -48,7 +48,7 @@ console.log(s)
 - 复杂视图情况下提升渲染性能
 - 除了渲染 `DOM` 以外，还可以实现 `SSR(Nuxt.js/Next.js)`、原生应用(`Weex/React Native`)、小程序(`mpvue/uni-app`)等
 
-![](https://img.poetries.top/static/images/20210328112610.png)
+![](https://blog.poetries.top/img/static/images/20210328112610.png)
 
 ## Virtual DOM 库
 
@@ -83,7 +83,7 @@ yarn add parcel-bundler
 
 创建目录结构
 
-![](https://img.poetries.top/static/images/20210328123653.png)
+![](https://blog.poetries.top/img/static/images/20210328123653.png)
 
 ```
 yarn add snabbdom
@@ -110,7 +110,7 @@ new Vue({
 
 > 注意:导入时候不能使用 `import snabbdom from 'snabbdom'`。原因:`node_modules/src/snabbdom.ts` 末尾导出使用的语法是 `export` 导出 `API`，没有使用 `export default` 导出默认输出
 
-![](https://img.poetries.top/static/images/20210328124133.png)
+![](https://blog.poetries.top/img/static/images/20210328124133.png)
 
 ### 基本使用
 
@@ -328,7 +328,7 @@ patch(oldVnode, vnode)
 
 src 目录结构
 
-![](https://img.poetries.top/static/images/20210328125857.png)
+![](https://blog.poetries.top/img/static/images/20210328125857.png)
 
 ### h 函数
 
@@ -486,7 +486,7 @@ export function vnode (sel: string | undefined,
 - 如果新的 `VNode` 有 `children`，判断子节点是否有变化，判断子节点的过程使用的就是 `diff` 算法
 - `diff` 过程只进行同层级比较
 
-![](https://img.poetries.top/static/images/20210329091820.png)
+![](https://blog.poetries.top/img/static/images/20210329091820.png)
 
 ### init
 
@@ -787,7 +787,7 @@ function patchVnode (oldVnode: VNode, vnode: VNode, insertedVnodeQueue: VNodeQue
  - 在 `DOM` 操作的时候我们很少很少会把一个父节点移动/更新到某一个子节点
  - 因此只需要找同级别的子节点依次比较，然后再找下一级别的节点比较，这样算法的时间复 杂度为 `O(n)`
 
-![](https://img.poetries.top/static/images/20210329092027.png)
+![](https://blog.poetries.top/img/static/images/20210329092027.png)
 
 - 在进行同级别节点比较的时候，首先会对新老节点数组的开始和结尾节点设置标记索引，遍 历的过程中移动索引
 - 在对开始和结束节点比较的时候，总共有四种情况
@@ -796,7 +796,7 @@ function patchVnode (oldVnode: VNode, vnode: VNode, insertedVnodeQueue: VNodeQue
   - `oldStartVnode / oldEndVnode` (旧开始节点 / 新结束节点)
   - `oldEndVnode / newStartVnode` (旧结束节点 / 新开始节点)
 
-![](https://img.poetries.top/static/images/20210329092301.png)
+![](https://blog.poetries.top/img/static/images/20210329092301.png)
 
 - 开始节点和结束节点比较，这两种情况类似
   - `oldStartVnode / newStartVnode` (旧开始节点 / 新开始节点)
@@ -805,21 +805,21 @@ function patchVnode (oldVnode: VNode, vnode: VNode, insertedVnodeQueue: VNodeQue
   - 调用 `patchVnode()` 对比和更新节点
   - 把旧开始和新开始索引往后移动 `oldStartIdx++ / oldEndIdx++`
 
-![](https://img.poetries.top/static/images/20210329092430.png)
+![](https://blog.poetries.top/img/static/images/20210329092430.png)
 
 - `oldStartVnode / newEndVnode` (旧开始节点 / 新结束节点) 相同
   - 调用 `patchVnode()` 对比和更新节点
   - 把 `oldStartVnode` 对应的 `DOM` 元素，移动到右边 
     - 更新索引
   
-![](https://img.poetries.top/static/images/20210329092820.png)
+![](https://blog.poetries.top/img/static/images/20210329092820.png)
 
 - `oldEndVnode / newStartVnode` (旧结束节点 / 新开始节点) 相同
   - 调用 `patchVnode()` 对比和更新节点
   - 把 `oldEndVnode` 对应的 `DOM` 元素，移动到左边
   - 更新索引
 
-![](https://img.poetries.top/static/images/20210329093025.png)
+![](https://blog.poetries.top/img/static/images/20210329093025.png)
 
 - 如果不是以上四种情况
   - 遍历新节点，使用 `newStartNode` 的 `key` 在老节点数组中找相同节点
@@ -831,16 +831,16 @@ function patchVnode (oldVnode: VNode, vnode: VNode, insertedVnodeQueue: VNodeQue
       - 重新创建对应的 `DOM` 元素，插入到 DOM 树中
     - 如果相同，把 `elmToMove` 对应的 DOM 元素，移动到左边
   
-![](https://img.poetries.top/static/images/20210329093137.png)
+![](https://blog.poetries.top/img/static/images/20210329093137.png)
 
 - 循环结束
   - 当老节点的所有子节点先遍历完 (`oldStartIdx > oldEndIdx`)，循环结束
   - 新节点的所有子节点先遍历完 (`newStartIdx > newEndIdx`)，循环结束
 - 如果老节点的数组先遍历完(`oldStartIdx > oldEndIdx`)，说明新节点有剩余，把剩余节点批量插入到右边
 
-![](https://img.poetries.top/static/images/20210329093302.png)
+![](https://blog.poetries.top/img/static/images/20210329093302.png)
 
 - 如果新节点的数组先遍历完(`newStartIdx > newEndIdx`)，说明老节点有剩余，把剩余节点批 量删除
 
-![](https://img.poetries.top/static/images/20210329093414.png)
+![](https://blog.poetries.top/img/static/images/20210329093414.png)
 

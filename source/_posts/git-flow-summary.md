@@ -11,7 +11,7 @@ categories: VCS
 
 每次发布 打一个`tag`，例如`tag v1.0.0、tag v2.0.0`
 
-![](https://img.poetries.top/static/images/20211126173718.png)
+![](https://blog.poetries.top/img/static/images/20211126173718.png)
 
 
 
@@ -42,7 +42,7 @@ categories: VCS
 > 使用`--no-ff`参数后，会执行正常合并，在Master分支上生成一个新节点。为了保证版本演进的清晰，我们希望采用这种做法。
 
 
-![](https://img.poetries.top/static/images/20211126173805.png)
+![](https://blog.poetries.top/img/static/images/20211126173805.png)
 
 # 三、临时性分支
 

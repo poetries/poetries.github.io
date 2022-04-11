@@ -71,17 +71,17 @@ yarn dev
 
 ### 目录结构
 
-![image-20210217182003600](https://img.poetries.top/static/images/image-20210217182003600.png)
+![image-20210217182003600](https://blog.poetries.top/img/static/images/image-20210217182003600.png)
 
 ### 开发工具以及插件配置
 
-![image-20210217182033814](https://img.poetries.top/static/images/image-20210217182033814.png)
+![image-20210217182033814](https://blog.poetries.top/img/static/images/image-20210217182033814.png)
 
 # 二、父组件给子组件传值、Props验证、单向数据流
 
 ## 父子组件介绍
 
-![image-20210217182834168](https://img.poetries.top/static/images/image-20210217182834168.png)
+![image-20210217182834168](https://blog.poetries.top/img/static/images/image-20210217182834168.png)
 
 ## 父组件给子组件传值
 

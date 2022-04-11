@@ -6,7 +6,7 @@ categories: Front-End
 ---
 
 
-![](https://img.poetries.top/static/images/20210710171426.png)
+![](https://blog.poetries.top/img/static/images/20210710171426.png)
 
 
 微前端现有的落地方案可以分为三类，自组织模式、基座模式以及模块加载模式。
@@ -18,7 +18,7 @@ categories: Front-End
 
 ### 1.What?什么是微前端?
 
-![](https://img.poetries.top/static/images/20210731160243.png)
+![](https://blog.poetries.top/img/static/images/20210731160243.png)
 
 微前端就是将不同的功能按照不同的维度拆分成多个子应用。通过主应用来加载这些子应用。
 
@@ -34,7 +34,7 @@ categories: Front-End
 
 ### 3.How?怎样落地微前端?
 
-![](https://img.poetries.top/static/images/20210731154621.png)
+![](https://blog.poetries.top/img/static/images/20210731154621.png)
 
 - 2018年 `Single-SPA`诞生了， `single-spa`是一个用于前端微服务化的JavaScript前端解决方案  (本身没有处理样式隔离、js执行隔离)  实现了路由劫持和应用加载；
 - 2019年 qiankun基于Single-SPA, 提供了更加开箱即用的 API  (`single-spa + sandbox + import-html-entry`)，它 做到了技术栈无关，并且接入简单(有多简单呢，像iframe一样简单)
@@ -115,7 +115,7 @@ const router = new VueRouter({
 })
 ```
 
-![](https://img.poetries.top/static/images/20210731155249.png)
+![](https://blog.poetries.top/img/static/images/20210731155249.png)
 
 ### 2.配置库打包
 
@@ -137,7 +137,7 @@ module.exports = {
 }
 ```
 
-![](https://img.poetries.top/static/images/20210731114005.png)
+![](https://blog.poetries.top/img/static/images/20210731114005.png)
 
 ### 3.主应用搭建
 
@@ -194,7 +194,7 @@ new Vue({
 }).$mount('#app')
 ```
 
-![](https://img.poetries.top/static/images/20210731155355.png)
+![](https://blog.poetries.top/img/static/images/20210731155355.png)
 
 ### 4.动态设置子应用publicPath
 
@@ -505,7 +505,7 @@ function App() {
 }
 ```
 
-![](https://img.poetries.top/static/images/20210731205952.png)
+![](https://blog.poetries.top/img/static/images/20210731205952.png)
 
 ## 四、飞冰微前端实战
 
@@ -639,7 +639,7 @@ vue.use(router)
 setLibraryName('icestark-vue')
 
 export function mount({ container }) {
-  // ![](https://img.poetries.top/static/images/20210731130030.png)
+  // ![](https://blog.poetries.top/img/static/images/20210731130030.png)
   console.log(container,'container')
   vue.mount(container);
 }
@@ -733,7 +733,7 @@ headers: {
 - `css-in-js`
 
 
-![](https://img.poetries.top/static/images/20210731160312.png)
+![](https://blog.poetries.top/img/static/images/20210731160312.png)
 
 
 ```html
@@ -755,7 +755,7 @@ headers: {
       let styleEle = document.createElement('style')
       styleEle.textContent = `p{color:red} `
 
-      // ![](https://img.poetries.top/static/images/20210731135230.png)
+      // ![](https://blog.poetries.top/img/static/images/20210731135230.png)
       shadowDOM.appendChild(styleEle)
       shadowDOM.appendChild(pEle)
 
@@ -773,7 +773,7 @@ headers: {
 
 ## 六、JS沙箱机制
 
-![](https://img.poetries.top/static/images/20210731155716.png)
+![](https://blog.poetries.top/img/static/images/20210731155716.png)
 
 
 > 当运行子应用时应该跑在内部沙箱环境中
