@@ -9,6 +9,7 @@ categories: Front-End
 
 
 
+
 > Nest (NestJS) 是一个用于构建高效、可扩展的 Node.js 服务器端应用程序的开发框架。它利用 JavaScript 的渐进增强的能力，使用并完全支持 TypeScript （仍然允许开发者使用纯 JavaScript 进行开发），并结合了 OOP （面向对象编程）、FP （函数式编程）和 FRP （函数响应式编程）。
 
 - 在底层，Nest 构建在强大的 HTTP 服务器框架上，例如 Express （默认），并且还可以通过配置从而使用 Fastify ！
@@ -1121,6 +1122,546 @@ async function bootstrap() {
 }
 bootstrap();
 ```
+
+## 一例看懂中间件、守卫、管道、异常过滤器、拦截器
+
+> 从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: ‘xx’,password: ‘xx’}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤：`
+
+![](https://s.poetries.work/uploads/2022/05/8bb8d3e0e2bdaebe.png)
+
+项目需要包支持：
+
+```
+npm install --save rxjs xml2js class-validator class-transformer
+```
+
+- `rxjs` 针对JavaScript的反应式扩展,支持更多的转换运算
+
+- `xml2js` 转换xml内容变成json格式
+- `class-validator`、`class-transformer` 管道验证包和转换器
+
+建立user模块：模块内容结构：
+
+`nest g res user`
+
+![](https://s.poetries.work/uploads/2022/05/6b74e9b59b24a0fd.png)
+
+user.controller.ts文件
+
+```js
+import {
+  Controller,
+  Post,
+  Body
+} from '@nestjs/common';
+import { UserService } from './user.service';
+import { UserLoginDTO } from './dto/user.login.dto';
+
+@Controller('user')
+export class UserController {
+  constructor(private readonly userService: UserService) {}
+
+  @Post('test')
+  loginIn(@Body() userlogindto: UserLoginDTO) {
+    return userlogindto;
+  }
+
+}
+```
+
+
+
+user.module.ts文件
+
+```js
+import { Module } from '@nestjs/common';
+import { UserController } from './user.controller';
+import { UserService } from './user.service';
+
+@Module({
+  controllers: [UserController],
+  providers: [UserService],
+})
+export class UserModule {}
+```
+
+
+
+user.service.ts文件
+
+```js
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UserService {}
+```
+
+
+
+user.login.dto.ts文件
+
+```js
+// user / dto / user.login.dto.ts
+
+import { IsNotIn, MinLength } from 'class-validator';
+export class UserLoginDTO{
+  /* 
+  * 账号
+  */
+  @IsNotIn(['',undefined,null],{message: '账号不能为空'})
+  username: string;
+
+  /* 
+  * 密码
+  */
+  @MinLength(6,{
+    message: '密码长度不能小于6位数'
+  })
+  password: string;
+}
+```
+
+app.module.ts文件
+
+```js
+import { Module } from '@nestjs/common';
+
+// 子模块加载
+import { UserModule } from './user/user.module'
+
+@Module({
+  imports: [
+    UserModule
+  ]
+})
+export class AppModule {}
+```
+
+> 新建common文件夹里面分别建立对应的文件夹以及文件：
+> 中间件(middleware) — xml.middleware.ts
+> 守卫(guard) — auth.guard.ts
+> 管道(pipe) — validation.pipe.ts
+> 异常过滤器(filters) — http-exception.filter.ts
+> 拦截器(interceptor) — response.interceptor.ts
+
+![](https://s.poetries.work/uploads/2022/05/b0bafbf19bde075f.png)
+
+```js
+// main.ts
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+import { ValidationPipe } from './common/pipe/validation.pipe';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { XMLMiddleware } from './common/middleware/xml.middleware';
+import { AuthGuard } from './common/guard/auth.guard';
+import { ResponseInterceptor } from './common/interceptor/response.interceptor';
+
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // 全局注册通用验证管道ValidationPipe
+  app.useGlobalPipes(new ValidationPipe());
+
+  // 全局注册通用异常过滤器HttpExceptionFilter
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // 全局注册xml支持中间件(这里必须调用.use才能够注册)
+  app.use(new XMLMiddleware().use);
+
+  // 全局注册权限验证守卫
+  app.useGlobalGuards(new AuthGuard());
+
+  // 全局注册响应拦截器
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
+  await app.listen(3001);
+}
+bootstrap();
+```
+
+### 中间件是请求的第一道关卡
+
+1. 执行任何代码。
+2. 对请求和响应对象进行更改。
+3. 结束请求-响应周期。
+4. 调用堆栈中的下一个中间件函数。
+5. 如果当前的中间件函数没有结束请求-响应周期, 它必须调用 next() 将控制传递给下一个中间件函数。否则, 请求将被挂起
+
+本例中：使用中间件让express支持xml请求并且将xml内容转换为json数组
+
+```js
+// common/middleware/xml.middleware.ts
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response } from 'express';
+const xml2js = require('xml2js');
+const parser = new xml2js.Parser();
+
+@Injectable()
+export class XMLMiddleware implements NestMiddleware {
+  // 参数是固定的Request/Response/next,
+  // Request/Response/next对应请求体和响应体和下一步函数
+  use(req: Request, res: Response, next: Function) {
+    console.log('进入全局xml中间件...');
+    // 获取express原生请求对象req,找到其请求头内容，如果包含application/xml，则执行转换
+    if(req.headers['content-type'] && req.headers['content-type'].includes('application/xml')){
+      // 监听data方法获取到对应的参数数据(这里的方法是express的原生方法)
+      req.on('data', mreq => {
+        // 使用xml2js对xml数据进行转换
+        parser.parseString(mreq,function(err,result){
+          // 将转换后的数据放入到请求对象的req中
+          console.log('parseString转换后的数据',result);
+          // 这里之后可以根据需要对result做一些补充完善
+          req['body']= result;
+        })
+      })
+    }
+    // 调用next方法进入到下一个中间件或者路由
+    next();
+  }
+}
+```
+
+**注册方式**
+
+- 全局注册：在`main.ts`中导入需要的中间件模块如：XMLMiddleware然后使用 `app.use(new XMLMiddleware().use)`即可
+
+- 模块注册：在对应的模块中注册如：`user.module.ts`
+
+![](https://s.poetries.work/uploads/2022/05/7985e11265cdecc2.png)
+
+> 同一路由注册多个中间件的执行顺序为，先是全局中间件执行，然后是模块中间件执行，模块中的中间件顺序按照`.apply`中注册的顺序执行
+
+### 守卫是第二道关卡
+
+> 守卫控制一些权限内容，如：一些接口需要带上token标记，才能够调用，守卫则是对这个标记进行验证操作的。
+> 本例中代码如下：
+
+```js
+// common/guard/auth.guard.ts
+
+import {Injectable,CanActivate,HttpException,HttpStatus,ExecutionContext,} from '@nestjs/common';
+@Injectable()
+export class AuthGuard implements CanActivate {
+  // context 请求的(Response/Request)的引用
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    console.log('进入全局权限守卫...');
+    // 获取请求对象
+    const request = context.switchToHttp().getRequest();
+    // 获取请求头中的token字段
+    const token = context.switchToRpc().getData().headers.token;
+    // 如果白名单内的路由就不拦截直接通过
+    if (this.hasUrl(this.urlList, request.url)) {
+      return true;
+    }
+    // 验证token的合理性以及根据token做出相应的操作
+    if (token) {
+      try {
+        // 这里可以添加验证逻辑
+        return true;
+      } catch (e) {
+        throw new HttpException(
+          '没有授权访问,请先登录',
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+    } else {
+      throw new HttpException(
+        '没有授权访问,请先登录',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+  };
+  // 白名单数组
+  private urlList: string[] = [
+    '/user/login'
+  ];
+
+  // 验证该次请求是否为白名单内的路由
+  private hasUrl(urlList: string[], url: string): boolean {
+    let flag: boolean = false;
+    if (urlList.indexOf(url) >= 0) {
+      flag = true;
+    }
+    return flag;
+  }
+};
+
+```
+
+**注册方式**
+
+- 全局注册：在`main.ts`中导入需要的守卫模块如：`AuthGuard`。然后使用 `app.useGlobalGuards(new AuthGuard())` 即可
+- 模块注册：在需要注册的`controller`控制器中导入`AuthGuard`。然后从`@nestjs/common`中导`UseGuards`装饰器。最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可
+
+![](https://s.poetries.work/uploads/2022/05/976e8bcbe31b38ce.png)
+
+> 同一路由注册多个守卫的执行顺序为，先是全局守卫执行，然后是模块中守卫执行
+
+### 拦截器是第三道关卡
+
+想到自定义返回内容如
+
+```
+{
+    "statusCode": 400,
+    "timestamp": "2022-05-14T08:06:45.265Z",
+    "path": "/user/login",
+    "message": "请求失败",
+    "data": {
+        "isNotIn": "账号不能为空"
+    }
+}
+```
+
+这个时候就可以使用拦截器来做一下处理了。
+**拦截器作用：**
+
+1. 在函数执行之前/之后绑定额外的逻辑
+2. 转换从函数返回的结果
+3. 转换从函数抛出的异常
+4. 扩展基本函数行为
+5. 根据所选条件完全重写函数 (例如, 缓存目的)
+
+**拦截器的执行顺序分为两个部分：**
+
+- 第一个部分在管道和自定义逻辑(next.handle()方法)之前。
+- 第二个部分在管道和自定义逻辑(next.handle()方法)之后。
+
+```js
+// common/interceptor/response.interceptor.ts
+
+/* 
+ * 全局响应拦截器，统一返回体内容
+ *
+*/
+
+import {
+  Injectable,
+  NestInterceptor,
+  CallHandler,
+  ExecutionContext,
+} from '@nestjs/common';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+// 返回体结构
+interface Response<T> {
+  data: T;
+}
+@Injectable()
+export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<T>,
+  ): Observable<Response<T>> {
+    // 解析ExecutionContext的数据内容获取到请求体
+    const ctx = context.switchToHttp();
+    const request = ctx.getRequest();
+    // 实现数据的遍历与转变
+    console.log('进入全局响应拦截器...');
+    return next.handle().pipe(
+      map(data => {
+        console.log('全局响应拦截器方法返回内容后...');
+        return {
+          statusCode: 0,
+          timestamp: new Date().toISOString(),
+          path: request.url,
+          message: '请求成功',
+          data:data
+        };
+      }),
+    );
+  }
+}
+```
+
+![](https://s.poetries.work/uploads/2022/05/8d262c4c5dcad632.png)
+
+> 中间多了个全局管道以及自定义逻辑，即只有路由绑定的函数有正确的返回值之后才会有`next.handle()`之后的内容
+
+**注册方式**
+
+- 全局注册：在`main.ts`中导入需要的模块如：`ResponseInterceptor`。然后使用 `app.useGlobalInterceptors(new ResponseInterceptor()) `即可
+- 模块注册：在需要注册的`controller`控制器中导入`ResponseInterceptor`。然后从`@nestjs/common`中导入`UseInterceptors`装饰器。最后直接放置在对应的`@Controller()`或者`@Post/@Get`…等装饰器之下即可
+
+![](https://s.poetries.work/uploads/2022/05/099d67812f591bc5.png)
+
+> 同一路由注册多个拦截器时候，优先执行模块中绑定的拦截器，然后其拦截器转换的内容将作为全局拦截器的内容，即包裹两次返回内容如：
+
+```
+{ // 全局拦截器效果
+    "statusCode": 0,
+    "timestamp": "2022-05-14T08:20:06.159Z",
+    "path": "/user/login",
+    "message": "请求成功",
+    "data": {
+    	"pagenum": 1, // 模块中拦截器包裹效果
+    	“pageSize": 10
+        "list": []
+    }
+}
+```
+
+### 管道是第四道关卡
+
+- 管道是请求过程中的第四个内容，主要用于对请求参数的验证和转换操作。
+
+- 项目中使用`class-validator` `class-transformer`进行配合验证相关的输入操作内容
+
+**认识官方的三个内置管道**
+
+1. `ValidationPipe`：基于`class-validator`和`class-transformer`这两个npm包编写的一个常规的验证管道，可以从`class-validator`导入配置规则，然后直接使用验证(当前不需要了解`ValidationPipe`的原理，只需要知道从`class-validator`引规则，设定到对应字段，然后使用`ValidationPipe`即可)
+2. `ParseIntPipe`：转换传入的参数为数字
+
+![](https://s.poetries.work/uploads/2022/05/9b73303097ddcf73.png)
+
+如：传递过来的是/test?id=‘123’"这里会将字符串‘123’转换成数字123
+3. **ParseUUIDPipe**：验证字符串是否是 UUID(通用唯一识别码)
+
+![](https://s.poetries.work/uploads/2022/05/ea2ed3388b228548.png)
+
+如：传递过来的是/test?id=‘xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx’"这里会验证格式是否正确，不正确则抛出错误，否则调用findOne方法
+
+本例中管道使用如下：
+
+```js
+// common/pipe/validation.pipe.ts
+
+/* 
+ * 全局dto验证管道
+ *
+*/
+
+import { validate } from 'class-validator';
+import { plainToClass } from 'class-transformer';
+import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+
+@Injectable()
+export class ValidationPipe implements PipeTransform<any>{
+  // value 是当前处理的参数，而 metatype 是属性的元类型
+  async transform(value: any, { metatype }: ArgumentMetadata) {
+    console.log('进入全局管道...');
+    if (!metatype || !this.toValidate(metatype)) {
+      return value;
+    }
+    // plainToClass方法将普通的javascript对象转换为特定类的实例
+    const object = plainToClass(metatype, value);
+    // 验证该对象返回出错的数组
+    const errors = await validate(object);
+    if (errors.length > 0) {
+      // 将错误信息数组中的第一个内容返回给异常过滤器
+      let errormsg = errors.shift().constraints;
+      throw new BadRequestException(errormsg);
+    }
+    return value;
+  }
+  // 验证属性值的元类型是否是String, Boolean, Number, Array, Object中的一种
+  private toValidate(metatype: any): boolean {
+    const types: Function[] = [String, Boolean, Number, Array, Object];
+    return !types.includes(metatype);
+  }
+
+}
+```
+
+**注册方式**
+
+- 全局注册：在`main.ts`中导入需要的模块如：`ValidationPipe`；然后使用 `app.useGlobalPipes(new ValidationPipe())` 即可
+- 模块注册：在需要注册的`controller`控制器中导入`ValidationPipe`；然后从`@nestjs/common`中导入`UsePipes`装饰器；最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可，管道还允许注册在相关的参数上如：`@Body/@Query… `等
+
+![](https://s.poetries.work/uploads/2022/05/d9c2b21c632c9baa.png)
+
+> **注意：**同一路由注册多个管道的时候，优先执行全局管道，然后再执行模块管道：
+
+- 异常过滤器是所有抛出的异常的统一处理方案
+- 简单来讲就是捕获系统抛出的所有异常，然后自定义修改异常内容，抛出友好的提示。
+
+**内置异常类**
+
+> 系统提供了不少内置的系统异常类，需要的时候直接使用throw new XXX(描述,状态)这样的方式即可抛出对应的异常,一旦抛出异常，当前请求将会终止。
+
+**注意每个异常抛出的状态码有所不同**。如：
+
+```js
+BadRequestException — 400
+UnauthorizedException — 401
+ForbiddenException — 403
+NotFoundException — 404
+NotAcceptableException — 406
+RequestTimeoutException — 408
+ConflictException — 409
+GoneException — 410
+PayloadTooLargeException — 413
+UnsupportedMediaTypeException — 415
+UnprocessableEntityException — 422
+InternalServerErrorException — 500
+NotImplementedException — 501
+BadGatewayException — 502
+ServiceUnavailableException — 503
+GatewayTimeoutException — 504
+```
+
+本例中使用的是自定义的异常类，代码如下：
+
+```js
+// common/filters/http-exception.filter.ts
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException,Logger,HttpStatus } from '@nestjs/common';
+import { Request, Response } from 'express';
+
+@Catch()
+export class HttpExceptionFilter implements ExceptionFilter {
+  // exception 当前正在处理的异常对象
+  // host 是传递给原始处理程序的参数的一个包装(Response/Request)的引用
+  catch(exception: HttpException, host: ArgumentsHost) {
+    console.log('进入全局异常过滤器...');
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    // HttpException 属于基础异常类，可自定义内容
+    // 如果是自定义的异常类则抛出自定义的status 
+    // 否则就是内置HTTP异常类，然后抛出其对应的内置Status内容
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+    // 抛出错误信息
+    const message =
+      exception.message ||
+      exception.message.message ||
+      exception.message.error ||
+      null;
+    let msgLog = {
+      statusCode: status, // 系统错误状态
+      timestamp: new Date().toISOString(), // 错误日期
+      path: request.url, // 错误路由
+      message: '请求失败', 
+      data: message // 错误消息内容体(争取和拦截器中定义的响应体一样)
+    }
+     // 打印错误综合日志
+     Logger.error(
+      '错误信息',
+      JSON.stringify(msgLog),
+      'HttpExceptionFilter',
+    );
+    response
+      .status(status)
+      .json(msgLog);
+  }
+}
+```
+
+**注册方式**
+
+- 全局注册：在`main.ts`中导入需要的模块如：`HttpExceptionFilter` 然后使用 `app.useGlobalFilters(new HttpExceptionFilter())` 即可
+- 模块注册：在需要注册的`controller`控制器中导入`HttpExceptionFilter`然后从`@nestjs/common`中导入`UseFilters`装饰器；最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可
+
+
+![](https://s.poetries.work/uploads/2022/05/0263be3b963d942b.png)
+
+> **注意：** 同一路由注册多个管道的时候，只会执行一个异常过滤器，优先执行模块中绑定的异常过滤器，如果模块中无绑定异常过滤则执行全局异常过滤器
+
 
 ## 数据验证
 
