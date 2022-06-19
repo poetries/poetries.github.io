@@ -781,3 +781,4 @@ router.get('/getweappCode', async (ctx, next) => {
 - [本地调试](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/debug/)
 - [云托管官方GitHub](https://github.com/WeixinCloud)
 - [tencent云开发知识库首页](https://cloudbase.vip/kw/)
+- [微信学堂快速上手微信云托管](https://developers.weixin.qq.com/community/business/course/00068c2c0106c0667f5b01d015b80d)
