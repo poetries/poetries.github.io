@@ -8,6 +8,7 @@ categories: Front-End
 ---
 
 
+
 ## 基本简介
 
 ### 微信云托管是什么？
@@ -29,6 +30,10 @@ categories: Front-End
 
 ### 常见问题
 
+### 云托管的作用是什么？
+
+> 代替服务器部署小程序/公众号后端。
+
 #### 微信云托管和微信云开发的区别是什么，如何选择？
 
 - 微信云开发和微信云托管都是微信联合腾讯云打造的微信云服务生态的组成部分，都提供了免服务器免运维的能力，开发者可以根据自己的业务特点进行选择。
@@ -45,7 +50,26 @@ categories: Front-End
 
 #### 微信云托管的环境可以在微信开发者工具的云开发控制台中看到吗？
 
-微信云托管和微信云开发是两套独立体系，微信云托管的环境只能在微信云托管控制台看到，在微信开发者工具的云开发控制台中不能看到
+> 微信云托管和微信云开发是两套独立体系，微信云托管的环境只能在微信云托管控制台看到，在微信开发者工具的云开发控制台中不能看到
+
+### 腾讯云和微信云托管有关系吗？云开发的云托管和微信云托管有什么区别？
+
+> 微信云托管是整合了腾讯云底层资源和微信生态链路的综合解决方案。原云开发中的云托管独立出来，升级为微信云托管，补充数据库、ci/cd、灰度发布等更多完整后端功能和企业级devops能力。
+
+### 云托管的时间相差8个小时？
+
+容器系统时间默认为 UTC 协调世界时间 （Universal Time Coordinated），与本地所属时区 CST （上海时间）相差 8 个小时：
+
+在构建基础镜像或在基础镜像的基础上制作自定义镜像时，在 `Dockerfile` 中创建时区文件即可解决单一容器内时区不一致问题，且后续使用该镜像时，将不再受时区问题困扰。
+
+1. 打开 `Dockerfile` 文件。
+2. 写入以下内容，配置时区文件
+
+```
+FROM centos as centos  COPY --from=centos  /usr/share/zoneinfo/Asia/Shanghai /etc/localtime RUN echo "Asia/Shanghai" > /etc/timezone
+```
+
+3. 重新构建容器镜像，使用新的镜像重新部署。或直接上传含新的 Dockerfile 的代码包重新部署
 
 ## 云托管部署
 
@@ -756,3 +780,4 @@ router.get('/getweappCode', async (ctx, next) => {
 - [CLI工具](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/cli/)
 - [本地调试](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/guide/debug/)
 - [云托管官方GitHub](https://github.com/WeixinCloud)
+- [tencent云开发知识库首页](https://cloudbase.vip/kw/)
