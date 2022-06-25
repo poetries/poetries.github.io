@@ -1,5 +1,5 @@
 ---
-title: 云开发cloudbase实践总结篇
+title: 云开发cloudbase从入门到实践
 date: 2022-06-25 14:40:12
 tags: 
   - 部署
@@ -112,8 +112,8 @@ npm run dev
 npm run deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/c075a3e9e41e2219.png)
-![](https://s.poetries.work/uploads/2022/06/6c1f5a859931eb1a.png)
+![](https://s.poetries.work/uploads/2022/06/c9016bdd4a84dac4.png)
+![](https://s.poetries.work/uploads/2022/06/00b5a9d585e5f5ee.png)
 
 部署完成后可以使用 `tcb fn list` 命令查看已经部署完成的函数列表
 
