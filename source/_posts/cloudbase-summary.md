@@ -8,7 +8,6 @@ categories: Front-End
 ---
 
 
-
 ## 一、关于云开发介绍
 
 **云开发与serverless的区别**
@@ -194,7 +193,7 @@ tcb env login create
 
 动态变量特性允许在 `cloudbaserc.json` 配置文件中使用动态变量，从环境变量或其他数据源获取动态的数据。使用 `{{}}` 包围的值定义为动态变量，可以引用数据源中的值。如下所示
 
-```
+```js
 {
   "version": "2.0",
   "envId": "envId",
@@ -227,7 +226,7 @@ DB_PASSWORD = s1mpl3
 
 则可以在配置文件中使用
 
-```json
+```js
 {
   "version": "2.0",
   "envId": "xxx",
