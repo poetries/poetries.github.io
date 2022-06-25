@@ -191,9 +191,9 @@ tcb env login create
 
 > 在 `cloudbaserc.json` 中声明 `"version": "2.0"` 即可启用新的特性，新版配置文件只支持 JSON 格式
 
-动态变量特性允许在 `cloudbaserc.json` 配置文件中使用动态变量，从环境变量或其他数据源获取动态的数据。使用 `{{}}` 包围的值定义为动态变量，可以引用数据源中的值。如下所示
 
 ```js
+// 动态变量特性允许在 `cloudbaserc.json` 配置文件中使用动态变量，从环境变量或其他数据源获取动态的数据。使用 `{{}}` 包围的值定义为动态变量，可以引用数据源中的值。如下所示
 {
   "version": "2.0",
   "envId": "envId",
@@ -208,9 +208,9 @@ tcb env login create
 
 #### 环境变量
 
-> CloudBase 支持使用 `.env` 类型文件作为主要数据源，使用不同的后缀区分不同的阶段、场景，如 `.env.development` 可以表示开发阶段的配置，`.env.production` 可以表示生产环境的配置
+CloudBase 支持使用 `.env` 类型文件作为主要数据源，使用不同的后缀区分不同的阶段、场景，如 `.env.development` 可以表示开发阶段的配置，`.env.production` 可以表示生产环境的配置
 
-当指定 `--mode [mode]` 时，会再加载 `.env.[mode]` 文件，并按照如下的顺序合并覆盖同名变量：`.env.[mode] > .env.local > .env` 即 `.env.[mode]` 中的同名变量会覆盖 `.env.local` 和 `.env` 文件中的同名变量
+> 当指定 `--mode [mode]` 时，会再加载 `.env.[mode]` 文件，并按照如下的顺序合并覆盖同名变量：`.env.[mode] > .env.local > .env` 即 `.env.[mode]` 中的同名变量会覆盖 `.env.local` 和 `.env` 文件中的同名变量
 
 > 当使用 `tcb framework deploy --mode test` 命令时，会自动加载 `.env`，`.env.local` 以及 `.env.test` 等三个文件中的环境变量合并使用。
 
