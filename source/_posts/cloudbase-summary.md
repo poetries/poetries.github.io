@@ -2800,7 +2800,7 @@ tcb framework deploy
 
 - 查看函数配置信息
 
-![](https://s.poetries.work/uploads/2022/06/75030965e7dc604d.png)
+![](https://s.poetries.work/uploads/2022/06/fd07b75bb7e5dfb9.png)
 
 **下载函数代码**
 
