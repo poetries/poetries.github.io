@@ -200,4 +200,3 @@ module.exports = async (req, response) => {
 
 > 这样我们就写好了两个接口服务，提交代码到GitHub上，然后在vercel上创建项目导入GitHub上的代码部署即可，最后部署的服务通过`https://域名/api/query-all-users?name=小月&size=100`访问即可
 
-> 作者介绍：小月，专注分享前端领域进阶技能与技术干货，更多干货内容请看工宗好「前端进阶之旅」
