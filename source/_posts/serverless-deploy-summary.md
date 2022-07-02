@@ -13,7 +13,11 @@ categories: Front-End
 * `Serverless`又名无服务器,所谓无服务器并非是说不需要依赖和依靠服务器等资源,而是开发者再也不用过多考虑服务器的问题,可以更专注在产品代码上。
 * `Serverless`是一种软件系统架构的思想和方法，它不是软件框架、类库或者工具。它与传统架构的不同之处在于，完全由第三方管理，由事件触发，存在于无状态(`Stateless`)、 暂存(可能只存在于一次调用的过程中)计算容器内。构建无服务器应用程序意味着开发者可以专注在产品代码上，而无须管理和操作云端或本地的服务器或运行时(运行时通俗的讲 就是运行环境，比如 `nodejs `环境，`java` 环境，`php` 环境)。`Serverless` 真正做到了部署应用 无需涉及基础设施的建设，自动构建、部署和启动服务。
 
-## 传统的开发模式与serverless开发模式对比
+**通俗的讲：Serverless 是构建和运行软件时不需要关心服务器的一种架构思想**
+
+虚拟主机已经是快被淘汰掉的上一代产物了。云计算涌现出很多改变传统 IT 架构和运维方 式的新技术，比如虚拟机、容器、微服务，无论这些技术应用在哪些场景，降低成本、提升 效率是云服务永恒的主题。**Serverless 的出现真正的解决了降低成本、提升效率的问题**。它真正做到了`弹性伸缩`、`高并发`、`按需收费`、`备份容灾`、日`志监控`等。
+
+## 1.1 传统的开发模式与serverless开发模式对比
 
 传统的开发模式
 
@@ -23,7 +27,25 @@ categories: Front-End
 
 ![](https://s.poetries.work/uploads/2022/06/bcc852ef2bc8fbd7.png)
 
-## 使用serverless的优势
+Serverless 正在改变未来软件开发的模式和流程
+
+![](https://s.poetries.work/uploads/2022/07/44fa5d83bc09c564.png)
+
+## 1.2 Serverless 和 ServerFul 架构的区别
+
+### 传统的 ServerFul 架构模式
+
+ServerFul 架构就是 n 台 Server 通过 网络通信 的 方式 协作在一起，也可以说 ServerFul 架构是基于 Server 和 网络通信（分布式计算） 的 软件实现架构 ， Server 可 以是 虚拟机 物理机 ，以及基于硬件实现的云的云服务器
+
+![](https://s.poetries.work/uploads/2022/07/a6ac5a7905e6f81c.png)
+
+### Serverless 架构模式
+
+Serverless 的核心特点就是实现自动弹性伸缩和按量付费
+
+![](https://s.poetries.work/uploads/2022/07/3d5b8a8b53bd5315.png)
+
+## 1.3 使用serverless的优势
 
 - **资源分配**: 在 `Serverless` 架构中，你不用关心应用运行的资源(比如服务配置、磁盘大小)只提供一份代码就行。
 - **计费方式**: 在` Serverless` 架构中，计费方式按实际使用量计费(比如函数调用次数、运 行时长)，不按传统的执行代码所需的资源计费(比如固定 `CPU`)。计费粒度也精确到了毫 秒级，而不是传统的小时级别。个别云厂商推出了每个月的免费额度，比如腾讯云提供了每 个月 40 万 GBs 的资源使用额度和 100 万次调用次数的免费额度。中小企业的网站访问量不 是特别大的话完全可以免费使用。
@@ -32,7 +54,73 @@ categories: Front-End
 
 - **弹性伸缩**:` Serverless` 架构的弹性伸缩更自动化、更精确，可以快速根据业务并发扩容更 多的实例，甚至允许缩容到零实例状态来实现零费用，对用户来说是完全无感知的。而传统 架构对服务器(虚拟机)进行扩容，虚拟机的启动速度也比较慢，需要几分钟甚至更久。
 
-## serverless厂家
+## 1.4 Serverless 组成
+
+- **广义的 Serverless** 更多是指一种技术理念：Serverless 是构建和运行软件时不需要关心服务 器的一种架构思想。刚开始学 Serverless 你可以把它理解为虚拟主机的升级版本
+- **狭义的 Serverless** 是指现阶段主流的技术实现：狭义的 Serverless 是 `FaaS`和 `BaaS` 组成
+
+![](https://s.poetries.work/uploads/2022/07/e445b52f9d9a9958.png)
+
+## 1.5 Serverless 开发流程
+
+![](https://s.poetries.work/uploads/2022/07/1aa3208070a48915.png)
+
+## 1.6 为什么要学 Serverless
+
+先看看招聘信息
+
+![](https://s.poetries.work/uploads/2022/07/c50918e799e3068b.png)
+
+看看最近 2 年 Github 的 start 数量和周下载量
+
+![](https://s.poetries.work/uploads/2022/07/9784d6ed1170f473.png)
+
+![](https://s.poetries.work/uploads/2022/07/c7c5fe6b663fbe4f.png)
+
+![](https://s.poetries.work/uploads/2022/07/750e45e4a038a162.png)
+
+目前已经使用了 serverless 的大公司
+
+![](https://s.poetries.work/uploads/2022/07/d0ace73fab7e28ba.png)
+
+## 1.7 Serverless 的能力
+
+### 计算能力
+
+- 资源按需分配，无需申请资原
+- Mwm：租户级别强镜离 Docker：进程级别隔离
+- Mwm+Docker 轻量级资源毫秒级启动
+- 实时扩容，阶梯缩容
+- 按需收费
+
+### 系统运维能力
+
+- 性能保障：整个链路耗时毫秒级内,并支持 VPC 内网访问
+- 安全保障
+  - 资源对用户不可见,安全由腾讯云提供专业的保障
+  - 提供进程级和用户级安全隔离
+  - 访问控制管理
+- 自动性护缩容
+  - 根据 CPU 内容网络 IO 自动扩容底层资源
+  - 根据请求数自动扩缩容函数实例，业务高峰期扩容，满足业务高并发需求，业务低 峰期缩容，释放资源，降低成本
+- 自愈能力：每一次请求都是一个健康的实例
+
+> Serverless 中云函数被第一次调用会执行冷启动，Serverless 中云函数被多次连续调用会 执行热启动
+
+![](https://s.poetries.work/uploads/2022/07/527e0cfb402fa738.png)
+
+- **冷启动** 是指你在服务器中新开辟一块空间供一个函数实例运行，这个过程有点像你把这 个函数放到虚拟机里去运行，每次运行前都要先启动虚拟机加载这个函数，以前冷启动非常 耗时，但是目前云厂商已经能做到毫秒级别的冷启动，这个过程我们也不需要关心，但是需 要注意的是使用 Seesion 的时候可能会导致 Session 丢失，所以我们的 Seesion 建议保存到数 据库。
+- **热启动** 则是说如果一个云函数被持续触发，那我就先不释放这个云函数实例，下次请求 仍然由之前已经创建了的云函数实例来运行，就好比我们打开虚拟机运行完这个函数之后没 有关闭虚拟机，而是让它待机，等待下一次被重新触发调用运行，这样做的好处就是省去了 给虚拟机「开机」的一个耗时环节，缺点是要一直维持这个虚拟机的激活状态，系统开销会 大一些。
+
+### 业务运维能力
+
+- 工具建设：vscode 插件、WebIDE、Command Line、云 api、Sdk
+- 版本管理、操作管理等
+- 故障排查
+- 监控报警
+- 容灾处理
+
+## 1.8 serverless厂家
 
 * [亚马逊 AWS Lambda ](https://aws.amazon.com/cn/lambda/)
 * [谷歌 Google Cloud Functions]( https://cloud.google.com/functions)
@@ -41,10 +129,33 @@ categories: Front-End
 * [腾讯云 云函数 SCF(Serverless Cloud Function)](https://cloud.tencent.com/product/scf )
 * [华为云 FunctionGraph](https://www.huaweicloud.com/product/functiongraph.html)
 
+## 1.9 云函数和serverless的区别
 
-## 脚手架安装
+> 通过前面的介绍，我们认识到了云函数和`serverless`，但是可能会有一个很迷惑云函数和`serverless`到底有什么区别，他们之间有什么联系，为什么我在创建云函数的时候选择模板方式创建最后创建的是`serverless`，而不是云函数呢。下面我们将解答云函数和`serverless`的区别
 
-```
+- `Serverless Framework` 是` Serverless `公司推出的一个开源的` Serverless` 应用开发框架
+- `Serverless Framework`是由 `Serverless Framework Plugin` 和 `Serverless Framework Components` 组成
+- `Serverless Framework Plugin` 实际上是一个函数的管理工具，使用这个工具，可以很轻松的 **部署函数、删除函数、触发函数、查看函数信息、查看函数日志、回滚函数、查看函数** 数据等。简单的概括就是`serverless`其实就**云函数的集合体**，使用`serverless`后我们创建的云函数不需要手动去创建触发器等操作
+
+**官方地址**
+
+* [serverless官网地址](https://www.serverless.com/)
+* [serverless中文官网](https://cn.serverless.com)
+* [github地址](https://github.com/serverless/serverless)
+
+
+
+## 1.20 创建serverless的方式
+
+- 在腾讯`serverless`控制面板上创建，然后在`vscode`中使用插件的方式下载到本地（**注意: ** 编辑器上要选择和创建`serverless`地区相同，才能看到项目，否则是看不到项目代码的）
+- 使用客户端`serverless cli`命令方式创建，个人也更推荐使用这种方式创建，修改代码，然后部署到后台腾讯云服务上
+
+
+# 二、serverless 脚手架安装、WebIDE中创建、vscode中配置
+
+## 2.1 脚手架安装-三分钟部署一个项目
+
+```bash
 npm i serverless -g
 
 serverless -v
@@ -52,8 +163,11 @@ serverless -v
 
 查看支持的框架部署
 
-```
+```bash
 sls registry
+
+# 或者输入sls
+sls
 ```
 
 ![](https://s.poetries.work/uploads/2022/06/bb939fc00c99aa5a.png)
@@ -64,21 +178,59 @@ sls registry
 serverless init eggjs-starter(可以替换成sls registry已有的模板) --name egg-example
 ```
 
-## 在vscode中配置插件来开发serverless
+部署 
+
+```bash
+sls deploy
+```
+
+## 2.2 在vscode中配置插件来开发serverless
+
+通过该 VS Code 插件，您可以
+
+- 拉取云端的云函数列表，并触发云函数
+- 在本地快速创建云函数项目
+- 使用模拟的 COS、CMQ、CKafka、API 网关等触发器事件来触发函数运行
+- 上传函数代码到云端，更新函数配置
+- 在云端运行、调试函数代码
 
 **界面上创建应用**
 
 ![](https://s.poetries.work/uploads/2022/06/18c3d872701f1cfc.png)
 
-在`vscode`上安装插件
+- 在`vscode`上安装插件
 
 ![](https://s.poetries.work/uploads/2022/06/0b0cf6ae03f9277b.png)
 
-在`vscode`安装后插件登录并且拉取应用
+- 在`vscode`安装后插件登录并且拉取应用
 
-![](https://s.poetries.work/uploads/2022/06/096d65c7990f1393.png)
+> 密钥地址 https://console.cloud.tencent.com/cam/capi 填入appID、secretID、secretKey即可拉取云函数到本地
 
-## WebIDE创建云函数实践
+![](https://s.poetries.work/uploads/2022/07/66d614b9bba52dbf.png)
+
+- 切换地域查看函数
+
+![](https://s.poetries.work/uploads/2022/07/d5010c1e04560057.png)
+
+
+- 点击云函数，可以查看函数基本配置信息
+
+![](https://s.poetries.work/uploads/2022/07/9e081856b313fc45.png)
+
+- 下载函数代码到本地调试，点击下载图标选择要保存的路径
+
+![](https://s.poetries.work/uploads/2022/07/a7b44ad3928be60f.png)
+
+- 本地修改完代码后，上传函数代码到云端
+
+![](https://s.poetries.work/uploads/2022/07/9e2f3c3bc5832035.png)
+![](https://s.poetries.work/uploads/2022/07/f497c782f6070744.png)
+
+- 本地调试云函数
+
+![](https://s.poetries.work/uploads/2022/07/99f7dc28e086be60.png)
+
+## 2.3 WebIDE创建云函数实践
 
 **创建一个云函数**
 
@@ -93,22 +245,25 @@ serverless init eggjs-starter(可以替换成sls registry已有的模板) --name
 ![](https://s.poetries.work/uploads/2022/06/6ea1e2875196d30e.png)
 ![](https://s.poetries.work/uploads/2022/06/535aa49e41c50789.png)
 
+> 我们可以在控制台修改代码，然后重新部署云函数，或者开启自动安装依赖等
 
-## 云函数和serverless的区别
+![](https://s.poetries.work/uploads/2022/07/e5f68c50a4296d47.png)
 
-> 通过前面的介绍，我们认识到了云函数和`serverless`，但是可能会有一个很迷惑云函数和`serverless`到底有什么区别，他们之间有什么联系，为什么我在创建云函数的时候选择模板方式创建最后创建的是`serverless`，而不是云函数呢。下面我们将解答云函数和`serverless`的区别
+# 三、Serverless Framework部署项目实战
 
-- `Serverless Framework` 是` Serverless `公司推出的一个开源的` Serverless` 应用开发框架
-- `Serverless Framework`是由 `Serverless Framework Plugin` 和 `Serverless Framework Components` 组成
-- `Serverless Framework Plugin` 实际上是一个函数的管理工具，使用这个工具，可以很轻松的 **部署函数、删除函数、触发函数、查看函数信息、查看函数日志、回滚函数、查看函数** 数据等。简单的概括就是`serverless`其实就**云函数的集合体**，使用`serverless`后我们创建的云函数不需要手动去创建触发器等操作
+## 3.1 Serverless Framework简介及应用场景
 
-**官方地址**
+- Serverless Framework 是 Serverless 公司推出的一个开源的 Serverless 应用开发框架
+- Serverless Framework 是 由 Serverless Framework Plugin 和 Serverless Framework Components 组成
+- Serverless Framework Plugin 实际上是一个函数的管理工具，使用这个工具，可以很轻 松的部署函数、删除函数、触发函数、查看函数信息、查看函数日志、回滚函数、查看函数 数据等
 
-* [serverless官网地址](https://www.serverless.com/)
-* [serverless中文官网](https://www.serverless.com/cn)
-* [github地址](https://github.com/serverless/serverless)
+> Serverless Framework Components 可以看作是一个组件集，这里面包括了很多的 Components，有基础的 Components，例如 cos、scf、apigateway 等，也有一些拓展的 Components，例如在 cos 上拓展出来的 website，可以直接部署静态网站等，还有一些框 架级的，例如 Koa，Express等
 
-## Serverless Framework 应用场景
+- Serverless Framework 官网：https://www.serverless.com/ 
+- Serverless Framework 中文网站：https://www.serverless.com/cn 
+- Github 地址：https://github.com/serverless/serverless
+
+### Serverless Framework 应用场景
 
 > 上面既然介绍了云函数和`serverless`的区别，现在我们介绍下什么场景下需要使用`serverless`，而不是使用云函数，其实在实际开发过程中，我们都是使用`serverless`而不去使用云函数，毕竟云函数的使用场景受限，或者说比较基础。打一个简单的比方，在写`js`操作`dom`的时候，你会选择用原生`js`还是会使用`jquery`一样的比喻
 
@@ -120,16 +275,55 @@ serverless init eggjs-starter(可以替换成sls registry已有的模板) --name
 
 > `Serverless Framework` 提供了一套通用的框架迁移方案，通过使用 `Serverless Framework `提供的框架组件(`Egg/Koa/Express` 等，[更多的框架支持可以参考](https://github.com/serverless))，原有应用仅需几行代码简单改造， 即可快速迁移到函数平台。同时支持命令行与控制台的开发方式。
 
+### Serverless Framework 支持的平台
 
-## 创建serverless的方式
+> https://github.com/serverless/serverless/tree/master/docs/providers
 
-- 在腾讯`serverless`控制面板上创建，然后在`vscode`中使用插件的方式下载到本地（**注意: ** 编辑器上要选择和创建`serverless`地区相同，才能看到项目，否则是看不到项目代码的）
-- 使用客户端`serverless cli`命令方式创建，个人也更推荐使用这种方式创建，修改代码，然后部署到后台腾讯云服务上
+![](https://s.poetries.work/uploads/2022/07/228c4a131acdb03c.png)
 
+## 3.2 Serverless Components 支持组件列表
 
-# 二、Serverless Framework部署后端项目
+### 基础组件
 
-## 2.1 sls部署egg项目
+- [@serverless/tencent-postgresql](https://github.com/serverless-components/tencent-postgresql/tree/master) - 腾讯云 PG DB Serverless 数据库组件
+- [@serverless/tencent-apigateway](https://github.com/serverless-components/tencent-apigateway) - 腾讯云 API 网关组件
+- [@serverless/tencent-cos](https://github.com/serverless-components/tencent-cos) - 腾讯云对象存储组件
+- [@serverless/tencent-scf](https://github.com/serverless-components/tencent-scf/tree/master) - 腾讯云云函数组件
+- [@serverless/tencent-cdn](https://github.com/serverless-components/tencent-cdn) - 腾讯云 CDN 组件
+- [@serverless/tencent-vpc](https://github.com/serverless-components/tencent-vpc/tree/master) - 腾讯云 VPC 私有网络组件
+
+### 高阶组件
+
+- [@serverless/tencent-nextjs](https://github.com/serverless-components/tencent-nextjs/tree/master) - 快速部署基于 Next.js 框架到腾讯云函数的组件
+- [@serverless/tencent-nuxtjs](https://github.com/serverless-components/tencent-nuxtjs/tree/master) - 快速部署基于 Nuxt.js 框架到腾讯云函数的组件
+- [@serverless/tencent-express](https://github.com/serverless-components/tencent-express/tree/master) - 快速部署基于 Express.js 的后端服务到腾讯云函数的组件
+- [@serverless/tencent-egg](https://github.com/serverless-components/tencent-egg/tree/master) - 快速部署基于 Egg.js 的后端服务到腾讯云函数的组件
+- [@serverless/tencent-koa](https://github.com/serverless-components/tencent-koa/tree/master) - 快速部署基于 Koa.js 的后端服务到腾讯云函数的组件
+- [@serverless/tencent-flask](https://github.com/serverless-components/tencent-flask) - 腾讯云 Python Flask RESTful API 组件
+- [@serverless/tencent-django](https://github.com/serverless-tencent/tencent-django/tree/master) - 腾讯云 Python Django RESTful API 组件
+- [@serverless/tencent-laravel](https://github.com/serverless-components/tencent-laravel) - 腾讯云 PHP Laravel RESTful API 组件
+- [@serverless/tencent-thinkphp](https://github.com/serverless-components/tencent-thinkphp) - 腾讯云 ThinkPHP RESTful API 组件
+- [@serverless/tencent-website](https://github.com/serverless-components/tencent-website/tree/master) - 快速部署静态网站到腾讯云的组件
+
+## 3.3 sls部署egg项目
+
+> egg 框架中默认已经配置好了静态资源，我们可以直接访问。要注意的是 serverless 服务器 上面只有根目录的 tmp 目录有写入权限，所以需要配置 egg 日志存储的目录。默认创建好 项目以后有如下配置。
+
+```js 
+// config/config.default.js 
+
+module.exports = (appInfo) => {
+  // 
+  return {
+    ...,
+    rundir: '/tmp',
+    logger: {
+      dir: '/tmp'
+    },
+  }
+}
+
+```
 
 ### 控制台创建部署-模板部署
 
@@ -267,7 +461,7 @@ inputs:
     src: ./ # 当前目录
     exclude: # 被排除的文件或目录
       - .env
-      - 'node_modules/**' # 忽略node_modules，在控制台安装
+      - 'node_modules/**' # 忽略node_modules，在控制台WEBIDE开启安装依赖
   # src: # 在指定存储桶bucket中已经存在了object代码，直接部署
   #   bucket: bucket01 # bucket name，当前会默认在bucket name后增加 appid 后缀, 本例中为 bucket01-appid
   #   object: cos.zip  # bucket key 指定存储桶内的文件
@@ -368,7 +562,7 @@ app.listen(9000, '0.0.0.0', () => {
 });
 ```
 
-```
+```bash
 # 微信扫码即可 
 # 微信扫码授权部署有过期时间，如果想要持久授权，请参考账号配置(https://cloud.tencent.com/document/product/1154/45874#account)
 # 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/密钥信息，也可以本地创建 .env 文件：
@@ -567,7 +761,7 @@ layers:
 > layer 会在函数运行时，将内容解压到 `/opt` 目录下，如果存在多个 `layer`，那么会按时间循序进行解压。如果需要访问 `layer` 内的文件，可以直接通过 `/opt/xxx` 访问。如果是访问 `node_module` 则可以直接 `import`，因为 `scf` 的 `NODE_PATH` 环境变量默认已包含 `/opt/node_modules` 路径。
 
 
-### 使用serverless fromwork的egg组件方式部署(不推荐)
+### 使用serverless fromwork的高阶egg组件方式部署(不推荐)
 
 > 目前推荐使用 web 函数，也就是 `HTTP 组件`，现在所有的serverless web 应用都是基于 `component: http` 组件的。
 
@@ -681,7 +875,7 @@ sls deploy # sls deploy --debug可以查看日志
 
 
 
-## 2.2 sls部署nestjs项目
+## 3.4 sls部署nestjs项目
 
 ### 模板部署 -- 部署 Nest.js 示例代码
 
@@ -983,7 +1177,7 @@ layers: # 配置对应的 layer
 
 > layer 会在函数运行时，将内容解压到 `/opt` 目录下，如果存在多个 `layer`，那么会按时间循序进行解压。如果需要访问 `layer` 内的文件，可以直接通过 `/opt/xxx` 访问。如果是访问 `node_module` 则可以直接 `import`，因为 `scf` 的 `NODE_PATH` 环境变量默认已包含 `/opt/node_modules` 路径。
 
-### 使用serverless framework的nestjs组件部署(不推荐)
+### 使用serverless framework的高阶nestjs组件部署(不推荐)
 
 > 目前推荐使用 web 函数，也就是 `HTTP 组件`，现在所有的serverless web 应用都是基于 `component: http` 组件的。
 
@@ -1076,7 +1270,7 @@ inputs:
     #     - xxx
 ```
 
-## 2.3 sls部署koa项目
+## 3.5 sls部署koa项目
 
 ### 控制台部署
 
@@ -1146,8 +1340,9 @@ name: koa-demo
 inputs:
   src:
     src: ./
-    exclude:
+    exclude: # 排除文件，在控制台WEBIDE开启自动安装依赖
       - .env
+      - node_modules
   region: ap-guangzhou
   isAutoCiDeploy: false
   faas:
@@ -1172,7 +1367,7 @@ inputs:
 
 **项目根目录新增 scf_bootstrap 启动文件**
 
-```
+```bash
 touch scf_bootstrap
 
 # 还需执行以下命令修改文件可执行权限，默认需要 777 或 755 权限才可正常启动
@@ -1210,12 +1405,14 @@ sls info
 sls remove
 ```
 
-# 三、部署静态网站
+# 四、部署静态网站
 
 - 全部配置 https://github.com/serverless-components/tencent-website/blob/master/docs/configure.md
 - 部署文档 https://cloud.tencent.com/document/product/1154/39276
 
-## 3.1 sls部署vue项目
+> 部署的静态资源会存储到COS中
+
+## 4.1 sls部署vue项目
 
 **初始化项目**
 
@@ -1295,7 +1492,7 @@ $ serverless remove
 
 > 和部署类似，支持通过 `sls remove --debug` 命令查看移除过程中的实时日志信息
 
-## 3.2 sls部署react项目
+## 4.2 sls部署react项目
 
 **初始化项目**
 
@@ -1352,7 +1549,7 @@ sls dev
 
 ![](https://s.poetries.work/uploads/2022/06/a226acca0bb48bed.png)
 
-## 3.3 sls部署vuepress项目
+## 4.3 sls部署vuepress项目
 
 ![](https://s.poetries.work/uploads/2022/06/3e7f22a3df08fa4b.png)
 
@@ -1402,7 +1599,471 @@ sls deploy
 sls remove
 ```
 
-# QA
+# 五、综合实战
+
+## 5.1 Serverless中使用Node操作Mysql、Mongodb数据库、以及配置VPC私有网络
+
+### 云函数接入数据库
+
+> 参考：https://cloud.tencent.com/document/product/583/51935
+
+**注意**：配置私有网络的服务器需要在同一个地区
+
+![](https://s.poetries.work/uploads/2022/07/1063776f916665ad.png)
+
+### Nodejs Serverless 中操作 Mysql
+
+- 准备工作：首先需要购买云数据库、或者自己在服务器上面搭建一个数据库
+- 云函数操作 Mysql
+
+**购买云数据库mysql**
+
+![](https://s.poetries.work/uploads/2022/07/a32767996808f68f.png)
+
+![](https://s.poetries.work/uploads/2022/07/ca2c192149944c02.png)
+
+![](https://s.poetries.work/uploads/2022/07/fb6f3d7a624a73f6.png)
+
+**新建mysql云函数**
+
+![](https://s.poetries.work/uploads/2022/07/968044649cbdbfee.png)
+
+- 选择和mysql同一个地域，程序之间通过VPC网络连接
+
+![](https://s.poetries.work/uploads/2022/07/e7285b3cba07f7bf.png)
+
+- 选择私有网络，和mysql所在网络一致
+
+![](https://s.poetries.work/uploads/2022/07/c31cd4d7d163bb89.png)
+![](https://s.poetries.work/uploads/2022/07/1d3382cca02d0f05.png)
+
+如果没有需要新建私有网络，需要和msyql实例同一个地区，选择了新建的私有网络，mysql实例那边网络需要修改一致
+
+![](https://s.poetries.work/uploads/2022/07/e848fe3eabb20b49.png)
+![](https://s.poetries.work/uploads/2022/07/e5dfce33f28ac2f0.png)
+
+- 登录mysql数据库增加测试数据
+
+![](https://s.poetries.work/uploads/2022/07/765e9fdf679b9661.png)
+
+新建test数据库
+
+![](https://s.poetries.work/uploads/2022/07/794bc6fe87c43f55.png)
+
+创建user表
+
+![](https://s.poetries.work/uploads/2022/07/bc6c668125921773.png)
+
+- 修改云函数代码，保存部署即可
+
+![](https://s.poetries.work/uploads/2022/07/0ec0d7030a1a171a.png)
+
+```js 
+/**************************************************
+Node8.9-Mysql
+Reference: mysql api---https://www.npmjs.com/package/mysql
+Reference: How to access database---https://cloud.tencent.com/document/product/236/3130
+Reference: How to connect api gateway with scf---https://cloud.tencent.com/document/product/628/11983
+***************************************************/
+
+function wrapPromise(connection, sql) {
+  return new Promise((res, rej) => {
+    connection.query(sql, function(error, results, fields) {
+      if (error) {
+        rej(error)
+      }
+      res(results)
+    })
+  })
+}
+
+
+exports.main_handler = async (event, context, callback) => {
+  const mysql = require('mysql');
+  const connection = mysql.createConnection({
+    host: '167.16.0.17', // The ip address of cloud database instance, 云数据库实例ip地址
+    user: 'root', // The name of cloud database, for example, root, 云数据库用户名，如root
+    password: 'xx', // Password of cloud database, 云数据库密码
+    database: 'test', // Name of the cloud database, 数据库名称
+    port: "3306"
+  });
+
+  connection.connect();
+
+  const querySql = `SELECT * from user`
+
+  let queryResult = await wrapPromise(connection, querySql)
+  
+  connection.end();
+
+  return queryResult
+}
+
+```
+
+重新部署
+
+![](https://s.poetries.work/uploads/2022/07/be2ad63b73cd90cb.png)
+
+- 创建API网关触发器，在浏览器中访问
+
+![](https://s.poetries.work/uploads/2022/07/4d25248bad953017.png)
+
+![](https://s.poetries.work/uploads/2022/07/280e12f1381ad19b.png)
+
+浏览器中访问查看效果
+
+![](https://s.poetries.work/uploads/2022/07/3bf2e7588ef4db51.png)
+
+### Nodejs Serverless 中操作 Mongodb
+
+- 准备工作：首先需要购买云数据库、或者自己在服务器上面搭建一个数据库
+- 云函数操作 Mongodb
+
+**购买MongoDB数据库**
+
+![](https://s.poetries.work/uploads/2022/07/88f6da606016085b.png)
+![](https://s.poetries.work/uploads/2022/07/81895e9b9ae7dac9.png)
+
+**创建云函数**
+
+![](https://s.poetries.work/uploads/2022/07/ada2715770b68f92.png)
+
+- 选择地区
+
+![](https://s.poetries.work/uploads/2022/07/cdc6c87499019a46.png)
+
+- 选择私有网络，和mongodb所在网络一致
+
+![](https://s.poetries.work/uploads/2022/07/cfdd4a0e3e82ee18.png)
+
+- 修改云函数代码
+
+```js
+const {promisify} = require('util')
+const mongodb = require('mongodb')
+
+var mongoClient = mongodb.MongoClient,
+    assert = require('assert');
+
+const connect = promisify(mongodb.connect)
+
+// URL combination
+// var url = 'mongodb://mason_mongodb:mason12345@10.10.11.19:27017/admin';
+
+var url="mongodb://mongouser:password@10.0.0.13:27017,10.0.0.8:27017,10.0.0.11:27017/admin?authSource=admin&replicaSet=cmgo-e23piswf_0"
+
+exports.main_handler = async (event, context, callback) => {
+    console.log('start main handler')
+    const MongoClient = require("mongodb").MongoClient;
+    const mc = await MongoClient.connect(url,{useNewUrlParser: true})
+    const db = mc.db('testdb') 
+    const collection = db.collection('demoCol')
+    await collection.insertOne({a:1,something:'你好 serverless'})
+    const as = await collection.find().toArray()
+    console.log(as)
+
+    mc.close()
+
+    return as
+}
+```
+
+创建触发器
+
+![](https://s.poetries.work/uploads/2022/07/1da43f40efc683d6.png)
+
+![](https://s.poetries.work/uploads/2022/07/5a8d14fb5d7417c0.png)
+
+
+## 5.2 Serverless BaaS 对象云存储Cos介绍、Node操作Cos、实现图片上传到Cos中
+
+### 对象云存储 Cos 介绍
+
+狭义的 Serverless 是指现阶段主流的技术实现：狭义的 Serverless 是 `FaaS` 和 `BaaS` 组成
+
+![](https://s.poetries.work/uploads/2022/07/396be7b44eb9dd81.png)
+
+> 对象存储（Cloud Object Storage，COS）是一种存储海量文件的分布式存储服务，具有高扩 展性、低成本、可靠安全等优点。通过控制台、API、SDK 和工具等多样化方式，用户可简 单、快速地接入 COS，进行多格式文件的上传、下载和管理，实现海量数据存储和管理。
+
+![](https://s.poetries.work/uploads/2022/07/0fc384f78966e294.png)
+
+### Nodejs 操作 Cos
+
+> 参考官方文档：https://cloud.tencent.com/document/product/436/8629
+
+```bash
+cnpm i cos-nodejs-sdk-v5 --save
+```
+
+```js 
+const COS = require('cos-nodejs-sdk-v5');
+const fs=require("fs");
+
+//配置cos的sdk  https://console.cloud.tencent.com/cam/capi
+var cos = new COS({
+    SecretId: 'xx',
+    SecretKey: 'xx'
+});
+
+//上传本地图片到对象云存储里面
+cos.putObject({
+    Bucket: 'express-demo-1251179943', /* 必须存储桶名称 */
+    Region: 'ap-guangzhou',    /* 必须 区域*/
+    Key: 'a.png',              /* 必须   目录/文件的名称  */
+    StorageClass: 'STANDARD',
+    Body: fs.createReadStream('./a.png'), // 上传文件对象
+    onProgress: function(progressData) {
+      console.log(JSON.stringify(progressData));
+    }
+}, function(err, data) {
+    console.log(err || data);
+});
+```
+
+### Express 在 Serverless 中实现图片上传到 Cos 中
+
+安装模块 multer https://github.com/expressjs/multer
+
+```bash
+npm install --save multer
+```
+
+配置 form 表单
+
+```html
+<!-- views/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Serverless Component - Express.js</title>
+    <link rel="stylesheet" href="/css/basic.css">
+  </head>
+  <body>
+    <form action="/doUpload" method="post" enctype="multipart/form-data">
+      用户名：<input type="text" name="username" />
+      <br>
+      <br>
+      头 像 : <input type="file" name="face" />
+      <br>
+      <br>
+      <input type="submit" value="提交">
+    </form>
+  </body>
+</html>
+```
+
+> 配置内存存储引擎 (`MemoryStorage`)，内存存储引擎将文件存储在内存中的 `Buffer` 对象，它没有任何选项
+
+```js
+var storage = multer.memoryStorage()
+var upload = multer({ storage: storage })
+```
+
+接收文件上传文件到云存储
+
+```js 
+// app.js
+const express = require('express');
+const path = require('path');
+const ejs = require("ejs");
+var bodyParser = require('body-parser')
+var multer = require('multer');
+var tools = require('./services/tools.js');
+
+const app = express();
+
+//配置上传
+var storage = multer.memoryStorage();
+var upload = multer({ storage: storage });
+
+// 配置中间件
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json())
+
+//配置模板引擎
+app.engine("html", ejs.__express)
+app.set("view engine", "html")
+
+//会对指定类型进行 Base64 编码
+app.binaryTypes = ['*/*'];
+
+//静态web服务
+app.use(express.static("public"));
+// Routes
+app.get(`/`, (req, res) => {
+  res.render("index", {
+    title: "你好serverless"
+  })
+});
+
+//注意：https://github.com/serverless-components/tencent-koa/blob/master/docs/upload.md
+app.post(`/doUpload`, upload.single("face"), async (req, res) => {
+  console.log(req.body);
+  console.log(req.file);
+
+  //上传本地图片到对象云存储里面   注意异步
+  let result = await tools.uploadCos(req.file.originalname, req.file.buffer)
+
+  res.send({
+    body: req.body,
+    result: result
+  });
+});
+
+
+// Error handler
+app.use(function (err, req, res, next) {
+  console.error(err);
+  res.status(500).send('Internal Serverless Error');
+});
+
+module.exports = app;
+```
+
+```js 
+// services/tools.js
+const COS = require('cos-nodejs-sdk-v5');
+
+module.exports={
+  uploadCos(filename,source){
+    let cos = new COS({
+      SecretId: 'xx',
+      SecretKey: 'xx'
+    });
+    return new Promise((reslove, reject) => {
+      cos.putObject({
+        Bucket: 'test-xx', /* 必须 */
+        Region: 'ap-beijing',    /* 必须 */
+        Key: 'test/' + filename,              /* 必须 test为目录名称 */
+        StorageClass: 'STANDARD',
+        Body: source, // 上传文件对象
+        onProgress: function (progressData) {
+          console.log(JSON.stringify(progressData));
+        }
+      }, function (err, data) {
+          if(err){
+              reject(err);
+          }else{
+              reslove(data);
+          }
+        
+      });
+    })
+  }
+}
+```
+
+**上传文件需要注意**
+
+> https://github.com/serverless-components/tencent-koa/blob/master/docs/upload.md
+
+![](https://s.poetries.work/uploads/2022/07/d959441445eecfb5.png)
+
+修改`serverless.yml`
+
+```yml
+app: appDemo
+stage: dev
+component: koa
+name: koaDemo
+
+inputs:
+  # 省略...
+  apigatewayConf:
+    isBase64Encoded: true # 需要加上，否则上传图片到cos预览有问题
+    # 省略...
+  # 省略...
+```
+
+**完整serverless.yml**
+
+```yml 
+app: expressdemo
+component: express
+name: expressDemo
+inputs:
+  runtime: Nodejs10.15
+  region: ap-guangzhou
+  src:
+    src: ./
+    exclude:
+      - .env
+      - .git
+      - node_modules
+  apigatewayConf:
+    enableCORS: false
+    isBase64Encoded: true # 需要加上，否则上传图片到cos预览有问题
+    protocols:
+      - http
+      - https
+    environment: release
+```
+
+部署，然后在webIDE开启自动安装依赖 
+
+```bash
+sls deploy
+```
+
+## 5.3 Serverless、Cos中配置域名访问以及Serverless中配置https访问
+
+### Serverless 中配置域名访问
+
+找到云函数对应的 api 网关
+
+![](https://s.poetries.work/uploads/2022/07/7c53c0ead5e166f7.png)
+
+编辑 api 网关 点击域名管理
+
+![](https://s.poetries.work/uploads/2022/07/fa2e097f55e8460b.png)
+
+新建域名
+
+![](https://s.poetries.work/uploads/2022/07/9f4acfb1d41d15ec.png)
+
+![](https://s.poetries.work/uploads/2022/07/cbc5cd59595597bc.png)
+
+解析域名
+
+![](https://s.poetries.work/uploads/2022/07/c2dc26b03c9b36be.png)
+
+### Serverless 中配置 https 访问
+
+HTTPS（全称：Hyper Text Transfer Protocol over Secure Socket Layer），是以安全为目标的 HTTP 通道，简单讲是 HTTP 的安全版。 
+
+HTTPS 是在 HTTP 的基础上添加了安全层，从原来的明文传输变成密文传输，当然加密与解 密是需要一些时间代价与开销的，不完全统计有 10 倍的差异。
+
+> 在当下的网络环境下可以忽 略不计，已经成为一种必然趋势。 目前微信小程序请求 Api 必须用 https、Ios 请求 api 接口必须用 https
+
+**https 证书类型**
+
+- 域名型 https 证书（DVSSL）：信任等级一般，只需验证网站的真实性便可颁发证书保护网站
+- 企业型 https 证书（OVSSL）：信任等级强，须要验证企业的身份，审核严格，安全性更高
+- 增强型 https 证书（EVSSL）：信任等级最高，一般用于银行证券等金融机构，审核严格，安全性最高， 同时可以激活绿色网址栏
+
+**创建证书**
+
+![](https://s.poetries.work/uploads/2022/07/c0bd93006ea724cd.png)
+
+选择证书
+
+![](https://s.poetries.work/uploads/2022/07/c7ecd5414acc9881.png)
+
+### Cos 中配置域名
+
+配置域名
+
+![](https://s.poetries.work/uploads/2022/07/565fff50504ea193.png)
+
+域名解析
+
+![](https://s.poetries.work/uploads/2022/07/08646a66aeb4c8fb.png)
+
+
+# 六、QA
 
 ## scf_bootstrap启动文件与sls.js启动文件区别
 
@@ -1433,7 +2094,7 @@ sls remove
 - 如果超的太多，那就通过挂载 `cfs` 文件系统来进行规避（[参考文章](https://zhuanlan.zhihu.com/p/218803108?utm_source=wechat_session)）
 
 
-# 官方文档
+# 七、官方文档
 
 - [serverless官方应用中心文档](https://cloud.tencent.com/document/product/1154/59447)
 - [serverless帮助文档](https://cn.serverless.com/framework/docs)
