@@ -73,7 +73,7 @@ Serverless 的核心特点就是实现自动弹性伸缩和按量付费
 
 看看最近 2 年 Github 的 start 数量和周下载量
 
-![](https://s.poetries.work/uploads/2022/07/9784d6ed1170f473.png)
+![](https://s.poetries.work/uploads/2022/07/9c63657e6a3dadb2.png)
 
 ![](https://s.poetries.work/uploads/2022/07/c7c5fe6b663fbe4f.png)
 
