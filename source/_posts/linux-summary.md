@@ -1919,3 +1919,227 @@ CMD node app.js
 运行镜像并且进入容器 `docker run -tid --name nodeDemo -p 3000:3000 nodeimg:v1.0.1`
 
 ### 配置docker网络
+
+多个容器之间如何通信，是否可以直接连接
+
+![](https://s.poetries.work/uploads/2022/06/26463dace73153a0.png)
+
+首先看看网卡信息
+
+![](https://s.poetries.work/uploads/2022/06/d994954b9bc09429.png)
+
+> ：默认情况同一台主机上面的容器是可以互相通信的，默认情况同一台主机上面的容器 和主机之间是可以互相通信的
+
+**通信原理**
+
+> 我们每启动一个Docker容器，Docker就会给Docker容器分配一个ip，我们只要安装了Docker， 就会有一个网卡 `Docker0`，`Docker0` 使用的是桥接模式，使用的技术是 evth-pair 技术
+
+#### Docker Network 详解
+
+- 关于 docker network 命令 `docker network --help`
+- `docker network ls` 查看网络 
+- `docker network inspect 网络ID(docker network ls获取)` 查看网络详情
+
+#### Docker 网络的四种模式
+
+|Docker 网络模式|配置|说明|
+|---|---|---|
+|`host` 模式|`--net=host`|容器和宿主机共享 `Network namespace`|
+|`container` 模式| `--net=container:NAMEorID` |容器和另外一个容器共享 `Network namespace`。 `kubernetes` 中的 `pod` 就是多个容器共享一个 `Network namespace`。|
+|`none` 模式| `--net=none` |容器有独立的 `Network namespace`，但并没有对其 进行任何网络设置，如分配 `veth pair `和网桥连 接，配置 `IP` 等。|
+|`bridge` 模式| `--net=bridge` |（默认为该模式）|
+
+**host 模式**
+
+> 如果启动容器的时候使用 host 模式，那么这个容器将不会获得一个独立的 Network Namespace，而是和宿主机共用一个 Network Namespace。容器将不会虚拟出自己的网卡， 配置自己的 IP 等，而是使用宿主机的 IP 和端口。但是，容器的其他方面，如文件系统、进 程列表等还是和宿主机隔离的
+
+使用 host 模式的容器可以直接使用宿主机的 IP 地址与外界通信，容器内部的服务端口也可 以使用宿主机的端口，不需要进行 NAT，host 最大的优势就是网络性能比较好，但是 docker host 上已经使用的端口就不能再用了，网络的隔离性不好
+
+![](https://s.poetries.work/uploads/2022/06/c6301becc0c6096b.png)
+
+**container 模式**
+
+> 这个模式指定新创建的容器和已经存在的一个容器共享一个 Network Namespace，而不是和 宿主机共享。新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器 共享 IP、端口范围等。同样，两个容器除了网络方面，其他的如文件系统、进程列表等还 是隔离的。两个容器的进程可以通过 lo 网卡设备通信
+
+![](https://s.poetries.work/uploads/2022/06/eb659e57bfedb72b.png)
+
+**none 模式**
+
+> 使用 none 模式，Docker 容器拥有自己的 Network Namespace，但是，并不为 Docker 容器进 行任何网络配置。也就是说，这个 Docker 容器没有网卡、IP、路由等信息。需要我们自己 为 Docker 容器添加网卡、配置 IP 等。
+
+这种网络模式下容器只有 lo 回环网络，没有其他网卡。none 模式可以在容器创建时通过 `--network=none` 来指定。这种类型的网络没有办法联网，封闭的网络能很好的保证容器的安 全性
+
+![](https://s.poetries.work/uploads/2022/06/9edcca445e5df197.png)
+
+**bridge 模式**
+
+> 当Docker进程启动时，会在主机上创建一个名为docker0的虚拟网桥，此主机上启动的Docker 容器会连接到这个虚拟网桥上。虚拟网桥的工作方式和物理交换机类似，这样主机上的所有 容器就通过交换机连在了一个二层网络中
+
+![](https://s.poetries.work/uploads/2022/06/69625851feead1f2.png)
+
+**docker network create 创建网络以及启动容器指定网络**
+
+```
+docker network create --help
+```
+
+#### 容器直接网络连接演示
+
+```
+docker pull centos
+```
+
+**创建一个 mysqlNet网络**
+
+- `--driver bridge` 配置网络类型 `bridge` 桥接
+- `--subnet 192.168.1.0/24` 配置子网 建议每个网络的范围尽量小
+- `--gateway 192.168.1.1` 配置网关
+
+```
+docker network create --driver bridge --subnet 192.168.1.0/24 --gateway 192.168.1.1 mysql Net
+```
+
+**启动容器指定网络**
+
+我们启动容器的时候可以加上 `--net` 参数可以指定启动容器的时候使用的网络，如果不加表 示默认使用 `docker0` 网络
+
+> `--net bridge` 表示使用 `docker0` 网络
+
+```bash
+docker run -tid --name centos01 centos /bin/bash
+
+# 或者
+docker run -tid --name centos01 --net bridge centos /bin/bash
+```
+
+> `--net mysqlNet` 表示使用我们自定义网络 
+
+```
+docker run -tid --name centos04 --net mysqlNet centos /bin/bash
+docker run -tid --name centos05 --net mysqlNet centos /bin/bash
+```
+
+使用主机名称可以 ping 通
+
+```
+# 进入centos05
+docker exec -it centos05 /bin/bash
+
+$ ping centos04
+```
+
+结果
+
+```bash
+$ docker exec -it centos05 /bin/bash
+[root@5d8bd8036698 /]# ping centos04
+
+PING centos04 (192.168.1.2) 56(84) bytes of data.
+64 bytes from centos04.mysqlNet (192.168.1.2): icmp_seq=1 ttl=64 time=1.58 ms
+64 bytes from centos04.mysqlNet (192.168.1.2): icmp_seq=2 ttl=64 time=0.177 ms
+64 bytes from centos04.mysqlNet (192.168.1.2): icmp_seq=3 ttl=64 time=0.123 ms
+```
+
+> 不同网络的容器默认没法通信
+
+我们在`centos05`容器内`ping centos01`容器，结果是不成功的
+
+```bash
+# 进入centos05
+docker exec -it centos05 /bin/bash
+
+# ping centos01容器网络 (172.17.0.2是centos01网络ip `ip addr`获取)
+ping 172.17.0.2
+```
+
+> 这样我们就把 centos04 和 centos05 加入了我们自定义的 mysqlNet 网络，这样的话 centos04 和 centos05 是互通的，但是 mysqlNet 网络和 docker0 网络默认是不互通的
+
+![](https://s.poetries.work/uploads/2022/06/a45d6c71c3c73341.png)
+
+**docker network connect 实现不同网络之间的连通**
+
+> 如上图，我们想的是 centos01 可以 访问 mysqlNet 里面的 centos04 和 centos05，这个时候 我们就需要使用 docker network connect 实现网络连通
+
+```bash
+docker network connect mysqlNet centos01
+```
+
+```bash
+# 查看本地网络
+docker network ls
+```
+
+> 查看网络详情
+
+```bash
+$ docker network inspect mysqlNet
+
+[
+    {
+        "Name": "mysqlNet",
+        "Id": "854913f194cab31417f3f589a7970bf0d14a88d74d67bbfbfd15acd79ce774f1",
+        "Created": "2022-06-30T03:13:47.053474447Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "192.168.1.0/24",
+                    "Gateway": "192.168.1.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "56c1371a31196943da831b3e938d4c0c750e0654d8f103e0745baa125dd6ec81": {
+                "Name": "centos01",
+                "EndpointID": "22c7b14acbd9c4ded534e80bd248486a19ccba56a80445788457df1fd8e2e018",
+                "MacAddress": "02:42:c0:a8:01:04",
+                "IPv4Address": "192.168.1.4/24",
+                "IPv6Address": ""
+            },
+            "5d8bd803669872ed21488f6b61077933d50e8009d105c1798da30fd0fcb0ad65": {
+                "Name": "centos05",
+                "EndpointID": "bc016cfdfdaa01288d33aa33ad08ff687e32b720c654396bda4d068852c1330c",
+                "MacAddress": "02:42:c0:a8:01:03",
+                "IPv4Address": "192.168.1.3/24",
+                "IPv6Address": ""
+            },
+            "c34b6f27e3a7a8c4956cb3ca965fe63fbabab99c22a3846c8b5aaaa7643de905": {
+                "Name": "centos04",
+                "EndpointID": "daf09599773b09cbfd7b92fd14a426dc030c2ce5250277b0726366e2b2c79806",
+                "MacAddress": "02:42:c0:a8:01:02",
+                "IPv4Address": "192.168.1.2/24",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {}
+    }
+]
+```
+
+可以看到是ping成功的
+
+```bash
+$ docker exec centos01 ping centos05
+
+PING centos05 (192.168.1.3) 56(84) bytes of data.
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=1 ttl=64 time=2.28 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=2 ttl=64 time=0.093 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=3 ttl=64 time=0.112 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=4 ttl=64 time=0.105 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=5 ttl=64 time=0.154 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=6 ttl=64 time=0.077 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=7 ttl=64 time=0.158 ms
+64 bytes from centos05.mysqlNet (192.168.1.3): icmp_seq=8 ttl=64 time=0.099 ms
+```
