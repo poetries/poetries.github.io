@@ -8,6 +8,7 @@ categories: Front-End
 ---
 
 
+
 ## Sentry介绍
 
 > `Sentry` 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中
@@ -23,7 +24,7 @@ categories: Front-End
 
 ![](https://s.poetries.work/uploads/2022/07/ea60de5188aaa2a1.png)
 
-**sentry和新架构**
+**sentry核心架构**
 
 ![](https://s.poetries.work/uploads/2022/07/31d57c95765101aa.png)
 
@@ -33,7 +34,7 @@ categories: Front-End
 
 > sentry是开源的，如果我们愿意付费的话，sentry给我们提供了方便。省去了自己搭建和维护 Python 服务的麻烦事
 
-登录官网 https://sentry.io，注册账号后接入sdk即可使用
+登录官网 https://sentry.io 注册账号后接入sdk即可使用
 
 ### Sentry私有化部署
 
@@ -196,9 +197,8 @@ docker-compose up -d
 
 ![](https://s.poetries.work/uploads/2022/07/26405ca96fbdf205.png)
 
-## 设置通用配置
 
-### 设置语言和时区
+## 设置语言和时区
 
 点击头像`User settings - Account Details`的相应菜单设置，刷新后生效
 
@@ -299,7 +299,9 @@ module.exports = {
           release: require('../package.json').version, // 对应main.js中设置的Sentry.init版本号
           cleanArtifacts: true, // Remove all the artifacts in the release before the upload.
           // URL prefix to add to the beginning of all filenames. Defaults to ~/ but you might want to set this to the full URL. This is also useful if your files are stored in a sub folder. eg: url-prefix '~/static/js'
-          urlPrefix: '~/',
+          urlPrefix: '~/js', // 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题
+          // urlPrefix： 关于这个，是要看你线上项目的资源地址，比如
+          // 怎么看资源地址呢， 例如谷歌浏览器， F12控制台， 或者去Application里面找到对应资源打开
         }),
       )
     }
@@ -358,13 +360,13 @@ npm run build
 
 正确上传过 source-map 的项目，可以看到很清晰的报错位置
 
-> 进入本地打包的dist，`http-server -p 4005` 启动一个模拟正式环境部署的服务访问看看效果
+> 进入本地打包的dist，`http-server -p 6002` 启动一个模拟正式环境部署的服务访问看看效果
 
-![](https://s.poetries.work/uploads/2022/07/605e5eb69a429340.png)
+![](https://s.poetries.work/uploads/2022/07/c28db99ceb1e7001.png)
 
 还可以通过 `面包屑` 功能查看，报错前发生了什么操作
 
-![](https://s.poetries.work/uploads/2022/07/2191cee7f5b1bbeb.png)
+![](https://s.poetries.work/uploads/2022/07/1d6f7cba82780187.png)
 
 **记得别把sourcemap文件传到生产环境，又大又不安全** 删除`sourcemap`, 基于vue2演示的三种方式
 
@@ -517,6 +519,7 @@ Sentry.init({
   integrations: [new Integrations.BrowserTracing()],
 // 不同的环境上报到不同的 environment 分类
   environment: process.env.ENVIRONMENT,
+  release: '0.0.1',
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
@@ -529,6 +532,53 @@ ReactDOM.render(<App />, document.getElementById("root"));
 // Can also use with React Concurrent Mode
 // ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 ```
+
+
+![](https://s.poetries.work/uploads/2022/07/1742ca6bb482613a.png)
+
+```bash
+# 根目录创建配置文件 .sentryclirc
+
+[auth]
+token=TOKEN控制台获取
+
+[defaults]
+url=https://sentry.io/
+org=组件名称，控制台汇总
+project=react
+```
+
+**sourcemap配置上传**
+
+```
+npm i @sentry/webpack-plugin -D
+```
+
+```js
+const SentryCliPlugin = require('@sentry/webpack-plugin')
+
+module.exports = {
+  plugins: [
+    new SentryCliPlugin({
+      include: './dist/static/js', // 只上传js
+      ignore: ['node_modules'],
+      ignoreFile: '.sentrycliignore',
+      release: '0.0.1',
+      cleanArtifacts: true, // Remove all the artifacts in the release before the upload.
+      // URL prefix to add to the beginning of all filenames. Defaults to ~/ but you might want to set this to the full URL. This is also useful if your files are stored in a sub folder. eg: url-prefix '~/static/js'
+      urlPrefix: '~/static/js', // 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题
+      // urlPrefix： 关于这个，是要看你线上项目的资源地址，比如
+      // 怎么看资源地址呢， 例如谷歌浏览器， F12控制台， 或者去Application里面找到对应资源打开
+    }),
+  ]
+};
+```
+
+```bash
+# 执行打包上传sourcemap
+npm run build
+```
+
 
 ## 进阶用法
 
