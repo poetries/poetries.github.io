@@ -28,13 +28,15 @@ categories: Front-End
 
 ![](https://s.poetries.work/uploads/2022/07/31d57c95765101aa.png)
 
-## 环境搭建
+## 环境搭建配置
 
 ### 官方Sentry服务
 
 > sentry是开源的，如果我们愿意付费的话，sentry给我们提供了方便。省去了自己搭建和维护 Python 服务的麻烦事
 
 登录官网 https://sentry.io 注册账号后接入sdk即可使用
+
+![](https://s.poetries.work/uploads/2022/07/5db080cc6f487560.png)
 
 ### Sentry私有化部署
 
@@ -52,7 +54,7 @@ sentry 本身是基于 Django 开发的，而且也依赖到其他的如 Postgre
 - `8 GB RAM`
 - `20 GB Free Disk Space`
 
-**1、安装docker环境**
+#### 安装docker环境
 
 安装工具包
 
@@ -109,6 +111,7 @@ vi /etc/docker/daemon.json
 # 重新加载配置
 systemctl daemon-reload
 
+# 重启docker
 systemctl restart docker
 ```
 
@@ -139,19 +142,17 @@ $ docker-compose --version
 docker-compose version 1.22.0, build f46880fe
 ```
 
-**2、下载Sentry安装包**
+#### 一键部署
 
 ```
 git clone https://github.com/getsentry/onpremise
 ```
 
-**一键部署**
-
-> 在 onpremise 的根路径下有一个 install.sh 文件，只需要执行此脚本即可完成快速部署，脚本运行的过程中，大致会经历以下步骤：
+> 在 `onpremise` 的根路径下有一个 `install.sh` 文件，只需要执行此脚本即可完成快速部署，脚本运行的过程中，大致会经历以下步骤：
 
 - 环境检查
 - 生成服务配置
-- `docker volume` 数据卷创建（可理解为 docker 运行的应用的数据存储路径的创建）
+- `docker volume` 数据卷创建（可理解为 `docker` 运行的应用的数据存储路径的创建）
 - 拉取和升级基础镜像
 - 构建镜像
 - 服务初始化
@@ -172,7 +173,7 @@ cd onpremise
 
 ![](https://s.poetries.work/uploads/2022/07/c960c51703ae0a14.png)
 
-**3、启动项目执行**
+#### 启动项目执行
 
 在执行结束后，会提示创建完毕，运行 `docker-compose up -d` 启动服务
 
@@ -189,7 +190,7 @@ docker-compose up -d
 ![](https://s.poetries.work/uploads/2022/07/d00aa7e4b2070d77.png)
 
 
-**4、访问项目**
+#### 访问项目
 
 > 所有服务都启动成功后,就可以访问`sentry`后台了,后台默认运行在服务器的`9000`端口,这里的`账户密码就是安装时让你设置`的那个
 
@@ -198,7 +199,7 @@ docker-compose up -d
 ![](https://s.poetries.work/uploads/2022/07/26405ca96fbdf205.png)
 
 
-## 设置语言和时区
+### 设置语言和时区
 
 点击头像`User settings - Account Details`的相应菜单设置，刷新后生效
 
@@ -206,7 +207,7 @@ docker-compose up -d
 
 ## Vue2 + Sentry
 
-创建一个vue项目 
+### 创建一个vue项目 
 
 ```bash 
 npm i @vue/cli -g
@@ -214,6 +215,8 @@ npm i @vue/cli -g
 # 初始化vue2项目
 vue create vue2-sentry
 ```
+
+### 接入sentry
 
 ![](https://s.poetries.work/uploads/2022/07/c4137ad12fdccfbd.png)
 
@@ -223,6 +226,7 @@ npm install --save @sentry/vue @sentry/tracing
 ```
 
 ```js
+// src/main.js
 import Vue from "vue";
 import Router from "vue-router";
 import * as Sentry from "@sentry/vue";
@@ -250,7 +254,7 @@ Sentry.init({
   // We recommend adjusting this value in production
   //  高访问量应用可以控制上报百分比
   tracesSampleRate: 1.0,
-  release: '0.0.1', // release版本号，和SentryCliPlugin中的一致
+  release: process.env.SENTRY_VERSION || '0.0.1', // 版本号，每次都npm run build上传都修改版本号
 });
 
 // ...
@@ -268,7 +272,7 @@ new Vue({
 ![](https://s.poetries.work/uploads/2022/07/695199f400f7e40d.png)
 
 
-### 上传sourceMap到sentry平台
+### 上传sourceMap到sentry
 
 为了方便查看具体的报错内容，我们需要上传`sourceMap`到`sentry`平台。一般有两种方式 `sentry-cli`和 `sentry-webpack-plugin`方式，这里为了方便采用`webpack`方式
 
@@ -284,6 +288,8 @@ npm i @sentry/webpack-plugin -D
 修改`vue.config.js`配置文件
 
 ```js
+// vue.config.js
+
 const SentryCliPlugin = require('@sentry/webpack-plugin')
 
 module.exports = {
@@ -296,7 +302,7 @@ module.exports = {
           include: './dist/js', // 只上传js
           ignore: ['node_modules', 'webpack.config.js'],
           ignoreFile: '.sentrycliignore',
-          release: require('../package.json').version, // 对应main.js中设置的Sentry.init版本号
+          release: process.env.SENTRY_VERSION || '0.0.1', // 版本号，每次都npm run build上传都修改版本号 对应main.js中设置的Sentry.init版本号
           cleanArtifacts: true, // Remove all the artifacts in the release before the upload.
           // URL prefix to add to the beginning of all filenames. Defaults to ~/ but you might want to set this to the full URL. This is also useful if your files are stored in a sub folder. eg: url-prefix '~/static/js'
           urlPrefix: '~/js', // 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题
@@ -307,14 +313,6 @@ module.exports = {
     }
   },
 }
-```
-
-```js
-// 修改main.js中加入release版本号和上面一致
-Sentry.init({
-  ...
-  release: require('../package.json').version, // 加入版本号
-});
 ```
 
 获取`TOKEN`
@@ -331,9 +329,10 @@ Sentry.init({
 
 在项目根目录创建`.sentryclirc`
 
-- url：sentry部署的地址，默认是`https://sentry.io/`
-- org：控制台查看组织名称
-- project：项目名称
+- `url`：sentry部署的地址，默认是`https://sentry.io/`
+- `org`：控制台查看组织名称
+- `project`：项目名称
+- `token`：生成token需要勾选`project:write`项目写入权限
 
 ```bash
 # .sentryclirc
@@ -342,7 +341,7 @@ Sentry.init({
 token=填入控制台创建的TOKEN
 
 [defaults]
-url=http://129.72.24.41:9000/
+url=https://sentry.io/
 org=sentry
 project=vue
 ```
@@ -358,7 +357,7 @@ npm run build
 ![](https://s.poetries.work/uploads/2022/07/fc614a806ae0c774.png)
 
 
-正确上传过 source-map 的项目，可以看到很清晰的报错位置
+正确上传过 `source-map` 的项目，可以看到很清晰的报错位置
 
 > 进入本地打包的dist，`http-server -p 6002` 启动一个模拟正式环境部署的服务访问看看效果
 
@@ -373,7 +372,7 @@ npm run build
 ```js
 // 方式1
 "scripts": {
-   "build": "vue-cli-service build && rimraf ./dist/js/*.map"
+  "build": "vue-cli-service build && rimraf ./dist/js/*.map"
 }
 
 // 方式2 单独生成map
@@ -384,7 +383,7 @@ configureWebpack(config) {
         include: './dist/sourceMap', // 只上传js
         ignore: ['node_modules'],
         configFile: 'sentry.properties',
-        release: '', // 对应main中设置的版本号
+        release: process.env.SENTRY_VERSION || '0.0.1', // 版本号，每次都npm run build上传都修改版本号
         cleanArtifacts: true, // 先清理再上传
     }])
 }
@@ -407,22 +406,33 @@ configureWebpack(config) {
 
 > `Sentry.init()` 中，`new Integrations.BrowserTracing()` 的功能是将浏览器页面加载和导航检测作为事物，并捕获请求，指标和错误。
 
-TPM: 每分钟事务数
-FCP：首次内容绘制（浏览器第第一次开始渲染 dom 的时间点）
-LCP：最大内容渲染，代表 viewpoint 中最大页面元素的加载时间
-FID：用户首次输入延迟，可以衡量用户首次与网站交互的时间
-CLS：累计布局偏移，一个元素初始时和消失前的数据
-TTFB：首字节时间，测量用户浏览器接收页面的第一个字节的时间（可以判断缓慢来自网络请求还是页面加载问题）
-USER：uv 数字
-USER MISERY: 对响应时间难以忍受的用户指标，由 sentry 计算出来，阈值可以动态修改
+- `TPM`: 每分钟事务数
+- `FCP`：首次内容绘制（浏览器第第一次开始渲染 dom 的时间点）
+- `LCP`：最大内容渲染，代表 `viewpoint` 中最大页面元素的加载时间
+- `FID`：用户首次输入延迟，可以衡量用户首次与网站交互的时间
+- `CLS`：累计布局偏移，一个元素初始时和消失前的数据
+- `TTFB`：首字节时间，测量用户浏览器接收页面的第一个字节的时间（可以判断缓慢来自网络请求还是页面加载问题）
+- `USER`：`uv` 数字
+- `USER MISERY`: 对响应时间难以忍受的用户指标，由 `sentry` 计算出来，阈值可以动态修改
 
 
 ## Vue3 + Vite + Sentry
 
+### 创建vue3项目
+
 ```bash
-# 创建vue3项目
 yarn create vite
 ```
+
+### 安装sentry依赖
+
+```
+npm i @sentry/vue @sentry/tracing
+```
+
+### 初始化sentry
+
+> `src/main.js`中修改
 
 ```js
 import { createApp } from "vue";
@@ -453,12 +463,14 @@ Sentry.init({
   // We recommend adjusting this value in production
     //  高访问量应用可以控制上报百分比
   tracesSampleRate: 1.0,
-  release: '0.0.1', 
+  release: process.env.SENTRY_VERSION || '0.0.1', // 版本号，每次都npm run build上传都修改版本号
 });
 
 app.use(router);
 app.mount("#app");
 ```
+
+### sourcemap上传
 
 > 修改`vite.config.js`配置
 
@@ -471,7 +483,7 @@ import viteSentry from 'vite-plugin-sentry'
 
 const sentryConfig = {
   configFile: './.sentryclirc',
-  release: '0.0.1', // 和mian.js中Sentry.initrelease保持一致
+  release: process.env.SENTRY_VERSION || '0.0.1', // 版本号，每次都npm run build上传都修改版本号
   deploy: {
    env: 'production',
   },
@@ -479,7 +491,7 @@ const sentryConfig = {
   sourceMaps: {
    include: ['./dist/assets'],
    ignore: ['node_modules'],
-   urlPrefix: '~/assets',
+   urlPrefix: '~/assets', // 注意这里设置正确，否则sourcemap上传不正确
   },
 }
 
@@ -502,82 +514,105 @@ export default defineConfig({
 
 ## React + Sentry
 
+> 使用umi项目接入演示
+
+### 创建一个umi项目
+
+```bash
+mkdir umi-sentry && cd  umi-sentry
+
+yarn create umi
+```
+
+![](https://s.poetries.work/uploads/2022/07/b7e76f88d489b17f.png)
+
 ```bash
 # Using npm
 npm install --save @sentry/react @sentry/tracing
 ```
 
+### 接入sentry
+
+初始化sentry
+
 ```js
-import React from "react";
-import ReactDOM from "react-dom";
+// pages/index.ts
+
 import * as Sentry from "@sentry/react";
-import { Integrations } from "@sentry/tracing";
-import App from "./App";
+import { BrowserTracing } from "@sentry/tracing";
 
 Sentry.init({
-  dsn: "http://dfafda@129.25.204.41:9000/4",
-  integrations: [new Integrations.BrowserTracing()],
-// 不同的环境上报到不同的 environment 分类
-  environment: process.env.ENVIRONMENT,
-  release: '0.0.1',
+  dsn: "https://xdfa@o1334810.ingest.sentry.io/121",
+  integrations: [new BrowserTracing()],
+
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
-    //  高访问量应用可以控制上报百分比
+  release: '0.0.1',
   tracesSampleRate: 1.0,
 });
-
-ReactDOM.render(<App />, document.getElementById("root"));
-
-// Can also use with React Concurrent Mode
-// ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 ```
 
+手动抛出异常查看是否能正确上报到sentry
 
 ![](https://s.poetries.work/uploads/2022/07/1742ca6bb482613a.png)
 
-```bash
-# 根目录创建配置文件 .sentryclirc
+### sourcemap上传
 
+#### 根目录创建配置文件 .sentryclirc
+
+```js
 [auth]
-token=TOKEN控制台获取
+token=TOKEN控制台获取，TOKEN需要勾选project:write写入权限
 
 [defaults]
-url=https://sentry.io/
-org=组件名称，控制台汇总
-project=react
+url=https://sentry.io/ // 默认地址
+org=组织名称，控制台获取
+project=react // 项目名称
 ```
 
-**sourcemap配置上传**
+#### sourcemap配置上传
 
 ```
 npm i @sentry/webpack-plugin -D
 ```
 
 ```js
-const SentryCliPlugin = require('@sentry/webpack-plugin')
+// .umirc.ts 修改
 
-module.exports = {
-  plugins: [
-    new SentryCliPlugin({
-      include: './dist/static/js', // 只上传js
-      ignore: ['node_modules'],
-      ignoreFile: '.sentrycliignore',
-      release: '0.0.1',
-      cleanArtifacts: true, // Remove all the artifacts in the release before the upload.
-      // URL prefix to add to the beginning of all filenames. Defaults to ~/ but you might want to set this to the full URL. This is also useful if your files are stored in a sub folder. eg: url-prefix '~/static/js'
-      urlPrefix: '~/static/js', // 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题
-      // urlPrefix： 关于这个，是要看你线上项目的资源地址，比如
-      // 怎么看资源地址呢， 例如谷歌浏览器， F12控制台， 或者去Application里面找到对应资源打开
-    }),
-  ]
+const SentryPlugin = require('@sentry/webpack-plugin');
+
+export default {
+  devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'eval', // 开启sourcemao
+  chainWebpack(config, { webpack }){
+    if (process.env.NODE_ENV === 'production'){//当为prod时候才进行sourcemap的上传，如果不判断，在项目运行的打包也会上传
+      config.plugin("sentry").use(SentryPlugin, [{
+        ignore: ['node_modules'],
+        include: './dist', //上传dist文件的js
+        configFile: './sentryclirc', //配置文件地址，这个一定要有，踩坑在这里，忘了写导致一直无法实现上传sourcemap
+        release:'1.0.1', //版本号，自己定义的变量，整个版本号在项目里面一定要对应
+        deleteAfterCompile: true,
+        urlPrefix: '~/' // js的代码路径前缀
+       }])
+    }
+  },
 };
 ```
 
 ```bash
 # 执行打包上传sourcemap
 npm run build
+
+# 进入dist文件，启动http-server 本地服务模拟线上效果
 ```
+
+![](https://s.poetries.work/uploads/2022/07/3dce162037de39ac.png)
+
+修改代码抛出异常，查看控制台sourcemap解析的效果
+
+![](https://s.poetries.work/uploads/2022/07/3cd50955a8f30718.png)
+
+**注意：npm run build之后，不要把sourcemap上传到生产环境，记得删除**
 
 
 ## 进阶用法
@@ -631,7 +666,7 @@ Sentry.init({
     environment: process.env.ENVIRONMENT,
     //  高访问量应用可以控制上报百分比
     tracesSampleRate: 1.0,
-    release: 'x.x.x',
+    release: process.env.SENTRY_VERSION || '0.0.1', // 版本号，每次都npm run build上传都修改版本号
     logErrors: true
 });
 ```
