@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Github Action部署应用实践总结 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="部署,Github action,">
+  
+
+  <meta name="description" content="一、GitHub Actions介绍 持续集成由很多操作组成，比如抓取代码、运行测试、登录远程服务器，发布到第三方服务等等。GitHub 把这些操作就称为 actions。 如果你需要某个 action，不必自己写复杂的脚本，直接引用他人写好的 action 即可，整个持续集成过程，就变成了一个 actions 的组合。这就是 GitHub Actions 最特别的地方   GitHub 做了一个">
+<meta name="keywords" content="部署,Github action">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Github Action部署应用实践总结">
+<meta property="og:url" content="http://blog.poetries.top/2020/08/09/github-action/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、GitHub Actions介绍 持续集成由很多操作组成，比如抓取代码、运行测试、登录远程服务器，发布到第三方服务等等。GitHub 把这些操作就称为 actions。 如果你需要某个 action，不必自己写复杂的脚本，直接引用他人写好的 action 即可，整个持续集成过程，就变成了一个 actions 的组合。这就是 GitHub Actions 最特别的地方   GitHub 做了一个">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.wangbase.com/blogimg/asset/201909/bg2019091105.jpg">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.463Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Github Action部署应用实践总结">
+<meta name="twitter:description" content="一、GitHub Actions介绍 持续集成由很多操作组成，比如抓取代码、运行测试、登录远程服务器，发布到第三方服务等等。GitHub 把这些操作就称为 actions。 如果你需要某个 action，不必自己写复杂的脚本，直接引用他人写好的 action 即可，整个持续集成过程，就变成了一个 actions 的组合。这就是 GitHub Actions 最特别的地方   GitHub 做了一个">
+<meta name="twitter:image" content="https://www.wangbase.com/blogimg/asset/201909/bg2019091105.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、GitHub-Actions介绍"><span class="toc-text">一、GitHub Actions介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-概念"><span class="toc-text">1.1 概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-workflow-文件"><span class="toc-text">1.2 workflow 文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、部署实践"><span class="toc-text">二、部署实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-发布到阿里云oss"><span class="toc-text">2.1 发布到阿里云oss</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-发布到github-pages"><span class="toc-text">2.2 发布到github pages</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-发布到阿里云服务器"><span class="toc-text">2.3 发布到阿里云服务器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-发布到腾讯云静态网站托管"><span class="toc-text">2.4 发布到腾讯云静态网站托管</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-github-action" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">Github Action部署应用实践总结</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2020.08.09</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 2.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 9分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、GitHub-Actions介绍"><a href="#一、GitHub-Actions介绍" class="headerlink" title="一、GitHub Actions介绍"></a>一、GitHub Actions介绍</h2><ul>
+<li>持续集成由很多操作组成，比如抓取代码、运行测试、登录远程服务器，发布到第三方服务等等。<code>GitHub</code> 把这些操作就称为 <code>actions</code>。</li>
+<li>如果你需要某个 <code>action</code>，不必自己写复杂的脚本，直接引用他人写好的 action 即可，整个持续集成过程，就变成了一个 actions 的组合。这就是 GitHub Actions 最特别的地方</li>
+</ul>
+<blockquote>
+<p>GitHub 做了一个<a href="https://github.com/marketplace?type=actions" target="_blank" rel="noopener">官方市场</a>，可以搜索到他人提交的 actions。另外，还有一个 <a href="https://github.com/sdras/awesome-actions" target="_blank" rel="noopener">awesome actions</a> 的仓库，也可以找到不少 <code>action</code></p>
+</blockquote>
+<p><img src="https://www.wangbase.com/blogimg/asset/201909/bg2019091105.jpg" alt></p>
+<ul>
+<li>上面说了，每个 <code>action</code> 就是一个独立脚本，因此可以做成代码仓库，使用<code>userName/repoName</code>的语法引用 <code>action</code>。比如，<code>actions/setup-node</code>就表示<code>github.com/actions/setup-node</code>这个仓库，它代表一个 <code>action</code>，作用是安装 Node.js。事实上，GitHub 官方的 <code>actions</code> 都放在 <code>github.com/actions</code> 里面。</li>
+</ul>
+<blockquote>
+<p>既然 <code>actions</code> 是代码仓库，当然就有版本的概念，用户可以引用某个具体版本的 action。下面都是合法的 action 引用，用的就是 Git 的指针概念</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">actions/setup-node@74bc508 <span class="comment"># 指向一个 commit</span></span><br><span class="line">actions/setup-node@v1.0    <span class="comment"># 指向一个标签</span></span><br><span class="line">actions/setup-node@master  <span class="comment"># 指向一个分支</span></span><br></pre></td></tr></table></figure>
+<h3 id="1-1-概念"><a href="#1-1-概念" class="headerlink" title="1.1 概念"></a>1.1 概念</h3><blockquote>
+<p>GitHub Actions 有一些自己的术语。</p>
+</blockquote>
+<ul>
+<li><code>workflow</code> （工作流程）：持续集成一次运行的过程，就是一个 <code>workflow</code>。</li>
+<li><code>job</code> （任务）：一个 <code>workflow</code> 由一个或多个 <code>jobs</code> 构成，含义是一次持续集成的运行，可以完成多个任务。</li>
+<li><code>step</code>（步骤）：每个 <code>job</code> 由多个 <code>step</code> 构成，一步步完成。</li>
+<li><code>action</code> （动作）：每个 <code>step</code> 可以依次执行一个或多个命令（<code>action</code>）</li>
+</ul>
+<h3 id="1-2-workflow-文件"><a href="#1-2-workflow-文件" class="headerlink" title="1.2 workflow 文件"></a>1.2 workflow 文件</h3><blockquote>
+<p><code>GitHub Actions</code> 的配置文件叫做 <code>workflow</code> 文件，存放在代码仓库的 <code>.github/workflows</code> 目录。</p>
+</blockquote>
+<ul>
+<li><code>workflow</code> 文件采用 <code>YAML</code> 格式，文件名可以任意取，但是后缀名统一为<code>.yml</code>，比如<code>foo.yml</code>。一个库可以有多个 <code>workflow</code> 文件。GitHub 只要发现<code>.github/workflows</code>目录里面有<code>.yml</code>文件，就会自动运行该文件。</li>
+<li><code>workflow</code> 文件的配置字段非常多，详见<a href="https://help.github.com/en/articles/workflow-syntax-for-github-actions" target="_blank" rel="noopener">官方文档</a>。下面是一些基本字段。</li>
+</ul>
+<p><strong>1. name</strong></p>
+<ul>
+<li><code>name</code>字段是 <code>workflow</code> 的名称。如果省略该字段，默认为当前 <code>workflow</code> 的文件名。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">name: GitHub Actions Demo</span><br></pre></td></tr></table></figure>
+<p><strong>2. on</strong></p>
+<blockquote>
+<p><code>on</code>字段指定触发 <code>workflow</code> 的条件，通常是某些事件。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">on: push</span><br></pre></td></tr></table></figure>
+<p>上面代码指定，<code>push</code>事件触发 <code>workflow</code>。</p>
+<blockquote>
+<p><code>on</code>字段也可以是事件的数组。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">on: [push, pull_request]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>上面代码指定，<code>push</code>事件或<code>pull_request</code>事件都可以触发 <code>workflow</code>。</li>
+<li>完整的事件列表，请查看<a href="https://help.github.com/en/articles/events-that-trigger-workflows" target="_blank" rel="noopener">官方文档</a>。除了代码库事件，GitHub Actions 也支持外部事件触发，或者定时运行</li>
+</ul>
+<p><strong>3. <code>on.&lt;push|pull_request&gt;.&lt;tags|branches&gt;</code></strong></p>
+<p>指定触发事件时，可以限定分支或标签。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches:    </span><br><span class="line">      - master</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>上面代码指定，只有<code>master</code>分支发生<code>push</code>事件时，才会触发 <code>workflow</code></p>
+</blockquote>
+<p><strong>4. <code>jobs.&lt;job_id&gt;.name</code></strong></p>
+<ul>
+<li><code>workflow</code> 文件的主体是<code>jobs</code>字段，表示要执行的一项或多项任务。</li>
+<li><code>jobs</code>字段里面，需要写出每一项任务的<code>job_id</code>，具体名称自定义。<code>job_id</code>里面的<code>name</code>字段是任务的说明。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">jobs:</span><br><span class="line">  my_first_job:</span><br><span class="line">    name: My first job</span><br><span class="line">  my_second_job:</span><br><span class="line">    name: My second job</span><br></pre></td></tr></table></figure>
+<p>上面代码的jobs字段包含两项任务，<code>job_id</code>分别是<code>my_first_job</code>和<code>my_second_job</code>。</p>
+<p><strong>5. <code>jobs.&lt;job_id&gt;.needs</code></strong></p>
+<blockquote>
+<p><code>needs</code>字段指定当前任务的依赖关系，即运行顺序。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">jobs:</span><br><span class="line">  job1:</span><br><span class="line">  job2:</span><br><span class="line">    needs: job1</span><br><span class="line">  job3:</span><br><span class="line">    needs: [job1, job2]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>上面代码中，<code>job1</code>必须先于<code>job2</code>完成，而<code>job3</code>等待<code>job1</code>和<code>job2</code>的完成才能运行。因此，这个 workflow 的运行顺序依次为：<code>job1</code>、<code>job2</code>、<code>job3</code></p>
+</blockquote>
+<p><strong>6. <code>jobs.&lt;job_id&gt;.runs-on</code></strong></p>
+<blockquote>
+<p><code>runs-on</code>字段指定运行所需要的虚拟机环境。它是必填字段。目前可用的虚拟机如下。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ubuntu-latest，ubuntu-18.04或ubuntu-16.04</span><br><span class="line">windows-latest，windows-2019或windows-2016</span><br><span class="line">macOS-latest或macOS-10.14</span><br></pre></td></tr></table></figure>
+<p><strong>7. jobs.&lt;job_id&gt;.steps</strong></p>
+<blockquote>
+<p><code>steps</code>字段指定每个 <code>Job</code> 的运行步骤，可以包含一个或多个步骤。每个步骤都可以指定以下三个字段。</p>
+</blockquote>
+<ul>
+<li><code>jobs.&lt;job_id&gt;.steps.name</code>：步骤名称。</li>
+<li><code>jobs.&lt;job_id&gt;.steps.run</code>：该步骤运行的命令或者 <code>action</code>。</li>
+<li><code>jobs.&lt;job_id&gt;.steps.env</code>：该步骤所需的环境变量。</li>
+</ul>
+<p>下面是一个完整的 workflow 文件的范例。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">name: Greeting from Mona</span><br><span class="line">on: push</span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  my-job:</span><br><span class="line">    name: My Job</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">    - name: Print a greeting</span><br><span class="line">      env:</span><br><span class="line">        MY_VAR: Hi there! My name is</span><br><span class="line">        FIRST_NAME: Mona</span><br><span class="line">        MIDDLE_NAME: The</span><br><span class="line">        LAST_NAME: Octocat</span><br><span class="line">      run: |</span><br><span class="line">        <span class="built_in">echo</span> <span class="variable">$MY_VAR</span> <span class="variable">$FIRST_NAME</span> <span class="variable">$MIDDLE_NAME</span> <span class="variable">$LAST_NAME</span>.</span><br></pre></td></tr></table></figure>
+<p>上面代码中，<code>steps</code>字段只包括一个步骤。该步骤先注入四个环境变量，然后执行一条 <code>Bash</code> 命令</p>
+<h2 id="二、部署实践"><a href="#二、部署实践" class="headerlink" title="二、部署实践"></a>二、部署实践</h2><h3 id="2-1-发布到阿里云oss"><a href="#2-1-发布到阿里云oss" class="headerlink" title="2.1 发布到阿里云oss"></a>2.1 发布到阿里云oss</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">name: deploy to aliyun oss</span><br><span class="line"></span><br><span class="line">on: [push]</span><br><span class="line"></span><br><span class="line">env:</span><br><span class="line">  NODE_VERSION: <span class="string">'10.x'</span>                <span class="comment"># set this to the node version to use</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  build:</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">    - uses: actions/checkout@v2 <span class="comment"># 拉取代码</span></span><br><span class="line">    - name: install</span><br><span class="line">      run: npm install </span><br><span class="line">    - name: Build</span><br><span class="line">      run:  npm run build</span><br><span class="line">    - uses: manyuanrong/setup-ossutil@master</span><br><span class="line">      with:</span><br><span class="line">        <span class="comment"># endpoint 可以去oss控制台上查看</span></span><br><span class="line">        endpoint: <span class="string">"oss-cn-guangzhou.aliyuncs.com"</span></span><br><span class="line">        <span class="comment"># 使用我们之前配置在secrets里面的accesskeys来配置ossutil</span></span><br><span class="line">        access-key-id: <span class="variable">$&#123;&#123; secrets.ALIYUN_ACCESS_KEY_ID &#125;</span>&#125;</span><br><span class="line">        access-key-secret: <span class="variable">$&#123;&#123; secrets.ALIYUN_ACCESS_KEY_SECRET &#125;</span>&#125;</span><br><span class="line">    - name: 复制文件到阿里云OSS</span><br><span class="line">      run: ossutil cp -rf .vuepress/dist oss://fe-web/</span><br><span class="line">    - name: 设置永久缓存</span><br><span class="line">      run: ossutil <span class="built_in">set</span>-meta oss://fe-web/assets cache-control:<span class="string">"max-age=31536000"</span> --update -rf</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-发布到github-pages"><a href="#2-2-发布到github-pages" class="headerlink" title="2.2 发布到github pages"></a>2.2 发布到github pages</h3><blockquote>
+<p>从当前仓库发布到其他仓库的github pages</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches: [ master ]</span><br><span class="line"></span><br><span class="line">env:</span><br><span class="line">  AZURE_WEBAPP_NAME: fe-interview    <span class="comment"># set this to your application's name</span></span><br><span class="line">  AZURE_WEBAPP_PACKAGE_PATH: <span class="string">'.'</span>      <span class="comment"># set this to the path to your web app project, defaults to the repository root</span></span><br><span class="line">  NODE_VERSION: <span class="string">'10.x'</span>                <span class="comment"># set this to the node version to use</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy-github-pages:</span><br><span class="line">    name: 发布到github Pages</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps: </span><br><span class="line">    - uses: actions/checkout@v2 <span class="comment"># 拉取代码 默认master分支</span></span><br><span class="line">    - name: install</span><br><span class="line">      run: npm install </span><br><span class="line">    - name: Build</span><br><span class="line">      run:  npm run build</span><br><span class="line">    - name: deploy github pages</span><br><span class="line">      uses: peaceiris/actions-gh-pages@v2.5.1</span><br><span class="line">      env:</span><br><span class="line">        ACTIONS_DEPLOY_KEY: <span class="variable">$&#123;&#123; secrets.ACTIONS_DEPLOY_KEY &#125;</span>&#125; <span class="comment"># 公钥 存放在FE-Interview-Questions下，即要发布到其他仓库下</span></span><br><span class="line">        EXTERNAL_REPOSITORY: poetries/FE-Interview-Questions <span class="comment"># 发布到其他仓库</span></span><br><span class="line">        PUBLISH_BRANCH: gh-pages <span class="comment"># 发布到github pages分支</span></span><br><span class="line">        PUBLISH_DIR: .vuepress/dist <span class="comment"># 打包后的目录文件</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-3-发布到阿里云服务器"><a href="#2-3-发布到阿里云服务器" class="headerlink" title="2.3 发布到阿里云服务器"></a>2.3 发布到阿里云服务器</h3><blockquote>
+<p><code>rsync deployments</code> 需要使用远程主机的 <code>rsync</code>。远程主机安装 <code>rsync [centos]</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># rpm -qa|grep rsync   #检查是否安装过rsync，whereis rsync也可以</span></span><br><span class="line"><span class="comment"># yum install rsync       #如果未安装，使用yum安装rsync</span></span><br></pre></td></tr></table></figure>
+<p><strong>本地生成密钥对</strong></p>
+<blockquote>
+<p>生成新的<code>Key</code>：（引号内的内容替换为你自己的邮箱）</p>
+</blockquote>
+<ul>
+<li>直接回车，不要修改默认路劲</li>
+<li>设置一个密码短语，在每次远程操作之前会要求输入密码短语！闲麻烦可以直接回车，不设置</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;your_email@youremail.com&quot;</span><br></pre></td></tr></table></figure>
+<p><strong>将公钥放入远程部署机 authorized_keys 文件中</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 打开本机 .ssh 文件夹，用文本编辑器打开 id_rsa.pub 文件，复制内容到剪贴板。进入远程主机</span></span><br><span class="line">vi /root/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>远程主机将用户的公钥，保存在登录后的用户主目录的<code>$HOME/.ssh/authorized_keys</code>文件中。公钥就是一段字符串，只要把它追加在<code>authorized_keys</code>文件的末尾就行了</p>
+</blockquote>
+<blockquote>
+<p>将公钥 <code>id_rsa.pub</code> 内容追加到 <code>authorized_keys</code> 末尾</p>
+</blockquote>
+<p><strong>centos 7 重启远程主机的ssh服务</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">systemctl restart sshd</span><br></pre></td></tr></table></figure>
+<ul>
+<li>项目目录下新建 <code>.github/workflows/ci.yml</code></li>
+<li><code>ci.yml</code> 只要求后缀为 <code>yml</code>，名称无限制</li>
+<li>在 github 项目的设置页面添加自定义密钥供 <code>actions</code> 配置文件引用</li>
+<li>新建键值例如 <code>MY_V2_SERVER_PRIVATE_KEY</code> （在仓库<code>settings/ssh</code>中新建存放私钥）</li>
+<li>将本机私钥文件 <code>id_isa</code> 重的内容全部复制到键值中</li>
+</ul>
+<blockquote>
+<p>在 <code>actions</code> 中引用格式为 <code>$</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches: [ master ]</span><br><span class="line"></span><br><span class="line">env:</span><br><span class="line">  AZURE_WEBAPP_NAME: fe-interview    <span class="comment"># set this to your application's name</span></span><br><span class="line">  AZURE_WEBAPP_PACKAGE_PATH: <span class="string">'.'</span>      <span class="comment"># set this to the path to your web app project, defaults to the repository root</span></span><br><span class="line">  NODE_VERSION: <span class="string">'10.x'</span>                <span class="comment"># set this to the node version to use</span></span><br><span class="line">  <span class="comment"># 阿里云轻应用配置</span></span><br><span class="line">  MY_V2_SERVER_PRIVATE_KEY: <span class="variable">$&#123;&#123; secrets.MY_V2_SERVER_PRIVATE_KEY &#125;</span>&#125; <span class="comment"># 服务器私钥</span></span><br><span class="line">  MY_V2_USER: <span class="variable">$&#123;&#123; secrets.MY_V2_USER &#125;</span>&#125; <span class="comment"># 服务器用户 如root</span></span><br><span class="line">  MY_V2_IP: <span class="variable">$&#123;&#123; secrets.MY_V2_IP &#125;</span>&#125; <span class="comment"># 服务器ip</span></span><br><span class="line"></span><br><span class="line">deploy-aliyun:</span><br><span class="line">   name: 发布到阿里云服务器</span><br><span class="line">   runs-on: ubuntu-latest</span><br><span class="line">   steps:</span><br><span class="line">   - uses: actions/checkout@v2</span><br><span class="line">   - name: install</span><br><span class="line">   run: npm install </span><br><span class="line">   - name: Build</span><br><span class="line">   run:  npm run build:fe</span><br><span class="line">   - name: rsync deployments</span><br><span class="line">   uses: meetbitu/rsync-deployments@cc9f383f3399baa56527dcfd97cfee6a2da58f18</span><br><span class="line">   env:</span><br><span class="line">      DEPLOY_KEY: <span class="variable">$&#123;&#123; secrets.MY_V2_SERVER_PRIVATE_KEY &#125;</span>&#125;</span><br><span class="line">   with:</span><br><span class="line">      USER_AND_HOST: <span class="variable">$&#123;&#123;env.MY_V2_USER&#125;</span>&#125;@<span class="variable">$&#123;&#123;env.MY_V2_IP&#125;</span>&#125;</span><br><span class="line">      DEST: /home/data/dist</span><br><span class="line">      SRC: .vuepress/dist/*</span><br><span class="line">      RSYNC_OPTIONS: -avz --delete</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-发布到腾讯云静态网站托管"><a href="#2-4-发布到腾讯云静态网站托管" class="headerlink" title="2.4 发布到腾讯云静态网站托管"></a>2.4 发布到腾讯云静态网站托管</h3><ul>
+<li><code>TENGXUN_OSS_SECRET_ID</code>、<code>TENGXUN_OSS_SECRET_KEY</code>需要在仓库下新建，在腾讯云后台创建私钥对</li>
+<li><code>TENGXUN_OSS_ENV_ID</code> 环境<code>id</code>，<a href="https://docs.cloudbase.net/hosting/" target="_blank" rel="noopener">参考这里获取</a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">on:</span><br><span class="line">  push:</span><br><span class="line">    branches: [ master ]</span><br><span class="line"></span><br><span class="line">env:</span><br><span class="line">  AZURE_WEBAPP_NAME: fe-interview    <span class="comment"># set this to your application's name</span></span><br><span class="line">  AZURE_WEBAPP_PACKAGE_PATH: <span class="string">'.'</span>      <span class="comment"># set this to the path to your web app project, defaults to the repository root</span></span><br><span class="line">  NODE_VERSION: <span class="string">'10.x'</span>                <span class="comment"># set this to the node version to use</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">jobs</span>:</span><br><span class="line">  deploy-tengxunoss:</span><br><span class="line">    name: 发布到腾讯云oss</span><br><span class="line">    runs-on: ubuntu-latest</span><br><span class="line">    steps:</span><br><span class="line">    - uses: actions/checkout@v2</span><br><span class="line">    - name: install</span><br><span class="line">      run: npm install </span><br><span class="line">    - name: Build</span><br><span class="line">      run:  npm run build:tengxun:fe</span><br><span class="line">    - name: Deploy static to Tencent CloudBase</span><br><span class="line">      uses: TencentCloudBase/cloudbase-action@v1</span><br><span class="line">      with:</span><br><span class="line">        <span class="comment"># 云开发的访问密钥 secretId 和 secretKey</span></span><br><span class="line">        secretId: <span class="variable">$&#123;&#123; secrets.TENGXUN_OSS_SECRET_ID &#125;</span>&#125;</span><br><span class="line">        secretKey: <span class="variable">$&#123;&#123; secrets.TENGXUN_OSS_SECRET_KEY &#125;</span>&#125;</span><br><span class="line">        <span class="comment"># 云开发的环境id</span></span><br><span class="line">        envId: <span class="variable">$&#123;&#123; secrets.TENGXUN_OSS_ENV_ID &#125;</span>&#125;</span><br><span class="line">        <span class="comment"># Github 项目静态文件的路径 </span></span><br><span class="line">        staticSrcPath: build</span><br></pre></td></tr></table></figure>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://www.ruanyifeng.com/blog/2019/09/getting-started-with-github-actions.html" target="_blank" rel="noopener">GitHub Actions 入门教程</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2020/07/24/weapp-h5-jump/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2020/12/27/vue3-summary/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

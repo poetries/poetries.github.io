@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>GraphQL+Koa2实现服务端API结合Apollo+Vue | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Node,GraphQL,">
+  
+
+  <meta name="description" content="一、GraphQL介绍1.1 简介 GraphQL 是一种新的 API 的查询语言，它提供了一种更高效、强大和灵活 API 查询。它 是由 Facebook 开发和开源，目前由来自世界各地的大公司和个人维护。GraphQL 对你的 API 中的数据提供了一套易于理解的完整描述，使得客户端能够准确地获得它需要的数据，而且 没有任何冗余。它弥补了 RESTful API（字段冗余，扩展性差、无法聚合">
+<meta name="keywords" content="Node,GraphQL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GraphQL+Koa2实现服务端API结合Apollo+Vue">
+<meta property="og:url" content="http://blog.poetries.top/2022/07/01/graphql-koa2-apollo-vue/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、GraphQL介绍1.1 简介 GraphQL 是一种新的 API 的查询语言，它提供了一种更高效、强大和灵活 API 查询。它 是由 Facebook 开发和开源，目前由来自世界各地的大公司和个人维护。GraphQL 对你的 API 中的数据提供了一套易于理解的完整描述，使得客户端能够准确地获得它需要的数据，而且 没有任何冗余。它弥补了 RESTful API（字段冗余，扩展性差、无法聚合">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/06/1f26bea368abe7ae.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/505bd2a4b2604bcf.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/06/f906b572a508f1bc.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/1550d35a92e40d2e.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/7c07e1cc36336aa9.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/3312490f4089a734.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/ef305f6e77e96b5f.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/d4573ffa0133b43f.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/7d04081f284a53c4.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/eb55ac8b7201d6e9.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/f43be591155843e5.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/52aab4cf8421000b.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/9d5c6adb31018789.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/a91926ec7799fd92.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/afd87b6526705d2b.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/db769eb8c3a823aa.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/580837041d7098cc.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/5a2e957da5d677af.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/a68e014f0e3fee3c.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/990bcf87b1a4293f.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/a1ddb2379d5c7287.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.463Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GraphQL+Koa2实现服务端API结合Apollo+Vue">
+<meta name="twitter:description" content="一、GraphQL介绍1.1 简介 GraphQL 是一种新的 API 的查询语言，它提供了一种更高效、强大和灵活 API 查询。它 是由 Facebook 开发和开源，目前由来自世界各地的大公司和个人维护。GraphQL 对你的 API 中的数据提供了一套易于理解的完整描述，使得客户端能够准确地获得它需要的数据，而且 没有任何冗余。它弥补了 RESTful API（字段冗余，扩展性差、无法聚合">
+<meta name="twitter:image" content="https://s.poetries.work/uploads/2022/06/1f26bea368abe7ae.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一、GraphQL介绍"><span class="toc-text">一、GraphQL介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-简介"><span class="toc-text">1.1 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-为什么推荐-GraphQL-而不是-RESTful-API"><span class="toc-text">1.2 为什么推荐 GraphQL 而不是 RESTful API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#RESTful-API-不足"><span class="toc-text">RESTful API 不足</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GraphQL-的优点"><span class="toc-text">GraphQL 的优点</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#二、GraphQl类型系统"><span class="toc-text">二、GraphQl类型系统</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-GraphQl类型"><span class="toc-text">2.1 GraphQl类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-GraphQl查询语言"><span class="toc-text">2.2 GraphQl查询语言</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#三、Express中集成GraphQl-实现-Server-API"><span class="toc-text">三、Express中集成GraphQl 实现 Server API</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-安装mongodb造数据"><span class="toc-text">3.1 安装mongodb造数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-express集成GraphQl"><span class="toc-text">3.2 express集成GraphQl</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#app完善配置"><span class="toc-text">app完善配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#定义GraphQLSchema模型"><span class="toc-text">定义GraphQLSchema模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#编写数据库操作方法"><span class="toc-text">编写数据库操作方法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#四、Koa中集成GraphQl实现-Server-API"><span class="toc-text">四、Koa中集成GraphQl实现 Server API</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-app完善配置"><span class="toc-text">4.1 app完善配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-定义schema模型"><span class="toc-text">4.2 定义schema模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-编写数据库操作方法"><span class="toc-text">4.3 编写数据库操作方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-4-聚合查询"><span class="toc-text">4.4 聚合查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-5-分页查询"><span class="toc-text">4.5 分页查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-6-实现数据增加、修改、删除"><span class="toc-text">4.6 实现数据增加、修改、删除</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#五、Vue中使用GraphQl"><span class="toc-text">五、Vue中使用GraphQl</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-使用graphQl简单查询"><span class="toc-text">5.1 使用graphQl简单查询</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装"><span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#简单查询"><span class="toc-text">简单查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#高级查询"><span class="toc-text">高级查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Vue-GraphQl-传参查询"><span class="toc-text">Vue GraphQl 传参查询</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-使用graphQl增加修改删除"><span class="toc-text">5.2 使用graphQl增加修改删除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-3-上拉分页加载更多"><span class="toc-text">5.3 上拉分页加载更多</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#方法1：数据拼接"><span class="toc-text">方法1：数据拼接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方法2：使用-fetchMore-实现分页（推荐）"><span class="toc-text">方法2：使用 fetchMore 实现分页（推荐）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#六、文档"><span class="toc-text">六、文档</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-graphql-koa2-apollo-vue" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">GraphQL+Koa2实现服务端API结合Apollo+Vue</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2022.07.01</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Back-end/">Back-end</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 7.9k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 39分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h1 id="一、GraphQL介绍"><a href="#一、GraphQL介绍" class="headerlink" title="一、GraphQL介绍"></a>一、GraphQL介绍</h1><h2 id="1-1-简介"><a href="#1-1-简介" class="headerlink" title="1.1 简介"></a>1.1 简介</h2><blockquote>
+<p>GraphQL 是一种新的 API 的查询语言，它提供了一种更高效、强大和灵活 API 查询。它 是由 Facebook 开发和开源，目前由来自世界各地的大公司和个人维护。GraphQL 对你的 API 中的数据提供了一套易于理解的完整描述，使得客户端能够准确地获得它需要的数据，而且 没有任何冗余。它弥补了 RESTful API（字段冗余，扩展性差、无法聚合 api、无法定义数据 类型、网络请求次数多）等不足</p>
+</blockquote>
+<p><strong>注意</strong>：GraphQL 是 api 的查询语言，而不是数据库。从这个意义上说，它是数据库无关的， 而且可以在使用 API 的任何环境中有效使用，我们可以理解为 GraphQL 是基于 API 之上的一 层封装，目的是为了更好，更灵活的适用于业务的需求变化</p>
+<p><strong>GraphQL 可以用在常见各种服务器端语言以及客户端语言中</strong></p>
+<ul>
+<li>服务器端语言：C# / .NET、Clojure、Elixir、Erlang、Go、Groovy、Java、JavaScript、PHP、Python、 Scala、Ruby</li>
+<li><p>客户端语言：js、React + React Native、Angular、Vue.js、Apollo Link、Native iOS、Native Android、 Scala.js</p>
+</li>
+<li><p>中文文档：<a href="http://graphql.cn" target="_blank" rel="noopener">http://graphql.cn</a></p>
+</li>
+<li>Github: <a href="https://github.com/facebook/graphql" target="_blank" rel="noopener">https://github.com/facebook/graphql</a></li>
+</ul>
+<p><strong>GraphQL 出现的历史背景</strong></p>
+<p>当提起API设计的时候，大家通常会想到SOAP（一种简单的基于 XML 的协议），RESTful 等设计方式，从 2000 年 RESTful 的理论被提出的时候，在业界引起了很大反响，因为这种 设计理念更易于用户的使用，所以便很快的被大家所接受。</p>
+<p>我们知道 REST 是一种从服务 器公开数据的流行方式。<strong>当 REST 的概念被提及出来时</strong>，客户端应用程序对数据的需求相 对简单，<strong>而开发的速度并没有达到今天的水平</strong>。</p>
+<p>因此 REST 对于许多应用程序来说是非常 适合的。然而在业务越发复杂，客户对系统的扩展性有了更高的要求时，API 环境发生了巨 大的变，<strong>RESTful 显得心有余而力不足</strong>。比如：字段冗余，扩展性差、无法聚合 api、无法 定义数据类型、网络请求次数多</p>
+<p>GraphQL 的出现整好弥补了 RESTful APi 的不足</p>
+<p><strong>使用 GraphQL 的公司</strong></p>
+<p>目前已经有很多的公司在使用 GraphQL（<a href="https://graphql.org/users/）" target="_blank" rel="noopener">https://graphql.org/users/）</a></p>
+<p><img src="https://s.poetries.work/uploads/2022/06/1f26bea368abe7ae.png" alt></p>
+<h2 id="1-2-为什么推荐-GraphQL-而不是-RESTful-API"><a href="#1-2-为什么推荐-GraphQL-而不是-RESTful-API" class="headerlink" title="1.2 为什么推荐 GraphQL 而不是 RESTful API"></a>1.2 为什么推荐 GraphQL 而不是 RESTful API</h2><p>在过去的十多年中，REST 已经成为设计 web api 的标准(虽然只是一个模糊的标准)。 </p>
+<p>它提供了一些很棒的想法，比如无状态服务器和结构化的资源访问。</p>
+<p>然而 REST api 表 现得过于僵化，无法跟上访问它们的客户的快速变化的需求</p>
+<h3 id="RESTful-API-不足"><a href="#RESTful-API-不足" class="headerlink" title="RESTful API 不足"></a>RESTful API 不足</h3><ul>
+<li><strong>扩展性（多个终端需要返回不同的字段）</strong>，单个 RESTful 接口返回数据越来越 臃肿。前端对于真正用到的字段是没有直观映像的，仅仅通过 url 地址，无法预测也无 法回忆返回的字段数目和字段是否有效，接口返回 50 个字段，但却只用 5 个字段，造 成字段冗余，扩展性差，单个 RESTful 接口返回数据越来越臃肿</li>
+<li><strong>API 聚合问题</strong>，某个前端展现，实际需要调用多个独立的 RESTful API 才能获 取到足够的数据，<strong>导致网络请求次数多</strong></li>
+<li><strong>前后端字段频繁改动</strong>，导致类型不一致，错误的数据类型可能会导致网站出错 尤其是在业务多变的场景中，很难在保证工程质量的同时快速满足业务需求</li>
+</ul>
+<h3 id="GraphQL-的优点"><a href="#GraphQL-的优点" class="headerlink" title="GraphQL 的优点"></a>GraphQL 的优点</h3><ul>
+<li>吸收了 RESTful API 的特性</li>
+<li><strong>所见即所得</strong> 各种不同的前端框架和平台可以指定自己需要的字段。查询的返回结果就是输 入的查询结构的精确映射</li>
+</ul>
+<p><strong>客户端可以自定义 Api 聚合</strong></p>
+<p>如果设计的数据结构是从属的，直接就能在查询语句中指定;即使数据结构是独 立的，也可以在查询语句中指定上下文，只需要一次网络请求，就能获得资源和子 资源的数据。</p>
+<p><strong>代码即是文档</strong></p>
+<p>GraphQL 会把 schema 定义和相关的注释生成可视化的文档，从而使得代码的变更，直接就反映到最新的文档上，避免 RESTful 中手工维护可能会造成代码、 文档不一致的问题</p>
+<p><strong>参数类型强校验</strong></p>
+<ul>
+<li>RESTful 方案本身没有对参数的类型做规定，往往都需要自行实现参数的校验机制， 以确保安全。</li>
+<li>但 GraphQL 提供了强类型的 schema 机制，从而天然确保了参数类型的合法性</li>
+</ul>
+<h1 id="二、GraphQl类型系统"><a href="#二、GraphQl类型系统" class="headerlink" title="二、GraphQl类型系统"></a>二、GraphQl类型系统</h1><h2 id="2-1-GraphQl类型"><a href="#2-1-GraphQl类型" class="headerlink" title="2.1 GraphQl类型"></a>2.1 GraphQl类型</h2><blockquote>
+<p>可以将GraphQL的类型系统分为<code>标量类型</code>（ScalarTypes，标量类型）和其他<code>高级数据类型</code>，标量类型即可以表示最细粒度数据结构的数据类型，可以和JavaScript的原始类型对应</p>
+</blockquote>
+<p><strong>GraphQL规范目前规定支持的标量类型有</strong></p>
+<ul>
+<li><strong>Int</strong>：有符号<code>32</code>位整数 – <code>GraphQLInt</code></li>
+<li><strong>Float</strong>：有符号双精度浮点值 – <code>GraphQLFloat</code></li>
+<li><strong>String</strong>：<code>UTF‐8</code>字符序列 – <code>GraphQLString</code></li>
+<li><strong>Boolean</strong>：<code>true</code>或者<code>false</code> – <code>GraphQLBoolean</code></li>
+<li><strong>ID(GraphQLID)</strong>：ID标量类型表示一个唯一标识符，通常用以重新获取对象或者作为缓存中的键。ID类型使用和String一样的方式序列化；然而将其定义为ID意味着并不需要可读型。</li>
+</ul>
+<p><strong>GraphQL其他高级数据类型包括</strong></p>
+<ul>
+<li><strong>Object：对象(newGraphQLObjectType)</strong></li>
+</ul>
+<blockquote>
+<p>用于描述层级或者树形数据结构。对于树形数据结构来说，叶子字段的类型都是标量数据类型。几乎所有GraphQL类型都是对象类型。Object类型有一个name字段，以及一个很重要的fields字段。fields字段可以描述出一个完整的数据结构。例如一个表示地址数据结构的GraphQL对象为</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> AddressType=newGraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'Address'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        street:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        number:&#123;</span><br><span class="line">            type:GraphQLInt</span><br><span class="line">        &#125;,</span><br><span class="line">        formatted:&#123;</span><br><span class="line">            type:GraphQLString,</span><br><span class="line">            resolve(obj)&#123;</span><br><span class="line">                <span class="keyword">return</span> obj.number+<span class="string">''</span>+obj.street</span><br><span class="line">            &#125;   </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>Interface</code>：接口用于描述多个类型的通用字</li>
+<li><code>Union</code>：联合类型用于描述某个字段能够支持的所有返回类型以及具体请求真正的返回类型</li>
+<li><code>Enum</code>：枚举用于表示可枚举数据结构的类型</li>
+<li><code>InputObject</code>：输入对象</li>
+<li><code>List</code>：列表</li>
+</ul>
+<blockquote>
+<p>列表是其他类型的封装，通常用于对象字段的描述。例如下面PersonType类型数据的parents和children字段</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> PersonType=newGraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'Person'</span>,</span><br><span class="line">    fields:<span class="function"><span class="params">()</span>=&gt;</span>(&#123;</span><br><span class="line">        parents:&#123;<span class="attr">type</span>:newGraphQLList(Person)&#125;,</span><br><span class="line">        children:&#123;<span class="attr">type</span>:newGraphQLList(Person)&#125;,</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>Non-Null</code>：不能为<code>Null</code></li>
+</ul>
+<blockquote>
+<p><code>Non-Null</code>强制类型的值不能为<code>null</code>，并且在请求出错时一定会报错。可以用于必须保证值不能为<code>null</code>的字段。例如数据库的行的id字段不能为<code>null</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> RowType=newGraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'Row'</span>,</span><br><span class="line">    fields:<span class="function"><span class="params">()</span>=&gt;</span>(&#123;</span><br><span class="line">        id:&#123;</span><br><span class="line">            type:newGraphQLNonNull(GraphQLString)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="2-2-GraphQl查询语言"><a href="#2-2-GraphQl查询语言" class="headerlink" title="2.2 GraphQl查询语言"></a>2.2 GraphQl查询语言</h2><p><strong>GraphQL规范支持两种操作</strong></p>
+<ul>
+<li><code>query</code>：仅获取数据（<code>fetch</code>）的只读请求</li>
+<li><code>mutation</code>：获取数据后还有写操作的请求</li>
+</ul>
+<blockquote>
+<p>新版本的GraphQL还支持<code>subscription</code>，这是为了处理订阅更新这种比较复杂的实时数据更新场景而设计的操作</p>
+</blockquote>
+<p><img src="https://s.poetries.work/uploads/2022/07/505bd2a4b2604bcf.png" alt></p>
+<h1 id="三、Express中集成GraphQl-实现-Server-API"><a href="#三、Express中集成GraphQl-实现-Server-API" class="headerlink" title="三、Express中集成GraphQl 实现 Server API"></a>三、Express中集成GraphQl 实现 Server API</h1><h2 id="3-1-安装mongodb造数据"><a href="#3-1-安装mongodb造数据" class="headerlink" title="3.1 安装mongodb造数据"></a>3.1 安装mongodb造数据</h2><p>使用<code>mongodb</code>做数据库演示，mac安装<code>mongodb</code>，<code>brew install mongodb-community</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 进入mongo shell</span></span><br><span class="line">mongo </span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建数据库</span></span><br><span class="line">use graphql (graphql数据库不存在会自动创建)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建nav、articlecate集合插入数据</span></span><br><span class="line">db.nav.insert(&#123;name: <span class="string">"标题1"</span>, url: <span class="string">"/"</span>, sort: 1, add_time: <span class="string">"2022-06-30"</span>&#125;)</span><br><span class="line">db.nav.insert(&#123;name: <span class="string">"标题2"</span>, url: <span class="string">"/"</span>, sort: 1, add_time: <span class="string">"2022-06-30"</span>&#125;)</span><br><span class="line">db.nav.insert(&#123;name: <span class="string">"标题3"</span>, url: <span class="string">"/"</span>, sort: 1, add_time: <span class="string">"2022-06-30"</span>&#125;)</span><br><span class="line"></span><br><span class="line">db.articlecate.insert(&#123;name: <span class="string">"分类1"</span>, description: <span class="string">"描述"</span>, keywords: <span class="string">"关键词"</span>, status: 1&#125;)</span><br><span class="line">db.articlecate.insert(&#123;name: <span class="string">"分类2"</span>, description: <span class="string">"描述"</span>, keywords: <span class="string">"关键词"</span>, status: 1&#125;)</span><br><span class="line">db.articlecate.insert(&#123;name: <span class="string">"分类3"</span>, description: <span class="string">"描述"</span>, keywords: <span class="string">"关键词"</span>, status: 1&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>或者导入数据库数据</strong></p>
+<blockquote>
+<p>下载数据库文件解压并导入mongodb即可 <a href="https://blog.poetries.top/db/koa.zip">https://blog.poetries.top/db/koa.zip</a></p>
+</blockquote>
+<p><strong>导入mongodb数据库</strong> </p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mongorestore -h localhost:27017 -d koa-demo(数据库名称，不存在会自动创建) ./dump(本地数据文件路径)</span><br></pre></td></tr></table></figure>
+<h2 id="3-2-express集成GraphQl"><a href="#3-2-express集成GraphQl" class="headerlink" title="3.2 express集成GraphQl"></a>3.2 express集成GraphQl</h2><p><a href="https://github.com/graphql/express-graphql" target="_blank" rel="noopener">https://github.com/graphql/express-graphql</a></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm install express-graphql graphql--save</span><br></pre></td></tr></table></figure>
+<p>引入express-graphql配置中间件</p>
+<h3 id="app完善配置"><a href="#app完善配置" class="headerlink" title="app完善配置"></a>app完善配置</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line"><span class="keyword">var</span> express=<span class="built_in">require</span>(<span class="string">'express'</span>);</span><br><span class="line"><span class="keyword">var</span> DB=<span class="built_in">require</span>(<span class="string">'./model/db.js'</span>); </span><br><span class="line"><span class="keyword">const</span> graphqlHTTP = <span class="built_in">require</span>(<span class="string">'express-graphql'</span>);</span><br><span class="line"><span class="keyword">const</span> GraphQLDefaultSchema = <span class="built_in">require</span>(<span class="string">'./schema/default.js'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app=express(); </span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置中间件</span></span><br><span class="line">app.use(<span class="string">'/graphql'</span>, graphqlHTTP(&#123;</span><br><span class="line">    schema: GraphQLDefaultSchema,</span><br><span class="line">    graphiql: <span class="literal">true</span> <span class="comment">// 线上环境关闭，开发环境开启</span></span><br><span class="line">&#125;));</span><br><span class="line"></span><br><span class="line"><span class="comment">//配置路由</span></span><br><span class="line">app.get(<span class="string">'/'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">'hello express'</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.listen(<span class="number">3000</span>,()=&gt;<span class="built_in">console</span>.log(<span class="string">"http://localhost:3000"</span>));</span><br></pre></td></tr></table></figure>
+<h3 id="定义GraphQLSchema模型"><a href="#定义GraphQLSchema模型" class="headerlink" title="定义GraphQLSchema模型"></a>定义GraphQLSchema模型</h3><ul>
+<li>新建<code>schema/default.js</code></li>
+<li>定义<code>Schema</code></li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> DB=<span class="built_in">require</span>(<span class="string">'../model/db.js'</span>); <span class="comment">/*引入DB库*/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123;</span><br><span class="line">    GraphQLObjectType,</span><br><span class="line">    GraphQLString,</span><br><span class="line">    GraphQLInt,</span><br><span class="line">    GraphQLSchema,</span><br><span class="line">    GraphQLList</span><br><span class="line">&#125; =<span class="built_in">require</span>(<span class="string">'graphql'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//1、获取导航列表     定义导航的schema类型</span></span><br><span class="line"><span class="keyword">var</span> NavSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'nav'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        title:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        url:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        sort:&#123;</span><br><span class="line">            type:GraphQLInt</span><br><span class="line">        &#125;,</span><br><span class="line">        status:&#123;</span><br><span class="line">            type:GraphQLInt</span><br><span class="line">        &#125;,</span><br><span class="line">        add_time:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> ArticleCateSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'articlecate'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        title:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        description:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        keywords:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125; , </span><br><span class="line">        status:&#123;</span><br><span class="line">            type:GraphQLInt</span><br><span class="line">        &#125; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//2、定义一个跟       根里面定义调用导航Schema类型的方法</span></span><br><span class="line"><span class="keyword">var</span> RootSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'root'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        oneNavList:&#123;  <span class="comment">//方法名称：定义调用导航Schema类型的方法</span></span><br><span class="line">            type:NavSchema,  <span class="comment">//方法的类型, 方法返回的参数必须和NavSchema里面定义的类型一致</span></span><br><span class="line">            args:&#123;<span class="attr">id</span>:&#123;<span class="attr">type</span>:GraphQLString&#125;&#125;, <span class="comment">//参数</span></span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;  <span class="comment">//执行的操作</span></span><br><span class="line"></span><br><span class="line">                <span class="comment">// args.id 获取调用方法传入的值</span></span><br><span class="line">                <span class="keyword">var</span> id=args.id;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> navList=<span class="keyword">await</span> DB.find(<span class="string">'nav'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(id)&#125;);</span><br><span class="line">                <span class="keyword">return</span> navList[<span class="number">0</span>];               </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        navList:&#123;</span><br><span class="line">            type:GraphQLList(NavSchema),  </span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;               </span><br><span class="line">                <span class="keyword">var</span> navList=<span class="keyword">await</span> DB.find(<span class="string">'nav'</span>,&#123;&#125;);</span><br><span class="line">                <span class="keyword">return</span> navList;               </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        articleCateList:&#123;</span><br><span class="line">            type:GraphQLList(ArticleCateSchema),</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;               </span><br><span class="line">                <span class="keyword">var</span> articlecateList=<span class="keyword">await</span> DB.find(<span class="string">'articlecate'</span>,&#123;&#125;);</span><br><span class="line">                <span class="keyword">return</span> articlecateList; </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        oneArticleCateList:&#123;</span><br><span class="line">            type:ArticleCateSchema, </span><br><span class="line">            args:&#123;<span class="attr">id</span>:&#123;<span class="attr">type</span>:GraphQLString&#125;&#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;             </span><br><span class="line">                <span class="keyword">var</span> id=args.id;</span><br><span class="line">                <span class="keyword">var</span> articlecateList=<span class="keyword">await</span> DB.find(<span class="string">'articlecate'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(id)&#125;);</span><br><span class="line">                <span class="keyword">return</span> articlecateList[<span class="number">0</span>];   <span class="comment">//要返回一个json对象</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//3、把根挂载到 GraphQLSchema</span></span><br><span class="line"><span class="built_in">module</span>.exports=<span class="keyword">new</span> GraphQLSchema(&#123;</span><br><span class="line">    query:RootSchema</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="编写数据库操作方法"><a href="#编写数据库操作方法" class="headerlink" title="编写数据库操作方法"></a>编写数据库操作方法</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> * http://mongodb.github.io/node-mongodb-native</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> * http://mongodb.github.io/node-mongodb-native/3.0/api/</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//DB库</span></span><br><span class="line"><span class="keyword">var</span> MongoDB=<span class="built_in">require</span>(<span class="string">'mongodb'</span>);</span><br><span class="line"><span class="keyword">var</span> MongoClient =MongoDB.MongoClient;</span><br><span class="line"><span class="keyword">const</span> ObjectID = MongoDB.ObjectID;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> Config= &#123;</span><br><span class="line">    dbUrl: <span class="string">'mongodb://localhost:27017/'</span>,</span><br><span class="line">    dbName: <span class="string">'graphql'</span> <span class="comment">// 数据库名</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Db</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> getInstance()&#123;   <span class="comment">/*1、单例  多次实例化实例不共享的问题*/</span></span><br><span class="line">        <span class="keyword">if</span>(!Db.instance)&#123;</span><br><span class="line">            Db.instance=<span class="keyword">new</span> Db();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>  Db.instance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span>()&#123;</span><br><span class="line">        <span class="keyword">this</span>.dbClient=<span class="string">''</span>; <span class="comment">/*属性 放db对象*/</span></span><br><span class="line">        <span class="keyword">this</span>.connect();   <span class="comment">/*实例化的时候就连接数据库*/</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    connect()&#123;  <span class="comment">/*连接数据库*/</span></span><br><span class="line">      <span class="keyword">let</span> _that=<span class="keyword">this</span>;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">          <span class="keyword">if</span>(!_that.dbClient)&#123;         <span class="comment">/*1、解决数据库多次连接的问题*/</span></span><br><span class="line">              MongoClient.connect(Config.dbUrl,&#123; <span class="attr">useNewUrlParser</span>: <span class="literal">true</span> &#125;,(err,client)=&gt;&#123;</span><br><span class="line">                  <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                    reject(err)</span><br><span class="line">                  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    _that.dbClient=client.db(Config.dbName);</span><br><span class="line">                    resolve(_that.dbClient)</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125;)</span><br><span class="line">          &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            resolve(_that.dbClient);</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     DB.find('user',&#123;&#125;)  返回所有数据</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     DB.find('user',&#123;&#125;,&#123;"title":1&#125;)    返回所有数据  只返回一列</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     DB.find('user',&#123;&#125;,&#123;"title":1&#125;,&#123;   返回第二页的数据</span></span><br><span class="line"><span class="comment">        page:2,</span></span><br><span class="line"><span class="comment">        pageSize:20,</span></span><br><span class="line"><span class="comment">        sort:&#123;"add_time":-1&#125;</span></span><br><span class="line"><span class="comment">     &#125;)</span></span><br><span class="line"><span class="comment">     js中实参和形参可以不一样      arguments 对象接收实参传过来的数据</span></span><br><span class="line"><span class="comment">    * */</span></span><br><span class="line">    find(collectionName,json1,json2,json3)&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">arguments</span>.length==<span class="number">2</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> attr=&#123;&#125;;</span><br><span class="line">            <span class="keyword">var</span> slipNum=<span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> pageSize=<span class="number">0</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(<span class="built_in">arguments</span>.length==<span class="number">3</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> attr=json2;</span><br><span class="line">            <span class="keyword">var</span> slipNum=<span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> pageSize=<span class="number">0</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(<span class="built_in">arguments</span>.length==<span class="number">4</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> attr=json2;</span><br><span class="line">            <span class="keyword">var</span> page=<span class="built_in">parseInt</span>(json3.page) ||<span class="number">1</span>;</span><br><span class="line">            <span class="keyword">var</span> pageSize=<span class="built_in">parseInt</span>(json3.pageSize)||<span class="number">20</span>;</span><br><span class="line">            <span class="keyword">var</span> slipNum=(page<span class="number">-1</span>)*pageSize;</span><br><span class="line">            <span class="keyword">if</span>(json3.sort)&#123;</span><br><span class="line">                <span class="keyword">var</span> sortJson=json3.sort;</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">var</span> sortJson=&#123;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'传入参数错误'</span>)</span><br><span class="line">        &#125;</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line">                <span class="comment">//var result=db.collection(collectionName).find(json);</span></span><br><span class="line">                <span class="keyword">var</span> result =db.collection(collectionName).find(json1,&#123;<span class="attr">fields</span>:attr&#125;).skip(slipNum).limit(pageSize).sort(sortJson);</span><br><span class="line">                result.toArray(<span class="function"><span class="keyword">function</span>(<span class="params">err,docs</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                        <span class="keyword">return</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    resolve(docs);</span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    update(collectionName,json1,json2)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line">                <span class="comment">//db.user.update(&#123;&#125;,&#123;$set:&#123;&#125;&#125;)</span></span><br><span class="line">                db.collection(collectionName).updateOne(json1,&#123;</span><br><span class="line">                    $<span class="keyword">set</span>:json2</span><br><span class="line">                &#125;,(err,result)=&gt;&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                        resolve(result);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    insert(collectionName,json)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span>  <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line">                db.collection(collectionName).insertOne(json,<span class="function"><span class="keyword">function</span>(<span class="params">err,result</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                        resolve(result);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    remove(collectionName,json)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span>  <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line">                db.collection(collectionName).removeOne(json,<span class="function"><span class="keyword">function</span>(<span class="params">err,result</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                        resolve(result);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    getObjectId(id)&#123;  <span class="comment">/*mongodb里面查询 _id 把字符串转换成对象*/</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ObjectID(id);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//统计数量的方法</span></span><br><span class="line">    count(collectionName,json)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span>  <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span> &#123;</span><br><span class="line">                <span class="keyword">var</span> result = db.collection(collectionName).count(json);</span><br><span class="line">                result.then(<span class="function"><span class="keyword">function</span> (<span class="params">count</span>) </span>&#123;</span><br><span class="line">                        resolve(count);</span><br><span class="line">                    &#125;</span><br><span class="line">                )</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports=Db.getInstance();</span><br></pre></td></tr></table></figure>
+<p><strong>打开本地调试</strong></p>
+<p><a href="http://localhost:3000/graphql" target="_blank" rel="noopener">http://localhost:3000/graphql</a></p>
+<p><img src="https://s.poetries.work/uploads/2022/06/f906b572a508f1bc.png" alt></p>
+<h1 id="四、Koa中集成GraphQl实现-Server-API"><a href="#四、Koa中集成GraphQl实现-Server-API" class="headerlink" title="四、Koa中集成GraphQl实现 Server API"></a>四、Koa中集成GraphQl实现 Server API</h1><blockquote>
+<p>下载数据库文件解压并导入mongodb即可 <a href="https://blog.poetries.top/db/koa.zip">https://blog.poetries.top/db/koa.zip</a></p>
+</blockquote>
+<ul>
+<li><strong>导入mongodb数据库</strong> <code>mongorestore -h localhost:27017 -d koa-demo(数据库名称，不存在会自动创建) ./dump(本地数据文件路径)</code></li>
+<li>导出mongodb数据库 <code>mongodump -h localhost:27017 -d test(数据库名称) -o ./dump</code></li>
+</ul>
+<blockquote>
+<p>文档地址 <a href="https://github.com/chentsulin/koa-graphql" target="_blank" rel="noopener">https://github.com/chentsulin/koa-graphql</a></p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm install graphql koa-graphql koa-mount --save</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>实现导航列表API、文章分类API、文章列表API、文章详情API 、文章列表分页查询API、以及文章列表关联文章分类实现聚合API</p>
+</blockquote>
+<h2 id="4-1-app完善配置"><a href="#4-1-app完善配置" class="headerlink" title="4.1 app完善配置"></a>4.1 app完善配置</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> Koa=<span class="built_in">require</span>(<span class="string">'koa'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> router = <span class="built_in">require</span>(<span class="string">'koa-router'</span>)(); </span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> mount = <span class="built_in">require</span>(<span class="string">'koa-mount'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> graphqlHTTP = <span class="built_in">require</span>(<span class="string">'koa-graphql'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> GraphQLDefaultSchema=<span class="built_in">require</span>(<span class="string">'./schema/default.js'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> DB=<span class="built_in">require</span>(<span class="string">'./model/db.js'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app=<span class="keyword">new</span> Koa();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//配置中间件</span></span><br><span class="line">app.use(mount(<span class="string">'/graphql'</span>, graphqlHTTP(&#123;</span><br><span class="line">    schema: GraphQLDefaultSchema,</span><br><span class="line">    graphiql: <span class="literal">true</span></span><br><span class="line">&#125;)));</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/'</span>,<span class="keyword">async</span> (ctx)=&gt;&#123;</span><br><span class="line">    ctx.body=<span class="string">"首页"</span>;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/getNavList'</span>,<span class="keyword">async</span> (ctx)=&gt;&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">var</span> navList=<span class="keyword">await</span> DB.find(<span class="string">'nav'</span>,&#123;&#125;);     </span><br><span class="line">     ctx.body=navList;</span><br><span class="line">&#125;)  </span><br><span class="line"></span><br><span class="line">app.use(router.routes());   <span class="comment">/*启动路由*/</span></span><br><span class="line">app.use(router.allowedMethods());</span><br><span class="line">app.listen(<span class="number">4000</span>, ()=&gt;<span class="built_in">console</span>.log(<span class="string">'http://localhost:4000'</span>));</span><br></pre></td></tr></table></figure>
+<h2 id="4-2-定义schema模型"><a href="#4-2-定义schema模型" class="headerlink" title="4.2 定义schema模型"></a>4.2 定义schema模型</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// schema/default.js</span></span><br><span class="line"><span class="keyword">const</span> DB=<span class="built_in">require</span>(<span class="string">'../model/db.js'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//文章分类api接口     //文章列表api接口 （分页）     //文章详情api接口（api聚合 获取分类信息）</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123;</span><br><span class="line">    GraphQLObjectType,</span><br><span class="line">    GraphQLString,</span><br><span class="line">    GraphQLInt,</span><br><span class="line">    GraphQLFloat,</span><br><span class="line">    GraphQLList,</span><br><span class="line">    GraphQLSchema,</span><br><span class="line">    GraphQLID</span><br><span class="line">&#125;=<span class="built_in">require</span>(<span class="string">'graphql'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//1、定义导航的schema</span></span><br><span class="line"><span class="keyword">var</span> NavSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'nav'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        title:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,<span class="attr">url</span>:&#123;</span><br><span class="line"></span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        sort:&#123;</span><br><span class="line">            type:GraphQLInt</span><br><span class="line"></span><br><span class="line">        &#125;,</span><br><span class="line">        status:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;,</span><br><span class="line">        add_time:&#123;</span><br><span class="line">            type:GraphQLString</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//定义文章分类的schema</span></span><br><span class="line"><span class="keyword">var</span> ArticleCateSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'articlecate'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;<span class="attr">type</span>:GraphQLString&#125;,</span><br><span class="line">        title:&#123;<span class="attr">type</span>:GraphQLString&#125;,</span><br><span class="line">        description:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        keywords:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        pid:&#123;<span class="attr">type</span>:GraphQLInt&#125;,</span><br><span class="line">        add_time:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        status:&#123; <span class="attr">type</span>: GraphQLInt &#125;      </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//定义文章的schema</span></span><br><span class="line"><span class="keyword">var</span> ArticleSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'article'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;<span class="attr">type</span>:GraphQLID&#125;,</span><br><span class="line">        pid:&#123;<span class="attr">type</span>:GraphQLID&#125;,    </span><br><span class="line">        title:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        author:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        status:&#123;<span class="attr">type</span>:GraphQLInt&#125;,</span><br><span class="line">        is_best:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        is_hot:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        is_new:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        keywords:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        description:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        content:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        sort:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        <span class="comment">// 聚合查询文章分类信息</span></span><br><span class="line">        cateInfo:&#123;</span><br><span class="line">            type:ArticleCateSchema,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="comment">// parent.pid 当前新闻的分类id</span></span><br><span class="line">                <span class="built_in">console</span>.log(parent);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> cateResult=<span class="keyword">await</span> DB.find(<span class="string">'articlecate'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(parent.pid)&#125;);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> cateResult[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//订单商品的Schema  （order_item）</span></span><br><span class="line"><span class="keyword">var</span> OrderItem=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'orderitem'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        uid:&#123; <span class="attr">type</span>: GraphQLID &#125;,</span><br><span class="line">        order_id:  &#123; <span class="attr">type</span>: GraphQLID &#125;,</span><br><span class="line">        product_title: &#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        product_id: &#123; <span class="attr">type</span>: GraphQLID &#125;,    </span><br><span class="line">        product_img: &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        product_price: &#123; <span class="attr">type</span>: GraphQLFloat &#125;,  </span><br><span class="line">        product_num: &#123; <span class="attr">type</span>: GraphQLInt &#125;,        </span><br><span class="line">        add_time: &#123;</span><br><span class="line">          type: GraphQLString        </span><br><span class="line">        &#125;      </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//订单的Schema</span></span><br><span class="line"><span class="keyword">var</span> OrderSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'order'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;<span class="attr">type</span>:GraphQLID&#125;,</span><br><span class="line">        uid: &#123; <span class="attr">type</span>:GraphQLID&#125;,</span><br><span class="line">        all_price: &#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        order_id: &#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        name: &#123; <span class="attr">type</span>: GraphQLString &#125;,  </span><br><span class="line">        phone: &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        address:  &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        zipcode:  &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        pay_status:&#123; <span class="attr">type</span>: GraphQLInt&#125;,   <span class="comment">// 支付状态： 0 表示未支付     1 已经支付</span></span><br><span class="line">        pay_type:&#123;<span class="attr">type</span>: GraphQLString&#125;,      <span class="comment">// 支付类型： alipay    wechat  </span></span><br><span class="line">        order_status: &#123;               <span class="comment">// 订单状态： 0 已下单  1 已付款  2 已配货  3、发货   4、交易成功   5、退货     6、取消      </span></span><br><span class="line">          type: GraphQLInt      </span><br><span class="line">        &#125;,</span><br><span class="line">        add_time: &#123;</span><br><span class="line">          type: GraphQLString          </span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 聚合查询订单关联的商品列表信息</span></span><br><span class="line">        orderItems:&#123;</span><br><span class="line">            type:GraphQLList(OrderItem),</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="comment">//获取当前订单对应的商品 parent._id就是objectId</span></span><br><span class="line">                <span class="keyword">var</span> orderItemList=<span class="keyword">await</span> DB.find(<span class="string">'order_item'</span>,&#123;<span class="string">"order_id"</span>:parent._id&#125;);</span><br><span class="line">                <span class="keyword">return</span> orderItemList;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//2、定义一个根 配置调用Schema的方法</span></span><br><span class="line"><span class="keyword">var</span> RootSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'root'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        navList:&#123;</span><br><span class="line">            type:GraphQLList(NavSchema),</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="keyword">var</span> navList=<span class="keyword">await</span> DB.find(<span class="string">'nav'</span>,&#123;&#125;);     </span><br><span class="line">                <span class="keyword">return</span> navList;</span><br><span class="line">            &#125;            </span><br><span class="line">        &#125;,</span><br><span class="line">        oneNavList:&#123;</span><br><span class="line">            type:NavSchema,</span><br><span class="line">            args:&#123;</span><br><span class="line">                _id:&#123;</span><br><span class="line">                    type:GraphQLString</span><br><span class="line">                &#125;,</span><br><span class="line">                status:&#123;</span><br><span class="line">                    type:GraphQLString</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> oneNavList=<span class="keyword">await</span> DB.find(<span class="string">'nav'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(args._id),<span class="string">"status"</span>:args.status&#125;);     </span><br><span class="line">                <span class="keyword">return</span> oneNavList[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        articleCateList:&#123;</span><br><span class="line">            type:GraphQLList(ArticleCateSchema),</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> articlecateList=<span class="keyword">await</span> DB.find(<span class="string">'articlecate'</span>,&#123;&#125;);     </span><br><span class="line">                <span class="keyword">return</span> articlecateList;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        articleList:&#123;</span><br><span class="line">            type:GraphQLList(ArticleSchema),</span><br><span class="line">            args:&#123;</span><br><span class="line">                page:&#123;</span><br><span class="line">                    type:GraphQLInt</span><br><span class="line">                &#125;,</span><br><span class="line">                pageSize:&#123;</span><br><span class="line">                    type:GraphQLInt</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="comment">// 分页查询文章列表</span></span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="keyword">var</span> page=args.page||<span class="number">1</span>;</span><br><span class="line">                <span class="keyword">var</span> pageSize=args.pageSize||<span class="number">5</span>;</span><br><span class="line">                <span class="built_in">console</span>.log(page,pageSize);</span><br><span class="line">                <span class="keyword">var</span> articleList=<span class="keyword">await</span> DB.find(<span class="string">'article'</span>,&#123;&#125;,&#123;&#125;,&#123;</span><br><span class="line">                    page,</span><br><span class="line">                    pageSize:pageSize,</span><br><span class="line">                    sort:&#123;<span class="string">"add_time"</span>:<span class="number">-1</span>&#125;</span><br><span class="line">                 &#125;);     </span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> articleList;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 订单列表</span></span><br><span class="line">        orderList:&#123;</span><br><span class="line">            type:GraphQLList(OrderSchema),</span><br><span class="line">            args:&#123;</span><br><span class="line">                page:&#123;</span><br><span class="line">                    type:GraphQLInt</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="keyword">var</span> page=args.page || <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">var</span> orderList=<span class="keyword">await</span> DB.find(<span class="string">'order'</span>,&#123;&#125;,&#123;&#125;,&#123;</span><br><span class="line">                    page,</span><br><span class="line">                    pageSize:<span class="number">3</span>                    </span><br><span class="line">                 &#125;);     </span><br><span class="line">                <span class="keyword">return</span> orderList;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 单个订单信息</span></span><br><span class="line">        oneOrderList:&#123;</span><br><span class="line">            type:OrderSchema,</span><br><span class="line">            args:&#123;</span><br><span class="line">                _id:&#123;</span><br><span class="line">                    type:GraphQLID</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;               </span><br><span class="line">                <span class="keyword">var</span> orderList=<span class="keyword">await</span> DB.find(<span class="string">'order'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(args._id)&#125;);     </span><br><span class="line">                <span class="keyword">return</span> orderList[<span class="number">0</span>];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//3、把查询的根 挂载到GraphQLSchema</span></span><br><span class="line"><span class="built_in">module</span>.exports=<span class="keyword">new</span> GraphQLSchema(&#123;</span><br><span class="line">    query:RootSchema</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="4-3-编写数据库操作方法"><a href="#4-3-编写数据库操作方法" class="headerlink" title="4.3 编写数据库操作方法"></a>4.3 编写数据库操作方法</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// model/db.js</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> * http://mongodb.github.io/node-mongodb-native</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> * http://mongodb.github.io/node-mongodb-native/3.0/api/</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//DB库</span></span><br><span class="line"><span class="keyword">var</span> MongoDB=<span class="built_in">require</span>(<span class="string">'mongodb'</span>);</span><br><span class="line"><span class="keyword">var</span> MongoClient =MongoDB.MongoClient;</span><br><span class="line"><span class="keyword">const</span> ObjectID = MongoDB.ObjectID;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> Config= &#123;</span><br><span class="line">    url: <span class="string">'mongodb://localhost:27017'</span>,</span><br><span class="line">    dbName: <span class="string">'koa-demo'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Db</span></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> getInstance()&#123;   <span class="comment">/*1、单例  多次实例化实例不共享的问题*/</span></span><br><span class="line">        <span class="keyword">if</span>(!Db.instance)&#123;</span><br><span class="line">            Db.instance=<span class="keyword">new</span> Db();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>  Db.instance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span>()&#123;</span><br><span class="line">        <span class="keyword">this</span>.dbClient=<span class="string">''</span>; <span class="comment">/*属性 放db对象*/</span></span><br><span class="line">        <span class="keyword">this</span>.connect();   <span class="comment">/*实例化的时候就连接数据库*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    connect()&#123;  <span class="comment">/*连接数据库*/</span></span><br><span class="line">      <span class="keyword">let</span> _that=<span class="keyword">this</span>;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">          <span class="keyword">if</span>(!_that.dbClient)&#123;         <span class="comment">/*1、解决数据库多次连接的问题*/</span></span><br><span class="line">              MongoClient.connect(Config.dbUrl,&#123; <span class="attr">useNewUrlParser</span>: <span class="literal">true</span> &#125;,(err,client)=&gt;&#123;</span><br><span class="line"></span><br><span class="line">                  <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                      reject(err)</span><br><span class="line">                  &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                      _that.dbClient=client.db(Config.dbName);</span><br><span class="line">                      resolve(_that.dbClient)</span><br><span class="line">                  &#125;</span><br><span class="line">              &#125;)</span><br><span class="line">          &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            resolve(_that.dbClient);</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;)</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     DB.find('user',&#123;&#125;)  返回所有数据</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     DB.find('user',&#123;&#125;,&#123;"title":1&#125;)    返回所有数据  只返回一列</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     DB.find('user',&#123;&#125;,&#123;"title":1&#125;,&#123;   返回第二页的数据</span></span><br><span class="line"><span class="comment">        page:2,</span></span><br><span class="line"><span class="comment">        pageSize:20,</span></span><br><span class="line"><span class="comment">        sort:&#123;"add_time":-1&#125;</span></span><br><span class="line"><span class="comment">     &#125;)</span></span><br><span class="line"><span class="comment">     js中实参和形参可以不一样      arguments 对象接收实参传过来的数据</span></span><br><span class="line"><span class="comment">    * */</span></span><br><span class="line"></span><br><span class="line">    find(collectionName,json1,json2,json3)&#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">arguments</span>.length==<span class="number">2</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> attr=&#123;&#125;;</span><br><span class="line">            <span class="keyword">var</span> slipNum=<span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> pageSize=<span class="number">0</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(<span class="built_in">arguments</span>.length==<span class="number">3</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> attr=json2;</span><br><span class="line">            <span class="keyword">var</span> slipNum=<span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> pageSize=<span class="number">0</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(<span class="built_in">arguments</span>.length==<span class="number">4</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> attr=json2;</span><br><span class="line">            <span class="keyword">var</span> page=<span class="built_in">parseInt</span>(json3.page) ||<span class="number">1</span>;</span><br><span class="line">            <span class="keyword">var</span> pageSize=<span class="built_in">parseInt</span>(json3.pageSize)||<span class="number">20</span>;</span><br><span class="line">            <span class="keyword">var</span> slipNum=(page<span class="number">-1</span>)*pageSize;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(json3.sort)&#123;</span><br><span class="line">                <span class="keyword">var</span> sortJson=json3.sort;</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">var</span> sortJson=&#123;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'传入参数错误'</span>)</span><br><span class="line">        &#125;</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line">                <span class="comment">//var result=db.collection(collectionName).find(json);</span></span><br><span class="line">                <span class="keyword">var</span> result =db.collection(collectionName).find(json1,&#123;<span class="attr">fields</span>:attr&#125;).skip(slipNum).limit(pageSize).sort(sortJson);</span><br><span class="line">                result.toArray(<span class="function"><span class="keyword">function</span>(<span class="params">err,docs</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                        <span class="keyword">return</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    resolve(docs);</span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    update(collectionName,json1,json2)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">                <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line"></span><br><span class="line">                    <span class="comment">//db.user.update(&#123;&#125;,&#123;$set:&#123;&#125;&#125;)</span></span><br><span class="line">                    db.collection(collectionName).updateOne(json1,&#123;</span><br><span class="line">                        $<span class="keyword">set</span>:json2</span><br><span class="line">                    &#125;,(err,result)=&gt;&#123;</span><br><span class="line">                        <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                            reject(err);</span><br><span class="line">                        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                            resolve(result);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;)</span><br><span class="line"></span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    insert(collectionName,json)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span>  <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line"></span><br><span class="line">                db.collection(collectionName).insertOne(json,<span class="function"><span class="keyword">function</span>(<span class="params">err,result</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line"></span><br><span class="line">                        resolve(result);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    remove(collectionName,json)&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span>  <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span>&#123;</span><br><span class="line"></span><br><span class="line">                db.collection(collectionName).removeOne(json,<span class="function"><span class="keyword">function</span>(<span class="params">err,result</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(err)&#123;</span><br><span class="line">                        reject(err);</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line"></span><br><span class="line">                        resolve(result);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    getObjectId(id)&#123;    <span class="comment">/*mongodb里面查询 _id 把字符串转换成对象*/</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ObjectID(id);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//统计数量的方法</span></span><br><span class="line">    count(collectionName,json)&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span>  <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.connect().then(<span class="function">(<span class="params">db</span>)=&gt;</span> &#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> result = db.collection(collectionName).count(json);</span><br><span class="line">                result.then(<span class="function"><span class="keyword">function</span> (<span class="params">count</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">                        resolve(count);</span><br><span class="line">                    &#125;</span><br><span class="line">                )</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports=Db.getInstance();</span><br></pre></td></tr></table></figure>
+<p><strong>启动服务</strong></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/1550d35a92e40d2e.png" alt></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/7c07e1cc36336aa9.png" alt></p>
+<h2 id="4-4-聚合查询"><a href="#4-4-聚合查询" class="headerlink" title="4.4 聚合查询"></a>4.4 聚合查询</h2><p><strong>聚合查询文章分类信息，分类信息的方式要放在article的schema里面，这样才能聚合查询到</strong></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/3312490f4089a734.png" alt></p>
+<p>聚合查询结果</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/ef305f6e77e96b5f.png" alt></p>
+<p><strong>查询订单，聚合查询订单关联的商品信息返回，实现类似以下效果</strong></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/d4573ffa0133b43f.png" alt></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// schema/default.js </span></span><br><span class="line"><span class="comment">//订单商品的Schema  （order_item）</span></span><br><span class="line"><span class="keyword">var</span> OrderItem=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'orderitem'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        uid:&#123; <span class="attr">type</span>: GraphQLID &#125;,</span><br><span class="line">        order_id:  &#123; <span class="attr">type</span>: GraphQLID &#125;,</span><br><span class="line">        product_title: &#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        product_id: &#123; <span class="attr">type</span>: GraphQLID &#125;,    </span><br><span class="line">        product_img: &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        product_price: &#123; <span class="attr">type</span>: GraphQLFloat &#125;,  </span><br><span class="line">        product_num: &#123; <span class="attr">type</span>: GraphQLInt &#125;,        </span><br><span class="line">        add_time: &#123;</span><br><span class="line">          type: GraphQLString        </span><br><span class="line">        &#125;      </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//订单的Schema</span></span><br><span class="line"><span class="keyword">var</span> OrderSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'order'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;<span class="attr">type</span>:GraphQLID&#125;,</span><br><span class="line">        uid: &#123; <span class="attr">type</span>:GraphQLID&#125;,</span><br><span class="line">        all_price: &#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        order_id: &#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        name: &#123; <span class="attr">type</span>: GraphQLString &#125;,  </span><br><span class="line">        phone: &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        address:  &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        zipcode:  &#123; <span class="attr">type</span>: GraphQLString &#125;,    </span><br><span class="line">        pay_status:&#123; <span class="attr">type</span>: GraphQLInt&#125;,   <span class="comment">// 支付状态： 0 表示未支付     1 已经支付</span></span><br><span class="line">        pay_type:&#123;<span class="attr">type</span>: GraphQLString&#125;,      <span class="comment">// 支付类型： alipay    wechat  </span></span><br><span class="line">        order_status: &#123;               <span class="comment">// 订单状态： 0 已下单  1 已付款  2 已配货  3、发货   4、交易成功   5、退货     6、取消      </span></span><br><span class="line">          type: GraphQLInt      </span><br><span class="line">        &#125;,</span><br><span class="line">        add_time: &#123;</span><br><span class="line">          type: GraphQLString          </span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 聚合查询订单关联的商品列表信息</span></span><br><span class="line">        orderItems:&#123;</span><br><span class="line">            type:GraphQLList(OrderItem),</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="comment">//获取当前订单对应的商品 parent._id就是objectId</span></span><br><span class="line">                <span class="keyword">var</span> orderItemList=<span class="keyword">await</span> DB.find(<span class="string">'order_item'</span>,&#123;<span class="string">"order_id"</span>:parent._id&#125;);</span><br><span class="line">                <span class="keyword">return</span> orderItemList;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义一个根 配置调用Schema的方法</span></span><br><span class="line"><span class="keyword">var</span> RootSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'root'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        orderList:&#123;</span><br><span class="line">            type:GraphQLList(OrderSchema),</span><br><span class="line">            args:&#123;</span><br><span class="line">                page:&#123;</span><br><span class="line">                    type:GraphQLInt</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="keyword">var</span> page=args.page || <span class="number">1</span>;</span><br><span class="line">                <span class="keyword">var</span> orderList=<span class="keyword">await</span> DB.find(<span class="string">'order'</span>,&#123;&#125;,&#123;&#125;,&#123;</span><br><span class="line">                    page,</span><br><span class="line">                    pageSize:<span class="number">3</span>                    </span><br><span class="line">                 &#125;);     </span><br><span class="line">                <span class="keyword">return</span> orderList;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        oneOrderList:&#123;</span><br><span class="line">            type:OrderSchema,</span><br><span class="line">            args:&#123;</span><br><span class="line">                _id:&#123;</span><br><span class="line">                    type:GraphQLID</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;               </span><br><span class="line">                <span class="keyword">var</span> orderList=<span class="keyword">await</span> DB.find(<span class="string">'order'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(args._id)&#125;);     </span><br><span class="line">                <span class="keyword">return</span> orderList[<span class="number">0</span>];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/07/7d04081f284a53c4.png" alt></p>
+<p>查询订单详情</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/eb55ac8b7201d6e9.png" alt></p>
+<p>需要哪些字段，就返回哪些字段，编辑器会自定提示</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/f43be591155843e5.png" alt></p>
+<h2 id="4-5-分页查询"><a href="#4-5-分页查询" class="headerlink" title="4.5 分页查询"></a>4.5 分页查询</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//定义文章分类的schema</span></span><br><span class="line"><span class="keyword">var</span> ArticleCateSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'articlecate'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;<span class="attr">type</span>:GraphQLString&#125;,</span><br><span class="line">        title:&#123;<span class="attr">type</span>:GraphQLString&#125;,</span><br><span class="line">        description:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        keywords:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        pid:&#123;<span class="attr">type</span>:GraphQLInt&#125;,</span><br><span class="line">        add_time:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        status:&#123; <span class="attr">type</span>: GraphQLInt &#125;      </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//定义文章的schema</span></span><br><span class="line"><span class="keyword">var</span> ArticleSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'article'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        _id:&#123;<span class="attr">type</span>:GraphQLID&#125;,</span><br><span class="line">        pid:&#123;<span class="attr">type</span>:GraphQLID&#125;,    </span><br><span class="line">        title:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        author:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        status:&#123;<span class="attr">type</span>:GraphQLInt&#125;,</span><br><span class="line">        is_best:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        is_hot:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        is_new:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        keywords:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        description:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        content:&#123; <span class="attr">type</span>: GraphQLString &#125;,</span><br><span class="line">        sort:&#123; <span class="attr">type</span>: GraphQLInt &#125;,</span><br><span class="line">        <span class="comment">// 聚合查询文章分类信息</span></span><br><span class="line">        cateInfo:&#123;</span><br><span class="line">            type:ArticleCateSchema,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="comment">// parent.pid 当前新闻的分类id</span></span><br><span class="line">                <span class="built_in">console</span>.log(parent);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> cateResult=<span class="keyword">await</span> DB.find(<span class="string">'articlecate'</span>,&#123;<span class="string">"_id"</span>:DB.getObjectId(parent.pid)&#125;);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> cateResult[<span class="number">0</span>];</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//2、定义一个根 配置调用Schema的方法</span></span><br><span class="line"><span class="keyword">var</span> RootSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">'root'</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        articleCateList:&#123;</span><br><span class="line">            type:GraphQLList(ArticleCateSchema),</span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> articlecateList=<span class="keyword">await</span> DB.find(<span class="string">'articlecate'</span>,&#123;&#125;);     </span><br><span class="line">                <span class="keyword">return</span> articlecateList;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        articleList:&#123;</span><br><span class="line">            type:GraphQLList(ArticleSchema),</span><br><span class="line">            args:&#123;</span><br><span class="line">                page:&#123;</span><br><span class="line">                    type:GraphQLInt</span><br><span class="line">                &#125;,</span><br><span class="line">                pageSize:&#123;</span><br><span class="line">                    type:GraphQLInt</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="comment">// 分页查询文章列表</span></span><br><span class="line">            <span class="keyword">async</span> resolve(parent,args)&#123;</span><br><span class="line">                <span class="keyword">var</span> page=args.page||<span class="number">1</span>;</span><br><span class="line">                <span class="keyword">var</span> pageSize=args.pageSize||<span class="number">5</span>;</span><br><span class="line">                <span class="built_in">console</span>.log(page,pageSize);</span><br><span class="line">                <span class="keyword">var</span> articleList=<span class="keyword">await</span> DB.find(<span class="string">'article'</span>,&#123;&#125;,&#123;&#125;,&#123;</span><br><span class="line">                    page,</span><br><span class="line">                    pageSize:pageSize,</span><br><span class="line">                    sort:&#123;<span class="string">"add_time"</span>:<span class="number">-1</span>&#125;</span><br><span class="line">                 &#125;);     </span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> articleList;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="4-6-实现数据增加、修改、删除"><a href="#4-6-实现数据增加、修改、删除" class="headerlink" title="4.6 实现数据增加、修改、删除"></a>4.6 实现数据增加、修改、删除</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// scehma/default.js </span></span><br><span class="line"><span class="comment">//增加 修改 删除</span></span><br><span class="line"><span class="comment">// 定义根MutationRoot实现增删改</span></span><br><span class="line"><span class="keyword">var</span> MutationSchema=<span class="keyword">new</span> GraphQLObjectType(&#123;</span><br><span class="line">    name:<span class="string">"mutation"</span>,</span><br><span class="line">    fields:&#123;</span><br><span class="line">        addNav:&#123;</span><br><span class="line">            type:NavSchema,</span><br><span class="line">            args:&#123;</span><br><span class="line">                title: &#123;<span class="attr">type</span>: <span class="keyword">new</span> GraphQLNonNull(GraphQLString)&#125;,     <span class="comment">//表示title 和 url是必传字段</span></span><br><span class="line">                url: &#123;<span class="attr">type</span>: GraphQLNonNull(GraphQLString)&#125;,</span><br><span class="line">                sort: &#123;<span class="attr">type</span>: GraphQLInt&#125;,</span><br><span class="line">                status: &#123;<span class="attr">type</span>: GraphQLString&#125;,</span><br><span class="line">                add_time: &#123;<span class="attr">type</span>: GraphQLString&#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent, args) &#123;</span><br><span class="line">                <span class="keyword">var</span> result = <span class="keyword">await</span> DB.insert(<span class="string">'nav'</span>, &#123;<span class="attr">title</span>:args.title,</span><br><span class="line">                    url:args.url,</span><br><span class="line">                    sort:args.sort,</span><br><span class="line">                    status:args.status,</span><br><span class="line">                    add_time:<span class="keyword">new</span> <span class="built_in">Date</span>().getTime()</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">                <span class="built_in">console</span>.log(result.ops[<span class="number">0</span>]);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">return</span> result.ops[<span class="number">0</span>];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        editNav:&#123;</span><br><span class="line">            type:NavSchema,</span><br><span class="line">            args:&#123;</span><br><span class="line">                _id:&#123;<span class="attr">type</span>: <span class="keyword">new</span> GraphQLNonNull(GraphQLString)&#125;,</span><br><span class="line">                title: &#123;<span class="attr">type</span>: <span class="keyword">new</span> GraphQLNonNull(GraphQLString)&#125;,     <span class="comment">//表示title 和 url是必传字段</span></span><br><span class="line">                url: &#123;<span class="attr">type</span>: GraphQLNonNull(GraphQLString)&#125;,</span><br><span class="line">                sort: &#123;<span class="attr">type</span>: GraphQLInt&#125;,</span><br><span class="line">                status: &#123;<span class="attr">type</span>: GraphQLString&#125;,</span><br><span class="line">                add_time: &#123;<span class="attr">type</span>: GraphQLString&#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent, args) &#123;</span><br><span class="line">                <span class="keyword">var</span> result = <span class="keyword">await</span> DB.update(<span class="string">'nav'</span>, &#123;<span class="string">"_id"</span>:DB.getObjectId(args._id)&#125;,&#123;<span class="attr">title</span>:args.title,</span><br><span class="line">                    url:args.url,</span><br><span class="line">                    sort:args.sort,</span><br><span class="line">                    status:args.status,</span><br><span class="line">                    add_time:<span class="keyword">new</span> <span class="built_in">Date</span>().getTime()</span><br><span class="line">                &#125;);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// console.log(result);</span></span><br><span class="line">                <span class="keyword">return</span> &#123;</span><br><span class="line">                    _id:args._id,</span><br><span class="line">                    title:args.title,</span><br><span class="line">                    url:args.url,</span><br><span class="line">                    sort:args.sort,</span><br><span class="line">                    status:args.status,</span><br><span class="line">                    add_time:<span class="keyword">new</span> <span class="built_in">Date</span>().getTime()</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;    </span><br><span class="line">        ,</span><br><span class="line">        deleteNav:&#123;</span><br><span class="line">            type:NavSchema,</span><br><span class="line">            args:&#123;</span><br><span class="line">                _id:&#123;<span class="attr">type</span>: <span class="keyword">new</span> GraphQLNonNull(GraphQLString)&#125;,</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">async</span> resolve(parent, args) &#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">var</span> oneNavList = <span class="keyword">await</span> DB.find(<span class="string">'nav'</span>, &#123; <span class="string">"_id"</span>: DB.getObjectId(args._id)&#125;);</span><br><span class="line">              </span><br><span class="line">                <span class="keyword">var</span> deleteResult = <span class="keyword">await</span> DB.remove(<span class="string">'nav'</span>, &#123;<span class="string">"_id"</span>:DB.getObjectId(args._id)&#125;);</span><br><span class="line"></span><br><span class="line">                <span class="built_in">console</span>.log(deleteResult.result.n);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span>(deleteResult.result.n)&#123;</span><br><span class="line">                    <span class="keyword">return</span> oneNavList[<span class="number">0</span>];  </span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    <span class="keyword">return</span> &#123;&#125;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 挂载到GraphQLSchema</span></span><br><span class="line"><span class="built_in">module</span>.exports=<span class="keyword">new</span> GraphQLSchema(&#123;</span><br><span class="line">    <span class="comment">// query:RootSchema,</span></span><br><span class="line">    mutation:MutationSchema</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>新增</li>
+</ul>
+<p><img src="https://s.poetries.work/uploads/2022/07/52aab4cf8421000b.png" alt></p>
+<p>可以看到必填字段不填会提示</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/9d5c6adb31018789.png" alt></p>
+<p>再次查询列表</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/a91926ec7799fd92.png" alt></p>
+<ul>
+<li>修改</li>
+</ul>
+<p><img src="https://s.poetries.work/uploads/2022/07/afd87b6526705d2b.png" alt></p>
+<ul>
+<li>删除</li>
+</ul>
+<p><img src="https://s.poetries.work/uploads/2022/07/db769eb8c3a823aa.png" alt></p>
+<h1 id="五、Vue中使用GraphQl"><a href="#五、Vue中使用GraphQl" class="headerlink" title="五、Vue中使用GraphQl"></a>五、Vue中使用GraphQl</h1><h2 id="5-1-使用graphQl简单查询"><a href="#5-1-使用graphQl简单查询" class="headerlink" title="5.1 使用graphQl简单查询"></a>5.1 使用graphQl简单查询</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><ol>
+<li>找到Vue中集成GraphQl的文档</li>
+</ol>
+<ul>
+<li><a href="https://github.com/vuejs/apollo" target="_blank" rel="noopener">https://github.com/vuejs/apollo</a></li>
+<li><a href="https://vue-apollo.netlify.app/" target="_blank" rel="noopener">https://vue-apollo.netlify.app/</a></li>
+</ul>
+<ol start="2">
+<li>安装相应的模块</li>
+</ol>
+<blockquote>
+<p>ApolloBoost是一种零配置开始使用ApolloClient的方式。它包含一些实用的默认值，例如我们推荐的InMemoryCache和HttpLink，它非常适合用于快速启动开发。将它与vue-apollo和graphql一起安装：</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install vue-apollo graphql apollo-boost --save</span><br></pre></td></tr></table></figure>
+<ol start="3">
+<li>在<code>src/main.js</code>中引入<code>apollo-boost</code>模块并实例化<code>ApolloClient</code></li>
+</ol>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> ApolloClient <span class="keyword">from</span><span class="string">'apollo-boost'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> apolloClient = newApolloClient(&#123;</span><br><span class="line">    <span class="comment">//你需要在这里使用绝对路径</span></span><br><span class="line">    uri:<span class="string">'http://118.123.14.36:3002/graphql'</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>可以打开 <a href="http://118.123.14.36:3002/graphql" target="_blank" rel="noopener">http://118.123.14.36:3002/graphql</a> 在控制台查看查询结果</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/580837041d7098cc.png" alt></p>
+<ol start="4">
+<li>在<code>src/main.js</code>配置<code>vue-apollo</code>插件</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> VueApollofrom<span class="string">'vue-apollo'</span></span><br><span class="line"></span><br><span class="line">Vue.use(VueApollo);</span><br></pre></td></tr></table></figure>
+<ol start="5">
+<li>创建<code>Apollo provider</code></li>
+</ol>
+<blockquote>
+<p>Provider保存了可以在接下来被所有子组件使用的Apollo客户端实例</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> apolloProvider = newVueApollo(&#123;</span><br><span class="line">    defaultClient:apolloClient</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>使用<code>apollo Provider</code>选项将它添加到你的应用程序</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">    el:<span class="string">'#app'</span>,</span><br><span class="line">    apolloProvider,</span><br><span class="line">    render:<span class="function"><span class="params">h</span>=&gt;</span>h(App)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="简单查询"><a href="#简单查询" class="headerlink" title="简单查询"></a>简单查询</h3><blockquote>
+<p>组件加载的时候就会去服务器请求数据，请求的数据会放在<code>navList</code>这个属性上面，在模板中可以直接使用当前属性</p>
+</blockquote>
+<blockquote>
+<p><a href="https://vue-apollo.netlify.app/zh-cn/guide/apollo/queries.html#%E7%AE%80%E5%8D%95%E6%9F%A5%E8%AF%A2" target="_blank" rel="noopener">简单查询文档</a></p>
+</blockquote>
+<p><a href="https://vue-apollo.netlify.app/zh-cn/guide/apollo/queries.html#%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84%E6%9F%A5%E8%AF%A2" target="_blank" rel="noopener">带参数查询参考 </a></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> gql <span class="keyword">from</span><span class="string">'graphql-tag'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span>&#123; </span><br><span class="line">    data()&#123;</span><br><span class="line">        <span class="keyword">return</span> &#123; <span class="attr">msg</span>: <span class="string">'我是一个 home 组件'</span> &#125; </span><br><span class="line">    &#125;,</span><br><span class="line">    apollo: &#123;</span><br><span class="line">        <span class="comment">// 简单的查询，将更新 'hello' 这个 vue 属性 </span></span><br><span class="line">        navList: gql<span class="string">`query &#123; </span></span><br><span class="line"><span class="string">            navList &#123; </span></span><br><span class="line"><span class="string">                title</span></span><br><span class="line"><span class="string">            &#125; </span></span><br><span class="line"><span class="string">        &#125;`</span> </span><br><span class="line">    &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另一种写法：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">'graphql-tag'</span>; </span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span>&#123; </span><br><span class="line">    data()&#123;</span><br><span class="line">        <span class="keyword">return</span> &#123; </span><br><span class="line">            msg:<span class="string">'我是一个 home 组件'</span> </span><br><span class="line">        &#125; </span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// Apollo 具体选项</span></span><br><span class="line">    apollo: &#123;</span><br><span class="line">        <span class="comment">// // 带参数的查询</span></span><br><span class="line">        <span class="comment">// ping: &#123;</span></span><br><span class="line">        <span class="comment">//     // gql 查询</span></span><br><span class="line">        <span class="comment">//     query: gql`query PingMessage($message: String!) &#123;</span></span><br><span class="line">        <span class="comment">//     ping(message: $message)</span></span><br><span class="line">        <span class="comment">//     &#125;`,</span></span><br><span class="line">        <span class="comment">//     // 静态参数</span></span><br><span class="line">        <span class="comment">//     variables: &#123;</span></span><br><span class="line">        <span class="comment">//     message: 'Meow',</span></span><br><span class="line">        <span class="comment">//     &#125;,</span></span><br><span class="line">        <span class="comment">// &#125;,</span></span><br><span class="line">    &#125;,</span><br><span class="line">    apollo: &#123; </span><br><span class="line">        <span class="comment">// 注意方法名称 和 查询的名称对应 </span></span><br><span class="line">        navList()&#123; </span><br><span class="line">            <span class="keyword">return</span> &#123; </span><br><span class="line">                query:gql<span class="string">`query &#123; </span></span><br><span class="line"><span class="string">                    navList &#123; </span></span><br><span class="line"><span class="string">                        title</span></span><br><span class="line"><span class="string">                     &#125; </span></span><br><span class="line"><span class="string">                &#125;`</span> </span><br><span class="line">            &#125; </span><br><span class="line">        &#125; </span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完整例子</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"news"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123; msg &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">"(item,index) of navList"</span> <span class="attr">:key</span>=<span class="string">"index"</span>&gt;</span></span><br><span class="line">          &#123;&#123;item.title&#125;&#125;</span><br><span class="line">      <span class="tag">&lt;/<span class="name">li</span>&gt;</span>      </span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">hr</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">"(item, index) of articleList"</span> <span class="attr">:key</span>=<span class="string">"index"</span>&gt;</span></span><br><span class="line">          &#123;&#123;item.title&#125;&#125;---&#123;&#123;item.status&#125;&#125;--&#123;&#123;item._id&#125;&#125;</span><br><span class="line">      <span class="tag">&lt;/<span class="name">li</span>&gt;</span>      </span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">'graphql-tag'</span>;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="javascript">    name: <span class="string">'app'</span>,</span></span><br><span class="line">    data()&#123;</span><br><span class="line"><span class="javascript">      <span class="keyword">return</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        msg:<span class="string">'我是一个首页页面'</span></span></span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    apollo: &#123;</span><br><span class="line"><span class="javascript">      <span class="comment">// 简单的查询，将更新 'hello' 这个 vue 属性</span></span></span><br><span class="line">      navList: gql`&#123;</span><br><span class="line">         navList&#123;</span><br><span class="line">            title</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;`,</span><br><span class="line">      articleList:gql`&#123;</span><br><span class="line">         articleList&#123;</span><br><span class="line">            title,</span><br><span class="line">            status,</span><br><span class="line">            _id</span><br><span class="line">          &#125;</span><br><span class="line">      &#125;`</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">  &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="高级查询"><a href="#高级查询" class="headerlink" title="高级查询"></a>高级查询</h3><blockquote>
+<p><a href="https://vue-apollo.netlify.app/zh-cn/api/smart-query.html" target="_blank" rel="noopener">高级查询文档</a></p>
+</blockquote>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"news"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123; msg &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>    </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">"(item,key) of articleList"</span> <span class="attr">v-bind:key</span>=<span class="string">"key"</span>&gt;</span></span><br><span class="line">        &#123;&#123;item.title&#125;&#125;---&#123;&#123;item.status&#125;&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">li</span>&gt;</span>      </span><br><span class="line">  <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">"getData()"</span>&gt;</span></span><br><span class="line">    点击按钮触发事件请求graphQl接口</span><br><span class="line">  <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  &#123;&#123;navList&#125;&#125;</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>逻辑</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">'graphql-tag'</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> navListGql=gql<span class="string">`&#123;</span></span><br><span class="line"><span class="string">        navList&#123;</span></span><br><span class="line"><span class="string">            title           </span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">   &#125;`</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">    name: <span class="string">'app'</span>,</span><br><span class="line">    data()&#123;</span><br><span class="line">      <span class="keyword">return</span>&#123;</span><br><span class="line">        msg:<span class="string">'我是一个新闻页面'</span>,</span><br><span class="line">        navList:[]</span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    apollo:&#123;</span><br><span class="line">      <span class="comment">// articleList:gql`&#123;</span></span><br><span class="line">      <span class="comment">//        articleList&#123;</span></span><br><span class="line">      <span class="comment">//         title,</span></span><br><span class="line">      <span class="comment">//         status</span></span><br><span class="line">      <span class="comment">//       &#125;</span></span><br><span class="line"></span><br><span class="line">      <span class="comment">// &#125;`</span></span><br><span class="line">        <span class="comment">// 把请求的数据赋值给articleList</span></span><br><span class="line">        articleList:&#123;</span><br><span class="line">          query:gql<span class="string">`query articleList($page:Int!,$pageSize:Int!)&#123;</span></span><br><span class="line"><span class="string">                articleList(page:$page,pageSize:$pageSize)&#123;</span></span><br><span class="line"><span class="string">                  title,</span></span><br><span class="line"><span class="string">                  status</span></span><br><span class="line"><span class="string">                &#125;</span></span><br><span class="line"><span class="string">          &#125;`</span>,</span><br><span class="line">          variables:&#123;</span><br><span class="line">            page:<span class="number">2</span>,</span><br><span class="line">            pageSize:<span class="number">10</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    methods:&#123;</span><br><span class="line">      getData()&#123;</span><br><span class="line">        <span class="keyword">this</span>.$apollo.addSmartQuery(<span class="string">'navList'</span>,&#123;          </span><br><span class="line">            query:navListGql,</span><br><span class="line">            result(response)&#123;</span><br><span class="line">              <span class="built_in">console</span>.log(response);</span><br><span class="line">            &#125;,error(err)&#123;</span><br><span class="line">              <span class="built_in">console</span>.log(err);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Vue-GraphQl-传参查询"><a href="#Vue-GraphQl-传参查询" class="headerlink" title="Vue GraphQl 传参查询"></a>Vue GraphQl 传参查询</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"article"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123; msg &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>   </span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">"getData()"</span>&gt;</span>获取文章数据<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">"(item,key) of articleList"</span> <span class="attr">v-bind:key</span>=<span class="string">"key"</span>&gt;</span></span><br><span class="line">          &#123;&#123;item.title&#125;&#125;</span><br><span class="line">      <span class="tag">&lt;/<span class="name">li</span>&gt;</span>      </span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">'graphql-tag'</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="keyword">var</span> articleListGql=gql<span class="string">`query articleList($page:Int!,$pageSize:Int!)&#123;</span></span></span><br><span class="line">       articleList(page:$page,pageSize:$pageSize)&#123;</span><br><span class="line">        title       </span><br><span class="line">      &#125;</span><br><span class="line">  &#125;`;</span><br><span class="line"><span class="javascript">  <span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="javascript">    name: <span class="string">'app'</span>,</span></span><br><span class="line">    data()&#123;</span><br><span class="line"><span class="javascript">      <span class="keyword">return</span>&#123;</span></span><br><span class="line"><span class="javascript">        msg:<span class="string">'article页面'</span>,</span></span><br><span class="line">        articleList:[]</span><br><span class="line"></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    methods:&#123;</span><br><span class="line">      getData()&#123;</span><br><span class="line"><span class="javascript">        <span class="keyword">this</span>.$apollo.addSmartQuery(<span class="string">'articleList'</span>,&#123;</span></span><br><span class="line">          query:articleListGql,</span><br><span class="line">          variables:&#123;</span><br><span class="line">            page:2,</span><br><span class="line">            pageSize:8</span><br><span class="line">          &#125;,</span><br><span class="line">          result(response)&#123;</span><br><span class="line"><span class="javascript">            <span class="built_in">console</span>.log(response)</span></span><br><span class="line">          &#125;,error(err)&#123;</span><br><span class="line"><span class="javascript">            <span class="built_in">console</span>.log(err)</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h2 id="5-2-使用graphQl增加修改删除"><a href="#5-2-使用graphQl增加修改删除" class="headerlink" title="5.2 使用graphQl增加修改删除"></a>5.2 使用graphQl增加修改删除</h2><blockquote>
+<p><a href="https://vue-apollo.netlify.app/zh-cn/guide/apollo/mutations.html#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%A4%BA%E4%BE%8B" target="_blank" rel="noopener">详情文档参考</a></p>
+</blockquote>
+<p>服务器端接口</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/5a2e957da5d677af.png" alt></p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"news"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>导航的增加修改删除<span class="tag">&lt;/<span class="name">h1</span>&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"navForm"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        导航名称：<span class="tag">&lt;<span class="name">input</span> <span class="attr">v-model</span>=<span class="string">"navJson.title"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span> <span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line">        导航链接： <span class="tag">&lt;<span class="name">input</span> <span class="attr">v-model</span>=<span class="string">"navJson.url"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">"doAdd()"</span>&gt;</span>提交数据<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">"doEdit()"</span>&gt;</span>修改数据<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">"doDele()"</span>&gt;</span>删除数据<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">'graphql-tag'</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="keyword">var</span> navMutationAddGql=gql<span class="string">`mutation($title:String!,$url:String!)&#123;</span></span></span><br><span class="line">    addNav(title:$title,url:$url)&#123;</span><br><span class="line">      title</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;`;</span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="keyword">var</span> navMutationEditGql=gql<span class="string">`mutation($id:String!,$title:String!,$url:String!)&#123;</span></span></span><br><span class="line">    editNav(_id:$id,title:$title,url:$url)&#123;</span><br><span class="line">      title</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;`;</span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="keyword">var</span> navMutationDelGql=gql<span class="string">`mutation($id:String!)&#123;</span></span></span><br><span class="line">    deleteNav(_id:$id)&#123;</span><br><span class="line">      title</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;`;</span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="javascript">    name: <span class="string">'app'</span>,</span></span><br><span class="line">    data()&#123;</span><br><span class="line"><span class="javascript">      <span class="keyword">return</span>&#123;</span></span><br><span class="line">        navJson:&#123;</span><br><span class="line"><span class="javascript">          title:<span class="string">""</span>,</span></span><br><span class="line"><span class="javascript">          url:<span class="string">""</span></span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    methods:&#123;</span><br><span class="line"><span class="javascript">      <span class="comment">// 提交表单</span></span></span><br><span class="line">      doAdd()&#123;</span><br><span class="line"><span class="javascript">          <span class="comment">// eslint-disable-next-line no-console</span></span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(<span class="keyword">this</span>.navJson.title);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="keyword">this</span>.$apollo.mutate(&#123;</span></span><br><span class="line">            mutation:navMutationAddGql,</span><br><span class="line">            variables: &#123;</span><br><span class="line"><span class="javascript">            title: <span class="keyword">this</span>.navJson.title,</span></span><br><span class="line"><span class="javascript">            url:<span class="keyword">this</span>.navJson.url,</span></span><br><span class="line">            &#125;</span><br><span class="line"><span class="javascript">        &#125;).then(<span class="function">(<span class="params">response</span>)=&gt;</span>&#123;</span></span><br><span class="line"><span class="javascript">            <span class="built_in">console</span>.log(response);</span></span><br><span class="line"><span class="javascript">        &#125;).catch(<span class="function">(<span class="params">err</span>)=&gt;</span>&#123;</span></span><br><span class="line"><span class="javascript">            <span class="built_in">console</span>.log(err);</span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;,</span><br><span class="line"><span class="javascript">      <span class="comment">// 修改数据</span></span></span><br><span class="line">      doEdit()&#123;</span><br><span class="line"><span class="javascript">        <span class="keyword">this</span>.$apollo.mutate(&#123;</span></span><br><span class="line">          mutation:navMutationEditGql,</span><br><span class="line">          variables: &#123;</span><br><span class="line"><span class="javascript">            id:<span class="string">"62beaf16323cb708d06580ce"</span>,</span></span><br><span class="line"><span class="javascript">            title: <span class="keyword">this</span>.navJson.title,</span></span><br><span class="line"><span class="javascript">            url:<span class="keyword">this</span>.navJson.url,</span></span><br><span class="line">          &#125;</span><br><span class="line"><span class="javascript">        &#125;).then(<span class="function">(<span class="params">response</span>)=&gt;</span>&#123;</span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(response);</span></span><br><span class="line"><span class="javascript">        &#125;).catch(<span class="function">(<span class="params">err</span>)=&gt;</span>&#123;</span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(err);</span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;,</span><br><span class="line">      doDele()&#123;</span><br><span class="line"><span class="javascript">        <span class="keyword">this</span>.$apollo.mutate(&#123;</span></span><br><span class="line">          mutation:navMutationDelGql,</span><br><span class="line">          variables: &#123;</span><br><span class="line"><span class="javascript">            id:<span class="string">"62beaf50323cb708d06580d0"</span>,</span></span><br><span class="line">          &#125;</span><br><span class="line"><span class="javascript">        &#125;).then(<span class="function">(<span class="params">response</span>)=&gt;</span>&#123;</span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(response);</span></span><br><span class="line"><span class="javascript">        &#125;).catch(<span class="function">(<span class="params">err</span>)=&gt;</span>&#123;</span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(err);</span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">  &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/07/a68e014f0e3fee3c.png" alt></p>
+<p>可以看到新增成功效果</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/990bcf87b1a4293f.png" alt></p>
+<h2 id="5-3-上拉分页加载更多"><a href="#5-3-上拉分页加载更多" class="headerlink" title="5.3 上拉分页加载更多"></a>5.3 上拉分页加载更多</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm i vue-infinite-scroll -S</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// main.js配置 </span></span><br><span class="line"></span><br><span class="line"><span class="comment">//配置上拉分页加载更多</span></span><br><span class="line"><span class="keyword">var</span> infiniteScroll =  <span class="built_in">require</span>(<span class="string">'vue-infinite-scroll'</span>);</span><br><span class="line">Vue.use(infiniteScroll);</span><br></pre></td></tr></table></figure>
+<h3 id="方法1：数据拼接"><a href="#方法1：数据拼接" class="headerlink" title="方法1：数据拼接"></a>方法1：数据拼接</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"article"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123; msg &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">v-infinite-scroll</span>=<span class="string">"loadMore"</span> <span class="attr">infinite-scroll-disabled</span>=<span class="string">"busy"</span> <span class="attr">infinite-scroll-distance</span>=<span class="string">"10"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">"(item,key) of articleListData"</span> <span class="attr">v-bind:key</span>=<span class="string">"key"</span>&gt;</span>&#123;&#123;item.title&#125;&#125;<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">"graphql-tag"</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="keyword">var</span> articleListGql = gql<span class="string">`</span></span></span><br><span class="line">  query articleList($page: Int!, $pageSize: Int!) &#123;</span><br><span class="line">    articleList(page: $page, pageSize: $pageSize) &#123;</span><br><span class="line">      title</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">`;</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="javascript">  name: <span class="string">"app"</span>,</span></span><br><span class="line">  data() &#123;</span><br><span class="line"><span class="javascript">    <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="javascript">      msg: <span class="string">"上拉分页加载更多"</span>,</span></span><br><span class="line">      articleList: [],</span><br><span class="line"><span class="javascript">      articleListData: [] <span class="comment">/*实际要循环的数据*/</span>,</span></span><br><span class="line"></span><br><span class="line">      page: 1,</span><br><span class="line"><span class="javascript">      busy: <span class="literal">false</span></span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">  methods: &#123;</span><br><span class="line">    loadMore() &#123;</span><br><span class="line"><span class="javascript">      <span class="keyword">this</span>.$apollo.addSmartQuery(<span class="string">"articleList"</span>, &#123;</span></span><br><span class="line">        query: articleListGql,</span><br><span class="line"></span><br><span class="line">        variables: &#123;</span><br><span class="line"><span class="javascript">          page: <span class="keyword">this</span>.page,</span></span><br><span class="line">          pageSize: 8</span><br><span class="line">        &#125;,</span><br><span class="line"></span><br><span class="line">        result(response) &#123;</span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(response);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">          <span class="keyword">this</span>.articleListData = <span class="keyword">this</span>.articleListData.concat(</span></span><br><span class="line">            response.data.articleList</span><br><span class="line">          );</span><br><span class="line"></span><br><span class="line"><span class="javascript">          <span class="keyword">this</span>.page++;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">          <span class="keyword">if</span> (response.data.articleList &lt; <span class="number">8</span>) &#123;</span></span><br><span class="line"><span class="javascript">            <span class="keyword">this</span>.busy = <span class="literal">true</span>; <span class="comment">//没有数据禁用上拉分页加载更多</span></span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        error(err) &#123;</span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(err);</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">scoped</span>&gt;</span></span><br><span class="line">  li &#123;</span><br><span class="line">    line-height: 4;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="方法2：使用-fetchMore-实现分页（推荐）"><a href="#方法2：使用-fetchMore-实现分页（推荐）" class="headerlink" title="方法2：使用 fetchMore 实现分页（推荐）"></a>方法2：使用 fetchMore 实现分页（推荐）</h3><blockquote>
+<p><a href="https://vue-apollo.netlify.app/zh-cn/guide/apollo/pagination.html" target="_blank" rel="noopener">https://vue-apollo.netlify.app/zh-cn/guide/apollo/pagination.html</a></p>
+</blockquote>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"article"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123; msg &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">v-infinite-scroll</span>=<span class="string">"loadMore"</span> <span class="attr">infinite-scroll-disabled</span>=<span class="string">"busy"</span> <span class="attr">infinite-scroll-distance</span>=<span class="string">"10"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">"(item,key) of articleList"</span> <span class="attr">v-bind:key</span>=<span class="string">"key"</span>&gt;</span>&#123;&#123;item.title&#125;&#125;<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="keyword">import</span> gql <span class="keyword">from</span> <span class="string">"graphql-tag"</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="keyword">var</span> articleListGql = gql<span class="string">`</span></span></span><br><span class="line">  query articleList($page: Int!, $pageSize: Int!) &#123;</span><br><span class="line">    articleList(page: $page, pageSize: $pageSize) &#123;</span><br><span class="line">      title</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">`;</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="javascript">  name: <span class="string">"app"</span>,</span></span><br><span class="line">  data() &#123;</span><br><span class="line"><span class="javascript">    <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="javascript">      msg: <span class="string">"上拉分页加载更多"</span>,</span></span><br><span class="line">      articleList: [],</span><br><span class="line">      page: 1,</span><br><span class="line"><span class="javascript">      busy: <span class="literal">false</span></span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">  apollo: &#123;</span><br><span class="line">    articleList() &#123;</span><br><span class="line"><span class="javascript">      <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="javascript">        <span class="comment">// GraphQL 查询</span></span></span><br><span class="line">        query: articleListGql,</span><br><span class="line"><span class="javascript">        <span class="comment">// 初始变量</span></span></span><br><span class="line">        variables: &#123;</span><br><span class="line"><span class="javascript">          page: <span class="keyword">this</span>.page,</span></span><br><span class="line">          pageSize: 5</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  methods: &#123;</span><br><span class="line">    loadMore() &#123;</span><br><span class="line"><span class="javascript">      <span class="keyword">this</span>.page++;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">this</span>.$apollo.queries.articleList.fetchMore(&#123;</span></span><br><span class="line"><span class="javascript">        <span class="comment">// 新的变量</span></span></span><br><span class="line">        variables: &#123;</span><br><span class="line"><span class="javascript">          page: <span class="keyword">this</span>.page,</span></span><br><span class="line">          pageSize: 5</span><br><span class="line">        &#125;,</span><br><span class="line"><span class="javascript">        <span class="comment">// 用新数据转换之前的结果</span></span></span><br><span class="line"><span class="javascript">        updateQuery: <span class="function">(<span class="params">previousResult, &#123; fetchMoreResult &#125;</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">          <span class="comment">// eslint-disable-next-line no-console</span></span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(fetchMoreResult);</span></span><br><span class="line"><span class="javascript">          <span class="keyword">return</span> &#123;</span></span><br><span class="line">            articleList: [</span><br><span class="line">              ...previousResult.articleList,</span><br><span class="line">              ...fetchMoreResult.articleList</span><br><span class="line">            ]</span><br><span class="line">          &#125;;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">scoped</span>&gt;</span></span><br><span class="line">li &#123;</span><br><span class="line">  line-height: 4;</span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>分页效果 </p>
+<p><img src="https://s.poetries.work/uploads/2022/07/a1ddb2379d5c7287.png" alt></p>
+<blockquote>
+<p>项目例子完整代码下载地址 <a href="https://blog.poetries.top/assets/graphql-code.zip">https://blog.poetries.top/assets/graphql-code.zip</a></p>
+</blockquote>
+<h1 id="六、文档"><a href="#六、文档" class="headerlink" title="六、文档"></a>六、文档</h1><ul>
+<li>中文文档：<a href="http://graphql.cn" target="_blank" rel="noopener">http://graphql.cn</a></li>
+<li>Github: <a href="https://github.com/facebook/graphql" target="_blank" rel="noopener">https://github.com/facebook/graphql</a></li>
+<li>vue-apollo文档：<a href="https://vue-apollo.netlify.app/zh-cn/guide/apollo.html" target="_blank" rel="noopener">https://vue-apollo.netlify.app/zh-cn/guide/apollo.html</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2022/06/30/linux-summary/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2022/07/27/sentry-summary/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

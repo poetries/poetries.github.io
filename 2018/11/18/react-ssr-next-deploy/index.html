@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>next项目部署到服务器pm2进程守护 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="React,SSR,">
+  
+
+  <meta name="description" content="一、 npm run export导出文件上传到CDN 在项目中执行npm run export后导出outCDN文件上传到CDN  // scripts/upload.jsconst fs = require(&apos;fs&apos;);const path = require(&apos;path&apos;);const OSS = require(&apos;ali-oss&apos;);const filePath = path.join(_">
+<meta name="keywords" content="React,SSR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="next项目部署到服务器pm2进程守护">
+<meta property="og:url" content="http://blog.poetries.top/2018/11/18/react-ssr-next-deploy/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、 npm run export导出文件上传到CDN 在项目中执行npm run export后导出outCDN文件上传到CDN  // scripts/upload.jsconst fs = require(&apos;fs&apos;);const path = require(&apos;path&apos;);const OSS = require(&apos;ali-oss&apos;);const filePath = path.join(_">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/435.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/437.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/438.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/436.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/439.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/440.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/441.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/442.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/443.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/444.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/445.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.494Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="next项目部署到服务器pm2进程守护">
+<meta name="twitter:description" content="一、 npm run export导出文件上传到CDN 在项目中执行npm run export后导出outCDN文件上传到CDN  // scripts/upload.jsconst fs = require(&apos;fs&apos;);const path = require(&apos;path&apos;);const OSS = require(&apos;ali-oss&apos;);const filePath = path.join(_">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/435.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、-npm-run-export导出文件上传到CDN"><span class="toc-text">一、 npm run export导出文件上传到CDN</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、处理next-build后的文件"><span class="toc-text">二、处理next build后的文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、pm2之ecosystem部署项目"><span class="toc-text">三、pm2之ecosystem部署项目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-配置部署脚本文件"><span class="toc-text">3.1 配置部署脚本文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-部署Nginx配置规则"><span class="toc-text">3.2 部署Nginx配置规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-本地项目根执行的命令"><span class="toc-text">3.3 本地项目根执行的命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-部署到阿里云"><span class="toc-text">3.4 部署到阿里云</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-部署更多参考"><span class="toc-text">3.5 部署更多参考</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-react-ssr-next-deploy" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">next项目部署到服务器pm2进程守护</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.11.18</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.8k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 8分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、-npm-run-export导出文件上传到CDN"><a href="#一、-npm-run-export导出文件上传到CDN" class="headerlink" title="一、 npm run export导出文件上传到CDN"></a>一、 <code>npm run export</code>导出文件上传到<code>CDN</code></h2><blockquote>
+<p>在项目中执行<code>npm run export</code>后导出<code>outCDN</code>文件上传到<code>CDN</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// scripts/upload.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>);</span><br><span class="line"><span class="keyword">const</span> OSS = <span class="built_in">require</span>(<span class="string">'ali-oss'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> filePath = path.join(__dirname,<span class="string">'../outCDN'</span>);</span><br><span class="line"><span class="keyword">const</span> excludeFiles = [<span class="string">'index.html'</span>]</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> client = <span class="keyword">new</span> OSS(&#123;</span><br><span class="line">  region: <span class="string">'oss-cn-shenzhen'</span>,</span><br><span class="line">  accessKeyId: <span class="string">''</span>,</span><br><span class="line">  accessKeySecret: <span class="string">''</span>,</span><br><span class="line">  bucket: <span class="string">''</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 遍历文件夹中所有文件</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">uploadFile</span>(<span class="params">filePath</span>)</span>&#123;</span><br><span class="line">    <span class="comment">//根据文件路径读取文件，返回文件列表</span></span><br><span class="line">    fs.readdir(filePath,<span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params">err,files</span>)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(err)&#123;</span><br><span class="line">            <span class="built_in">console</span>.warn(err)</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="comment">//遍历读取到的文件列表</span></span><br><span class="line">            files.forEach(<span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params">filename</span>)</span>&#123;</span><br><span class="line">                <span class="comment">//获取当前文件的绝对路径</span></span><br><span class="line">                <span class="keyword">const</span> filedir = path.join(filePath,filename);</span><br><span class="line">                <span class="comment">//根据文件路径获取文件信息，返回一个fs.Stats对象</span></span><br><span class="line">                fs.stat(filedir,<span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params">eror,stats</span>)</span>&#123;</span><br><span class="line">                    <span class="keyword">if</span>(eror)&#123;</span><br><span class="line">                        <span class="built_in">console</span>.warn(<span class="string">'获取文件stats失败'</span>);</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                        <span class="keyword">const</span> isFile = stats.isFile();<span class="comment">//是文件</span></span><br><span class="line">                        <span class="keyword">const</span> isDir = stats.isDirectory();<span class="comment">//是文件夹</span></span><br><span class="line">                        <span class="keyword">if</span>(!excludeFiles.includes(filename) &amp;&amp; isFile)&#123;</span><br><span class="line">                            <span class="keyword">const</span> fileKey = <span class="string">`<span class="subst">$&#123;filedir.split(<span class="string">'outCDN/'</span>).pop()&#125;</span>`</span></span><br><span class="line"></span><br><span class="line">                            <span class="keyword">try</span> &#123;</span><br><span class="line">                                <span class="comment">// object表示上传到OSS的Object名称，localfile表示本地文件或者文件路径</span></span><br><span class="line">                                <span class="keyword">let</span> data = <span class="keyword">await</span> client.put(fileKey,filedir);</span><br><span class="line"></span><br><span class="line">                                <span class="built_in">console</span>.error(<span class="string">'upload success: %j'</span>, data);</span><br><span class="line">                            &#125; <span class="keyword">catch</span>(err) &#123;</span><br><span class="line">                                <span class="built_in">console</span>.error(<span class="string">'upload failed: %j'</span>, err);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">if</span>(isDir)&#123;</span><br><span class="line">                            uploadFile(filedir);<span class="comment">//递归，如果是文件夹，就继续遍历该文件夹下面的文件</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;)</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">uploadFile(filePath)</span><br></pre></td></tr></table></figure>
+<h2 id="二、处理next-build后的文件"><a href="#二、处理next-build后的文件" class="headerlink" title="二、处理next build后的文件"></a>二、处理<code>next build</code>后的文件</h2><blockquote>
+<p>执行<code>next build</code>以后,把<code>.next</code>、<code>package.json</code>、<code>server.js</code>、<code>next.config.js</code>、<code>ecosystem.json</code> 拷贝到一个文件夹统一管理，最后部署这个文件夹下的内容即可</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// scripts/copyFiles.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>( <span class="string">'fs'</span> ),</span><br><span class="line">    stat = fs.stat;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> includeFiles = [<span class="string">'package.json'</span>,<span class="string">'server.js'</span>,<span class="string">'next.config.js'</span>,<span class="string">'ecosystem.json'</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * 复制目录中的所有文件包括子目录</span></span><br><span class="line"><span class="comment"> * @param&#123; String &#125; 需要复制的目录</span></span><br><span class="line"><span class="comment"> * @param&#123; String &#125; 复制到指定的目录</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> readDir = <span class="function"><span class="keyword">function</span>(<span class="params"> src, dst </span>)</span>&#123;</span><br><span class="line">    <span class="comment">// 读取目录中的所有文件/目录</span></span><br><span class="line">    fs.readdir( src, <span class="function"><span class="keyword">function</span>(<span class="params"> err, paths </span>)</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>( err )&#123;</span><br><span class="line">            <span class="keyword">throw</span> err;</span><br><span class="line">        &#125;</span><br><span class="line">        paths.forEach(<span class="function"><span class="keyword">function</span>(<span class="params"> filename </span>)</span>&#123;</span><br><span class="line">            <span class="keyword">var</span> _src = src + <span class="string">'/'</span> + filename,</span><br><span class="line">                _dst = dst + <span class="string">'/'</span> + filename,</span><br><span class="line">                readable, writable;</span><br><span class="line"></span><br><span class="line">            stat( _src, <span class="function"><span class="keyword">function</span>(<span class="params"> err, st </span>)</span>&#123;</span><br><span class="line">                <span class="keyword">if</span>( err )&#123;</span><br><span class="line">                    <span class="keyword">throw</span> err;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 判断是否为文件</span></span><br><span class="line">                <span class="keyword">if</span>( st.isFile())&#123;</span><br><span class="line">                    <span class="comment">// 创建读取流</span></span><br><span class="line">                    readable = fs.createReadStream( _src );</span><br><span class="line">                    <span class="comment">// 创建写入流</span></span><br><span class="line">                    writable = fs.createWriteStream( _dst );</span><br><span class="line">                    <span class="comment">// 通过管道来传输流</span></span><br><span class="line">                    readable.pipe( writable );</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// 如果是目录则递归调用自身</span></span><br><span class="line">                <span class="keyword">else</span> <span class="keyword">if</span>( st.isDirectory())&#123;</span><br><span class="line">                    copyDir( _src, _dst, readDir );</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在复制目录前需要判断该目录是否存在，不存在需要先创建目录</span></span><br><span class="line"><span class="keyword">const</span> copyDir = <span class="function"><span class="keyword">function</span>(<span class="params"> src, dst, callback </span>)</span>&#123;</span><br><span class="line">    fs.exists( dst, <span class="function"><span class="keyword">function</span>(<span class="params"> exists </span>)</span>&#123;</span><br><span class="line">        <span class="comment">// 已存在</span></span><br><span class="line">        <span class="keyword">if</span>( exists )&#123;</span><br><span class="line">            callback( src, dst );</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 不存在</span></span><br><span class="line">        <span class="keyword">else</span>&#123;</span><br><span class="line">            fs.mkdir( dst, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">                callback( src, dst );</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> copyFile = <span class="function"><span class="params">()</span>=&gt;</span>&#123;</span><br><span class="line">  includeFiles.forEach(<span class="function"><span class="params">filename</span>=&gt;</span>&#123;</span><br><span class="line">    fs.createReadStream(path.join(__dirname,<span class="string">'../'</span>+filename)).pipe(fs.createWriteStream(path.join(__dirname,<span class="string">'../deployBuildFiles'</span>,filename)))</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'拷贝完成!'</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 复制目录</span></span><br><span class="line">copyDir( <span class="string">'.next'</span>, <span class="string">'deployBuildFiles/.next'</span>, readDir);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拷贝文件</span></span><br><span class="line">copyFile()</span><br></pre></td></tr></table></figure>
+<h2 id="三、pm2之ecosystem部署项目"><a href="#三、pm2之ecosystem部署项目" class="headerlink" title="三、pm2之ecosystem部署项目"></a>三、pm2之ecosystem部署项目</h2><blockquote>
+<p><code>PM2</code>部署应用流程，通过<code>pm2</code>的配置文件来部署<br><a href="http://pm2.keymetrics.io/docs/usage/deployment/" target="_blank" rel="noopener">http://pm2.keymetrics.io/docs/usage/deployment/</a></p>
+</blockquote>
+<h3 id="3-1-配置部署脚本文件"><a href="#3-1-配置部署脚本文件" class="headerlink" title="3.1 配置部署脚本文件"></a>3.1 配置部署脚本文件</h3><blockquote>
+<p>在项目根目录添加<code>pm2</code>的部署脚本文件 <code>ecosystem.json</code></p>
+</blockquote>
+<blockquote>
+<p>部署文档详情：<a href="http://pm2.keymetrics.io/docs/usage/deployment/" target="_blank" rel="noopener">http://pm2.keymetrics.io/docs/usage/deployment/</a></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"apps"</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="string">"name"</span>: <span class="string">"goodsapp"</span>, <span class="comment">//pm2运行的应用名称</span></span><br><span class="line">        <span class="string">"script"</span>: <span class="string">"server.js"</span>,<span class="comment">//服务启动入口</span></span><br><span class="line">        <span class="string">"env"</span>:&#123;</span><br><span class="line">            <span class="string">"COMON_VARIABLE"</span>: <span class="string">"true"</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">"env_production"</span>: &#123;</span><br><span class="line">            <span class="string">"NODE_ENV"</span>: <span class="string">"production"</span>, <span class="comment">//env</span></span><br><span class="line">            <span class="string">"HOST"</span>: <span class="string">"localhost"</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">"deploy"</span>: &#123;</span><br><span class="line">      <span class="comment">// 最后这样使用 pm2 deploy ecosystem.json production</span></span><br><span class="line">      <span class="string">"production"</span>: &#123;</span><br><span class="line">          <span class="string">"user"</span>: <span class="string">"user_00"</span>,<span class="comment">// 服务器用户名</span></span><br><span class="line">          <span class="string">"host"</span>: [<span class="string">'192.68.1.201'</span>],<span class="comment">//服务器ip地址 可写多个</span></span><br><span class="line">          <span class="string">"ref"</span>: <span class="string">"origin/master"</span>,<span class="comment">//从指定分支拉取代码</span></span><br><span class="line">          <span class="string">"repo"</span>: <span class="string">"http://p.yesdat.com/diffusion/49/goodsh.git"</span>,</span><br><span class="line">          <span class="string">"path"</span>: <span class="string">"/data/poetry/testDir/prev-goods.yesdat.com"</span>, <span class="comment">//上传本地目录到服务器</span></span><br><span class="line">          <span class="string">"ssh_options"</span>: <span class="string">"StrictHostKeyChecking=no"</span>,</span><br><span class="line">          <span class="string">"post-deploy"</span>: <span class="string">"npm install --registry=https://registry.npm.taobao.org &amp;&amp; npm install &amp;&amp; pm2 startOrRestart ecosystem.json --env production"</span>,<span class="comment">//部署脚本</span></span><br><span class="line">          <span class="string">"env"</span>: &#123;</span><br><span class="line">              <span class="string">"NODE_ENV"</span>: <span class="string">"production"</span></span><br><span class="line">          &#125;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>或者简单<code>scp</code>上传到服务器</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">scp -P36000  -r deployBuildFiles/.next user_00@192.168.1.201:/home/data/services/goods-prev.yesdat.com/</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更多详情 <a href="http://blog.poetries.top/2018/12/03/linux-scp">http://blog.poetries.top/2018/12/03/linux-scp</a></p>
+</blockquote>
+<h3 id="3-2-部署Nginx配置规则"><a href="#3-2-部署Nginx配置规则" class="headerlink" title="3.2 部署Nginx配置规则"></a>3.2 部署Nginx配置规则</h3><ul>
+<li><a href="http://blog.poetries.top/2018/02/28/nginx-location-match-rules/">nginx之location的匹配规则</a></li>
+<li><a href="http://blog.poetries.top/2018/02/25/nginx-study/">Nginx学习篇</a></li>
+</ul>
+<blockquote>
+<p>在<code>nginx</code>安装目录下的<code>vhost</code>中新建一个<code>xx-3000.conf</code>的配置文件</p>
+</blockquote>
+<ul>
+<li>在Nginx目录<code>/etc/nginx</code>下执行 <code>sudo /usr/sbin/nginx -t</code> 检测配置文件是否成功</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/435.png" alt></p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line">upstream goodsapp &#123; // website项目的目录名称</span><br><span class="line">  server 127.0.0.1:3000; // 服务器上的本地启动入口，端口对应项目中server.js中的端口</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 配置server</span><br><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">80</span>;</span><br><span class="line">    server_name prev-goods.yesdat.com; //指向的域名</span><br><span class="line"></span><br><span class="line">    <span class="attribute">location</span> / &#123;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host <span class="variable">$http_host</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Nginx-Proxy <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        proxy_pass http://goodsapp; // 请求将会转发到goodsapp的node服务下</span><br><span class="line">        <span class="attribute">proxy_redirect</span> <span class="literal">off</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // 处理静态资源</span><br><span class="line">    <span class="attribute">location</span> <span class="regexp">~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|pdf|txt)</span> &#123;</span><br><span class="line">        root /data/goodsapp/static; //请求转发到静态资源路径</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更多配置参考 <a href="https://github.com/poetries/poetry-configure/blob/master/nginx.conf" target="_blank" rel="noopener">https://github.com/poetries/poetry-configure/blob/master/nginx.conf</a></p>
+</blockquote>
+<h3 id="3-3-本地项目根执行的命令"><a href="#3-3-本地项目根执行的命令" class="headerlink" title="3.3 本地项目根执行的命令"></a>3.3 本地项目根执行的命令</h3><ul>
+<li><code>pm2 deploy ecosystem.json goodsapp setup</code> 初始化</li>
+<li><code>pm2 deploy ecosystem.json goodsapp</code> 部署</li>
+</ul>
+<h3 id="3-4-部署到阿里云"><a href="#3-4-部署到阿里云" class="headerlink" title="3.4 部署到阿里云"></a>3.4 部署到阿里云</h3><p><strong>第一步：配置Nginx</strong></p>
+<blockquote>
+<p>查看<code>Nginx</code>安装路径 <code>which nginx</code> 注意<code>/etc/nginx</code>和<code>/usr/local/nginx/</code>下的<code>nginx</code>区别</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 切换到Nginx当前目录下</span></span><br><span class="line">/usr/<span class="built_in">local</span>/nginx/conf/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建vhost</span></span><br><span class="line">mkdir vhost</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建goodsapp-3001.conf，内容如下</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 8080; </span><br><span class="line">    server_name 39.108.74.36;<span class="comment"># 在ifconfig的拿到的ip地址或者是公网ip，这里填公网ip，如果是域名阿里云需要备案才可以正常访问</span></span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forward-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header Host <span class="variable">$http_host</span>;</span><br><span class="line">        proxy_set_header X-Nginx-Proxy <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        proxy_pass http://127.0.0.1:3001;<span class="comment"># 把172.16.0.223：8080的请求转发代理到本机的3001端口</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在/usr/local/nginx/sbin/nginx/conf/nginx.conf下include创建的vhost文件</span></span><br><span class="line">include /etc/nginx/vhost/*.conf; <span class="comment"># 在文件最后include配置文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在/usr/local/nginx/sbin/nginx/conf/nginx.conf下执行检测配置文件</span></span><br><span class="line">sudo /usr/<span class="built_in">local</span>/nginx/sbin/nginx -t</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新加载Nginx配置</span></span><br><span class="line">/usr/<span class="built_in">local</span>/nginx/sbin/nginx -s reload</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>一些注意事项</p>
+</blockquote>
+<ul>
+<li><code>server_name</code>可以是域名，也可以是<code>ip</code>。<code>ip</code>可以是本地，也可以是公网<code>ip</code></li>
+</ul>
+<p>本机<code>ip</code></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/437.png" alt></p>
+<p>公网<code>ip</code></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/438.png" alt></p>
+<ul>
+<li>阿里云防火墙规则设置</li>
+</ul>
+<blockquote>
+<p>这里访问了 <code>8080</code>需要在阿里云后台配置一下</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/436.png" alt></p>
+<p><strong>第二步：pm2部署到服务器</strong></p>
+<blockquote>
+<p> 首先在服务端全局安装<code>pm2</code>、<code>npm</code> <code>node</code>并且建立软链</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm i pm2 -g</span><br></pre></td></tr></table></figure>
+<p><strong>重要：请注意：</strong></p>
+<blockquote>
+<p>一定要做建立软链这步，否则出现如下问题</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/439.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/440.png" alt></p>
+<blockquote>
+<p>建立<code>npm</code> 软链</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/441.png" alt></p>
+<blockquote>
+<p>建立<code>node</code> 软链</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/442.png" alt></p>
+<blockquote>
+<p>建立<code>pm2</code> 软链</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/443.png" alt></p>
+<p><strong>正式部署</strong></p>
+<ul>
+<li>根目录执行<code>pm2 deploy deploy-app.json production setup</code> 初始化服务端环境</li>
+<li>根目录执行<code>pm2 deploy deploy-app.json production --force</code> 输入服务端用户root密码，部署即可</li>
+</ul>
+<blockquote>
+<p>来到<code>/home/production</code>目录查看上传的文件</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">"apps"</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="string">"name"</span>: <span class="string">"goodsapp-prev"</span>,</span><br><span class="line">          "script": "server.js",# 根目录server.js文件</span><br><span class="line">          <span class="string">"env"</span>:&#123;</span><br><span class="line">              <span class="string">"COMON_VARIABLE"</span>: <span class="string">"true"</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="string">"env_production"</span>: &#123;</span><br><span class="line">              <span class="string">"NODE_ENV"</span>: <span class="string">"production"</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">"deploy"</span>: &#123;</span><br><span class="line">        <span class="string">"production"</span>: &#123;</span><br><span class="line">            <span class="string">"user"</span>: <span class="string">"root"</span>,<span class="comment">//用户名</span></span><br><span class="line">            <span class="string">"host"</span>: [<span class="string">"39.108.74.36"</span>], <span class="comment">//公网ip</span></span><br><span class="line">            <span class="string">"ref"</span>: <span class="string">"origin/master"</span>,</span><br><span class="line">            <span class="string">"repo"</span>: <span class="string">"https://gitee.com/Poetries1/goods-prev.yesdat.com.git"</span>,</span><br><span class="line">            <span class="string">"path"</span>: <span class="string">"/home/production"</span>,</span><br><span class="line">            <span class="string">"ssh_options"</span>: [<span class="string">"StrictHostKeyChecking=no"</span>, <span class="string">"PasswordAuthentication=no"</span>],</span><br><span class="line">            <span class="string">"post-deploy"</span>: <span class="string">"npm install &amp;&amp; pm2 startOrRestart deploy-app.json --env production"</span>,</span><br><span class="line">            <span class="string">"pre-deploy-local"</span>: <span class="string">"echo 'Deploy Done!'"</span>,</span><br><span class="line">            <span class="string">"env"</span>: &#123;</span><br><span class="line">                <span class="string">"NODE_ENV"</span>: <span class="string">"production"</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更多配置信息 <a href="http://pm2.keymetrics.io/docs/usage/deployment/" target="_blank" rel="noopener">http://pm2.keymetrics.io/docs/usage/deployment/</a></p>
+</blockquote>
+<ul>
+<li><code>pm2 list</code>查看启动的项目</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/444.png" alt></p>
+<ul>
+<li><code>pm2 logs</code>查看启动日志</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/445.png" alt></p>
+<blockquote>
+<p>然后在浏览器访问<code>http://39.108.74.36:8080</code>（http://公网ip:端口）即可看到，到此部署结束</p>
+</blockquote>
+<h3 id="3-5-部署更多参考"><a href="#3-5-部署更多参考" class="headerlink" title="3.5 部署更多参考"></a>3.5 部署更多参考</h3><ul>
+<li><a href="https://segmentfault.com/a/1190000012774650" target="_blank" rel="noopener">next.js、nuxt.js等服务端渲染框架构建的项目部署到服务器，并用PM2守护程序</a></li>
+<li><a href="https://segmentfault.com/a/1190000010992618" target="_blank" rel="noopener">学习 Next.js: 部署</a></li>
+<li><a href="https://github.com/zeit/next.js/wiki/Deployment-on-Nginx&#39;s-reverse-proxy" target="_blank" rel="noopener">Deployment on Nginx’s reverse proxy</a></li>
+<li><a href="https://www.cnblogs.com/neromaycry/p/7072872.html" target="_blank" rel="noopener">将nodejs代码部署到阿里云服务器</a></li>
+<li><a href="https://www.jianshu.com/p/630e2e1ca57f" target="_blank" rel="noopener">Nginx从听说到学会</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/11/18/react-ssr-next/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/11/18/webpack4-config/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

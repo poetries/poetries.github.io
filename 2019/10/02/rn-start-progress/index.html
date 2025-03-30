@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>React Native之启动流程 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="react,RN,">
+  
+
+  <meta name="description" content="JS程序的入口，将当前APP对象注册到AppRegistry组件中，AppRegistry组件是js module  import &amp;#123; AppRegistry &amp;#125; from &apos;react-native&apos; ...省略代码 AppRegistry.registerComponent(&apos;demo&apos;, () =&amp;gt; Index) 启动流程 我们新建一个RN的项目，在原生代码中会生">
+<meta name="keywords" content="react,RN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React Native之启动流程">
+<meta property="og:url" content="http://blog.poetries.top/2019/10/02/rn-start-progress/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="JS程序的入口，将当前APP对象注册到AppRegistry组件中，AppRegistry组件是js module  import &amp;#123; AppRegistry &amp;#125; from &apos;react-native&apos; ...省略代码 AppRegistry.registerComponent(&apos;demo&apos;, () =&amp;gt; Index) 启动流程 我们新建一个RN的项目，在原生代码中会生">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/677.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/678.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/679.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.499Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React Native之启动流程">
+<meta name="twitter:description" content="JS程序的入口，将当前APP对象注册到AppRegistry组件中，AppRegistry组件是js module  import &amp;#123; AppRegistry &amp;#125; from &apos;react-native&apos; ...省略代码 AppRegistry.registerComponent(&apos;demo&apos;, () =&amp;gt; Index) 启动流程 我们新建一个RN的项目，在原生代码中会生">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/677.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#启动流程"><span class="toc-text">启动流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ReactActivity"><span class="toc-text">ReactActivity</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ReactRootView"><span class="toc-text">ReactRootView</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ReactInstanceManager"><span class="toc-text">ReactInstanceManager</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CatalystInstance"><span class="toc-text">CatalystInstance</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JSBundleLoader"><span class="toc-text">JSBundleLoader</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CatalystInstanceImpl-cpp"><span class="toc-text">CatalystInstanceImpl.cpp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Instance-cpp"><span class="toc-text">Instance.cpp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AppRegistry-js"><span class="toc-text">AppRegistry.js</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#系统框架图"><span class="toc-text">系统框架图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#启动流程图"><span class="toc-text">启动流程图</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-rn-start-progress" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">React Native之启动流程</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.10.02</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 14分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p><code>JS</code>程序的入口，将当前<code>APP</code>对象注册到<code>AppRegistry</code>组件中，<code>AppRegistry</code>组件是<code>js module</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; AppRegistry &#125; <span class="keyword">from</span> <span class="string">'react-native'</span></span><br><span class="line"> ...省略代码</span><br><span class="line"></span><br><span class="line"> AppRegistry.registerComponent(<span class="string">'demo'</span>, () =&gt; Index)</span><br></pre></td></tr></table></figure>
+<h2 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h2><ul>
+<li>我们新建一个RN的项目，在原生代码中会生成<code>MainActivity</code>和<code>MainApplication</code>两个<code>Java</code>类。顾名思义，<code>MainAcitivity</code>就是我们的<code>Native</code>的入口了，</li>
+<li>我们先来看下<code>MainApplication</code>都做了哪些操作</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">MainApplication</span> <span class="keyword">extends</span> <span class="title">Application</span> <span class="title">implements</span> <span class="title">ReactApplication</span> </span>&#123;</span><br><span class="line">    <span class="comment">//ReactNativeHost：持有ReactInstanceManager实例，做一些初始化操作。</span></span><br><span class="line">  private final ReactNativeHost mReactNativeHost = <span class="keyword">new</span> ReactNativeHost(<span class="keyword">this</span>) &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public boolean getUseDeveloperSupport() &#123;</span><br><span class="line">      <span class="keyword">return</span> BuildConfig.DEBUG;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected List&lt;ReactPackage&gt; getPackages() &#123;</span><br><span class="line">      <span class="keyword">return</span> Arrays.&lt;ReactPackage&gt;asList(</span><br><span class="line">          <span class="keyword">new</span> MainReactPackage()</span><br><span class="line">      );</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  @Override</span><br><span class="line">  public ReactNativeHost getReactNativeHost() &#123;</span><br><span class="line">    <span class="keyword">return</span> mReactNativeHost;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @Override</span><br><span class="line">  public <span class="keyword">void</span> onCreate() &#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate();</span><br><span class="line">    <span class="comment">//SoLoader：加载C++底层库，准备解析JS。</span></span><br><span class="line">    SoLoader.init(<span class="keyword">this</span>, <span class="comment">/* native exopackage */</span> <span class="literal">false</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们再来看下<code>MainActivity</code>的代码</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">ReactActivity</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected <span class="built_in">String</span> getMainComponentName() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"demo"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以看到其实是继承了<code>ReactActivity</code>类，只是重写了<code>getMainComponentName</code>方法，有没有看出来，其方法的返回值和我们在<code>JS</code>端的值是一样的。如果不一致会怎么样，你可以自己试一下。</p>
+</blockquote>
+<h2 id="ReactActivity"><a href="#ReactActivity" class="headerlink" title="ReactActivity"></a>ReactActivity</h2><blockquote>
+<p>我们来看下<code>ReactActivity</code>的方法的<code>onCreate</code>方法</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public abstract <span class="class"><span class="keyword">class</span> <span class="title">ReactActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span></span></span><br><span class="line"><span class="class">    <span class="title">implements</span> <span class="title">DefaultHardwareBackBtnHandler</span>, <span class="title">PermissionAwareActivity</span> </span>&#123;</span><br><span class="line">    private final ReactActivityDelegate mDelegate;</span><br><span class="line"></span><br><span class="line">    ...省略代码</span><br><span class="line"></span><br><span class="line">     @Override</span><br><span class="line">  protected <span class="keyword">void</span> onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">    mDelegate.onCreate(savedInstanceState);</span><br><span class="line">  &#125;    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>ReactActivity</code>全权委托给<code>ReactActivityDelegate</code>来处理</p>
+</blockquote>
+<p><strong>ReactActivityDelegate</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ReactActivityDelegate</span> </span>&#123;</span><br><span class="line">      protected <span class="keyword">void</span> onCreate(Bundle savedInstanceState) &#123;</span><br><span class="line">      <span class="comment">// 弹框权限判断</span></span><br><span class="line">    boolean needsOverlayPermission = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">if</span> (getReactNativeHost().getUseDeveloperSupport() &amp;&amp; Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) &#123;</span><br><span class="line">      <span class="comment">// Get permission to show redbox in dev builds.</span></span><br><span class="line">      <span class="keyword">if</span> (!Settings.canDrawOverlays(getContext())) &#123;</span><br><span class="line">        needsOverlayPermission = <span class="literal">true</span>;</span><br><span class="line">        Intent serviceIntent = <span class="keyword">new</span> Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse(<span class="string">"package:"</span> + getContext().getPackageName()));</span><br><span class="line">        FLog.w(ReactConstants.TAG, REDBOX_PERMISSION_MESSAGE);</span><br><span class="line">        Toast.makeText(getContext(), REDBOX_PERMISSION_MESSAGE, Toast.LENGTH_LONG).show();</span><br><span class="line">        ((Activity) getContext()).startActivityForResult(serviceIntent, REQUEST_OVERLAY_PERMISSION_CODE);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">        <span class="comment">// 加载组建逻辑 mMainComponentName为getMainComponentName返回的值</span></span><br><span class="line">    <span class="keyword">if</span> (mMainComponentName != <span class="literal">null</span> &amp;&amp; !needsOverlayPermission) &#123;</span><br><span class="line">      loadApp(mMainComponentName);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 双击判断工具类</span></span><br><span class="line">    mDoubleTapReloadRecognizer = <span class="keyword">new</span> DoubleTapReloadRecognizer();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  protected <span class="keyword">void</span> loadApp(<span class="built_in">String</span> appKey) &#123;</span><br><span class="line">     <span class="comment">//空判断</span></span><br><span class="line">    <span class="keyword">if</span> (mReactRootView != <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Cannot loadApp while app is already running."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 创建 RN容器根视图</span></span><br><span class="line">    mReactRootView = createRootView();</span><br><span class="line">    mReactRootView.startReactApplication(</span><br><span class="line">      getReactNativeHost().getReactInstanceManager(),</span><br><span class="line">      appKey,</span><br><span class="line">      getLaunchOptions());</span><br><span class="line">      <span class="comment">//将rootview添加入activity</span></span><br><span class="line">    getPlainActivity().setContentView(mReactRootView);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>loadApp</code>做了三件事:创建<code>RootView</code>、创建<code>ReactApplication</code>、创建<code>ReactInstanceManager</code></p>
+</blockquote>
+<h2 id="ReactRootView"><a href="#ReactRootView" class="headerlink" title="ReactRootView"></a>ReactRootView</h2><blockquote>
+<p>ReactRootView是一个自定义的View，其父类是FrameLayout。因此，可以把RN看成是一个特殊的 “自定义View”。</p>
+</blockquote>
+<blockquote>
+<p>我们来看下<code>startReactApplication</code>方法</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">void</span> startReactApplication(</span><br><span class="line">      ReactInstanceManager reactInstanceManager,</span><br><span class="line">      <span class="built_in">String</span> moduleName,</span><br><span class="line">      @Nullable Bundle initialProperties) &#123;</span><br><span class="line">        ...省略代码</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">//在UI线程中进行</span></span><br><span class="line">      UiThreadUtil.assertOnUiThread();</span><br><span class="line"></span><br><span class="line">      Assertions.assertCondition(</span><br><span class="line">        mReactInstanceManager == <span class="literal">null</span>,</span><br><span class="line">        <span class="string">"This root view has already been attached to a catalyst instance manager"</span>);</span><br><span class="line">        <span class="comment">// 赋值</span></span><br><span class="line">      mReactInstanceManager = reactInstanceManager;</span><br><span class="line">      mJSModuleName = moduleName;</span><br><span class="line">      mAppProperties = initialProperties;</span><br><span class="line">        <span class="comment">// 判断ReactContext是否初始化，没有就异步进行初始化</span></span><br><span class="line">      <span class="keyword">if</span> (!mReactInstanceManager.hasStartedCreatingInitialContext()) &#123;</span><br><span class="line">        mReactInstanceManager.createReactContextInBackground();</span><br><span class="line">      &#125;</span><br><span class="line">        <span class="comment">//宽高计算完成后添加布局监听</span></span><br><span class="line">      attachToReactInstanceManager();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      Systrace.endSection(TRACE_TAG_REACT_JAVA_BRIDGE);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>startReactApplication</code>中的三个参数</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>形参</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reactInstanceManager</code></td>
+<td><code>ReactInstanceManager</code>类型，创建和管理<code>CatalyInstance</code>的实例</td>
+</tr>
+<tr>
+<td><code>moduleName</code></td>
+<td>就是之前的组件名</td>
+</tr>
+<tr>
+<td><code>initialProperties</code></td>
+<td>是<code>Native</code>向JS传递的数据，以后可能由POJO代替，默认是<code>null</code>，需要的话要重写<code>createReactActivityDelegate</code> ，并重写其中<code>getLaunchOptions</code>方法</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>startReactApplication</code> 中调用了<code>ReactInstanceManager</code>的<code>createReactContextInBackground</code>方法。</p>
+</blockquote>
+<h2 id="ReactInstanceManager"><a href="#ReactInstanceManager" class="headerlink" title="ReactInstanceManager"></a>ReactInstanceManager</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="keyword">void</span> createReactContextInBackground() &#123;</span><br><span class="line">    <span class="comment">//首次执行</span></span><br><span class="line">     mHasStartedCreatingInitialContext = <span class="literal">true</span>;</span><br><span class="line">    recreateReactContextInBackgroundInner();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>该方法只会在<code>application</code>中执行一次，JS重载时，会走<code>recreateReactContextInBackground</code>, 这两个方法最终都会调用<code>recreateReactContextInBackgroundInner</code>方法</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">@ThreadConfined(UI)</span><br><span class="line">  private <span class="keyword">void</span> recreateReactContextInBackgroundInner() &#123;</span><br><span class="line">    <span class="comment">// 确保在UI线程中执行</span></span><br><span class="line">    UiThreadUtil.assertOnUiThread();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mUseDeveloperSupport &amp;&amp; mJSMainModuleName != <span class="literal">null</span> &amp;&amp;</span><br><span class="line">      !Systrace.isTracing(TRACE_TAG_REACT_APPS | TRACE_TAG_REACT_JSC_CALLS)) &#123;</span><br><span class="line">        <span class="comment">// 调试模式，加载服务器bundle</span></span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 加载本地bundle</span></span><br><span class="line">    recreateReactContextInBackgroundFromBundleLoader();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @ThreadConfined(UI)</span><br><span class="line">  private <span class="keyword">void</span> recreateReactContextInBackgroundFromBundleLoader() &#123;</span><br><span class="line">    recreateReactContextInBackground(</span><br><span class="line">        <span class="keyword">new</span> JSCJavaScriptExecutor.Factory(mJSCConfig.getConfigMap()),</span><br><span class="line">        mBundleLoader);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>形参</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>jsExecutorFactory</code></td>
+<td>C++和JS双向通信的中转站</td>
+</tr>
+<tr>
+<td><code>jsBundleLoader</code></td>
+<td><code>bundle</code>加载器，根据<code>ReactNativeHost</code>中的配置决定从哪里加载<code>bundle</code>文件</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">private <span class="keyword">void</span> recreateReactContextInBackground(</span><br><span class="line">    JavaScriptExecutor.Factory jsExecutorFactory,</span><br><span class="line">    JSBundleLoader jsBundleLoader) &#123;</span><br><span class="line">    UiThreadUtil.assertOnUiThread();</span><br><span class="line"></span><br><span class="line">     <span class="comment">//创建ReactContextInitParams对象</span></span><br><span class="line">    final ReactContextInitParams initParams = <span class="keyword">new</span> ReactContextInitParams(</span><br><span class="line">      jsExecutorFactory,</span><br><span class="line">      jsBundleLoader);</span><br><span class="line">    <span class="keyword">if</span> (mCreateReactContextThread == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 新增线程初始化ReactContext</span></span><br><span class="line">      runCreateReactContextOnNewThread(initParams);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      mPendingReactContextInitParams = initParams;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>runCreateReactContextOnNewThread</code>中有一个核心方法<code>createReactContext</code>来创建<code>ReactContext</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">private ReactApplicationContext createReactContext(</span><br><span class="line">      JavaScriptExecutor jsExecutor,</span><br><span class="line">      JSBundleLoader jsBundleLoader) &#123;</span><br><span class="line">    <span class="comment">// 包装ApplicationContext</span></span><br><span class="line">    final ReactApplicationContext reactContext = <span class="keyword">new</span> ReactApplicationContext(mApplicationContext);</span><br><span class="line">    <span class="comment">//创建JavaModule注册表Builder，用来创建JavaModule注册表，JavaModule注册表将所有的JavaModule注册到CatalystInstance中。</span></span><br><span class="line">    NativeModuleRegistryBuilder nativeModuleRegistryBuilder = <span class="keyword">new</span> NativeModuleRegistryBuilder(</span><br><span class="line">      reactContext,</span><br><span class="line">      <span class="keyword">this</span>,</span><br><span class="line">      mLazyNativeModulesEnabled);</span><br><span class="line">      <span class="comment">// 创建JavaScriptModule注册表Builder</span></span><br><span class="line">    JavaScriptModuleRegistry.Builder jsModulesBuilder = <span class="keyword">new</span> JavaScriptModuleRegistry.Builder();</span><br><span class="line">    <span class="keyword">if</span> (mUseDeveloperSupport) &#123;</span><br><span class="line">      <span class="comment">// 调试模式下，将错误交给DevSupportManager处理</span></span><br><span class="line">      reactContext.setNativeModuleCallExceptionHandler(mDevSupportManager);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ...省略代码</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">//创建CoreModulesPackage，其中封装了RN Framework核心功能，通信、调试等。</span></span><br><span class="line">      CoreModulesPackage coreModulesPackage =</span><br><span class="line">        <span class="keyword">new</span> CoreModulesPackage(</span><br><span class="line">          <span class="keyword">this</span>,</span><br><span class="line">          mBackBtnHandler,</span><br><span class="line">          mUIImplementationProvider,</span><br><span class="line">          mLazyViewManagersEnabled);</span><br><span class="line">          <span class="comment">//把各自的Module添加到对应的注册表中</span></span><br><span class="line">      processPackage(coreModulesPackage, nativeModuleRegistryBuilder, jsModulesBuilder);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      Systrace.endSection(TRACE_TAG_REACT_JAVA_BRIDGE);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 将我们Application中的ReactPackage循环处理，加入对应的注册表中。</span></span><br><span class="line">   <span class="keyword">for</span> (ReactPackage reactPackage : mPackages) &#123;</span><br><span class="line">        ...省略代码</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        processPackage(reactPackage, nativeModuleRegistryBuilder, jsModulesBuilder);</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        Systrace.endSection(TRACE_TAG_REACT_JAVA_BRIDGE);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...省略代码</span><br><span class="line">    <span class="comment">//生成Java注册表，将Java可调用的API暴露给JS</span></span><br><span class="line">    NativeModuleRegistry nativeModuleRegistry;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">       nativeModuleRegistry = nativeModuleRegistryBuilder.build();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      Systrace.endSection(TRACE_TAG_REACT_JAVA_BRIDGE);</span><br><span class="line">      ReactMarker.logMarker(BUILD_NATIVE_MODULE_REGISTRY_END);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    NativeModuleCallExceptionHandler exceptionHandler = mNativeModuleCallExceptionHandler != <span class="literal">null</span></span><br><span class="line">        ? mNativeModuleCallExceptionHandler</span><br><span class="line">        : mDevSupportManager;</span><br><span class="line">     <span class="comment">//构建CatalystInstanceImpl实例</span></span><br><span class="line">    CatalystInstanceImpl.Builder catalystInstanceBuilder = <span class="keyword">new</span> CatalystInstanceImpl.Builder()</span><br><span class="line">      .setReactQueueConfigurationSpec(mUseSeparateUIBackgroundThread ?</span><br><span class="line">        ReactQueueConfigurationSpec.createWithSeparateUIBackgroundThread() :</span><br><span class="line">        ReactQueueConfigurationSpec.createDefault())</span><br><span class="line">        <span class="comment">//JS执行通信类</span></span><br><span class="line">      .setJSExecutor(jsExecutor)</span><br><span class="line">      <span class="comment">//Java模块注册表</span></span><br><span class="line">      .setRegistry(nativeModuleRegistry)</span><br><span class="line">      <span class="comment">// JS注册表</span></span><br><span class="line">      .setJSModuleRegistry(jsModulesBuilder.build())</span><br><span class="line">      <span class="comment">// Bundle加载工具类</span></span><br><span class="line">      .setJSBundleLoader(jsBundleLoader)</span><br><span class="line">      <span class="comment">// 异常处理器</span></span><br><span class="line">      .setNativeModuleCallExceptionHandler(exceptionHandler);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略代码</span></span><br><span class="line"></span><br><span class="line">   final CatalystInstance catalystInstance;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      catalystInstance = catalystInstanceBuilder.build();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">//省略代码</span></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mBridgeIdleDebugListener != <span class="literal">null</span>) &#123;</span><br><span class="line">      catalystInstance.addBridgeIdleDebugListener(mBridgeIdleDebugListener);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (Systrace.isTracing(TRACE_TAG_REACT_APPS | TRACE_TAG_REACT_JSC_CALLS)) &#123;</span><br><span class="line"> <span class="comment">//调用CatalystInstanceImpl的Native方法把Java Registry转换为Json，再由C++层传送到JS层。     catalystInstance.setGlobalVariable("__RCTProfileIsProfiling", "true");</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//关联ReacContext与CatalystInstance</span></span><br><span class="line">    reactContext.initializeWithInstance(catalystInstance);</span><br><span class="line">    <span class="comment">//通过CatalystInstance开始加载JS Bundle</span></span><br><span class="line">    catalystInstance.runJSBundle();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> reactContext;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这段代码比较长，它主要做了这几件事：</p>
+</blockquote>
+<ul>
+<li>创建<code>JavaModule</code>注册表和<code>JavaScriptModule</code>注册表，交给<code>CatalystInstance</code>管理。</li>
+<li>处理<code>ReactPackage</code>，将各自的<code>Module</code>放入对应的注册表中。</li>
+<li>通过上面的各个参数创建<code>CatalystInstance</code>实例。<br><code>CatalystInstance</code>关联<code>ReactContext</code>，开始加载<code>JS Bundle</code></li>
+</ul>
+<h2 id="CatalystInstance"><a href="#CatalystInstance" class="headerlink" title="CatalystInstance"></a>CatalystInstance</h2><blockquote>
+<p>我们来看下<code>CatalystInstance</code>的实现类<code>CatalystInstanceImpl</code>的构造方法</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">private CatalystInstanceImpl(</span><br><span class="line">      final ReactQueueConfigurationSpec reactQueueConfigurationSpec,</span><br><span class="line">      final JavaScriptExecutor jsExecutor,</span><br><span class="line">      final NativeModuleRegistry registry,</span><br><span class="line">      final JavaScriptModuleRegistry jsModuleRegistry,</span><br><span class="line">      final JSBundleLoader jsBundleLoader,</span><br><span class="line">      NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler) &#123;</span><br><span class="line">    <span class="comment">//用来创建JNI相关方法，并返回mHybridData</span></span><br><span class="line">    mHybridData = initHybrid();</span><br><span class="line">    <span class="comment">// Android UI线程、JS线程、NativeMOdulesQueue线程</span></span><br><span class="line">    mReactQueueConfiguration = ReactQueueConfigurationImpl.create(</span><br><span class="line">        reactQueueConfigurationSpec,</span><br><span class="line">        <span class="keyword">new</span> NativeExceptionHandler());</span><br><span class="line">    <span class="comment">// 省略代码</span></span><br><span class="line">    <span class="comment">//调用 C++ 层代码进行初始化Bridge</span></span><br><span class="line">    initializeBridge(</span><br><span class="line">      <span class="keyword">new</span> BridgeCallback(<span class="keyword">this</span>),</span><br><span class="line">      jsExecutor,</span><br><span class="line">      mReactQueueConfiguration.getJSQueueThread(),</span><br><span class="line">      mNativeModulesQueueThread,</span><br><span class="line">      mUIBackgroundQueueThread,</span><br><span class="line">      mJavaRegistry.getJavaModules(<span class="keyword">this</span>),</span><br><span class="line">      mJavaRegistry.getCxxModules());</span><br><span class="line"></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">private native <span class="keyword">void</span> initializeBridge(</span><br><span class="line">      ReactCallback callback,</span><br><span class="line">      JavaScriptExecutor jsExecutor,</span><br><span class="line">      MessageQueueThread jsQueue,</span><br><span class="line">      MessageQueueThread moduleQueue,</span><br><span class="line">      MessageQueueThread uiBackgroundQueue,</span><br><span class="line">      Collection&lt;JavaModuleWrapper&gt; javaModules,</span><br><span class="line">      Collection&lt;ModuleHolder&gt; cxxModules);</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>形参</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ReactCallback</code></td>
+<td>CatalystInstanceImpl的静态内部类<code>ReactCallback</code>，负责接口回调</td>
+</tr>
+<tr>
+<td><code>JavaScriptExecutor</code></td>
+<td>JS执行器，将JS的调用传给C++层</td>
+</tr>
+<tr>
+<td><code>MessageQueueThread</code></td>
+<td><code>JS</code>线程</td>
+</tr>
+<tr>
+<td><code>MessageQueueThread moduleQueue</code></td>
+<td><code>Java</code>线程</td>
+</tr>
+<tr>
+<td><code>MessageQueueThread uiBackgroundQueue</code></td>
+<td><code>UI</code>背景线程</td>
+</tr>
+<tr>
+<td><code>javaModules</code></td>
+<td><code>java module</code></td>
+</tr>
+<tr>
+<td><code>cxxModules</code></td>
+<td><code>c++ module</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>createReactContext</code>方法中用<code>catalystInstance.runJSBundle()</code> 来加载 <code>JS bundle</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">  public <span class="keyword">void</span> runJSBundle() &#123;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">    mJSBundleLoader.loadScript(CatalystInstanceImpl.this);</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="JSBundleLoader"><a href="#JSBundleLoader" class="headerlink" title="JSBundleLoader"></a>JSBundleLoader</h2><blockquote>
+<p><code>CatalystInstanceImpl.runJSBundle()</code>会调用<code>JSBundleLoader</code>去加载<code>JS Bundle</code>，由于不同的情况可能会有不同的<code>JSBundleLoader</code>，我们假设其中一种</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public abstract <span class="class"><span class="keyword">class</span> <span class="title">JSBundleLoader</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * This loader is recommended one for release version of your app. In that case local JS executor</span></span><br><span class="line"><span class="comment">   * should be used. JS bundle will be read from assets in native code to save on passing large</span></span><br><span class="line"><span class="comment">   * strings from java to native memory.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  public <span class="keyword">static</span> JSBundleLoader createAssetLoader(</span><br><span class="line">      final Context context,</span><br><span class="line">      final <span class="built_in">String</span> assetUrl,</span><br><span class="line">      final boolean loadSynchronously) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> JSBundleLoader() &#123;</span><br><span class="line">      @Override</span><br><span class="line">      public <span class="built_in">String</span> loadScript(CatalystInstanceImpl instance) &#123;</span><br><span class="line">        instance.loadScriptFromAssets(context.getAssets(), assetUrl, loadSynchronously);</span><br><span class="line">        <span class="keyword">return</span> assetUrl;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以看到它会继续调用<code>CatalystInstance</code>中的<code>loadScriptFromAssets</code>方法</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">CatalystInstanceImpl</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* package */</span> <span class="keyword">void</span> loadScriptFromAssets(AssetManager assetManager, <span class="built_in">String</span> assetURL) &#123;</span><br><span class="line">    mSourceURL = assetURL;</span><br><span class="line">    jniLoadScriptFromAssets(assetManager, assetURL);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  private native <span class="keyword">void</span> jniLoadScriptFromAssets(AssetManager assetManager, <span class="built_in">String</span> assetURL);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>最终呢，还是会调用<code>CatalystInstanceImpl.cpp</code>去加载<code>JS Bundle</code>，我们去<code>C++</code>层看一下实现</p>
+</blockquote>
+<p>我们先看下源码的结构图</p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/677.png" alt></p>
+<h2 id="CatalystInstanceImpl-cpp"><a href="#CatalystInstanceImpl-cpp" class="headerlink" title="CatalystInstanceImpl.cpp"></a>CatalystInstanceImpl.cpp</h2><blockquote>
+<p>在ReactAndroid的Jni中，我们看下相关代码：</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> CatalystInstanceImpl::jniLoadScriptFromAssets(</span><br><span class="line">    jni::alias_ref&lt;JAssetManager::javaobject&gt; assetManager,</span><br><span class="line">    <span class="keyword">const</span> std::string&amp; assetURL,</span><br><span class="line">    bool loadSynchronously) &#123;</span><br><span class="line">  <span class="keyword">const</span> int kAssetsLength = <span class="number">9</span>;  <span class="comment">// strlen("assets://");</span></span><br><span class="line">  <span class="comment">// 获取soure js Bundle的路径名</span></span><br><span class="line">  auto sourceURL = assetURL.substr(kAssetsLength);</span><br><span class="line">  <span class="comment">// 获取AssetManager</span></span><br><span class="line">  auto manager = extractAssetManager(assetManager);</span><br><span class="line">  <span class="comment">// 读取JS Bundle里的内容</span></span><br><span class="line">  auto script = loadScriptFromAssets(manager, sourceURL);</span><br><span class="line">  <span class="comment">// unbundle命令打包判断</span></span><br><span class="line">  <span class="keyword">if</span> (JniJSModulesUnbundle::isUnbundle(manager, sourceURL)) &#123;</span><br><span class="line">    instance_-&gt;loadUnbundle(</span><br><span class="line">      folly::make_unique&lt;JniJSModulesUnbundle&gt;(manager, sourceURL),</span><br><span class="line">      std::move(script),</span><br><span class="line">      sourceURL,</span><br><span class="line">      loadSynchronously);</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">//bundle命令打包走次流程，instance_是Instan.h中类的实例</span></span><br><span class="line">    instance_-&gt;loadScriptFromString(std::move(script), sourceURL, loadSynchronously);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Instance-cpp"><a href="#Instance-cpp" class="headerlink" title="Instance.cpp"></a>Instance.cpp</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> Instance::loadScriptFromString(std::unique_ptr&lt;<span class="keyword">const</span> JSBigString&gt; string,</span><br><span class="line">                                    std::string sourceURL,</span><br><span class="line">                                    bool loadSynchronously) &#123;</span><br><span class="line">  SystraceSection s(<span class="string">"reactbridge_xplat_loadScriptFromString"</span>, <span class="string">"sourceURL"</span>, sourceURL);</span><br><span class="line">  <span class="keyword">if</span> (loadSynchronously) &#123;</span><br><span class="line">    loadApplicationSync(nullptr, <span class="attr">std</span>::move(string), <span class="attr">std</span>::move(sourceURL));</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    loadApplication(nullptr, <span class="attr">std</span>::move(string), <span class="attr">std</span>::move(sourceURL));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> Instance::loadApplicationSync(</span><br><span class="line">    std::unique_ptr&lt;JSModulesUnbundle&gt; unbundle,</span><br><span class="line">    std::unique_ptr&lt;<span class="keyword">const</span> JSBigString&gt; string,</span><br><span class="line">    std::string sourceURL) &#123;</span><br><span class="line">  std::unique_lock&lt;std::mutex&gt; lock(m_syncMutex);</span><br><span class="line">  m_syncCV.wait(lock, [<span class="keyword">this</span>] &#123; <span class="keyword">return</span> m_syncReady; &#125;);</span><br><span class="line"></span><br><span class="line">  SystraceSection s(<span class="string">"reactbridge_xplat_loadApplicationSync"</span>, <span class="string">"sourceURL"</span>, sourceURL);</span><br><span class="line">  <span class="comment">//nativeToJsBridge_也是在Instance::initializeBridget()方法里初始化的，具体实现在NativeToJsBridge.cpp里。</span></span><br><span class="line">  nativeToJsBridge_-&gt;loadApplicationSync(std::move(unbundle), <span class="attr">std</span>::move(string), <span class="attr">std</span>::move(sourceURL));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>NativeToJsBridge.cpp</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> NativeToJsBridge::loadApplication(</span><br><span class="line">    std::unique_ptr&lt;JSModulesUnbundle&gt; unbundle,</span><br><span class="line">    std::unique_ptr&lt;<span class="keyword">const</span> JSBigString&gt; startupScript,</span><br><span class="line">    std::string startupScriptSourceURL) &#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取一个MessageQueueThread，探后在线程中执行一个Task。</span></span><br><span class="line">  runOnExecutorQueue(</span><br><span class="line">      m_mainExecutorToken,</span><br><span class="line">      [unbundleWrap=folly::makeMoveWrapper(std::move(unbundle)),</span><br><span class="line">       startupScript=folly::makeMoveWrapper(std::move(startupScript)),</span><br><span class="line">       startupScriptSourceURL=std::move(startupScriptSourceURL)]</span><br><span class="line">        (JSExecutor* executor) mutable &#123;</span><br><span class="line"></span><br><span class="line">    auto unbundle = unbundleWrap.move();</span><br><span class="line">    <span class="keyword">if</span> (unbundle) &#123;</span><br><span class="line">      executor-&gt;setJSModulesUnbundle(std::move(unbundle));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//executor从runOnExecutorQueue()返回的map中取得，与OnLoad中的JSCJavaScriptExecutorHolder对应，也与</span></span><br><span class="line">    <span class="comment">//Java中的JSCJavaScriptExecutor对应。它的实例在JSExecutor.cpp中实现。</span></span><br><span class="line">    executor-&gt;loadApplicationScript(std::move(*startupScript),</span><br><span class="line">                                    std::move(startupScriptSourceURL));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>unbundle命令，使用方式和bundle命令完全相同。unbundle命令是在bundle命令的基础上增加了一项功能，除了生成整合JS文件index.android.bundle外，还会<br>生成各个单独的未整合JS文件（但会被优化），全部放在js-modules目录下，同时会生成一个名为UNBUNDLE的标识文件，一并放在其中。UNBUNDLE标识文件的前4个字节<br>固定为0xFB0BD1E5，用于加载前的校验。</p>
+</blockquote>
+<ul>
+<li>该函数进一步调用<code>JSExecutor.cpp</code>的<code>loadApplicationScript()</code>方法。</li>
+<li>到了这个方法，就是去真正加载JS文件了。</li>
+</ul>
+<p><strong>JSCExecutor.cpp</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::loadApplicationScript(std::unique_ptr&lt;<span class="keyword">const</span> JSBigString&gt; script, <span class="attr">std</span>::string sourceURL) &#123;</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//使用Webkit JSC去解释执行JS</span></span><br><span class="line">    evaluateSourceCode(m_context, bcSourceCode, jsSourceURL);</span><br><span class="line">    flush();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::flush() &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//绑定bridge，核心就是通过getGlobalObject()将JS与C++通过Webkit jSC实现绑定</span></span><br><span class="line">      bindBridge();</span><br><span class="line">      <span class="comment">//返回给callNativeModules</span></span><br><span class="line">    callNativeModules(m_flushedQueueJS-&gt;callAsFunction(&#123;&#125;));</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> JSCExecutor::callNativeModules(Value&amp;&amp; value) &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//把JS层相关通信数据转换为JSON格式</span></span><br><span class="line">    auto calls = value.toJSONString();</span><br><span class="line">    <span class="comment">//m_delegate为JsToNativeBridge对象。</span></span><br><span class="line">    m_delegate-&gt;callNativeModules(*<span class="keyword">this</span>, <span class="attr">folly</span>::parseJson(calls), <span class="literal">true</span>);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>m_flushedQueueJS</code>支线的是<code>MessageQueue.js</code>的<code>flushedQueue()</code>方法，此时JS已经被加载到队列中，等待Java层来驱动它。</li>
+<li><code>JS Bundle</code>加载并解析完成后，我们回到Java代码中看看后续的流程</li>
+<li>我们在之前的<code>runCreateReactContextOnNewThread</code>方法中，在<code>creatReactContext</code>之后还有一句核心的代码</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">setupReactContext(reactApplicationContext);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这就是加载<code>JS Bundle</code>之后执行的代码</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">public <span class="class"><span class="keyword">class</span> <span class="title">ReactInstanceManager</span> </span>&#123;</span><br><span class="line">    private <span class="keyword">void</span> setupReactContext(ReactApplicationContext reactContext) &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// Native Java module初始化</span></span><br><span class="line">    catalystInstance.initialize();</span><br><span class="line">    <span class="comment">//重置ReactContext </span></span><br><span class="line">    mDevSupportManager.onNewReactContextCreated(reactContext);</span><br><span class="line">   <span class="comment">//内存状态回调设置 mMemoryPressureRouter.addMemoryPressureListener(catalystInstance);</span></span><br><span class="line">    <span class="comment">// 复位生命周期</span></span><br><span class="line">    moveReactContextToCurrentLifecycleState();</span><br><span class="line"></span><br><span class="line">    ReactMarker.logMarker(ATTACH_MEASURED_ROOT_VIEWS_START);</span><br><span class="line">    synchronized (mAttachedRootViews) &#123;</span><br><span class="line">    <span class="comment">//mAttachedRootViews保存的是ReactRootView</span></span><br><span class="line">      <span class="keyword">for</span> (ReactRootView rootView : mAttachedRootViews) &#123;</span><br><span class="line">        attachRootViewToInstance(rootView, catalystInstance);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private <span class="keyword">void</span> attachMeasuredRootViewToInstance (     final ReactRootView rootView,</span><br><span class="line">      CatalystInstance catalystInstance) &#123;</span><br><span class="line">      ...</span><br><span class="line">            <span class="comment">//将ReactRootView作为根布局</span></span><br><span class="line">    UIManagerModule uiManagerModule = catalystInstance.getNativeModule(UIManagerModule.class);</span><br><span class="line">    int rootTag = uiManagerModule.addMeasuredRootView(rootView);</span><br><span class="line">    <span class="comment">//设置相关</span></span><br><span class="line">    rootView.setRootViewTag(rootTag);</span><br><span class="line">    rootView.runApplication();</span><br><span class="line">    ...</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* package */</span> <span class="keyword">void</span> runApplication() &#123;</span><br><span class="line">       ...</span><br><span class="line">     CatalystInstance catalystInstance = reactContext.getCatalystInstance();</span><br><span class="line"></span><br><span class="line">     WritableNativeMap appParams = <span class="keyword">new</span> WritableNativeMap();</span><br><span class="line">     appParams.putDouble(<span class="string">"rootTag"</span>, getRootViewTag());</span><br><span class="line">     @Nullable Bundle appProperties = getAppProperties();</span><br><span class="line">     <span class="keyword">if</span> (appProperties != <span class="literal">null</span>) &#123;</span><br><span class="line">       appParams.putMap(<span class="string">"initialProps"</span>, Arguments.fromBundle(appProperties));</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="built_in">String</span> jsAppModuleName = getJSModuleName();</span><br><span class="line">     <span class="comment">//启动流程入口：由Java层调用启动</span></span><br><span class="line">     catalystInstance.getJSModule(AppRegistry.class).runApplication(jsAppModuleName, appParams);</span><br><span class="line">     ...</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以看到，最终调用的是<code>catalystInstance.getJSModule(AppRegistry.class).runApplication(jsAppModuleName, appParams)</code>， <code>AppRegistry.class</code>是JS层暴露给Java层的接口方法。它的真正实现在<code>AppRegistry.js</code>里，<code>AppRegistry.js</code>是运行所有<code>RN</code>应用的<code>JS</code>层入口，我们来看看它的实现：</p>
+</blockquote>
+<ul>
+<li><strong>在<code>Libraries/ReactNative</code>中的<code>AppRegistry.js</code></strong></li>
+</ul>
+<h2 id="AppRegistry-js"><a href="#AppRegistry-js" class="headerlink" title="AppRegistry.js"></a>AppRegistry.js</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">runApplication(appKey: string, <span class="attr">appParameters</span>: any): <span class="keyword">void</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> msg =</span><br><span class="line">      <span class="string">'Running application "'</span> + appKey + <span class="string">'" with appParams: '</span> +</span><br><span class="line">      <span class="built_in">JSON</span>.stringify(appParameters) + <span class="string">'. '</span> +</span><br><span class="line">      <span class="string">'__DEV__ === '</span> + <span class="built_in">String</span>(__DEV__) +</span><br><span class="line">      <span class="string">', development-level warning are '</span> + (__DEV__ ? <span class="string">'ON'</span> : <span class="string">'OFF'</span>) +</span><br><span class="line">      <span class="string">', performance optimizations are '</span> + (__DEV__ ? <span class="string">'OFF'</span> : <span class="string">'ON'</span>);</span><br><span class="line">    infoLog(msg);</span><br><span class="line">    BugReporting.addSource(<span class="string">'AppRegistry.runApplication'</span> + runCount++, () =&gt; msg);</span><br><span class="line">    invariant(</span><br><span class="line">      runnables[appKey] &amp;&amp; runnables[appKey].run,</span><br><span class="line">      <span class="string">'Application '</span> + appKey + <span class="string">' has not been registered.\n\n'</span> +</span><br><span class="line">      <span class="string">'Hint: This error often happens when you\'re running the packager '</span> +</span><br><span class="line">      <span class="string">'(local dev server) from a wrong folder. For example you have '</span> +</span><br><span class="line">      <span class="string">'multiple apps and the packager is still running for the app you '</span> +</span><br><span class="line">      <span class="string">'were working on before.\nIf this is the case, simply kill the old '</span> +</span><br><span class="line">      <span class="string">'packager instance (e.g. close the packager terminal window) '</span> +</span><br><span class="line">      <span class="string">'and start the packager in the correct app folder (e.g. cd into app '</span> +</span><br><span class="line">      <span class="string">'folder and run \'npm start\').\n\n'</span> +</span><br><span class="line">      <span class="string">'This error can also happen due to a require() error during '</span> +</span><br><span class="line">      <span class="string">'initialization or failure to call AppRegistry.registerComponent.\n\n'</span></span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    SceneTracker.setActiveScene(&#123;<span class="attr">name</span>: appKey&#125;);</span><br><span class="line">    runnables[appKey].run(appParameters);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>到这里就会去调用JS进行渲染，在通过<code>UIManagerModule</code>将JS组件转换成Android组件，最终显示在<code>ReactRootView</code>上。</li>
+<li>最后总结一下，就是先在应用终端启动并创建上下文对象，启动<code>JS Runtime</code>，进行布局，将JS端的代码通过C++层，<code>UIManagerMoodule</code>转化成<code>Android</code>组件，再进行渲染，最后将渲染的View添加到<code>ReactRootView</code>上，最终呈现在用户面前。</li>
+</ul>
+<h2 id="系统框架图"><a href="#系统框架图" class="headerlink" title="系统框架图"></a>系统框架图</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/678.png" alt></p>
+<h2 id="启动流程图"><a href="#启动流程图" class="headerlink" title="启动流程图"></a>启动流程图</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/679.png" alt></p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/10/02/rn-adapter/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/10/02/rn-yuanli/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

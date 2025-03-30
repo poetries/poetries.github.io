@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>dll预编译提高webpack打包速度 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="webpack,dll,">
+  
+
+  <meta name="description" content="博客链接 http://blog.poetries.top/2018/11/23/webpack-dll  一、webpack的dll功能 基于webpack3构建  1.1 dll介绍 我们构建前端项目的时候，往往希望第三方库（vendors）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此Webpack的文档建议用CommonsChunkPlugin来单独打包第三方库">
+<meta name="keywords" content="webpack,dll">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dll预编译提高webpack打包速度">
+<meta property="og:url" content="http://blog.poetries.top/2018/11/23/webpack-dll/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="博客链接 http://blog.poetries.top/2018/11/23/webpack-dll  一、webpack的dll功能 基于webpack3构建  1.1 dll介绍 我们构建前端项目的时候，往往希望第三方库（vendors）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此Webpack的文档建议用CommonsChunkPlugin来单独打包第三方库">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/639.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/640.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/641.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/642.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/643.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.510Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="dll预编译提高webpack打包速度">
+<meta name="twitter:description" content="博客链接 http://blog.poetries.top/2018/11/23/webpack-dll  一、webpack的dll功能 基于webpack3构建  1.1 dll介绍 我们构建前端项目的时候，往往希望第三方库（vendors）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此Webpack的文档建议用CommonsChunkPlugin来单独打包第三方库">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/639.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、webpack的dll功能"><span class="toc-text">一、webpack的dll功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-dll介绍"><span class="toc-text">1.1 dll介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-dll使用"><span class="toc-text">1.2 dll使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、happypack-多线程打包"><span class="toc-text">二、happypack 多线程打包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、更多参考"><span class="toc-text">三、更多参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-webpack-dll" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">dll预编译提高webpack打包速度</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.11.23</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 5分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>博客链接 <a href="http://blog.poetries.top/2018/11/23/webpack-dll">http://blog.poetries.top/2018/11/23/webpack-dll</a></p>
+</blockquote>
+<h2 id="一、webpack的dll功能"><a href="#一、webpack的dll功能" class="headerlink" title="一、webpack的dll功能"></a>一、webpack的dll功能</h2><blockquote>
+<p>基于<code>webpack3</code>构建</p>
+</blockquote>
+<h3 id="1-1-dll介绍"><a href="#1-1-dll介绍" class="headerlink" title="1.1 dll介绍"></a>1.1 dll介绍</h3><blockquote>
+<p>我们构建前端项目的时候，往往希望第三方库（<code>vendors</code>）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此<code>Webpack</code>的文档建议用<code>CommonsChunkPlugin</code>来单独打包第三方库</p>
+</blockquote>
+<ul>
+<li>我们这里的<code>dll.js</code> 是提前打包好了的，而不是在每次<code>build</code>的时候去打包输出的；这样才能做到依赖包一次构建，无限次使用</li>
+<li><code>webpack</code>输出的文件名都带有<code>hash</code>值； 而用<code>dll</code>构建后输出的文件名是固定的</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">entry: &#123;</span><br><span class="line">  vendor: [<span class="string">"jquery"</span>, <span class="string">"other-lib"</span>],</span><br><span class="line">  app: <span class="string">"./entry"</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">new</span> CommonsChunkPlugin(&#123;</span><br><span class="line">  name: <span class="string">"vendor"</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// filename: "vendor.js"</span></span><br><span class="line">  <span class="comment">// (Give the chunk a different name)</span></span><br><span class="line"></span><br><span class="line">  minChunks: <span class="literal">Infinity</span>,</span><br><span class="line">  <span class="comment">// (with more entries, this ensures that no other module</span></span><br><span class="line">  <span class="comment">//  goes into the vendor chunk)</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>通常为了对抗缓存，我们会给售出文件的文件名中加入<code>hash</code>的后缀——但是——我们编辑了<code>app</code>部分的代码后，重新打包，发现<code>vendor</code>的<code>hash</code>也变化了</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/639.png" alt></p>
+<blockquote>
+<p>这么一来，意味着每次发布版本的时候，vendor代码都要刷新，即使我并没有修改其中的代码。这样并不符合我们分开打包的初衷</p>
+</blockquote>
+<ul>
+<li><code>Dll</code>是<code>Webpack</code>最近新加的功能</li>
+<li><code>Dll</code>这个概念应该是借鉴了<code>Windows</code>系统的<code>dll</code>。一个<code>dll</code>包，就是一个纯纯的依赖库，它本身不能运行，是用来给你的<code>app</code>引用的</li>
+<li>打包<code>dll</code>的时候，<code>Webpack</code>会将所有包含的库做一个索引，写在一个<code>manifest</code>文件中，而引用<code>dll</code>的代码（<code>dll user</code>）在打包的时候，只需要读取这个<code>manifest</code>文件，就可以了。</li>
+</ul>
+<p><strong>优势</strong></p>
+<ul>
+<li><code>Dll</code>打包以后是独立存在的，只要其包含的库没有增减、升级，<code>hash</code>也不会变化，因此线上的<code>dll</code>代码不需要随着版本发布频繁更新</li>
+<li><code>App</code>部分代码修改后，只需要编译<code>app</code>部分的代码，<code>dll</code>部分，只要包含的库没有增减、升级，就不需要重新打包。这样也大大提高了每次编译的速度</li>
+<li>假设你有多个项目，使用了相同的一些依赖库，它们就可以共用一个<code>dll</code></li>
+</ul>
+<h3 id="1-2-dll使用"><a href="#1-2-dll使用" class="headerlink" title="1.2 dll使用"></a>1.2 dll使用</h3><blockquote>
+<p>首先要先建立一个<code>dll</code>的配置文件，<code>entry</code>只包含第三方库</p>
+</blockquote>
+<p><strong>第一步：新建webpack.dll.conf.js</strong></p>
+<ul>
+<li><code>webpack.DllPlugin</code>的选项中，<code>path</code>是<code>manifest</code>文件的输出路径；<code>name</code>是<code>dll</code>暴露的对象名，要跟<code>output.library</code>保持一致</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.dll.conf.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>)</span><br><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">'webpack'</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  entry: &#123;</span><br><span class="line">    <span class="comment">// 把这些资源打包成dll，提高编译速度</span></span><br><span class="line">    react: [<span class="string">'react'</span>,<span class="string">'react-router-dom'</span>,<span class="string">'redux'</span>,<span class="string">'redux-immutable'</span>,<span class="string">'immutable'</span>,<span class="string">'react-redux'</span>,<span class="string">'react-router'</span>,<span class="string">'redux-logger'</span>,<span class="string">'redux-thunk'</span>,<span class="string">'styled-components'</span>],</span><br><span class="line">    ui: [<span class="string">'antd-mobile'</span>,<span class="string">'antd'</span>],</span><br><span class="line">    others: [<span class="string">'react-icons'</span>,<span class="string">'axios'</span>,<span class="string">'clipboard'</span>,<span class="string">'humps'</span>,<span class="string">'lodash'</span>,<span class="string">'md5'</span>,<span class="string">'moment'</span>,<span class="string">'normalizr'</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  output: &#123;</span><br><span class="line">    path: path.resolve(__dirname, <span class="string">"../dist/static/js"</span>),</span><br><span class="line">    filename: <span class="string">`[name].dll.js`</span>,</span><br><span class="line">    library: <span class="string">'[name]_library'</span></span><br><span class="line">  &#125;,</span><br><span class="line">  plugins: [</span><br><span class="line"> ...Object.keys([<span class="string">'react'</span>,<span class="string">'ui'</span>,<span class="string">'others'</span>]).map(<span class="function"><span class="params">name</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> webpack.DllReferencePlugin(&#123;</span><br><span class="line">        context: <span class="string">'.'</span>,</span><br><span class="line">        manifest: <span class="built_in">require</span>(<span class="string">`../static/<span class="subst">$&#123;name&#125;</span>.manifest.json`</span>),</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="keyword">new</span> webpack.optimize.UglifyJsPlugin()</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>第二步：加一个命令</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// package.json</span></span><br><span class="line"><span class="string">"scripts"</span>: &#123;</span><br><span class="line">  <span class="string">"dll"</span>: <span class="string">"webpack --config config/webpack.dll.conf.js"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>执行<code>npm run dll</code></p>
+</blockquote>
+<ul>
+<li>运行<code>Webpack</code>，会输出两个文件一个是打包好的<code>vendor.js</code>，一个就是<code>manifest.json</code>，长这样</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"name"</span>: <span class="string">"vendor_ac51ba426d4f259b8b18"</span>,</span><br><span class="line">  <span class="string">"content"</span>: &#123;</span><br><span class="line">    <span class="string">"./node_modules/antd/dist/antd.js"</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/react.js"</span>: <span class="number">2</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/lib/React.js"</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/node_modules/object-assign/index.js"</span>: <span class="number">4</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/lib/ReactChildren.js"</span>: <span class="number">5</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/lib/PooledClass.js"</span>: <span class="number">6</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/lib/reactProdInvariant.js"</span>: <span class="number">7</span>,</span><br><span class="line">    <span class="string">"./node_modules/fbjs/lib/invariant.js"</span>: <span class="number">8</span>,</span><br><span class="line">    <span class="string">"./node_modules/react/lib/ReactElement.js"</span>: <span class="number">9</span>,</span><br><span class="line">    </span><br><span class="line">    ............</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>Webpack</code>将每个库都进行了编号索引，之后的<code>dll user</code>可以读取这个文件，直接用<code>id</code>来引用</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/640.png" alt></p>
+<p><strong>第三步： 在plugins中增加配置</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.prod.conf.js</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">   plugins: [</span><br><span class="line">        <span class="keyword">new</span> webpack.DllReferencePlugin(&#123;</span><br><span class="line">          manifest: <span class="built_in">require</span>(<span class="string">'../dll/react-manifest.json'</span>)</span><br><span class="line">        &#125;),</span><br><span class="line">        <span class="keyword">new</span> webpack.DllReferencePlugin(&#123;</span><br><span class="line">          manifest: <span class="built_in">require</span>(<span class="string">'../dll/ui-manifest.json'</span>)</span><br><span class="line">        &#125;),</span><br><span class="line">        <span class="keyword">new</span> webpack.DllReferencePlugin(&#123;</span><br><span class="line">          manifest: <span class="built_in">require</span>(<span class="string">'../dll/others-manifest.json'</span>)</span><br><span class="line">        &#125;)</span><br><span class="line">   ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>再次执行<code>npm run build</code></p>
+</blockquote>
+<p>之前<br><img src="https://poetries1.gitee.io/img-repo/2019/10/641.png" alt></p>
+<p>之后<br><img src="https://poetries1.gitee.io/img-repo/2019/10/642.png" alt></p>
+<h2 id="二、happypack-多线程打包"><a href="#二、happypack-多线程打包" class="headerlink" title="二、happypack 多线程打包"></a>二、happypack 多线程打包</h2><blockquote>
+<p>一般情况下，js是单线程执行的，但<code>node</code>不是。利用<code>node</code>提供的多线程环境，<code>happypack</code>是可以多线程打包的。基本上打开官网看了一下readme就可以配置了，特别是我只针对js的编译进行优化，配置还是比较简单的。</p>
+</blockquote>
+<p><a href="https://www.npmjs.com/package/happypack" target="_blank" rel="noopener">https://www.npmjs.com/package/happypack</a></p>
+<ul>
+<li><code>happyPack</code>把所有串行的东西并行处理,使得<code>loader</code>并行处理，较少文件处理时间</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.prod.conf.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// @file: webpack.config.js</span></span><br><span class="line"><span class="keyword">const</span> HappyPack = <span class="built_in">require</span>(<span class="string">'happypack'</span>);</span><br><span class="line"> </span><br><span class="line">exports.module = &#123;</span><br><span class="line">  rules: [</span><br><span class="line">    &#123;</span><br><span class="line">      test: <span class="regexp">/.js$/</span>,</span><br><span class="line">      <span class="comment">// 1) replace your original list of loaders with "happypack/loader":</span></span><br><span class="line">      <span class="comment">// loaders: [ 'babel-loader?presets[]=es2015' ],</span></span><br><span class="line">      use: <span class="string">'happypack/loader'</span>,</span><br><span class="line">      include: [ <span class="comment">/* ... */</span> ],</span><br><span class="line">      exclude: [ <span class="comment">/* ... */</span> ]</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  plugins: [</span><br><span class="line">     <span class="comment">// 2) create the plugin:</span></span><br><span class="line">    <span class="keyword">new</span> HappyPack(&#123;</span><br><span class="line">        <span class="comment">// 3) re-add the loaders you replaced above in #1:</span></span><br><span class="line">        loaders: [ <span class="string">'babel-loader?presets[]=es2015'</span> ]</span><br><span class="line">    &#125;)</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这时的编译时间也减小了一些</p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/643.png" alt></p>
+<blockquote>
+<p>更多详情 <a href="http://blog.poetries.top/2018/11/21/webpack-review/#6-1-%E5%88%86%E6%9E%90%E6%89%93%E5%8C%85%E7%BB%93%E6%9E%9C">http://blog.poetries.top/2018/11/21/webpack-review/#6-1-%E5%88%86%E6%9E%90%E6%89%93%E5%8C%85%E7%BB%93%E6%9E%9C</a></p>
+</blockquote>
+<h2 id="三、更多参考"><a href="#三、更多参考" class="headerlink" title="三、更多参考"></a>三、更多参考</h2><ul>
+<li><a href="https://www.jeffjade.com/2017/08/06/124-webpack-packge-optimization-for-volume/" target="_blank" rel="noopener">Webpack 打包优化之体积篇</a></li>
+<li><a href="https://www.jeffjade.com/2017/08/12/125-webpack-package-optimization-for-speed/" target="_blank" rel="noopener">Webpack 打包优化之速度篇</a></li>
+<li><a href="https://segmentfault.com/a/1190000007104372" target="_blank" rel="noopener">预打包Dll，实现webpack音速编译</a></li>
+<li><a href="https://juejin.im/post/5a4f031b518825733e6040c0" target="_blank" rel="noopener">利用DllPlugin分割你的第三方库</a></li>
+<li><a href="https://github.com/p2227/p2227.github.io/issues/21" target="_blank" rel="noopener">提高webpack的打包速度：happypack和dll打包</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/11/23/eslint-conf-info/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/11/25/webpack4-update/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

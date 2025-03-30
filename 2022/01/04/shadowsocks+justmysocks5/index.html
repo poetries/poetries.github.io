@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>教你使用shadowsocks+justmysocks5搭建一个高效稳定的翻墙服务 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="VPN,">
+  
+
+  <meta name="description" content="一、名词简介VPN VPN英文全称：Virtual Private Network（虚拟专用网络）。VPN被定义为通过一个公用互联网络建立一个临时的、安全的连接，是一条穿过混乱的公用网络的安全、稳定隧道，使用这条隧道可以对数据进行几倍加密达到安全使用互联网的目的   具体的实现方式包括PPTP,L2TP,IPsec和openvpn。vpn是一种加密通讯技术，目的是保证数据传输完全和网络匿名。  P">
+<meta name="keywords" content="VPN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="教你使用shadowsocks+justmysocks5搭建一个高效稳定的翻墙服务">
+<meta property="og:url" content="http://blog.poetries.top/2022/01/04/shadowsocks+justmysocks5/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、名词简介VPN VPN英文全称：Virtual Private Network（虚拟专用网络）。VPN被定义为通过一个公用互联网络建立一个临时的、安全的连接，是一条穿过混乱的公用网络的安全、稳定隧道，使用这条隧道可以对数据进行几倍加密达到安全使用互联网的目的   具体的实现方式包括PPTP,L2TP,IPsec和openvpn。vpn是一种加密通讯技术，目的是保证数据传输完全和网络匿名。  P">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20220104123619.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20220104130036.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20220104130233.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20220104124637.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20220104124612.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.500Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="教你使用shadowsocks+justmysocks5搭建一个高效稳定的翻墙服务">
+<meta name="twitter:description" content="一、名词简介VPN VPN英文全称：Virtual Private Network（虚拟专用网络）。VPN被定义为通过一个公用互联网络建立一个临时的、安全的连接，是一条穿过混乱的公用网络的安全、稳定隧道，使用这条隧道可以对数据进行几倍加密达到安全使用互联网的目的   具体的实现方式包括PPTP,L2TP,IPsec和openvpn。vpn是一种加密通讯技术，目的是保证数据传输完全和网络匿名。  P">
+<meta name="twitter:image" content="https://blog.poetries.top/img/static/images/20220104123619.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一、名词简介"><span class="toc-text">一、名词简介</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#VPN"><span class="toc-text">VPN</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Proxy（代理）"><span class="toc-text">Proxy（代理）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#VPS"><span class="toc-text">VPS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#shadowsocks"><span class="toc-text">shadowsocks</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#二、如何使用Shadowsocks代理"><span class="toc-text">二、如何使用Shadowsocks代理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#各平台客户端下载地址"><span class="toc-text">各平台客户端下载地址</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#搭建服务端代理"><span class="toc-text">搭建服务端代理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用第三方服务"><span class="toc-text">使用第三方服务</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-shadowsocks+justmysocks5" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">教你使用shadowsocks+justmysocks5搭建一个高效稳定的翻墙服务</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2022.01.04</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Tools/">Tools</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 4分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h1 id="一、名词简介"><a href="#一、名词简介" class="headerlink" title="一、名词简介"></a>一、名词简介</h1><h2 id="VPN"><a href="#VPN" class="headerlink" title="VPN"></a>VPN</h2><blockquote>
+<p>VPN英文全称：<code>Virtual Private Network</code>（虚拟专用网络）。<code>VPN</code>被定义为通过一个公用互联网络建立一个临时的、安全的连接，是一条穿过混乱的公用网络的安全、稳定隧道，使用这条隧道可以对数据进行几倍加密达到安全使用互联网的目的</p>
+</blockquote>
+<blockquote>
+<p>具体的实现方式包括<code>PPTP</code>,<code>L2TP</code>,<code>IPsec</code>和<code>openvpn</code>。<code>vpn</code>是一种加密通讯技术，目的是保证数据传输完全和网络匿名。</p>
+</blockquote>
+<h2 id="Proxy（代理）"><a href="#Proxy（代理）" class="headerlink" title="Proxy（代理）"></a>Proxy（代理）</h2><ul>
+<li>反向代理：反向代理的主要作用为服务器做缓存和负载均衡。反向代理的负载均衡是指在多个真正的服务器之前架设一个代理服务器，用户所有的数据都发给代理服务器，代理服务器根据每一个真实服务器的状态将数据转发给一个流量比较少的服务器处理，用户也只需要记住一个域名或IP就可以了。</li>
+<li>正向代理：正向代理主要有<code>HTTP</code>、<code>HTTP over TLS(HTTPS)</code>、<code>Socks</code>、<code>Socks over TLS</code>几种。</li>
+</ul>
+<h2 id="VPS"><a href="#VPS" class="headerlink" title="VPS"></a>VPS</h2><ul>
+<li>VPS就是<code>Virtual Private Server</code>，又叫虚似专用服务器。它就相当于是一种技术，可以将一部服务器分割成多个虚似专享服务器。这种技术可以为大家提供优质服务，每一个VPS都可以分派独立公网IP地址、独立操作系统、独立超大空间、独立运行内存、独立CPU资源、独立执行程序和独立系统配置等，可以从根本上防止关联</li>
+<li>VPS（虚拟专用服务器）是由VPS提供商维护，不是一台独立的电脑，而是将一台巨型服务器通过虚拟化技术分割成若干个看似独立的服务器。（ISP运营商面向普通网民提供的是动态ip，绑定域名很不方便，再加上宽带上网上下行网速不对等、网络稳定性不高等问题，大部分人还是选择使用vps建站）。</li>
+<li><code>vps可以用来搭建网站</code>，同时也可以成为VPN服务器，代理服务器。</li>
+</ul>
+<h2 id="shadowsocks"><a href="#shadowsocks" class="headerlink" title="shadowsocks"></a>shadowsocks</h2><p><code>shadowsocks</code>同样是一种代理协议。相对于VPN有极强的隐匿性，相对于HTTP代理有较为完善的加密方案，相较于HTTPS配置简单。</p>
+<h1 id="二、如何使用Shadowsocks代理"><a href="#二、如何使用Shadowsocks代理" class="headerlink" title="二、如何使用Shadowsocks代理"></a>二、如何使用Shadowsocks代理</h1><blockquote>
+<p><code>Shadowsocks</code>作为一个翻墙利器自然不仅仅局限于Windows电脑端，还可以用于<code>iOS</code>, <code>Android</code>以<code>Mac</code>上</p>
+</blockquote>
+<h2 id="各平台客户端下载地址"><a href="#各平台客户端下载地址" class="headerlink" title="各平台客户端下载地址"></a>各平台客户端下载地址</h2><ul>
+<li>Android客户端(<a href="https://github.com/shadowsocks/shadowsocks-android/releases" target="_blank" rel="noopener">https://github.com/shadowsocks/shadowsocks-android/releases</a>) </li>
+<li>iOS客户端(搜索<code>wingy</code>)</li>
+<li>Windows客户端(<a href="https://github.com/shadowsocks/shadowsocks-windows/releases" target="_blank" rel="noopener">https://github.com/shadowsocks/shadowsocks-windows/releases</a>)   </li>
+<li>MAC客户端(<a href="https://github.com/shadowsocks/ShadowsocksX-NG/releases" target="_blank" rel="noopener">https://github.com/shadowsocks/ShadowsocksX-NG/releases</a>)</li>
+</ul>
+<p><strong>配置描述:</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/20220104123619.png" alt></p>
+<ul>
+<li><code>自动代理模式</code>：表示连接国内不通过vpn，可加快访问速度</li>
+<li><code>全局模式</code>：所有连接都通过vpn</li>
+<li><code>服务器</code>：vpn的服务器配置<ul>
+<li>打开服务器设置</li>
+<li>加密方式为: <code>aes-256-cfb</code>，地址和密码</li>
+</ul>
+</li>
+<li>选择服务器，打开小飞机。即可翻墙了。</li>
+</ul>
+<h2 id="搭建服务端代理"><a href="#搭建服务端代理" class="headerlink" title="搭建服务端代理"></a>搭建服务端代理</h2><p>服务端一键安装脚本</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --no-check-certificate -O shadowsocks-go.sh https://raw.githubusercontent.com/poetries/shadowsocks_install/master/shadowsocks-go.sh</span><br><span class="line"></span><br><span class="line">chmod +x shadowsocks-go.sh</span><br><span class="line">./shadowsocks-go.sh 2&gt;&amp;1 | tee shadowsocks-go.log</span><br></pre></td></tr></table></figure>
+<p>安装完成后，脚本提示如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Congratulations, Shadowsocks-go install completed!</span><br><span class="line">Your Server IP:your_server_ip</span><br><span class="line">Your Server Port:your_server_port</span><br><span class="line">Your Password:your_password</span><br><span class="line">Your Local Port:1080</span><br><span class="line">Your Encryption Method:aes-256-cfb</span><br><span class="line"></span><br><span class="line">Welcome to visit:https://teddysun.com/392.html</span><br><span class="line">Enjoy it!</span><br></pre></td></tr></table></figure>
+<p>卸载方法</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">./shadowsocks-go.sh uninstall</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以查看 <code>Shadowsocks-go</code> 进程是否已经启动。 本脚本安装完成后，已将 <code>shadowsocks-go</code> 加入开机自启动。</p>
+</blockquote>
+<p>使用命令：</p>
+<ul>
+<li>启动：<code>/etc/init.d/shadowsocks start</code></li>
+<li>停止：<code>/etc/init.d/shadowsocks stop</code></li>
+<li>重启：<code>/etc/init.d/shadowsocks restart</code></li>
+<li>状态：<code>/etc/init.d/shadowsocks status</code></li>
+</ul>
+<p>多用户多端口配置文件示例： 配置文件路径：<code>/etc/shadowsocks/config.json</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;port_password&quot;:&#123;</span><br><span class="line">         &quot;8989&quot;:&quot;password0&quot;,</span><br><span class="line">         &quot;9001&quot;:&quot;password1&quot;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;method&quot;:&quot;aes-256-cfb&quot;,</span><br><span class="line">    &quot;timeout&quot;:600</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="使用第三方服务"><a href="#使用第三方服务" class="headerlink" title="使用第三方服务"></a>使用第三方服务</h2><blockquote>
+<p>自己搭建的会有被封ip的风险。推荐使用<code>justmysocks5</code>(<a href="https://justmysocks5.net/members/cart.php)去代理，这些一个月一个月续费就好，不要一次性买几个月。因为不知道是不是用一段时间就费封了。不推荐使用蓝灯，蓝灯不稳定，容易被封杀。现在国内的防火墙封杀蓝灯一抓一个准，只要是国内有两会、或者其他敏感政治事件。基本上都会被封杀。" target="_blank" rel="noopener">https://justmysocks5.net/members/cart.php)去代理，这些一个月一个月续费就好，不要一次性买几个月。因为不知道是不是用一段时间就费封了。不推荐使用蓝灯，蓝灯不稳定，容易被封杀。现在国内的防火墙封杀蓝灯一抓一个准，只要是国内有两会、或者其他敏感政治事件。基本上都会被封杀。</a></p>
+</blockquote>
+<p><img src="https://blog.poetries.top/img/static/images/20220104130036.png" alt><br><img src="https://blog.poetries.top/img/static/images/20220104130233.png" alt></p>
+<p>购买后填入地址、端口、密码即可</p>
+<p><img src="https://blog.poetries.top/img/static/images/20220104124637.png" alt><br><img src="https://blog.poetries.top/img/static/images/20220104124612.png" alt></p>
+<blockquote>
+<p>我是程序员小月，专注分享前端领域编程经验和技术干货，更多干货在公 号：前端进阶之旅</p>
+</blockquote>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2021/11/26/git-flow-summary/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2022/01/04/vercel-deploy-project/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>浏览器缓存原理总结 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="HTTP,缓存,">
+  
+
+  <meta name="description" content="一、浏览器缓存基本认识分为强缓存和协商缓存  浏览器在加载资源时，先根据这个资源的一些http header判断它是否命中强缓存，强缓存如果命中，浏览器直接从自己的缓存中读取资源，不会发请求到服务器。比如某个css文件，如果浏览器在加载它所在的网页时，这个css文件的缓存配置命中了强缓存，浏览器就直接从缓存中加载这个css，连请求都不会发送到网页所在服务器 当强缓存没有命中的时候，浏览器一定会发送">
+<meta name="keywords" content="HTTP,缓存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浏览器缓存原理总结">
+<meta property="og:url" content="http://blog.poetries.top/2019/01/02/browser-cache/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、浏览器缓存基本认识分为强缓存和协商缓存  浏览器在加载资源时，先根据这个资源的一些http header判断它是否命中强缓存，强缓存如果命中，浏览器直接从自己的缓存中读取资源，不会发请求到服务器。比如某个css文件，如果浏览器在加载它所在的网页时，这个css文件的缓存配置命中了强缓存，浏览器就直接从缓存中加载这个css，连请求都不会发送到网页所在服务器 当强缓存没有命中的时候，浏览器一定会发送">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/1.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/2.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/3.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/4.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/5.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/6.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/7.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/8.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/9.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/10.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/11.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/12.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/13.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/14.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/15.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/16.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/17.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/18.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.455Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浏览器缓存原理总结">
+<meta name="twitter:description" content="一、浏览器缓存基本认识分为强缓存和协商缓存  浏览器在加载资源时，先根据这个资源的一些http header判断它是否命中强缓存，强缓存如果命中，浏览器直接从自己的缓存中读取资源，不会发请求到服务器。比如某个css文件，如果浏览器在加载它所在的网页时，这个css文件的缓存配置命中了强缓存，浏览器就直接从缓存中加载这个css，连请求都不会发送到网页所在服务器 当强缓存没有命中的时候，浏览器一定会发送">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/1.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一、浏览器缓存基本认识"><span class="toc-text">一、浏览器缓存基本认识</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#二、强缓存的原理"><span class="toc-text">二、强缓存的原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-介绍"><span class="toc-text">2.1 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Expires缓存原理"><span class="toc-text">2.2 Expires缓存原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Cache-Control缓存原理"><span class="toc-text">2.3 Cache-Control缓存原理</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#三、强缓存的管理"><span class="toc-text">三、强缓存的管理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#四、强缓存的应用"><span class="toc-text">四、强缓存的应用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#五、协商缓存的原理"><span class="toc-text">五、协商缓存的原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-介绍"><span class="toc-text">5.1 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-Last-Modified，If-Modified-Since控制协商缓存"><span class="toc-text">5.2 Last-Modified，If-Modified-Since控制协商缓存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-3-ETag、If-None-Match控制协商缓存"><span class="toc-text">5.3 ETag、If-None-Match控制协商缓存</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#六、协商缓存的管理"><span class="toc-text">六、协商缓存的管理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#七、相关浏览器行为对缓存的影响"><span class="toc-text">七、相关浏览器行为对缓存的影响</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-browser-cache" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">浏览器缓存原理总结</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.01.02</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.3k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 15分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h1 id="一、浏览器缓存基本认识"><a href="#一、浏览器缓存基本认识" class="headerlink" title="一、浏览器缓存基本认识"></a>一、浏览器缓存基本认识</h1><p><strong>分为强缓存和协商缓存</strong></p>
+<ol>
+<li>浏览器在加载资源时，先根据这个资源的一些<code>http header</code>判断它是否命中强缓存，强缓存如果命中，浏览器直接从自己的缓存中读取资源，不会发请求到服务器。比如某个<code>css</code>文件，如果浏览器在加载它所在的网页时，这个<code>css</code>文件的缓存配置命中了强缓存，浏览器就直接从缓存中加载这个<code>css</code>，连请求都不会发送到网页所在服务器</li>
+<li>当强缓存没有命中的时候，浏览器一定会发送一个请求到服务器，通过服务器端依据资源的另外一些<code>http header</code>验证这个资源是否命中协商缓存，如果协商缓存命中，服务器会将这个请求返回，但是不会返回这个资源的数据，而是告诉客户端可以直接从缓存中加载这个资源，于是浏览器就又会从自己的缓存中去加载这个资源</li>
+<li><strong>强缓存与协商缓存的共同点是</strong>：如果命中，都是从客户端缓存中加载资源，而不是从服务器加载资源数据；区别是：<strong>强缓存不发请求到服务器</strong>，协商缓存会发请求到服务器</li>
+<li>当协商缓存也没有命中的时候，浏览器直接从服务器加载资源数据</li>
+</ol>
+<h1 id="二、强缓存的原理"><a href="#二、强缓存的原理" class="headerlink" title="二、强缓存的原理"></a>二、强缓存的原理</h1><h2 id="2-1-介绍"><a href="#2-1-介绍" class="headerlink" title="2.1 介绍"></a>2.1 介绍</h2><blockquote>
+<p>当浏览器对某个资源的请求命中了强缓存时，返回的<code>http</code>状态为<code>200</code>，在<code>chrome</code>的开发者工具的<code>network</code>里面<code>size</code>会显示为<code>from cache</code>，比如京东的首页里就有很多静态资源配置了强缓存，用<code>chrome</code>打开几次，再用<code>f12</code>查看<code>network</code>，可以看到有不少请求就是从缓存中加载的</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/1.png" alt></p>
+<ul>
+<li>强缓存是利用<code>Expires</code>或者<code>Cache-Control</code>这两个<code>http response header</code>实现的，它们都用来表示资源在客户端缓存的有效期。</li>
+</ul>
+<blockquote>
+<p><code>Expires</code>是<code>http1.0</code>提出的一个表示资源过期时间的<code>header</code>，它描述的是一个绝对时间，由服务器返回，用<code>GMT</code>格式的字符串表示，如：<code>Expires:Thu, 31 Dec 2037 23:55:55 GMT</code></p>
+</blockquote>
+<h2 id="2-2-Expires缓存原理"><a href="#2-2-Expires缓存原理" class="headerlink" title="2.2 Expires缓存原理"></a>2.2 Expires缓存原理</h2><ol>
+<li>浏览器第一次跟服务器请求一个资源，服务器在返回这个资源的同时，在<code>respone</code>的<code>header</code>加上<code>Expires</code>，如</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/2.png" alt></p>
+<ol start="2">
+<li>浏览器在接收到这个资源后，会把这个资源连同所有<code>response header</code>一起缓存下来（所以缓存命中的请求返回的<code>header</code>并不是来自服务器，而是来自之前缓存的<code>header</code>）</li>
+<li>浏览器再请求这个资源时，先从缓存中寻找，找到这个资源后，拿出它的<code>Expires</code>跟当前的请求时间比较，如果请求时间在<code>Expires</code>指定的时间之前，就能命中缓存，否则就不行</li>
+<li>如果缓存没有命中，浏览器直接从服务器加载资源时，<code>Expires Header</code>在重新加载的时候会被更新</li>
+</ol>
+<blockquote>
+<p><code>Expires</code>是较老的强缓存管理<code>header</code>，由于它是服务器返回的一个绝对时间，在服务器时间与客户端时间相差较大时，缓存管理容易出现问题，比如随意修改下客户端时间，就能影响缓存命中的结果。所以在<code>http1.1</code>的时候，提出了一个新的<code>header</code>，就是<code>Cache-Control</code>，这是一个相对时间，在配置缓存的时候，以秒为单位，用数值表示，如：<code>Cache-Control:max-age=315360000</code></p>
+</blockquote>
+<h2 id="2-3-Cache-Control缓存原理"><a href="#2-3-Cache-Control缓存原理" class="headerlink" title="2.3 Cache-Control缓存原理"></a>2.3 Cache-Control缓存原理</h2><ol>
+<li>浏览器第一次跟服务器请求一个资源，服务器在返回这个资源的同时，在<code>respone</code>的<code>header</code>加上<code>Cache-Control</code>，如：</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/3.png" alt></p>
+<ol start="2">
+<li>浏览器在接收到这个资源后，会把这个资源连同所有<code>response header</code>一起缓存下来</li>
+<li>浏览器再请求这个资源时，先从缓存中寻找，找到这个资源后，根据它第一次的请求时间和<code>Cache-Control</code>设定的有效期，计算出一个资源过期时间，再拿这个过期时间跟当前的请求时间比较，如果请求时间在过期时间之前，就能命中缓存，否则就不行</li>
+<li>如果缓存没有命中，浏览器直接从服务器加载资源时，<code>Cache-Control Header</code>在重新加载的时候会被更新</li>
+</ol>
+<ul>
+<li><code>Cache-Control</code>描述的是一个相对时间，在进行缓存命中的时候，都是利用客户端时间进行判断，所以相比较<code>Expires</code>，<code>Cache-Control</code>的缓存管理更有效，安全一些。</li>
+<li>这两个<code>header</code>可以只启用一个，也可以同时启用，当<code>response header</code>中，<code>Expires</code>和<code>Cache-Control</code>同时存在时，<code>Cache-Control</code>优先级高于<code>Expires</code>：</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/4.png" alt></p>
+<h1 id="三、强缓存的管理"><a href="#三、强缓存的管理" class="headerlink" title="三、强缓存的管理"></a>三、强缓存的管理</h1><blockquote>
+<p>前面介绍的是强缓存的原理，在实际应用中我们会碰到需要强缓存的场景和不需要强缓存的场景，通常有2种方式来设置是否启用强缓存</p>
+</blockquote>
+<ol>
+<li>通过代码的方式，在<code>web</code>服务器返回的响应中添加<code>Expires</code>和<code>Cache-Control Header</code></li>
+<li>通过配置<code>web</code>服务器的方式，让<code>web</code>服务器在响应资源的时候统一添加<code>Expires</code>和<code>Cache-Control Header</code></li>
+</ol>
+<blockquote>
+<p>比如在javaweb里面，我们可以使用类似下面的代码设置强缓存</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">java.util.Date date = <span class="keyword">new</span> java.util.Date();    </span><br><span class="line">response.setDateHeader(<span class="string">"Expires"</span>,date.getTime()+<span class="number">20000</span>); <span class="comment">//Expires:过时期限值 </span></span><br><span class="line">response.setHeader(<span class="string">"Cache-Control"</span>, <span class="string">"public"</span>); <span class="comment">//Cache-Control来控制页面的缓存与否,public:浏览器和缓存服务器都可以缓存页面信息；</span></span><br><span class="line">response.setHeader(<span class="string">"Pragma"</span>, <span class="string">"Pragma"</span>); <span class="comment">//Pragma:设置页面是否缓存，为Pragma则缓存，no-cache则不缓存</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>还可以通过类似下面的<code>java</code>代码设置不启用强缓存</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">response.setHeader( <span class="string">"Pragma"</span>, <span class="string">"no-cache"</span> );   </span><br><span class="line">response.setDateHeader(<span class="string">"Expires"</span>, <span class="number">0</span>);   </span><br><span class="line">response.addHeader( <span class="string">"Cache-Control"</span>, <span class="string">"no-cache"</span> );<span class="comment">//浏览器和缓存服务器都不应该缓存页面信息</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>nginx</code>和<code>apache</code>作为专业的<code>web</code>服务器，都有专门的配置文件，可以配置<code>expires</code>和<code>cache-control</code>，这方面的知识，如果你对运维感兴趣的话，可以在百度上搜索<code>nginx</code> 设置 <code>expires cache-control</code>或 <code>apache 设置 expires cache-control</code> 都能找到不少相关的文章。</li>
+<li>由于在开发的时候不会专门去配置强缓存，而浏览器又默认会缓存图片，<code>css</code>和<code>js</code>等静态资源，所以开发环境下经常会因为强缓存导致资源没有及时更新而看不到最新的效果，解决这个问题的方法有很多，常用的有以下几种</li>
+</ul>
+<p><strong>处理缓存带来的问题</strong></p>
+<ol>
+<li>直接<code>ctrl+f5</code>，这个办法能解决页面直接引用的资源更新的问题</li>
+<li>使用浏览器的隐私模式开发</li>
+<li>如果用的是<code>chrome</code>，可以<code>f12</code>在<code>network</code>那里把缓存给禁掉（这是个非常有效的方法）</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/5.png" alt></p>
+<ol start="4">
+<li>在开发阶段，给资源加上一个动态的参数，如<code>css/index.css?v=0.0001</code>，由于每次资源的修改都要更新引用的位置，同时修改参数的值，所以操作起来不是很方便，除非你是在动态页面比如jsp里开发就可以用服务器变量来解决（<code>v=${sysRnd}</code>），或者你能用一些前端的构建工具来处理这个参数修改的问题</li>
+<li>如果资源引用的页面，被嵌入到了一个<code>iframe</code>里面，可以在<code>iframe</code>的区域右键单击重新加载该页面，以<code>chrome</code>为例</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/6.png" alt></p>
+<ol start="6">
+<li>如果缓存问题出现在<code>ajax</code>请求中，最有效的解决办法就是<code>ajax</code>的请求地址追加随机数</li>
+<li>还有一种情况就是动态设置<code>iframe</code>的<code>src</code>时，有可能也会因为缓存问题，导致看不到最新的效果，这时候在要设置的<code>src</code>后面添加随机数也能解决问题</li>
+<li>如果你用的是<code>grunt</code>和<code>gulp</code>、<code>webpack</code>这种前端工具开发，通过它们的插件比如<code>grunt-contrib-connect</code>来启动一个静态服务器，则完全不用担心开发阶段的资源更新问题，因为在这个静态服务器下的所有资源返回的<code>respone header</code>中，<code>cache-control</code>始终被设置为不缓存</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/7.png" alt></p>
+<h1 id="四、强缓存的应用"><a href="#四、强缓存的应用" class="headerlink" title="四、强缓存的应用"></a>四、强缓存的应用</h1><blockquote>
+<p>强缓存是前端性能优化最有力的工具，没有之一，对于有大量静态资源的网页，一定要利用强缓存，提高响应速度。通常的做法是，为这些静态资源全部配置一个超时时间超长的<code>Expires</code>或<code>Cache-Control</code>，这样用户在访问网页时，只会在第一次加载时从服务器请求静态资源，其它时候只要缓存没有失效并且用户没有强制刷新的条件下都会从自己的缓存中加载，比如前面提到过的京东首页缓存的资源，它的缓存过期时间都设置到了<code>2026</code>年</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/8.png" alt></p>
+<blockquote>
+<p>然而这种缓存配置方式会带来一个新的问题，就是发布时资源更新的问题，比如某一张图片，在用户访问第一个版本的时候已经缓存到了用户的电脑上，当网站发布新版本，替换了这个图片时，已经访问过第一个版本的用户由于缓存的设置，导致在默认的情况下不会请求服务器最新的图片资源，除非他清掉或禁用缓存或者强制刷新，否则就看不到最新的图片效果</p>
+</blockquote>
+<p>这个问题已经有成熟的解决方案，具体内容可阅读知乎这篇文章详细了解：<a href="http://www.zhihu.com/question/20790576" target="_blank" rel="noopener">http://www.zhihu.com/question/20790576</a></p>
+<p>文章提到的东西都属于理论上的解决方案，不过现在已经有很多前端工具能够实际地解决这个问题，由于每个工具涉及到的内容细节都有很多，本文没有办法一一深入介绍。有兴趣的可以去了解下<code>grunt</code> <code>gulp</code> <code>webpack</code> <code>fis</code> 还有edp这几个工具，基于这几个工具都能解决这个问题，尤其是<code>fis</code>和<code>edp</code>是百度推出的前端开发平台，有现成的文档可以参考：</p>
+<p><a href="http://fis.baidu.com/fis3/api/index.html" target="_blank" rel="noopener">http://fis.baidu.com/fis3/api/index.html</a></p>
+<p><a href="http://ecomfe.github.io/edp/doc/initialization/install/" target="_blank" rel="noopener">http://ecomfe.github.io/edp/doc/initialization/install/</a></p>
+<blockquote>
+<p>强缓存还有一点需要注意的是，通常都是针对静态资源使用，动态资源需要慎用，除了服务端页面可以看作动态资源外，那些引用静态资源的<code>html</code>也可以看作是动态资源，如果这种<code>html</code>也被缓存，当这些<code>html</code>更新之后，可能就没有机制能够通知浏览器这些html有更新，尤其是前后端分离的应用里，页面都是纯<code>html</code>页面，每个访问地址可能都是直接访问<code>html</code>页面，这些页面通常不加强缓存，以保证浏览器访问这些页面时始终请求服务器最新的资源</p>
+</blockquote>
+<h1 id="五、协商缓存的原理"><a href="#五、协商缓存的原理" class="headerlink" title="五、协商缓存的原理"></a>五、协商缓存的原理</h1><h2 id="5-1-介绍"><a href="#5-1-介绍" class="headerlink" title="5.1 介绍"></a>5.1 介绍</h2><blockquote>
+<p>当浏览器对某个资源的请求没有命中强缓存，就会发一个请求到服务器，验证协商缓存是否命中，如果协商缓存命中，请求响应返回的<code>http</code>状态为<code>304</code>并且会显示一个<code>Not Modified</code>的字符串，比如你打开京东的首页，按<code>f12</code>打开开发者工具，再按<code>f5</code>刷新页面，查看<code>network</code>，可以看到有不少请求就是命中了协商缓存的</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/9.png" alt></p>
+<blockquote>
+<p>查看单个请求的<code>Response Header</code>，也能看到<code>304</code>的状态码和<code>Not Modified</code>的字符串，只要看到这个就可说明这个资源是命中了协商缓存，然后从客户端缓存中加载的，而不是服务器最新的资源</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/10.png" alt></p>
+<h2 id="5-2-Last-Modified，If-Modified-Since控制协商缓存"><a href="#5-2-Last-Modified，If-Modified-Since控制协商缓存" class="headerlink" title="5.2 Last-Modified，If-Modified-Since控制协商缓存"></a>5.2 Last-Modified，If-Modified-Since控制协商缓存</h2><ol>
+<li>浏览器第一次跟服务器请求一个资源，服务器在返回这个资源的同时，在<code>respone</code>的<code>header</code>加上<code>Last-Modified</code>的<code>header</code>，这个<code>header</code>表示这个资源在服务器上的最后修改时间</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/11.png" alt></p>
+<ol start="2">
+<li>浏览器再次跟服务器请求这个资源时，在<code>request</code>的<code>header</code>上加上<code>If-Modified-Since</code>的<code>header</code>，这个<code>header</code>的值就是上一次请求时返回的<code>Last-Modified</code>的值</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/12.png" alt></p>
+<ol start="3">
+<li>服务器再次收到资源请求时，根据浏览器传过来<code>If-Modified-Since</code>和资源在服务器上的最后修改时间判断资源是否有变化，如果没有变化则返回<code>304 Not Modified</code>，但是不会返回资源内容；如果有变化，就正常返回资源内容。当服务器返回<code>304 Not Modified</code>的响应时，<code>response header</code>中不会再添加<code>Last-Modified</code>的<code>header</code>，因为既然资源没有变化，那么<code>Last-Modified</code>也就不会改变，这是服务器返回<code>304</code>时的<code>response header</code></li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/13.png" alt></p>
+<ol start="4">
+<li>浏览器收到<code>304</code>的响应后，就会从缓存中加载资源</li>
+<li>如果协商缓存没有命中，浏览器直接从服务器加载资源时，<code>Last-Modified</code> <code>Header</code>在重新加载的时候会被更新，下次请求时，<code>If-Modified-Since</code>会启用上次返回的<code>Last-Modified</code>值</li>
+</ol>
+<blockquote>
+<p>【<code>Last-Modified</code>，<code>If-Modified-Since</code>】都是根据服务器时间返回的<code>header</code>，一般来说，在没有调整服务器时间和篡改客户端缓存的情况下，这两个<code>header</code>配合起来管理协商缓存是非常可靠的，但是有时候也会服务器上资源其实有变化，但是最后修改时间却没有变化的情况，而这种问题又很不容易被定位出来，而当这种情况出现的时候，就会影响协商缓存的可靠性。所以就有了另外一对<code>header</code>来管理协商缓存，这对<code>header</code>就是【<code>ETag</code>、<code>If-None-Match</code>】。它们的缓存管理的方式是</p>
+</blockquote>
+<h2 id="5-3-ETag、If-None-Match控制协商缓存"><a href="#5-3-ETag、If-None-Match控制协商缓存" class="headerlink" title="5.3 ETag、If-None-Match控制协商缓存"></a>5.3 ETag、If-None-Match控制协商缓存</h2><ol>
+<li>浏览器第一次跟服务器请求一个资源，服务器在返回这个资源的同时，在<code>respone</code>的<code>header</code>加上<code>ETag</code>的<code>header</code>，这个<code>header</code>是服务器根据当前请求的资源生成的一个唯一标识，这个唯一标识是一个字符串，只要资源有变化这个串就不同，跟最后修改时间没有关系，所以能很好的补充<code>Last-Modified</code>的问题</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/14.png" alt></p>
+<ol start="2">
+<li>浏览器再次跟服务器请求这个资源时，在<code>request</code>的<code>header</code>上加上<code>If-None-Match</code>的<code>header</code>，这个<code>header</code>的值就是上一次请求时返回的<code>ETag</code>的值</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/15.png" alt></p>
+<ol start="3">
+<li>服务器再次收到资源请求时，根据浏览器传过来<code>If-None-Match</code>和然后再根据资源生成一个新的<code>ETag</code>，如果这两个值相同就说明资源没有变化，否则就是有变化；如果没有变化则返回<code>304 Not Modified</code>，但是不会返回资源内容；如果有变化，就正常返回资源内容。与<code>Last-Modified</code>不一样的是，当服务器返回<code>304 Not Modified</code>的响应时，由于<code>ETag</code>重新生成过，<code>response header</code>中还会把这个<code>ETag</code>返回，即使这个<code>ETag</code>跟之前的没有变化</li>
+</ol>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/16.png" alt></p>
+<ol start="4">
+<li>浏览器收到<code>304</code>的响应后，就会从缓存中加载资源。</li>
+</ol>
+<h1 id="六、协商缓存的管理"><a href="#六、协商缓存的管理" class="headerlink" title="六、协商缓存的管理"></a>六、协商缓存的管理</h1><blockquote>
+<p>协商缓存跟强缓存不一样，强缓存不发请求到服务器，所以有时候资源更新了浏览器还不知道，但是协商缓存会发请求到服务器，所以资源是否更新，服务器肯定知道。大部分<code>web</code>服务器都默认开启协商缓存，而且是同时启用【<code>Last-Modified</code>，<code>If-Modified-Since</code>】和【<code>ETag</code>、<code>If-None-Match</code>】，比如<code>apache</code>:</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/17.png" alt></p>
+<blockquote>
+<p>如果没有协商缓存，每个到服务器的请求，就都得返回资源内容，这样服务器的性能会极差。</p>
+</blockquote>
+<ul>
+<li>【<code>Last-Modified</code>，<code>If-Modified-Since</code>】和【<code>ETag</code>、<code>If-None-Match</code>】一般都是同时启用，这是为了处理<code>Last-Modified</code>不可靠的情况。</li>
+</ul>
+<p><strong>有一种场景需要注意</strong></p>
+<ul>
+<li>分布式系统里多台机器间文件的<code>Last-Modified</code>必须保持一致，以免负载均衡到不同机器导致比对失败；</li>
+<li>分布式系统尽量关闭掉<code>ETag</code>(每台机器生成的<code>ETag</code>都会不一样）；</li>
+<li>京东页面的资源请求，返回的<code>repsones header</code>就只有<code>Last-Modified</code>，没有<code>ETag</code>：</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/18.png" alt></p>
+<blockquote>
+<p>协商缓存需要配合强缓存使用，你看前面这个截图中，除了<code>Last-Modified</code>这个<code>header</code>，还有强缓存的相关<code>header</code>，因为如果不启用强缓存的话，协商缓存根本没有意义</p>
+</blockquote>
+<h1 id="七、相关浏览器行为对缓存的影响"><a href="#七、相关浏览器行为对缓存的影响" class="headerlink" title="七、相关浏览器行为对缓存的影响"></a>七、相关浏览器行为对缓存的影响</h1><blockquote>
+<p>如果资源已经被浏览器缓存下来，在缓存失效之前，再次请求时，默认会先检查是否命中强缓存，如果强缓存命中则直接读取缓存，如果强缓存没有命中则发请求到服务器检查是否命中协商缓存，如果协商缓存命中，则告诉浏览器还是可以从缓存读取，否则才从服务器返回最新的资源。这是默认的处理方式，这个方式可能被浏览器的行为改变：</p>
+</blockquote>
+<ul>
+<li>当<code>ctrl+f5</code>强制刷新网页时，直接从服务器加载，跳过强缓存和协商缓存；</li>
+<li>当<code>f5</code>刷新网页时，跳过强缓存，但是会检查协商缓存</li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/12/31/ts-react-template/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/01/06/electron-summary/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>异步编程入门之RxJs（一） | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="JavaScript,RxJs,">
+  
+
+  <meta name="description" content="一、前言1.1 Promise缺点 Promise 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的 以电商为例，如果某商户的订单不允许取消，你还会去买吗？ 如果你发起了一个 Ajax 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去 使用 Promise，你做不到，不是因为">
+<meta name="keywords" content="JavaScript,RxJs">
+<meta property="og:type" content="article">
+<meta property="og:title" content="异步编程入门之RxJs（一）">
+<meta property="og:url" content="http://blog.poetries.top/2021/02/08/rxjs-summary/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、前言1.1 Promise缺点 Promise 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的 以电商为例，如果某商户的订单不允许取消，你还会去买吗？ 如果你发起了一个 Ajax 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去 使用 Promise，你做不到，不是因为">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204624236.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204644634.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204656811.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204705194.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204715704.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204727266.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204736607.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/1240.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/1240-20210208204820976.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204828426.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204837805.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204846757.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204856423.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204905368.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204912979.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204929447.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.499Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="异步编程入门之RxJs（一）">
+<meta name="twitter:description" content="一、前言1.1 Promise缺点 Promise 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的 以电商为例，如果某商户的订单不允许取消，你还会去买吗？ 如果你发起了一个 Ajax 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去 使用 Promise，你做不到，不是因为">
+<meta name="twitter:image" content="https://blog.poetries.top/img/static/images/image-20210208204624236.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#一、前言"><span class="toc-text">一、前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-Promise缺点"><span class="toc-text">1.1 Promise缺点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Observable"><span class="toc-text">1.2 Observable</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-ReactiveX宝石图"><span class="toc-text">1.3 ReactiveX宝石图</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#二、Rxjs介绍"><span class="toc-text">二、Rxjs介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-介绍"><span class="toc-text">2.1 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Promise和RxJS处理异步对比"><span class="toc-text">2.2 Promise和RxJS处理异步对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Rxjs基本概念"><span class="toc-text">2.3 Rxjs基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-Rxjs使用场景"><span class="toc-text">2.4 Rxjs使用场景</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#三、基础入门"><span class="toc-text">三、基础入门</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-典型的写法"><span class="toc-text">3.1 典型的写法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-简单创建器"><span class="toc-text">3.2 简单创建器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-of-–-单一值转为流"><span class="toc-text">3.2.1  of – 单一值转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-from-–-数组转为流"><span class="toc-text">3.2.2 from – 数组转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-3-range-–-范围转为流"><span class="toc-text">3.2.3 range – 范围转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-4-fromPromise-–-Promise-转为流"><span class="toc-text">3.2.4 fromPromise – Promise 转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-5-defer-–-惰性创建流"><span class="toc-text">3.2.5 defer – 惰性创建流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-6-timer-–-定时器流"><span class="toc-text">3.2.6 timer – 定时器流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-7-interval-–-定时器流"><span class="toc-text">3.2.7 interval – 定时器流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Subject-–-主体对象"><span class="toc-text">3.3 Subject – 主体对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-合并创建器"><span class="toc-text">3.4 合并创建器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-merge-–-并联"><span class="toc-text">3.4.1 merge – 并联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-concat-–-串联"><span class="toc-text">3.4.2 concat – 串联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-3-zip-–-拉链"><span class="toc-text">3.4.3 zip – 拉链</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-操作符"><span class="toc-text">3.5 操作符</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-1-retry-–-失败时重试"><span class="toc-text">3.5.1 retry – 失败时重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-2-repeat-–-成功时重试"><span class="toc-text">3.5.2 repeat – 成功时重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-3-delay-–-延迟"><span class="toc-text">3.5.3 delay – 延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-4-toArray-–-收集为数组"><span class="toc-text">3.5.4 toArray – 收集为数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-5-debounceTime-–-防抖"><span class="toc-text">3.5.5 debounceTime – 防抖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-6-switchMap-–-切换成另一个流"><span class="toc-text">3.5.6 switchMap – 切换成另一个流</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#四、进一步使用"><span class="toc-text">四、进一步使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-Rxjs-unsubscribe-取消订阅"><span class="toc-text">4.1 Rxjs unsubscribe 取消订阅</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-Rxjs-订阅后多次执行"><span class="toc-text">4.2 Rxjs 订阅后多次执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、RXJS-实例操作符小结"><span class="toc-text">五、RXJS 实例操作符小结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#六、更多参考"><span class="toc-text">六、更多参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-rxjs-summary" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">异步编程入门之RxJs（一）</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2021.02.08</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 5.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 18分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h1 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h1><h2 id="1-1-Promise缺点"><a href="#1-1-Promise缺点" class="headerlink" title="1.1 Promise缺点"></a>1.1 Promise缺点</h2><ul>
+<li><code>Promise</code> 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的</li>
+<li>以电商为例，如果某商户的订单不允许取消，你还会去买吗？</li>
+<li>如果你发起了一个 <code>Ajax</code> 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去</li>
+<li>使用 <code>Promise</code>，你做不到，不是因为实现方面的原因，而是因为它在概念层（接口定义上）就无法支持取消</li>
+<li>由于 <code>Promise</code> 只会承载一个值，因此当我们要处理的是一个集合的时候就比较困难了。比如对于一个随机数列（总数未知），如果我们要借助 <code>Web API</code> 检查每个数字的有效性，然后对前一百个有效数字进行求和，那么用 <code>Promise</code> 写就比较麻烦了</li>
+</ul>
+<h2 id="1-2-Observable"><a href="#1-2-Observable" class="headerlink" title="1.2 Observable"></a>1.2 Observable</h2><ul>
+<li>它就是可观察对象，<code>Observable</code> 顾名思义就是可以被别人观察的对象，当它变化时，观察者就可以得到通知。换句话说，它负责生产数据，别人可以消费它生产的数据</li>
+<li><code>Observable</code> 就像个传送带。这个传送带不断运行，围绕这个传送带建立了一条生产线，包括一系列工序，不同的工序承担单一而确定的职责。每个工位上有一个工人</li>
+<li>整个传送带的起点是原料箱，原料箱中的原料不断被放到传送带上。工人只需要待在自己的工位上，对面前的原料进行加工，然后放回传送带上或放到另一条传送带上即可，简单、高效、无意外 </li>
+</ul>
+<h2 id="1-3-ReactiveX宝石图"><a href="#1-3-ReactiveX宝石图" class="headerlink" title="1.3 ReactiveX宝石图"></a>1.3 ReactiveX宝石图</h2><p><img src="https://blog.poetries.top/img/static/images/image-20210208204624236.png" alt="image-20210208204624236"></p>
+<ul>
+<li>中间的带箭头的线就像传送带，用来表示数据序列，这个数据序列被称为“流”。上方的流叫做输入流，下方的流叫做输出流。输入流可能有多个，但是输出流只会有一个（不过，流中的每个数据项也可以是别的流）</li>
+<li>数据序列上的每个圆圈表示一个数据项，圆圈的位置表示数据出现的先后顺序，但是一般不会表示精确的时间比例，比如在一毫秒内接连出现的两个数据之间仍然会有较大的距离。只有少数涉及到时间的操作，其宝石图才会表现出精确的时间比例</li>
+<li>圆圈的最后，通常会有一条竖线或者一个叉号。竖线表示这个流正常终止了，也就是说不会再有更多的数据提供出来了。而叉号表示这个流抛出错误导致异常中止了。还有一种流，既没有竖线也没有叉号，这种叫做无尽流，比如一个由所有自然数组成的流就不会主动终止。但是要注意，无尽流仍然是可以处理的，因为需要多少项是由消费者决定的。你可以把这个“智能”传送带理解为由下一个工位“叫号”的，没“叫号”下一项数据就不会过来</li>
+<li>中间的大方框表示一个操作，也就是 operator —— 一个函数，比如这个图中的操作就是把输入流中的条目乘以十后放入输出流中。</li>
+<li>看懂了宝石图，就能很形象的理解各种操作符了</li>
+</ul>
+<h1 id="二、Rxjs介绍"><a href="#二、Rxjs介绍" class="headerlink" title="二、Rxjs介绍"></a>二、Rxjs介绍</h1><h2 id="2-1-介绍"><a href="#2-1-介绍" class="headerlink" title="2.1 介绍"></a>2.1 介绍</h2><blockquote>
+<ul>
+<li><code>RxJS</code> 是 <code>ReactiveX</code> 编程理念的 <code>JavaScript</code> 版本。<code>ReactiveX</code> 来自微软，它是一种针对异步数据 流的编程。简单来说，它将一切数据，包括 <code>HTTP</code> 请求，<code>DOM</code> 事件或者普通数据等包装成流的形式，然后用强大丰富的操作符对流进行处理，使你能以同步编程的方式处理异步数据，并组合不同的操作符来轻松优雅的实现你所需要的功能</li>
+<li><code>RxJS</code> 是一种针对异步数据流编程工具，或者叫响应式扩展编程;可不管如何解释 <code>RxJS</code> 其目 标就是异步编程，<code>Angular</code> 引入 <code>RxJS</code> 为了就是让异步可控、更简单。</li>
+</ul>
+</blockquote>
+<p><strong>目前常见的异步编程的几种方法:</strong></p>
+<ul>
+<li>回调函数</li>
+<li>事件监听/发布订阅</li>
+<li><code>Promise</code></li>
+<li><code>Rxjs</code></li>
+</ul>
+<h2 id="2-2-Promise和RxJS处理异步对比"><a href="#2-2-Promise和RxJS处理异步对比" class="headerlink" title="2.2 Promise和RxJS处理异步对比"></a>2.2 Promise和RxJS处理异步对比</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// promise异步处理</span></span><br><span class="line"><span class="comment">// Promise 处理异步</span></span><br><span class="line">  getPromiseData() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(resolve = &gt;&#123;</span><br><span class="line">    setTimeout(() = &gt;&#123;</span><br><span class="line">        resolve(<span class="string">'---promise timeout---'</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">  </span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"></span><br><span class="line">getPromiseData().then(<span class="function"><span class="params">d</span>=&gt;</span><span class="built_in">console</span>.log(d))</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RxJS 处理异步:</span></span><br><span class="line">getRxjsData() &#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">new</span> Observable(observer = &gt;&#123;</span><br><span class="line">      setTimeout(() = &gt;&#123;</span><br><span class="line">        observer.next(<span class="string">'observable timeout'</span>);</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="number">2000</span>);</span><br><span class="line">  &#125;); </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line">getRxjsData().subscribe(<span class="function"><span class="params">d</span>=&gt;</span><span class="built_in">console</span>.log(d))</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>从上面列子可以看到 <code>RxJS</code> 和 <code>Promise</code>的基本用法非常类似，除了一些关键词不同。<code>Promise</code> 里面用的是 <code>then()</code> 和 <code>resolve()</code>，而 <code>RxJS</code>里面用的是 <code>next()</code> 和 <code>subscribe()</code><br><code>Rxjs</code>相比<code>Promise</code>要强大很多。 比如 <code>Rxjs</code> 中可以中途撤回、<code>Rxjs</code> 可以发射多个值、<code>Rxjs</code> 提供了多种工具函数等等</p>
+</blockquote>
+<h2 id="2-3-Rxjs基本概念"><a href="#2-3-Rxjs基本概念" class="headerlink" title="2.3 Rxjs基本概念"></a>2.3 Rxjs基本概念</h2><ul>
+<li><code>Observable</code> (可观察对象): 表示一个概念，这个概念是一个可调用的未来值或事件的集合。</li>
+<li><code>Observer</code> (观察者): 一个回调函数的集合，它知道如何去监听由 <code>Observable</code> 提供的值。</li>
+<li><code>Subscription</code> (订阅): 表示 <code>Observable</code> 的执行，主要用于取消 <code>Observable</code> 的执行。</li>
+<li><code>Operators</code> (操作符): 采用函数式编程风格的纯函数 (<code>pure function</code>)，使用像 <code>map</code>、<code>filter</code>、<code>concat</code>、<code>flatMap</code> 等这样的操作符来处理集合。<br><code>Subject</code> (主体): 相当于 <code>EventEmitter</code>，并且是将值或事件多路推送给多个 <code>Observer</code> 的唯一方式。</li>
+<li><code>Schedulers</code> (调度器):用来控制并发并且是中央集权的调度员，允许我们在发生计算时进行协调，例如 <code>setTimeout</code> 或 <code>requestAnimationFrame</code> 或其他</li>
+</ul>
+<h2 id="2-4-Rxjs使用场景"><a href="#2-4-Rxjs使用场景" class="headerlink" title="2.4 Rxjs使用场景"></a>2.4 Rxjs使用场景</h2><ul>
+<li>涉及复杂的时序操作：在游戏的某一关卡中，连续按下上上下下左右左右baba，每次点按间隔不超过0.4ms，就发送信息到服务器<code>A</code></li>
+<li>涉及复杂的条件处理：用户输入时，每输入一个字符，发送信息给服务器<code>A</code>，如果服务器<code>A</code>返回的数据有问题，则请求服务器<code>B</code>，如果用户输入’fuck’则停止上述操作并请求服务器<code>c</code></li>
+<li>涉及复杂的状态管理：早上的时候每隔<code>10</code>秒检查一次用户信息，晚上的时候每隔5秒检查一次用户信息，检测到变更后响应式更新所有视图</li>
+<li>真要用<code>Rx</code>建议还是<code>Angular</code>环境下</li>
+</ul>
+<h1 id="三、基础入门"><a href="#三、基础入门" class="headerlink" title="三、基础入门"></a>三、基础入门</h1><h2 id="3-1-典型的写法"><a href="#3-1-典型的写法" class="headerlink" title="3.1 典型的写法"></a>3.1 典型的写法</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">of</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>).pipe(</span><br><span class="line">  filter(<span class="function"><span class="params">item</span>=&gt;</span>item % <span class="number">2</span> === <span class="number">1</span>),</span><br><span class="line">  map(<span class="function"><span class="params">item</span>=&gt;</span>item * <span class="number">3</span>),</span><br><span class="line">).subscribe(<span class="function"><span class="params">item</span>=&gt;</span> <span class="built_in">console</span>.log(item))</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>of</code> 称为创建器，用来创建流，它返回一个 <code>Observable</code> 类型的对象，<code>filter</code> 和 map 称为操作符（<code>operator</code>），用来对条目进行处理。这些操作符被当作 <code>Observable</code> 对象的 <code>pipe</code> 方法的参数传进去</li>
+<li><code>Observable</code> 对象的 <code>subscribe</code> 方法表示消费者要订阅这个流，当流中出现数据时，传给 <code>subscribe</code> 方法的回调函数就会被调用，并且把这个数据传进去。这个回调函数可能被调用很多次，取决于这个流中有多少条数据</li>
+<li>注意，<code>Observable</code> 必须被 <code>subscribe</code> 之后才会开始生产数据。如果没人 <code>subscribe</code> 它，那就什么都不会做</li>
+</ul>
+<h2 id="3-2-简单创建器"><a href="#3-2-简单创建器" class="headerlink" title="3.2 简单创建器"></a>3.2 简单创建器</h2><ul>
+<li>广义上，创建器也是操作符的一种，不过这里我们把它单独拿出来讲。要启动生产线，我们得先提供原料。本质上，这个提供者就是一组函数，当流水线需要拿新的原料时，就会调用它</li>
+<li>你当然可以自己实现这个提供者，但通常是不用的。<code>RxJS</code> 提供了很多预定义的创建器，而且将来可能还会增加新的。不过，那些眼花缭乱的创建器完全没必要全记住，只要记住少数几个就够了，其它的有时间慢慢看。</li>
+</ul>
+<h3 id="3-2-1-of-–-单一值转为流"><a href="#3-2-1-of-–-单一值转为流" class="headerlink" title="3.2.1  of – 单一值转为流"></a>3.2.1  of – 单一值转为流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204644634.png" alt="image-20210208204644634"></p>
+<blockquote>
+<p>它接收任意多个参数，参数可以是任意类型，然后它会把这些参数逐个放入流中</p>
+</blockquote>
+<h3 id="3-2-2-from-–-数组转为流"><a href="#3-2-2-from-–-数组转为流" class="headerlink" title="3.2.2 from – 数组转为流"></a>3.2.2 from – 数组转为流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204656811.png" alt="image-20210208204656811"></p>
+<blockquote>
+<p>它接受一个数组型参数，数组中可以有任意数据，然后把数组的每个元素逐个放入流中</p>
+</blockquote>
+<h3 id="3-2-3-range-–-范围转为流"><a href="#3-2-3-range-–-范围转为流" class="headerlink" title="3.2.3 range – 范围转为流"></a>3.2.3 range – 范围转为流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204705194.png" alt="image-20210208204705194"></p>
+<blockquote>
+<p>它接受两个数字型参数，一个起点，一个终点，然后按 <code>1</code> 递增，把中间的每个数字（含边界值）放入流中</p>
+</blockquote>
+<h3 id="3-2-4-fromPromise-–-Promise-转为流"><a href="#3-2-4-fromPromise-–-Promise-转为流" class="headerlink" title="3.2.4 fromPromise – Promise 转为流"></a>3.2.4 fromPromise – Promise 转为流</h3><ul>
+<li>接受一个 <code>Promise</code>，当这个 <code>Promise</code> 有了输出时，就把这个输出放入流中。</li>
+<li>要注意的是，当 <code>Promise</code> 作为参数传给 <code>fromPromise</code> 时，这个 <code>Promise</code> 就开始执行了，你没有机会防止它被执行。</li>
+<li>如果你需要这个 <code>Promise</code> 被消费时才执行，那就要改用接下来要讲的 <code>defer</code> 创建器</li>
+</ul>
+<h3 id="3-2-5-defer-–-惰性创建流"><a href="#3-2-5-defer-–-惰性创建流" class="headerlink" title="3.2.5 defer – 惰性创建流"></a>3.2.5 defer – 惰性创建流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204715704.png" alt="image-20210208204715704"></p>
+<ul>
+<li>它的参数是一个用来生产流的工厂函数。也就是说，当消费方需要流（注意不是需要流中的值）的时候，就会调用这个函数，创建一个流，并从这个流中进行消费（取数据）</li>
+<li>因此，当我们定义 <code>defer</code>的时候，实际上还不存在一个真正的流，只是给出了创建这个流的方法，所以叫惰性创建流</li>
+</ul>
+<h3 id="3-2-6-timer-–-定时器流"><a href="#3-2-6-timer-–-定时器流" class="headerlink" title="3.2.6 timer – 定时器流"></a>3.2.6 timer – 定时器流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204727266.png" alt="image-20210208204727266"></p>
+<ul>
+<li>它有两个数字型的参数，第一个是首次等待时间，第二个是重复间隔时间。从图上可以看出，它实际上是个无尽流 —— 没有终止线。因此它会按照预定的规则往流中不断重复发出数据。</li>
+<li>要注意，虽然名字有相关性，但它不是 <code>setTimeout</code>的等价物，事实上它的行为更像是 <code>setInterval</code></li>
+</ul>
+<h3 id="3-2-7-interval-–-定时器流"><a href="#3-2-7-interval-–-定时器流" class="headerlink" title="3.2.7 interval – 定时器流"></a>3.2.7 interval – 定时器流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204736607.png" alt="image-20210208204736607"></p>
+<ul>
+<li>它和 <code>timer</code> 唯一的差别是它只接受一个参数。事实上，它就是一个语法糖，相当于 <code>timer(1000, 1000)</code>，也就是说初始等待时间和间隔时间是一样的。</li>
+<li>如果需求确实是 <code>interval</code> 的语义，那么就优先使用这个语法糖，毕竟，从行为上它和 <code>setInterval</code> 几乎是一样的</li>
+</ul>
+<h2 id="3-3-Subject-–-主体对象"><a href="#3-3-Subject-–-主体对象" class="headerlink" title="3.3 Subject – 主体对象"></a>3.3 Subject – 主体对象</h2><blockquote>
+<p>它和创建器不同，创建器是供直接调用的函数，而 <code>Subject</code> 则是一个实现了 <code>observable</code> 接口的类。也就是说，你要先把它 <code>new</code> 出来（假设实例叫 <code>subject</code>），然后你就可以通过程序控制的方式往流里手动放数据了。它的典型用法是用来管理事件，比如当用户点击了某个按钮时，你希望发出一个事件，那么就可以调用 <code>subject.next(someValue)</code> 来把事件内容放进流中</p>
+</blockquote>
+<ul>
+<li>当你希望手动控制往这个流中放数据的时机时，这种特性非常有用。</li>
+<li>当然，<code>Subject</code> 其实并没有这么简单，用法也很多</li>
+</ul>
+<h2 id="3-4-合并创建器"><a href="#3-4-合并创建器" class="headerlink" title="3.4 合并创建器"></a>3.4 合并创建器</h2><blockquote>
+<p>我们不但可以直接创建流，还可以对多个现有的流进行不同形式的合并，创建一个新的流。常见的合并方式有三种：并联、串联、拉链</p>
+</blockquote>
+<h3 id="3-4-1-merge-–-并联"><a href="#3-4-1-merge-–-并联" class="headerlink" title="3.4.1 merge – 并联"></a>3.4.1 merge – 并联</h3><p><img src="https://blog.poetries.top/img/static/images/1240.png" alt="img"></p>
+<ul>
+<li>从图上我们可以看到两个流中的内容被合并到了一个流中。只要任何一个流中出现了值就会立刻被输出，哪怕其中一个流是完全空的也不影响结果 —— 等同于原始流。</li>
+<li>这种工作方式非常像电路中的并联行为，因此我称其为并联创建器。</li>
+<li>并联在什么情况下起作用呢？举个例子吧：有一个列表需要每隔 <code>5</code> 秒钟定时刷新一次，但是一旦用户按了搜索按钮，就必须立即刷新，而不能等待 <code>5</code> 秒间隔。这时候就可以用一个定时器流和一个自定义的用户操作流（<code>subject</code>）<code>merge</code> 在一起。这样，无论哪个流中出现了数据，都会进行刷新</li>
+</ul>
+<h3 id="3-4-2-concat-–-串联"><a href="#3-4-2-concat-–-串联" class="headerlink" title="3.4.2 concat – 串联"></a>3.4.2 concat – 串联</h3><p><img src="https://blog.poetries.top/img/static/images/1240-20210208204820976.png" alt="img"></p>
+<ul>
+<li>从图中我们可以看到两个流中的内容被按照顺序放进了输出流中。前面的流尚未结束时（注意竖线），后面的流就会一直等待</li>
+<li>这种工作方式非常像电路中的串联行为，因此我称其为串联创建器。</li>
+<li>串联的适用场景就很容易想象了，比如我们需要先通过 <code>Web API</code> 进行登录，然后取学生名册。这两个操作就是异步且串联工作的</li>
+</ul>
+<h3 id="3-4-3-zip-–-拉链"><a href="#3-4-3-zip-–-拉链" class="headerlink" title="3.4.3 zip – 拉链"></a>3.4.3 zip – 拉链</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204828426.png" alt="image-20210208204828426"></p>
+<ul>
+<li><code>zip</code> 的直译就是拉链，事实上，有些压缩软件的图标就是一个带拉链的钥匙包。拉链的特点是两边各有一个“齿”，两者会啮合在一起。这里的 <code>zip</code> 操作也是如此。</li>
+</ul>
+<blockquote>
+<p>从图上我们可以看到，两个输入流中分别出现了一些数据，当仅仅输入流 <code>A</code> 中出现了数据时，输出流中什么都没有，因为它还在等另一个“齿”。当输出流 <code>B</code> 中出现了数据时，两个“齿”都凑齐了，于是对这两个齿执行中间定义的运算（取 <code>A</code> 的形状，<code>B</code> 的颜色，并合成为输出数据）</p>
+</blockquote>
+<ul>
+<li>可以看到，当任何一个流先行结束之后，整个输出流也就结束了。</li>
+<li>拉链创建器适用的场景要少一些，通常用于合并两个数据有对应关系的数据源。比如一个流中是姓名，另一个流中是成绩，还有一个流中是年龄，如果这三个流中的每个条目都有精确的对应关系，那么就可以通过 <code>zip</code> 把它们合并成一个由表示学生成绩的对象组成的流。</li>
+</ul>
+<h2 id="3-5-操作符"><a href="#3-5-操作符" class="headerlink" title="3.5 操作符"></a>3.5 操作符</h2><blockquote>
+<p><code>RxJS</code> 有很多操作符，事实上比创建器还要多一些，但是我们并不需要一一讲解，因为它们中的很大一部分都是函数式编程中的标配，比如 <code>map</code>、<code>reduce</code>、<code>filter</code> 等</p>
+</blockquote>
+<h3 id="3-5-1-retry-–-失败时重试"><a href="#3-5-1-retry-–-失败时重试" class="headerlink" title="3.5.1 retry – 失败时重试"></a>3.5.1 retry – 失败时重试</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204837805.png" alt="image-20210208204837805"></p>
+<ul>
+<li>有些错误是可以通过重试进行恢复的，比如临时性的网络丢包。甚至一些流程的设计还会故意借助重试机制，比如当你发起请求时，如果后端发现你没有登录过，就会给你一个 <code>401</code> 错误，然后你可以完成登录并重新开始整个流程。</li>
+<li><code>retry</code> 操作符就是负责在失败时自动发起重试的，它可以接受一个参数，用来指定最大重试次数。</li>
+</ul>
+<p>这里我为什么一直在强调失败时重试呢？因为还有一个操作符负责成功时重试</p>
+<h3 id="3-5-2-repeat-–-成功时重试"><a href="#3-5-2-repeat-–-成功时重试" class="headerlink" title="3.5.2 repeat – 成功时重试"></a>3.5.2 repeat – 成功时重试</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204846757.png" alt="image-20210208204846757"></p>
+<ul>
+<li>除了重复的条件之外，<code>repeat</code> 的行为几乎和 <code>retry</code> 一模一样。</li>
+<li><code>repeat</code> 很少会单独用，一般会组合上 <code>delay</code> 操作，以提供暂停时间，否则就容易 DoS 了服务器</li>
+</ul>
+<h3 id="3-5-3-delay-–-延迟"><a href="#3-5-3-delay-–-延迟" class="headerlink" title="3.5.3 delay – 延迟"></a>3.5.3 delay – 延迟</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204856423.png" alt="image-20210208204856423"></p>
+<ul>
+<li>这才是真正的 <code>setTimeout</code> 的等价操作。它接受一个毫秒数（图中是 <code>20</code> 毫秒），每当它从输入流中读取一个数据之后，会先等待 <code>20</code> 毫秒，然后再放到输出流中。</li>
+<li>可以看到，输入流和输出流内容是完全一样的，只是时机上，输出流中的每个条目都恰好比输入流晚 <code>20</code> 毫秒出现</li>
+</ul>
+<h3 id="3-5-4-toArray-–-收集为数组"><a href="#3-5-4-toArray-–-收集为数组" class="headerlink" title="3.5.4 toArray – 收集为数组"></a>3.5.4 toArray – 收集为数组</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204905368.png" alt="image-20210208204905368"></p>
+<ul>
+<li>事实上，你几乎可以把它看做是 <code>from</code> 的逆运算。 <code>from</code> 把数组打散了逐个放进流中，而 <code>toArray</code> 恰好相反，把流中的内容收集到一个数组中 —— 直到这个流结束。</li>
+<li>这个操作符几乎总是放在最后一步，因为 <code>RxJS</code> 的各种 <code>operator</code> 本身就可以对流中的数据进行很多类似数组的操作，比如查找最小值、最大值、过滤等。所以通常会先使用各种 operator 对数据流进行处理，等到要脱离 <code>RxJS</code> 的体系时，再转换成数组传出去</li>
+</ul>
+<h3 id="3-5-5-debounceTime-–-防抖"><a href="#3-5-5-debounceTime-–-防抖" class="headerlink" title="3.5.5 debounceTime – 防抖"></a>3.5.5 debounceTime – 防抖</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204912979.png" alt="image-20210208204912979"></p>
+<ul>
+<li>在 <code>underscore/lodash</code> 中这是常用函数。 所谓防抖其实就是“等它平静下来”。比如预输入（type ahead）功能，当用户正在快速打字的时候，你没必要立刻去查服务器，否则可能直接让服务器挂了，而应该等用户稍作停顿（平静下来）时再发起查询。</li>
+<li><code>debounceTime</code> 就是这样，你传入一个最小平静时间，在这个时间窗口内连续过来的数据一概被忽略，一旦平静时间超过它，就会往把接收到的下一条数据放到流中。这样消费者就只能看到平静时间超时之后发来的最后一条数据</li>
+</ul>
+<h3 id="3-5-6-switchMap-–-切换成另一个流"><a href="#3-5-6-switchMap-–-切换成另一个流" class="headerlink" title="3.5.6 switchMap – 切换成另一个流"></a>3.5.6 switchMap – 切换成另一个流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204929447.png" alt="image-20210208204929447"></p>
+<ul>
+<li>有时候，我们会希望根据一个立即数发起一个远程查询，并且把这个异步取回的结果放进流中。比如，流中是一些学生的 <code>id</code>，每过来一个 <code>id</code>，你要发起一个 <code>Ajax</code> 请求来根据这个 <code>id</code> 获取这个学生的详情，并且把详情放进输出流中。</li>
+<li>注意，这是一个异步操作，所以你没法用普通的 <code>map</code> 来实现，否则映射出来的结果就会是一个个 <code>Observable</code> 对象。</li>
+<li><code>switchMap</code> 就是用来解决这个问题的。它在回调函数中接受从输入流中传来的数据，并转换成一个新的 <code>Observable</code> 对象（新的流，每个流中包括三个值，每个值都等于输入值的十倍），<code>switchMap</code> 会订阅这个 <code>Observable</code> 对象，并把它的值放入输出流中。注意图中竖线的位置 —— 只有当所有新的流都结束时，输出流才会结束</li>
+</ul>
+<h1 id="四、进一步使用"><a href="#四、进一步使用" class="headerlink" title="四、进一步使用"></a>四、进一步使用</h1><h2 id="4-1-Rxjs-unsubscribe-取消订阅"><a href="#4-1-Rxjs-unsubscribe-取消订阅" class="headerlink" title="4.1 Rxjs unsubscribe 取消订阅"></a>4.1 Rxjs unsubscribe 取消订阅</h2><blockquote>
+<p><code>Promise</code> 的创建之后，动作是无法撤回的。<code>Observable</code> 不一样，动作可以通过 <code>unsbscribe()</code> 方法中途撤回，而且 <code>Observable</code> 在内部做了智能的处理.</p>
+</blockquote>
+<p><strong>Promise 创建之后动作无法撤回</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(resolve = &gt;&#123;</span><br><span class="line">    setTimeout(() = &gt;&#123;</span><br><span class="line">        resolve(<span class="string">'---promise timeout---'</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">&#125;);</span><br><span class="line">promise.then(value = &gt;<span class="built_in">console</span>.log(value));</span><br></pre></td></tr></table></figure>
+<p><strong>Rxjs 可以通过 unsubscribe() 可以撤回 subscribe 的动作</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> stream = <span class="keyword">new</span> Observable(observer = &gt;&#123;</span><br><span class="line">    <span class="keyword">let</span> timeout = setTimeout(() = &gt;&#123;</span><br><span class="line">        clearTimeout(timeout);</span><br><span class="line">        observer.next(<span class="string">'observable timeout'</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">let</span> disposable = stream.subscribe(value = &gt;<span class="built_in">console</span>.log(value));</span><br><span class="line">setTimeout(() = &gt;&#123;</span><br><span class="line">    <span class="comment">//取消执行 disposable.unsubscribe();</span></span><br><span class="line">&#125;,</span><br><span class="line"><span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="4-2-Rxjs-订阅后多次执行"><a href="#4-2-Rxjs-订阅后多次执行" class="headerlink" title="4.2 Rxjs 订阅后多次执行"></a>4.2 Rxjs 订阅后多次执行</h2><blockquote>
+<p>如果我们想让异步里面的方法多次执行，比如下面代码。<br>这一点 <code>Promise</code>是做不到的，对于 <code>Promise</code>来说，最终结果要么 <code>resolve</code>(兑现)、要么 <code>reject</code> (拒绝)，而且都只能触发一次。如果在同一个 <code>Promise</code> 对象上多次调用 <code>resolve</code> 方法， 则会抛异常。而 <code>Observable</code>不一样，它可以不断地触发下一个值，就像 <code>next()</code>这个方法的 名字所暗示的那样。</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// promise</span></span><br><span class="line"><span class="keyword">let</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(resolve = &gt;&#123;</span><br><span class="line">    setInterval(() = &gt;&#123;</span><br><span class="line">        resolve(<span class="string">'---promise setInterval---'</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">&#125;);</span><br><span class="line">promise.then(value = &gt;<span class="built_in">console</span>.log(value));</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Rxjs</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> stream = <span class="keyword">new</span> Observable &lt; number &gt; (observer = &gt;&#123;</span><br><span class="line">    <span class="keyword">let</span> count = <span class="number">0</span>;</span><br><span class="line">    setInterval(() = &gt;&#123;</span><br><span class="line">        observer.next(count++);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">1000</span>);</span><br><span class="line">&#125;);</span><br><span class="line">stream.subscribe(value = &gt;<span class="built_in">console</span>.log(<span class="string">"Observable&gt;"</span> + value));</span><br></pre></td></tr></table></figure>
+<h2 id="五、RXJS-实例操作符小结"><a href="#五、RXJS-实例操作符小结" class="headerlink" title="五、RXJS 实例操作符小结"></a>五、RXJS 实例操作符小结</h2><p><strong>常用的实例方法</strong></p>
+<ul>
+<li><code>pip</code> ：功能类似于 <code>let</code> 操作符</li>
+<li><code>map</code> ：转换输出的数据</li>
+<li><code>pluck</code> ：提取属性值并输出</li>
+<li><code>do</code> ：不做数据格式化，可用于调试</li>
+<li><code>filter</code> ：用于过滤一些<code>Observable</code></li>
+<li><code>take</code>：表示取几条数据</li>
+<li><code>takeWhile</code> ：满足什么条件时开始取数据</li>
+<li><code>skip</code> ：表示跳过多少条数据后开始取</li>
+<li><code>distinctUntilChanged</code> ：比较输入的<code>Observable</code>计算得出的值当前与后最后的值是否相等使用<code>===</code>判断</li>
+<li><code>scan</code> ：功能有点类似于<code>reduce</code>这个方法，可用于累加数据同时可以使用<code>startWith</code>的数据用途<code>scan</code>的初始值，最后返回累加的数据</li>
+<li><code>delay</code> ：表示<code>Observable</code>延时多久开始处理订阅数据</li>
+<li><code>toArray</code> ：把输出值格式化成数据形式</li>
+<li><code>toMap</code> ：给当前的输出取个名字或标签</li>
+<li><code>expand</code> ：实现递归</li>
+<li><code>forkJoin</code> ：类似于<code>Promise.all</code>，只有数据全部返回且状态为<code>complete</code>时，表示成功处理了请求，否则失败</li>
+<li><code>let</code> ：这个操作符可以获取完整的输入<code>Observable</code>对象，做相应的处理后返回新的<code>Observable</code>对象</li>
+<li><code>catch</code> ：用于<code>Observable</code>处理数据异常的处理</li>
+<li><code>combineLatest</code> ：用于组且各个输入的<code>Observable</code>，并获取和返回各个<code>Observable</code>最新的数据</li>
+<li><code>merge</code> ：用于把两个<code>Observable</code>合成一个处理</li>
+</ul>
+<h1 id="六、更多参考"><a href="#六、更多参考" class="headerlink" title="六、更多参考"></a>六、更多参考</h1><ul>
+<li><a href="https://cn.rx.js.org" target="_blank" rel="noopener">Rxjs中文文档</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2021/02/08/fe-youhua/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2021/02/16/vue3-base/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

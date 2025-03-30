@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>ES6系列之Proxy | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="ES6,Javascript,">
+  
+
+  <meta name="description" content="一、proxy概述Proxy的兼容性   proxy在目标对象的外层搭建了一层拦截，外界对目标对象的某些操作，必须通过这层拦截  var proxy = new Proxy(target, handler);  new Proxy()表示生成一个Proxy实例，target参数表示所要拦截的目标对象，handler参数也是一个对象，用来定制拦截行为  var target = &amp;#123;   n">
+<meta name="keywords" content="ES6,Javascript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES6系列之Proxy">
+<meta property="og:url" content="http://blog.poetries.top/2018/12/21/es6-proxy/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、proxy概述Proxy的兼容性   proxy在目标对象的外层搭建了一层拦截，外界对目标对象的某些操作，必须通过这层拦截  var proxy = new Proxy(target, handler);  new Proxy()表示生成一个Proxy实例，target参数表示所要拦截的目标对象，handler参数也是一个对象，用来定制拦截行为  var target = &amp;#123;   n">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/55.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.460Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ES6系列之Proxy">
+<meta name="twitter:description" content="一、proxy概述Proxy的兼容性   proxy在目标对象的外层搭建了一层拦截，外界对目标对象的某些操作，必须通过这层拦截  var proxy = new Proxy(target, handler);  new Proxy()表示生成一个Proxy实例，target参数表示所要拦截的目标对象，handler参数也是一个对象，用来定制拦截行为  var target = &amp;#123;   n">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/55.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、proxy概述"><span class="toc-text">一、proxy概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Proxy所能代理的范围–handler"><span class="toc-text">二、Proxy所能代理的范围–handler</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Proxy场景"><span class="toc-text">三、Proxy场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-实现私有变量"><span class="toc-text">3.1 实现私有变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-抽离校验模块"><span class="toc-text">3.2 抽离校验模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-访问日志"><span class="toc-text">3.3 访问日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-预警和拦截"><span class="toc-text">3.4 预警和拦截</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-过滤操作"><span class="toc-text">3.5 过滤操作</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-中断代理"><span class="toc-text">3.6 中断代理</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-es6-proxy" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">ES6系列之Proxy</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.12.21</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 2.7k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 12分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、proxy概述"><a href="#一、proxy概述" class="headerlink" title="一、proxy概述"></a>一、proxy概述</h2><p><strong>Proxy的兼容性</strong></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/55.png" alt></p>
+<blockquote>
+<p><code>proxy</code>在目标对象的外层搭建了一层拦截，外界对目标对象的某些操作，必须通过这层拦截</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>new Proxy()</code>表示生成一个<code>Proxy</code>实例，<code>target</code>参数表示所要拦截的目标对象，<code>handler</code>参数也是一个对象，用来定制拦截行为</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> target = &#123;</span><br><span class="line">   name: <span class="string">'poetries'</span></span><br><span class="line"> &#125;;</span><br><span class="line"> <span class="keyword">var</span> logHandler = &#123;</span><br><span class="line">   <span class="keyword">get</span>: function(target, key) &#123;</span><br><span class="line">     <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;key&#125;</span> 被读取`</span>);</span><br><span class="line">     <span class="keyword">return</span> target[key];</span><br><span class="line">   &#125;,</span><br><span class="line">   <span class="keyword">set</span>: function(target, key, value) &#123;</span><br><span class="line">     <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;key&#125;</span> 被设置为 <span class="subst">$&#123;value&#125;</span>`</span>);</span><br><span class="line">     target[key] = value;</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">var</span> targetWithLog = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, logHandler);</span><br><span class="line"> </span><br><span class="line"> targetWithLog.name; <span class="comment">// 控制台输出：name 被读取</span></span><br><span class="line"> targetWithLog.name = <span class="string">'others'</span>; <span class="comment">// 控制台输出：name 被设置为 others</span></span><br><span class="line"> </span><br><span class="line"> <span class="built_in">console</span>.log(target.name); <span class="comment">// 控制台输出: others</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>targetWithLog</code> 读取属性的值时，实际上执行的是 <code>logHandler.get</code> ：在控制台输出信息，并且读取被代理对象 <code>target</code> 的属性。</li>
+<li>在 <code>targetWithLog</code> 设置属性值时，实际上执行的是 <code>logHandler.set</code> ：在控制台输出信息，并且设置被代理对象 <code>target</code> 的属性的值</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 由于拦截函数总是返回35，所以访问任何属性都得到35</span></span><br><span class="line"><span class="keyword">var</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(&#123;&#125;, &#123;</span><br><span class="line">  <span class="keyword">get</span>: function(target, property) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">35</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy.time <span class="comment">// 35</span></span><br><span class="line">proxy.name <span class="comment">// 35</span></span><br><span class="line">proxy.title <span class="comment">// 35</span></span><br></pre></td></tr></table></figure>
+<p><strong>Proxy 实例也可以作为其他对象的原型对象</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(&#123;&#125;, &#123;</span><br><span class="line">  <span class="keyword">get</span>: function(target, property) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">35</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> obj = <span class="built_in">Object</span>.create(proxy);</span><br><span class="line">obj.time <span class="comment">// 35</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>proxy</code>对象是<code>obj</code>对象的原型，<code>obj</code>对象本身并没有<code>time</code>属性，所以根据原型链，会在<code>proxy</code>对象上读取该属性，导致被拦截</p>
+</blockquote>
+<p><strong>Proxy的作用</strong></p>
+<blockquote>
+<p>对于代理模式 <code>Proxy</code> 的作用主要体现在三个方面</p>
+</blockquote>
+<ul>
+<li>拦截和监视外部对对象的访问</li>
+<li>降低函数或类的复杂度</li>
+<li>在复杂操作前对操作进行校验或对所需资源进行管理</li>
+</ul>
+<h2 id="二、Proxy所能代理的范围–handler"><a href="#二、Proxy所能代理的范围–handler" class="headerlink" title="二、Proxy所能代理的范围–handler"></a>二、Proxy所能代理的范围–handler</h2><blockquote>
+<p>实际上 <code>handler</code> 本身就是<code>ES6</code>所新设计的一个对象.它的作用就是用来 自定义代理对象的各种可代理操作 。它本身一共有<code>13</code>中方法,每种方法都可以代理一种操作.其<code>13</code>种方法如下</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在读取代理对象的原型时触发该操作，比如在执行 Object.getPrototypeOf(proxy) 时。</span></span><br><span class="line">handler.getPrototypeOf()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在设置代理对象的原型时触发该操作，比如在执行 Object.setPrototypeOf(proxy, null) 时。</span></span><br><span class="line">handler.setPrototypeOf()</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 在判断一个代理对象是否是可扩展时触发该操作，比如在执行 Object.isExtensible(proxy) 时。</span></span><br><span class="line">handler.isExtensible()</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 在让一个代理对象不可扩展时触发该操作，比如在执行 Object.preventExtensions(proxy) 时。</span></span><br><span class="line">handler.preventExtensions()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在获取代理对象某个属性的属性描述时触发该操作，比如在执行 Object.getOwnPropertyDescriptor(proxy, "foo") 时。</span></span><br><span class="line">handler.getOwnPropertyDescriptor()</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 在定义代理对象某个属性时的属性描述时触发该操作，比如在执行 Object.defineProperty(proxy, "foo", &#123;&#125;) 时。</span></span><br><span class="line">andler.defineProperty()</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 在判断代理对象是否拥有某个属性时触发该操作，比如在执行 "foo" in proxy 时。</span></span><br><span class="line">handler.has()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在读取代理对象的某个属性时触发该操作，比如在执行 proxy.foo 时。</span></span><br><span class="line">handler.get()</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 在给代理对象的某个属性赋值时触发该操作，比如在执行 proxy.foo = 1 时。</span></span><br><span class="line">handler.set()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在删除代理对象的某个属性时触发该操作，比如在执行 delete proxy.foo 时。</span></span><br><span class="line">handler.deleteProperty()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在获取代理对象的所有属性键时触发该操作，比如在执行 Object.getOwnPropertyNames(proxy) 时。</span></span><br><span class="line">handler.ownKeys()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在调用一个目标对象为函数的代理对象时触发该操作，比如在执行 proxy() 时。</span></span><br><span class="line">handler.apply()</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"><span class="comment">// 在给一个目标对象为构造函数的代理对象构造实例时触发该操作，比如在执行new proxy() 时。</span></span><br><span class="line">handler.construct()</span><br></pre></td></tr></table></figure>
+<h2 id="三、Proxy场景"><a href="#三、Proxy场景" class="headerlink" title="三、Proxy场景"></a>三、Proxy场景</h2><h3 id="3-1-实现私有变量"><a href="#3-1-实现私有变量" class="headerlink" title="3.1 实现私有变量"></a>3.1 实现私有变量</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> target = &#123;</span><br><span class="line">   name: <span class="string">'poetries'</span>,</span><br><span class="line">   _age: <span class="number">22</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> logHandler = &#123;</span><br><span class="line">  <span class="keyword">get</span>: function(target,key)&#123;</span><br><span class="line">    <span class="keyword">if</span>(key.startsWith(<span class="string">'_'</span>))&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'私有变量age不能被访问'</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> target[key];</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="keyword">set</span>: function(target, key, value) &#123;</span><br><span class="line">     <span class="keyword">if</span>(key.startsWith(<span class="string">'_'</span>))&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'私有变量age不能被修改'</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">     target[key] = value;</span><br><span class="line">   &#125;</span><br><span class="line">&#125; </span><br><span class="line"><span class="keyword">var</span> targetWithLog = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, logHandler);</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 私有变量age不能被访问</span></span><br><span class="line">targetWithLog.name; </span><br><span class="line"> </span><br><span class="line"><span class="comment">// 私有变量age不能被修改</span></span><br><span class="line">targetWithLog.name = <span class="string">'others'</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在下面的代码中，我们声明了一个私有的 <code>apiKey</code>，便于 <code>api</code> 这个对象内部的方法调用，但不希望从外部也能够访问 <code>api._apiKey</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> api = &#123;  </span><br><span class="line">    _apiKey: <span class="string">'123abc456def'</span>,</span><br><span class="line">    <span class="comment">/* mock methods that use this._apiKey */</span></span><br><span class="line">    getUsers: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;&#125;, </span><br><span class="line">    getUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId</span>)</span>&#123;&#125;, </span><br><span class="line">    setUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId, config</span>)</span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// logs '123abc456def';</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"An apiKey we want to keep private"</span>, api._apiKey);</span><br><span class="line"></span><br><span class="line"><span class="comment">// get and mutate _apiKeys as desired</span></span><br><span class="line"><span class="keyword">var</span> apiKey = api._apiKey;  </span><br><span class="line">api._apiKey = <span class="string">'987654321'</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>很显然，约定俗成是没有束缚力的。使用 <code>ES6 Proxy</code> 我们就可以实现真实的私有变量了，下面针对不同的读取方式演示两个不同的私有化方法。第一种方法是使用 <code>set / get</code> 拦截读写请求并返回 <code>undefined</code>:</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> api = &#123;  </span><br><span class="line">    _apiKey: <span class="string">'123abc456def'</span>,</span><br><span class="line">    getUsers: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123; &#125;, </span><br><span class="line">    getUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId</span>)</span>&#123; &#125;, </span><br><span class="line">    setUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId, config</span>)</span>&#123; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> RESTRICTED = [<span class="string">'_apiKey'</span>];</span><br><span class="line">api = <span class="keyword">new</span> <span class="built_in">Proxy</span>(api, &#123;  </span><br><span class="line">    <span class="keyword">get</span>(target, key, proxy) &#123;</span><br><span class="line">        <span class="keyword">if</span>(RESTRICTED.indexOf(key) &gt; <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">`<span class="subst">$&#123;key&#125;</span> is restricted. Please see api documentation for further info.`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(target, key, proxy);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="keyword">set</span>(target, key, value, proxy) &#123;</span><br><span class="line">        <span class="keyword">if</span>(RESTRICTED.indexOf(key) &gt; <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">`<span class="subst">$&#123;key&#125;</span> is restricted. Please see api documentation for further info.`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(target, key, value, proxy);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 以下操作都会抛出错误</span></span><br><span class="line"><span class="built_in">console</span>.log(api._apiKey);</span><br><span class="line">api._apiKey = <span class="string">'987654321'</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>第二种方法是使用 <code>has</code> 拦截 <code>in</code> 操作</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> api = &#123;  </span><br><span class="line">    _apiKey: <span class="string">'123abc456def'</span>,</span><br><span class="line">    getUsers: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123; &#125;, </span><br><span class="line">    getUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId</span>)</span>&#123; &#125;, </span><br><span class="line">    setUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId, config</span>)</span>&#123; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> RESTRICTED = [<span class="string">'_apiKey'</span>];</span><br><span class="line">api = <span class="keyword">new</span> <span class="built_in">Proxy</span>(api, &#123;  </span><br><span class="line">    has(target, key) &#123;</span><br><span class="line">        <span class="keyword">return</span> (RESTRICTED.indexOf(key) &gt; <span class="number">-1</span>) ?</span><br><span class="line">            <span class="literal">false</span> :</span><br><span class="line">            <span class="built_in">Reflect</span>.has(target, key);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// these log false, and `for in` iterators will ignore _apiKey</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">"_apiKey"</span> <span class="keyword">in</span> api);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> api) &#123;  </span><br><span class="line">    <span class="keyword">if</span> (api.hasOwnProperty(key) &amp;&amp; key === <span class="string">"_apiKey"</span>) &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">"This will never be logged because the proxy obscures _apiKey..."</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-抽离校验模块"><a href="#3-2-抽离校验模块" class="headerlink" title="3.2 抽离校验模块"></a>3.2 抽离校验模块</h3><blockquote>
+<p>让我们从一个简单的类型校验开始做起，这个示例演示了如何使用 <code>Proxy</code> 保障数据类型的准确性</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> numericDataStore = &#123;  </span><br><span class="line">    count: <span class="number">0</span>,</span><br><span class="line">    amount: <span class="number">1234</span>,</span><br><span class="line">    total: <span class="number">14</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">numericDataStore = <span class="keyword">new</span> <span class="built_in">Proxy</span>(numericDataStore, &#123;  </span><br><span class="line">    <span class="keyword">set</span>(target, key, value, proxy) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">typeof</span> value !== <span class="string">'number'</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">"Properties in numericDataStore can only be numbers"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Reflect</span>.set(target, key, value, proxy);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 抛出错误，因为 "foo" 不是数值</span></span><br><span class="line">numericDataStore.count = <span class="string">"foo"</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 赋值成功</span></span><br><span class="line">numericDataStore.count = <span class="number">333</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果要直接为对象的所有属性开发一个校验器可能很快就会让代码结构变得臃肿，使用 <code>Proxy</code> 则可以将校验器从核心逻辑分离出来自成一体</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createValidator</span>(<span class="params">target, validator</span>) </span>&#123;  </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, &#123;</span><br><span class="line">        _validator: validator,</span><br><span class="line">        <span class="keyword">set</span>(target, key, value, proxy) &#123;</span><br><span class="line">            <span class="keyword">if</span> (target.hasOwnProperty(key)) &#123;</span><br><span class="line">                <span class="keyword">let</span> validator = <span class="keyword">this</span>._validator[key];</span><br><span class="line">                <span class="keyword">if</span> (!!validator(value)) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="built_in">Reflect</span>.set(target, key, value, proxy);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">`Cannot set <span class="subst">$&#123;key&#125;</span> to <span class="subst">$&#123;value&#125;</span>. Invalid.`</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">`<span class="subst">$&#123;key&#125;</span> is not a valid property`</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> personValidators = &#123;  </span><br><span class="line">    name(val) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">typeof</span> val === <span class="string">'string'</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">    age(val) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">typeof</span> age === <span class="string">'number'</span> &amp;&amp; age &gt; <span class="number">18</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;  </span><br><span class="line">    <span class="keyword">constructor</span>(name, age) &#123;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.age = age;</span><br><span class="line">        <span class="keyword">return</span> createValidator(<span class="keyword">this</span>, personValidators);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> bill = <span class="keyword">new</span> Person(<span class="string">'Bill'</span>, <span class="number">25</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 以下操作都会报错</span></span><br><span class="line">bill.name = <span class="number">0</span>;  </span><br><span class="line">bill.age = <span class="string">'Bill'</span>;  </span><br><span class="line">bill.age = <span class="number">15</span>;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>通过校验器和主逻辑的分离，你可以无限扩展 <code>personValidators</code> 校验器的内容，而不会对相关的类或函数造成直接破坏。更复杂一点，我们还可以使用 <code>Proxy</code> 模拟类型检查，检查函数是否接收了类型和数量都正确的参数</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;  </span><br><span class="line">    pickyMethodOne: <span class="function"><span class="keyword">function</span>(<span class="params">obj, str, num</span>) </span>&#123; <span class="comment">/* ... */</span> &#125;,</span><br><span class="line">    pickyMethodTwo: <span class="function"><span class="keyword">function</span>(<span class="params">num, obj</span>) </span>&#123; <span class="comment">/*... */</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> argTypes = &#123;  </span><br><span class="line">    pickyMethodOne: [<span class="string">"object"</span>, <span class="string">"string"</span>, <span class="string">"number"</span>],</span><br><span class="line">    pickyMethodTwo: [<span class="string">"number"</span>, <span class="string">"object"</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj = <span class="keyword">new</span> <span class="built_in">Proxy</span>(obj, &#123;  </span><br><span class="line">    <span class="keyword">get</span>: function(target, key, proxy) &#123;</span><br><span class="line">        <span class="keyword">var</span> value = target[key];</span><br><span class="line">        <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">...args</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> checkArgs = argChecker(key, args, argTypes[key]);</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">Reflect</span>.apply(value, target, args);</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">argChecker</span>(<span class="params">name, args, checkers</span>) </span>&#123;  </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> idx = <span class="number">0</span>; idx &lt; args.length; idx++) &#123;</span><br><span class="line">        <span class="keyword">var</span> arg = args[idx];</span><br><span class="line">        <span class="keyword">var</span> type = checkers[idx];</span><br><span class="line">        <span class="keyword">if</span> (!arg || <span class="keyword">typeof</span> arg !== type) &#123;</span><br><span class="line">            <span class="built_in">console</span>.warn(<span class="string">`You are incorrectly implementing the signature of <span class="subst">$&#123;name&#125;</span>. Check param <span class="subst">$&#123;idx + <span class="number">1</span>&#125;</span>`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">obj.pickyMethodOne();  </span><br><span class="line"><span class="comment">// &gt; You are incorrectly implementing the signature of pickyMethodOne. Check param 1</span></span><br><span class="line"><span class="comment">// &gt; You are incorrectly implementing the signature of pickyMethodOne. Check param 2</span></span><br><span class="line"><span class="comment">// &gt; You are incorrectly implementing the signature of pickyMethodOne. Check param 3</span></span><br><span class="line"></span><br><span class="line">obj.pickyMethodTwo(<span class="string">"wopdopadoo"</span>, &#123;&#125;);  </span><br><span class="line"><span class="comment">// &gt; You are incorrectly implementing the signature of pickyMethodTwo. Check param 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// No warnings logged</span></span><br><span class="line">obj.pickyMethodOne(&#123;&#125;, <span class="string">"a little string"</span>, <span class="number">123</span>);  </span><br><span class="line">obj.pickyMethodOne(<span class="number">123</span>, &#123;&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="3-3-访问日志"><a href="#3-3-访问日志" class="headerlink" title="3.3 访问日志"></a>3.3 访问日志</h3><blockquote>
+<p>对于那些调用频繁、运行缓慢或占用执行环境资源较多的属性或接口，开发者会希望记录它们的使用情况或性能表现，这个时候就可以使用 <code>Proxy</code> 充当中间件的角色，轻而易举实现日志功能</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> api = &#123;  </span><br><span class="line">    _apiKey: <span class="string">'123abc456def'</span>,</span><br><span class="line">    getUsers: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123; <span class="comment">/* ... */</span> &#125;,</span><br><span class="line">    getUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId</span>) </span>&#123; <span class="comment">/* ... */</span> &#125;,</span><br><span class="line">    setUser: <span class="function"><span class="keyword">function</span>(<span class="params">userId, config</span>) </span>&#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">logMethodAsync</span>(<span class="params">timestamp, method</span>) </span>&#123;  </span><br><span class="line">    setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;timestamp&#125;</span> - Logging <span class="subst">$&#123;method&#125;</span> request asynchronously.`</span>);</span><br><span class="line">    &#125;, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">api = <span class="keyword">new</span> <span class="built_in">Proxy</span>(api, &#123;  </span><br><span class="line">    <span class="keyword">get</span>: function(target, key, proxy) &#123;</span><br><span class="line">        <span class="keyword">var</span> value = target[key];</span><br><span class="line">        <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">...arguments</span>) </span>&#123;</span><br><span class="line">            logMethodAsync(<span class="keyword">new</span> <span class="built_in">Date</span>(), key);</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">Reflect</span>.apply(value, target, <span class="built_in">arguments</span>);</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">api.getUsers();</span><br></pre></td></tr></table></figure>
+<h3 id="3-4-预警和拦截"><a href="#3-4-预警和拦截" class="headerlink" title="3.4 预警和拦截"></a>3.4 预警和拦截</h3><blockquote>
+<p>假设你不想让其他开发者删除 <code>noDelete</code> 属性，还想让调用 <code>oldMethod</code> 的开发者了解到这个方法已经被废弃了，或者告诉开发者不要修改 <code>doNotChange</code> 属性，那么就可以使用 <code>Proxy</code> 来实现</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> dataStore = &#123;  </span><br><span class="line">    noDelete: <span class="number">1235</span>,</span><br><span class="line">    oldMethod: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;<span class="comment">/*...*/</span> &#125;,</span><br><span class="line">    doNotChange: <span class="string">"tried and true"</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> NODELETE = [<span class="string">'noDelete'</span>];  </span><br><span class="line"><span class="keyword">const</span> NOCHANGE = [<span class="string">'doNotChange'</span>];</span><br><span class="line"><span class="keyword">const</span> DEPRECATED = [<span class="string">'oldMethod'</span>];  </span><br><span class="line"></span><br><span class="line">dataStore = <span class="keyword">new</span> <span class="built_in">Proxy</span>(dataStore, &#123;  </span><br><span class="line">    <span class="keyword">set</span>(target, key, value, proxy) &#123;</span><br><span class="line">        <span class="keyword">if</span> (NOCHANGE.includes(key)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">`Error! <span class="subst">$&#123;key&#125;</span> is immutable.`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Reflect</span>.set(target, key, value, proxy);</span><br><span class="line">    &#125;,</span><br><span class="line">    deleteProperty(target, key) &#123;</span><br><span class="line">        <span class="keyword">if</span> (NODELETE.includes(key)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="built_in">Error</span>(<span class="string">`Error! <span class="subst">$&#123;key&#125;</span> cannot be deleted.`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">Reflect</span>.deleteProperty(target, key);</span><br><span class="line"></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="keyword">get</span>(target, key, proxy) &#123;</span><br><span class="line">        <span class="keyword">if</span> (DEPRECATED.includes(key)) &#123;</span><br><span class="line">            <span class="built_in">console</span>.warn(<span class="string">`Warning! <span class="subst">$&#123;key&#125;</span> is deprecated.`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">var</span> val = target[key];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">typeof</span> val === <span class="string">'function'</span> ?</span><br><span class="line">            <span class="function"><span class="keyword">function</span>(<span class="params">...args</span>) </span>&#123;</span><br><span class="line">                <span class="built_in">Reflect</span>.apply(target[key], target, args);</span><br><span class="line">            &#125; :</span><br><span class="line">            val;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// these will throw errors or log warnings, respectively</span></span><br><span class="line">dataStore.doNotChange = <span class="string">"foo"</span>;  </span><br><span class="line"><span class="keyword">delete</span> dataStore.noDelete;  </span><br><span class="line">dataStore.oldMethod();</span><br></pre></td></tr></table></figure>
+<h3 id="3-5-过滤操作"><a href="#3-5-过滤操作" class="headerlink" title="3.5 过滤操作"></a>3.5 过滤操作</h3><blockquote>
+<p>某些操作会非常占用资源，比如传输大文件，这个时候如果文件已经在分块发送了，就不需要在对新的请求作出相应（非绝对），这个时候就可以使用 <code>Proxy</code> 对当请求进行特征检测，并根据特征过滤出哪些是不需要响应的，哪些是需要响应的。下面的代码简单演示了过滤特征的方式，并不是完整代码，相信大家会理解其中的妙处</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> obj = &#123;  </span><br><span class="line">    getGiantFile: <span class="function"><span class="keyword">function</span>(<span class="params">fileId</span>) </span>&#123;<span class="comment">/*...*/</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">obj = <span class="keyword">new</span> <span class="built_in">Proxy</span>(obj, &#123;  </span><br><span class="line">    <span class="keyword">get</span>(target, key, proxy) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="function"><span class="keyword">function</span>(<span class="params">...args</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">const</span> id = args[<span class="number">0</span>];</span><br><span class="line">            <span class="keyword">let</span> isEnroute = checkEnroute(id);</span><br><span class="line">            <span class="keyword">let</span> isDownloading = checkStatus(id);      </span><br><span class="line">            <span class="keyword">let</span> cached = getCached(id);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (isEnroute || isDownloading) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (cached) &#123;</span><br><span class="line">                <span class="keyword">return</span> cached;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">Reflect</span>.apply(target[key], target, args);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="3-6-中断代理"><a href="#3-6-中断代理" class="headerlink" title="3.6 中断代理"></a>3.6 中断代理</h3><blockquote>
+<p><code>Proxy</code> 支持随时取消对 <code>target</code> 的代理，这一操作常用于完全封闭对数据或接口的访问。在下面的示例中，我们使用了 <code>Proxy.revocable</code> 方法创建了可撤销代理的代理对象：</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> sensitiveData = &#123; <span class="attr">username</span>: <span class="string">'devbryce'</span> &#125;;</span><br><span class="line"><span class="keyword">const</span> &#123;sensitiveData, revokeAccess&#125; = <span class="built_in">Proxy</span>.revocable(sensitiveData, handler);</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">handleSuspectedHack</span>(<span class="params"></span>)</span>&#123;  </span><br><span class="line">    revokeAccess();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// logs 'devbryce'</span></span><br><span class="line"><span class="built_in">console</span>.log(sensitiveData.username);</span><br><span class="line">handleSuspectedHack();</span><br><span class="line"><span class="comment">// TypeError: Revoked</span></span><br><span class="line"><span class="built_in">console</span>.log(sensitiveData.username);</span><br></pre></td></tr></table></figure>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/12/21/react-setState/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/12/21/es6-reflect/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

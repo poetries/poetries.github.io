@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>使用Next搭建React SSR工程架构之基础篇(二) | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="React,SSR,">
+  
+
+  <meta name="description" content="一、Next.js是什么 Next.js是一个基于React的一个服务端渲染简约框架。它使用React语法，可以很好的实现代码的模块化，有利于代码的开发和维护  1.1 Next.js带来了很多好的特性 默认服务端渲染模式，以文件系统为基础的客户端路由 代码自动分隔使页面加载更快 以页面为基础的简洁的客户端路由 以webpack的热替换为基础的开发环境 使用React的JSX和ES6的module">
+<meta name="keywords" content="React,SSR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Next搭建React SSR工程架构之基础篇(二)">
+<meta property="og:url" content="http://blog.poetries.top/2018/11/18/react-ssr-next/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、Next.js是什么 Next.js是一个基于React的一个服务端渲染简约框架。它使用React语法，可以很好的实现代码的模块化，有利于代码的开发和维护  1.1 Next.js带来了很多好的特性 默认服务端渲染模式，以文件系统为基础的客户端路由 代码自动分隔使页面加载更快 以页面为基础的简洁的客户端路由 以webpack的热替换为基础的开发环境 使用React的JSX和ES6的module">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.494Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Next搭建React SSR工程架构之基础篇(二)">
+<meta name="twitter:description" content="一、Next.js是什么 Next.js是一个基于React的一个服务端渲染简约框架。它使用React语法，可以很好的实现代码的模块化，有利于代码的开发和维护  1.1 Next.js带来了很多好的特性 默认服务端渲染模式，以文件系统为基础的客户端路由 代码自动分隔使页面加载更快 以页面为基础的简洁的客户端路由 以webpack的热替换为基础的开发环境 使用React的JSX和ES6的module">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、Next-js是什么"><span class="toc-text">一、Next.js是什么</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Next-js带来了很多好的特性"><span class="toc-text">1.1 Next.js带来了很多好的特性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、构建一个基本的Next项目"><span class="toc-text">二、构建一个基本的Next项目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-创建项目"><span class="toc-text">2.1 创建项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-创建页面"><span class="toc-text">2.2 创建页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-组件复用"><span class="toc-text">2.3 组件复用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-创建动态页面"><span class="toc-text">2.4 创建动态页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-用路由遮盖（Route-Masking）的干净的URL"><span class="toc-text">2.5 用路由遮盖（Route Masking）的干净的URL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-服务端支持路由遮盖"><span class="toc-text">2.6 服务端支持路由遮盖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-请求接口，获取数据"><span class="toc-text">2.7 请求接口，获取数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-样式化组件"><span class="toc-text">2.8 样式化组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-怎么部署一个next-js项目"><span class="toc-text">2.9 怎么部署一个next.js项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-10-完整代码示例"><span class="toc-text">2.10 完整代码示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、更多须知"><span class="toc-text">三、更多须知</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-创建-static-文件夹，存放静态资源"><span class="toc-text">3.1 创建 /static 文件夹，存放静态资源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-使用内置组件-lt-head-gt-定制每个页面的-head-部分"><span class="toc-text">3.2 使用内置组件 &lt;head&gt; 定制每个页面的 head 部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-使用内置组件-lt-Link-gt-进行路由跳转"><span class="toc-text">3.3 使用内置组件 &lt;Link&gt; 进行路由跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-使用内置-router-方法，手动触发路由跳转"><span class="toc-text">3.4 使用内置 router 方法，手动触发路由跳转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-使用-next-redux-wrapper-插件辅助实现-redux"><span class="toc-text">3.5 使用 next-redux-wrapper 插件辅助实现 redux</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-处理styled-components样式"><span class="toc-text">3.6 处理styled-components样式</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-react-ssr-next" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">使用Next搭建React SSR工程架构之基础篇(二)</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.11.18</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.4k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 20分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、Next-js是什么"><a href="#一、Next-js是什么" class="headerlink" title="一、Next.js是什么"></a>一、Next.js是什么</h2><blockquote>
+<p><code>Next.js</code>是一个基于<code>React</code>的一个服务端渲染简约框架。它使用<code>React</code>语法，可以很好的实现代码的模块化，有利于代码的开发和维护</p>
+</blockquote>
+<h3 id="1-1-Next-js带来了很多好的特性"><a href="#1-1-Next-js带来了很多好的特性" class="headerlink" title="1.1 Next.js带来了很多好的特性"></a>1.1 Next.js带来了很多好的特性</h3><ul>
+<li>默认服务端渲染模式，以文件系统为基础的客户端路由</li>
+<li>代码自动分隔使页面加载更快</li>
+<li>以页面为基础的简洁的客户端路由</li>
+<li>以<code>webpack</code>的热替换为基础的开发环境</li>
+<li>使用<code>React</code>的<code>JSX</code>和<code>ES6</code>的<code>module</code>，模块化和维护更方便</li>
+<li>可以运行在<code>Express</code>和其他<code>Node.js</code>的<code>HTTP</code> 服务器上</li>
+<li>可以定制化专属的<code>babel</code>和<code>webpack</code>配置</li>
+</ul>
+<h2 id="二、构建一个基本的Next项目"><a href="#二、构建一个基本的Next项目" class="headerlink" title="二、构建一个基本的Next项目"></a>二、构建一个基本的Next项目</h2><h3 id="2-1-创建项目"><a href="#2-1-创建项目" class="headerlink" title="2.1 创建项目"></a>2.1 创建项目</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在本地创建一个项目跟目录</span></span><br><span class="line">$ mkdir hello-next </span><br><span class="line"></span><br><span class="line"><span class="comment">// 切换到项目根目录</span></span><br><span class="line">$ cd hello-next</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用npm初始化项目</span></span><br><span class="line">$ npm init -y</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将react和next安装到本地依赖</span></span><br><span class="line">$ npm install --save react react-dom next</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建文件夹 pages</span></span><br><span class="line">$ mkdir pages</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>创建完文件夹之后，打开<code>hello-next</code>文件下的<code>package.json</code>文件，在 <code>scripts</code>下添加一个<code>script</code>，如下</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"scripts"</span>: &#123;</span><br><span class="line">    <span class="string">"dev"</span>: <span class="string">"next"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ npm run dev</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-创建页面"><a href="#2-2-创建页面" class="headerlink" title="2.2 创建页面"></a>2.2 创建页面</h3><blockquote>
+<p><code>Next.js</code>是从服务器生成页面，再返回给前端展示。<code>Next.js</code>默认从 <code>pages</code> 目录下取页面进行渲染返回给前端展示，并默认取 <code>pages/index.js</code> 作为系统的首页进行展示。注意，<code>pages</code> 是默认存放页面的目录，路由的根路径也是<code>pages</code>目录</p>
+</blockquote>
+<ul>
+<li>在 <code>pages/index.js</code> 中创建一个<code>React</code>函数式组件</li>
+</ul>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> Index = <span class="function"><span class="params">()</span> =&gt;</span> (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;p&gt;Hello Next.js&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> Index</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>Next.js</code>默认使用<code>Webpack</code>构建项目，<code>webpack</code>的热部署功能一样能提升开发效率。创建完 <code>pages/index.js</code> 后，再访问 <code>http://localhost:3000</code> 即可看到设置好的页面</p>
+</blockquote>
+<ul>
+<li>在 <code>pages</code> 目录下创建文件 <code>pages/about.js</code></li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> () =&gt; (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;p&gt;This is the about page&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>创建完之后，可以通过 <code>http://localhost:3000/about</code> 访问该页面。至此，所有的页面的路由都是通过后端服务器来控制的，要想实现客户端路由，需要借助<code>Next.js</code>的<code>Link API</code>。</p>
+</blockquote>
+<p><strong>Link API</strong></p>
+<blockquote>
+<p>从 <code>next/link</code>中可以引用到 <code>Link</code> 组件。在<code>pages/index.js</code>文件中引用<code>Link</code>，修改如</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// This is the Link API</span></span><br><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Index = <span class="function"><span class="params">()</span> =&gt;</span> (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;Link href=<span class="string">"/about"</span>&gt;</span><br><span class="line">      &lt;a&gt;About Page&lt;<span class="regexp">/a&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Link&gt;</span><br><span class="line">    &lt;p&gt;Hello Next.js&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> Index</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>Link</code>组件是通过<code>location.history</code>的浏览器API保存历史路由，所以，你可以通过浏览器左上角的前进和后退按钮来切换历史路由。而在开发过程中，你不需要再单独写客户端路由的配置</li>
+<li><code>Link</code>组件是<code>React</code>的高阶组件的实现，不能对它进行样式的设置，它只是起到路由的跳转功能，但是它的复用性强，只要包含一个能触发<code>onClick</code>事件的组件即可</li>
+</ol>
+<h3 id="2-3-组件复用"><a href="#2-3-组件复用" class="headerlink" title="2.3 组件复用"></a>2.3 组件复用</h3><blockquote>
+<p><code>Next.js</code>是以多页面为中心，只要将页面文件放在<code>pages</code>目录下，就可以在浏览器上以文件名为路由名来访问到</p>
+</blockquote>
+<ul>
+<li>组件的设置跟React一样，通过<code>export</code>导出，通过<code>import</code>导入。一般，只要不想让用户通过页面直接访问的组件，都不放在<code>pages</code>目录下。对除了<code>pages</code>目录，组件放在哪个目录下没有要求，开发者可以自定义设置</li>
+</ul>
+<blockquote>
+<p>下面再 <code>components</code> 目录下，创建一个公用组件 <code>Header</code>，用于各个文件的头部导航，通过导航可以在页面见切换</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> linkStyle = &#123;</span><br><span class="line">  marginRight: <span class="number">15</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Header = <span class="function"><span class="params">()</span> =&gt;</span> (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;Link href=<span class="string">"/"</span>&gt;</span><br><span class="line">      &lt;a style=&#123;linkStyle&#125;&gt;Home&lt;<span class="regexp">/a&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Link&gt;</span><br><span class="line">    &lt;Link href=<span class="string">"/about"</span>&gt;</span><br><span class="line">      &lt;a style=&#123;linkStyle&#125;&gt;About&lt;<span class="regexp">/a&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Link&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default Header</span></span><br></pre></td></tr></table></figure>
+<p>在 <code>pages/index.js</code> 中引入<code>Header</code></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Header <span class="keyword">from</span> <span class="string">'../components/Header'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> () =&gt; (</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;Header /&gt;</span><br><span class="line">    &lt;p&gt;Hello Next.js&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>div&gt;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>进一步封装<code>Header</code>组件，创建一个自动包含<code>Header</code>和<code>Content</code>的组件 <code>components/MyLayout.js</code></p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Header <span class="keyword">from</span> <span class="string">'./Header'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> layoutStyle = &#123;</span><br><span class="line">  margin: <span class="number">20</span>,</span><br><span class="line">  padding: <span class="number">20</span>,</span><br><span class="line">  border: <span class="string">'1px solid #DDD'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Layout = <span class="function">(<span class="params">props</span>) =&gt;</span> (</span><br><span class="line">  &lt;div style=&#123;layoutStyle&#125;&gt;</span><br><span class="line">    &lt;Header /&gt;</span><br><span class="line">    &#123;props.children&#125;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default Layout</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-4-创建动态页面"><a href="#2-4-创建动态页面" class="headerlink" title="2.4 创建动态页面"></a>2.4 创建动态页面</h3><blockquote>
+<p>使用<code>Next.js</code>创建动态页面，与使用<code>React</code>或<code>Vue</code>创建一个<code>SPA</code>页面大体相同，唯一的区别就是页面的渲染主体不同，前者是<code>Nodejs</code>服务器获取到后端数据渲染完页面后再返回给前端展示，后者是前端先获取页面主体架构，再通过<code>ajax</code>的方式请求后端的数据，在前端渲染展示</p>
+</blockquote>
+<p>以一个简易的博客页面为例，创建博客列表页，修改 <code>pages/index.js</code></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Layout <span class="keyword">from</span> <span class="string">'../components/MyLayout.js'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PostLink = <span class="function">(<span class="params">props</span>) =&gt;</span> (</span><br><span class="line">  &lt;li&gt;</span><br><span class="line">    &lt;Link href=&#123;<span class="string">`/post?title=<span class="subst">$&#123;props.title&#125;</span>`</span>&#125;&gt;</span><br><span class="line">      &lt;a&gt;&#123;props.title&#125;&lt;<span class="regexp">/a&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Link&gt;</span><br><span class="line">  &lt;<span class="regexp">/li&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default () =&gt; (</span></span><br><span class="line"><span class="regexp">  &lt;Layout&gt;</span></span><br><span class="line"><span class="regexp">    &lt;h1&gt;My Blog&lt;/</span>h1&gt;</span><br><span class="line">    &lt;ul&gt;</span><br><span class="line">      &lt;PostLink title=<span class="string">"Hello Next.js"</span>/&gt;</span><br><span class="line">      &lt;PostLink title=<span class="string">"Learn Next.js is awesome"</span>/&gt;</span><br><span class="line">      &lt;PostLink title=<span class="string">"Deploy apps with Zeit"</span>/&gt;</span><br><span class="line">    &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>Layout&gt;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>有了列表页，需要再写一个博客的详情页，从上面的代码中也可看到，我们需要创建一个 <code>pages/post.js</code> 文件</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Layout <span class="keyword">from</span> <span class="string">'../components/MyLayout.js'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (props) =&gt; (</span><br><span class="line">  &lt;Layout&gt;</span><br><span class="line">    &lt;h1&gt;&#123;props.url.query.title&#125;&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">    &lt;p&gt;This is the blog post content.&lt;/</span>p&gt;</span><br><span class="line">  &lt;<span class="regexp">/Layout&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-5-用路由遮盖（Route-Masking）的干净的URL"><a href="#2-5-用路由遮盖（Route-Masking）的干净的URL" class="headerlink" title="2.5 用路由遮盖（Route Masking）的干净的URL"></a>2.5 用路由遮盖（Route Masking）的干净的URL</h3><blockquote>
+<p><code>Next.js</code>上提供了一个独特的特性：路由遮盖（Route Masking）。它可以使得在浏览器上显示的是路由<code>A</code>，而<code>App</code>内部真正的路由是<code>B</code>。这个特性可以让我们来设置一些比较简洁的路由显示在页面，而系统背后是使用一个带参数的路由。比如上面的例子中，地址栏中显示的是 <code>http://localhost:3000/post?title=Hello%20Next.js</code> ，这个地址含有一个<code>title</code>参数，看着很不整洁。下面我们就用<code>Next.js</code>来改造路由，使用路由遮盖来创建一个更加简洁的路由地址。比如我们将该地址改造成 <code>http://localhost:3000/p/hello-nextjs</code></p>
+</blockquote>
+<p>首先我们要修改 <code>pages/index.js</code> 下的<code>PostLink</code>组件，会使用到 <code>next/link</code> 组件的 <code>as</code> 属性，并给组件添加一个属性 <code>id</code></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Layout <span class="keyword">from</span> <span class="string">'../components/MyLayout.js'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> PostLink = <span class="function">(<span class="params">props</span>) =&gt;</span> (</span><br><span class="line">  &lt;li&gt;</span><br><span class="line">    &lt;Link <span class="keyword">as</span>=&#123;<span class="string">`/p/<span class="subst">$&#123;props.id&#125;</span>`</span>&#125; </span><br><span class="line">      href=&#123;<span class="string">`/post?title=<span class="subst">$&#123;props.title&#125;</span>`</span>&#125;&gt;</span><br><span class="line">      &lt;a&gt;&#123;props.title&#125;&lt;<span class="regexp">/a&gt;</span></span><br><span class="line"><span class="regexp">    &lt;/</span>Link&gt;</span><br><span class="line">  &lt;<span class="regexp">/li&gt;</span></span><br><span class="line"><span class="regexp">)</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">export default () =&gt; (</span></span><br><span class="line"><span class="regexp">  &lt;Layout&gt;</span></span><br><span class="line"><span class="regexp">    &lt;h1&gt;My Blog&lt;/</span>h1&gt;</span><br><span class="line">    &lt;ul&gt;</span><br><span class="line">      &lt;PostLink id=<span class="string">"hello-nextjs"</span> </span><br><span class="line">        title=<span class="string">"Hello Next.js"</span>/&gt;</span><br><span class="line">      &lt;PostLink id=<span class="string">"learn-nextjs"</span> </span><br><span class="line">        title=<span class="string">"Learn Next.js is awesome"</span>/&gt;</span><br><span class="line">      &lt;PostLink id=<span class="string">"deploy-nextjs"</span> </span><br><span class="line">        title=<span class="string">"Deploy apps with Zeit"</span>/&gt;</span><br><span class="line">    &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/</span>Layout&gt;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<ol>
+<li>当在 <code>Link</code> 组件上使用 <code>as</code> 属性时，浏览器上显示的是 <code>as</code> 属性的值，走的是客户端路由，而服务器真正映射的是 <code>href</code> 属性的值，走的是服务端路由</li>
+<li>这样就会有一个问题，如果在前端路由间切换不会有问题，可以正常显示，但是在页面 <code>http://localhost:3000/p/hello-nextjs</code> 时刷新页面，会显示 <code>404</code>页面。这是因为路由遮盖默认只在客户端路由中有效，要想在服务端也支持路由遮盖，需要在服务端单独设置路由解析的方法</li>
+</ol>
+<h3 id="2-6-服务端支持路由遮盖"><a href="#2-6-服务端支持路由遮盖" class="headerlink" title="2.6 服务端支持路由遮盖"></a>2.6 服务端支持路由遮盖</h3><blockquote>
+<p>上面说到，服务器默认不支持路由遮盖，要让服务器支持它，需要单独对路由进行设置。下面以 <code>Express</code> （你也可以使用Koa等其他Nodejs的Web服务器框架）创建后端服务器讲解如何设置服务器来支持路由遮盖</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ npm install --save express</span><br></pre></td></tr></table></figure>
+<p>在项目目录下创建 <code>server.js</code> ，添加内容如下</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)</span><br><span class="line"><span class="keyword">const</span> next = <span class="built_in">require</span>(<span class="string">'next'</span>)</span><br><span class="line"><span class="keyword">const</span> dev = process.env.NODE_ENV !== <span class="string">'production'</span></span><br><span class="line"><span class="keyword">const</span> app = next(&#123; dev &#125;)</span><br><span class="line"><span class="keyword">const</span> handle = app.getRequestHandler()</span><br><span class="line"></span><br><span class="line">app.prepare().then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> server = express()</span><br><span class="line"></span><br><span class="line">  server.get(<span class="string">'/p/:id'</span>, (req, res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> actualPage = <span class="string">'/post'</span></span><br><span class="line">    <span class="keyword">const</span> queryParams = &#123; </span><br><span class="line">        title: req.params.id </span><br><span class="line">    &#125; </span><br><span class="line">    app.render(req, res, actualPage, queryParams)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  server.get(<span class="string">'*'</span>, (req, res) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> handle(req, res)</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  server.listen(<span class="number">3000</span>, (err) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (err) <span class="keyword">throw</span> err</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'&gt; Ready on http://localhost:3000'</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;).catch(<span class="function">(<span class="params">ex</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.error(ex.stack)</span><br><span class="line">  process.exit(<span class="number">1</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>并更新 <code>package.json</code> 文件中的 <code>scripts</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">"scripts"</span>: &#123;</span><br><span class="line">    <span class="string">"dev"</span>: <span class="string">"node server.js"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这时候，服务器已经可以支持路由遮盖了，在显示遮盖路由的页面，刷新页面也可以正常显示内容。具体的实现是在服务器中对 <code>/p/*</code> 开头的路由进行重写，然后重定向到 <code>/post</code> 开头的路由上，最后将内容返回给前端。具体代码是这一段：</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">server.get(<span class="string">'/p/:id'</span>, (req, res) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> actualPage = <span class="string">'/post'</span></span><br><span class="line">  <span class="keyword">const</span> queryParams = &#123; </span><br><span class="line">      title: req.params.id </span><br><span class="line">  &#125; </span><br><span class="line">  app.render(req, res, actualPage, queryParams)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="2-7-请求接口，获取数据"><a href="#2-7-请求接口，获取数据" class="headerlink" title="2.7 请求接口，获取数据"></a>2.7 请求接口，获取数据</h3><blockquote>
+<p><code>Next.js</code> 在 <code>React</code>的基础上为组件添加了一个新的特性： <code>getInitialProps</code>（有点像是<code>getInitialState</code>），它用于获取并处理组件的属性，返回组件的默认属性。我们可以在改方法中请求数据，获取页面需要的数据并渲染返回给前端页面</p>
+</blockquote>
+<p>引入一个支持在客户端和服务器端发送 <code>fetch</code> 请求的插件 <code>isomorphic-unfetch</code>，当然你也可以使用 <code>axios</code> 等其他工具</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ npm install --save isomorphic-unfetch</span><br></pre></td></tr></table></figure>
+<p>然后修改 <code>pages/index.js</code> 里的内容，换成下面这样：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Layout <span class="keyword">from</span> <span class="string">'../components/MyLayout.js'</span></span><br><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span></span><br><span class="line"><span class="keyword">import</span> fetch <span class="keyword">from</span> <span class="string">'isomorphic-unfetch'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Index = <span class="function">(<span class="params">props</span>) =&gt;</span> (</span><br><span class="line">  &lt;Layout&gt;</span><br><span class="line">    &lt;h1&gt;Batman TV Shows&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">    &lt;ul&gt;</span></span><br><span class="line"><span class="regexp">      &#123;props.shows.map((&#123;show&#125;) =&gt; (</span></span><br><span class="line"><span class="regexp">        &lt;li key=&#123;show.id&#125;&gt;</span></span><br><span class="line"><span class="regexp">          &lt;Link as=&#123;`/</span>p/$&#123;show.id&#125;<span class="string">`&#125; </span></span><br><span class="line"><span class="string">            href=&#123;`</span>/post?id=$&#123;show.id&#125;<span class="string">`&#125;&gt;</span></span><br><span class="line"><span class="string">            &lt;a&gt;&#123;show.name&#125;&lt;/a&gt;</span></span><br><span class="line"><span class="string">          &lt;/Link&gt;</span></span><br><span class="line"><span class="string">        &lt;/li&gt;</span></span><br><span class="line"><span class="string">      ))&#125;</span></span><br><span class="line"><span class="string">    &lt;/ul&gt;</span></span><br><span class="line"><span class="string">  &lt;/Layout&gt;</span></span><br><span class="line"><span class="string">)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Index.getInitialProps = async function() &#123;</span></span><br><span class="line"><span class="string">  const res = await fetch('https://api.tvmaze.com/search/shows?q=batman')</span></span><br><span class="line"><span class="string">  const data = await res.json()</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  console.log(`</span>Show data fetched. Count: $&#123;data.length&#125;<span class="string">`)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  return &#123;</span></span><br><span class="line"><span class="string">    shows: data</span></span><br><span class="line"><span class="string">  &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">export default Index</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>上述代码中，在 <code>getInitialProps</code> 中使用了 <code>async</code> 和 <code>await</code> 来处理异步请求，并将取到的数据当做一个属性赋给页面，页面拿到这个属性的值后会用于页面的初始化渲染</p>
+</blockquote>
+<h3 id="2-8-样式化组件"><a href="#2-8-样式化组件" class="headerlink" title="2.8 样式化组件"></a>2.8 样式化组件</h3><blockquote>
+<p><code>Next.js</code> 提供了一个 <code>css-in-js</code> 的特性，它允许你在组件内部写一些样式，你只需要在组件内使用 <code>&lt;style jsx&gt;</code> 标签来写 <code>css</code> 即可。举个例子，比如我们在 <code>pages/index.js</code>里添加样式</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Layout <span class="keyword">from</span> <span class="string">'../components/MyLayout.js'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getPosts</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> [</span><br><span class="line">    &#123; </span><br><span class="line">      id: <span class="string">'hello-nextjs'</span>, </span><br><span class="line">      title: <span class="string">'Hello Next.js'</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123; </span><br><span class="line">      id: <span class="string">'learn-nextjs'</span>, </span><br><span class="line">      title: <span class="string">'Learn Next.js is awesome'</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123; </span><br><span class="line">      id: <span class="string">'deploy-nextjs'</span>, </span><br><span class="line">      title: <span class="string">'Deploy apps with ZEIT'</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> () =&gt; (</span><br><span class="line">  &lt;Layout&gt;</span><br><span class="line">    &lt;h1&gt;My Blog&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">    &lt;ul&gt;</span></span><br><span class="line"><span class="regexp">      &#123;getPosts().map((post) =&gt; (</span></span><br><span class="line"><span class="regexp">        &lt;li key=&#123;post.id&#125;&gt;</span></span><br><span class="line"><span class="regexp">          &lt;Link as=&#123;`/</span>p/$&#123;post.id&#125;<span class="string">`&#125; </span></span><br><span class="line"><span class="string">            href=&#123;`</span>/post?title=$&#123;post.title&#125;<span class="string">`&#125;&gt;</span></span><br><span class="line"><span class="string">            &lt;a&gt;&#123;post.title&#125;&lt;/a&gt;</span></span><br><span class="line"><span class="string">          &lt;/Link&gt;</span></span><br><span class="line"><span class="string">        &lt;/li&gt;</span></span><br><span class="line"><span class="string">      ))&#125;</span></span><br><span class="line"><span class="string">    &lt;/ul&gt;</span></span><br><span class="line"><span class="string">    &lt;style jsx&gt;&#123;`</span></span><br><span class="line">      h1, a &#123;</span><br><span class="line">        font-family: <span class="string">"Arial"</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      ul &#123;</span><br><span class="line">        padding: <span class="number">0</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      li &#123;</span><br><span class="line">        list-style: none;</span><br><span class="line">        margin: <span class="number">5</span>px <span class="number">0</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      a &#123;</span><br><span class="line">        text-decoration: none;</span><br><span class="line">        color: blue;</span><br><span class="line">      &#125;</span><br><span class="line">      a:hover &#123;</span><br><span class="line">        opacity: <span class="number">0.6</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="string">`&#125;&lt;/style&gt;</span></span><br><span class="line"><span class="string">  &lt;/Layout&gt;</span></span><br><span class="line"><span class="string">)</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在上述代码中，我们没有直接使用<code>&lt;style&gt;</code> 标签来书写样式代码，而是写在一个模板字符串<code>（{`</code>}）<code>里面。</code>Next.js<code>使用</code>babel<code>插件来解析</code>styled-jsx` ，它支持样式命名空间，未来还将支持变量赋值。</p>
+</blockquote>
+<p><strong>需要注意的是</strong>：<code>styled-jsx</code> 的样式不会应用到子组件，如果想要该样式适用于子组件，可以在<code>styled-jsx</code> 标签添加属性 <code>global：&lt;style jsx global&gt;。</code></p>
+<h3 id="2-9-怎么部署一个next-js项目"><a href="#2-9-怎么部署一个next-js项目" class="headerlink" title="2.9 怎么部署一个next.js项目"></a>2.9 怎么部署一个next.js项目</h3><blockquote>
+<p><code>Next.js</code> 项目的部署，需要一个 <code>Node.js</code>的服务器，可以选择 <code>Express</code>, <code>Koa</code>或其他 <code>Nodejs</code> 的Web服务器。本文中以 <code>Express</code> 为例来部署 <code>Next</code> 项目。</p>
+</blockquote>
+<p>服务器的入口文件就使用上文中提到的 <code>server.js</code>，在 <code>server.js</code> 里添加了针对部署环境的选择，代码如下</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">const dev = process.env.NODE_ENV !== &apos;production&apos;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>为了区分部署环境，我们需要在 <code>package.json</code> 中修改 <code>script</code> 属性如下</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="string">"scripts"</span>: &#123;</span><br><span class="line">  <span class="string">"build"</span>: <span class="string">"next build"</span>,</span><br><span class="line">  <span class="string">"start"</span>: <span class="string">"NODE_ENV=production node server.js -"</span>,</span><br><span class="line">  <span class="string">"dev"</span>: <span class="string">"NODE_ENV=dev node server.js"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>其中，<code>build</code> 命令是用于打包项目，<code>start</code> 命令是用于生产环境部署，dev 命令是用于本地开发。</p>
+</blockquote>
+<p>执行如下命令即可将<code>Next</code>项目 部署到服务器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ npm run build</span><br><span class="line">$ npm run start</span><br></pre></td></tr></table></figure>
+<h3 id="2-10-完整代码示例"><a href="#2-10-完整代码示例" class="headerlink" title="2.10 完整代码示例"></a>2.10 完整代码示例</h3><blockquote>
+<p><a href="https://github.com/poetries/react-next" target="_blank" rel="noopener">https://github.com/poetries/react-next</a></p>
+</blockquote>
+<h2 id="三、更多须知"><a href="#三、更多须知" class="headerlink" title="三、更多须知"></a>三、更多须知</h2><h3 id="3-1-创建-static-文件夹，存放静态资源"><a href="#3-1-创建-static-文件夹，存放静态资源" class="headerlink" title="3.1 创建 /static 文件夹，存放静态资源"></a>3.1 创建 <code>/static</code> 文件夹，存放静态资源</h3><blockquote>
+<p>静态资源文件夹文件会映射到 <code>/static/</code> 路由下，直接通过 <code>http://localhost:3000/static/test.png</code> 访问</p>
+</blockquote>
+<h3 id="3-2-使用内置组件-lt-head-gt-定制每个页面的-head-部分"><a href="#3-2-使用内置组件-lt-head-gt-定制每个页面的-head-部分" class="headerlink" title="3.2 使用内置组件 &lt;head&gt; 定制每个页面的 head 部分"></a>3.2 使用内置组件 <code>&lt;head&gt;</code> 定制每个页面的 <code>head</code> 部分</h3><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Head <span class="keyword">from</span> <span class="string">'next/head'</span>; <span class="comment">// 引入内置组件</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> () =&gt; (</span><br><span class="line">   &lt;div&gt;</span><br><span class="line">      &lt;Head&gt;</span><br><span class="line">         &lt;title&gt;index page&lt;<span class="regexp">/title&gt;</span></span><br><span class="line"><span class="regexp">         &lt;meta name="viewport" content="initial-scale=1.0, width=device-width"/</span>&gt;</span><br><span class="line">      &lt;<span class="regexp">/Head&gt;</span></span><br><span class="line"><span class="regexp">      &lt;div&gt;this is index page&lt;/</span>div&gt;</span><br><span class="line">   &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">);</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-3-使用内置组件-lt-Link-gt-进行路由跳转"><a href="#3-3-使用内置组件-lt-Link-gt-进行路由跳转" class="headerlink" title="3.3 使用内置组件 &lt;Link&gt; 进行路由跳转"></a>3.3 使用内置组件 <code>&lt;Link&gt;</code> 进行路由跳转</h3><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> () =&gt; (</span><br><span class="line">   &lt;div&gt;</span><br><span class="line">      &lt;p&gt;<span class="keyword">this</span> is home index page&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">      &lt;Link href="/</span>about<span class="string">"&gt;</span></span><br><span class="line"><span class="string">         &lt;a&gt; to about page&lt;/a&gt;</span></span><br><span class="line"><span class="string">      &lt;/Link&gt;</span></span><br><span class="line"><span class="string">   &lt;/div&gt;</span></span><br><span class="line"><span class="string">);</span></span><br></pre></td></tr></table></figure>
+<p><strong>更多 Link 使用方式</strong></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123;Component&#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">About</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">   <span class="keyword">constructor</span>(props) &#123;</span><br><span class="line">      <span class="keyword">super</span>(props);</span><br><span class="line">   &#125;</span><br><span class="line">   render() &#123;</span><br><span class="line">      <span class="comment">// href 值可以是一个对象</span></span><br><span class="line">      <span class="keyword">const</span> href = &#123;</span><br><span class="line">         pathname: <span class="string">'/home'</span>,</span><br><span class="line">         query: &#123;<span class="attr">name</span>: <span class="string">'test'</span>&#125;</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">return</span> (</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">           &lt;p&gt;<span class="keyword">this</span> is about page &lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">           &lt;img src="/</span><span class="keyword">static</span>/test.png<span class="string">" alt="</span>test<span class="string">"/&gt;</span></span><br><span class="line"><span class="string">           &#123;/* replace 覆盖历史跳转 */&#125;</span></span><br><span class="line"><span class="string">           &lt;Link href=&#123;href&#125; replace&gt;</span></span><br><span class="line"><span class="string">            &lt;a&gt;click to home index page&lt;/a&gt;</span></span><br><span class="line"><span class="string">           &lt;/Link&gt;</span></span><br><span class="line"><span class="string">        &lt;/div&gt; </span></span><br><span class="line"><span class="string">      );</span></span><br><span class="line"><span class="string">   &#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-4-使用内置-router-方法，手动触发路由跳转"><a href="#3-4-使用内置-router-方法，手动触发路由跳转" class="headerlink" title="3.4 使用内置 router 方法，手动触发路由跳转"></a>3.4 使用内置 <code>router</code> 方法，手动触发路由跳转</h3><blockquote>
+<p><code>next/router</code> 提供一套方法和属性，帮助确认当前页面路由参数，和手动触发路由跳转</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">'next/router'</span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    router.pathname  ==&gt; /home</span></span><br><span class="line"><span class="comment">    router.query ==&gt; &#123;&#125;</span></span><br><span class="line"><span class="comment">    router.route - 当前路由</span></span><br><span class="line"><span class="comment">    asPath - 显示在浏览器地址栏的实际的路由</span></span><br><span class="line"><span class="comment">    push(url, as=url) - 跳转页面的方法</span></span><br><span class="line"><span class="comment">    replace(url, as=url) - 跳转页面</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>更好的方式使用路由 – <code>router</code> 的 <code>withRouter</code> 方法</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Link <span class="keyword">from</span> <span class="string">'next/link'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;withRouter&#125; <span class="keyword">from</span> <span class="string">'next/router'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Home = <span class="function">(<span class="params">props</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 这里的 props 会得到 &#123;router, url&#125; 两个属性</span></span><br><span class="line">    <span class="comment">// router: &#123;push: ƒ, replace: ƒ, reload: ƒ, back: ƒ, prefetch: ƒ, …&#125;</span></span><br><span class="line">    <span class="comment">// url: &#123;query: &#123;…&#125;, pathname: "/home", asPath: "/home?name=test", back: ƒ, push: ƒ, …&#125;</span></span><br><span class="line">   <span class="built_in">console</span>.log(props);</span><br><span class="line">   <span class="keyword">return</span> (</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">         &lt;p&gt;<span class="keyword">this</span> is home index page &lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">         &#123;/</span>* <span class="xml"><span class="tag">&lt;<span class="name">Link</span> <span class="attr">href</span>=<span class="string">"/about"</span>&gt;</span></span></span><br><span class="line"><span class="xml">            <span class="tag">&lt;<span class="name">a</span>&gt;</span> to about page<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br><span class="line"><span class="xml">         <span class="tag">&lt;/<span class="name">Link</span>&gt;</span></span> *<span class="regexp">/&#125;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>div&gt;</span><br><span class="line">   );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> withRouter(Home);</span><br></pre></td></tr></table></figure>
+<h3 id="3-5-使用-next-redux-wrapper-插件辅助实现-redux"><a href="#3-5-使用-next-redux-wrapper-插件辅助实现-redux" class="headerlink" title="3.5 使用 next-redux-wrapper 插件辅助实现 redux"></a>3.5 使用 <code>next-redux-wrapper</code> 插件辅助实现 <code>redux</code></h3><p><strong>1. 安装依赖</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo yarn add next-redux-wrapper redux react-redux redux-devtools-extension redux-thunk</span><br></pre></td></tr></table></figure>
+<p><strong>2. 创建 initializeStore.js 一个可以返回 store 实例的函数</strong></p>
+<blockquote>
+<p>在这个文件中会完成装载中间件、绑定<code>reducer</code>、链接浏览器的<code>redux</code>调试工具等操作</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore, applyMiddleware &#125; <span class="keyword">from</span> <span class="string">'redux'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; composeWithDevTools &#125; <span class="keyword">from</span> <span class="string">'redux-devtools-extension'</span>; </span><br><span class="line"><span class="keyword">import</span> thunk <span class="keyword">from</span> <span class="string">'redux-thunk'</span>;</span><br><span class="line"><span class="keyword">import</span> reducer <span class="keyword">from</span> <span class="string">'../modules/reducers'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> middleware = [thunk];</span><br><span class="line"><span class="keyword">const</span> initializeStore = <span class="function"><span class="params">initialState</span> =&gt;</span> &#123;</span><br><span class="line">   <span class="keyword">return</span> createStore(</span><br><span class="line">         reducer, </span><br><span class="line">         initialState, </span><br><span class="line">         composeWithDevTools(applyMiddleware(...middleware))</span><br><span class="line">      );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> initializeStore;</span><br></pre></td></tr></table></figure>
+<p><strong>3. 创建 reducer , action</strong></p>
+<blockquote>
+<p>与普通 <code>react-redux</code> 项目创建 <code>reducer</code>, <code>action</code> 的方法一致，我把这部分代码都提取到一个名为 <code>modules</code>的文件夹中</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// /modules/reducers.js</span></span><br><span class="line"><span class="keyword">import</span> &#123; combineReducers &#125; <span class="keyword">from</span> <span class="string">'redux'</span>;</span><br><span class="line"><span class="keyword">import</span> about <span class="keyword">from</span> <span class="string">'./about/reducer'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 合并到主reducer</span></span><br><span class="line"><span class="keyword">const</span> reducers = &#123;</span><br><span class="line">   about</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// combineReducers() 函数用于将分离的 reducer 合并为一个 reducer </span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> combineReducers(reducers);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// /modules/about/reudcer.js </span></span><br><span class="line"><span class="comment">// /about 页面的 reducer</span></span><br><span class="line"><span class="keyword">import</span> &#123;</span><br><span class="line">   CHANGE_COUNT</span><br><span class="line">&#125; <span class="keyword">from</span> <span class="string">'../types-constant'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> initialState = &#123;</span><br><span class="line">   count: <span class="number">0</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> typesCommands = &#123;</span><br><span class="line">   [CHANGE_COUNT](state, action) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Object</span>.assign(&#123;&#125;, state, &#123; <span class="attr">count</span>: action.msg &#125;);</span><br><span class="line">   &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="function"><span class="keyword">function</span> <span class="title">home</span>(<span class="params">state = initialState, action</span>) </span>&#123;</span><br><span class="line">   <span class="keyword">const</span> actionResponse = typesCommands[action.type];</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> actionResponse ? actionResponse(state, action) : state;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// /modules/about/actions.js</span></span><br><span class="line"><span class="comment">// /about 页面的 action</span></span><br><span class="line"><span class="keyword">import</span> &#123;</span><br><span class="line">   CHANGE_COUNT</span><br><span class="line">&#125; <span class="keyword">from</span> <span class="string">'../types-constant'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">changeCount</span>(<span class="params">newCount</span>) </span>&#123;</span><br><span class="line">   <span class="keyword">return</span> &#123;</span><br><span class="line">      type: CHANGE_COUNT,</span><br><span class="line">      msg: newCount</span><br><span class="line">   &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>4. 页面中使用</strong></p>
+<blockquote>
+<p>需要用到 <code>next-redux-wrapper</code> 提供的 <code>withRedux</code> 高阶函数，以及 <code>react-redux</code> 提供的 <code>connect</code> 高阶函数</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> withRedux <span class="keyword">from</span> <span class="string">'next-redux-wrapper'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; connect &#125; <span class="keyword">from</span> <span class="string">'react-redux'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; bindActionCreators &#125; <span class="keyword">from</span> <span class="string">'redux'</span>;</span><br><span class="line"><span class="keyword">import</span> AboutCom <span class="keyword">from</span> <span class="string">'../components/About/index'</span>;</span><br><span class="line"><span class="keyword">import</span> initializeStore <span class="keyword">from</span> <span class="string">'../store/initializeStore'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; changeCount &#125; <span class="keyword">from</span> <span class="string">'../modules/about/actions'</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">About</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">   <span class="keyword">constructor</span>(props) &#123;</span><br><span class="line">      <span class="keyword">super</span>(props);</span><br><span class="line">   &#125;</span><br><span class="line">   render() &#123;</span><br><span class="line">      <span class="keyword">const</span> &#123; <span class="attr">about</span>: &#123; count &#125;, changeCount &#125; = <span class="keyword">this</span>.props;</span><br><span class="line">      <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">AboutCom</span> <span class="attr">count</span>=<span class="string">&#123;count&#125;</span> <span class="attr">changeCount</span>=<span class="string">&#123;changeCount&#125;</span> /&gt;</span>;</span></span><br><span class="line"><span class="xml">   &#125;</span></span><br><span class="line"><span class="xml">&#125;</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">const connectedPage = connect(</span></span><br><span class="line"><span class="xml">   state =&gt; (&#123; about: state.about &#125;),</span></span><br><span class="line"><span class="xml">   dispatch =&gt; (&#123;</span></span><br><span class="line"><span class="xml">      changeCount: bindActionCreators(changeCount, dispatch)</span></span><br><span class="line"><span class="xml">   &#125;)</span></span><br><span class="line"><span class="xml">)(About);</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">export default withRedux(initializeStore)(connectedPage);</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-6-处理styled-components样式"><a href="#3-6-处理styled-components样式" class="headerlink" title="3.6 处理styled-components样式"></a>3.6 处理styled-components样式</h3><blockquote>
+<p>在<code>pages/_document.js</code>中处理</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> Document, &#123; Head, Main, NextScript &#125; <span class="keyword">from</span> <span class="string">'next/document'</span></span><br><span class="line"><span class="keyword">import</span> &#123; ServerStyleSheet &#125; <span class="keyword">from</span> <span class="string">'styled-components'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> pro = process.env.NODE_ENV === <span class="string">'production'</span></span><br><span class="line"><span class="keyword">const</span> path = pro ? <span class="string">'https://cdn.yesdat.com'</span> : <span class="string">''</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">MyDocument</span> <span class="keyword">extends</span> <span class="title">Document</span> </span>&#123;</span><br><span class="line">  <span class="keyword">static</span> getInitialProps(&#123; renderPage &#125;) &#123;</span><br><span class="line">    <span class="comment">// 新建一个样式表</span></span><br><span class="line">    <span class="keyword">const</span> sheet = <span class="keyword">new</span> ServerStyleSheet() </span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 收集样式</span></span><br><span class="line">    <span class="keyword">const</span> page = renderPage(<span class="function"><span class="params">App</span> =&gt;</span> <span class="function"><span class="params">props</span> =&gt;</span> sheet.collectStyles(<span class="xml"><span class="tag">&lt;<span class="name">App</span> &#123;<span class="attr">...props</span>&#125; /&gt;</span>))</span></span><br><span class="line"><span class="xml">    const styleTags = sheet.getStyleElement()</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    const &#123;</span></span><br><span class="line"><span class="xml">      html, head, errorHtml, chunks,</span></span><br><span class="line"><span class="xml">    &#125; = renderPage()</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    return &#123;</span></span><br><span class="line"><span class="xml">      html, head, errorHtml, chunks,...page, styleTags</span></span><br><span class="line"><span class="xml">    &#125;</span></span><br><span class="line"><span class="xml">  &#125;</span></span><br><span class="line"><span class="xml">  render() &#123;</span></span><br><span class="line"><span class="xml">    return (</span></span><br><span class="line">      &lt;html lang="en"&gt;</span><br><span class="line">        &lt;Head&gt;</span><br><span class="line">          &lt;meta charSet="utf-8" /&gt;</span><br><span class="line">          &lt;meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" /&gt;</span><br><span class="line">          &lt;meta name="theme-color" content="#000000" /&gt;</span><br><span class="line">          &lt;meta name="apple-mobile-web-app-capable" content="yes" /&gt;</span><br><span class="line">          &lt;meta name="apple-touch-fullscreen" content="yes" /&gt;</span><br><span class="line">          &lt;link rel="stylesheet" href=&#123;`$&#123;path&#125;/static/styles/antd_mobile_min.css`&#125; /&gt;</span><br><span class="line">          &lt;link rel="stylesheet" href=&#123;`$&#123;path&#125;/static/styles/app_min.css?8`&#125; /&gt;</span><br><span class="line">          &lt;link rel="stylesheet" href=&#123;`$&#123;path&#125;/static/styles/nprogress.css`&#125; /&gt;</span><br><span class="line">          &lt;link rel="stylesheet" href=&#123;`$&#123;path&#125;/static/styles/index.css`&#125; /&gt;</span><br><span class="line">          &#123;/* styled-components样式*/&#125;</span><br><span class="line">          &lt;style&gt;&#123;this.props.styleTags&#125;&lt;/style&gt;</span><br><span class="line">        &lt;/Head&gt;</span><br><span class="line">        &lt;body&gt;</span><br><span class="line">          &#123;this.props.customValue&#125;</span><br><span class="line">          &lt;Main /&gt;</span><br><span class="line">          &lt;NextScript /&gt;</span><br><span class="line">        &lt;/body&gt;</span><br><span class="line">      &lt;/html&gt;</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/11/18/react-ssr/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/11/18/react-ssr-next-deploy/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

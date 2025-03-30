@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>虚拟DOM（二） | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="JavaScript,虚拟DOM,">
+  
+
+  <meta name="description" content="一、为什么需要虚拟DOM 先介绍浏览器加载一个HTML文件需要做哪些事，帮助我们理解为什么我们需要虚拟DOM。webkit引擎的处理流程    所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建DOM tree –&amp;gt; 创建Style Rules -&amp;gt; 构建Render tree -&amp;gt; 布局Layout –&amp;gt; 绘制Painting   第一步，用HTML分析器，分析HT">
+<meta name="keywords" content="JavaScript,虚拟DOM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟DOM（二）">
+<meta property="og:url" content="http://blog.poetries.top/2018/10/20/vdom-improve/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、为什么需要虚拟DOM 先介绍浏览器加载一个HTML文件需要做哪些事，帮助我们理解为什么我们需要虚拟DOM。webkit引擎的处理流程    所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建DOM tree –&amp;gt; 创建Style Rules -&amp;gt; 构建Render tree -&amp;gt; 布局Layout –&amp;gt; 绘制Painting   第一步，用HTML分析器，分析HT">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/605.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/606.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/607.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/608.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/609.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/610.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/611.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/612.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.503Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="虚拟DOM（二）">
+<meta name="twitter:description" content="一、为什么需要虚拟DOM 先介绍浏览器加载一个HTML文件需要做哪些事，帮助我们理解为什么我们需要虚拟DOM。webkit引擎的处理流程    所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建DOM tree –&amp;gt; 创建Style Rules -&amp;gt; 构建Render tree -&amp;gt; 布局Layout –&amp;gt; 绘制Painting   第一步，用HTML分析器，分析HT">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/605.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、为什么需要虚拟DOM"><span class="toc-text">一、为什么需要虚拟DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、实现虚拟DOM"><span class="toc-text">二、实现虚拟DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Diff算法"><span class="toc-text">三、Diff算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、映射成真实DOM"><span class="toc-text">四、映射成真实DOM</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-vdom-improve" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">虚拟DOM（二）</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.10.20</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 2.4k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 10分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、为什么需要虚拟DOM"><a href="#一、为什么需要虚拟DOM" class="headerlink" title="一、为什么需要虚拟DOM"></a>一、为什么需要虚拟DOM</h2><blockquote>
+<p>先介绍浏览器加载一个<code>HTML</code>文件需要做哪些事，帮助我们理解为什么我们需要虚拟<code>DOM</code>。<code>webkit</code>引擎的处理流程</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/605.png" alt></p>
+<blockquote>
+<p>所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建<code>DOM tree</code> –&gt; 创建<code>Style Rules</code> -&gt; 构建<code>Render tree</code> -&gt; 布局<code>Layout</code> –&gt; 绘制<code>Painting</code></p>
+</blockquote>
+<ul>
+<li>第一步，用<code>HTML</code>分析器，分析<code>HTML</code>元素，构建一颗<code>DOM</code>树。</li>
+<li>第二步：用<code>CSS</code>分析器，分析<code>CSS</code>文件和元素上的<code>inline</code>样式，生成页面的样式表。</li>
+<li>第三步：将上面的<code>DOM</code>树和样式表，关联起来，构建一颗<code>Render</code>树。这一过程又称为<code>Attachment</code>。每个<code>DOM</code>节点都有<code>attach</code>方法，接受样式信息，返回一个<code>render</code>对象（又名<code>renderer</code>）。这些<code>render</code>对象最终会被构建成一颗<code>Render</code>树。</li>
+<li>第四步：有了<code>Render</code>树后，浏览器开始布局，会为每个<code>Render</code>树上的节点确定一个在显示屏上出现的精确坐标值。</li>
+<li>第五步：<code>Render</code>数有了，节点显示的位置坐标也有了，最后就是调用每个节点的<code>paint</code>方法，让它们显示出来。</li>
+</ul>
+<blockquote>
+<p>当你用传统的源生<code>api</code>或<code>jQuery</code>去操作<code>DOM</code>时，浏览器会从构建<code>DOM</code>树开始从头到尾执行一遍流程。比如当你在一次操作时，需要更新<code>10</code>个<code>DOM</code>节点，理想状态是一次性构建完<code>DOM</code>树，再执行后续操作。但浏览器没这么智能，收到第一个更新<code>DOM</code>请求后，并不知道后续还有9次更新操作，因此会马上执行流程，最终执行10次流程。显然例如计算<code>DOM</code>节点的坐标值等都是白白浪费性能，可能这次计算完，紧接着的下一个<code>DOM</code>更新请求，这个节点的坐标值就变了，前面的一次计算是无用功。</p>
+</blockquote>
+<ul>
+<li>即使计算机硬件一直在更新迭代，操作<code>DOM</code>的代价仍旧是昂贵的，频繁操作还是会出现页面卡顿，影响用户的体验。真实的<code>DOM</code>节点，哪怕一个最简单的div也包含着很多属性，可以打印出来直观感受一下</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/606.png" alt></p>
+<blockquote>
+<p>虚拟<code>DOM</code>就是为了解决这个浏览器性能问题而被设计出来的。例如前面的例子，假如一次操作中有<code>10</code>次更新<code>DOM</code>的动作，虚拟<code>DOM</code>不会立即操作<code>DOM</code>，而是将这<code>10</code>次更新的<code>diff</code>内容保存到本地的一个<code>js</code>对象中，最终将这个js对象一次性<code>attach</code>到<code>DOM</code>树上，通知浏览器去执行绘制工作，这样可以避免大量的无谓的计算量</p>
+</blockquote>
+<h2 id="二、实现虚拟DOM"><a href="#二、实现虚拟DOM" class="headerlink" title="二、实现虚拟DOM"></a>二、实现虚拟DOM</h2><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"real-container"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Real DOM<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span>cannot update<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">className</span>=<span class="string">"item"</span>&gt;</span>Item 1<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">className</span>=<span class="string">"item"</span>&gt;</span>Item 2<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">className</span>=<span class="string">"item"</span>&gt;</span>Item 3<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>用<code>js</code>对象来模拟<code>DOM</code>节点如下</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> tree = Element(<span class="string">'div'</span>, &#123; <span class="attr">id</span>: <span class="string">'virtual-container'</span> &#125;, [</span><br><span class="line">    Element(<span class="string">'p'</span>, &#123;&#125;, [<span class="string">'Virtual DOM'</span>]),</span><br><span class="line">    Element(<span class="string">'div'</span>, &#123;&#125;, [<span class="string">'before update'</span>]),</span><br><span class="line">    Element(<span class="string">'ul'</span>, &#123;&#125;, [</span><br><span class="line">        Element(<span class="string">'li'</span>, &#123; <span class="attr">class</span>: <span class="string">'item'</span> &#125;, [<span class="string">'Item 1'</span>]),</span><br><span class="line">        Element(<span class="string">'li'</span>, &#123; <span class="attr">class</span>: <span class="string">'item'</span> &#125;, [<span class="string">'Item 2'</span>]),</span><br><span class="line">        Element(<span class="string">'li'</span>, &#123; <span class="attr">class</span>: <span class="string">'item'</span> &#125;, [<span class="string">'Item 3'</span>]),</span><br><span class="line">    ]),</span><br><span class="line">]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> root = tree.render();</span><br><span class="line"><span class="built_in">document</span>.getElementById(<span class="string">'virtualDom'</span>).appendChild(root);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>用<code>js</code>对象模拟<code>DOM</code>节点的好处是，页面的更新可以先全部反映在<code>js</code>对象上，操作内存中的<code>js</code>对象的速度显然要快多了。等更新完后，再将最终的<code>js</code>对象映射成真实的<code>DOM</code>，交由浏览器去绘制</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Element</span>(<span class="params">tagName, props, children</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!(<span class="keyword">this</span> <span class="keyword">instanceof</span> Element)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Element(tagName, props, children);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.tagName = tagName;</span><br><span class="line">    <span class="keyword">this</span>.props = props || &#123;&#125;;</span><br><span class="line">    <span class="keyword">this</span>.children = children || [];</span><br><span class="line">    <span class="keyword">this</span>.key = props ? props.key : <span class="literal">undefined</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">this</span>.children.forEach(<span class="function">(<span class="params">child</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (child <span class="keyword">instanceof</span> Element) &#123;</span><br><span class="line">            count += child.count;</span><br><span class="line">        &#125;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">this</span>.count = count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>第一个参数是节点名（如<code>div</code>），第二个参数是节点的属性（如<code>class</code>），第三个参数是子节点（如<code>ul</code>的<code>li</code>）。除了这三个参数会被保存在对象上外，还保存了<code>key</code>和<code>count</code></p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/607.png" alt></p>
+<blockquote>
+<p>有了<code>js</code>对象后，最终还需要将其映射成真实的<code>DOM</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">Element.prototype.render = <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> el = <span class="built_in">document</span>.createElement(<span class="keyword">this</span>.tagName);</span><br><span class="line">    <span class="keyword">const</span> props = <span class="keyword">this</span>.props;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> propName <span class="keyword">in</span> props) &#123;</span><br><span class="line">        setAttr(el, propName, props[propName]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.children.forEach(<span class="function">(<span class="params">child</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> childEl = (child <span class="keyword">instanceof</span> Element) ? child.render() : <span class="built_in">document</span>.createTextNode(child);</span><br><span class="line">        el.appendChild(childEl);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> el;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>根据<code>DOM</code>名调用源生的<code>createElement</code>创建真实<code>DOM</code>，将<code>DOM</code>的属性全都加到这个<code>DOM</code>元素上，如果有子元素继续递归调用创建子元素，并<code>appendChild</code>挂到该<code>DOM</code>元素上。这样就完成了从创建虚拟<code>DOM</code>到将其映射成真实<code>DOM</code>的全部工作</p>
+</blockquote>
+<h2 id="三、Diff算法"><a href="#三、Diff算法" class="headerlink" title="三、Diff算法"></a>三、Diff算法</h2><blockquote>
+<p>我们已经完成了创建虚拟<code>DOM</code>并将其映射成真实<code>DOM</code>的工作，这样所有的更新都可以先反映到虚拟<code>DOM</code>上，如何反映呢？需要明确一下<code>Diff</code>算法</p>
+</blockquote>
+<ul>
+<li>两棵树如果完全比较时间复杂度是<code>O(n^3)</code></li>
+<li><code>React</code>的<code>Diff</code>算法的时间复杂度是<code>O(n)</code>。要实现这么低的时间复杂度，意味着只能平层地比较两棵树的节点，放弃了深度遍历</li>
+<li>这样做，似乎牺牲了一定的精确性来换取速度，但考虑到现实中前端页面通常也不会跨层级移动<code>DOM</code>元素，所以这样做是最优的。</li>
+</ul>
+<p>我们新创建一棵树，用于和之前的树进行比较</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> newTree = Element(<span class="string">'div'</span>, &#123; <span class="attr">id</span>: <span class="string">'virtual-container'</span> &#125;, [</span><br><span class="line">    Element(<span class="string">'h3'</span>, &#123;&#125;, [<span class="string">'Virtual DOM'</span>]),                     <span class="comment">// REPLACE</span></span><br><span class="line">    Element(<span class="string">'div'</span>, &#123;&#125;, [<span class="string">'after update'</span>]),                   <span class="comment">// TEXT</span></span><br><span class="line">    Element(<span class="string">'ul'</span>, &#123; <span class="attr">class</span>: <span class="string">'marginLeft10'</span> &#125;, [              <span class="comment">// PROPS</span></span><br><span class="line">        Element(<span class="string">'li'</span>, &#123; <span class="attr">class</span>: <span class="string">'item'</span> &#125;, [<span class="string">'Item 1'</span>]),</span><br><span class="line">        <span class="comment">// Element('li', &#123; class: 'item' &#125;, ['Item 2']),    // REORDER remove</span></span><br><span class="line">        Element(<span class="string">'li'</span>, &#123; <span class="attr">class</span>: <span class="string">'item'</span> &#125;, [<span class="string">'Item 3'</span>]),</span><br><span class="line">    ]),</span><br><span class="line">]);</span><br></pre></td></tr></table></figure>
+<p>只考虑平层地<code>Diff</code>的话，就简单多了，只需要考虑以下4种情况</p>
+<blockquote>
+<p>第一种是最简单的，节点类型变了，例如下图中的<code>P</code>变成了<code>h3</code>。我们将这个过程称之为<code>REPLACE</code>。直接将旧节点卸载（<code>componentWillUnmount</code>）并装载新节点（<code>componentWillMount</code>）就行了</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/608.png" alt></p>
+<p>旧节点包括下面的子节点都将被卸载，如果新节点和旧节点仅仅是类型不同，但下面的所有子节点都一样时，这样做显得效率不高。但为了避免<code>O(n^3)</code>的时间复杂度，这样做是值得的。这也提醒了<code>React</code>开发者，应该避免无谓的节点类型的变化，例如运行时将<code>div</code>变成<code>p</code>就没什么太大意义</p>
+<blockquote>
+<p>第二种也比较简单，节点类型一样，仅仅属性或属性值变了</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">renderA: &lt;ul&gt;</span><br><span class="line">renderB: &lt;ul class: &apos;marginLeft10&apos;&gt;</span><br><span class="line">=&gt; [addAttribute class &quot;marginLeft10&quot;]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>我们将这个过程称之为<code>PROPS</code>。此时不会触发节点的卸载（<code>componentWillUnmount</code>）和装载（<code>componentWillMount</code>）动作。而是执行节点更新（<code>shouldComponentUpdate</code>到<code>componentDidUpdate</code>的一系列方法）</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">diffProps</span>(<span class="params">oldNode, newNode</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> oldProps = oldNode.props;</span><br><span class="line">    <span class="keyword">const</span> newProps = newNode.props;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> key;</span><br><span class="line">    <span class="keyword">const</span> propsPatches = &#123;&#125;;</span><br><span class="line">    <span class="keyword">let</span> isSame = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// find out different props</span></span><br><span class="line">    <span class="keyword">for</span> (key <span class="keyword">in</span> oldProps) &#123;</span><br><span class="line">        <span class="keyword">if</span> (newProps[key] !== oldProps[key]) &#123;</span><br><span class="line">            isSame = <span class="literal">false</span>;</span><br><span class="line">            propsPatches[key] = newProps[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// find out new props</span></span><br><span class="line">    <span class="keyword">for</span> (key <span class="keyword">in</span> newProps) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!oldProps.hasOwnProperty(key)) &#123;</span><br><span class="line">            isSame = <span class="literal">false</span>;</span><br><span class="line">            propsPatches[key] = newProps[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> isSame ? <span class="literal">null</span> : propsPatches;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>第三种是文本变了，文本对也是一个<code>Text Node</code>，也比较简单，直接修改文字内容就行了，我们将这个过程称之为<code>TEXT</code></li>
+<li>第四种是移动，增加，删除子节点，我们将这个过程称之为<code>REORDER</code></li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/609.png" alt></p>
+<blockquote>
+<p>在中间插入一个节点，程序员写代码很简单：$(B).after(F)。但如何高效地插入呢？简单粗暴的做法是：卸载C，装载F，卸载D，装载C，卸载E，装载D，装载E。如下图</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/610.png" alt></p>
+<blockquote>
+<p>我们写<code>JSX</code>代码时，如果没有给数组或枚举类型定义一个<code>key</code>，就会看到下面这样的<code>warning</code>。<code>React</code>提醒我们，没有<code>key</code>的话，涉及到移动，增加，删除子节点的操作时，就会用上面那种简单粗暴的做法来更新。虽然程序运行不会有错，但效率太低，因此<code>React</code>会给我们一个<code>warning</code></p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/611.png" alt></p>
+<blockquote>
+<p>如果我们在<code>JSX</code>里为数组或枚举型元素增加上<code>key</code>后，<code>React</code>就能根据<code>key</code>，直接找到具体的位置进行操作，效率比较高。如下图</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/612.png" alt></p>
+<blockquote>
+<p>常见的最小编辑距离问题，可以用<code>Levenshtein Distance</code>算法来实现，时间复杂度是<code>O(M*N)</code>，但通常我们只要一些简单的移动就能满足需要，降低点精确性，将时间复杂度降低到<code>O(max(M, N)</code>即可</p>
+</blockquote>
+<p>最终<code>Diff</code>出来的结果如下</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="number">1</span>: [ &#123;<span class="attr">type</span>: REPLACE, <span class="attr">node</span>: Element&#125; ],</span><br><span class="line">    <span class="number">4</span>: [ &#123;<span class="attr">type</span>: TEXT, <span class="attr">content</span>: <span class="string">"after update"</span>&#125; ],</span><br><span class="line">    <span class="number">5</span>: [ &#123;<span class="attr">type</span>: PROPS, <span class="attr">props</span>: &#123;<span class="attr">class</span>: <span class="string">"marginLeft10"</span>&#125;&#125;, &#123;<span class="attr">type</span>: REORDER, <span class="attr">moves</span>: [&#123;<span class="attr">index</span>: <span class="number">2</span>, <span class="attr">type</span>: <span class="number">0</span>&#125;]&#125; ],</span><br><span class="line">    <span class="number">6</span>: [ &#123;<span class="attr">type</span>: REORDER, <span class="attr">moves</span>: [&#123;<span class="attr">index</span>: <span class="number">2</span>, <span class="attr">type</span>: <span class="number">0</span>&#125;]&#125; ],</span><br><span class="line">    <span class="number">8</span>: [ &#123;<span class="attr">type</span>: REORDER, <span class="attr">moves</span>: [&#123;<span class="attr">index</span>: <span class="number">2</span>, <span class="attr">type</span>: <span class="number">0</span>&#125;]&#125; ],</span><br><span class="line">    <span class="number">9</span>: [ &#123;<span class="attr">type</span>: TEXT, <span class="attr">content</span>: <span class="string">"Item 3"</span>&#125; ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="四、映射成真实DOM"><a href="#四、映射成真实DOM" class="headerlink" title="四、映射成真实DOM"></a>四、映射成真实DOM</h2><blockquote>
+<p>虚拟<code>DOM</code>有了，<code>Diff</code>也有了，现在就可以将<code>Diff</code>应用到真实<code>DOM</code>上了</p>
+</blockquote>
+<p>深度遍历DOM将Diff的内容更新进去</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">dfsWalk</span>(<span class="params">node, walker, patches</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> currentPatches = patches[walker.index];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> len = node.childNodes ? node.childNodes.length : <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        walker.index++;</span><br><span class="line">        dfsWalk(node.childNodes[i], walker, patches);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (currentPatches) &#123;</span><br><span class="line">        applyPatches(node, currentPatches);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>具体更新的代码如下，其实就是根据<code>Diff</code>信息调用源生<code>API</code>操作<code>DOM</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">applyPatches</span>(<span class="params">node, currentPatches</span>) </span>&#123;</span><br><span class="line">    currentPatches.forEach(<span class="function">(<span class="params">currentPatch</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (currentPatch.type) &#123;</span><br><span class="line">            <span class="keyword">case</span> REPLACE: &#123;</span><br><span class="line">                <span class="keyword">const</span> newNode = (<span class="keyword">typeof</span> currentPatch.node === <span class="string">'string'</span>)</span><br><span class="line">                    ? <span class="built_in">document</span>.createTextNode(currentPatch.node)</span><br><span class="line">                    : currentPatch.node.render();</span><br><span class="line">                node.parentNode.replaceChild(newNode, node);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">case</span> REORDER:</span><br><span class="line">                reorderChildren(node, currentPatch.moves);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> PROPS:</span><br><span class="line">                setProps(node, currentPatch.props);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> TEXT:</span><br><span class="line">                <span class="keyword">if</span> (node.textContent) &#123;</span><br><span class="line">                    node.textContent = currentPatch.content;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// ie</span></span><br><span class="line">                    node.nodeValue = currentPatch.content;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">`Unknown patch type <span class="subst">$&#123;currentPatch.type&#125;</span>`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>虚拟<code>DOM</code>的目的是将所有操作累加起来，统计计算出所有的变化后，统一更新一次<code>DOM</code></p>
+</blockquote>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/10/20/vdom-base/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/10/21/fe-interview-mvvm/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

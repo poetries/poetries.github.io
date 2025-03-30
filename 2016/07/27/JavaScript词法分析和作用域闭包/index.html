@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JavaScript词法分析和作用域闭包 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="JavaScript,">
+  
+
+  <meta name="description" content="在函数运行时 会进词法分析（预编译） 预编译做了哪些工作 分析参数 分析变量声明(分析带var的变量声明) 分析函数声明">
+<meta name="keywords" content="JavaScript">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript词法分析和作用域闭包">
+<meta property="og:url" content="http://blog.poetries.top/2016/07/27/JavaScript词法分析和作用域闭包/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="在函数运行时 会进词法分析（预编译） 预编译做了哪些工作 分析参数 分析变量声明(分析带var的变量声明) 分析函数声明">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.450Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScript词法分析和作用域闭包">
+<meta name="twitter:description" content="在函数运行时 会进词法分析（预编译） 预编译做了哪些工作 分析参数 分析变量声明(分析带var的变量声明) 分析函数声明">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-JavaScript词法分析和作用域闭包" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">JavaScript词法分析和作用域闭包</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2016.07.27</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.3k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 5分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <ul>
+<li>在函数运行时 会进词法分析（预编译）</li>
+<li>预编译做了哪些工作<ul>
+<li>分析参数</li>
+<li>分析变量声明(分析带var的变量声明)</li>
+<li>分析函数声明 <a id="more"></a></li>
+</ul>
+</li>
+<li>如何分析变量声明？<ul>
+<li>答：对于var声明的变量 以<code>var str = ‘local’</code>为例，分为 分析过程 和执行过程 先分析后执行<br>先分析<code>var str</code>即仅仅声明了一个str变量 <code>str</code>变量此时没有赋值 值是<code>undefined</code> 然后在进行执行过程</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*var age = 22;</span></span><br><span class="line"><span class="comment">var num = 99;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> function t()&#123;</span></span><br><span class="line"><span class="comment"> 	var num = 88;</span></span><br><span class="line"><span class="comment"> 	var str = 'hello';</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> 	function a()&#123;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> 		var  str = 'world';</span></span><br><span class="line"><span class="comment"> 		alert(str);//world</span></span><br><span class="line"><span class="comment"> 		alert(num);//88</span></span><br><span class="line"><span class="comment"> 		alert(age);//22</span></span><br><span class="line"><span class="comment"> 	&#125;</span></span><br><span class="line"><span class="comment"> 	a();</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> &#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> t();</span></span><br></pre></td></tr></table></figure>
+ <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/*var str = 'global';</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">function t()&#123;</span></span><br><span class="line"><span class="comment">	alert(str);//undefined</span></span><br><span class="line"><span class="comment">	var str = 'local';//local</span></span><br><span class="line"><span class="comment">	alert(str);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">	//词法分析</span></span><br><span class="line"><span class="comment">	var str;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">	//执行语句</span></span><br><span class="line"><span class="comment">	alert(str)</span></span><br><span class="line"><span class="comment">	str = 'local'</span></span><br><span class="line"><span class="comment">	alert(str)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">t();</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>活动对象、激活对象 Active Object</strong></p>
+</li>
+<li><p>AO上有哪些属性：</p>
+</li>
+<li><p>对于函数的AO属性来自三个方面</p>
+<ul>
+<li>参数</li>
+<li>局部变量声明</li>
+<li>函数声明</li>
+</ul>
+</li>
+<li><p>在函数调用瞬间 <code>AO</code>这样形成</p>
+</li>
+<li>首先分析参数 把分析的的参数形成<code>AO</code>属性 如果传来实参 则把实参赋给相应的属性</li>
+<li>其次分析var声明 以<code>var str= hello</code>为例 把str声明为AO的属性 值为<code>undefined</code></li>
+<li>如果var声明的变量名与形参名称一致 不产生影响 因为<code>AO</code>的str已经存在</li>
+<li><p>最后分析函数声明，<code>function函数名(){}</code>//有函数名</p>
+</li>
+<li><p>函数的变量有其作用域，引用某变量时，在某个范围内查询该变量，这个范围又在哪里？在AO上找 在函数调用的瞬间  会产生一个AO 这个AO对象的属性 即存储着该函数所能引用的到的变量</p>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> str = <span class="string">'global'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">t</span>(<span class="params">age</span>)</span>&#123;</span><br><span class="line">	alert(age);<span class="comment">//99</span></span><br><span class="line">	<span class="keyword">var</span> age = <span class="number">12</span>;</span><br><span class="line">	alert(age);<span class="comment">//12</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">t();</span><br></pre></td></tr></table></figure>
+<p>对上面的结果进行分析：</p>
+<p>AO：{age:undefined} //词法分析得到<br>AO：{age:99} //实参赋值 AO.age属性<br>AO:{age:12}  //修改AO.age的值</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params">age,hei</span>)</span>&#123;</span><br><span class="line">	<span class="keyword">var</span> age;</span><br><span class="line">	alert(age);</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">age</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		alert(<span class="string">'he'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>分析过程：<ul>
+<li>AO:{}</li>
+<li>AO:{age:undefined,hei:undefined}</li>
+<li>AO:{age:32,hei,undefined}</li>
+<li>分析完形参 紧接着分析var age  不产生影响 因为AO的age已经存在</li>
+<li>AO:{age:function(){aler..},hei:undefined}</li>
+<li>执行</li>
+<li>alert(age)—》AO.age—》函数</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>函数就是变量 函数声明就是变量声明</p>
+</li>
+<li><p>函数声明：假设函数名fn 函数声明会把函数赋值为AO.fn属性的值 </p>
+</li>
+<li><p><strong>函数声明与函数表达式的区别</strong></p>
+</li>
+<li>表达式必有一个返回值 （即 匿名函数赋给了一个变量 此时 就是普通的赋值过程）</li>
+<li>函数表达式返回返回 并把函数作为值 赋给变量</li>
+<li><p>函数声明的优先级高 例如<br><code>function fn(){} 则会把AO.fn = function fn(){}</code></p>
+</li>
+<li><p><strong>函数表达式</strong></p>
+</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	alert(age);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> age = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		alert(<span class="string">'hahh'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	alert(age);</span><br><span class="line">&#125;</span><br><span class="line">fn1(<span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//结果： 32 function</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//函数声明</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	alert(age);</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">age</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		alert(<span class="string">'hahh'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	alert(age);</span><br><span class="line">&#125;</span><br><span class="line">fn1(<span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//结果： function function</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><strong>闭包</strong></p>
+<ul>
+<li>a.程序永远是先定义后执行</li>
+<li>b.执行永远从上到下</li>
+<li>c.函数定义的话在堆（只是一个地址而已）</li>
+<li>d.函数调用的时候，就会有自己的堆和栈（<code>闭包</code>）</li>
+</ul>
+</li>
+<li><p><strong>闭包 作用域</strong></p>
+</li>
+</ul>
+<hr>
+<ul>
+<li>记住：先定义<code>var</code>  <code>function</code>  在从上往下执行</li>
+<li>定义在自己的栈里面 执行在自己的堆里面</li>
+<li>运行在运行的环境中</li>
+<li>函数每调用前  只是一个地址</li>
+<li>只要调用一次函数就会动态开辟一块内存 创建一个封闭的空间 在自己的封闭的空间的栈中定义<code>var</code>在执行</li>
+<li>函数执行完 里面的东西全部销毁</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//alert(x);//9:执行弹出x,结果x没定义,错误.</span></span><br><span class="line">alert(i);<span class="comment">//9:执行弹出i,然而i之前已经定义,只不过没地址,因此是undefiend</span></span><br><span class="line"><span class="keyword">var</span> i = <span class="number">10</span>;<span class="comment">//1:var i;    10:把常量池中10的地址赋给栈中的i</span></span><br><span class="line"><span class="keyword">var</span> j = <span class="string">"你好"</span>;<span class="comment">//2:var j;   11:把常量池中 你好 的地址复给栈中的j</span></span><br><span class="line"><span class="keyword">var</span> k = z = <span class="literal">null</span>;<span class="comment">//3:var k,z;  12:把堆中null的地址赋值给z和k</span></span><br><span class="line"><span class="keyword">var</span> m = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;<span class="comment">//4:var m;   5:function匿名函数  13:把匿名函数在堆中的地址赋给栈中的m</span></span><br><span class="line">    alert(<span class="number">2</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> b = <span class="built_in">document</span>.body;<span class="comment">//6:var b;    14:把堆中document.body对象的地址赋给栈中的b</span></span><br><span class="line"><span class="keyword">var</span> f = <span class="literal">true</span>;<span class="comment">//7:var f; 15:把常量池中true的地址赋给栈中的变量f</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">m</span>(<span class="params"></span>)</span>&#123;<span class="comment">//8:function m;</span></span><br><span class="line">    alert(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">m</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    c = <span class="number">50</span>;<span class="comment">//在局部变量中找不到定义的c 沿着作用域链找到了全局变量的c</span></span><br><span class="line">    alert(<span class="string">'哈哈哈'</span>);</span><br><span class="line">    <span class="comment">//var c;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> c = <span class="number">150</span>; <span class="comment">// 函数m()还未执行到 还没被销毁 此时全局c的值c=50</span></span><br><span class="line">m();</span><br><span class="line"><span class="keyword">var</span> c = <span class="number">20</span>;<span class="comment">//到这里一步 m()已经执行完了 函数已经销毁了  这里的c还是20</span></span><br><span class="line">alert(c);<span class="comment">//20</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">m</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    c = <span class="number">50</span>;<span class="comment">//在局部变量中找不到定义的c 沿着作用域链找到了全局变量的c</span></span><br><span class="line">    alert(<span class="string">'哈哈哈'</span>);</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">inner</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        c = <span class="number">30</span>;</span><br><span class="line">        alert(<span class="string">'嘻嘻'</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    inner();<span class="comment">//c在函数内部找不到定义 所以沿着作用域链找到了全局的c</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> c = <span class="number">20</span>;<span class="comment">//到这里一步 m()还没执行 函数没被销毁  这里的c是30</span></span><br><span class="line">m();</span><br><span class="line"></span><br><span class="line">alert(c);<span class="comment">//30</span></span><br></pre></td></tr></table></figure>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2016/07/27/parsetInt-parsetFloat与eval-isNaN用法/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2016/07/27/JavaScript之捕捉模型与冒泡模型/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>从零到一搭建React SSR工程架构(一) | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="React,SSR,">
+  
+
+  <meta name="description" content="一、客户端渲染与服务端渲染1.1 什么是客户端渲染 react在客户端执行，消耗客户端性能。客户端渲染，页面初始加载的HTML 页面中无网页展示内容，需要加载执行JavaScript 文件中的 React 代码，通过 JavaScript 渲染生成页面，同时，JavaScript 代码会完成页面交互事件的绑定，详细流程可参考下图  客户端渲染流程 浏览器发送请求–&amp;gt;服务器返回HTML–&amp;gt">
+<meta name="keywords" content="React,SSR">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从零到一搭建React SSR工程架构(一)">
+<meta property="og:url" content="http://blog.poetries.top/2018/11/18/react-ssr/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、客户端渲染与服务端渲染1.1 什么是客户端渲染 react在客户端执行，消耗客户端性能。客户端渲染，页面初始加载的HTML 页面中无网页展示内容，需要加载执行JavaScript 文件中的 React 代码，通过 JavaScript 渲染生成页面，同时，JavaScript 代码会完成页面交互事件的绑定，详细流程可参考下图  客户端渲染流程 浏览器发送请求–&amp;gt;服务器返回HTML–&amp;gt">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/446.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/447.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/448.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.495Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="从零到一搭建React SSR工程架构(一)">
+<meta name="twitter:description" content="一、客户端渲染与服务端渲染1.1 什么是客户端渲染 react在客户端执行，消耗客户端性能。客户端渲染，页面初始加载的HTML 页面中无网页展示内容，需要加载执行JavaScript 文件中的 React 代码，通过 JavaScript 渲染生成页面，同时，JavaScript 代码会完成页面交互事件的绑定，详细流程可参考下图  客户端渲染流程 浏览器发送请求–&amp;gt;服务器返回HTML–&amp;gt">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/446.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、客户端渲染与服务端渲染"><span class="toc-text">一、客户端渲染与服务端渲染</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-什么是客户端渲染"><span class="toc-text">1.1 什么是客户端渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-什么是服务端渲染"><span class="toc-text">1.2 什么是服务端渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-什么是同构"><span class="toc-text">1.3 什么是同构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-使用SSR优劣势"><span class="toc-text">1.4 使用SSR优劣势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、SSR的实现本质"><span class="toc-text">二、SSR的实现本质</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、SSR中服务器端路由和客户端路由区别"><span class="toc-text">三、SSR中服务器端路由和客户端路由区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-客户端路由"><span class="toc-text">3.1 客户端路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-服务器端路由"><span class="toc-text">3.2 服务器端路由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、服务端和客户端打包配置"><span class="toc-text">四、服务端和客户端打包配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-客户端-Webpack-配置"><span class="toc-text">4.1 客户端 Webpack 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-服务器端-Webpack-配置"><span class="toc-text">4.2 服务器端 Webpack 配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、SSR-中异步数据的获取-Redux-的使用"><span class="toc-text">五、SSR 中异步数据的获取 + Redux 的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-服务器端渲染的流程"><span class="toc-text">5.1 服务器端渲染的流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、处理styled-components样式"><span class="toc-text">六、处理styled-components样式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、Node-只是一个中间层"><span class="toc-text">七、Node 只是一个中间层</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#八、完整代码示例"><span class="toc-text">八、完整代码示例</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-react-ssr" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">从零到一搭建React SSR工程架构(一)</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.11.18</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 5.1k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 19分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、客户端渲染与服务端渲染"><a href="#一、客户端渲染与服务端渲染" class="headerlink" title="一、客户端渲染与服务端渲染"></a>一、客户端渲染与服务端渲染</h2><h3 id="1-1-什么是客户端渲染"><a href="#1-1-什么是客户端渲染" class="headerlink" title="1.1 什么是客户端渲染"></a>1.1 什么是客户端渲染</h3><blockquote>
+<p>react在客户端执行，消耗客户端性能。客户端渲染，页面初始加载的<code>HTML</code> 页面中无网页展示内容，需要加载执行<code>JavaScript</code> 文件中的 <code>React</code> 代码，通过 <code>JavaScript</code> 渲染生成页面，同时，<code>JavaScript</code> 代码会完成页面交互事件的绑定，详细流程可参考下图</p>
+</blockquote>
+<p><strong>客户端渲染流程</strong></p>
+<p>浏览器发送请求–&gt;服务器返回<code>HTML</code>–&gt;浏览器发送<code>bundle.js</code>请求–&gt;服务器返回<code>bundle.js</code>–&gt;浏览器执行<code>bundle.js</code>中的<code>react</code>代码完成渲染</p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/446.png" alt></p>
+<h3 id="1-2-什么是服务端渲染"><a href="#1-2-什么是服务端渲染" class="headerlink" title="1.2 什么是服务端渲染"></a>1.2 什么是服务端渲染</h3><blockquote>
+<p><code>react</code>在服务端执行，消耗服务端性能。我们所说的服务端渲染，只是首次加载页面的时候，后面都是通过前端路由进行客户端渲染</p>
+</blockquote>
+<ul>
+<li>用户请求服务器，服务器上直接生成 <code>HTML</code> 内容并返回给浏览器。服务器端渲染来，页面的内容是由 <code>Server</code> 端生成的。一般来说，服务器端渲染的页面交互能力有限，如果要实现复杂交互，还是要通过引入 <code>JavaScript</code> 文件来辅助实现</li>
+</ul>
+<p><strong>服务端渲染流程</strong></p>
+<p>浏览器发送请求–&gt;服务器运行<code>React</code>代码生成页面–&gt;服务器返回页面</p>
+<h3 id="1-3-什么是同构"><a href="#1-3-什么是同构" class="headerlink" title="1.3 什么是同构"></a>1.3 什么是同构</h3><blockquote>
+<p>一套react代码，在服务端执行一次，在客户端也执行一次。在服务端执行同构<code>renderToString</code>只是返回界面展示，并不能绑定事件，需要在客户端再次执行js代码绑定事件</p>
+</blockquote>
+<p><strong>服务器运行<code>React</code>代码渲染出<code>HTML</code>–&gt;发送<code>HTML</code>给浏览器–&gt;浏览器接收到内容展示–&gt;浏览器加载js文件–&gt;Js中的<code>React</code>代码在浏览器端重新执行–&gt;JS中的<code>React</code>代码接管页面操作</strong></p>
+<p><strong>路由同构</strong></p>
+<blockquote>
+<p>让路由在服务端、客户端各跑一遍</p>
+</blockquote>
+<h3 id="1-4-使用SSR优劣势"><a href="#1-4-使用SSR优劣势" class="headerlink" title="1.4 使用SSR优劣势"></a>1.4 使用SSR优劣势</h3><blockquote>
+<p>一般情况下，当我们使用 <code>React</code> 编写代码时，页面都是由客户端执行 <code>JavaScript</code> 逻辑动态挂 <code>DOM</code> 生成的，也就是说这种普通的单页面应用实际上采用的是客户端渲染模式。在大多数情况下，客户端渲染完全能够满足我们的业务需求，那为什么我们还需要 <code>SSR</code> 这种同构技术呢</p>
+</blockquote>
+<ul>
+<li><code>CSR</code> 项目的 <code>TTFP</code>（Time To First Page）时间比较长，参考之前的图例，在 <code>CSR</code>的页面渲染流程中，首先要加载 <code>HTML</code> 文件，之后要下载页面所需的 <code>JavaScript</code> 文件，然后 <code>JavaScript</code> 文件渲染生成页面。在这个渲染过程中至少涉及到两个 <code>HTTP</code>请求周期，所以会有一定的耗时，这也是为什么大家在低网速下访问普通的 <code>React</code>或者 <code>Vue</code> 应用时，初始页面会有出现白屏的原因</li>
+<li><code>CSR</code> 项目的 <code>SEO</code> 能力极弱，在搜索引擎中基本上不可能有好的排名。因为目前大多数搜索引擎主要识别的内容还是 <code>HTML</code>，对 <code>JavaScript</code> 文件内容的识别都还比较弱。如果一个项目的流量入口来自于搜索引擎，这个时候你使用 CSR 进行开发，就非常不合适了</li>
+</ul>
+<blockquote>
+<p><code>SSR</code> 的产生，主要就是为了解决上面所说的两个问题。在 <code>React</code> 中使用 SSR 技术，我们让 React 代码在服务器端先执行一次，使得用户下载的 HTML 已经包含了所有的页面展示内容，这样，页面展示的过程只需要经历一个 <code>HTTP</code> 请求周期，<code>TTFP</code> 时间得到一倍以上的缩减</p>
+</blockquote>
+<ul>
+<li>同时，由于 <code>HTML</code> 中已经包含了网页的所有内容，所以网页的 <code>SEO</code> 效果也会变的非常好。之后，我们让 <code>React</code> 代码在客户端再次执行，为 <code>HTML</code>网页中的内容添加数据及事件的绑定，页面就具备了 <code>React</code> 的各种交互能力</li>
+</ul>
+<blockquote>
+<p>但是，<code>SSR</code> 这种理念的实现，并非易事。我们来看一下在 <code>React</code> 中实现 <code>SSR</code> 技术的架构图：</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/447.png" alt></p>
+<ul>
+<li>使用 <code>SSR</code> 这种技术，将使原本简单的 <code>React</code> 项目变得非常复杂，项目的可维护性会降低，代码问题的追溯也会变得困难</li>
+<li>所以，使用 <code>SSR</code> 在解决问题的同时，也会带来非常多的副作用，有的时候，这些副作用的伤害比起 <code>SSR</code> 技术带来的优势要大的多。从个人经验上来说，我一般建议大家，除非你的项目特别依赖搜索引擎流量，或者对首屏时间有特殊的要求，否则不建议使用 <code>SSR</code></li>
+</ul>
+<h2 id="二、SSR的实现本质"><a href="#二、SSR的实现本质" class="headerlink" title="二、SSR的实现本质"></a>二、SSR的实现本质</h2><p><strong>SSR 之所以能够实现，本质上是因为虚拟 DOM 的存在</strong></p>
+<ol>
+<li><code>SSR</code> 的工程中，<code>React</code> 代码会在客户端和服务器端各执行一次。你可能会想，这没什么问题，都是 JavaScript 代码，既可以在浏览器上运行，又可以在 <code>Node</code> 环境下运行。但事实并非如此，如果你的 <code>React</code> 代码里，存在直接操作 <code>DOM</code> 的代码，那么就无法实现 <code>SSR</code> 这种技术了，因为在 <code>Node</code> 环境下，是没有 <code>DOM</code> 这个概念存在的，所以这些代码在 <code>Node</code> 环境下是会报错的</li>
+<li>在 <code>React</code> 框架中引入了一个概念叫做虚拟 DOM，虚拟 DOM 是真实 DOM 的一个 JavaScript 对象映射，React 在做页面操作时，实际上不是直接操作 DOM，而是操作虚拟 DOM，也就是操作普通的 JavaScript 对象，这就使得 SSR 成为了可能。在服务器，我可以操作 JavaScript 对象，判断环境是服务器环境，我们把虚拟 <code>DOM</code> 映射成字符串输出；在客户端，我也可以操作 JavaScript 对象，判断环境是客户端环境，我就直接将虚拟 DOM 映射成真实 DOM，完成页面挂载</li>
+</ol>
+<h2 id="三、SSR中服务器端路由和客户端路由区别"><a href="#三、SSR中服务器端路由和客户端路由区别" class="headerlink" title="三、SSR中服务器端路由和客户端路由区别"></a>三、SSR中服务器端路由和客户端路由区别</h2><blockquote>
+<p>实现 <code>React</code> 的 <code>SSR</code> 架构，我们需要让相同的 <code>React</code> 代码在客户端和服务器端各执行一次。大家注意，这里说的相同的 <code>React</code> 代码，指的是我们写的各种组件代码，所以在同构中，只有组件的代码是可以公用的，而路由这样的代码是没有办法公用的，大家思考下这是为什么呢？其实原因很简单，在服务器端需要通过请求路径，找到路由组件，而在客户端需通过浏览器中的网址，找到路由组件，是完全不同的两套机制，所以这部分代码是肯定无法公用。我们来看看在 SSR 中，前后端路由的实现代码</p>
+</blockquote>
+<h3 id="3-1-客户端路由"><a href="#3-1-客户端路由" class="headerlink" title="3.1 客户端路由"></a>3.1 客户端路由</h3><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> App = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;Provider store=&#123;store&#125;&gt;</span><br><span class="line">      &lt;BrowserRouter&gt;</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">          &lt;Route path=<span class="string">'/'</span> component=&#123;Home&#125;&gt;</span><br><span class="line">  		&lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>BrowserRouter&gt;</span><br><span class="line">    &lt;<span class="regexp">/Provider&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">ReactDom.render(&lt;App/</span>&gt;, <span class="built_in">document</span>.querySelector(<span class="string">'#root'</span>))</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>客户端路由代码非常简单，大家一定很熟悉，<code>BrowserRouter</code> 会自动从浏览器地址中，匹配对应的路由组件显示出来</p>
+</blockquote>
+<h3 id="3-2-服务器端路由"><a href="#3-2-服务器端路由" class="headerlink" title="3.2 服务器端路由"></a>3.2 服务器端路由</h3><figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> App = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> </span><br><span class="line">    &lt;Provider store=&#123;store&#125;&gt;</span><br><span class="line">      &lt;StaticRouter location=&#123;req.path&#125; context=&#123;context&#125;&gt;</span><br><span class="line">        &lt;div&gt;</span><br><span class="line">          &lt;Route path=<span class="string">'/'</span> component=&#123;Home&#125;&gt;</span><br><span class="line">        &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>StaticRouter&gt;</span><br><span class="line">    &lt;<span class="regexp">/Provider&gt;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">Return ReactDom.renderToString(&lt;App/</span>&gt;)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>服务器端路由代码相对要复杂一点，需要你把 <code>location</code>（当前请求路径）传递给 <code>StaticRouter</code> 组件，这样 <code>StaticRouter</code> 才能根据路径分析出当前所需要的组件是谁。（PS：<code>StaticRouter</code> 是 <code>React-Router</code>针对服务器端渲染专门提供的一个路由组件。）</p>
+</blockquote>
+<ol>
+<li>通过 <code>BrowserRouter</code> 我们能够匹配到浏览器即将显示的路由组件，对浏览器来说，我们需要把组件转化成 <code>DOM</code>，所以需要我们使用 <code>ReactDom.render</code> 方法来进行 <code>DOM</code> 的挂载。而 <code>StaticRouter</code> 能够在服务器端匹配到将要显示的组件，对服务器端来说，我们要把组件转化成字符串，这时我们只需要调用 <code>ReactDom</code> 提供的 <code>renderToString</code> 方法，就可以得到 <code>App</code> 组件对应的 <code>HTML</code> 字符串。</li>
+<li>对于一个 <code>React</code> 应用来说，路由一般是整个程序的执行入口。在 <code>SSR</code> 中，服务器端的路由和客户端的路由不一样，也就意味着服务器端的入口代码和客户端的入口代码是不同的</li>
+<li>我们知道， <code>React</code> 代码是要通过 <code>Webpack</code> 打包之后才能运行的，实际上是源代码打包过后生成的代码。上面也说到，服务器端和客户端渲染中的代码，只有一部分一致，其余是有区别的。所以，针对代码运行环境的不同，要进行有区别的 <code>Webpack</code> 打包</li>
+</ol>
+<h2 id="四、服务端和客户端打包配置"><a href="#四、服务端和客户端打包配置" class="headerlink" title="四、服务端和客户端打包配置"></a>四、服务端和客户端打包配置</h2><h3 id="4-1-客户端-Webpack-配置"><a href="#4-1-客户端-Webpack-配置" class="headerlink" title="4.1 客户端 Webpack 配置"></a>4.1 客户端 Webpack 配置</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  entry: <span class="string">'./src/client/index.js'</span>,</span><br><span class="line">  output: &#123;</span><br><span class="line">    filename: <span class="string">'index.js'</span>,</span><br><span class="line">    path: path.resolve(__dirname, <span class="string">'public'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [&#123;</span><br><span class="line">      test: <span class="regexp">/\.js?$/</span>,</span><br><span class="line">      loader: <span class="string">'babel-loader'</span></span><br><span class="line">    &#125;,&#123;</span><br><span class="line">      test: <span class="regexp">/\.css?$/</span>,</span><br><span class="line">      use: [<span class="string">'style-loader'</span>, &#123;</span><br><span class="line">        loader: <span class="string">'css-loader'</span>,</span><br><span class="line">        options: &#123;<span class="attr">modules</span>: <span class="literal">true</span>&#125;</span><br><span class="line">      &#125;]</span><br><span class="line">    &#125;,&#123;</span><br><span class="line">      test: <span class="regexp">/\.(png|jpeg|jpg|gif|svg)?$/</span>,</span><br><span class="line">      loader: <span class="string">'url-loader'</span>,</span><br><span class="line">      options: &#123;</span><br><span class="line">        limit: <span class="number">8000</span>,</span><br><span class="line">        publicPath: <span class="string">'/'</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-服务器端-Webpack-配置"><a href="#4-2-服务器端-Webpack-配置" class="headerlink" title="4.2 服务器端 Webpack 配置"></a>4.2 服务器端 Webpack 配置</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  target: <span class="string">'node'</span>,</span><br><span class="line">  entry: <span class="string">'./src/server/index.js'</span>,</span><br><span class="line">  output: &#123;</span><br><span class="line">    filename: <span class="string">'bundle.js'</span>,</span><br><span class="line">    path: path.resolve(__dirname, <span class="string">'build'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  externals: [nodeExternals()],</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [&#123;</span><br><span class="line">      test: <span class="regexp">/\.js?$/</span>,</span><br><span class="line">      loader: <span class="string">'babel-loader'</span></span><br><span class="line">    &#125;,&#123;</span><br><span class="line">      test: <span class="regexp">/\.css?$/</span>,</span><br><span class="line">      use: [<span class="string">'isomorphic-style-loader'</span>, &#123;</span><br><span class="line">        loader: <span class="string">'css-loader'</span>,</span><br><span class="line">        options: &#123;<span class="attr">modules</span>: <span class="literal">true</span>&#125;</span><br><span class="line">      &#125;]</span><br><span class="line">    &#125;,&#123;</span><br><span class="line">      test: <span class="regexp">/\.(png|jpeg|jpg|gif|svg)?$/</span>,</span><br><span class="line">      loader: <span class="string">'url-loader'</span>,</span><br><span class="line">      options: &#123;</span><br><span class="line">        limit: <span class="number">8000</span>,</span><br><span class="line">        outputPath: <span class="string">'../public/'</span>,</span><br><span class="line">        publicPath: <span class="string">'/'</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>在 <code>SSR</code> 中，服务器端渲染的代码和客户端的代码的入口路由代码是有差异的，所以在 <code>Webpack</code> 中，<code>Entry</code> 的配置首先肯定是不同的</li>
+<li>在服务器端运行的代码，有时我们需要引入 <code>Node</code> 中的一些核心模块，我们需要 <code>Webpack</code> 做打包的时候能够识别出类似的核心模块，一旦发现是核心模块，不必把模块的代码合并到最终生成的代码中，解决这个问题的方法非常简单，在服务器端的 <code>Webpack</code>配置中，你只要加入 <code>target: node</code> 这个配置即可</li>
+<li>服务器端渲染的代码，如果加载第三方模块，这些第三方模块也是不需要被打包到最终的源码中的，因为 <code>Node</code> 环境下通过 <code>NPM</code> 已经安装了这些包，直接引用就可以，不需要额外再打包到代码里。为了解决这个问题，我们可以使用 <code>webpack-node-externals</code> 这个插件，代码中的 <code>nodeExternals</code>指的就是这个插件，通过这个插件，我们就能解决这个问题。关于 <code>Node</code> 这里的打包问题，可能看起来有些抽象，不是很明白的同学可以仔细读一下 <code>webpack-node-externals</code> 相关的文章或文档，你就能很好的明白这里存在的问题了</li>
+<li>当我们的 <code>React</code> 代码中引入了一些 <code>CSS</code> 样式代码时，服务器端打包的过程会处理一遍 <code>CSS</code>，而客户端又会处理一遍。查看配置，我们可以看到，服务器端打包时我们用了 <code>isomorphic-style-loader</code>，它处理 <code>CSS</code> 的时候，只在对应的 <code>DOM</code> 元素上生成 <code>class</code> 类名，然后返回生成的 <code>CSS</code> 样式代码</li>
+<li>而在客户端代码打包配置中，我们使用了 <code>css-loader</code> 和 <code>style-loader</code>，<code>css-loader</code> 不但会在 <code>DOM</code> 上生成 <code>class</code> 类名，解析好的 <code>CSS</code> 代码，还会通过 <code>style-loader</code> 把代码挂载到页面上。不过这么做，由于页面上的样式实际上最终是由客户端渲染时添加上的，所以页面可能会存在一开始没有样式的情况，为了解决这个问题， 我们可以在服务器端渲染时，拿到 <code>isomorphic-style-loader</code> 返回的样式代码，然后以字符串的形式添加到服务器端渲染的 <code>HTML</code>之中</li>
+<li>而对于图片等类型的文件引入，<code>url-loader</code> 也会在服务器端代码和客户端代码打包的过程中分别进行打包，这里，我偷了一个懒，无论服务器端打包还是客户端打包，我都让打包生成的文件存储在 <code>public</code> 目录下，这样，虽然文件会打包出来两遍，但是后打包出来的文件会覆盖之前的文件，所以看起来还是只有一份文件</li>
+<li>如果想进行优化，你可以让图片的打包只进行一次，借助一些 <code>Webpack</code> 的插件，实现这个也并非难事，你甚至可以自己也写一个 <code>loader</code>，来解决这样的问题</li>
+<li>如果你的 <code>React</code> 应用中没有异步数据的获取，单纯的做一些静态内容展示，经过上面的配置，你会发现一个简单的 <code>SSR</code> 应用很快的就可以被实现出来了。但是，真正的一个 <code>React</code> 项目中，我们肯定要有异步数据的获取，绝大多数情况下，我们还要使用 <code>Redux</code> 管理数据。而如果想在 <code>SSR</code> 应用中实现，就不是这么简单</li>
+</ol>
+<h2 id="五、SSR-中异步数据的获取-Redux-的使用"><a href="#五、SSR-中异步数据的获取-Redux-的使用" class="headerlink" title="五、SSR 中异步数据的获取 + Redux 的使用"></a>五、SSR 中异步数据的获取 + Redux 的使用</h2><p><strong>客户端渲染中，异步数据结合 Redux 的使用方式遵循下面的流程</strong></p>
+<ul>
+<li>创建 <code>Store</code></li>
+<li>根据路由显示组件</li>
+<li>派发 <code>Action</code> 获取数据</li>
+<li>更新 <code>Store</code> 中的数据</li>
+<li>组件 <code>Rerender</code></li>
+</ul>
+<blockquote>
+<p>而在服务器端，页面一旦确定内容，就没有办法 Rerender 了，这就要求组件显示的时候，就要把 Store 的数据都准备好，所以服务器端异步数据结合 Redux 的使用方式</p>
+</blockquote>
+<p><strong>服务器端异步数据结合 Redux流程</strong></p>
+<ul>
+<li>创建 <code>Store</code></li>
+<li>根据路由分析 <code>Store</code> 中需要的数据</li>
+<li>派发 <code>Action</code> 获取数据</li>
+<li>更新<code>Store</code> 中的数据</li>
+<li>结合数据和组件生成 <code>HTML</code>，一次性返回</li>
+</ul>
+<h3 id="5-1-服务器端渲染的流程"><a href="#5-1-服务器端渲染的流程" class="headerlink" title="5.1 服务器端渲染的流程"></a>5.1 服务器端渲染的流程</h3><blockquote>
+<p>创建 <code>Store</code>：这一部分有坑，要注意避免，大家知道，客户端渲染中，用户的浏览器中永远只存在一个 <code>Store</code>，所以代码上你可以这么写</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> store = createStore(reducer, defaultState)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> store;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>然而在服务器端，这么写就有问题了，因为服务器端的 <code>Store</code> 是所有用户都要用的，如果像上面这样构建 <code>Store</code>，<code>Store</code> 变成了一个单例，所有用户共享 <code>Store</code>，显然就有问题了。所以在服务器端渲染中，<code>Store</code> 的创建应该像下面这样，返回一个函数，每个用户访问的时候，这个函数重新执行，为每个用户提供一个独立的 <code>Store</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> getStore = <span class="function">(<span class="params">req</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> createStore(reducer, defaultState);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> getStore;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>根据路由分析 Store 中需要的数据： 要想实现这个步骤，在服务器端，首先我们要分析当前出路由要加载的所有组件，这个时候我们可以借助一些第三方的包，比如说 react-router-config, 具体这个包怎么使用，不做过多说明，大家可以查看文档，使用这个包，传入服务器请求路径，它就会帮助你分析出这个路径下要展示的所有组件</li>
+<li>派发 Action 获取数据: 接下来，我们在每个组件上增加一个获取数据的方法</li>
+</ol>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">Home.loadData = <span class="function">(<span class="params">store</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> store.dispatch(getHomeList())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这个方法需要你把服务器端渲染的 Store 传递进来，它的作用就是帮助服务器端的 Store 获取到这个组件所需的数据。 所以，组件上有了这样的方法，同时我们也有当前路由所需要的所有组件，依次调用各个组件上的 loadData 方法，就能够获取到路由所需的所有数据内容了</p>
+</blockquote>
+<p><strong>更新 Store 中的数据</strong>: 其实，当我们执行第三步的时候，已经在更新 Store 中的数据了，但是，我们要在生成 HTML 之前，保证所有的数据都获取完毕，这怎么处理呢</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// matchedRoutes 是当前路由对应的所有需要显示的组件集合</span></span><br><span class="line">matchedRoutes.forEach(<span class="function"><span class="params">item</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (item.route.loadData) &#123;</span><br><span class="line">    <span class="keyword">const</span> promise = <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      item.route.loadData(store).then(resolve).catch(resolve);</span><br><span class="line">    &#125;)</span><br><span class="line">    promises.push(promise);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">Promise</span>.all(promises).then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 生成 HTML 逻辑</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这里，我们使用 <code>Promise</code> 来解决这个问题，我们构建一个 <code>Promise</code> 队列，等待所有的 <code>Promise</code> 都执行结束后，也就是所有 <code>store.dispatch</code> 都执行完毕后，再去生成 <code>HTML</code>。这样的话，我们就实现了结合 <code>Redux</code> 的 <code>SSR</code> 流程</li>
+<li>在上面，我们说到，服务器端渲染时，页面的数据是通过 <code>loadData</code> 函数来获取的。而在客户端，数据获取依然要做，因为如果这个页面是你访问的第一个页面，那么你看到的内容是服务器端渲染出来的，但是如果经过 <code>react-router</code> 路由跳转道第二个页面，那么这个页面就完全是客户端渲染出来的了，所以客户端也要去拿数据</li>
+<li>在客户端获取数据，使用的是我们最习惯的方式，通过 <code>componentDidMount</code> 进行数据的获取。这里要注意的是，<code>componentDidMount</code> 只在客户端才会执行，在服务器端这个生命周期函数是不会执行的。所以我们不必担心 <code>componentDidMount</code> 和 <code>loadData</code> 会有冲突，放心使用即可。这也是为什么数据的获取应该放到 <code>componentDidMount</code> 这个生命周期函数中而不是 <code>componentWillMount</code> 中的原因，可以避免服务器端获取数据和客户端获取数据的冲突</li>
+</ul>
+<h2 id="六、处理styled-components样式"><a href="#六、处理styled-components样式" class="headerlink" title="六、处理styled-components样式"></a>六、处理styled-components样式</h2><blockquote>
+<p><code>styled-components</code> 暴露了 <code>ServerStyleSheet</code> ，它允许我们用 中的所有 <code>styled</code> 组件创建一个样式表。这个样式表稍后会传入我们的<code>Html</code> 模板</p>
+</blockquote>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">//render.js</span></span><br><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;StaticRouter&#125; <span class="keyword">from</span> <span class="string">'react-router-dom'</span></span><br><span class="line"><span class="keyword">import</span> &#123;renderToString&#125; <span class="keyword">from</span> <span class="string">'react-dom/server'</span></span><br><span class="line"><span class="keyword">import</span> renderHTML <span class="keyword">from</span> <span class="string">'./template'</span></span><br><span class="line"><span class="keyword">import</span> &#123; Provider &#125; <span class="keyword">from</span> <span class="string">'react-redux'</span></span><br><span class="line"><span class="keyword">import</span> &#123; ServerStyleSheet &#125; <span class="keyword">from</span> <span class="string">'styled-components'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> render = <span class="function">(<span class="params">store,routes,req,context</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">const</span> sheet = <span class="keyword">new</span> ServerStyleSheet(); <span class="comment">// &lt;-- 创建样式表</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> content = renderToString(</span><br><span class="line">      <span class="comment">// 收集样式</span></span><br><span class="line">      sheet.collectStyles(</span><br><span class="line">        &lt;Provider store=&#123;store&#125;&gt;</span><br><span class="line">          &lt;StaticRouter location=&#123;req.path&#125; context=&#123;context&#125;&gt;</span><br><span class="line">            &#123;routes&#125;</span><br><span class="line">          &lt;<span class="regexp">/StaticRouter&gt;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>Provider&gt;</span><br><span class="line">      )</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> styles = sheet.getStyleTags(); <span class="comment">// &lt;-- 从表中获取所有标签</span></span><br><span class="line">    <span class="keyword">return</span> renderHTML(content,store,styles)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>将 <code>styles</code> 作为参数添加到我们的 <code>Html</code> 函数中，并将 <code>$ {styles}</code> 参数插入到我们的模板字符串中</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// template.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> (content,store,styles)=&gt;<span class="string">`</span></span><br><span class="line"><span class="string">  &lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="string">    &lt;html lang="en"&gt;</span></span><br><span class="line"><span class="string">      &lt;head&gt;</span></span><br><span class="line"><span class="string">        &lt;meta charset="utf-8"&gt;</span></span><br><span class="line"><span class="string">        &lt;meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" /&gt;</span></span><br><span class="line"><span class="string">        &lt;meta name="theme-color" content="#000000"&gt;</span></span><br><span class="line"><span class="string">        &lt;meta name="apple-mobile-web-app-capable" content="yes"&gt;</span></span><br><span class="line"><span class="string">        &lt;meta name="apple-touch-fullscreen" content="yes"&gt;</span></span><br><span class="line"><span class="string">        &lt;title&gt;好物为您聚集大平台的优惠商品，让你更便捷的找到你想要的宝物&lt;/title&gt;</span></span><br><span class="line"><span class="string">        &lt;link rel="shortcut icon" href="/favicon.ico"&gt;</span></span><br><span class="line"><span class="string">        &lt;link rel="stylesheet" href="<span class="subst">$&#123;buildPath[<span class="string">'vendor.css'</span>]&#125;</span>" /&gt;</span></span><br><span class="line"><span class="string">        &lt;link rel="stylesheet" href="<span class="subst">$&#123;buildPath[<span class="string">'main.css'</span>]&#125;</span>" /&gt;</span></span><br><span class="line"><span class="string">        <span class="subst">$&#123;styles&#125;</span></span></span><br><span class="line"><span class="string">      &lt;/head&gt;</span></span><br><span class="line"><span class="string">      &lt;body&gt;</span></span><br><span class="line"><span class="string">      &lt;div id="root"&gt;<span class="subst">$&#123;content&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">      &lt;script&gt;</span></span><br><span class="line"><span class="string">        window.context = &#123;</span></span><br><span class="line"><span class="string">          state: <span class="subst">$&#123;<span class="built_in">JSON</span>.stringify(store.getState())&#125;</span></span></span><br><span class="line"><span class="string">        &#125;</span></span><br><span class="line"><span class="string">      &lt;/script&gt;</span></span><br><span class="line"><span class="string">      &lt;/body&gt;</span></span><br><span class="line"><span class="string">  &lt;/html&gt;</span></span><br><span class="line"><span class="string">`</span></span><br></pre></td></tr></table></figure>
+<h2 id="七、Node-只是一个中间层"><a href="#七、Node-只是一个中间层" class="headerlink" title="七、Node 只是一个中间层"></a>七、Node 只是一个中间层</h2><blockquote>
+<p>在 <code>SSR</code> 架构中，一般 Node 只是一个中间层，用来做 <code>React</code> 代码的服务器端渲染，而 <code>Node</code> 需要的数据通常由 API 服务器单独提供</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/448.png" alt></p>
+<blockquote>
+<p>服务器端渲染时，直接请求 <code>API</code> 服务器的接口获取数据没有任何问题。但是在客户端，就有可能存在跨域的问题了，所以，这个时候，我们需要在服务器端搭建 <code>Proxy</code> 代理功能，客户端不直接请求 <code>API</code> 服务器，而是请求 <code>Node</code> 服务器，经过代理转发，拿到 <code>API</code> 服务器的数据</p>
+</blockquote>
+<ul>
+<li>这里你可以通过 <code>express-http-proxy</code> 这样的工具帮助你快速搭建 <code>Proxy</code> 代理功能，但是记得配置的时候，要让代理服务器不仅仅帮你转发请求，还要把 <code>cookie</code> 携带上，这样才不会有权限校验上的一些问题。</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Node 代理功能实现代码</span></span><br><span class="line">app.use(<span class="string">'/api'</span>, proxy(<span class="string">'http://apiServer.com'</span>, &#123;</span><br><span class="line">  proxyReqPathResolver: <span class="function"><span class="keyword">function</span> (<span class="params">req</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'/ssr'</span> + req.url;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;));</span><br></pre></td></tr></table></figure>
+<h2 id="八、完整代码示例"><a href="#八、完整代码示例" class="headerlink" title="八、完整代码示例"></a>八、完整代码示例</h2><blockquote>
+<p><a href="https://github.com/poetries/react-ssr" target="_blank" rel="noopener">https://github.com/poetries/react-ssr</a></p>
+</blockquote>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/10/21/fe-interview-hybrid/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/11/18/react-ssr-next/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

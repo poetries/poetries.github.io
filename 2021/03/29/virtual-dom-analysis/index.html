@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>虚拟DOM原理分析 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Vue,">
+  
+
+  <meta name="description" content="什么是 Virtual DOM Virtual DOM(虚拟 DOM)，是由普通的 JS 对象来描述 DOM 对象，因为不是真实的 DOM 对象，所以叫 Virtual DOM  let element = document.querySelector(&apos;#app&apos;) let s = &apos;&apos;for (var key in element) &amp;#123;  s += key + &apos;,&apos; &amp;#125;c">
+<meta name="keywords" content="Vue">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟DOM原理分析">
+<meta property="og:url" content="http://blog.poetries.top/2021/03/29/virtual-dom-analysis/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="什么是 Virtual DOM Virtual DOM(虚拟 DOM)，是由普通的 JS 对象来描述 DOM 对象，因为不是真实的 DOM 对象，所以叫 Virtual DOM  let element = document.querySelector(&apos;#app&apos;) let s = &apos;&apos;for (var key in element) &amp;#123;  s += key + &apos;,&apos; &amp;#125;c">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210328112610.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210328123653.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210328124133.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210328125857.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329091820.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329092027.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329092301.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329092430.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329092820.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329093025.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329093137.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329093302.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20210329093414.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.503Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="虚拟DOM原理分析">
+<meta name="twitter:description" content="什么是 Virtual DOM Virtual DOM(虚拟 DOM)，是由普通的 JS 对象来描述 DOM 对象，因为不是真实的 DOM 对象，所以叫 Virtual DOM  let element = document.querySelector(&apos;#app&apos;) let s = &apos;&apos;for (var key in element) &amp;#123;  s += key + &apos;,&apos; &amp;#125;c">
+<meta name="twitter:image" content="https://blog.poetries.top/img/static/images/20210328112610.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是-Virtual-DOM"><span class="toc-text">什么是 Virtual DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为什么使用-Virtual-DOM"><span class="toc-text">为什么使用 Virtual DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#虚拟-DOM-的作用"><span class="toc-text">虚拟 DOM 的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Virtual-DOM-库"><span class="toc-text">Virtual DOM 库</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Snabbdom-基本使用"><span class="toc-text">Snabbdom 基本使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建项目"><span class="toc-text">创建项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#基本使用"><span class="toc-text">基本使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#模块"><span class="toc-text">模块</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Snabbdom-源码解析"><span class="toc-text">Snabbdom 源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Snabbdom-的核心"><span class="toc-text">Snabbdom 的核心</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#h-函数"><span class="toc-text">h 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VNode"><span class="toc-text">VNode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#snabbdom"><span class="toc-text">snabbdom</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#init"><span class="toc-text">init</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#patch"><span class="toc-text">patch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#createElm"><span class="toc-text">createElm</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#patchVnode"><span class="toc-text">patchVnode</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#updateChildren"><span class="toc-text">updateChildren</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-virtual-dom-analysis" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">虚拟DOM原理分析</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2021.03.29</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 5.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 23分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="什么是-Virtual-DOM"><a href="#什么是-Virtual-DOM" class="headerlink" title="什么是 Virtual DOM"></a>什么是 Virtual DOM</h2><ol>
+<li><code>Virtual DOM</code>(虚拟 DOM)，是由普通的 <code>JS</code> 对象来描述 <code>DOM</code> 对象，因为不是真实的 <code>DOM</code> 对象，所以叫 <code>Virtual DOM</code></li>
+</ol>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> element = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>) </span><br><span class="line"><span class="keyword">let</span> s = <span class="string">''</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> element) &#123;</span><br><span class="line">  s += key + <span class="string">','</span> </span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(s)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打印结果 align,title,lang,translate,dir,hidden,accessKey,draggable,spellcheck,aut ocapitalize,contentEditable,isContentEditable,inputMode,offsetParent,off setTop,offsetLeft,offsetWidth,offsetHeight,style,innerText,outerText,onc opy,oncut,onpaste,onabort,onblur,oncancel,oncanplay,oncanplaythrough,onc hange,onclick,onclose,oncontextmenu,oncuechange,ondblclick,ondrag,ondrag end,ondragenter,ondragleave,ondragover,ondragstart,ondrop,ondurationchan ge,onemptied,onended,onerror,onfocus,oninput,oninvalid,onkeydown,onkeypr ess,onkeyup,onload,onloadeddata,onloadedmetadata,onloadstart,onmousedown ,onmouseenter,onmouseleave,onmousemove,onmouseout,onmouseover,onmouseup, onmousewheel,onpause,onplay,onplaying,onprogress,onratechange,onreset,on resize,onscroll,onseeked,onseeking,onselect,onstalled,onsubmit,onsuspend ,ontimeupdate,ontoggle,onvolumechange,onwaiting,onwheel,onauxclick,ongot pointercapture,onlostpointercapture,onpointerdown,onpointermove,onpointe rup,onpointercancel,onpointerover,onpointerout,onpointerenter,onpointerl eave,onselectstart,onselectionchange,onanimationend,onanimationiteration ,onanimationstart,ontransitionend,dataset,nonce,autofocus,tabIndex,click ,focus,blur,enterKeyHint,onformdata,onpointerrawupdate,attachInternals,n amespaceURI,prefix,localName,tagName,id,className,classList,slot,part,at tributes,shadowRoot,assignedSlot,innerHTML,outerHTML,scrollTop,scrollLef t,scrollWidth,scrollHeight,clientTop,clientLeft,clientWidth,clientHeight ,attributeStyleMap,onbeforecopy,onbeforecut,onbeforepaste,onsearch,eleme ntTiming,previousElementSibling,nextElementSibling,children,firstElement Child,lastElementChild,childElementCount,onfullscreenchange,onfullscreen error,onwebkitfullscreenchange,onwebkitfullscreenerror,setPointerCapture ,releasePointerCapture,hasPointerCapture,hasAttributes,getAttributeNames ,getAttribute,getAttributeNS,setAttribute,setAttributeNS,removeAttribute ,removeAttributeNS,hasAttribute,hasAttributeNS,toggleAttribute,getAttrib uteNode,getAttributeNodeNS,setAttributeNode,setAttributeNodeNS,removeAtt ributeNode,closest,matches,webkitMatchesSelector,attachShadow,getElement sByTagName,getElementsByTagNameNS,getElementsByClassName,insertAdjacentE lement,insertAdjacentText,insertAdjacentHTML,requestPointerLock,getClien tRects,getBoundingClientRect,scrollIntoView,scroll,scrollTo,scrollBy,scr ollIntoViewIfNeeded,animate,computedStyleMap,before,after,replaceWith,re move,prepend,append,querySelector,querySelectorAll,requestFullscreen,web kitRequestFullScreen,webkitRequestFullscreen,createShadowRoot,getDestina tionInsertionPoints,ELEMENT_NODE,ATTRIBUTE_NODE,TEXT_NODE,CDATA_SECTION_ NODE,ENTITY_REFERENCE_NODE,ENTITY_NODE,PROCESSING_INSTRUCTION_NODE,COMME NT_NODE,DOCUMENT_NODE,DOCUMENT_TYPE_NODE,DOCUMENT_FRAGMENT_NODE,NOTATION _NODE,DOCUMENT_POSITION_DISCONNECTED,DOCUMENT_POSITION_PRECEDING,DOCUMEN T_POSITION_FOLLOWING,DOCUMENT_POSITION_CONTAINS,DOCUMENT_POSITION_CONTAI NED_BY,DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC,nodeType,nodeName,baseU RI,isConnected,ownerDocument,parentNode,parentElement,childNodes,firstCh ild,lastChild,previousSibling,nextSibling,nodeValue,textContent,hasChild Nodes,getRootNode,normalize,cloneNode,isEqualNode,isSameNode,compareDocu mentPosition,contains,lookupPrefix,lookupNamespaceURI,isDefaultNamespace ,insertBefore,appendChild,replaceChild,removeChild,addEventListener,remo veEventListener,dispatchEvent</span></span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>可以使用 <code>Virtual DOM</code> 来描述真实 <code>DOM</code></li>
+</ol>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  sel: <span class="string">"div"</span>,</span><br><span class="line">  data: &#123;&#125;,</span><br><span class="line">  children: <span class="literal">undefined</span>,</span><br><span class="line">  text: <span class="string">"Hello Virtual DOM"</span>,</span><br><span class="line">  elm: <span class="literal">undefined</span>,</span><br><span class="line">  key: <span class="literal">undefined</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="为什么使用-Virtual-DOM"><a href="#为什么使用-Virtual-DOM" class="headerlink" title="为什么使用 Virtual DOM"></a>为什么使用 Virtual DOM</h2><ul>
+<li>手动操作 <code>DOM</code> 比较麻烦，还需要考虑浏览器兼容性问题，虽然有 <code>jQuery</code> 等库简化 <code>DOM</code> 操作，但是随着项目的复杂 DOM 操作复杂提升</li>
+<li>为了简化 <code>DOM</code> 的复杂操作于是出现了各种 <code>MVVM</code> 框架，<code>MVVM</code> 框架解决了视图和状态的同步问题</li>
+<li>为了简化视图的操作我们可以使用模板引擎，但是模板引擎没有解决跟踪状态变化的问题，于是<code>Virtual DOM</code> 出现了</li>
+<li><code>Virtual DOM</code> 的好处是当状态改变时不需要立即更新 DOM，只需要创建一个虚拟树来描述<code>DOM</code>，<code>Virtual DOM</code> 内部将弄清楚如何有效(<code>diff</code>)的更新 <code>DOM</code></li>
+<li>虚拟 <code>DOM</code> 可以维护程序的状态，跟踪上一次的状态</li>
+<li>通过比较前后两次状态的差异更新真实 <code>DOM</code></li>
+</ul>
+<h2 id="虚拟-DOM-的作用"><a href="#虚拟-DOM-的作用" class="headerlink" title="虚拟 DOM 的作用"></a>虚拟 DOM 的作用</h2><ul>
+<li>维护视图和状态的关系</li>
+<li>复杂视图情况下提升渲染性能</li>
+<li>除了渲染 <code>DOM</code> 以外，还可以实现 <code>SSR(Nuxt.js/Next.js)</code>、原生应用(<code>Weex/React Native</code>)、小程序(<code>mpvue/uni-app</code>)等</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210328112610.png" alt></p>
+<h2 id="Virtual-DOM-库"><a href="#Virtual-DOM-库" class="headerlink" title="Virtual DOM 库"></a>Virtual DOM 库</h2><ul>
+<li><a href="https://github.com/snabbdom/snabbdom" target="_blank" rel="noopener">Snabbdom</a><ul>
+<li><code>Vue 2.x</code> 内部使用的 <code>Virtual DOM</code> 就是改造的 <code>Snabbdom</code></li>
+<li>通过模块可扩展</li>
+<li>源码使用 <code>TypeScript</code> 开发</li>
+<li>最快的 <code>Virtual DOM</code> 之一</li>
+</ul>
+</li>
+<li><a href="https://github.com/Matt-Esch/virtual-dom" target="_blank" rel="noopener">virtual-dom</a></li>
+</ul>
+<h2 id="Snabbdom-基本使用"><a href="#Snabbdom-基本使用" class="headerlink" title="Snabbdom 基本使用"></a>Snabbdom 基本使用</h2><h3 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建项目目录</span></span><br><span class="line">md snabbdom-demo</span><br><span class="line"><span class="comment"># 进入项目目录</span></span><br><span class="line"><span class="built_in">cd</span> snabbdom-demo</span><br><span class="line"><span class="comment"># 创建 package.json yarn init -y</span></span><br><span class="line"><span class="comment"># 本地安装 parcel</span></span><br><span class="line">yarn add parcel-bundler</span><br></pre></td></tr></table></figure>
+<p>配置 <code>package.json</code> 的 <code>scripts</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">&quot;dev&quot;: &quot;parcel index.html --open&quot;, &quot;build&quot;: &quot;parcel build index.html&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建目录结构</p>
+<p><img src="https://blog.poetries.top/img/static/images/20210328123653.png" alt></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yarn add snabbdom</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import&#123;init,h,thunk&#125;from&apos;snabbdom&apos;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>snabbdom</code> 的核心仅提供最基本的功能，只导出了三个函数 <code>init()</code>、<code>h()</code>、<code>thunk()</code></p>
+</blockquote>
+<ul>
+<li><code>init()</code> 是一个高阶函数，返回 <code>patch()</code></li>
+<li><code>h()</code> 返回虚拟节点 <code>VNode</code>，这个函数我们在使用 <code>Vue.js</code> 的时候见过</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  router,</span><br><span class="line">  store,</span><br><span class="line">  render: <span class="function"><span class="params">h</span> =&gt;</span> h(App) </span><br><span class="line">&#125;).$mount(<span class="string">'#app'</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>thunk()</code> 是一种优化策略，可以在处理不可变数据时使用</li>
+</ul>
+<blockquote>
+<p>注意:导入时候不能使用 <code>import snabbdom from &#39;snabbdom&#39;</code>。原因:<code>node_modules/src/snabbdom.ts</code> 末尾导出使用的语法是 <code>export</code> 导出 <code>API</code>，没有使用 <code>export default</code> 导出默认输出</p>
+</blockquote>
+<p><img src="https://blog.poetries.top/img/static/images/20210328124133.png" alt></p>
+<h3 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h3><p><strong>例子1</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; h, init &#125; <span class="keyword">from</span> <span class="string">'snabbdom'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. hello world</span></span><br><span class="line"><span class="comment">// 参数：数组，模块</span></span><br><span class="line"><span class="comment">// 返回值：patch函数，作用对比两个vnode的差异更新到真实DOM</span></span><br><span class="line"><span class="keyword">let</span> patch = init([])</span><br><span class="line"><span class="comment">// 第一个参数：标签+选择器</span></span><br><span class="line"><span class="comment">// 第二个参数：如果是字符串的话就是标签中的内容</span></span><br><span class="line"><span class="keyword">let</span> vnode = h(<span class="string">'div#container.cls'</span>, &#123; </span><br><span class="line">  hook: &#123;</span><br><span class="line">    init (vnode) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(vnode.elm)</span><br><span class="line">    &#125;,</span><br><span class="line">    create (emptyVnode, vnode) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(vnode.elm)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;, <span class="string">'Hello World'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> app = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>)</span><br><span class="line"><span class="comment">// 第一个参数：可以是DOM元素，内部会把DOM元素转换成VNode</span></span><br><span class="line"><span class="comment">// 第二个参数：VNode</span></span><br><span class="line"><span class="comment">// 返回值：VNde</span></span><br><span class="line"><span class="keyword">let</span> oldVnode = patch(app, vnode)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设的时刻</span></span><br><span class="line">vnode = h(<span class="string">'div'</span>, <span class="string">'Hello Snabbdom'</span>)</span><br><span class="line"></span><br><span class="line">patch(oldVnode, vnode)</span><br></pre></td></tr></table></figure>
+<p><strong>例子2</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 2. div中放置子元素 h1,p</span></span><br><span class="line"><span class="keyword">import</span> &#123; h, init &#125; <span class="keyword">from</span> <span class="string">'snabbdom'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> patch = init([])</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> vnode = h(<span class="string">'div#container'</span>, [</span><br><span class="line">  h(<span class="string">'h1'</span>, <span class="string">'Hello Snabbdom'</span>),</span><br><span class="line">  h(<span class="string">'p'</span>, <span class="string">'这是一个p标签'</span>)</span><br><span class="line">])</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> app = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> oldVnode = patch(app, vnode)</span><br><span class="line"></span><br><span class="line">setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  vnode = h(<span class="string">'div#container'</span>, [</span><br><span class="line">    h(<span class="string">'h1'</span>, <span class="string">'Hello World'</span>),</span><br><span class="line">    h(<span class="string">'p'</span>, <span class="string">'Hello P'</span>)</span><br><span class="line">  ])</span><br><span class="line">  patch(oldVnode, vnode)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 清空页面元素 -- 错误</span></span><br><span class="line">  <span class="comment">// patch(oldVnode, null)</span></span><br><span class="line">  patch(oldVnode, h(<span class="string">'!'</span>))</span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>例子3 debug-patchVnode</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; h, init &#125; <span class="keyword">from</span> <span class="string">'snabbdom'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> patch = init([])</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首次渲染</span></span><br><span class="line"><span class="keyword">let</span> vnode = h(<span class="string">'div'</span>, <span class="string">'Hello World'</span>)</span><br><span class="line"><span class="keyword">let</span> app = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>)</span><br><span class="line"><span class="keyword">let</span> oldVnode = patch(app, vnode)</span><br><span class="line"></span><br><span class="line"><span class="comment">// patchVnode 的执行过程</span></span><br><span class="line">vnode = h(<span class="string">'div'</span>, <span class="string">'Hello Snabbdom'</span>)</span><br><span class="line">patch(oldVnode, vnode)</span><br></pre></td></tr></table></figure>
+<p><strong>例子4 debug-updateChildren</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; h, init &#125; <span class="keyword">from</span> <span class="string">'snabbdom'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> patch = init([])</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首次渲染</span></span><br><span class="line"><span class="keyword">let</span> vnode = h(<span class="string">'ul'</span>, [</span><br><span class="line">  h(<span class="string">'li'</span>, <span class="string">'首页'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, <span class="string">'视频'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, <span class="string">'微博'</span>)</span><br><span class="line">])</span><br><span class="line"><span class="keyword">let</span> app = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>)</span><br><span class="line"><span class="keyword">let</span> oldVnode = patch(app, vnode)</span><br><span class="line"></span><br><span class="line"><span class="comment">// updateChildren 的执行过程</span></span><br><span class="line">vnode = h(<span class="string">'ul'</span>, [</span><br><span class="line">  h(<span class="string">'li'</span>, <span class="string">'首页'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, <span class="string">'微博'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, <span class="string">'视频'</span>)</span><br><span class="line">])</span><br><span class="line">patch(oldVnode, vnode)</span><br></pre></td></tr></table></figure>
+<p><strong>例子5 debug-updateChildren-key</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; h, init &#125; <span class="keyword">from</span> <span class="string">'snabbdom'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> patch = init([])</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首次渲染</span></span><br><span class="line"><span class="keyword">let</span> vnode = h(<span class="string">'ul'</span>, [</span><br><span class="line">  h(<span class="string">'li'</span>, &#123; <span class="attr">key</span>: <span class="string">'a'</span> &#125;, <span class="string">'首页'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, &#123; <span class="attr">key</span>: <span class="string">'b'</span> &#125;, <span class="string">'视频'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, &#123; <span class="attr">key</span>: <span class="string">'c'</span> &#125;, <span class="string">'微博'</span>)</span><br><span class="line">])</span><br><span class="line"><span class="keyword">let</span> app = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>)</span><br><span class="line"><span class="keyword">let</span> oldVnode = patch(app, vnode)</span><br><span class="line"></span><br><span class="line"><span class="comment">// updateChildren 的执行过程</span></span><br><span class="line">vnode = h(<span class="string">'ul'</span>, [</span><br><span class="line">  h(<span class="string">'li'</span>, &#123; <span class="attr">key</span>: <span class="string">'a'</span> &#125;, <span class="string">'首页'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, &#123; <span class="attr">key</span>: <span class="string">'c'</span> &#125;, <span class="string">'微博'</span>),</span><br><span class="line">  h(<span class="string">'li'</span>, &#123; <span class="attr">key</span>: <span class="string">'b'</span> &#125;, <span class="string">'视频'</span>)</span><br><span class="line">])</span><br><span class="line">patch(oldVnode, vnode)</span><br></pre></td></tr></table></figure>
+<h3 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h3><blockquote>
+<p><code>Snabbdom</code> 的核心库并不能处理元素的<code>属性/样式/事件</code>等，如果需要处理的话，可以使用模块</p>
+</blockquote>
+<p><strong>常用模块</strong></p>
+<p>官方提供了 6 个模块</p>
+<ul>
+<li><code>attributes</code><ul>
+<li>设置 <code>DOM</code> 元素的属性，使用 <code>setAttribute ()</code></li>
+<li>处理布尔类型的属性</li>
+</ul>
+</li>
+<li><code>props</code><ul>
+<li>和 <code>attributes</code> 模块相似，设置 <code>DOM</code> 元素的属性 <code>element[attr] = value</code></li>
+<li>不处理布尔类型的属性</li>
+</ul>
+</li>
+<li><code>class</code><ul>
+<li>切换类样式</li>
+<li>注意:给元素设置类样式是通过 <code>sel</code> 选择器 </li>
+</ul>
+</li>
+<li><code>dataset</code><ul>
+<li>设置 <code>data-*</code> 的自定义属性 <code>eventlisteners</code></li>
+<li>注册和移除事件</li>
+</ul>
+</li>
+<li><code>style</code><ul>
+<li>设置行内样式，支持动画</li>
+<li><code>delayed/remove/destroy</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>模块使用</strong></p>
+<blockquote>
+<p>模块使用步骤:</p>
+</blockquote>
+<ul>
+<li>导入需要的模块</li>
+<li><code>init()</code> 中注册模块</li>
+<li>使用 <code>h()</code> 函数创建 <code>VNode</code> 的时候，可以把第二个参数设置为对象，其他参数往后移</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; init, h &#125; <span class="keyword">from</span> <span class="string">'snabbdom'</span></span><br><span class="line"><span class="comment">// 1. 导入模块</span></span><br><span class="line"><span class="keyword">import</span> style <span class="keyword">from</span> <span class="string">'snabbdom/modules/style'</span></span><br><span class="line"><span class="keyword">import</span> eventlisteners <span class="keyword">from</span> <span class="string">'snabbdom/modules/eventlisteners'</span></span><br><span class="line"><span class="comment">// 2. 注册模块</span></span><br><span class="line"><span class="keyword">let</span> patch = init([</span><br><span class="line">  style,</span><br><span class="line">  eventlisteners</span><br><span class="line">])</span><br><span class="line"><span class="comment">// 3. 使用 h() 函数的第二个参数传入模块需要的数据（对象）</span></span><br><span class="line"><span class="keyword">let</span> vnode = h(<span class="string">'div'</span>, &#123;</span><br><span class="line">  style: &#123;</span><br><span class="line">    backgroundColor: <span class="string">'red'</span></span><br><span class="line">  &#125;,</span><br><span class="line">  on: &#123;</span><br><span class="line">    click: eventHandler</span><br><span class="line">  &#125;</span><br><span class="line">&#125;, [</span><br><span class="line">  h(<span class="string">'h1'</span>, <span class="string">'Hello Snabbdom'</span>),</span><br><span class="line">  h(<span class="string">'p'</span>, <span class="string">'这是p标签'</span>)</span><br><span class="line">])</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">eventHandler</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'点击我了'</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> app = <span class="built_in">document</span>.querySelector(<span class="string">'#app'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> oldVnode = patch(app, vnode)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">vnode = h(<span class="string">'div'</span>, <span class="string">'hello'</span>)</span><br><span class="line">patch(oldVnode, vnode)</span><br></pre></td></tr></table></figure>
+<h2 id="Snabbdom-源码解析"><a href="#Snabbdom-源码解析" class="headerlink" title="Snabbdom 源码解析"></a>Snabbdom 源码解析</h2><h3 id="Snabbdom-的核心"><a href="#Snabbdom-的核心" class="headerlink" title="Snabbdom 的核心"></a>Snabbdom 的核心</h3><ul>
+<li>使用 <code>h()</code> 函数创建 JavaScript 对象(<code>VNode</code>)描述真实 DOM </li>
+<li><code>init()</code> 设置模块，创建 <code>patch()</code></li>
+<li><code>patch()</code> 比较新旧两个 <code>VNode</code></li>
+<li>把变化的内容更新到真实 <code>DOM</code> 树上</li>
+</ul>
+<p><strong>Snabbdom 源码</strong></p>
+<blockquote>
+<p>源码地址: <a href="https://github.com/snabbdom/snabbdom" target="_blank" rel="noopener">https://github.com/snabbdom/snabbdom</a></p>
+</blockquote>
+<p>src 目录结构</p>
+<p><img src="https://blog.poetries.top/img/static/images/20210328125857.png" alt></p>
+<h3 id="h-函数"><a href="#h-函数" class="headerlink" title="h 函数"></a>h 函数</h3><ul>
+<li><code>h()</code> 函数介绍: 在使用 <code>Vue</code> 的时候见过 <code>h()</code> 函数</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  router,</span><br><span class="line">  store,</span><br><span class="line">  render: <span class="function"><span class="params">h</span> =&gt;</span> h(App) </span><br><span class="line">&#125;).$mount(<span class="string">'#app'</span>)</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>h()</code> 函数最早见于 <code>hyperscript</code>，使用 JavaScript 创建超文本</li>
+<li>Snabbdom 中的 <code>h()</code> 函数不是用来创建超文本，而是创建 <code>VNode</code></li>
+</ul>
+<p><strong>函数重载</strong></p>
+<ul>
+<li>概念<ul>
+<li>参数个数或类型不同的函数</li>
+<li><code>JavaScript</code> 中没有重载的概念</li>
+<li><code>TypeScript</code> 中有重载，不过重载的实现还是通过代码调整参数</li>
+</ul>
+</li>
+<li>重载的示意</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span> (<span class="params">a, b</span>) </span>&#123; </span><br><span class="line">  <span class="built_in">console</span>.log(a + b)</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span> (<span class="params">a, b, c</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(a + b + c) </span><br><span class="line">&#125;</span><br><span class="line">add(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">add(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>源码位置:<code>src/h.ts</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// h函数的重载</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">h</span> (<span class="params">sel: string</span>): <span class="title">VNode</span></span></span><br><span class="line"><span class="function"><span class="title">export</span> <span class="title">function</span> <span class="title">h</span> (<span class="params">sel: string, data: VNodeData | null</span>): <span class="title">VNode</span></span></span><br><span class="line"><span class="function"><span class="title">export</span> <span class="title">function</span> <span class="title">h</span> (<span class="params">sel: string, children: VNodeChildren</span>): <span class="title">VNode</span></span></span><br><span class="line"><span class="function"><span class="title">export</span> <span class="title">function</span> <span class="title">h</span> (<span class="params">sel: string, data: VNodeData | null, children: VNodeChildren</span>): <span class="title">VNode</span></span></span><br><span class="line"><span class="function"><span class="title">export</span> <span class="title">function</span> <span class="title">h</span> (<span class="params">sel: any, b?: any, c?: any</span>): <span class="title">VNode</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> data: VNodeData = &#123;&#125;</span><br><span class="line">  <span class="keyword">let</span> children: any</span><br><span class="line">  <span class="keyword">let</span> text: any</span><br><span class="line">  <span class="keyword">let</span> i: number</span><br><span class="line">  <span class="comment">// 处理参数，实现重载的机制</span></span><br><span class="line">  <span class="keyword">if</span> (c !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理三个参数的情况</span></span><br><span class="line">    <span class="comment">// sel、data、children/text</span></span><br><span class="line">    <span class="keyword">if</span> (b !== <span class="literal">null</span>) &#123;</span><br><span class="line">      data = b</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (is.array(c)) &#123;</span><br><span class="line">      children = c</span><br><span class="line">      <span class="comment">// 如果 c 是字符串或者数字</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (is.primitive(c)) &#123;</span><br><span class="line">      text = c</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c &amp;&amp; c.sel) &#123;</span><br><span class="line">      children = [c]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (b !== <span class="literal">undefined</span> &amp;&amp; b !== <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理两个参数的情况</span></span><br><span class="line">    <span class="keyword">if</span> (is.array(b)) &#123;</span><br><span class="line">      children = b</span><br><span class="line">      <span class="comment">// 如果 b 是字符串或者数字</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (is.primitive(b)) &#123;</span><br><span class="line">      text = b</span><br><span class="line">      <span class="comment">// 如果 b 是 VNode</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (b &amp;&amp; b.sel) &#123;</span><br><span class="line">      children = [b]</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123; data = b &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (children !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="comment">// 处理 children 中的原始值(string/number)</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; children.length; ++i) &#123;</span><br><span class="line">      <span class="comment">// 如果 child 是 string/number，创建文本节点</span></span><br><span class="line">      <span class="keyword">if</span> (is.primitive(children[i])) children[i] = vnode(<span class="literal">undefined</span>, <span class="literal">undefined</span>, <span class="literal">undefined</span>, children[i], <span class="literal">undefined</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (</span><br><span class="line">    sel[<span class="number">0</span>] === <span class="string">'s'</span> &amp;&amp; sel[<span class="number">1</span>] === <span class="string">'v'</span> &amp;&amp; sel[<span class="number">2</span>] === <span class="string">'g'</span> &amp;&amp;</span><br><span class="line">    (sel.length === <span class="number">3</span> || sel[<span class="number">3</span>] === <span class="string">'.'</span> || sel[<span class="number">3</span>] === <span class="string">'#'</span>)</span><br><span class="line">  ) &#123;</span><br><span class="line">    <span class="comment">// 如果是 svg，添加命名空间</span></span><br><span class="line">    addNS(data, children, sel)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 返回 VNode</span></span><br><span class="line">  <span class="keyword">return</span> vnode(sel, data, children, text, <span class="literal">undefined</span>)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 导出模块</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> h;</span><br></pre></td></tr></table></figure>
+<h3 id="VNode"><a href="#VNode" class="headerlink" title="VNode"></a>VNode</h3><blockquote>
+<p>一个 <code>VNode</code> 就是一个虚拟节点用来描述一个 <code>DOM</code> 元素，如果这个 <code>VNode</code> 有 <code>children</code> 就是 <code>Virtual DOM</code></p>
+</blockquote>
+<p>源码位置: <code>src/vnode.ts</code></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> interface VNodeData &#123;</span><br><span class="line">  props?: Props</span><br><span class="line">  attrs?: Attrs</span><br><span class="line">  class?: Classes</span><br><span class="line">  style?: VNodeStyle</span><br><span class="line">  dataset?: Dataset</span><br><span class="line">  on?: On</span><br><span class="line">  hero?: Hero</span><br><span class="line">  attachData?: AttachData</span><br><span class="line">  hook?: Hooks</span><br><span class="line">  key?: Key</span><br><span class="line">  ns?: string <span class="comment">// for SVGs</span></span><br><span class="line">  fn?: <span class="function"><span class="params">()</span> =&gt;</span> VNode <span class="comment">// for thunks</span></span><br><span class="line">  args?: any[] <span class="comment">// for thunks</span></span><br><span class="line">  is?: string <span class="comment">// for custom elements v1</span></span><br><span class="line">  [key: string]: any <span class="comment">// for any other 3rd party module</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> interface VNode &#123;</span><br><span class="line">  <span class="comment">// 选择器</span></span><br><span class="line">  sel: string | <span class="literal">undefined</span></span><br><span class="line">  <span class="comment">// 节点数据:属性/样式/事件等</span></span><br><span class="line">  data: VNodeData | <span class="literal">undefined</span></span><br><span class="line">  <span class="comment">// 子节点，和 text 只能互斥</span></span><br><span class="line">  children: <span class="built_in">Array</span>&lt;VNode | string&gt; | <span class="literal">undefined</span></span><br><span class="line">  <span class="comment">// 记录 vnode 对应的真实 DOM</span></span><br><span class="line">  elm: Node | <span class="literal">undefined</span></span><br><span class="line">  <span class="comment">// 节点中的内容，和 children 只能互斥</span></span><br><span class="line">  text: string | <span class="literal">undefined</span></span><br><span class="line">  <span class="comment">// 优化用</span></span><br><span class="line">  key: Key | <span class="literal">undefined</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">vnode</span> (<span class="params">sel: string | undefined,</span></span></span><br><span class="line"><span class="function"><span class="params">  data: any | undefined,</span></span></span><br><span class="line"><span class="function"><span class="params">  children: Array&lt;VNode | string&gt; | undefined,</span></span></span><br><span class="line"><span class="function"><span class="params">  text: string | undefined,</span></span></span><br><span class="line"><span class="function"><span class="params">  elm: Element | Text | undefined</span>): <span class="title">VNode</span> </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> key = data === <span class="literal">undefined</span> ? <span class="literal">undefined</span> : data.key</span><br><span class="line">  <span class="keyword">return</span> &#123; sel, data, children, text, elm, key &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="snabbdom"><a href="#snabbdom" class="headerlink" title="snabbdom"></a>snabbdom</h3><ul>
+<li><code>patch(oldVnode, newVnode)</code></li>
+<li>打补丁，把新节点中变化的内容渲染到真实 <code>DOM</code>，最后返回新节点作为下一次处理的旧节点</li>
+<li>对比新旧 <code>VNode</code> 是否相同节点(节点的 <code>key</code> 和 <code>sel</code> 相同)</li>
+<li>如果不是相同节点，删除之前的内容，重新渲染</li>
+<li>如果是相同节点，再判断新的 <code>VNode</code> 是否有 <code>text</code>，如果有并且和 <code>oldVnode</code> 的 <code>text</code> 不同，直接更 新文本内容</li>
+<li>如果新的 <code>VNode</code> 有 <code>children</code>，判断子节点是否有变化，判断子节点的过程使用的就是 <code>diff</code> 算法</li>
+<li><code>diff</code> 过程只进行同层级比较</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329091820.png" alt></p>
+<h3 id="init"><a href="#init" class="headerlink" title="init"></a>init</h3><ul>
+<li>功能: <code>init(modules, domApi)</code>，返回 <code>patch()</code>函数(高阶函数)</li>
+<li>为什么要使用高阶函数?<ul>
+<li>因为 <code>patch()</code> 函数再外部会调用多次，每次调用依赖一些参数，比如: <code>modules/domApi/cbs</code></li>
+<li>通过高阶函数让 <code>init()</code> 内部形成闭包，返回的 <code>patch()</code> 可以访问到 <code>modules/domApi/cbs</code>，而 不需要重新创建</li>
+</ul>
+</li>
+<li><code>init()</code> 在返回 <code>patch()</code> 之前，首先收集了所有模块中的钩子函数存储到 <code>cbs</code> 对象中</li>
+</ul>
+<blockquote>
+<p>源码位置:<code>src/init.ts</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">init</span> (<span class="params">modules: Array&lt;Partial&lt;Module&gt;&gt;, domApi?: DOMAPI</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> i: number</span><br><span class="line">  <span class="keyword">let</span> j: number</span><br><span class="line">  <span class="keyword">const</span> cbs: ModuleHooks = &#123;</span><br><span class="line">    create: [],</span><br><span class="line">    update: [],</span><br><span class="line">    remove: [],</span><br><span class="line">    destroy: [],</span><br><span class="line">    pre: [],</span><br><span class="line">    post: []</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> api: DOMAPI = domApi !== <span class="literal">undefined</span> ? domApi : htmlDomApi</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; hooks.length; ++i) &#123;</span><br><span class="line">    cbs[hooks[i]] = []</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>; j &lt; modules.length; ++j) &#123;</span><br><span class="line">      <span class="keyword">const</span> hook = modules[j][hooks[i]]</span><br><span class="line">      <span class="keyword">if</span> (hook !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">        (cbs[hooks[i]] <span class="keyword">as</span> any[]).push(hook)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="title">patch</span> (<span class="params">oldVnode: VNode | Element, vnode: VNode</span>): <span class="title">VNode</span> </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> i: number, <span class="attr">elm</span>: Node, <span class="attr">parent</span>: Node</span><br><span class="line">    <span class="keyword">const</span> insertedVnodeQueue: VNodeQueue = []</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; cbs.pre.length; ++i) cbs.pre[i]()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!isVnode(oldVnode)) &#123;</span><br><span class="line">      oldVnode = emptyNodeAt(oldVnode)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (sameVnode(oldVnode, vnode)) &#123;</span><br><span class="line">      patchVnode(oldVnode, vnode, insertedVnodeQueue)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      elm = oldVnode.elm!</span><br><span class="line">      parent = api.parentNode(elm) <span class="keyword">as</span> Node</span><br><span class="line"></span><br><span class="line">      createElm(vnode, insertedVnodeQueue)</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (parent !== <span class="literal">null</span>) &#123;</span><br><span class="line">        api.insertBefore(parent, vnode.elm!, api.nextSibling(elm))</span><br><span class="line">        removeVnodes(parent, [oldVnode], <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; insertedVnodeQueue.length; ++i) &#123;</span><br><span class="line">      insertedVnodeQueue[i].data!.hook!.insert!(insertedVnodeQueue[i])</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; cbs.post.length; ++i) cbs.post[i]()</span><br><span class="line">    <span class="keyword">return</span> vnode</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="patch"><a href="#patch" class="headerlink" title="patch"></a>patch</h3><ul>
+<li>功能:<ul>
+<li>传入新旧 <code>VNode</code>，对比差异，把差异渲染到 <code>DOM</code></li>
+<li>返回新的 <code>VNode</code>，作为下一次 <code>patch()</code> 的 <code>oldVnode</code></li>
+</ul>
+</li>
+<li>执行过程:<ul>
+<li>首先执行模块中的钩子函数 <code>pre</code></li>
+<li>如果 <code>oldVnode</code> 和 <code>vnode</code> 相同(<code>key</code> 和 <code>sel</code> 相同)<ul>
+<li>调用 <code>patchVnode()</code>，找节点的差异并更新 <code>DOM</code></li>
+</ul>
+</li>
+<li>如果 <code>oldVnode</code> 是 <code>DOM</code> 元素<ul>
+<li>把 <code>DOM</code> 元素转换成 <code>oldVnode</code></li>
+<li>调用 <code>createElm()</code> 把 <code>vnode</code> 转换为真实 <code>DOM</code>，记录到 <code>vnode.elm</code></li>
+<li>把刚创建的 <code>DOM</code> 元素插入到 <code>parent</code> 中</li>
+<li>移除老节点</li>
+<li>触发用户设置的 <code>create</code> 钩子函数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>源码位置:<code>src/snabbdom.ts</code></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="title">patch</span> (<span class="params">oldVnode: VNode | Element, vnode: VNode</span>): <span class="title">VNode</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> i: number, <span class="attr">elm</span>: Node, <span class="attr">parent</span>: Node</span><br><span class="line">  <span class="comment">// 保存新插入节点的队列，为了触发钩子函数</span></span><br><span class="line">  <span class="keyword">const</span> insertedVnodeQueue: VNodeQueue = []</span><br><span class="line">  <span class="comment">// 执行模块的 pre 钩子函数</span></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; cbs.pre.length; ++i) cbs.pre[i]()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果 oldVnode 不是 VNode，创建 VNode 并设置 elm</span></span><br><span class="line">  <span class="keyword">if</span> (!isVnode(oldVnode)) &#123;</span><br><span class="line">    <span class="comment">// 把 DOM 元素转换成空的 VNode</span></span><br><span class="line">    oldVnode = emptyNodeAt(oldVnode)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果新旧节点是相同节点(key 和 sel 相同)</span></span><br><span class="line">  <span class="keyword">if</span> (sameVnode(oldVnode, vnode)) &#123;</span><br><span class="line">    <span class="comment">// 找节点的差异并更新 DOM</span></span><br><span class="line">    patchVnode(oldVnode, vnode, insertedVnodeQueue)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 如果新旧节点不同，vnode 创建对应的 DOM</span></span><br><span class="line">    <span class="comment">// 获取当前的 DOM 元素</span></span><br><span class="line">    elm = oldVnode.elm!</span><br><span class="line">    parent = api.parentNode(elm) <span class="keyword">as</span> Node</span><br><span class="line">    <span class="comment">// 触发 init/create 钩子函数,创建 DOM</span></span><br><span class="line">    createElm(vnode, insertedVnodeQueue)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (parent !== <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果父节点不为空，把 vnode 对应的 DOM 插入到文档中</span></span><br><span class="line">      api.insertBefore(parent, vnode.elm!, api.nextSibling(elm))</span><br><span class="line">      <span class="comment">// 移除老节点</span></span><br><span class="line">      removeVnodes(parent, [oldVnode], <span class="number">0</span>, <span class="number">0</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 执行用户设置的 insert 钩子函数 </span></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; insertedVnodeQueue.length; ++i) &#123;</span><br><span class="line">    insertedVnodeQueue[i].data!.hook!.insert!(insertedVnodeQueue[i])</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 执行模块的 post 钩子函数</span></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; cbs.post.length; ++i) cbs.post[i]()</span><br><span class="line">  <span class="comment">// 返回 vnode</span></span><br><span class="line">  <span class="keyword">return</span> vnode</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="createElm"><a href="#createElm" class="headerlink" title="createElm"></a>createElm</h3><ul>
+<li><p>功能:</p>
+<ul>
+<li><code>createElm(vnode, insertedVnodeQueue)</code>，返回创建的 <code>DOM</code> 元素</li>
+<li>创建 <code>vnode</code> 对应的 <code>DOM</code> 元素</li>
+</ul>
+</li>
+<li><p>执行过程:</p>
+<ul>
+<li>首先触发用户设置的 <code>init</code> 钩子函数</li>
+<li>如果选择器是<code>!</code>，创建评论节点</li>
+<li>如果选择器为空，创建文本节点</li>
+<li>如果选择器不为空<ul>
+<li>解析选择器，设置标签的 <code>id</code> 和 <code>class</code> 属性</li>
+<li>执行模块的 <code>create</code> 钩子函数</li>
+<li>如果 <code>vnode</code> 有 <code>children</code>，创建子 <code>vnode</code> 对应的 <code>DOM</code>，追加到 <code>DOM</code> 树</li>
+<li>如果 <code>vnode</code> 的 <code>text</code> 值是 <code>string/number</code>，创建文本节点并追击到 <code>DOM</code> 树</li>
+<li>执行用户设置的 <code>create</code> 钩子函数</li>
+<li>如果有用户设置的 <code>insert</code> 钩子函数，把 <code>vnode</code> 添加到队列中</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">createElm</span> (<span class="params">vnode: VNode, insertedVnodeQueue: VNodeQueue</span>): <span class="title">Node</span> </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> i: any</span><br><span class="line">  <span class="keyword">let</span> data = vnode.data</span><br><span class="line">  <span class="keyword">if</span> (data !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="comment">// 执行用户设置的 init 钩子函数</span></span><br><span class="line">    <span class="keyword">const</span> init = data.hook?.init</span><br><span class="line">    <span class="keyword">if</span> (isDef(init)) &#123;</span><br><span class="line">      init(vnode)</span><br><span class="line">      data = vnode.data</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> children = vnode.children</span><br><span class="line">  <span class="keyword">const</span> sel = vnode.sel</span><br><span class="line">  <span class="keyword">if</span> (sel === <span class="string">'!'</span>) &#123;</span><br><span class="line">    <span class="comment">// 如果选择器是!，创建评论节点</span></span><br><span class="line">    <span class="keyword">if</span> (isUndef(vnode.text)) &#123;</span><br><span class="line">      vnode.text = <span class="string">''</span></span><br><span class="line">    &#125;</span><br><span class="line">    vnode.elm = api.createComment(vnode.text!)</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sel !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="comment">// Parse selector</span></span><br><span class="line">    <span class="comment">// 如果选择器不为空</span></span><br><span class="line">    <span class="comment">// 解析选择器</span></span><br><span class="line">    <span class="comment">// Parse selector</span></span><br><span class="line">    <span class="keyword">const</span> hashIdx = sel.indexOf(<span class="string">'#'</span>)</span><br><span class="line">    <span class="keyword">const</span> dotIdx = sel.indexOf(<span class="string">'.'</span>, hashIdx)</span><br><span class="line">    <span class="keyword">const</span> hash = hashIdx &gt; <span class="number">0</span> ? hashIdx : sel.length</span><br><span class="line">    <span class="keyword">const</span> dot = dotIdx &gt; <span class="number">0</span> ? dotIdx : sel.length</span><br><span class="line">    <span class="keyword">const</span> tag = hashIdx !== <span class="number">-1</span> || dotIdx !== <span class="number">-1</span> ? sel.slice(<span class="number">0</span>, <span class="built_in">Math</span>.min(hash, dot)) : sel</span><br><span class="line">    <span class="keyword">const</span> elm = vnode.elm = isDef(data) &amp;&amp; isDef(i = data.ns)</span><br><span class="line">      ? api.createElementNS(i, tag, data)</span><br><span class="line">      : api.createElement(tag, data)</span><br><span class="line">    <span class="keyword">if</span> (hash &lt; dot) elm.setAttribute(<span class="string">'id'</span>, sel.slice(hash + <span class="number">1</span>, dot))</span><br><span class="line">    <span class="keyword">if</span> (dotIdx &gt; <span class="number">0</span>) elm.setAttribute(<span class="string">'class'</span>, sel.slice(dot + <span class="number">1</span>).replace(<span class="regexp">/\./g</span>, <span class="string">' '</span>))</span><br><span class="line">    <span class="comment">// 执行模块的 create 钩子函数</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; cbs.create.length; ++i) cbs.create[i](emptyNode, vnode)</span><br><span class="line">    <span class="comment">// 如果 vnode 中有子节点，创建子 vnode 对应的 DOM 元素并追加到 DOM 树上</span></span><br><span class="line">    <span class="keyword">if</span> (is.array(children)) &#123;</span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; children.length; ++i) &#123;</span><br><span class="line">        <span class="keyword">const</span> ch = children[i]</span><br><span class="line">        <span class="keyword">if</span> (ch != <span class="literal">null</span>) &#123;</span><br><span class="line">          api.appendChild(elm, createElm(ch <span class="keyword">as</span> VNode, insertedVnodeQueue))</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (is.primitive(vnode.text)) &#123;</span><br><span class="line">      <span class="comment">// 如果 vnode 的 text 值是 string/number，创建文本节点并追加到 DOM 树</span></span><br><span class="line">      api.appendChild(elm, api.createTextNode(vnode.text))</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> hook = vnode.data!.hook</span><br><span class="line">    <span class="keyword">if</span> (isDef(hook)) &#123;</span><br><span class="line">      <span class="comment">// 执行用户传入的钩子 create</span></span><br><span class="line">      hook.create?.(emptyNode, vnode)</span><br><span class="line">      <span class="keyword">if</span> (hook.insert) &#123;</span><br><span class="line">        <span class="comment">// 把 vnode 添加到队列中，为后续执行 insert 钩子做准备</span></span><br><span class="line">        insertedVnodeQueue.push(vnode)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 如果选择器为空，创建文本节点</span></span><br><span class="line">    vnode.elm = api.createTextNode(vnode.text!)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 返回新创建的 DOM</span></span><br><span class="line">  <span class="keyword">return</span> vnode.elm</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="patchVnode"><a href="#patchVnode" class="headerlink" title="patchVnode"></a>patchVnode</h3><ul>
+<li>功能:<ul>
+<li><code>patchVnode(oldVnode, vnode, insertedVnodeQueue)</code></li>
+<li>对比 <code>oldVnode</code> 和 <code>vnode</code> 的差异，把差异渲染到 <code>DOM</code></li>
+</ul>
+</li>
+<li>执行过程:<ul>
+<li>首先执行用户设置的 <code>prepatch</code> 钩子函数</li>
+<li>执行 <code>create</code> 钩子函数<ul>
+<li>首先执行模块的 <code>create</code>钩子函数</li>
+<li>然后执行用户设置的 <code>create</code> 钩子函数</li>
+</ul>
+</li>
+<li>如果 <code>vnode.text</code> 未定义<ul>
+<li>如果 <code>oldVnode.children</code> 和 <code>vnode.children</code> 都有值<ul>
+<li>调用 <code>updateChildren()</code></li>
+<li>使用 <code>diff</code> 算法对比子节点，更新子节点</li>
+</ul>
+</li>
+<li>如果 <code>vnode.children</code> 有值， <code>oldVnode.children</code> 无值<ul>
+<li>清空 <code>DOM</code> 元素</li>
+<li>调用 <code>addVnodes()</code> ，批量添加子节点</li>
+</ul>
+</li>
+<li>如果 <code>oldVnode.children</code> 有值， <code>vnode.children</code> 无值<ul>
+<li>调用 <code>removeVnodes()</code> ，批量移除子节点</li>
+</ul>
+</li>
+<li>如果 <code>oldVnode.text</code> 有值<ul>
+<li>清空 <code>DOM</code> 元素的内容</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>如果设置了 <code>vnode.text</code> 并且和和 <code>oldVnode.text</code> 不等<ul>
+<li>如果老节点有子节点，全部移除</li>
+<li>设置 <code>DOM</code> 元素的 <code>textContent</code> 为 <code>vnode.text</code></li>
+</ul>
+</li>
+<li>最后执行用户设置的 <code>postpatch</code> 钩子函数</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">patchVnode</span> (<span class="params">oldVnode: VNode, vnode: VNode, insertedVnodeQueue: VNodeQueue</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> hook = vnode.data?.hook</span><br><span class="line">  <span class="comment">// 首先执行用户设置的 prepatch 钩子函数</span></span><br><span class="line">  hook?.prepatch?.(oldVnode, vnode)</span><br><span class="line">  <span class="keyword">const</span> elm = vnode.elm = oldVnode.elm!</span><br><span class="line">  <span class="keyword">const</span> oldCh = oldVnode.children <span class="keyword">as</span> VNode[]</span><br><span class="line">  <span class="keyword">const</span> ch = vnode.children <span class="keyword">as</span> VNode[]</span><br><span class="line">  <span class="comment">// 如果新老 vnode 相同返回</span></span><br><span class="line">  <span class="keyword">if</span> (oldVnode === vnode) <span class="keyword">return</span></span><br><span class="line">  <span class="keyword">if</span> (vnode.data !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="comment">// 执行模块的 update 钩子函数</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; cbs.update.length; ++i) cbs.update[i](oldVnode, vnode)</span><br><span class="line">    <span class="comment">// 执行用户设置的 update 钩子函数</span></span><br><span class="line">    vnode.data.hook?.update?.(oldVnode, vnode)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果 vnode.text 未定义</span></span><br><span class="line">  <span class="keyword">if</span> (isUndef(vnode.text)) &#123;</span><br><span class="line">    <span class="comment">// 如果新老节点都有 children</span></span><br><span class="line">    <span class="keyword">if</span> (isDef(oldCh) &amp;&amp; isDef(ch)) &#123;</span><br><span class="line">      <span class="comment">// 使用 diff 算法对比子节点，更新子节点</span></span><br><span class="line">      <span class="keyword">if</span> (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue)</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isDef(ch)) &#123;</span><br><span class="line">      <span class="comment">// 如果新节点有 children，老节点没有 children</span></span><br><span class="line">      <span class="comment">// 如果老节点有text，清空dom 元素的内容</span></span><br><span class="line">      <span class="keyword">if</span> (isDef(oldVnode.text)) api.setTextContent(elm, <span class="string">''</span>)</span><br><span class="line">      <span class="comment">// 批量添加子节点</span></span><br><span class="line">      addVnodes(elm, <span class="literal">null</span>, ch, <span class="number">0</span>, ch.length - <span class="number">1</span>, insertedVnodeQueue)</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isDef(oldCh)) &#123;</span><br><span class="line">      <span class="comment">// 如果老节点有children，新节点没有children</span></span><br><span class="line">      <span class="comment">// 批量移除子节点</span></span><br><span class="line">      removeVnodes(elm, oldCh, <span class="number">0</span>, oldCh.length - <span class="number">1</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (isDef(oldVnode.text)) &#123;</span><br><span class="line">      <span class="comment">// 如果老节点有 text，清空 DOM 元素</span></span><br><span class="line">      api.setTextContent(elm, <span class="string">''</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (oldVnode.text !== vnode.text) &#123;</span><br><span class="line">    <span class="comment">// 如果没有设置 vnode.text</span></span><br><span class="line">    <span class="keyword">if</span> (isDef(oldCh)) &#123;</span><br><span class="line">      <span class="comment">// 如果老节点有 children，移除</span></span><br><span class="line">      removeVnodes(elm, oldCh, <span class="number">0</span>, oldCh.length - <span class="number">1</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 设置 DOM 元素的 textContent 为 vnode.text</span></span><br><span class="line">    api.setTextContent(elm, vnode.text!)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 最后执行用户设置的 postpatch 钩子函数</span></span><br><span class="line">  hook?.postpatch?.(oldVnode, vnode)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="updateChildren"><a href="#updateChildren" class="headerlink" title="updateChildren"></a>updateChildren</h3><ul>
+<li>功能:<ul>
+<li><code>diff</code> 算法的核心，对比新旧节点的 <code>children</code>，更新 <code>DOM</code></li>
+</ul>
+</li>
+<li>执行过程: <ul>
+<li>要对比两棵树的差异，我们可以取第一棵树的每一个节点依次和第二课树的每一个节点比 较，但是这样的时间复杂度为 <code>O(n^3)</code></li>
+<li>在 <code>DOM</code> 操作的时候我们很少很少会把一个父节点移动/更新到某一个子节点</li>
+<li>因此只需要找同级别的子节点依次比较，然后再找下一级别的节点比较，这样算法的时间复 杂度为 <code>O(n)</code></li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329092027.png" alt></p>
+<ul>
+<li>在进行同级别节点比较的时候，首先会对新老节点数组的开始和结尾节点设置标记索引，遍 历的过程中移动索引</li>
+<li>在对开始和结束节点比较的时候，总共有四种情况<ul>
+<li><code>oldStartVnode / newStartVnode</code> (旧开始节点 / 新开始节点)</li>
+<li><code>oldEndVnode / newEndVnode</code> (旧结束节点 / 新结束节点)</li>
+<li><code>oldStartVnode / oldEndVnode</code> (旧开始节点 / 新结束节点)</li>
+<li><code>oldEndVnode / newStartVnode</code> (旧结束节点 / 新开始节点)</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329092301.png" alt></p>
+<ul>
+<li>开始节点和结束节点比较，这两种情况类似<ul>
+<li><code>oldStartVnode / newStartVnode</code> (旧开始节点 / 新开始节点)</li>
+<li><code>oldEndVnode / newEndVnode</code> (旧结束节点 / 新结束节点)</li>
+</ul>
+</li>
+<li>如果 <code>oldStartVnode</code> 和 <code>newStartVnode</code> 是 <code>sameVnode</code> (<code>key</code> 和 <code>sel</code> 相同)<ul>
+<li>调用 <code>patchVnode()</code> 对比和更新节点</li>
+<li>把旧开始和新开始索引往后移动 <code>oldStartIdx++ / oldEndIdx++</code></li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329092430.png" alt></p>
+<ul>
+<li><code>oldStartVnode / newEndVnode</code> (旧开始节点 / 新结束节点) 相同<ul>
+<li>调用 <code>patchVnode()</code> 对比和更新节点</li>
+<li>把 <code>oldStartVnode</code> 对应的 <code>DOM</code> 元素，移动到右边 <ul>
+<li>更新索引</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329092820.png" alt></p>
+<ul>
+<li><code>oldEndVnode / newStartVnode</code> (旧结束节点 / 新开始节点) 相同<ul>
+<li>调用 <code>patchVnode()</code> 对比和更新节点</li>
+<li>把 <code>oldEndVnode</code> 对应的 <code>DOM</code> 元素，移动到左边</li>
+<li>更新索引</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329093025.png" alt></p>
+<ul>
+<li>如果不是以上四种情况<ul>
+<li>遍历新节点，使用 <code>newStartNode</code> 的 <code>key</code> 在老节点数组中找相同节点</li>
+<li>如果没有找到，说明 <code>newStartNode</code> 是新节点<ul>
+<li>创建新节点对应的 DOM 元素，插入到 DOM 树中</li>
+</ul>
+</li>
+<li>如果找到了<ul>
+<li>判断新节点和找到的老节点的 <code>sel</code> 选择器是否相同</li>
+<li>如果不相同，说明节点被修改了<ul>
+<li>重新创建对应的 <code>DOM</code> 元素，插入到 DOM 树中</li>
+</ul>
+</li>
+<li>如果相同，把 <code>elmToMove</code> 对应的 DOM 元素，移动到左边</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329093137.png" alt></p>
+<ul>
+<li>循环结束<ul>
+<li>当老节点的所有子节点先遍历完 (<code>oldStartIdx &gt; oldEndIdx</code>)，循环结束</li>
+<li>新节点的所有子节点先遍历完 (<code>newStartIdx &gt; newEndIdx</code>)，循环结束</li>
+</ul>
+</li>
+<li>如果老节点的数组先遍历完(<code>oldStartIdx &gt; oldEndIdx</code>)，说明新节点有剩余，把剩余节点批量插入到右边</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329093302.png" alt></p>
+<ul>
+<li>如果新节点的数组先遍历完(<code>newStartIdx &gt; newEndIdx</code>)，说明老节点有剩余，把剩余节点批 量删除</li>
+</ul>
+<p><img src="https://blog.poetries.top/img/static/images/20210329093414.png" alt></p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2021/03/28/vue-reative-summary/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2021/04/16/serverless-intro/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>前端异常监控平台之Sentry落地 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="前端监控,Sentry,">
+  
+
+  <meta name="description" content="Sentry介绍 Sentry 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中    Gi">
+<meta name="keywords" content="前端监控,Sentry">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前端异常监控平台之Sentry落地">
+<meta property="og:url" content="http://blog.poetries.top/2022/07/27/sentry-summary/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="Sentry介绍 Sentry 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中    Gi">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/bb6538297dd29493.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/ea60de5188aaa2a1.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/31d57c95765101aa.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/5db080cc6f487560.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/06/e0f4f8f2621b11c0.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/06/0b017f9a76914c6e.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/48ed424be7911056.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/ec9447e63222462a.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/c960c51703ae0a14.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/751ff76231406eec.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/5fe231a45329b6bf.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/d00aa7e4b2070d77.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/e714d0cdfa38438d.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/26405ca96fbdf205.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/d86d96288fe1ea13.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/c4137ad12fdccfbd.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/893f765fac6d2520.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/695199f400f7e40d.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/d2cf43bc99c8125d.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/f427cd23cd15f067.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/1db9fed291b04c9c.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/8962b2ec56f2cc19.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/fc614a806ae0c774.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/c28db99ceb1e7001.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/1d6f7cba82780187.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/d02c70b8bed7be49.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/605e5eb69a429340.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/b7e76f88d489b17f.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/1742ca6bb482613a.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/3dce162037de39ac.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/3cd50955a8f30718.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/5406d9288512bbf5.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/d7231e857e234509.png">
+<meta property="og:image" content="https://s.poetries.work/uploads/2022/07/4bd87c7949fd6a74.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.499Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="前端异常监控平台之Sentry落地">
+<meta name="twitter:description" content="Sentry介绍 Sentry 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中    Gi">
+<meta name="twitter:image" content="https://s.poetries.work/uploads/2022/07/bb6538297dd29493.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Sentry介绍"><span class="toc-text">Sentry介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#环境搭建配置"><span class="toc-text">环境搭建配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#官方Sentry服务"><span class="toc-text">官方Sentry服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sentry私有化部署"><span class="toc-text">Sentry私有化部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#安装docker环境"><span class="toc-text">安装docker环境</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#一键部署"><span class="toc-text">一键部署</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#启动项目执行"><span class="toc-text">启动项目执行</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#访问项目"><span class="toc-text">访问项目</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#设置语言和时区"><span class="toc-text">设置语言和时区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vue2-Sentry"><span class="toc-text">Vue2 + Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建一个vue项目"><span class="toc-text">创建一个vue项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#接入sentry"><span class="toc-text">接入sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#上传sourceMap到sentry"><span class="toc-text">上传sourceMap到sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查看-Performance"><span class="toc-text">查看 Performance</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vue3-Vite-Sentry"><span class="toc-text">Vue3 + Vite + Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建vue3项目"><span class="toc-text">创建vue3项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#安装sentry依赖"><span class="toc-text">安装sentry依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#初始化sentry"><span class="toc-text">初始化sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sourcemap上传"><span class="toc-text">sourcemap上传</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#React-Sentry"><span class="toc-text">React + Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建一个umi项目"><span class="toc-text">创建一个umi项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#接入sentry-1"><span class="toc-text">接入sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sourcemap上传-1"><span class="toc-text">sourcemap上传</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#根目录创建配置文件-sentryclirc"><span class="toc-text">根目录创建配置文件 .sentryclirc</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sourcemap配置上传"><span class="toc-text">sourcemap配置上传</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#进阶用法"><span class="toc-text">进阶用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#识别用户"><span class="toc-text">识别用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#错误边界"><span class="toc-text">错误边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rrweb-重播"><span class="toc-text">rrweb 重播</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#手动设置报警"><span class="toc-text">手动设置报警</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-sentry-summary" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">前端异常监控平台之Sentry落地</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2022.07.27</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.3k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 14分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="Sentry介绍"><a href="#Sentry介绍" class="headerlink" title="Sentry介绍"></a>Sentry介绍</h2><blockquote>
+<p><code>Sentry</code> 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>Github: <a href="https://github.com/getsentry/sentry" target="_blank" rel="noopener">https://github.com/getsentry/sentry</a></li>
+<li>文档 <a href="https://docs.sentry.io/" target="_blank" rel="noopener">https://docs.sentry.io/</a></li>
+</ul>
+</blockquote>
+<p><strong>支持如下语言</strong></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/bb6538297dd29493.png" alt></p>
+<p><strong>sentry功能架构</strong></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/ea60de5188aaa2a1.png" alt></p>
+<p><strong>sentry核心架构</strong></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/31d57c95765101aa.png" alt></p>
+<h2 id="环境搭建配置"><a href="#环境搭建配置" class="headerlink" title="环境搭建配置"></a>环境搭建配置</h2><h3 id="官方Sentry服务"><a href="#官方Sentry服务" class="headerlink" title="官方Sentry服务"></a>官方Sentry服务</h3><blockquote>
+<p>sentry是开源的，如果我们愿意付费的话，sentry给我们提供了方便。省去了自己搭建和维护 Python 服务的麻烦事</p>
+</blockquote>
+<p>登录官网 <a href="https://sentry.io" target="_blank" rel="noopener">https://sentry.io</a> 注册账号后接入sdk即可使用</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/5db080cc6f487560.png" alt></p>
+<h3 id="Sentry私有化部署"><a href="#Sentry私有化部署" class="headerlink" title="Sentry私有化部署"></a>Sentry私有化部署</h3><blockquote>
+<p>Sentry 的管理后台是基于 <code>Python Django</code> 开发的。这个管理后台由背后的 Postgres 数据库（管理后台默认的数据库）、<code>ClickHouse</code>（存数据特征的数据库）、relay、kafka、redis 等一些基础服务或由 Sentry 官方维护的总共 23 个服务支撑运行。可见的是，如果独立的部署和维护这 23 个服务将是异常复杂和困难的。幸运的是，官方提供了基于 docker 镜像的一键部署实现 <a href="https://github.com/getsentry/self-hosted" target="_blank" rel="noopener">getsentry/onpremise</a></p>
+</blockquote>
+<p>sentry 本身是基于 Django 开发的，而且也依赖到其他的如 Postgresql、 Redis 等组件，所以一般有两种途径进行安装：通过 Docker 或用 Python 搭建</p>
+<p><strong>前置环境</strong></p>
+<blockquote>
+<p>需要安装对应版本，否则安装会报错</p>
+</blockquote>
+<ul>
+<li><code>Docker 19.03.6+</code></li>
+<li><code>Docker-Compose 1.28.0+</code></li>
+<li><code>4 CPU Cores</code></li>
+<li><code>8 GB RAM</code></li>
+<li><code>20 GB Free Disk Space</code></li>
+</ul>
+<h4 id="安装docker环境"><a href="#安装docker环境" class="headerlink" title="安装docker环境"></a>安装docker环境</h4><p>安装工具包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum install yum-utils device-mapper-persistent-data lvm2 -y</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/06/e0f4f8f2621b11c0.png" alt></p>
+<p>设置阿里镜像源</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/06/0b017f9a76914c6e.png" alt></p>
+<p>安装docker</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum install docker-ce docker-ce-cli containerd.io -y</span><br></pre></td></tr></table></figure>
+<p>启动docker</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设为开机启动</span></span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
+<p><strong>docker 镜像加速（重要）</strong></p>
+<blockquote>
+<p>在后续部署的过程中，需要拉取大量镜像，官方源拉取较慢，可以修改 docker 镜像源</p>
+</blockquote>
+<p>登录阿里云官网，打开 <a href="https://cr.console.aliyun.com" target="_blank" rel="noopener">阿里云容器镜像服务</a>。点击左侧菜单最下面的 <code>镜像加速器</code> ，选择 <code>Centos</code></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/48ed424be7911056.png" alt></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">vi /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"registry-mirrors"</span>: [<span class="string">"https://l6of9ya6.mirror.aliyuncs.com"</span>]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后重启docker即可</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 重新加载配置</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启docker</span></span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+<p><strong>安装docker-compose</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用国内源安装</span></span><br><span class="line">sudo curl -L <span class="string">"https://get.daocloud.io/docker/compose/releases/download/1.29.2/docker-compose-<span class="variable">$(uname -s)</span>-<span class="variable">$(uname -m)</span>"</span> -o /usr/<span class="built_in">local</span>/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p><strong>设置docker-compose执行权限</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">chmod +x /usr/local/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p><strong>创建软链</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose</span><br></pre></td></tr></table></figure>
+<p><strong>测试是否安装成功：</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker-compose --version</span><br><span class="line"></span><br><span class="line">docker-compose version 1.22.0, build f46880fe</span><br></pre></td></tr></table></figure>
+<h4 id="一键部署"><a href="#一键部署" class="headerlink" title="一键部署"></a>一键部署</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/getsentry/onpremise</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在 <code>onpremise</code> 的根路径下有一个 <code>install.sh</code> 文件，只需要执行此脚本即可完成快速部署，脚本运行的过程中，大致会经历以下步骤：</p>
+</blockquote>
+<ul>
+<li>环境检查</li>
+<li>生成服务配置</li>
+<li><code>docker volume</code> 数据卷创建（可理解为 <code>docker</code> 运行的应用的数据存储路径的创建）</li>
+<li>拉取和升级基础镜像</li>
+<li>构建镜像</li>
+<li>服务初始化</li>
+<li>设置管理员账号（如果跳过此步，可手动创建）</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> onpremise</span><br><span class="line"></span><br><span class="line"><span class="comment"># 直接运行 ./install.sh 将 Sentry 及其依赖都通过 docker 安装</span></span><br><span class="line">./install.sh</span><br></pre></td></tr></table></figure>
+<p>后续一步一步安装下来</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/ec9447e63222462a.png" alt></p>
+<p>设置管理员账号（如果跳过此步，可手动创建）</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/c960c51703ae0a14.png" alt></p>
+<h4 id="启动项目执行"><a href="#启动项目执行" class="headerlink" title="启动项目执行"></a>启动项目执行</h4><p>在执行结束后，会提示创建完毕，运行 <code>docker-compose up -d</code> 启动服务</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/751ff76231406eec.png" alt></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/07/5fe231a45329b6bf.png" alt></p>
+<p>查看服务运行状态<code>docker-compose ps</code></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/d00aa7e4b2070d77.png" alt></p>
+<h4 id="访问项目"><a href="#访问项目" class="headerlink" title="访问项目"></a>访问项目</h4><blockquote>
+<p>所有服务都启动成功后,就可以访问<code>sentry</code>后台了,后台默认运行在服务器的<code>9000</code>端口,这里的<code>账户密码就是安装时让你设置</code>的那个</p>
+</blockquote>
+<p><img src="https://s.poetries.work/uploads/2022/07/e714d0cdfa38438d.png" alt></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/26405ca96fbdf205.png" alt></p>
+<h3 id="设置语言和时区"><a href="#设置语言和时区" class="headerlink" title="设置语言和时区"></a>设置语言和时区</h3><p>点击头像<code>User settings - Account Details</code>的相应菜单设置，刷新后生效</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/d86d96288fe1ea13.png" alt></p>
+<h2 id="Vue2-Sentry"><a href="#Vue2-Sentry" class="headerlink" title="Vue2 + Sentry"></a>Vue2 + Sentry</h2><h3 id="创建一个vue项目"><a href="#创建一个vue项目" class="headerlink" title="创建一个vue项目"></a>创建一个vue项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm i @vue/cli -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化vue2项目</span></span><br><span class="line">vue create vue2-sentry</span><br></pre></td></tr></table></figure>
+<h3 id="接入sentry"><a href="#接入sentry" class="headerlink" title="接入sentry"></a>接入sentry</h3><p><img src="https://s.poetries.work/uploads/2022/07/c4137ad12fdccfbd.png" alt></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Using npm</span></span><br><span class="line">npm install --save @sentry/vue @sentry/tracing</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/main.js</span></span><br><span class="line"><span class="keyword">import</span> Vue <span class="keyword">from</span> <span class="string">"vue"</span>;</span><br><span class="line"><span class="keyword">import</span> Router <span class="keyword">from</span> <span class="string">"vue-router"</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> Sentry <span class="keyword">from</span> <span class="string">"@sentry/vue"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Integrations &#125; <span class="keyword">from</span> <span class="string">"@sentry/tracing"</span>;</span><br><span class="line"></span><br><span class="line">Vue.use(Router);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> router = <span class="keyword">new</span> Router(&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">Sentry.init(&#123;</span><br><span class="line">  Vue,</span><br><span class="line">  dsn: <span class="string">"http://xdsdfafda21212@119.75.24.41:9000/2"</span>,</span><br><span class="line">  integrations: [</span><br><span class="line">    <span class="keyword">new</span> Integrations.BrowserTracing(&#123;</span><br><span class="line">      routingInstrumentation: Sentry.vueRouterInstrumentation(router),</span><br><span class="line">      tracingOrigins: [<span class="string">"localhost"</span>, <span class="string">"my-site-url.com"</span>, /^\<span class="comment">//],</span></span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">  <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line">  <span class="comment">// environment: process.env.ENVIRONMENT,</span></span><br><span class="line">  <span class="comment">// Set tracesSampleRate to 1.0 to capture 100%</span></span><br><span class="line">  <span class="comment">// of transactions for performance monitoring.</span></span><br><span class="line">  <span class="comment">// We recommend adjusting this value in production</span></span><br><span class="line">  <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">  tracesSampleRate: <span class="number">1.0</span>,</span><br><span class="line">  release: process.env.SENTRY_VERSION || <span class="string">'0.0.1'</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> Vue(&#123;</span><br><span class="line">  router,</span><br><span class="line">  render: <span class="function"><span class="params">h</span> =&gt;</span> h(App),</span><br><span class="line">&#125;).$mount(<span class="string">"#app"</span>);</span><br></pre></td></tr></table></figure>
+<p>我们手动抛出异常，在控制台可见捕获了错误</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/893f765fac6d2520.png" alt></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/695199f400f7e40d.png" alt></p>
+<h3 id="上传sourceMap到sentry"><a href="#上传sourceMap到sentry" class="headerlink" title="上传sourceMap到sentry"></a>上传sourceMap到sentry</h3><p>为了方便查看具体的报错内容，我们需要上传<code>sourceMap</code>到<code>sentry</code>平台。一般有两种方式 <code>sentry-cli</code>和 <code>sentry-webpack-plugin</code>方式，这里为了方便采用<code>webpack</code>方式</p>
+<ul>
+<li><code>source-map</code> 是一个文件，可以让已编译过的代码可以映射出原始源;</li>
+<li><code>source-map</code> 就是一个信息文件，里面储存着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。</li>
+</ul>
+<p><strong>webpack方式上传</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">npm i @sentry/webpack-plugin -D</span><br></pre></td></tr></table></figure>
+<p>修改<code>vue.config.js</code>配置文件</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> SentryCliPlugin = <span class="built_in">require</span>(<span class="string">'@sentry/webpack-plugin'</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="comment">// 打包生成sourcemap，打包完上传到sentry之后在删除，不要把sourcemao传到生产环境</span></span><br><span class="line">  productionSourceMap: process.env.NODE_ENV !== <span class="string">'development'</span>,</span><br><span class="line">  configureWebpack: <span class="function"><span class="params">config</span>=&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV !== <span class="string">'development'</span>) &#123;</span><br><span class="line">      config.plugins.push(</span><br><span class="line">        <span class="keyword">new</span> SentryCliPlugin(&#123;</span><br><span class="line">          include: <span class="string">'./dist/js'</span>, <span class="comment">// 只上传js</span></span><br><span class="line">          ignore: [<span class="string">'node_modules'</span>, <span class="string">'webpack.config.js'</span>],</span><br><span class="line">          ignoreFile: <span class="string">'.sentrycliignore'</span>,</span><br><span class="line">          release: process.env.SENTRY_VERSION || <span class="string">'0.0.1'</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号 对应main.js中设置的Sentry.init版本号</span></span><br><span class="line">          cleanArtifacts: <span class="literal">true</span>, <span class="comment">// Remove all the artifacts in the release before the upload.</span></span><br><span class="line">          <span class="comment">// URL prefix to add to the beginning of all filenames. Defaults to ~/ but you might want to set this to the full URL. This is also useful if your files are stored in a sub folder. eg: url-prefix '~/static/js'</span></span><br><span class="line">          urlPrefix: <span class="string">'~/js'</span>, <span class="comment">// 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题</span></span><br><span class="line">          <span class="comment">// urlPrefix： 关于这个，是要看你线上项目的资源地址，比如</span></span><br><span class="line">          <span class="comment">// 怎么看资源地址呢， 例如谷歌浏览器， F12控制台， 或者去Application里面找到对应资源打开</span></span><br><span class="line">        &#125;),</span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取<code>TOKEN</code></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/d2cf43bc99c8125d.png" alt></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/f427cd23cd15f067.png" alt></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/1db9fed291b04c9c.png" alt></p>
+<p>获取<code>org</code></p>
+<p><img src="https://s.poetries.work/uploads/2022/07/8962b2ec56f2cc19.png" alt></p>
+<p>在项目根目录创建<code>.sentryclirc</code></p>
+<ul>
+<li><code>url</code>：sentry部署的地址，默认是<code>https://sentry.io/</code></li>
+<li><code>org</code>：控制台查看组织名称</li>
+<li><code>project</code>：项目名称</li>
+<li><code>token</code>：生成token需要勾选<code>project:write</code>项目写入权限</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># .sentryclirc</span></span><br><span class="line"></span><br><span class="line">[auth]</span><br><span class="line">token=填入控制台创建的TOKEN</span><br><span class="line"></span><br><span class="line">[defaults]</span><br><span class="line">url=https://sentry.io/</span><br><span class="line">org=sentry</span><br><span class="line">project=vue</span><br></pre></td></tr></table></figure>
+<p>执行项目打包命令，即可把js下的<code>sourcemap</code>相关文件上传到<code>sentry</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
+<p>上传后的<code>sourcemap</code>在这里可以看到</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/fc614a806ae0c774.png" alt></p>
+<p>正确上传过 <code>source-map</code> 的项目，可以看到很清晰的报错位置</p>
+<blockquote>
+<p>进入本地打包的dist，<code>http-server -p 6002</code> 启动一个模拟正式环境部署的服务访问看看效果</p>
+</blockquote>
+<p><img src="https://s.poetries.work/uploads/2022/07/c28db99ceb1e7001.png" alt></p>
+<p>还可以通过 <code>面包屑</code> 功能查看，报错前发生了什么操作</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/1d6f7cba82780187.png" alt></p>
+<p><strong>记得别把sourcemap文件传到生产环境，又大又不安全</strong> 删除<code>sourcemap</code>, 基于vue2演示的三种方式</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方式1</span></span><br><span class="line"><span class="string">"scripts"</span>: &#123;</span><br><span class="line">  <span class="string">"build"</span>: <span class="string">"vue-cli-service build &amp;&amp; rimraf ./dist/js/*.map"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式2 单独生成map</span></span><br><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line">configureWebpack(config) &#123;</span><br><span class="line">     config.output.sourceMapFilename(<span class="string">'sourceMap/[name].[chunkhash].map.js'</span>)</span><br><span class="line">     config.plugin(<span class="string">'sentry'</span>).use(SentryCliPlugin, [&#123;</span><br><span class="line">        include: <span class="string">'./dist/sourceMap'</span>, <span class="comment">// 只上传js</span></span><br><span class="line">        ignore: [<span class="string">'node_modules'</span>],</span><br><span class="line">        configFile: <span class="string">'sentry.properties'</span>,</span><br><span class="line">        release: process.env.SENTRY_VERSION || <span class="string">'0.0.1'</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">        cleanArtifacts: <span class="literal">true</span>, <span class="comment">// 先清理再上传</span></span><br><span class="line">    &#125;])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式3 webpack插件清理</span></span><br><span class="line">$ npm i webpack-<span class="keyword">delete</span>-sourcemaps-plugin -D</span><br><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="keyword">const</span> &#123; DeleteSourceMapsPlugin &#125; = <span class="built_in">require</span>(<span class="string">'webpack-delete-sourcemaps-plugin'</span>)</span><br><span class="line"></span><br><span class="line">configureWebpack(config) &#123;</span><br><span class="line">    config.plugin.push(</span><br><span class="line">        <span class="keyword">new</span> DeleteSourceMapsPlugin(), <span class="comment">// 清理sourcemap</span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="查看-Performance"><a href="#查看-Performance" class="headerlink" title="查看 Performance"></a>查看 Performance</h3><p><img src="https://s.poetries.work/uploads/2022/07/d02c70b8bed7be49.png" alt></p>
+<blockquote>
+<p><code>Sentry.init()</code> 中，<code>new Integrations.BrowserTracing()</code> 的功能是将浏览器页面加载和导航检测作为事物，并捕获请求，指标和错误。</p>
+</blockquote>
+<ul>
+<li><code>TPM</code>: 每分钟事务数</li>
+<li><code>FCP</code>：首次内容绘制（浏览器第第一次开始渲染 dom 的时间点）</li>
+<li><code>LCP</code>：最大内容渲染，代表 <code>viewpoint</code> 中最大页面元素的加载时间</li>
+<li><code>FID</code>：用户首次输入延迟，可以衡量用户首次与网站交互的时间</li>
+<li><code>CLS</code>：累计布局偏移，一个元素初始时和消失前的数据</li>
+<li><code>TTFB</code>：首字节时间，测量用户浏览器接收页面的第一个字节的时间（可以判断缓慢来自网络请求还是页面加载问题）</li>
+<li><code>USER</code>：<code>uv</code> 数字</li>
+<li><code>USER MISERY</code>: 对响应时间难以忍受的用户指标，由 <code>sentry</code> 计算出来，阈值可以动态修改</li>
+</ul>
+<h2 id="Vue3-Vite-Sentry"><a href="#Vue3-Vite-Sentry" class="headerlink" title="Vue3 + Vite + Sentry"></a>Vue3 + Vite + Sentry</h2><h3 id="创建vue3项目"><a href="#创建vue3项目" class="headerlink" title="创建vue3项目"></a>创建vue3项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yarn create vite</span><br></pre></td></tr></table></figure>
+<h3 id="安装sentry依赖"><a href="#安装sentry依赖" class="headerlink" title="安装sentry依赖"></a>安装sentry依赖</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm i @sentry/vue @sentry/tracing</span><br></pre></td></tr></table></figure>
+<h3 id="初始化sentry"><a href="#初始化sentry" class="headerlink" title="初始化sentry"></a>初始化sentry</h3><blockquote>
+<p><code>src/main.js</code>中修改</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">"vue"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; createRouter &#125; <span class="keyword">from</span> <span class="string">"vue-router"</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> Sentry <span class="keyword">from</span> <span class="string">"@sentry/vue"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Integrations &#125; <span class="keyword">from</span> <span class="string">"@sentry/tracing"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = createApp(&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">const</span> router = createRouter(&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">Sentry.init(&#123;</span><br><span class="line">  app,</span><br><span class="line">  dsn: <span class="string">"http://xdfada1212@12.715.204.41:9000/2"</span>,</span><br><span class="line">  integrations: [</span><br><span class="line">    <span class="keyword">new</span> Integrations.BrowserTracing(&#123;</span><br><span class="line">      routingInstrumentation: Sentry.vueRouterInstrumentation(router),</span><br><span class="line">      tracingOrigins: [<span class="string">"localhost"</span>, <span class="string">"my-site-url.com"</span>, /^\<span class="comment">//],</span></span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">  <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line"><span class="comment">//   environment: process.env.ENVIRONMENT,</span></span><br><span class="line">  <span class="comment">// Set tracesSampleRate to 1.0 to capture 100%</span></span><br><span class="line">  <span class="comment">// of transactions for performance monitoring.</span></span><br><span class="line">  <span class="comment">// We recommend adjusting this value in production</span></span><br><span class="line">    <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">  tracesSampleRate: <span class="number">1.0</span>,</span><br><span class="line">  release: process.env.SENTRY_VERSION || <span class="string">'0.0.1'</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.use(router);</span><br><span class="line">app.mount(<span class="string">"#app"</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="sourcemap上传"><a href="#sourcemap上传" class="headerlink" title="sourcemap上传"></a>sourcemap上传</h3><blockquote>
+<p>修改<code>vite.config.js</code>配置</p>
+</blockquote>
+<p>安装<code>npm i vite-plugin-sentry -D</code>插件</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; defineConfig &#125; <span class="keyword">from</span> <span class="string">'vite'</span></span><br><span class="line"><span class="keyword">import</span> vue <span class="keyword">from</span> <span class="string">'@vitejs/plugin-vue'</span></span><br><span class="line"><span class="keyword">import</span> viteSentry <span class="keyword">from</span> <span class="string">'vite-plugin-sentry'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sentryConfig = &#123;</span><br><span class="line">  configFile: <span class="string">'./.sentryclirc'</span>,</span><br><span class="line">  release: process.env.SENTRY_VERSION || <span class="string">'0.0.1'</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">  deploy: &#123;</span><br><span class="line">   env: <span class="string">'production'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  skipEnvironmentCheck: <span class="literal">true</span>, <span class="comment">// 可以跳过环境检查</span></span><br><span class="line">  sourceMaps: &#123;</span><br><span class="line">   include: [<span class="string">'./dist/assets'</span>],</span><br><span class="line">   ignore: [<span class="string">'node_modules'</span>],</span><br><span class="line">   urlPrefix: <span class="string">'~/assets'</span>, <span class="comment">// 注意这里设置正确，否则sourcemap上传不正确</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// https://vitejs.dev/config/</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> defineConfig(&#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    vue(),</span><br><span class="line">    process.env.NODE_ENV === <span class="string">'production'</span> ? viteSentry(sentryConfig) : <span class="literal">null</span>,</span><br><span class="line">  ],</span><br><span class="line">  build: &#123;</span><br><span class="line">    sourcemap: process.env.NODE_ENV === <span class="string">'production'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>此时当执行<code>vite build</code>时，<code>viteSentry</code>这个插件会将构建的<code>sourcemap</code>文件上传到s<code>entry</code>对应的项目<code>release</code>之下。当次版本新捕获到错误时就可以还原出错误行，以及详细的错误信息。</p>
+</blockquote>
+<p><img src="https://s.poetries.work/uploads/2022/07/605e5eb69a429340.png" alt></p>
+<h2 id="React-Sentry"><a href="#React-Sentry" class="headerlink" title="React + Sentry"></a>React + Sentry</h2><blockquote>
+<p>使用umi项目接入演示</p>
+</blockquote>
+<h3 id="创建一个umi项目"><a href="#创建一个umi项目" class="headerlink" title="创建一个umi项目"></a>创建一个umi项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mkdir umi-sentry &amp;&amp; <span class="built_in">cd</span>  umi-sentry</span><br><span class="line"></span><br><span class="line">yarn create umi</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/07/b7e76f88d489b17f.png" alt></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Using npm</span></span><br><span class="line">npm install --save @sentry/react @sentry/tracing</span><br></pre></td></tr></table></figure>
+<h3 id="接入sentry-1"><a href="#接入sentry-1" class="headerlink" title="接入sentry"></a>接入sentry</h3><p>初始化sentry</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// pages/index.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> Sentry <span class="keyword">from</span> <span class="string">"@sentry/react"</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; BrowserTracing &#125; <span class="keyword">from</span> <span class="string">"@sentry/tracing"</span>;</span><br><span class="line"></span><br><span class="line">Sentry.init(&#123;</span><br><span class="line">  dsn: <span class="string">"https://xdfa@o1334810.ingest.sentry.io/121"</span>,</span><br><span class="line">  integrations: [<span class="keyword">new</span> BrowserTracing()],</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Set tracesSampleRate to 1.0 to capture 100%</span></span><br><span class="line">  <span class="comment">// of transactions for performance monitoring.</span></span><br><span class="line">  <span class="comment">// We recommend adjusting this value in production</span></span><br><span class="line">  release: <span class="string">'0.0.1'</span>,</span><br><span class="line">  tracesSampleRate: <span class="number">1.0</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>手动抛出异常查看是否能正确上报到sentry</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/1742ca6bb482613a.png" alt></p>
+<h3 id="sourcemap上传-1"><a href="#sourcemap上传-1" class="headerlink" title="sourcemap上传"></a>sourcemap上传</h3><h4 id="根目录创建配置文件-sentryclirc"><a href="#根目录创建配置文件-sentryclirc" class="headerlink" title="根目录创建配置文件 .sentryclirc"></a>根目录创建配置文件 .sentryclirc</h4><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">[auth]</span><br><span class="line">token=TOKEN控制台获取，TOKEN需要勾选project:write写入权限</span><br><span class="line"></span><br><span class="line">[defaults]</span><br><span class="line">url=https:<span class="comment">//sentry.io/ // 默认地址</span></span><br><span class="line">org=组织名称，控制台获取</span><br><span class="line">project=react <span class="comment">// 项目名称</span></span><br></pre></td></tr></table></figure>
+<h4 id="sourcemap配置上传"><a href="#sourcemap配置上传" class="headerlink" title="sourcemap配置上传"></a>sourcemap配置上传</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm i @sentry/webpack-plugin -D</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// .umirc.ts 修改</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> SentryPlugin = <span class="built_in">require</span>(<span class="string">'@sentry/webpack-plugin'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  devtool: process.env.NODE_ENV === <span class="string">'production'</span> ? <span class="string">'source-map'</span> : <span class="string">'eval'</span>, <span class="comment">// 开启sourcemao</span></span><br><span class="line">  chainWebpack(config, &#123; webpack &#125;)&#123;</span><br><span class="line">    <span class="keyword">if</span> (process.env.NODE_ENV === <span class="string">'production'</span>)&#123;<span class="comment">//当为prod时候才进行sourcemap的上传，如果不判断，在项目运行的打包也会上传</span></span><br><span class="line">      config.plugin(<span class="string">"sentry"</span>).use(SentryPlugin, [&#123;</span><br><span class="line">        ignore: [<span class="string">'node_modules'</span>],</span><br><span class="line">        include: <span class="string">'./dist'</span>, <span class="comment">//上传dist文件的js</span></span><br><span class="line">        configFile: <span class="string">'./sentryclirc'</span>, <span class="comment">//配置文件地址，这个一定要有，踩坑在这里，忘了写导致一直无法实现上传sourcemap</span></span><br><span class="line">        release:<span class="string">'1.0.1'</span>, <span class="comment">//版本号，自己定义的变量，整个版本号在项目里面一定要对应</span></span><br><span class="line">        deleteAfterCompile: <span class="literal">true</span>,</span><br><span class="line">        urlPrefix: <span class="string">'~/'</span> <span class="comment">// js的代码路径前缀</span></span><br><span class="line">       &#125;])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 执行打包上传sourcemap</span></span><br><span class="line">npm run build</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入dist文件，启动http-server 本地服务模拟线上效果</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/07/3dce162037de39ac.png" alt></p>
+<p>修改代码抛出异常，查看控制台sourcemap解析的效果</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/3cd50955a8f30718.png" alt></p>
+<p><strong>注意：npm run build之后，不要把sourcemap上传到生产环境，记得删除</strong></p>
+<h2 id="进阶用法"><a href="#进阶用法" class="headerlink" title="进阶用法"></a>进阶用法</h2><h3 id="识别用户"><a href="#识别用户" class="headerlink" title="识别用户"></a>识别用户</h3><blockquote>
+<p>在上传的 issues 里面，我们可以借助 setUser 方法，设置读取存在本地的用户信息。（此信息需要持久化存储，否则刷新会消失）</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/main.js</span></span><br><span class="line">Sentry.setUser(&#123;</span><br><span class="line">  id: <span class="string">'dfar12e31'</span>, <span class="comment">// userId cookie.get('userId')</span></span><br><span class="line">  email: <span class="string">'test@qq.com'</span>, <span class="comment">// cookie.get('email')</span></span><br><span class="line">  username: <span class="string">'poetry'</span>, <span class="comment">// cookie.get('username')</span></span><br><span class="line">&#125;)</span><br><span class="line">Vue.prototype.$Sentry = Sentry</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.work/uploads/2022/07/5406d9288512bbf5.png" alt></p>
+<h3 id="错误边界"><a href="#错误边界" class="headerlink" title="错误边界"></a>错误边界</h3><ul>
+<li>定义错误边界，当组件报错的时候，可以上报相关信息</li>
+<li>使用 <code>Sentry.ErrorBoundary</code>。加了错误边界，可以把错误定位到组件上面。</li>
+</ul>
+<h3 id="rrweb-重播"><a href="#rrweb-重播" class="headerlink" title="rrweb 重播"></a>rrweb 重播</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">npm i @sentry/rrweb rrweb -S</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> SentryRRWeb <span class="keyword">from</span> <span class="string">'@sentry/rrweb'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// app/main.js</span></span><br><span class="line">Sentry.init(&#123;</span><br><span class="line">    Vue,</span><br><span class="line">    dsn: <span class="string">"xxx"</span>,</span><br><span class="line">    integrations: [</span><br><span class="line">      <span class="keyword">new</span> Integrations.BrowserTracing(&#123;</span><br><span class="line">        routingInstrumentation: Sentry.vueRouterInstrumentation(router),</span><br><span class="line">        tracingOrigins: [<span class="string">"localhost"</span>, <span class="string">"my-site-url.com"</span>, /^<span class="comment">//],</span></span><br><span class="line">      &#125;),</span><br><span class="line">      <span class="keyword">new</span> SentryRRWeb(&#123;</span><br><span class="line">        checkoutEveryNms: <span class="number">10</span> * <span class="number">1000</span>, <span class="comment">// 每10秒重新制作快照</span></span><br><span class="line">        checkoutEveryNth: <span class="number">200</span>, <span class="comment">// 每 200 个 event 重新制作快照</span></span><br><span class="line">        maskAllInputs: <span class="literal">false</span>, <span class="comment">// 将所有输入内容记录为 *</span></span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">    <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line">    environment: process.env.ENVIRONMENT,</span><br><span class="line">    <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">    tracesSampleRate: <span class="number">1.0</span>,</span><br><span class="line">    release: process.env.SENTRY_VERSION || <span class="string">'0.0.1'</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">    logErrors: <span class="literal">true</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>在报错后，可以录屏播放错误发生的情况</p>
+<p><img src="https://s.poetries.work/uploads/2022/07/d7231e857e234509.png" alt></p>
+<h3 id="手动设置报警"><a href="#手动设置报警" class="headerlink" title="手动设置报警"></a>手动设置报警</h3><ul>
+<li>设置报警规则，当我们某些情况，如 <code>issues</code>，<code>performance</code> 超过我们设置的阈值，会触发 <code>alert</code>。</li>
+<li>我们可以通过提醒等功能来帮助我们即时发现问题。</li>
+</ul>
+<p><img src="https://s.poetries.work/uploads/2022/07/4bd87c7949fd6a74.png" alt></p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2022/07/01/graphql-koa2-apollo-vue/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2023/09/24/charles-android/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>初识MobX | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="JavaScript,MobX,">
+  
+
+  <meta name="description" content="一、认识MobX 打印mobx，看看mobx中有什么    MobX的整个流程   MobX 和 Redux 的比较  Redux 是单一数据源，而 MobX 往往是多个 store。MobX 可以根据应用的 UI、数据或业务逻辑来组织 store，具体如何进行需要你自己进行权衡 Redux store 使用普通的 JavaScript 对象结构，MobX 将常规 JavaScript 对象包裹，">
+<meta name="keywords" content="JavaScript,MobX">
+<meta property="og:type" content="article">
+<meta property="og:title" content="初识MobX">
+<meta property="og:url" content="http://blog.poetries.top/2018/08/31/acq-mobx/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、认识MobX 打印mobx，看看mobx中有什么    MobX的整个流程   MobX 和 Redux 的比较  Redux 是单一数据源，而 MobX 往往是多个 store。MobX 可以根据应用的 UI、数据或业务逻辑来组织 store，具体如何进行需要你自己进行权衡 Redux store 使用普通的 JavaScript 对象结构，MobX 将常规 JavaScript 对象包裹，">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20191001/8.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20191001/9.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20191001/10.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.454Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="初识MobX">
+<meta name="twitter:description" content="一、认识MobX 打印mobx，看看mobx中有什么    MobX的整个流程   MobX 和 Redux 的比较  Redux 是单一数据源，而 MobX 往往是多个 store。MobX 可以根据应用的 UI、数据或业务逻辑来组织 store，具体如何进行需要你自己进行权衡 Redux store 使用普通的 JavaScript 对象结构，MobX 将常规 JavaScript 对象包裹，">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/20191001/8.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、认识MobX"><span class="toc-text">一、认识MobX</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、核心API"><span class="toc-text">二、核心API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-observable"><span class="toc-text">2.1 @observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-observer"><span class="toc-text">2.2 observer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-computed"><span class="toc-text">2.3 @computed</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-actions"><span class="toc-text">2.4 @actions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-autorun"><span class="toc-text">2.5 autorun</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-reactions"><span class="toc-text">2.6 reactions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-Flow"><span class="toc-text">2.7 Flow</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、计数器例子"><span class="toc-text">三、计数器例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、应用案例"><span class="toc-text">四、应用案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、参考"><span class="toc-text">五、参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-acq-mobx" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">初识MobX</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.08.31</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.9k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 7分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、认识MobX"><a href="#一、认识MobX" class="headerlink" title="一、认识MobX"></a>一、认识MobX</h2><blockquote>
+<p>打印<code>mobx</code>，看看<code>mobx</code>中有什么</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/20191001/8.png" alt="mobx"></p>
+<blockquote>
+<p><code>MobX</code>的整个流程</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/20191001/9.png" alt="mobx"></p>
+<p><strong>MobX 和 Redux 的比较</strong></p>
+<ul>
+<li><code>Redux</code> 是单一数据源，而 <code>MobX</code> 往往是多个 <code>store</code>。<code>MobX</code> 可以根据应用的 <code>UI</code>、数据或业务逻辑来组织 <code>store</code>，具体如何进行需要你自己进行权衡</li>
+<li><code>Redux store</code> 使用普通的 <code>JavaScript</code> 对象结构，<code>MobX</code> 将常规 <code>JavaScript</code> 对象包裹，赋予 <code>observable</code> 的能力，通过隐式订阅，自动跟踪 <code>observable</code> 的变化。<code>MobX</code> 是观察引用的，在跟踪函数中（例如：<code>computed value</code>、<code>reactions</code>等等），任何被引用的 <code>observable</code> 的属性都会被记录，一旦引用改变，<code>MobX</code> 将作出反应。注意，不在跟踪函数中的属性将不会被跟踪，在异步中访问的属性也不会被跟踪</li>
+<li><code>Redux</code> 的 <code>state</code> 是只读的，只能通过将之前的 <code>state</code> 与触发的 <code>action</code> 结合，产生新的 <code>state</code>，因此是纯净的（<code>pure</code>）。而 <code>MobX</code> 的 <code>state</code> 即可读又可写，<code>action</code> 是非必须的，可以直接赋值改变，因此是不纯净的（Impure）</li>
+<li><code>Redux</code> 需要你去规范化你的 <code>state</code>，<code>Immutable</code> 数据使 <code>Reducer</code> 在更新时需要将状态树的祖先数据进行复制和更新，新的对象会导致与之 <code>connect</code>的所有 <code>UI</code> 组件都重复渲染。因此<code>Redux state</code> 不建议进行深层嵌套，或者需要我们在组件中用 <code>shouldComponentUpdate</code> 优化。而 <code>MobX</code> 只自动更新你所关心的，不必担心嵌套带来的重渲染问题</li>
+</ul>
+<blockquote>
+<p><code>redux</code> 管理的是 (<code>STORE</code> -&gt; <code>VIEW</code> -&gt; <code>ACTION</code>) 的整个闭环，而 <code>mobx</code> 只关心 <code>STORE</code> -&gt; <code>VIEW</code> 的部分</p>
+</blockquote>
+<p><strong>优点</strong></p>
+<ul>
+<li><strong>基于运行时的数据订阅</strong> <code>mobx</code> 的数据依赖始终保持了最小，而且还是基于运行时。而如果用 <code>redux</code>，可能一不小心就多订阅或者少订阅了数据。所以为了达到高性能，我们需要借助 <code>PureRenderMixin</code> 以及 <code>reselect</code> 对 <code>selector</code> 做缓存</li>
+<li><strong>通过 OOP 的方式组织领域模型 (domain model)</strong>  <code>OOP</code> 的方式在某些场景下会比较方便，尤其是容易抽取 <code>domain model</code> 的时候。进而由于 <code>mobx</code> 支持引用的方式引用数据，所以可以非常容易得形成模型图 (model graph )，这样可以更好地理解我们的应用。</li>
+<li><strong>修改数据方便自然</strong>  <code>mobx</code> 是基于原生的 <code>JavaScript</code> 对象、数组和 <code>Class</code>实现的。所以修改数据不需要额外语法成本，也不需要始终返回一个新的数据，而是直接操作数据</li>
+</ul>
+<p><strong>缺点</strong></p>
+<ul>
+<li><strong>缺最佳实践和社区</strong>  mobx 比较新，遇到的问题可能社区都没有遇到过。并且，mobx 并没有很好的扩展/插件机制</li>
+<li><strong>随意修改 store</strong> 我们都知道 redux 里唯一可以改数据的地方是 reducer，这样可以保证应用的安全稳定；而 mobx 可以随意修改数据，触发更新，给人一种不安全的感觉<ul>
+<li>最新的<code>mobx 2.2</code> 加入了 <code>action</code> 的支持。并且在开启 <code>strict mode</code> 之后，就只有 <code>action</code> 可以对数据进行修改，限制数据的修改入口。可以解决这个问题</li>
+</ul>
+</li>
+<li><strong>逻辑层的限制</strong><ul>
+<li>如果更新逻辑不能很好地封装在 <code>domain class</code> 里，用 <code>redux</code> 会更合适。另外，<code>mobx</code>缺类 <code>redux-saga</code> 的库，业务逻辑的整合不知道放哪合适</li>
+</ul>
+</li>
+</ul>
+<h2 id="二、核心API"><a href="#二、核心API" class="headerlink" title="二、核心API"></a>二、核心API</h2><p><img src="https://poetries1.gitee.io/img-repo/20191001/10.png" alt="mobx"></p>
+<h3 id="2-1-observable"><a href="#2-1-observable" class="headerlink" title="2.1 @observable"></a>2.1 @observable</h3><blockquote>
+<p><code>Observable</code> 值可以是JS基本数据类型、引用类型、普通对象、类实例、数组和映射。其修饰的state会暴露出来供观察者使用</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Observable 值可以是JS基本数据类型、引用类型、普通对象、类实例、数组和映射</span></span><br><span class="line">@observable title = <span class="string">'this is about page'</span></span><br><span class="line">@observable num = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算值(computed values)是可以根据现有的状态或其它计算值衍生出的值</span></span><br><span class="line">@computed <span class="keyword">get</span> getUserInfo()&#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="string">`我是computed经过计算的getter,currenct num:<span class="subst">$&#123;<span class="keyword">this</span>.num&#125;</span>`</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 注意：当你使用装饰器模式时，@action 中的 this 没有绑定在当前这个实例上，要用过 @action.bound 来绑定 使得 this 绑定在实例对象上</span></span><br><span class="line">@action.bound add()&#123;</span><br><span class="line">    <span class="keyword">this</span>.num ++</span><br><span class="line">&#125;</span><br><span class="line">@action.bound reduce()&#123;</span><br><span class="line">    <span class="keyword">this</span>.num --</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-observer"><a href="#2-2-observer" class="headerlink" title="2.2 observer"></a>2.2 observer</h3><blockquote>
+<p>可以用作包裹 <code>React</code> 组件的高阶组件。 在组件的 <code>render</code> 函数中的任何已使用的 <code>observable</code> 发生变化时，组件都会自动重新渲染。 注意 <code>observer</code> 是由 <code>&quot;mobx-react&quot;</code> 包提供的，而不是 <code>mobx</code> 本身</p>
+</blockquote>
+<ul>
+<li><code>@Observer</code> 是一个注解，本质上是用 <code>mobx.autorun</code> 包装了组件的 <code>render</code> 函数以确保任何组件渲染中使用的数据变化时都可以强制刷新组件</li>
+</ul>
+<h3 id="2-3-computed"><a href="#2-3-computed" class="headerlink" title="2.3 @computed"></a>2.3 @computed</h3><ul>
+<li>计算值(<code>computed values</code>)是可以根据现有的状态或其它计算值衍生出的值</li>
+<li>用于获取由基础 <code>state</code>衍生出来的值。如果基础值没有变，获取衍生值时就会走缓存，这样就不会引起虚拟 DOM 的重新渲染</li>
+</ul>
+<blockquote>
+<ul>
+<li><code>getter</code>：获得计算得到的新<code>state</code>并返回。</li>
+<li><code>setter</code>： 不能用来直接改变计算属性的值，但是它们可以用来作“逆向”衍生。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>通过 <code>@computed + getter</code>函数来定义衍生值</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span> </span>&#123;</span><br><span class="line">    @observable length = <span class="number">2</span>;</span><br><span class="line">    @computed <span class="keyword">get</span> squared() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.length * <span class="keyword">this</span>.length;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">set</span> squared(value) &#123; <span class="comment">// 这是一个自动的动作，不需要注解</span></span><br><span class="line">        <span class="keyword">this</span>.length = <span class="built_in">Math</span>.sqrt(value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-actions"><a href="#2-4-actions" class="headerlink" title="2.4 @actions"></a>2.4 @actions</h3><blockquote>
+<ul>
+<li>只有在 <code>actions</code> 中，才可以修改 <code>Mobx</code> 中 <code>state</code> 的值</li>
+<li>注意：当你使用装饰器模式时，<code>@action</code> 中的 <code>this</code> 没有绑定在当前这个实例上，要用过 <a href="mailto:`@action.bound" target="_blank" rel="noopener">`@action.bound</a><code>来绑定 使得</code>this` 绑定在实例对象上</li>
+</ul>
+</blockquote>
+<ul>
+<li>通过引入 <code>mobx</code> 定义的严格模式，强制使用 <code>action</code> 来修改状态</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;configure&#125; <span class="keyword">from</span> <span class="string">'mobx'</span>;</span><br><span class="line"></span><br><span class="line">configure(&#123; <span class="attr">enforceActions</span>: <span class="string">'always'</span> &#125;) <span class="comment">// 开启严格模式</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">@action.bound add()&#123;</span><br><span class="line">    <span class="keyword">this</span>.num ++</span><br><span class="line">&#125;</span><br><span class="line">@action.bound reduce()&#123;</span><br><span class="line">    <span class="keyword">this</span>.num --</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-5-autorun"><a href="#2-5-autorun" class="headerlink" title="2.5 autorun"></a>2.5 autorun</h3><ul>
+<li>当可观察对象中保存的值发生变化时，可以在<code>mobx.autorun</code>中被观察到。<code>observable</code> 的值初始化或改变时，自动运行</li>
+<li>如果你想响应式的产生一个可以被其它 <code>observer</code> 使用的值，请使用 <code>@computed</code>，如果你不想产生一个新值，而想要达到一个效果，请使用 <code>autorun</code>。 举例来说，效果是像打印日志、发起网络请求等这样命令式的副作用</li>
+</ul>
+<h3 id="2-6-reactions"><a href="#2-6-reactions" class="headerlink" title="2.6 reactions"></a>2.6 reactions</h3><blockquote>
+<p><code>Reactions</code>和计算值很像，但它不是产生一个新的值，而是会产生一些副作用，比如打印到控制台、网络请求、递增地更新 <code>React</code>组件树以修补<code>DOM</code>、等等。 简而言之，<code>reactions</code> 在 响应式编程和命令式编程之间建立沟通的桥梁</p>
+</blockquote>
+<h3 id="2-7-Flow"><a href="#2-7-Flow" class="headerlink" title="2.7 Flow"></a>2.7 Flow</h3><blockquote>
+<p>用法: <code>flow(function* (args) { })</code></p>
+</blockquote>
+<ul>
+<li><code>flow()</code> 接收 <code>generator</code> 函数作为它唯一的输入</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; configure &#125; <span class="keyword">from</span> <span class="string">'mobx'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不允许在动作外部修改状态</span></span><br><span class="line">configure(&#123; <span class="attr">enforceActions</span>: <span class="literal">true</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Store</span> </span>&#123;</span><br><span class="line">    @observable githubProjects = [];</span><br><span class="line">    @observable state = <span class="string">"pending"</span>; <span class="comment">// "pending" / "done" / "error"</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    fetchProjects = flow(<span class="function"><span class="keyword">function</span>* <span class="title">fetchProjects</span>(<span class="params"></span>) </span>&#123; <span class="comment">// &lt;- 注意*号，这是生成器函数！</span></span><br><span class="line">        <span class="keyword">this</span>.githubProjects = [];</span><br><span class="line">        <span class="keyword">this</span>.state = <span class="string">"pending"</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> projects = <span class="keyword">yield</span> fetchGithubProjectsSomehow(); <span class="comment">// 用 yield 代替 await</span></span><br><span class="line">            <span class="keyword">const</span> filteredProjects = somePreprocessing(projects);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 异步代码自动会被 `action` 包装</span></span><br><span class="line">            <span class="keyword">this</span>.state = <span class="string">"done"</span>;</span><br><span class="line">            <span class="keyword">this</span>.githubProjects = filteredProjects;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">            <span class="keyword">this</span>.state = <span class="string">"error"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="三、计数器例子"><a href="#三、计数器例子" class="headerlink" title="三、计数器例子"></a>三、计数器例子</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">'react'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">'mobx-react'</span>;<span class="comment">//结合react</span></span><br><span class="line"><span class="keyword">import</span> &#123; observable, autorun,computed &#125; <span class="keyword">from</span> <span class="string">'mobx'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义数据store</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Counter</span> </span>&#123;</span><br><span class="line">  @observable number = <span class="number">0</span>;</span><br><span class="line">  @computed <span class="keyword">get</span> msg() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'number:'</span> + <span class="keyword">this</span>.number</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 用action改变数据，避免混乱</span></span><br><span class="line">  @action increment()&#123;</span><br><span class="line">    <span class="keyword">this</span>.number ++</span><br><span class="line">  &#125;</span><br><span class="line">  @action decrement: <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.number --</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> store = <span class="keyword">new</span> Counter()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 把属性注入react组件</span></span><br><span class="line">@observer</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">        &#123; store.msg &#125; <span class="tag">&lt;<span class="name">br</span> /&gt;</span></span></span><br><span class="line"><span class="xml">      <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleInc&#125;</span>&gt;</span> + <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="xml">      <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleDec&#125;</span>&gt;</span> - <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>);</span><br><span class="line">  &#125;</span><br><span class="line">  handleInc() &#123;</span><br><span class="line">    store.increment();</span><br><span class="line">  &#125;</span><br><span class="line">  handleDec() &#123;</span><br><span class="line">    store.decrement();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">ReactDOM.render(<span class="xml"><span class="tag">&lt;<span class="name">App</span> /&gt;</span>, document.getElementById('root'));</span></span><br></pre></td></tr></table></figure>
+<h2 id="四、应用案例"><a href="#四、应用案例" class="headerlink" title="四、应用案例"></a>四、应用案例</h2><blockquote>
+<p><a href="https://github.com/poetries/react-mobx-template" target="_blank" rel="noopener">https://github.com/poetries/react-mobx-template</a></p>
+</blockquote>
+<h2 id="五、参考"><a href="#五、参考" class="headerlink" title="五、参考"></a>五、参考</h2><blockquote>
+<p>文档学习 <a href="https://cn.mobx.js.org/" target="_blank" rel="noopener">https://cn.mobx.js.org/</a></p>
+</blockquote>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/08/29/redux-saga-and-redux-thunk/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/09/03/wx-taro/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

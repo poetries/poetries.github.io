@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>关键路径渲染优化 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="性能优化,">
+  
+
+  <meta name="description" content="浏览器从获取 HTML到最终在屏幕上显示内容需要完成以下步骤：   处理 HTML 标记并构建 DOM 树。 处理 CSS 标记并构建 CSSOM 树。 将 DOM 与 CSSOM 合并成一个 render tree。 根据渲染树来布局，以计算每个节点的几何信息。 将各个节点绘制到屏幕上。  经过以上整个流程我们才能看见屏幕上出现渲染的内容，优化关键渲染路径就是指最大限度缩短执行上述第 1 步至">
+<meta name="keywords" content="性能优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关键路径渲染优化">
+<meta property="og:url" content="http://blog.poetries.top/2020/01/28/render-path-optimize/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="浏览器从获取 HTML到最终在屏幕上显示内容需要完成以下步骤：   处理 HTML 标记并构建 DOM 树。 处理 CSS 标记并构建 CSSOM 树。 将 DOM 与 CSSOM 合并成一个 render tree。 根据渲染树来布局，以计算每个节点的几何信息。 将各个节点绘制到屏幕上。  经过以上整个流程我们才能看见屏幕上出现渲染的内容，优化关键渲染路径就是指最大限度缩短执行上述第 1 步至">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.497Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="关键路径渲染优化">
+<meta name="twitter:description" content="浏览器从获取 HTML到最终在屏幕上显示内容需要完成以下步骤：   处理 HTML 标记并构建 DOM 树。 处理 CSS 标记并构建 CSSOM 树。 将 DOM 与 CSSOM 合并成一个 render tree。 根据渲染树来布局，以计算每个节点的几何信息。 将各个节点绘制到屏幕上。  经过以上整个流程我们才能看见屏幕上出现渲染的内容，优化关键渲染路径就是指最大限度缩短执行上述第 1 步至">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#优化方法"><span class="toc-text">优化方法</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-render-path-optimize" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">关键路径渲染优化</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2020.01.28</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 2.3k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 9分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>浏览器从获取 HTML到最终在屏幕上显示内容需要完成以下步骤：</p>
+</blockquote>
+<ul>
+<li>处理 HTML 标记并构建 DOM 树。</li>
+<li>处理 CSS 标记并构建 CSSOM 树。</li>
+<li>将 DOM 与 CSSOM 合并成一个 render tree。</li>
+<li>根据渲染树来布局，以计算每个节点的几何信息。</li>
+<li>将各个节点绘制到屏幕上。</li>
+</ul>
+<p>经过以上整个流程我们才能看见屏幕上出现渲染的内容，<strong>优化关键渲染路径就是指最大限度缩短执行上述第 1 步至第 5步耗费的总时间</strong>，让用户最快的看到首次渲染的内容</p>
+<blockquote>
+<p>CSSOM 的构建会阻塞 HTML 的渲染，也会阻塞 JS 的执行，JS 的下载与执行（内联及外部样式表）也会阻塞 HTML 的渲染</p>
+</blockquote>
+<h3 id="优化方法"><a href="#优化方法" class="headerlink" title="优化方法"></a>优化方法</h3><blockquote>
+<p>为尽快完成首次渲染，我们需要最大限度减小以下三种可变因素</p>
+</blockquote>
+<ul>
+<li>关键资源的数量：可能阻止网页首次渲染的资源</li>
+<li>关键路径长度：获取所有关键资源所需的往返次数或总时间。</li>
+<li>关键字节的数量：实现网页首次渲染所需的总字节数，它是所有关键资源传送文件大小的总和。我们包含单个 HTML 页面的第一个示例包含一项关键资源（HTML 文档）；关键路径长度也与 1 次网络往返相等（假设文件较小），而总关键字节数正好是 HTML 文档本身的传送大小</li>
+</ul>
+<p><strong>优化关键渲染路径的常规步骤如下</strong></p>
+<ul>
+<li>对关键路径进行分析和特性描述：资源数、字节数、长度</li>
+<li>最大限度减少关键资源的数量：删除它们，延迟它们的下载，将它们标记为异步等</li>
+<li>优化关键字节数以缩短下载时间（往返次数）</li>
+<li>优化其余关键资源的加载顺序：您需要尽早下载所有关键资产，以缩短关键路径长度</li>
+</ul>
+<p><strong>关键 CSS</strong></p>
+<blockquote>
+<p>样式表会阻塞渲染，在加载完毕之前是不会显示的，为了让用户以最快的速度看到页面上的内容，可以将页面的某一部分的样式抽离出来，单独放在一个样式表中或者内联在页面中，这样的样式称为关键样式，这部分样式会优先它可以是页面的骨架屏或者是用户刚加载进页面时看到的首屏的内容。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!doctype html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">  &lt;style&gt; /* inlined critical CSS */ &lt;/style&gt;</span><br><span class="line">  &lt;script&gt; loadCSS(&apos;non-critical.css&apos;); &lt;/script&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">  ...body goes here</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>预加载 —— preload &amp; prefetch</strong></p>
+<blockquote>
+<p>使用 preload meta 来提升资源加载的优先级</p>
+</blockquote>
+<ul>
+<li><code>preload</code> 会提升资源的优先级因为它标明这个资源是本页肯定会用到 —— 本页优先</li>
+<li><code>prefetch</code> 会降低这个资源的优先级因为它标明这个资源是下一页可能用到的 —— 为下一页提前加载</li>
+<li><code>preload</code> 最大的作用就是将下载与执行分离，并且将下载的优先级提到了一个很高的地步，再由我们去控制资源执行的位置</li>
+</ul>
+<p><strong>加速样式表下载</strong></p>
+<blockquote>
+<p>样式表是阻塞页面呈现的（注意是呈现，不是解析），正常通过 <code>link</code> 加载的外部样式表要等下载，构建 <code>CSSOM</code> 树才会让页面呈现完成，但是 <code>preload</code> 能够让样式表的下载和呈现分离</p>
+</blockquote>
+<p>试想，当你在页面的 head 中写了如下的两个样式表</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;link href=&quot;critial.css&quot; rel=&quot;stylesheet&quot; /&gt;</span><br><span class="line">&lt;link href=&quot;non-critial.css&quot; rel=&quot;stylesheet&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>第一个是关键 <code>CSS</code>，第二个不是关键 CSS，当页面解析了这两个 <code>link</code> 标签后开始下载，但是即使 <code>critical.css</code> 下载解析完毕也不会呈现页面，因为页面还要下载和解析 <code>non-critical.css</code>。</li>
+<li>这时候，就要将 <code>non-critial.css</code> 作为预加载，当样式表作为被 <code>preload</code> 后，他就不会再阻塞页面的呈现，也就是所谓的异步下载，修改后的代码如下：</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">"critial.css"</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"preload"</span> <span class="attr">href</span>=<span class="string">"non-critial.css"</span> <span class="attr">as</span>=<span class="string">"style"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">"non-critial.css"</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如此一来，页面在解析完 <code>critical.css</code> 之后就会呈现（暂不考虑脚本），而 <code>non-critial</code> 也在下载，但是并不阻塞页面，指导它下载和解析完毕后才会应用到页面上</p>
+</blockquote>
+<blockquote>
+<p>现在并不是所有的浏览器都支持 <code>preload</code>，我们可以用 <code>loadCSS</code> 这个库来做 <code>polyfill</code>，其实现的思路也是遍历所有带 <code>preload</code>和 as 的标签，然后修改标签的 <code>media</code> 为不匹配任何条件并开始下载，在下载完毕后再还原该 link 原来的 media 标签将它应用</p>
+</blockquote>
+<p><strong>加速脚本下载</strong></p>
+<blockquote>
+<p><code>preload</code> 将脚本的加载及执行分离，加了 <code>preload</code> 的 <code>&lt;link&gt;</code> 标签的作用是将脚本提到高优先级尽快完成下载，但并未执行。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;link rel=&quot;preload&quot; href=&quot;//cdn.staticfile.org/jquery/3.2.1/jquery.min.js&quot; as=&quot;script&quot; /&gt;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>还需要在你想要他执行的地方引入一个正常的 <code>&lt;script&gt;</code> 标签执行这个脚本</p>
+</blockquote>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"//cdn.staticfile.org/jquery/3.2.1/jquery.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>否则 chrome 大约会在 3s 后报一个 warning 来提醒你这个资源被浪费了完全没有被使用到</p>
+</blockquote>
+<p><strong>preload 的功能听起来很像被 defer 的脚本，但是</strong></p>
+<ul>
+<li><code>defer</code> 无法控制脚本执行的时机，是在 <code>DOMContentLoaded</code> 执行前触发</li>
+<li><code>defer</code> 会阻塞 <code>DOMContentLoaded</code> 事件</li>
+<li><code>defer</code> 会阻塞 <code>onload</code> 事件，<code>preload</code> 不会阻塞 <code>onload</code> 事件</li>
+<li><code>defer</code> 的脚本下载的优先级是 <code>low</code>，<code>preload</code> 的脚本优先级是 <code>high</code></li>
+</ul>
+<p><strong>加速字体下载</strong></p>
+<blockquote>
+<p>自定义的字体在加载之前会处于 FOIT（Flash of Invisible Text）现象，虽然我们可以使用类似 webFont 一类的库来控制字体的闪现和添加钩子函数，但最佳解决方法还是让字体的加载达到最快的速度。</p>
+</blockquote>
+<p>使用 <code>preload</code> 也可以来加速字体的下载，在 <code>head</code> 中声明 <code>preload</code>，比先下载样式表再从中读到 <code>@font-face</code> 的 src 再去加载要快得多</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;link rel=&quot;preload&quot; as=&quot;font&quot; href=&quot;https://at.alicdn.com/t/font_zck90zmlh7hf47vi.woff&quot;&gt;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>preload</code> 字体不带 <code>crossorigin</code> 也将会二次获取！ 确保你对 <code>preload</code> 的字体添加 <code>crossorigin</code> 属性，否则他会被下载两次，这个请求使用匿名的跨域模式。这个建议也适用于字体文件在相同域名下，也适用于其他域名的获取(比如说默认的异步获取)。</p>
+</blockquote>
+<blockquote>
+<p><code>preload</code> 如果不带 <code>crossorigin meta</code> ，默认情况下 （即未指定 <code>crossorigin</code> 属性时）, CORS 根本不会使用，这样 http 的 <code>request header</code> 中就不会有 origin，默认不去跨域，但是 <code>@font-face</code> 中去加载字体是默认跨域请求的，所以会造成两次的 <code>request header</code>不同，无法命中缓存，造成重复请求。</p>
+</blockquote>
+<p>解决方法就是带上 <code>crossorigin</code>，</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"preload"</span> <span class="attr">as</span>=<span class="string">"font"</span> <span class="attr">href</span>=<span class="string">"//at.alicdn.com/t/font_327081_19o9k2m6va4np14i.woff"</span> <span class="attr">crossorigin</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"preload"</span> <span class="attr">as</span>=<span class="string">"font"</span> <span class="attr">href</span>=<span class="string">"//at.alicdn.com/t/font_327081_19o9k2m6va4np14i.woff"</span> <span class="attr">crossorigin</span>=<span class="string">"anonymous"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"preload"</span> <span class="attr">as</span>=<span class="string">"font"</span> <span class="attr">href</span>=<span class="string">"//at.alicdn.com/t/font_327081_19o9k2m6va4np14i.woff"</span> <span class="attr">crossorigin</span>=<span class="string">"fi3ework"</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>空关键字和无效关键字都会被当做 <code>anonymous</code></p>
+</blockquote>
+<p><strong>其他资源</strong></p>
+<ul>
+<li><code>preload</code> 不仅可以将这些在 <code>head</code> 中的资源加速，还可以提前加载一些隐藏在 CSS 和 JS 中的资源，比如刚才隐藏在 CSS 中的字体资源，或者 JS 中请求的资源。</li>
+<li><code>preload</code> 的标签可以动态生成，这意味着在任何时候你都可以在页面中提前加载但不执行一个脚本，然后通过动态脚本来立刻执行它</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> preload = <span class="built_in">document</span>.createElement(<span class="string">"link"</span>);</span><br><span class="line">link.href = <span class="string">"myscript.js"</span>;</span><br><span class="line">link.rel = <span class="string">"preload"</span>;</span><br><span class="line">link.as = <span class="string">"script"</span>;</span><br><span class="line"><span class="built_in">document</span>.head.appendChild(link);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> script = <span class="built_in">document</span>.createElement(<span class="string">"script"</span>);</span><br><span class="line">script.src = <span class="string">"myscript.js"</span>;</span><br><span class="line"><span class="built_in">document</span>.body.appendChild(script);</span><br></pre></td></tr></table></figure>
+<p><strong>DNS 预解析 —— dns-prefetch</strong></p>
+<blockquote>
+<p><code>dns-prefetch</code> 的使用方法更加简单</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;link rel=&quot;dns-prefetch&quot; href=&quot;//host_name_to_prefetch.com&quot;&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>link 标签的 rel 设定为 <code>dns-prefetch</code>，<code>href</code> 设定为需要预加载的主机域名即可。</li>
+<li>在讲 <code>dns-prefetch</code> 之前，先复习一遍 <code>DNS</code> 的作用及可以优化的点才能了解 <code>dns-prefetch</code> 带来的好处</li>
+</ul>
+<blockquote>
+<p>网络通讯大部分是基于<code>TCP/IP</code>的，而<code>TCP/IP</code>是基于IP地址的，所以计算机在网络上进行通讯时只能识别如“202.96.134.133”之类的IP地址，而不能认识域名。我们无法记住10个以上IP地址的网站，所以我们访问网站时，更多的是在浏览器地址栏中输入域名，就能看到所需要的页面，这是因为有一个叫“DNS服务器”的计算机自动把我们的域名“翻译”成了相应的IP地址，然后调出IP地址所对应的网页</p>
+</blockquote>
+<p><code>dns-prefetch</code> 主要用来在用户点击一个链接之前解析对应的域名，这会自动去调用用户浏览器的解析机制。浏览器会在用户浏览网页时多线程完成预加载，当用户真正点击的时候就节省了用户等待域名解析的时间</p>
+<p><strong>DNS 预解析 + TCP + TLS —— preconnect</strong></p>
+<p><strong>提前加载整个页面 —— prerender</strong></p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2020/01/15/jenkins-deploy-fe/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2020/03/26/fe-debug/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>nodejs系列之websocket及socket.io | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Socket,Websocket,">
+  
+
+  <meta name="description" content="第一部分 WebSocket一、WebSocket 解决了什么问题 客户端(浏览器)和服务器端进行通信，只能由客户端发起ajax请求，才能进行通信，服务器端无法主动向客户端推送信息 当出现类似体育赛事、聊天室、实时位置之类的场景时，客户端要获取服务器端的变化，就只能通过轮询(定时请求)来了解服务器端有没有新的信息变化  轮询效率低，非常浪费资源(需要不断发送请求，不停链接服务器)  WebSock">
+<meta name="keywords" content="Socket,Websocket">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nodejs系列之websocket及socket.io">
+<meta property="og:url" content="http://blog.poetries.top/2019/01/24/node-socketio/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="第一部分 WebSocket一、WebSocket 解决了什么问题 客户端(浏览器)和服务器端进行通信，只能由客户端发起ajax请求，才能进行通信，服务器端无法主动向客户端推送信息 当出现类似体育赛事、聊天室、实时位置之类的场景时，客户端要获取服务器端的变化，就只能通过轮询(定时请求)来了解服务器端有没有新的信息变化  轮询效率低，非常浪费资源(需要不断发送请求，不停链接服务器)  WebSock">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/389.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/390.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/391.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/392.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/393.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/394.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.490Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="nodejs系列之websocket及socket.io">
+<meta name="twitter:description" content="第一部分 WebSocket一、WebSocket 解决了什么问题 客户端(浏览器)和服务器端进行通信，只能由客户端发起ajax请求，才能进行通信，服务器端无法主动向客户端推送信息 当出现类似体育赛事、聊天室、实时位置之类的场景时，客户端要获取服务器端的变化，就只能通过轮询(定时请求)来了解服务器端有没有新的信息变化  轮询效率低，非常浪费资源(需要不断发送请求，不停链接服务器)  WebSock">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/389.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#第一部分-WebSocket"><span class="toc-text">第一部分 WebSocket</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、WebSocket-解决了什么问题"><span class="toc-text">一、WebSocket 解决了什么问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、webSocket的class类"><span class="toc-text">二、webSocket的class类</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、WebSocket不稳定"><span class="toc-text">三、WebSocket不稳定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-WebSocket设置变量，判断是否手动关闭连接"><span class="toc-text">3.1 WebSocket设置变量，判断是否手动关闭连接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-WebSocket心跳机制"><span class="toc-text">3.2 WebSocket心跳机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、关于WebSocket"><span class="toc-text">四、关于WebSocket</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-WebSocket的当前状态-WebSocket-readyState"><span class="toc-text">4.1 WebSocket的当前状态:WebSocket.readyState</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-WebSocket还可以发送-接收-二进制数据"><span class="toc-text">4.2 WebSocket还可以发送/接收 二进制数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、WebSocket的优点"><span class="toc-text">五、WebSocket的优点</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#第二部分-socket-io"><span class="toc-text">第二部分 socket.io</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、原生Node与socket-io通信"><span class="toc-text">一、原生Node与socket.io通信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-搭建服务"><span class="toc-text">1.1 搭建服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-新建页面"><span class="toc-text">1.2 新建页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-服务器端通过emit广播，通过on接收广播"><span class="toc-text">1.3 服务器端通过emit广播，通过on接收广播</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-客户端端通过emit广播，通过on接收广播"><span class="toc-text">1.4 客户端端通过emit广播，通过on接收广播</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、聊天室、智能机器人实现原理"><span class="toc-text">二、聊天室、智能机器人实现原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-express简单例子"><span class="toc-text">2.1 express简单例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-express实现智能机器人"><span class="toc-text">2.2 express实现智能机器人</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-express结合socket-io及数据库实现智能机器人"><span class="toc-text">2.3 express结合socket.io及数据库实现智能机器人</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Koa中Socket-io的使用"><span class="toc-text">三、Koa中Socket.io的使用</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-node-socketio" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">nodejs系列之websocket及socket.io</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.01.24</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Back-end/">Back-end</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.1k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 19分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h1 id="第一部分-WebSocket"><a href="#第一部分-WebSocket" class="headerlink" title="第一部分 WebSocket"></a>第一部分 WebSocket</h1><h2 id="一、WebSocket-解决了什么问题"><a href="#一、WebSocket-解决了什么问题" class="headerlink" title="一、WebSocket 解决了什么问题"></a>一、WebSocket 解决了什么问题</h2><ul>
+<li>客户端(浏览器)和服务器端进行通信，只能由客户端发起<code>ajax</code>请求，才能进行通信，服务器端无法主动向客户端推送信息</li>
+<li>当出现类似体育赛事、聊天室、实时位置之类的场景时，客户端要获取服务器端的变化，就只能通过轮询(定时请求)来了解服务器端有没有新的信息变化</li>
+</ul>
+<p>轮询效率低，非常浪费资源(需要不断发送请求，不停链接服务器)</p>
+<blockquote>
+<p><code>WebSocket</code>的出现，让服务器端可以主动向服务器端发送信息，使得浏览器具备了实时双向通信的能力,这就是<code>WebSocket</code>解决的问题</p>
+</blockquote>
+<p><strong>一个超简单例子</strong></p>
+<blockquote>
+<p>新建一个<code>html</code>文件，将本栗子找个地方跑一下试试，即可轻松入门<code>WebSocket</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">socketConnect</span>(<span class="params">url</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 客户端与服务器进行连接</span></span><br><span class="line">    <span class="keyword">let</span> ws = <span class="keyword">new</span> WebSocket(url); <span class="comment">// 返回`WebSocket`对象，赋值给变量ws</span></span><br><span class="line">    <span class="comment">// 连接成功回调</span></span><br><span class="line">    ws.onopen = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'连接成功'</span>, e)</span><br><span class="line">        ws.send(<span class="string">'我发送消息给服务端'</span>); <span class="comment">// 客户端与服务器端通信</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 监听服务器端返回的信息</span></span><br><span class="line">    ws.onmessage = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'服务器端返回：'</span>, e.data)</span><br><span class="line">        <span class="comment">// do something</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ws; <span class="comment">// 返回websocket对象</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">let</span> wsValue = socketConnect(<span class="string">'ws://121.40.165.18:8800'</span>); <span class="comment">// websocket对象</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>上述栗子中<code>WebSocket</code>的接口地址出自：<code>WebSocket</code> 在线测试，在开发的时候也可以用于测试后端给的地址是否可用</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/389.png" alt></p>
+<h2 id="二、webSocket的class类"><a href="#二、webSocket的class类" class="headerlink" title="二、webSocket的class类"></a>二、webSocket的class类</h2><blockquote>
+<p>当项目中很多地方使用<code>WebSocket</code>，把它封成一个<code>class</code>类，是更好的选择</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WebSocketClass</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * @description: 初始化实例属性，保存参数</span></span><br><span class="line"><span class="comment">     * @param &#123;String&#125; url ws的接口</span></span><br><span class="line"><span class="comment">     * @param &#123;Function&#125; msgCallback 服务器信息的回调传数据给函数</span></span><br><span class="line"><span class="comment">     * @param &#123;String&#125; name 可选值 用于区分ws，用于debugger</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">constructor</span>(url, msgCallback, name = 'default') &#123;</span><br><span class="line">        <span class="keyword">this</span>.url = url;</span><br><span class="line">        <span class="keyword">this</span>.msgCallback = msgCallback;</span><br><span class="line">        <span class="keyword">this</span>.name = name;</span><br><span class="line">        <span class="keyword">this</span>.ws = <span class="literal">null</span>;  <span class="comment">// websocket对象</span></span><br><span class="line">        <span class="keyword">this</span>.status = <span class="literal">null</span>; <span class="comment">// websocket是否关闭</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * @description: 初始化 连接websocket或重连webSocket时调用</span></span><br><span class="line"><span class="comment">     * @param &#123;*&#125; 可选值 要传的数据</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    connect(data) &#123;</span><br><span class="line">        <span class="comment">// 新建 WebSocket 实例</span></span><br><span class="line">        <span class="keyword">this</span>.ws = <span class="keyword">new</span> WebSocket(<span class="keyword">this</span>.url);</span><br><span class="line">        <span class="keyword">this</span>.ws.onopen = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="comment">// 连接ws成功回调</span></span><br><span class="line">            <span class="keyword">this</span>.status = <span class="string">'open'</span>;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span>连接成功`</span>, e)</span><br><span class="line">            <span class="comment">// this.heartCheck();</span></span><br><span class="line">            <span class="keyword">if</span> (data !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">                <span class="comment">// 有要传的数据,就发给后端</span></span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">this</span>.ws.send(data);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 监听服务器端返回的信息</span></span><br><span class="line">        <span class="keyword">this</span>.ws.onmessage = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="comment">// 把数据传给回调函数，并执行回调</span></span><br><span class="line">            <span class="comment">// if (e.data === 'pong') &#123;</span></span><br><span class="line">            <span class="comment">//     this.pingPong = 'pong'; // 服务器端返回pong,修改pingPong的状态</span></span><br><span class="line">            <span class="comment">// &#125;</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">this</span>.msgCallback(e.data);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ws关闭回调</span></span><br><span class="line">        <span class="keyword">this</span>.ws.onclose = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.closeHandle(e); <span class="comment">// 判断是否关闭</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// ws出错回调</span></span><br><span class="line">        <span class="keyword">this</span>.onerror = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.closeHandle(e); <span class="comment">// 判断是否关闭</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// heartCheck() &#123;</span></span><br><span class="line">    <span class="comment">//     // 心跳机制的时间可以自己与后端约定</span></span><br><span class="line">    <span class="comment">//     this.pingPong = 'ping'; // ws的心跳机制状态值</span></span><br><span class="line">    <span class="comment">//     this.pingInterval = setInterval(() =&gt; &#123;</span></span><br><span class="line">    <span class="comment">//         if (this.ws.readyState === 1) &#123;</span></span><br><span class="line">    <span class="comment">//             // 检查ws为链接状态 才可发送</span></span><br><span class="line">    <span class="comment">//             this.ws.send('ping'); // 客户端发送ping</span></span><br><span class="line">    <span class="comment">//         &#125;</span></span><br><span class="line">    <span class="comment">//     &#125;, 10000)</span></span><br><span class="line">    <span class="comment">//     this.pongInterval = setInterval(() =&gt; &#123;</span></span><br><span class="line">    <span class="comment">//         this.pingPong = false;</span></span><br><span class="line">    <span class="comment">//         if (this.pingPong === 'ping') &#123;</span></span><br><span class="line">    <span class="comment">//             this.closeHandle('pingPong没有改变为pong'); // 没有返回pong 重启webSocket</span></span><br><span class="line">    <span class="comment">//         &#125;</span></span><br><span class="line">    <span class="comment">//         // 重置为ping 若下一次 ping 发送失败 或者pong返回失败(pingPong不会改成pong)，将重启</span></span><br><span class="line">    <span class="comment">//         console.log('返回pong')</span></span><br><span class="line">    <span class="comment">//         this.pingPong = 'ping'</span></span><br><span class="line">    <span class="comment">//     &#125;, 20000)</span></span><br><span class="line">    <span class="comment">// &#125;</span></span><br><span class="line">    <span class="comment">// 发送信息给服务器</span></span><br><span class="line">    sendHandle(data) &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span>发送消息给服务器:`</span>, data)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.ws.send(data);</span><br><span class="line">    &#125;</span><br><span class="line">    closeHandle(e = <span class="string">'err'</span>) &#123;</span><br><span class="line">        <span class="comment">// 因为webSocket并不稳定，规定只能手动关闭(调closeMyself方法)，否则就重连</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.status !== <span class="string">'close'</span>) &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span>断开，重连websocket`</span>, e)</span><br><span class="line">            <span class="comment">// if (this.pingInterval !== undefined &amp;&amp; this.pongInterval !== undefined) &#123;</span></span><br><span class="line">            <span class="comment">//     // 清除定时器</span></span><br><span class="line">            <span class="comment">//     clearInterval(this.pingInterval);</span></span><br><span class="line">            <span class="comment">//     clearInterval(this.pongInterval);</span></span><br><span class="line">            <span class="comment">// &#125;</span></span><br><span class="line">            <span class="keyword">this</span>.connect(); <span class="comment">// 重连</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span>websocket手动关闭`</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 手动关闭WebSocket</span></span><br><span class="line">    closeMyself() &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">`关闭<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span>`</span>)</span><br><span class="line">        <span class="keyword">this</span>.status = <span class="string">'close'</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.ws.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">someFn</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'接收服务器消息的回调：'</span>, data);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// const wsValue = new WebSocketClass('ws://121.40.165.18:8800', someFn, 'wsName'); // 这个链接一天只能发送消息50次</span></span><br><span class="line"><span class="keyword">const</span> wsValue = <span class="keyword">new</span> WebSocketClass(<span class="string">'wss://echo.websocket.org'</span>, someFn, <span class="string">'wsName'</span>); <span class="comment">// 阮一峰老师教程链接</span></span><br><span class="line">wsValue.connect(<span class="string">'立即与服务器通信'</span>); <span class="comment">// 连接服务器</span></span><br><span class="line"><span class="comment">// setTimeout(() =&gt; &#123;</span></span><br><span class="line"><span class="comment">//     wsValue.sendHandle('传消息给服务器')</span></span><br><span class="line"><span class="comment">// &#125;, 1000);</span></span><br><span class="line"><span class="comment">// setTimeout(() =&gt; &#123;</span></span><br><span class="line"><span class="comment">//     wsValue.closeMyself(); // 关闭ws</span></span><br><span class="line"><span class="comment">// &#125;, 10000)</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以把<code>class</code>放在一个js文件里面,<code>export</code>出去，然后在需要用的地方再<code>import</code>进来，把参数传进去就可以用了</p>
+</blockquote>
+<h2 id="三、WebSocket不稳定"><a href="#三、WebSocket不稳定" class="headerlink" title="三、WebSocket不稳定"></a>三、WebSocket不稳定</h2><blockquote>
+<p><code>WebSocket</code>并不稳定，在使用一段时间后，可能会断开连接，貌似至今没有一个为何会断开连接的公论，所以我们需要让<code>WebSocket</code>保持连接状态，这里推荐两种方法</p>
+</blockquote>
+<h3 id="3-1-WebSocket设置变量，判断是否手动关闭连接"><a href="#3-1-WebSocket设置变量，判断是否手动关闭连接" class="headerlink" title="3.1 WebSocket设置变量，判断是否手动关闭连接"></a>3.1 WebSocket设置变量，判断是否手动关闭连接</h3><blockquote>
+<p><code>class</code>类中就是用的这种方式:设置一个变量，在<code>webSocket</code>关闭/报错的回调中，判断是不是手动关闭的，如果不是的话，就重新连接，这样做的优缺点如下</p>
+</blockquote>
+<ul>
+<li>优点：请求较少(相对于心跳连接)，易设置。</li>
+<li>缺点：可能会导致丢失数据,在断开重连的这段时间中，恰好双方正在通信</li>
+</ul>
+<h3 id="3-2-WebSocket心跳机制"><a href="#3-2-WebSocket心跳机制" class="headerlink" title="3.2 WebSocket心跳机制"></a>3.2 WebSocket心跳机制</h3><blockquote>
+<p>因为第一种方案的缺点，并且可能会有其他一些未知情况导致断开连接而没有触发Error或Close事件。这样就导致实际连接已经断开了，而客户端和服务端却不知道，还在傻傻的等着消息来</p>
+</blockquote>
+<ul>
+<li>想出了一种叫做心跳机制的解决方法：</li>
+<li>客户端就像心跳一样每隔固定的时间发送一次ping，来告诉服务器，我还活着，而服务器也会返回pong，来告诉客户端，服务器还活着。</li>
+<li>具体的实现方法，在上面<code>class</code>的注释中，将其打开，即可看到效果</li>
+</ul>
+<h2 id="四、关于WebSocket"><a href="#四、关于WebSocket" class="headerlink" title="四、关于WebSocket"></a>四、关于WebSocket</h2><h3 id="4-1-WebSocket的当前状态-WebSocket-readyState"><a href="#4-1-WebSocket的当前状态-WebSocket-readyState" class="headerlink" title="4.1 WebSocket的当前状态:WebSocket.readyState"></a>4.1 WebSocket的当前状态:<code>WebSocket.readyState</code></h3><p><strong>下面是WebSocket.readyState的四个值(四种状态)：</strong></p>
+<ul>
+<li><code>0</code>: 表示正在连接</li>
+<li><code>1</code>: 表示连接成功，可以通信了</li>
+<li><code>2</code>: 表示连接正在关闭</li>
+<li><code>3</code>: 表示连接已经关闭，或者打开连接失败</li>
+</ul>
+<blockquote>
+<p>我们可以利用当前状态来做一些事情，比如上面栗子中当<code>WebSocket</code>链接成功后，才允许客户端发<code>送ping</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">this</span>.ws.readyState === <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// 检查ws为链接状态 才可发送</span></span><br><span class="line">    <span class="keyword">this</span>.ws.send(<span class="string">'ping'</span>); <span class="comment">// 客户端发送ping</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-WebSocket还可以发送-接收-二进制数据"><a href="#4-2-WebSocket还可以发送-接收-二进制数据" class="headerlink" title="4.2 WebSocket还可以发送/接收 二进制数据"></a>4.2 <code>WebSocket</code>还可以发送/接收 二进制数据</h3><blockquote>
+<p>二进制数据包括：<code>blob</code>对象和<code>Arraybuffer</code>对象，所以我们需要分开来处理</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> <span class="comment">// 接收数据</span></span><br><span class="line">ws.onmessage = <span class="function"><span class="keyword">function</span>(<span class="params">event</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(event.data <span class="keyword">instanceof</span> <span class="built_in">ArrayBuffer</span>)&#123;</span><br><span class="line">        <span class="comment">// 判断 ArrayBuffer 对象</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(event.data <span class="keyword">instanceof</span> Blob)&#123;</span><br><span class="line">        <span class="comment">// 判断 Blob 对象</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 Blob 对象的例子</span></span><br><span class="line"><span class="keyword">let</span> file = <span class="built_in">document</span>.querySelector(<span class="string">'input[type="file"]'</span>).files[<span class="number">0</span>];</span><br><span class="line">ws.send(file);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 发送 ArrayBuffer 对象的例子</span></span><br><span class="line"><span class="keyword">var</span> img = canvas_context.getImageData(<span class="number">0</span>, <span class="number">0</span>, <span class="number">400</span>, <span class="number">320</span>);</span><br><span class="line"><span class="keyword">var</span> binary = <span class="keyword">new</span> <span class="built_in">Uint8Array</span>(img.data.length);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; img.data.length; i++) &#123;</span><br><span class="line">    binary[i] = img.data[i];</span><br><span class="line">&#125;</span><br><span class="line">ws.send(binary.buffer);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>如果你要发送的二进制数据很大的话，如何判断发送完毕：</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">webSocket.bufferedAmount属性，表示还有多少字节的二进制数据没有发送出去：</span><br><span class="line"></span><br><span class="line">var data = new ArrayBuffer(10000000);</span><br><span class="line">socket.send(data);</span><br><span class="line">if (socket.bufferedAmount === 0) &#123;</span><br><span class="line">    // 发送完毕</span><br><span class="line">&#125; else &#123;</span><br><span class="line">    // 发送还没结束</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="五、WebSocket的优点"><a href="#五、WebSocket的优点" class="headerlink" title="五、WebSocket的优点"></a>五、WebSocket的优点</h2><ul>
+<li>双向通信</li>
+<li>数据格式比较轻量，性能开销小，通信高效<ul>
+<li>协议控制的数据包头部较小，而<code>HTTP</code>协议每次通信都需要携带完整的头部</li>
+</ul>
+</li>
+<li>更好的二进制支持</li>
+<li>没有同源限制，客户端可以与任意服务器通信</li>
+<li>与 <code>HTTP</code> 协议有着良好的兼容性。默认端口也是<code>80</code>和<code>443</code>，并且握手阶段采用 <code>HTTP</code> 协议，因此握手时不容易屏蔽，能通过各种 <code>HTTP</code> 代理服务器</li>
+</ul>
+<h1 id="第二部分-socket-io"><a href="#第二部分-socket-io" class="headerlink" title="第二部分 socket.io"></a>第二部分 <code>socket.io</code></h1><h2 id="一、原生Node与socket-io通信"><a href="#一、原生Node与socket-io通信" class="headerlink" title="一、原生Node与socket.io通信"></a>一、原生Node与socket.io通信</h2><blockquote>
+<p>原生<code>nodejs</code>结合<code>Socket.io</code>实现服务器和客户端的相互通信</p>
+</blockquote>
+<blockquote>
+<p>官方文档 <a href="https://socket.io" target="_blank" rel="noopener">https://socket.io</a></p>
+</blockquote>
+<h3 id="1-1-搭建服务"><a href="#1-1-搭建服务" class="headerlink" title="1.1 搭建服务"></a>1.1 搭建服务</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 新建目录</span></span><br><span class="line">mkdir socket &amp;&amp; <span class="built_in">cd</span> socket</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成package.json</span></span><br><span class="line">npm init -y</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装socket</span></span><br><span class="line">npm install socket.io</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">"http"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> server = http.createServer(<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(req.url == <span class="string">"/"</span>)&#123; <span class="comment">//显示首页</span></span><br><span class="line">        fs.readFile(<span class="string">"./index.html"</span>,<span class="function"><span class="keyword">function</span>(<span class="params">err,data</span>)</span>&#123; </span><br><span class="line">            res.end(data);</span><br><span class="line">        &#125;); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(server);</span><br><span class="line"></span><br><span class="line"><span class="comment">//监听连接事件 </span></span><br><span class="line">io.on(<span class="string">"connection"</span>,<span class="function"><span class="keyword">function</span>(<span class="params">socket</span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"1 个客户端连接了"</span>); </span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">server.listen(<span class="number">3000</span>,<span class="string">"127.0.0.1"</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'app run at 127.0.0.1:3000'</span>)</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 写完这句话之后，你就会发现，http://127.0.0.1:3000/socket.io/socket.io.js 就是一个 js 文件 的地址了</span></span><br></pre></td></tr></table></figure>
+<h3 id="1-2-新建页面"><a href="#1-2-新建页面" class="headerlink" title="1.2 新建页面"></a>1.2 新建页面</h3><blockquote>
+<p>现在需要制作一个<code>index</code>页面，这个页面中，必须引用秘密<code>js</code>文件。调用<code>io</code>函数，取得<code>socket</code> 对象</p>
+</blockquote>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span> <span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span> <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">title</span>&gt;</span>Document<span class="tag">&lt;/<span class="name">title</span>&gt;</span> <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>我是 index 页面，我引用了秘密 script 文件<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span> <span class="attr">src</span>=<span class="string">"/socket.io/socket.io.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> socket = io(); </span></span><br><span class="line"><span class="javascript">    <span class="built_in">console</span>.log(socket)</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>至此，服务器和客户端都有 <code>socket</code> 对象了。服务器的 <code>socket</code> 对象:</p>
+</blockquote>
+<blockquote>
+<p><code>socket对象</code></p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/390.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/391.png" alt></p>
+<h3 id="1-3-服务器端通过emit广播，通过on接收广播"><a href="#1-3-服务器端通过emit广播，通过on接收广播" class="headerlink" title="1.3 服务器端通过emit广播，通过on接收广播"></a>1.3 服务器端通过emit广播，通过on接收广播</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">"http"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> server = http.createServer(<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(req.url == <span class="string">"/"</span>)&#123; <span class="comment">//显示首页</span></span><br><span class="line">        fs.readFile(<span class="string">"./index.html"</span>,<span class="function"><span class="keyword">function</span>(<span class="params">err,data</span>)</span>&#123; </span><br><span class="line">            res.end(data);</span><br><span class="line">        &#125;); </span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(server);</span><br><span class="line"></span><br><span class="line"><span class="comment">//监听连接事件 </span></span><br><span class="line">io.on(<span class="string">'connection'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">socket</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'和服务器建立连接了'</span>);</span><br><span class="line">    </span><br><span class="line">    socket.on(<span class="string">'to-server'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// 接收客户端传过来的数据</span></span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'客户端说:'</span> + data);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 向客户端发送数据</span></span><br><span class="line">        <span class="comment">// socket 只给当前发送消息给服务端的客户端发送消息</span></span><br><span class="line">        socket.emit(<span class="string">'to-client'</span>,<span class="string">'我是服务器返回的数据'</span>);</span><br><span class="line">        </span><br><span class="line">    &#125;) </span><br><span class="line">    socket.on(<span class="string">'disconnect'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'断开连接了'</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">server.listen(<span class="number">3000</span>,<span class="string">"127.0.0.1"</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'app run at 127.0.0.1:3000'</span>)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/392.png" alt></p>
+<blockquote>
+<p>每一个连接上来的用户，都有一个 <code>socket</code>。由于我们的 <code>emit</code> 语句，是 <code>socket.emit()</code>发 出的，所以指的是向这个客户端发出语句。<br>广播，就是给所有当前连接的用户发送信息:</p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(server);</span><br><span class="line"></span><br><span class="line">io.on(<span class="string">'connection'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">socket</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'和服务器建立连接了'</span>)</span><br><span class="line">    </span><br><span class="line">    socket.on(<span class="string">'to-server'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">    </span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'客户端说:'</span> + data);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// io 给所有建立连接的客户端发送数据，不管是哪个客户端发送消息，都会对所有客户端进行广播一次</span></span><br><span class="line">        io.emit(<span class="string">'to-client'</span>,<span class="string">'我是服务器返回的数据'</span>);</span><br><span class="line">    &#125;) </span><br><span class="line">    socket.on(<span class="string">'disconnect'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'断开连接了'</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/393.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/394.png" alt></p>
+<ul>
+<li><code>io.emit()</code>可以实现聊天室消息群发</li>
+<li><code>socket.emit()</code>可以实现聊天机器人，一对一发送</li>
+</ul>
+<h3 id="1-4-客户端端通过emit广播，通过on接收广播"><a href="#1-4-客户端端通过emit广播，通过on接收广播" class="headerlink" title="1.4 客户端端通过emit广播，通过on接收广播"></a>1.4 客户端端通过emit广播，通过on接收广播</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// index.html</span></span><br><span class="line">&lt;!DOCTYPE html&gt; </span><br><span class="line">&lt;html lang=<span class="string">"en"</span>&gt; </span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta charset=<span class="string">"UTF-8"</span>&gt;</span><br><span class="line">    &lt;title&gt;socket demo&lt;<span class="regexp">/title&gt; </span></span><br><span class="line"><span class="regexp">&lt;/</span>head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line"></span><br><span class="line">&lt;h1&gt;我是 index 页面，我引用了秘密 script 文件&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">&lt;button id="btn"&gt;给服务端发送数据&lt;/</span>button&gt;</span><br><span class="line"></span><br><span class="line">&lt;script type=<span class="string">"text/javascript"</span> src=<span class="string">"/socket.io/socket.io.js"</span>&gt;<span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span> <span class="xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    // 连接的地址http://localhost:3000 后台提供</span></span><br><span class="line"><span class="xml">    var socket = io.connect('http://localhost:3000');</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    // 客户端建立连接</span></span><br><span class="line"><span class="xml">    socket.on('connect',function() &#123;</span></span><br><span class="line"><span class="xml">        console.log('客户端和服务端建立连接了');</span></span><br><span class="line"><span class="xml">    &#125;) </span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    socket.on('disconnect',function() &#123;</span></span><br><span class="line"><span class="xml">        console.log('客户端和服务端断开连接了');</span></span><br><span class="line"><span class="xml">    &#125;) </span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    // 客户端给服务端发送数据后，监听服务端返回的数据</span></span><br><span class="line"><span class="xml">    socket.on('to-client',function(data) &#123;</span></span><br><span class="line"><span class="xml">        console.log('客户端说:' + data);</span></span><br><span class="line"><span class="xml">    &#125;) </span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    var btn = document.getElementById('btn');</span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">    btn.onclick = function() &#123;</span></span><br><span class="line"><span class="xml">        socket.emit('to-server','我是客户端的数据');</span></span><br><span class="line"><span class="xml">    &#125;</span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">&lt;<span class="regexp">/body&gt; </span></span><br><span class="line"><span class="regexp">&lt;/</span>html&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="二、聊天室、智能机器人实现原理"><a href="#二、聊天室、智能机器人实现原理" class="headerlink" title="二、聊天室、智能机器人实现原理"></a>二、聊天室、智能机器人实现原理</h2><h3 id="2-1-express简单例子"><a href="#2-1-express简单例子" class="headerlink" title="2.1 express简单例子"></a>2.1 express简单例子</h3><blockquote>
+<p><code>Express</code> 结合 <code>Socket.io</code> 实现服务器和客户 端的相互通信、聊天室、智能机器人实现 原理</p>
+</blockquote>
+<blockquote>
+<ul>
+<li><a href="http://www.expressjs.com.cn/starter/generator.html" target="_blank" rel="noopener">express文档</a></li>
+<li><a href="https://socket.io/docs" target="_blank" rel="noopener">socket.io文档</a></li>
+</ul>
+</blockquote>
+<p><strong>1. Server (app.js)</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> app = <span class="built_in">require</span>(<span class="string">'express'</span>)();</span><br><span class="line"><span class="keyword">var</span> server = <span class="built_in">require</span>(<span class="string">'http'</span>).Server(app);</span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(server);</span><br><span class="line"></span><br><span class="line">server.listen(<span class="number">80</span>);</span><br><span class="line"><span class="comment">// WARNING: app.listen(80) will NOT work here!</span></span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">req, res</span>) </span>&#123;</span><br><span class="line">  res.sendFile(__dirname + <span class="string">'/index.html'</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">io.on(<span class="string">'connection'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">socket</span>) </span>&#123;</span><br><span class="line">  socket.emit(<span class="string">'news'</span>, &#123; <span class="attr">hello</span>: <span class="string">'world'</span> &#125;);</span><br><span class="line">  socket.on(<span class="string">'my other event'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(data);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>2. Client (index.html)</strong></p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"/socket.io/socket.io.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">var</span> socket = io.connect(<span class="string">'http://localhost'</span>);</span></span><br><span class="line"><span class="javascript">  socket.on(<span class="string">'news'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">    <span class="built_in">console</span>.log(data);</span></span><br><span class="line"><span class="javascript">    socket.emit(<span class="string">'my other event'</span>, &#123; <span class="attr">my</span>: <span class="string">'data'</span> &#125;);</span></span><br><span class="line">  &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-2-express实现智能机器人"><a href="#2-2-express实现智能机器人" class="headerlink" title="2.2 express实现智能机器人"></a>2.2 express实现智能机器人</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--views/index.ejx--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">title</span>&gt;</span><span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"/jquery-1.11.3.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"/socket.io/socket.io.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">id</span>=<span class="string">"msg"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">br</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">"send"</span>&gt;</span>发送<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">$(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">    <span class="keyword">var</span> socket = io.connect(<span class="string">'http://127.0.0.1:8000'</span>);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">    <span class="comment">//群聊功能--聊天室</span></span></span><br><span class="line"><span class="javascript">    $(<span class="string">'#send'</span>).click(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> msg=$(<span class="string">'#msg'</span>).val();</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        socket.emit(<span class="string">'message'</span>,msg);  <span class="comment">/*客户端给服务器发送数据*/</span></span></span><br><span class="line"></span><br><span class="line">    &#125;)</span><br><span class="line"><span class="javascript">    <span class="comment">//接受服务器返回的数据</span></span></span><br><span class="line"><span class="javascript">    socket.on(<span class="string">'servermessage'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="built_in">console</span>.log(data)</span></span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> express=<span class="built_in">require</span>(<span class="string">'express'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app=express();</span><br><span class="line"></span><br><span class="line"><span class="comment">/*第一步*/</span></span><br><span class="line"><span class="keyword">var</span> server = <span class="built_in">require</span>(<span class="string">'http'</span>).Server(app);</span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(server);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.set(<span class="string">'view engine'</span>,<span class="string">'ejs'</span>);</span><br><span class="line">app.use(express.static(<span class="string">'public'</span>));</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    <span class="comment">//res.send('首页');</span></span><br><span class="line">    res.render(<span class="string">'index'</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/news'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">'news'</span>);</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//2.监听端口</span></span><br><span class="line">server.listen(<span class="number">8000</span>,<span class="string">'127.0.0.1'</span>);   <span class="comment">/*改ip*/</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//3、写socket的代码</span></span><br><span class="line"></span><br><span class="line">io.on(<span class="string">'connection'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">socket</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'建立链接'</span>)</span><br><span class="line"></span><br><span class="line">    socket.on(<span class="string">'message'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">console</span>.log(data);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//io.emit  广播 --- 聊天室</span></span><br><span class="line">        <span class="comment">//socket.emit  谁给我发的信息我回返回给谁 --- 智能机器人</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">//io.emit('servermessage',data);   /*服务器给客户端发送数据*/</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(data==<span class="number">1</span>)&#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">var</span> msg=<span class="string">'您当前的话费有2元'</span></span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(data==<span class="number">2</span>)&#123;</span><br><span class="line">            <span class="keyword">var</span> msg=<span class="string">'您当前的流量有200M'</span></span><br><span class="line"></span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">var</span> msg=<span class="string">'请输入正确的信息'</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        socket.emit(<span class="string">'servermessage'</span>,msg);</span><br><span class="line"></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><a href="https://github.com/poetries/socket.io-demo/tree/master/express-socket-chat" target="_blank" rel="noopener">完整代码</a></p>
+</blockquote>
+<h3 id="2-3-express结合socket-io及数据库实现智能机器人"><a href="#2-3-express结合socket-io及数据库实现智能机器人" class="headerlink" title="2.3 express结合socket.io及数据库实现智能机器人"></a>2.3 express结合<code>socket.io</code>及数据库实现智能机器人</h3><blockquote>
+<p>跨域也可以访问<code>socket.io</code></p>
+</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> express=<span class="built_in">require</span>(<span class="string">'express'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app=express();</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> DB=<span class="built_in">require</span>(<span class="string">'./module/db.js'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/*第一步*/</span></span><br><span class="line"><span class="keyword">var</span> server = <span class="built_in">require</span>(<span class="string">'http'</span>).Server(app);</span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(server);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.set(<span class="string">'view engine'</span>,<span class="string">'ejs'</span>);</span><br><span class="line">app.use(express.static(<span class="string">'public'</span>));</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    <span class="comment">//res.send('首页');</span></span><br><span class="line">    res.render(<span class="string">'index'</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/news'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">req,res</span>)</span>&#123;</span><br><span class="line">    res.send(<span class="string">'news'</span>);</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">//2.监听端口</span></span><br><span class="line">server.listen(<span class="number">8000</span>,<span class="string">'127.0.0.1'</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'app run at 127.0.0.1:8000'</span>)</span><br><span class="line">&#125;);   <span class="comment">/*改ip*/</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//3、写socket的代码</span></span><br><span class="line"></span><br><span class="line">io.on(<span class="string">'connection'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">socket</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'建立链接'</span>)</span><br><span class="line"></span><br><span class="line">    socket.on(<span class="string">'message'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">console</span>.log(data)</span><br><span class="line">        <span class="comment">//socket.emit('servermessage',msg);</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">var</span> msg=data.msg||<span class="string">''</span>;  <span class="comment">/*获取客户端的数据*/</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//去服务器查询数据</span></span><br><span class="line"></span><br><span class="line">        DB.find(<span class="string">'article'</span>,&#123;<span class="string">'title'</span>:&#123;<span class="attr">$regex</span>:<span class="keyword">new</span> <span class="built_in">RegExp</span>(msg)&#125;&#125;,&#123;<span class="string">'title'</span>:<span class="number">1</span>&#125;,<span class="function"><span class="keyword">function</span>(<span class="params">err,data</span>)</span>&#123;</span><br><span class="line"></span><br><span class="line">            <span class="built_in">console</span>.log(data);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">            socket.emit(<span class="string">'servermessage'</span>,&#123;</span><br><span class="line">                result:data</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span><span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span></span></span><br><span class="line"><span class="tag">  <span class="attr">src</span>=<span class="string">"https://code.jquery.com/jquery-3.3.1.min.js"</span></span></span><br><span class="line"><span class="tag">  <span class="attr">integrity</span>=<span class="string">"sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="</span></span></span><br><span class="line"><span class="tag">  <span class="attr">crossorigin</span>=<span class="string">"anonymous"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"/socket.io/socket.io.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="css">        <span class="selector-class">.box</span>&#123;</span></span><br><span class="line">            width: 300px;</span><br><span class="line">            height: 400px;</span><br><span class="line">            margin: 0 auto;</span><br><span class="line"><span class="css">            <span class="selector-tag">border</span>: 1<span class="selector-tag">px</span> <span class="selector-tag">solid</span> <span class="selector-id">#666</span>;</span></span><br><span class="line"><span class="css">            <span class="selector-tag">margin-top</span><span class="selector-pseudo">:20px</span>;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line"><span class="css">        <span class="selector-class">.list</span>&#123;</span></span><br><span class="line">            width: 300px;</span><br><span class="line">            height: 360px;</span><br><span class="line">            overflow-y: auto;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="css">        <span class="selector-class">.message</span>&#123;</span></span><br><span class="line">            height: 40px;</span><br><span class="line">            line-height: 44px;</span><br><span class="line">            display: flex;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="css">        <span class="selector-class">.message</span> <span class="selector-tag">input</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="css">            <span class="selector-tag">border</span>: 1<span class="selector-tag">px</span> <span class="selector-tag">solid</span> <span class="selector-id">#666</span>;</span></span><br><span class="line">        &#125;</span><br><span class="line"><span class="css">        <span class="selector-class">.message</span> <span class="selector-tag">input</span><span class="selector-attr">[type='text']</span>&#123;</span></span><br><span class="line">            flex: 1;</span><br><span class="line">            height: 38px;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="css">        <span class="selector-class">.message</span> <span class="selector-tag">input</span><span class="selector-attr">[type='button']</span>&#123;</span></span><br><span class="line">            width: 100px;</span><br><span class="line">            height: 40px;</span><br><span class="line"><span class="css">            <span class="selector-tag">border</span>: 1<span class="selector-tag">px</span> <span class="selector-tag">solid</span> <span class="selector-id">#666</span>;</span></span><br><span class="line">        &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"box"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"list"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"list"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"footer"</span> <span class="attr">id</span>=<span class="string">"footer"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">        </span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">"message"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">id</span>=<span class="string">"msg"</span> /&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"button"</span> <span class="attr">id</span>=<span class="string">"send"</span> <span class="attr">value</span>=<span class="string">"发送"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="javascript">    $(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> socket = io.connect(<span class="string">'http://127.0.0.1:8000'</span>);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        socket.on(<span class="string">'servermessage'</span>,<span class="function"><span class="keyword">function</span>(<span class="params">data</span>)</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">            <span class="keyword">if</span>(data.result.length)</span></span><br><span class="line"></span><br><span class="line">            &#123;</span><br><span class="line"><span class="javascript">                <span class="keyword">var</span> str=<span class="string">'&lt;ul&gt;'</span>;</span></span><br><span class="line"><span class="javascript">                <span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>;i&lt;data.result.length;i++)&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">                    str+=<span class="string">'&lt;li&gt;'</span>+data.result[i].title+<span class="string">'&lt;/li&gt;'</span>;</span></span><br><span class="line">                &#125;</span><br><span class="line"><span class="javascript">                str+=<span class="string">'&lt;/ul&gt;'</span>;</span></span><br><span class="line"><span class="javascript">            &#125;<span class="keyword">else</span>&#123;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">                <span class="keyword">var</span> str=<span class="string">'&lt;p&gt;没有找到您要的数据，请联系人工客服&lt;/p&gt;'</span></span></span><br><span class="line">            &#125;</span><br><span class="line"><span class="javascript">            $(<span class="string">'#list'</span>).append(str);</span></span><br><span class="line"><span class="javascript">            $(<span class="string">'#footer'</span>).get(<span class="number">0</span>).scrollIntoView();</span></span><br><span class="line"></span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> username=<span class="string">'zhangsan'</span>+<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random()*<span class="number">10</span>);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="comment">//群聊功能--聊天室</span></span></span><br><span class="line"><span class="javascript">        $(<span class="string">'#send'</span>).click(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">            <span class="keyword">var</span> msg=$(<span class="string">'#msg'</span>).val();</span></span><br><span class="line"><span class="javascript">            socket.emit(<span class="string">'message'</span>,&#123;</span></span><br><span class="line"><span class="javascript">                <span class="string">'username'</span>:username,</span></span><br><span class="line"><span class="javascript">                <span class="string">'msg'</span>:msg</span></span><br><span class="line">            &#125;);</span><br><span class="line"><span class="javascript">            $(<span class="string">'#list'</span>).append(<span class="string">`&lt;p&gt;&lt;strong&gt;<span class="subst">$&#123;username&#125;</span>:&lt;/strong&gt;  <span class="subst">$&#123;msg&#125;</span>&lt;/p&gt;`</span>);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">            $(<span class="string">'#msg'</span>).val();</span></span><br><span class="line"></span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><a href="https://github.com/poetries/socket.io-demo/tree/master/express-socket-chat-use-db" target="_blank" rel="noopener">完整代码</a></p>
+</blockquote>
+<h2 id="三、Koa中Socket-io的使用"><a href="#三、Koa中Socket-io的使用" class="headerlink" title="三、Koa中Socket.io的使用"></a>三、Koa中Socket.io的使用</h2><p><strong>1. 服务端配置</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1 安装</span></span><br><span class="line">cnpm i -S koa-socket</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2 引入</span></span><br><span class="line"><span class="keyword">const</span> IO = <span class="built_in">require</span>( <span class="string">'koa-socket'</span> )</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3 实例化</span></span><br><span class="line"><span class="keyword">const</span> io = <span class="keyword">new</span> IO()</span><br><span class="line"></span><br><span class="line">io.attach( app )</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4 配置服务端</span></span><br><span class="line"></span><br><span class="line">app._io.on( <span class="string">'connection'</span>, socket =&gt; &#123;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'建立连接了'</span>);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>2. 客户端代码</strong></p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"http://localhost:3000/socket.io/socket.io.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">   <span class="keyword">var</span> socket=io.connect(<span class="string">'http://localhost:3000/'</span>)</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><a href="https://github.com/poetries/socket.io-demo/tree/master/koa-socket.io" target="_blank" rel="noopener">完整代码</a></p>
+</blockquote>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/01/22/mongodb-review-1/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/03/09/node-base-review/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>React Native之原理浅析 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="react,RN,">
+  
+
+  <meta name="description" content="一、JavaScriptCore 讲React Native之前，了解JavaScriptCore会有帮助，也是必要的。React Native的核心驱动力就来自于JS Engine. 你写的所有JS和JSX代码都会被JS Engine来执行, 没有JS Engine的参与，你是无法享受ReactJS给原生应用开发带来的便利的。在iOS上，默认的就是JavaScriptCore， iOS 7之后的">
+<meta name="keywords" content="react,RN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React Native之原理浅析">
+<meta property="og:url" content="http://blog.poetries.top/2019/10/02/rn-yuanli/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、JavaScriptCore 讲React Native之前，了解JavaScriptCore会有帮助，也是必要的。React Native的核心驱动力就来自于JS Engine. 你写的所有JS和JSX代码都会被JS Engine来执行, 没有JS Engine的参与，你是无法享受ReactJS给原生应用开发带来的便利的。在iOS上，默认的就是JavaScriptCore， iOS 7之后的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/680.jpeg">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/681.jpg">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/682.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/683.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/684.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/685.webp">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.499Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React Native之原理浅析">
+<meta name="twitter:description" content="一、JavaScriptCore 讲React Native之前，了解JavaScriptCore会有帮助，也是必要的。React Native的核心驱动力就来自于JS Engine. 你写的所有JS和JSX代码都会被JS Engine来执行, 没有JS Engine的参与，你是无法享受ReactJS给原生应用开发带来的便利的。在iOS上，默认的就是JavaScriptCore， iOS 7之后的">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/680.jpeg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、JavaScriptCore"><span class="toc-text">一、JavaScriptCore</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、浏览器工作原理"><span class="toc-text">二、浏览器工作原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、React-Native-架构"><span class="toc-text">三、React Native 架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、React-Native、React和JavascriptCore的关系"><span class="toc-text">四、React Native、React和JavascriptCore的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、Bridge各模块简介"><span class="toc-text">五、Bridge各模块简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-RCTRootView"><span class="toc-text">5.1 RCTRootView</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-RCTRootContentView"><span class="toc-text">5.2 RCTRootContentView</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-RCTBridge"><span class="toc-text">5.3 RCTBridge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-RCTBatchedBridge"><span class="toc-text">5.4 RCTBatchedBridge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-RCTJavaScriptLoader"><span class="toc-text">5.5 RCTJavaScriptLoader</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-6-RCTContextExecutor"><span class="toc-text">5.6 RCTContextExecutor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-7-RCTModuleData"><span class="toc-text">5.7 RCTModuleData</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-8-RCTModuleMethod"><span class="toc-text">5.8 RCTModuleMethod</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-9-MessageQueue"><span class="toc-text">5.9 MessageQueue</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、React-Native-初始化"><span class="toc-text">六、React Native 初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-原生代码初始化"><span class="toc-text">6.1 原生代码初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Javascript环境初始化"><span class="toc-text">6.2 Javascript环境初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-NativeModules加载"><span class="toc-text">6.3 NativeModules加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-三个线程"><span class="toc-text">6.4 三个线程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、内部机制"><span class="toc-text">七、内部机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#八、总结"><span class="toc-text">八、总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-React-Native-框架分析"><span class="toc-text">8.1 React Native 框架分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-层次架构"><span class="toc-text">8.2 层次架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-启动过程的解析"><span class="toc-text">8.3 启动过程的解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-Js与Java通信机制"><span class="toc-text">8.4 Js与Java通信机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#九、更多参考"><span class="toc-text">九、更多参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-rn-yuanli" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">React Native之原理浅析</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2019.10.02</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 7k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 25分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、JavaScriptCore"><a href="#一、JavaScriptCore" class="headerlink" title="一、JavaScriptCore"></a>一、JavaScriptCore</h2><blockquote>
+<p>讲React Native之前，了解JavaScriptCore会有帮助，也是必要的。React Native的核心驱动力就来自于JS Engine. 你写的所有JS和JSX代码都会被JS Engine来执行, 没有JS Engine的参与，你是无法享受ReactJS给原生应用开发带来的便利的。在iOS上，默认的就是JavaScriptCore， iOS 7之后的设备都支持. iOS 不允许用自己的JS Engine. JavaScriptCore来自于WebKit, 所以，安卓上默认也是用JavaScriptCore</p>
+</blockquote>
+<blockquote>
+<p>你深入了解<code>React Native</code>的第一站应该是 <code>JavaScriptCore</code></p>
+</blockquote>
+<ul>
+<li><code>JavaScriptCore</code>在<code>iOS</code>平台上给<code>React Native</code>提供的接口也仅限于那几个接口，你弄明白了<code>JavaScriptCore</code>那几个接口, React Native 剩下的魔法秘密都可以顺藤摸瓜来分析了。</li>
+<li>接下来要讲解的就是Facebook围绕这几个接口以及用一个React来颠覆整个native开发所做的精妙设计和封装</li>
+</ul>
+<h2 id="二、浏览器工作原理"><a href="#二、浏览器工作原理" class="headerlink" title="二、浏览器工作原理"></a>二、浏览器工作原理</h2><ul>
+<li>浏览器通过<code>Dom Render</code>来渲染所有的元素.</li>
+<li>浏览器有一整套的UI控件，样式和功能都是按照html标准实现的</li>
+<li>浏览器能读懂html和css。</li>
+<li>html告诉浏览器绘制什么控件(html tag)，css告诉浏览器每个类型的控件(html tag)具体长什么样。</li>
+<li>浏览器的主要作用就是通过解析html来形成dom树，然后通过css来点缀和装饰树上的每一个节点</li>
+</ul>
+<p><strong>UI的描述和呈现分离开了</strong></p>
+<ol>
+<li>html文本描述了页面应该有哪些功能，css告诉浏览器该长什么样。</li>
+<li>浏览器引擎通过解析html和css，翻译成一些列的预定义UI控件，</li>
+<li>然后UI控件去调用操作系统绘图指令去绘制图像展现给用户。</li>
+<li>Javascript可有可无，主要用于html里面一些用户事件响应，DOM操作、异步网络请求和一些简单的计算</li>
+</ol>
+<blockquote>
+<p>在react native 里面，1和2是不变的，也是用html语言描述页面有哪些功能，然后stylesheet告诉浏览器引擎每个控件应该长什么样。并且和浏览器用的是同一个引擎</p>
+</blockquote>
+<blockquote>
+<p>在步骤3里面UI控件不再是浏览器内置的控件，而是<code>react native</code>自己实现的一套UI控件（两套，android一套，ios一套），这个切换是在<code>MessageQueque</code>中进行的，并且还可以发现，他们tag也是不一样的</p>
+</blockquote>
+<p><strong>Javascript在react native里面非常重要</strong></p>
+<ul>
+<li>它负责管理UI component的生命周期，管理Virtual DOM</li>
+<li>所有业务逻辑都是用javascript来实现或者衔接</li>
+<li>调用原生的代码来操纵原生组件。</li>
+<li>Javascript本身是无绘图能力的，都是通过给原生组件发指令来完成</li>
+</ul>
+<h2 id="三、React-Native-架构"><a href="#三、React-Native-架构" class="headerlink" title="三、React Native 架构"></a>三、React Native 架构</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/680.jpeg" alt></p>
+<ul>
+<li>绿色的是我们应用开发的部分。我们写的代码基本上都是在这一层</li>
+<li>蓝色代表公用的跨平台的代码和工具引擎，一般我们不会动蓝色部分的代码</li>
+<li>黄色代码平台相关的代码，做定制化的时候会添加修改代码。不跨平台，要针对平台写不同的代码。iOS写OC, android写java，web写js. 每个bridge都有对应的js文件，js部分是可以共享的，写一份就可以了。如果你想做三端融合，你就得理解这一个东西。如果你要自己定制原生控件，你就得写bridge部分</li>
+<li>红色部分是系统平台的东西。红色上面有一个虚线，表示所有平台相关的东西都通过bridge隔离开来了</li>
+<li>大部分情况下我们只用写绿色的部分，少部分情况下会写黄色的部分。你如果对基础架构和开源感兴趣，你可以写蓝色部分，然后尝试给那些大的开源项目提交代码。红色部分是独立于React Native的</li>
+</ul>
+<h2 id="四、React-Native、React和JavascriptCore的关系"><a href="#四、React-Native、React和JavascriptCore的关系" class="headerlink" title="四、React Native、React和JavascriptCore的关系"></a>四、React Native、React和JavascriptCore的关系</h2><blockquote>
+<p>React Native最重要的三个概念应该就是<code>React Native</code>、<code>React</code>和<code>JavascriptCore</code></p>
+</blockquote>
+<ul>
+<li>React是一个纯JS库，所有的React代码和所有其它的js代码都需要JS Engine来解释执行。因为种种原因，浏览器里面的JS代码是不允许调用自定义的原生代码的，而React又是为浏览器JS开发的一套库，所以，比较容易理解的事实是React是一个纯JS库，它封装了一套Virtual Dom的概念，实现了数据驱动编程的模式，为复杂的Web UI实现了一种无状态管理的机制, 标准的HTML/CSS之外的事情，它无能为力。调用原生控件，驱动声卡显卡，读写磁盘文件，自定义网络库等等，这是JS/React无能为力的</li>
+<li>你可以简单理解为React是一个纯JS 函数， 它接受特定格式的字符串数据，输出计算好的字符串数据</li>
+<li>JS Engine负责调用并解析运行这个函数</li>
+<li><code>React Native</code>呢？ 它比较复杂。复杂在哪里？前面我们说了React 是纯JS库，意味着React只能运行JS代码，通过JS Engine提供的接口(Html Tag)绘制html支持的那些元素，驱动有限的声卡显卡。简单点说, React只能做浏览器允许它做的事情, 不能调用原生接口， 很多的事情也只能干瞪眼</li>
+</ul>
+<p><strong>React Native它可不一样</strong></p>
+<ul>
+<li>第一点，驱动关系不一样。前面我们说的是, JS Engine来解析执行React脚本, 所以，React由浏览器(最终还是JS Engine)来驱动. 到了React Native这里，RN的原生代码(Timer和用户事件)驱动JS Engine, 然后JS Engine解析执行React或者相关的JS代码，然后把计算好的结果返回给Native code. 然后, Native code 根据JS计算出来的结果驱动设备上所有能驱动的硬件。重点，所有的硬件。也就是说，在RN这里，JS代码已经摆脱JS Engine(浏览器)的限制，可以调用所有原生接口啦</li>
+<li>第二点, 它利用React的Virtual Dom和数据驱动编程概念，简化了我们原生应用的开发, 同时，它不由浏览器去绘制，只计算出绘制指令，最终的绘制还是由原生控件去负责，保证了原生的用户体验</li>
+</ul>
+<p><strong>React Native组件结构</strong></p>
+<blockquote>
+<p>驱动硬件的能力决定能一个软件能做多大的事情，有多大的主控性。研究过操作系统底层东西或者汇编的同学明白，我们大部分时候写的代码是受限的代码，很多特权指令我们是没法使用的，很多设备我们是不允许直接驱动的。我们现在的编程里面几乎已经没有人提中断了，没有中断，硬件的操作几乎会成为一场灾难.</p>
+</blockquote>
+<p>在一定程度上，React Native和NodeJS有异曲同工之妙。它们都是通过扩展JavaScript Engine, 使它具备强大的本地资源和原生接口调用能力，然后结合JavaScript丰富的库和社区和及其稳定的跨平台能力，把javascript的魔力在浏览器之外的地方充分发挥出来</p>
+<p><strong>JavaScriptCore + ReactJS + Bridges 就成了React Native</strong></p>
+<ul>
+<li><code>JavaScriptCore</code>负责JS代码解释执行</li>
+<li><code>ReactJS</code>负责描述和管理<code>VirtualDom</code>,指挥原生组件进行绘制和更新，同时很多计算逻辑也在js里面进行。ReactJS自身是不直接绘制UI的，UI绘制是非常耗时的操作，原生组件最擅长这事情。</li>
+<li><code>Bridges</code>用来翻译ReactJS的绘制指令给原生组件进行绘制，同时把原生组件接收到的用户事件反馈给<code>ReactJS</code>。<br>要在不同的平台实现不同的效果就可以通过定制<code>Bridges</code>来实现</li>
+</ul>
+<blockquote>
+<p>深入 <code>Bridge</code> 前面有提到, RN厉害在于它能打通JS和Native Code, 让JS能够调用丰富的原生接口,充分发挥硬件的能力, 实现非常复杂的效果,同时能保证效率和跨平台性。</p>
+</blockquote>
+<blockquote>
+<p>打通RN任督二脉的关键组件就是<code>Bridge</code>. 在RN中如果没有Bridge, JS还是那个JS，只能调用JS Engine提供的有限接口，绘制标准html提供的那些效果,那些摄像头，指纹，3D加速,声卡, 视频播放定制等等，JS都只能流流口水，原生的、平台相关的、设备相关的效果做不了， 除非对浏览器进行定制</p>
+</blockquote>
+<ul>
+<li>Bridge的作用就是给RN内嵌的JS Engine提供原生接口的扩展供JS调用。所有的本地存储、图片资源访问、图形图像绘制、3D加速、网络访问、震动效果、NFC、原生控件绘制、地图、定位、通知等都是通过Bridge封装成JS接口以后注入JS Engine供JS调用。理论上，任何原生代码能实现的效果都可以通过Bridge封装成JS可以调用的组件和方法, 以JS模块的形式提供给RN使用。</li>
+<li>每一个支持RN的原生功能必须同时有一个原生模块和一个JS模块，JS模块是原生模块的封装，方便Javascript调用其接口。Bridge会负责管理原生模块和对应JS模块之间的沟通, 通过Bridge, JS代码能够驱动所有原生接口，实现各种原生酷炫的效果。</li>
+<li>RN中JS和Native分隔非常清晰，JS不会直接引用Native层的对象实例，Native也不会直接引用JS层的对象实例(所有Native和JS互掉都是通过Bridge层会几个最基础的方法衔接的)。</li>
+<li><code>Bridge</code> 原生代码负责管理原生模块并生成对应的JS模块信息供JS代码调用。每个功能JS层的封装主要是针对ReactJS做适配，让原生模块的功能能够更加容易被用ReactJS调用。<code>MessageQueue.js</code>是<code>Bridge</code>在JS层的代理，所有JS2N和N2JS的调用都会经过<code>MessageQueue.js</code>来转发。JS和Native之间不存在任何指针传递，所有参数都是字符串传递。所有的instance都会被在JS和Native两边分别编号，然后做一个映射,然后那个数字/字符串编号会做为一个查找依据来定位跨界对象。</li>
+</ul>
+<h2 id="五、Bridge各模块简介"><a href="#五、Bridge各模块简介" class="headerlink" title="五、Bridge各模块简介"></a>五、Bridge各模块简介</h2><h3 id="5-1-RCTRootView"><a href="#5-1-RCTRootView" class="headerlink" title="5.1 RCTRootView"></a>5.1 RCTRootView</h3><ul>
+<li><code>RCTRootView</code>是<code>React Native</code>加载的地方,是万物之源。从这里开始，我们有了JS Engine, JS代码被加载进来，对应的原生模块也被加载进来，然后js loop开始运行。 js loop的驱动来源是Timer和Event Loop(用户事件). js loop跑起来以后应用就可以持续不停地跑下去了。</li>
+<li>如果你要通过调试来理解RN底层原理，你也应该是从RCTRootView着手，顺藤摸瓜。</li>
+<li>每个项目的<code>AppDelegate.m</code>的- (BOOL)application:didFinishLaunchingWithOptions:里面都可以看到RCTRootView的初始化代码，RCTRootView初始化完成以后，整个React Native运行环境就已经初始化好了，JS代码也加载完毕，所有React的绘制都会有这个RCTRootView来管理。</li>
+</ul>
+<p><strong>RCTRootView做的事情如下</strong></p>
+<ul>
+<li>创建并且持有<code>RCTBridge</code></li>
+<li>加载<code>JS Bundle</code>并且初始化JS运行环境.</li>
+<li>初始化JS运行环境的时候在App里面显示<code>loadingView</code>, 注意不是屏幕顶部的那个下拉悬浮进度提示条. RN第一次加载之后每次启动非常快，很少能意识到这个加载过程了。loadingView默认情况下为空, 也就是默认是没有效果的。loadingView可以被自定义，直接覆盖RCTRootView.loadingView就可以了.开发模式下RN app第一次启动因为需要完整打包整个js所以可以很明显看到加载的过程，加载第一次以后就看不到很明显的加载过程了，可以执行下面的命令来触发重新打包整个js来观察<code>loadingView</code>的效果 <code>watchman watch-del-all &amp;&amp; rm -rf node_modules/ &amp;&amp; yarn install &amp;&amp; yarn start – –reset-cache</code>, 然后杀掉<code>app</code>重启你就会看到一个很明显的进度提示.</li>
+<li><code>JS</code>运行环境准备好以后把加载视图用<code>RCTRootContentView</code>替换加载视图</li>
+<li>有准备工作就绪以后调用<code>AppRegistry.runApplication</code>正式启动RN JS代码，从<code>Root Component()</code>开始UI绘制</li>
+</ul>
+<blockquote>
+<p>一个App可以有多个<code>RCTRootView</code>, 初始化的时候需要手动传输<code>Bridge</code>做为参数，全局可以有多个<code>RCTRootView</code>, 但是只能有一个<code>Bridge</code></p>
+</blockquote>
+<blockquote>
+<p>如果你做过<code>React Native</code>和原生代码混编，你会发现混编就是把<code>AppDelegate</code>里面那段初始化<code>RCTRootView</code>的代码移动到需要混编的地方，然后把<code>RCTRootView</code>做为一个普通的<code>subview</code>来加载到原生的<code>view</code>里面去，非常简单。不过这地方也要注意处理好单Bridge实例的问题，同时，混编里面要注意<code>RCTRootView</code>如果销毁过早可能会引发JS回调奔溃的问题</p>
+</blockquote>
+<h3 id="5-2-RCTRootContentView"><a href="#5-2-RCTRootContentView" class="headerlink" title="5.2 RCTRootContentView"></a>5.2 RCTRootContentView</h3><ul>
+<li><code>RCTRootContentView reactTag</code>在默认情况下为1. 在<code>Xcode view Hierarchy debugger</code> 下可以看到，最顶层为<code>RCTRootView</code>, 里面嵌套的是<code>RCTRootContentView</code>, 从<code>RCTRootContentView</code>开始，每个View都有一个<code>reactTag</code></li>
+<li><code>RCTRootView</code>继承自UIView, RCTRootView主要负责初始化<code>JS Environment</code>和React代码，然后管理整个运行环境的生命周期。 <code>RCTRootContentView</code>继承自<code>RCTView</code>, <code>RCTView</code>继承自UIView, RCTView封装了React Component Node更新和渲染的逻辑， <code>RCTRootContentView</code>会管理所有react ui components. <code>RCTRootContentView</code>同时负责处理所有touch事件</li>
+</ul>
+<h3 id="5-3-RCTBridge"><a href="#5-3-RCTBridge" class="headerlink" title="5.3 RCTBridge"></a>5.3 RCTBridge</h3><blockquote>
+<p>这是一个加载和初始化专用类，用于前期JS的初始化和原生代码的加载</p>
+</blockquote>
+<ul>
+<li>负责加载各个Bridge模块供JS调用</li>
+<li>找到并注册所有实现了<code>RCTBridgeModule protocol</code>的类, 供JS后期使用.</li>
+<li>创建和持有 <code>RCTBatchedBridge</code></li>
+</ul>
+<h3 id="5-4-RCTBatchedBridge"><a href="#5-4-RCTBatchedBridge" class="headerlink" title="5.4 RCTBatchedBridge"></a>5.4 RCTBatchedBridge</h3><blockquote>
+<p>如果RCTBridge是总裁, 那么RCTBatchedBridge就是副总裁。前者负责发号施令，后者负责实施落地</p>
+</blockquote>
+<ul>
+<li>负责Native和JS之间的相互调用(消息通信)</li>
+<li>持有<code>JSExecutor</code></li>
+<li>实例化所有在RCTBridge里面注册了的<code>native node_modules</code></li>
+<li>创建JS运行环境, 注入<code>native hooks</code> 和<code>modules</code>, 执行 JS bundle script</li>
+<li>管理JS run loop, 批量把所有JS到native的调用翻译成<code>native invocations</code></li>
+<li>批量管理原生代码到JS的调用，把这些调用翻译成JS消息发送给<code>JS executor</code></li>
+</ul>
+<h3 id="5-5-RCTJavaScriptLoader"><a href="#5-5-RCTJavaScriptLoader" class="headerlink" title="5.5 RCTJavaScriptLoader"></a>5.5 RCTJavaScriptLoader</h3><blockquote>
+<p>这是实现远程代码加载的核心。热更新，开发环境代码加载，静态<code>jsbundle</code>加载都离不开这个工具。</p>
+</blockquote>
+<ul>
+<li>从指定的地方(<code>bundle</code>, <code>http server</code>)加载 <code>script bundle</code></li>
+<li>把加载完成的脚本用<code>string</code>的形式返回</li>
+<li>处理所有获取代码、打包代码时遇到的错误</li>
+</ul>
+<h3 id="5-6-RCTContextExecutor"><a href="#5-6-RCTContextExecutor" class="headerlink" title="5.6 RCTContextExecutor"></a>5.6 RCTContextExecutor</h3><ul>
+<li>封装了基础的JS和原生代码互掉和管理逻辑，是JS引擎切换的基础。通过不同的RCTCOntextExecutor来适配不同的JS Engine，让我们的React JS可以在iOS、Android、chrome甚至是自定义的js engine里面执行。这也是为何我们能在chrome里面直接调试js代码的原因</li>
+<li>管理和执行所有N2J调用</li>
+</ul>
+<h3 id="5-7-RCTModuleData"><a href="#5-7-RCTModuleData" class="headerlink" title="5.7 RCTModuleData"></a>5.7 RCTModuleData</h3><ul>
+<li>加载和管理所有和JS有交互的原生代码。把需要和JS交互的代码按照一定的规则自动封装成JS模块</li>
+<li>收集所有桥接模块的信息，供注入到JS运行环境</li>
+</ul>
+<h3 id="5-8-RCTModuleMethod"><a href="#5-8-RCTModuleMethod" class="headerlink" title="5.8 RCTModuleMethod"></a>5.8 RCTModuleMethod</h3><blockquote>
+<p>记录所有原生代码的导出函数地址(JS里面是不能直接持有原生对象的)，同时生成对应的字符串映射到该函数地址。JS调用原生函数的时候会通过message的形式调用过来</p>
+</blockquote>
+<ul>
+<li>记录所有的原生代码的函数地址，并且生成对应的字符串映射到该地址</li>
+<li>记录所有的block的地址并且映射到唯一的一个id</li>
+<li>翻译所有<code>J2N call</code>，然后执行对应的native方法</li>
+</ul>
+<blockquote>
+<ul>
+<li>如果是原生方法的调用则直接通过方法名调用，MessageQueue会帮忙把Method翻译成MethodID, 然后转发消息给原生代码，传递函数签名和参数给原生MessageQueue, 最终给RCTModuleMethod解析调用最终的方法</li>
+<li>如果JS调用的是一个回调block，MessageQueue会把回调对象转化成一个一次性的block id, 然后传递给RCTModuleMethod, 最终由RCTModuleMethod解析调用。基本上和方法调用一样，只不过生命周期会不一样，block是动态生成的，要及时销毁，要不然会导致内存泄漏</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>实际上是不存在原生MessageQueue对象模块的，JS的MessageQueue对应到原生层就是RCTModuleData &amp; RCTModuleMethod的组合, MessageQueue的到原生层的调用先经过RCTModuleData和RCTModuleMethod翻译成原生代码调用，然后执行</p>
+</blockquote>
+<h3 id="5-9-MessageQueue"><a href="#5-9-MessageQueue" class="headerlink" title="5.9 MessageQueue"></a>5.9 MessageQueue</h3><ul>
+<li>这是核心中的核心。整个react native对浏览器内核是未做任何定制的，完全依赖浏览器内核的标准接口在运作。它怎么实现UI的完全定制的呢？它实际上未使用浏览器内核的任何UI绘制功能，注意是未使用UI绘制功能。它利用javascript引擎强大的DOM操作管理能力来管理所有UI节点，每次刷新前把所有节点信息更新完毕以后再给yoga做排版，然后再调用原生组件来绘制。javascript是整个系统的核心语言。</li>
+<li>我们可以把浏览器看成一个盒子，javascript引擎是盒子里面的总管，DOM是javascript引擎内置的，javascript和javascript引擎也是无缝链接的。react native是怎么跳出这个盒子去调用外部原生组件来绘制UI的呢？秘密就在MessageQueue。</li>
+<li>javascript引擎对原生代码的调用都是通过一套固定的接口来实现，这套接口的主要作用就是记录原生接口的地址和对应的javascript的函数名称，然后在javascript调用该函数的时候把调用转发给原生接口</li>
+</ul>
+<h2 id="六、React-Native-初始化"><a href="#六、React-Native-初始化" class="headerlink" title="六、React Native 初始化"></a>六、React Native 初始化</h2><blockquote>
+<p><code>React Native</code>的初始化从<code>RootView</code>开始，默认在<code>AppDelegate.m:- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions</code> 里面会有<code>RootViewd</code>的初始化逻辑，调试的时候可以从这里入手</p>
+</blockquote>
+<p><strong>React Native的初始化分为几个步骤</strong></p>
+<ul>
+<li>原生代码加载</li>
+<li><code>JS Engine</code>初始化(生成一个空的JS引擎)</li>
+<li>JS基础设施初始化. 主要是require等基本模块的加载并替换JS默认的实现。自定义<code>require</code>, <code>Warning window</code>, <code>Alert window</code>, <code>fetch</code>等都是在这里进行的。基础设施初始化好以后就可以开始加载js代码了</li>
+<li>遍历加载所有要导出给JS用的原生模块和方法, 生成对应的JS模块信息，打包成json的格式给JS Engine, 准确地说是给MessageQueue. </li>
+</ul>
+<p><strong>这里需要提一下的是</strong></p>
+<blockquote>
+<p>这里的导出是没有对象的，只有方法和模块。JS不是一个标准的面向对象语言，刚从Java转JavaScript的同学都会在面向对象这个概念上栽跟头，这里特别提醒一下</p>
+</blockquote>
+<h3 id="6-1-原生代码初始化"><a href="#6-1-原生代码初始化" class="headerlink" title="6.1 原生代码初始化"></a>6.1 原生代码初始化</h3><blockquote>
+<p>这里讨论的主要是RN相关的原生代码和用户自定义的RN模块的原生代码的加载和初始化。原生代码初始化主要分两步</p>
+</blockquote>
+<ul>
+<li>静态加载。iOS没有动态加载原生代码的接口，所有的代码都在编译的初期就已经编译为静态代码并且链接好，程序启动的时候所有的原生代码都会加载好。这是原生代码的静态加载，iOS里面没有动态加载原生代码的概念，这也是为何没有静态代码热更新的原因</li>
+<li>RN模块解析和注入JS。这是加载的第二步。在RootView初始化的时候会遍历所有被标记为RCTModule的原生模块，生成一个json格式的模块信息，里面包含模块名称和方法名称，然后注入到JS Engine, 由MessageQueue记录下来。原生代码在生成json模块信息的时候同时会在原生代码这边维护一个名称字典，用来把模块和方法的名称映射到原生代码的地址上去，用于JS调用原生代码的翻译</li>
+</ul>
+<h3 id="6-2-Javascript环境初始化"><a href="#6-2-Javascript环境初始化" class="headerlink" title="6.2 Javascript环境初始化"></a>6.2 Javascript环境初始化</h3><ul>
+<li>RN的初始化是从RCRootView开始的，所有的绘制都会在这个RootView里面进行(Alert除外)</li>
+<li>RootView做的第一件事情就是初始化一个空的JS Engine。 这个空的JS Engine里面包含一些最基础的模块和方法(fetch, require, alert等), 没有UI绘制模块。 RN的工作就是替换这些基础的模块和方法，然后把RN的UI绘制模块加载并注入到JS Engine.</li>
+</ul>
+<p><strong>JS Engine不直接管理UI的绘制</strong></p>
+<ul>
+<li>所有的绘制由原生控制的UI事件和Timer触发</li>
+<li>影响界面刷新的事件发生以后一部分直接由原生控件消化掉，直接更新原生控件。剩下的部分会通过<code>Bridge</code>派发给MessageQueue，然后在JS层进行业务逻辑的计算，再由<code>React</code>来进行Virtual Dom的管理和更新。<code>Virtual Dom</code>再通过MessageQueue发送重绘指令给对应的原生组件进行UI更新</li>
+</ul>
+<h3 id="6-3-NativeModules加载"><a href="#6-3-NativeModules加载" class="headerlink" title="6.3 NativeModules加载"></a>6.3 NativeModules加载</h3><ul>
+<li>在OC里面，所有NativeModules要加载进JS Engine都必须遵循一定的协议(protocol)。</li>
+<li>模块(OC里面的类)需要声明为<rctbridgemodule>, 然后在类里面还必须调用宏RCT_EXPORT_MODULE() 用来定义一个接口告诉JS当前模块叫什么名字。这个宏可以接受一个可选的参数，指定模块名，不指定的情况下就取类名。</rctbridgemodule></li>
+<li>对应的JS模块在初始化的时候会调用原生类的[xxx new]方法- 模块声明为<code>&lt;RCTBridgeModule&gt;</code>后只是告诉Native Modules这有一个原生模块，是一个空的模块。要导出任何方法给JS使用都必须手动用宏RCT_EXPORT_METHOD来导出方法给JS用.</li>
+<li>所有的原生模块都会注册到<code>NativeModules</code>这一个JS模块下面去，你如果想要让自己的模块成为一个顶级模块就必须再写一个JS文件封装一遍NativeModules里面的方法。</li>
+<li>你如果想自己的方法导出就默认成为顶级方法，那么你需要一个手动去调用JSC的接口，这个在前面章节有讲解。 不建议这样做，因为这样你会失去跨JS引擎的便利性。</li>
+<li>你可以导出常量到JS里面去, 模块初始化的时候会坚持用户是否有实现<code>constantsToExport</code> 方法, 接受一个常量词典</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">- (NSDictionary *)constantsToExport</span><br><span class="line">&#123;</span><br><span class="line">  return @&#123; @&quot;firstDayOfTheWeek&quot;: @&quot;Monday&quot; &#125;;// JS里面可以直接调用 ModuleName.firstDayOfTheWeek获取这个常量</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>常量只会在初始化的时候调用一次，动态修改该方法的返回值无效</li>
+<li>所有标记为RCT_EXPORT_MODULE的模块都会在程序启动的时候自动注册好这些模块，主要是记录模块名和方法名。只是注册，不一定会初始化。</li>
+<li><code>Native Modules</code>导出宏具体使用方法见官方文档<code>Native Modules</code></li>
+</ul>
+<h3 id="6-4-三个线程"><a href="#6-4-三个线程" class="headerlink" title="6.4 三个线程"></a>6.4 三个线程</h3><blockquote>
+<p>React Native有三个重要的线程:</p>
+</blockquote>
+<ul>
+<li>Shadow queue. 布局引擎(yoga)计算布局用的</li>
+<li>Main thread. 主线程。就是操作系统的UI线程。无论是iOS还是android，一个进程都只有一个UI线程，我们常说的主线程. React Native所有UI绘制也是由同一个UI线程来维护</li>
+<li><code>Javascript thread. javascript</code>线程。 大家都知道javascript是单线程模型，event驱动的异步模型。React Native用了JS引擎，所以也必需有一个独立的js 线程. 所有JS和原生代码的交互都发生在这个线程里。死锁，异常也最容易发生在这个线程</li>
+</ul>
+<blockquote>
+<p>可以看到Shadow queue是queue而不是thread, 在iOS里面queue是thread之上的一层抽象,GCD里面的一个概念，创建queue的时候可以指定是并行的还是串行的。也就是说，一个queue可能对应多个thread</p>
+</blockquote>
+<h2 id="七、内部机制"><a href="#七、内部机制" class="headerlink" title="七、内部机制"></a>七、内部机制</h2><p><strong>内部机制</strong></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/681.jpg" alt></p>
+<p><strong>JS用时序</strong></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/682.png" alt></p>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><h3 id="8-1-React-Native-框架分析"><a href="#8-1-React-Native-框架分析" class="headerlink" title="8.1 React Native 框架分析"></a>8.1 React Native 框架分析</h3><p><img src="https://poetries1.gitee.io/img-repo/2019/10/683.png" alt></p>
+<h3 id="8-2-层次架构"><a href="#8-2-层次架构" class="headerlink" title="8.2 层次架构"></a>8.2 层次架构</h3><ul>
+<li><strong>Java层</strong>：该层主要提供了Android的UI渲染器<code>UIManager</code>（将JavaScript映射成<code>Android Widget</code>）以及一些其他的功能组件（例如：Fresco、Okhttp）等，在java层均封装为Module，java层核心jar包是react-native.jar，封装了众多上层的interface，如Module，Registry，bridge等</li>
+<li><strong>C++层</strong>：主要处理Java与JavaScript的通信以及执行JavaScript代码工作，该层封装了JavaScriptCore，执行对js的解析。基于<code>JavaScriptCore</code>，<code>Web</code>开发者可以尽情使用ES6的新特性，如class、箭头操作符等，而且 React Native运行在<code>JavaScriptCore</code>中的，完全不存在浏览器兼容的情况。Bridge桥接了java ， js 通信的核心接口。JSLoader主要是将来自assets目录的或本地file加载javascriptCore，再通过<code>JSCExectutor</code>解析js文件</li>
+<li><strong>Js层</strong>：该层提供了各种供开发者使用的组件以及一些工具库。<br><code>Component</code>：Js层通js/jsx编写的<code>Virtual Dom</code>来构建<code>Component</code>或Module，Virtual DOM是DOM在内存中的一种轻量级表达方式，可以通过不同的渲染引擎生成不同平台下的UI。component的使用在 React 里极为重要, 因为component的存在让计算 DOM diff 更高效。<br>ReactReconciler : 用于管理顶层组件或子组件的挂载、卸载、重绘</li>
+</ul>
+<blockquote>
+<p>注：JSCore，即JavaScriptCore，JS解析的核心部分，IOS使用的是内置的<code>JavaScriptCore</code>，Androis上使用的是 <a href="https://webkit.org" target="_blank" rel="noopener">https://webkit.org</a> 家的jsc.so。</p>
+</blockquote>
+<p><strong>Java层核心类及原理，如下所示</strong></p>
+<p><strong>ReactContext</strong></p>
+<ul>
+<li>ReactContext继承于ContextWrapper，是ReactNative应用的上下文，通过getContext()去获得，通过它可以访问ReactNative核心类的实现。</li>
+</ul>
+<p><strong>ReactInstanceManager</strong></p>
+<ul>
+<li><code>ReactInstanceManager</code>是ReactNative应用总的管理类，创建<code>ReactContext</code>、<code>CatalystInstance</code>等类，解析<code>ReactPackage</code>生成映射表，并且配合<code>ReactRootView</code>管理View的创建与生命周期等功能。</li>
+</ul>
+<p><strong>ReactRootView</strong></p>
+<ul>
+<li>为启动入口核心类，负责监听及分发事件并重新渲染元素，App启动后，其将作为App的<code>root view</code>。</li>
+</ul>
+<p><strong>CatalystInstance</strong></p>
+<ul>
+<li><code>CatalystInstance</code>是<code>ReactNative</code>应用Java层、C++层、JS层通信总管理类，总管Java层、JS层核心<code>Module</code>映射表与回调，三端通信的入口与桥梁。</li>
+</ul>
+<p><strong>JavaScriptModule</strong></p>
+<ul>
+<li><code>JavaScriptModule</code>是<code>JS Module</code>，负责JS到Java的映射调用格式声明，由<code>CatalystInstance</code>统一管理。</li>
+</ul>
+<p><strong>NativeModule</strong></p>
+<ul>
+<li><code>NativeModule</code>是<code>java Module</code>，负责Java到Js的映射调用格式声明，由<code>CatalystInstance</code>统一管理。</li>
+</ul>
+<p><strong>JavascriptModuleRegistry</strong></p>
+<ul>
+<li>JS Module映射表,负责将所有JavaScriptModule注册到CatalystInstance，通过Java动态代理调用到Js。</li>
+</ul>
+<p><strong>NativeModuleRegistry</strong></p>
+<ul>
+<li>是Java Module映射表,即暴露给Js的API集合。</li>
+</ul>
+<p><strong>CoreModulePackage</strong></p>
+<ul>
+<li>定义核心框架模块，创建<code>NativeModules&amp;JsModules</code></li>
+</ul>
+<h3 id="8-3-启动过程的解析"><a href="#8-3-启动过程的解析" class="headerlink" title="8.3 启动过程的解析"></a>8.3 启动过程的解析</h3><ol>
+<li>ReactInstanceManager创建时会配置应用所需的java模块与js模块，通过ReactRootView的startReactApplication启动APP。</li>
+<li>在创建ReactInstanceManager同时会创建用于加载JsBundle的JSBundlerLoader，并传递给CatalystInstance。</li>
+<li>CatalystInstance会创建Java模块注册表及Javascript模块注册表，并遍历实例化模块。</li>
+<li>CatalystInstance通过JSBundlerLoader向Node Server请求Js Bundle，并传递给JSCJavaScriptExectutor，最后传递给javascriptCore，再通过ReactBridge通知ReactRootView完成渲染</li>
+</ol>
+<h3 id="8-4-Js与Java通信机制"><a href="#8-4-Js与Java通信机制" class="headerlink" title="8.4 Js与Java通信机制"></a>8.4 Js与Java通信机制</h3><blockquote>
+<p>Java与Js之间的调用，是以两边存在两边存在同一份模块配置表，最终均是将调用转化为{moduleID,methodID，callbackID，args}，处理端在模块配置表里查找注册的模块与方法并调用。</p>
+</blockquote>
+<p><strong>Java 调用Js</strong></p>
+<blockquote>
+<p>Java通过注册表调用到CatalystInstance实例，透过ReactBridge的jni，调用到Onload.cpp中的callFunction，最后通过javascriptCore，调用BatchedBridge.js，根据参数｛moduleID,methodID｝require相应Js模块执行。流程如下图：</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/684.png" alt></p>
+<p><strong>Js 调用Java</strong></p>
+<blockquote>
+<p>如果消息队列中有等待Java 处理的逻辑，而且 Java 超过 5ms 都没有来取走，那么 JavaScript 就会主动调用 Java 的方法,在需要调用调Java模块方法时，会把参数｛moduleID,methodID｝等数据存在MessageQueue中，等待Java的事件触发，把MessageQueue中的｛moduleID,methodID｝返回给Java，再根据模块注册表找到相应模块处理。流程如下图：</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/685.webp" alt></p>
+<h2 id="九、更多参考"><a href="#九、更多参考" class="headerlink" title="九、更多参考"></a>九、更多参考</h2><ul>
+<li><a href="https://juejin.im/post/5a6460f8f265da3e4f0a446d" target="_blank" rel="noopener">React Native for Android 原理分析与实践：实现原理</a></li>
+<li><a href="https://www.jianshu.com/p/e220e1f34a0b" target="_blank" rel="noopener">深入剖析 JavaScriptCore</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2019/10/02/rn-start-progress/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2019/10/03/rn-ios-cert-config/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

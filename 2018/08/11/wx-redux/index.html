@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>在小程序中集成redux/immutable/thunk第三方库 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="小程序,redux,">
+  
+
+  <meta name="description" content="一、前言 小程序给我们暴露了两个参数require和module，require用来在模块中加载其他模块，module用来将模块中的方法暴露出去  module.exports = function()&amp;#123;&amp;#125;  所以只要需要让第三方库的代码使用这种形式的export就可以了  二、构建Redux的微信小程序包 打一个Redux包，让它可以兼容微信小城的加载方式  git clon">
+<meta name="keywords" content="小程序,redux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在小程序中集成redux&#x2F;immutable&#x2F;thunk第三方库">
+<meta property="og:url" content="http://blog.poetries.top/2018/08/11/wx-redux/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、前言 小程序给我们暴露了两个参数require和module，require用来在模块中加载其他模块，module用来将模块中的方法暴露出去  module.exports = function()&amp;#123;&amp;#125;  所以只要需要让第三方库的代码使用这种形式的export就可以了  二、构建Redux的微信小程序包 打一个Redux包，让它可以兼容微信小城的加载方式  git clon">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.514Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在小程序中集成redux&#x2F;immutable&#x2F;thunk第三方库">
+<meta name="twitter:description" content="一、前言 小程序给我们暴露了两个参数require和module，require用来在模块中加载其他模块，module用来将模块中的方法暴露出去  module.exports = function()&amp;#123;&amp;#125;  所以只要需要让第三方库的代码使用这种形式的export就可以了  二、构建Redux的微信小程序包 打一个Redux包，让它可以兼容微信小城的加载方式  git clon">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一、前言"><span class="toc-text">一、前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#二、构建Redux的微信小程序包"><span class="toc-text">二、构建Redux的微信小程序包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#三、集成Redux-devtools"><span class="toc-text">三、集成Redux-devtools</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#四、小程序中集成immutable"><span class="toc-text">四、小程序中集成immutable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#五、小程序集成redux、immutable模板"><span class="toc-text">五、小程序集成redux、immutable模板</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-wx-redux" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">在小程序中集成redux/immutable/thunk第三方库</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.08.11</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.1k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 4分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h3 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h3><blockquote>
+<p>小程序给我们暴露了两个参数<code>require</code>和<code>module</code>，<code>require</code>用来在模块中加载其他模块，<code>module</code>用来将模块中的方法暴露出去</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>所以只要需要让第三方库的代码使用这种形式的<code>export</code>就可以了</p>
+</blockquote>
+<h3 id="二、构建Redux的微信小程序包"><a href="#二、构建Redux的微信小程序包" class="headerlink" title="二、构建Redux的微信小程序包"></a>二、构建Redux的微信小程序包</h3><blockquote>
+<p>打一个<code>Redux</code>包，让它可以兼容微信小城的加载方式</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/reactjs/redux.git</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 详细内容可以到redux项目的package.json中查看</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 这些命令是是使用webpack构建UMD模式的包。也就是说所有的代码，包括依赖的库都会被打包到一个文件中，并且自带一段模块加载代码，文件可以在dist目录下找到</span></span><br><span class="line">npm run build:umd &amp;&amp; npm run build:umd</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>用编辑器打开<code>dist</code>目录下的<code>redux.js</code>文件</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span> <span class="title">webpackUniversalModuleDefinition</span>(<span class="params">root, factory</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(<span class="keyword">typeof</span> exports === <span class="string">'object'</span> &amp;&amp; <span class="keyword">typeof</span> <span class="built_in">module</span> === <span class="string">'object'</span>)</span><br><span class="line">        <span class="built_in">module</span>.exports = factory();</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(<span class="keyword">typeof</span> define === <span class="string">'function'</span> &amp;&amp; define.amd)</span><br><span class="line">        define([], factory);</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span>(<span class="keyword">typeof</span> exports === <span class="string">'object'</span>)</span><br><span class="line">        exports[<span class="string">"Redux"</span>] = factory();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        root[<span class="string">"Redux"</span>] = factory();</span><br><span class="line">&#125;)(<span class="keyword">this</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">...  </span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这段代码是用来加载模块的，里面的factory函数的返回的内容是用webpack提供的loader组织起来的redux的代码和第三方依赖。</li>
+<li>如果我们把这个文件拷贝到小程序中，只需要让程序能正常进入第三行代码，就能把Redux加载进来</li>
+<li>将第二行代码：<code>if(typeof exports === &#39;object&#39; &amp;&amp; typeof module === &#39;object&#39;)</code> 修改成：<code>if(typeof module === &#39;object&#39;)</code></li>
+<li>这样修改的原因是，在微信小程序的环境中是没有exports变量的，所以就没办法正确进入这个分支，删除之后就可以正确进入</li>
+<li>我们拷贝到<code>libs</code>目录下，那么我们在程序中使用时，只要当做是一个本地模块去<code>require</code>就可以了 <code>var redux = require(&#39;./libs/redux.js&#39;)</code></li>
+<li>我们可以通过类似的方法，使用<code>Webpack</code>打包第三方库，就可以集成任何库了</li>
+</ul>
+<h3 id="三、集成Redux-devtools"><a href="#三、集成Redux-devtools" class="headerlink" title="三、集成Redux-devtools"></a>三、集成Redux-devtools</h3><blockquote>
+<p>因为微信小程序的开发环境是定制的，暂时没有发现办法直接安装<code>redux-devtool</code>的插件</p>
+</blockquote>
+<p><strong>安装remote-redux-devtools</strong></p>
+<ul>
+<li>原版的<code>remote-redux-devtools</code>使用的一个<code>websocket</code>的依赖会使用原生的<code>WebSocket</code>，小程序是不支持的，所以需要改成小程序的<code>websocket</code>实现,修改好的代码 <a href="https://github.com/poetries/wx-redux-immutable-template/blob/master/wx-redux-immutable-template/public/libs/remote-redux-devtools.js" target="_blank" rel="noopener">https://github.com/poetries/wx-redux-immutable-template/blob/master/wx-redux-immutable-template/public/libs/remote-redux-devtools.js</a></li>
+<li>把代码下载到工程目录里面就可以用了</li>
+</ul>
+<p><strong>安装和启动remotedev-server</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install -g remotedev-server</span><br><span class="line">remotedev --hostname=localhost --port=5678</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>因为没办法用<code>npm</code>安装到本地（微信小程序会尝试去加载项目目录中的所有js），所以这里使用全局安装，第二条命令是启动<code>remotedev-server</code>，<code>hostname</code>和<code>port</code>分别指定为<code>localhost</code>和<code>5678</code></p>
+</blockquote>
+<p><strong>集成devtool</strong></p>
+<blockquote>
+<p>在<code>store</code>下集成<code>devtool</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123;createStore, compose&#125; = <span class="built_in">require</span>(<span class="string">'./libs/redux.js'</span>);</span><br><span class="line"><span class="keyword">const</span> devTools = <span class="built_in">require</span>(<span class="string">'./libs/remote-redux-devtools.js'</span>).default;</span><br><span class="line"><span class="keyword">const</span> reducer = <span class="built_in">require</span>(<span class="string">'./reducers/index.js'</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">configureStore</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> createStore(reducer, compose(devTools(&#123;</span><br><span class="line">    hostname: <span class="string">'localhost'</span>,</span><br><span class="line">    port: <span class="number">5678</span>,</span><br><span class="line">    secure: <span class="literal">false</span></span><br><span class="line">  &#125;)));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = configureStore;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>把<code>devtool</code>使用<code>redux</code>的<code>compose</code>加到<code>store</code>中去。<code>hostname</code>和<code>port</code>是指定为之前启动<code>remotedev-server</code>启动时候指定的参数。保存之后重启一下小程序，如果没有报错的话就OK了</p>
+</blockquote>
+<ul>
+<li>可以在浏览器中访问<code>localhost:5678</code></li>
+</ul>
+<h3 id="四、小程序中集成immutable"><a href="#四、小程序中集成immutable" class="headerlink" title="四、小程序中集成immutable"></a>四、小程序中集成immutable</h3><blockquote>
+<p><code>Immutable</code> 是 <code>Facebook</code> 开发的不可变数据集合。不可变数据一旦创建就不能被修改，是的应用开发更简单，允许使用函数式编程技术，比如惰性评估。微信小程序无法直接使用<code>Immutable.js</code>，下面就来说说微信小程序如何使用第三方库<code>Immutable.js</code></p>
+</blockquote>
+<p><strong>Immutable使用了UMD模块化规范</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span> (<span class="params">global, factory</span>) </span>&#123;</span><br><span class="line"> <span class="keyword">typeof</span> exports === <span class="string">'object'</span> &amp;&amp; <span class="keyword">typeof</span> <span class="built_in">module</span> !== <span class="string">'undefined'</span> ? <span class="built_in">module</span>.exports = factory() :</span><br><span class="line"> <span class="keyword">typeof</span> define === <span class="string">'function'</span> &amp;&amp; define.amd ? define(factory) :</span><br><span class="line"> (global.Immutable = factory());</span><br><span class="line">&#125;(<span class="keyword">this</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="string">'use strict'</span>;<span class="keyword">var</span> SLICE$<span class="number">0</span> = <span class="built_in">Array</span>.prototype.slice;</span><br><span class="line"></span><br><span class="line">....</span><br><span class="line"></span><br><span class="line">&#125;));</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>修改<code>Immutable</code>代码，注释原有模块导出语句，使用<code>module.exports = factory()</code> 强制导出</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span>(<span class="params">global, factory</span>) </span>&#123;</span><br><span class="line"> <span class="comment">/*</span></span><br><span class="line"><span class="comment"> typeof exports === 'object' &amp;&amp; typeof module !== 'undefined' ? module.exports = factory() :</span></span><br><span class="line"><span class="comment"> typeof define === 'function' &amp;&amp; define.amd ? define(factory) :</span></span><br><span class="line"><span class="comment"> (global.Immutable = factory());</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"> <span class="built_in">module</span>.exports = factory();</span><br><span class="line"></span><br><span class="line">&#125;(<span class="keyword">this</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>导入修改好的<code>immutable</code>到小程序中即可 <a href="https://github.com/poetries/wx-redux-immutable-template/blob/master/wx-redux-immutable-template/public/libs/immutable.js" target="_blank" rel="noopener">https://github.com/poetries/wx-redux-immutable-template/blob/master/wx-redux-immutable-template/public/libs/immutable.js</a></p>
+</blockquote>
+<h3 id="五、小程序集成redux、immutable模板"><a href="#五、小程序集成redux、immutable模板" class="headerlink" title="五、小程序集成redux、immutable模板"></a>五、小程序集成redux、immutable模板</h3><blockquote>
+<p><a href="https://github.com/poetries/wx-redux-immutable-template" target="_blank" rel="noopener">https://github.com/poetries/wx-redux-immutable-template</a></p>
+</blockquote>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/08/09/xiaochengxu-note/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/08/12/js-map-reduce-find-filter/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

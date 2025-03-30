@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>React之Immutable学习记录（十二） | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="react,Immutable,">
+  
+
+  <meta name="description" content="整理于互联网  一、前言 从问题说起：熟悉 React 组件生命周期的话都知道：调用 setState 方法总是会触发 render 方法从而进行 vdom re-render 相关逻辑，哪怕实际上你没有更改到 Component.state  this.state = &amp;#123;count: 0&amp;#125;this.setState(&amp;#123;count: 0&amp;#125;);// 组件 s">
+<meta name="keywords" content="react,Immutable">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React之Immutable学习记录（十二）">
+<meta property="og:url" content="http://blog.poetries.top/2017/11/20/react-study-Immutable/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="整理于互联网  一、前言 从问题说起：熟悉 React 组件生命周期的话都知道：调用 setState 方法总是会触发 render 方法从而进行 vdom re-render 相关逻辑，哪怕实际上你没有更改到 Component.state  this.state = &amp;#123;count: 0&amp;#125;this.setState(&amp;#123;count: 0&amp;#125;);// 组件 s">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/462.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.495Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="React之Immutable学习记录（十二）">
+<meta name="twitter:description" content="整理于互联网  一、前言 从问题说起：熟悉 React 组件生命周期的话都知道：调用 setState 方法总是会触发 render 方法从而进行 vdom re-render 相关逻辑，哪怕实际上你没有更改到 Component.state  this.state = &amp;#123;count: 0&amp;#125;this.setState(&amp;#123;count: 0&amp;#125;);// 组件 s">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/462.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、前言"><span class="toc-text">一、前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、什么是-Immutable-Data"><span class="toc-text">二、什么是 Immutable Data</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、为什么要在React-js中使用Immutable"><span class="toc-text">三、为什么要在React.js中使用Immutable</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、Immutable-的几种数据类型"><span class="toc-text">四、Immutable 的几种数据类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、几个重要的API"><span class="toc-text">五、几个重要的API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、API"><span class="toc-text">六、API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#创建"><span class="toc-text">创建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#判断是否是一个Map或者List"><span class="toc-text">判断是否是一个Map或者List</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#获取大小"><span class="toc-text">获取大小</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#添加元素"><span class="toc-text">添加元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#List-特有的添加元素"><span class="toc-text">List 特有的添加元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#删除元素"><span class="toc-text">删除元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#修改元素"><span class="toc-text">修改元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#获取某个元素值"><span class="toc-text">获取某个元素值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查找某个元素"><span class="toc-text">查找某个元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#List-特有查找某个元素"><span class="toc-text">List 特有查找某个元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查找最大、最小元素"><span class="toc-text">查找最大、最小元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#截取"><span class="toc-text">截取</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#循环遍历"><span class="toc-text">循环遍历</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Map-特有-mapKeys-mapEntries"><span class="toc-text">Map 特有 mapKeys() mapEntries()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#merge"><span class="toc-text">merge</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#jonin-转换为字符串"><span class="toc-text">jonin() 转换为字符串</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#isEmpty-判空"><span class="toc-text">isEmpty() 判空</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#has-hasIn-检查是否有某个key"><span class="toc-text">has() hasIn() 检查是否有某个key</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#includes-是否包含某些元素"><span class="toc-text">includes() 是否包含某些元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#isSubset-子集判断"><span class="toc-text">isSubset() 子集判断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#reverse-反转"><span class="toc-text">reverse() 反转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#排序"><span class="toc-text">排序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#flatten-平铺"><span class="toc-text">flatten() 平铺</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#groupBy-分组"><span class="toc-text">groupBy() 分组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#flip-Map-特有翻转"><span class="toc-text">flip() Map 特有翻转</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#连接-concat"><span class="toc-text">连接 concat()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#类型转换"><span class="toc-text">类型转换</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、和React-Redux-架构的结合"><span class="toc-text">七、和React Redux 架构的结合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#八、思维导图总结API"><span class="toc-text">八、思维导图总结API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#九、更多参考"><span class="toc-text">九、更多参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-react-study-Immutable" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">React之Immutable学习记录（十二）</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.11.20</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 9.4k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 48分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>整理于互联网</p>
+</blockquote>
+<h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><blockquote>
+<p>从问题说起：熟悉 <code>React</code> 组件生命周期的话都知道：调用 <code>setState</code> 方法总是会触发 <code>render</code> 方法从而进行 <code>vdom re-render</code> 相关逻辑，哪怕实际上你没有更改到 <code>Component.state</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">this</span>.state = &#123;<span class="attr">count</span>: <span class="number">0</span>&#125;</span><br><span class="line"><span class="keyword">this</span>.setState(&#123;<span class="attr">count</span>: <span class="number">0</span>&#125;);<span class="comment">// 组件 state 并未被改变，但仍会触发 render 方法</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>为了避免这种性能上的浪费，<code>React</code> 提供了一个 <code>shouldComponentUpdate</code> 来控制触发 <code>vdom re-render</code> 逻辑的条件。于是 <code>PureRenderMixin</code> 作为一种优化技巧被使用。它仅仅是浅比较对象，深层次的数据结构根本不管用</li>
+</ul>
+<p><strong>js中的Immutable Data</strong></p>
+<blockquote>
+<p>在<code>javascript</code>中我们可以通过<code>deep clone</code>来模拟<code>Immutable Data</code>，就是每次对数据进行操作，新对数据进行<code>deep clone</code>出一个新数据</p>
+</blockquote>
+<ul>
+<li>deep clone</li>
+<li>当然你或许意识到了，这样非常的慢</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="meta">'use strict'</span>;  </span><br><span class="line"><span class="keyword">var</span> cloneDeep = <span class="built_in">require</span>(<span class="string">'lodash.clonedeep'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> data = &#123;  </span><br><span class="line">    id: <span class="string">'data'</span>,</span><br><span class="line">    author: &#123;</span><br><span class="line">        name: <span class="string">'mdemo'</span>,</span><br><span class="line">        github: <span class="string">'https://github.com/demohi'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> data1 = cloneDeep(data);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'equal:'</span>, data1===data); <span class="comment">//false</span></span><br><span class="line"></span><br><span class="line">data1.id = <span class="string">'data1'</span>;  </span><br><span class="line">data1.author.name = <span class="string">'demohi'</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(data.id);<span class="comment">// data  </span></span><br><span class="line"><span class="built_in">console</span>.log(data1.id);<span class="comment">// data1</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(data.author.name);<span class="comment">//mdemo  </span></span><br><span class="line"><span class="built_in">console</span>.log(data1.author.name);<span class="comment">//demohi</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这时候 immutableJS 就派得上用场了</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> map1 = Immutable.fromJS(&#123;<span class="attr">a</span>:<span class="number">1</span>, <span class="attr">b</span>:<span class="number">1</span>, <span class="attr">c</span>:&#123;<span class="attr">b</span>:&#123;<span class="attr">c</span>:&#123;<span class="attr">d</span>:&#123;<span class="attr">e</span>:<span class="number">7</span>&#125;&#125;&#125;&#125;&#125;);</span><br><span class="line"><span class="keyword">var</span> map2 = Immutable.fromJS(&#123;<span class="attr">a</span>:<span class="number">1</span>, <span class="attr">b</span>:<span class="number">1</span>, <span class="attr">c</span>:&#123;<span class="attr">b</span>:&#123;<span class="attr">c</span>:&#123;<span class="attr">d</span>:&#123;<span class="attr">e</span>:<span class="number">7</span>&#125;&#125;&#125;&#125;&#125;);</span><br><span class="line">Immutable.is(map1, map2);  <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>遍历对象不再用<code>for-in</code>，可以这样:</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">Immutable.fromJS(&#123;<span class="attr">a</span>:<span class="number">1</span>, <span class="attr">b</span>:<span class="number">2</span>, <span class="attr">c</span>:<span class="number">3</span>&#125;).map(<span class="function"><span class="keyword">function</span>(<span class="params">value, key</span>) </span>&#123; <span class="comment">/* do some thing */</span>&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="二、什么是-Immutable-Data"><a href="#二、什么是-Immutable-Data" class="headerlink" title="二、什么是 Immutable Data"></a>二、什么是 Immutable Data</h2><ul>
+<li><code>Immutable Data</code> 就是一旦创建，就不能再被更改的数据。对 <code>Immutable</code> 对象的任何修改或添加删除操作都会返回一个新的 <code>Immutable</code> 对象</li>
+<li><code>Immutable</code> 实现的原理是 <code>Persistent Data Structure</code>（持久化数据结构），也就是使用旧数据创建新数据时，要保证旧数据同时可用且不变</li>
+<li>同时为了避免 <code>deepCopy</code> 把所有节点都复制一遍带来的性能损耗，<code>Immutable</code> 使用了 <code>Structural Sharing····</code>（结构共享），即如果对象树中一个节点发生变化，只修改这个节点和受它影响的父节点，其它节点则进行共享。</li>
+</ul>
+<blockquote>
+<p>打印<code>immutableJS</code>看看有什么东西</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/462.png" alt></p>
+<p><strong>一个说明不可变的例子</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 原生对象</span></span><br><span class="line"><span class="keyword">let</span> a1 = &#123;</span><br><span class="line">    b: <span class="number">1</span>,</span><br><span class="line">    c: &#123;</span><br><span class="line">        c1: <span class="number">123</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> b1 = a1;</span><br><span class="line">b1.b = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(a1.b, b1.b); <span class="comment">// 2, 2</span></span><br><span class="line"><span class="built_in">console</span>.log(a1 === b1); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(a1.c === b1.c); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// immutable.js 的Map</span></span><br><span class="line"><span class="keyword">let</span> a2 = Immutable.fromJS(&#123;</span><br><span class="line">    b: <span class="number">1</span>,</span><br><span class="line">    c: &#123;</span><br><span class="line">        c1: <span class="number">123</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> b2 = a2.set(<span class="string">'b'</span>, <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 对 Immutable 对象的任何修改或添加删除操作都会返回一个新的 Immutable 对象</span></span><br><span class="line"><span class="built_in">console</span>.log(a2.get(<span class="string">'b'</span>), b2.get(<span class="string">'b'</span>)); <span class="comment">// 1, 2  对象 a2 的 b 值并没有变成2。</span></span><br><span class="line"><span class="built_in">console</span>.log(a2 === b2); <span class="comment">//  false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//如果对象树中一个节点发生变化，只修改这个节点和受它影响的父节点，其它节点则进行共享。</span></span><br><span class="line"><span class="built_in">console</span>.log(a2.get(<span class="string">'c'</span>) === b2.get(<span class="string">'c'</span>)); <span class="comment">//true</span></span><br></pre></td></tr></table></figure>
+<h2 id="三、为什么要在React-js中使用Immutable"><a href="#三、为什么要在React-js中使用Immutable" class="headerlink" title="三、为什么要在React.js中使用Immutable"></a>三、为什么要在React.js中使用Immutable</h2><blockquote>
+<ul>
+<li>它是一个完全独立的库，无论基于什么框架都可以用它。意义在于它弥补了<code>Javascript</code> 没有不可变数据结构的问题</li>
+<li>由于是不可变的，可以放心的对对象进行任意操作。在<code>React</code>开发中，频繁操作state对象或是<code>store</code>，配合<code>immutableJS</code>快、安全、方便</li>
+</ul>
+</blockquote>
+<ul>
+<li>熟悉<code>React.js</code>的都应该知道，<code>React.js</code>是一个<code>UI = f(states)</code>的框架，为了解决更新的问题，<code>React.js</code>使用了<code>virtual dom</code>，<code>virtual dom</code>通过<code>diff</code>修改<code>dom</code>，来实现高效的<code>dom</code>更新。</li>
+<li>但是有一个问题。当<code>state</code>更新时，如果数据没变，你也会去做<code>virtual dom</code>的<code>diff</code>，这就产生了浪费。这种情况其实很常见</li>
+</ul>
+<blockquote>
+<ul>
+<li>当然你可能会说，你可以使用<code>PureRenderMixin</code>来解决呀，<code>PureRenderMixin</code>是个好东西，我们可以用它来解决一部分的上述问题</li>
+<li>但<code>PureRenderMixin</code>只是简单的浅比较，不使用于多层比较。那怎么办？自己去做复杂比较的话，性能又会非常差</li>
+</ul>
+</blockquote>
+<ul>
+<li>方案就是使用<code>immutable.js</code>可以解决这个问题。因为每一次<code>state</code>更新只要有数据改变，那么<code>PureRenderMixin</code>可以立刻判断出数据改变，可以大大提升性能</li>
+</ul>
+<p><strong>Immutable 优点</strong></p>
+<ul>
+<li><strong>Immutable 降低了 Mutable 带来的复杂度</strong></li>
+</ul>
+<blockquote>
+<p>可变（<code>Mutable</code>）数据耦合了 <code>Time</code>和 <code>Value</code> 的概念，造成了数据很难被回溯</p>
+</blockquote>
+<ul>
+<li><strong>节省内存</strong></li>
+</ul>
+<blockquote>
+<p><code>Immutable.js</code> 使用了 <code>Structure Sharing</code> 会尽量复用内存，甚至以前使用的对象也可以再次被复用。没有被引用的对象会被垃圾回收</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="built_in">Map</span>&#125; <span class="keyword">from</span> <span class="string">'immutable'</span>;</span><br><span class="line"><span class="keyword">let</span> a = <span class="built_in">Map</span>(&#123;</span><br><span class="line">  select: <span class="string">'users'</span>,</span><br><span class="line">  filter: <span class="built_in">Map</span>(&#123; <span class="attr">name</span>: <span class="string">'Cam'</span> &#125;)</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">let</span> b = a.set(<span class="string">'select'</span>, <span class="string">'people'</span>);</span><br><span class="line"></span><br><span class="line">a === b; <span class="comment">// false</span></span><br><span class="line">a.get(<span class="string">'filter'</span>) === b.get(<span class="string">'filter'</span>); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>Undo/Redo，Copy/Paste，甚至时间旅行这些功能做起来小菜一碟</strong></li>
+</ul>
+<blockquote>
+<p>因为每次数据都是不一样的，只要把这些数据放到一个数组里储存起来，想回退到哪里就拿出对应数据即可，很容易开发出撤销重做这种功能。</p>
+</blockquote>
+<ul>
+<li><strong>并发安全</strong></li>
+</ul>
+<blockquote>
+<p>传统的并发非常难做，因为要处理各种数据不一致问题，因此『聪明人』发明了各种锁来解决。但使用了 <code>Immutable</code> 之后，数据天生是不可变的，并发锁就不需要了。</p>
+</blockquote>
+<ul>
+<li><strong>拥抱函数式编程</strong></li>
+</ul>
+<blockquote>
+<p><code>Immutable</code> 本身就是函数式编程中的概念，纯函数式编程比面向对象更适用于前端开发。因为只要输入一致，输出必然一致，这样开发的组件更易于调试和组装。</p>
+</blockquote>
+<p><strong>Immutable 缺点</strong></p>
+<ul>
+<li>需要学习新的 API</li>
+<li>增加了资源文件大小</li>
+<li>容易与原生对象混淆</li>
+</ul>
+<h2 id="四、Immutable-的几种数据类型"><a href="#四、Immutable-的几种数据类型" class="headerlink" title="四、Immutable 的几种数据类型"></a>四、Immutable 的几种数据类型</h2><ul>
+<li><code>List</code>: 有序索引集，类似<code>JavaScript</code>中的<code>Array</code>。</li>
+<li><code>Map</code>: 无序索引集，类似<code>JavaScript</code>中的<code>Object</code>。</li>
+<li><code>OrderedMap</code>: 有序的<code>Map</code>，根据数据的<code>set()</code>进行排序。</li>
+<li><code>Set</code>: 没有重复值的集合。</li>
+<li><code>OrderedSet</code>: 有序的<code>Set</code>，根据数据的<code>add</code>进行排序。</li>
+<li><code>Stack</code>: 有序集合，支持使用<code>unshift（）</code>和<code>shift（）</code>添加和删除。</li>
+<li><code>Range()</code>: 返回一个<code>Seq.Indexed</code>类型的集合，这个方法有三个参数，<code>start</code>表示开始值，默认值为<code>0</code>，<code>end</code>表示结束值，默认为无穷大，<code>step</code>代表每次增大的数值，默认为<code>1</code>.如果<code>start = end</code>,则返回空集合。</li>
+<li><code>Repeat()</code>: 返回一个<code>vSeq.Indexe</code>类型的集合，这个方法有两个参数，<code>value</code>代表需要重复的值，<code>times</code>代表要重复的次数，默认为无穷大。</li>
+<li><code>Record</code>: 一个用于生成<code>Record</code>实例的类。类似于<code>JavaScript</code>的<code>Object</code>，但是只接收特定字符串为<code>key</code>，具有默认值。</li>
+<li><code>Seq</code>: 序列，但是可能不能由具体的数据结构支持。</li>
+<li><code>Collection</code>: 是构建所有数据结构的基类，不可以直接构建</li>
+</ul>
+<blockquote>
+<p>上面那么多常用的也就是 <code>List</code>和<code>Map</code></p>
+</blockquote>
+<h2 id="五、几个重要的API"><a href="#五、几个重要的API" class="headerlink" title="五、几个重要的API"></a>五、几个重要的API</h2><p><strong>1、fromJS()</strong></p>
+<ul>
+<li><code>fromJS()</code> 是最最最常用的将原生<code>JS</code>数据转换为<code>ImmutableJS</code>数据的转换方法。使用方式类似于 <code>JSON.parse()</code>，接收两个参数：<code>json</code> 数据和 <code>reviver</code>函数</li>
+<li>在不传递<code>reviver</code>函数的情况下，默认将原生<code>JS</code>的<code>Array</code>转为<code>List</code>，<code>Object</code>转为<code>Map</code></li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 常见</span></span><br><span class="line"><span class="keyword">const</span> t1 = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: [<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>]&#125;, <span class="attr">c</span>: <span class="number">40</span>&#125;);</span><br><span class="line"><span class="built_in">console</span>.log(t1);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不常用</span></span><br><span class="line"><span class="keyword">const</span> t2 = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: [<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>]&#125;, <span class="attr">c</span>: <span class="number">40</span>&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">key, value</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 定制转换方式，下这种就是将Array转换为List，Object转换为Map</span></span><br><span class="line">    <span class="keyword">const</span> isIndexed = Immutable.Iterable.isIndexed(value);</span><br><span class="line">    <span class="keyword">return</span> isIndexed ? value.toList() : value.toOrderedMap();</span><br><span class="line">    <span class="comment">// true, "b", &#123;b: [10, 20, 30]&#125;</span></span><br><span class="line">    <span class="comment">// false, "a", &#123;a: &#123;b: [10, 20, 30]&#125;, c: 40&#125;</span></span><br><span class="line">    <span class="comment">// false, "", &#123;"": &#123;a: &#123;b: [10, 20, 30]&#125;, c: 40&#125;&#125;</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="built_in">console</span>.log(t2);</span><br></pre></td></tr></table></figure>
+<p><strong>2、is()</strong></p>
+<blockquote>
+<p>先来看官网的一段话: <code>immutable</code>数据应该被当作值而不是对象，值是表示该事件在特定时刻的状态。这个原则对理解不可变数据的适当使用是最重要的。为了将<code>Immutable.js</code>数据视为值，就必须使用<code>Immutable.is()</code>函数或<code>.equals()</code>方法来确定值相等，而不是确定对象引用标识的 <code>===</code> 操作符</p>
+</blockquote>
+<ul>
+<li>所以<code>is()</code>就是用来对两个<code>immutable</code>对象进行值比较的。使用方式类似于 <code>Object.is(obj1, obj2)</code>，接收两个参数</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> map1 = Immutable.Map(&#123;<span class="attr">a</span>:<span class="number">1</span>, <span class="attr">b</span>:<span class="number">1</span>, <span class="attr">c</span>:<span class="number">1</span>&#125;);</span><br><span class="line"><span class="keyword">const</span> map2 = Immutable.Map(&#123;<span class="attr">a</span>:<span class="number">1</span>, <span class="attr">b</span>:<span class="number">1</span>, <span class="attr">c</span>:<span class="number">1</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 两个不同的对象</span></span><br><span class="line"><span class="built_in">console</span>.log(map1 === map2); <span class="comment">// false</span></span><br><span class="line"><span class="comment">// 进行值比较</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.is(map1, map2)); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 不仅仅只能比较ImmutableJS的类型的数据</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.is(<span class="literal">undefined</span>, <span class="literal">undefined</span>)); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.is(<span class="literal">null</span>, <span class="literal">undefined</span>)); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.is(<span class="literal">null</span>, <span class="literal">null</span>)); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.is(<span class="literal">NaN</span>, <span class="literal">NaN</span>)); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 区别于 Object.is</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Object</span>.is(<span class="number">0</span>, <span class="number">-0</span>) ,Immutable.is(<span class="number">-0</span>, <span class="number">0</span>)); <span class="comment">// false , true</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、Map</strong></p>
+<blockquote>
+<p><code>Map</code> 数据类型，对应原生 <code>Object</code> 数组。最最常用的 数据结构之一，循环时无序(<code>orderedMap</code>有序)，对象的 <code>key</code> 可以是任意值。具体看下面的例子</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>().set(List.of(<span class="number">1</span>), <span class="string">'list-of-one'</span>).get(List.of(<span class="number">1</span>)));</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>().set(<span class="literal">NaN</span>, <span class="string">'NaN'</span>).get(<span class="literal">NaN</span>));</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>().set(<span class="literal">undefined</span>, <span class="string">'undefined'</span>).get(<span class="literal">undefined</span>));</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>().set(<span class="literal">null</span>, <span class="string">'null'</span>).get(<span class="literal">null</span>));</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>简单介绍 OrderedMap</strong></li>
+</ul>
+<blockquote>
+<p><code>OrderedMap</code> 是 <code>Map</code> 的变体，它除了具有 <code>Map</code> 的特性外，还具有顺序性，当开发者遍历 <code>OrderedMap</code> 的实例时，遍历顺序为该实例中元素的声明、添加顺序。<code>OrderedMap</code>比非有序<code>Map</code>更昂贵，并且可能消耗更多的内存。如果真要求遍历有序，请使用<code>List</code></p>
+</blockquote>
+<p><strong>4、List</strong></p>
+<blockquote>
+<p><code>List</code> 数据类型，对应原生 <code>Array</code>数组。和原生数组，最大区别不存在’空位’。<code>[, , , , ]</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(List([,,,,]).toJS());<span class="comment">// [undefined, undefined, undefined, undefined]</span></span><br></pre></td></tr></table></figure>
+<h2 id="六、API"><a href="#六、API" class="headerlink" title="六、API"></a>六、API</h2><blockquote>
+<p>我们主要介绍<code>Map</code>和 <code>List</code></p>
+</blockquote>
+<h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p><strong>1、通过构造函数 Map()</strong></p>
+<blockquote>
+<p>构造函数不常用，一般都是通过<code>Immutable.fromJS()</code>将一个<code>JS</code>原生对象转换为一个<code>Immutable</code>对象</p>
+</blockquote>
+<p><strong>2、Map()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> Map&lt;K, V&gt;(): Map&lt;K, V&gt;</span></span><br><span class="line"><span class="comment"> Map&lt;K, V&gt;(iter: Iterable.Keyed&lt;K, V&gt;): Map&lt;K, V&gt;</span></span><br><span class="line"><span class="comment"> Map&lt;K, V&gt;(iter: Iterable&lt;any, Array&lt;any&gt;&gt;): Map&lt;K, V&gt;</span></span><br><span class="line"><span class="comment"> Map&lt;K, V&gt;(obj: Array&lt;Array&lt;any&gt;&gt;): Map&lt;K, V&gt;</span></span><br><span class="line"><span class="comment"> Map&lt;V&gt;(obj: &#123;[key: string]: V&#125;): Map&lt;string, V&gt;</span></span><br><span class="line"><span class="comment"> Map&lt;K, V&gt;(iterator: Iterator&lt;Array&lt;any&gt;&gt;): Map&lt;K, V&gt;</span></span><br><span class="line"><span class="comment"> Map&lt;K, V&gt;(iterable: Object): Map&lt;K, V&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>().toJS()); <span class="comment">// &#123;&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>(&#123;<span class="attr">key</span>: <span class="string">"value"</span>&#125;).toJS()); <span class="comment">// &#123;key: "value"&#125;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>同Key覆盖问题</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//最后的&#123;key: value2&#125; 覆盖了前面的 &#123;key: value&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>([[<span class="string">"key"</span>, <span class="string">"value"</span>], [<span class="string">"key"</span>, <span class="string">"value2"</span>], [<span class="string">"key1"</span>, <span class="string">"value1"</span>]]).toJS());<span class="comment">// &#123;key: "value2", key1: "value1"&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、List()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> List&lt;T&gt;(): List&lt;T&gt;</span></span><br><span class="line"><span class="comment"> List&lt;T&gt;(iter: Iterable.Indexed&lt;T&gt;): List&lt;T&gt;</span></span><br><span class="line"><span class="comment"> List&lt;T&gt;(iter: Iterable.Set&lt;T&gt;): List&lt;T&gt;</span></span><br><span class="line"><span class="comment"> List&lt;K, V&gt;(iter: Iterable.Keyed&lt;K, V&gt;): List&lt;any&gt;</span></span><br><span class="line"><span class="comment"> List&lt;T&gt;(array: Array&lt;T&gt;): List&lt;T&gt;</span></span><br><span class="line"><span class="comment"> List&lt;T&gt;(iterator: Iterator&lt;T&gt;): List&lt;T&gt;</span></span><br><span class="line"><span class="comment"> List&lt;T&gt;(iterable: Object): List&lt;T&gt;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(List().toJS()); <span class="comment">// []</span></span><br><span class="line"><span class="built_in">console</span>.log(List([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,&#123;<span class="attr">a</span>:<span class="number">123</span>&#125;]).toJS()); <span class="comment">// [ 1, 2, 3, 4, &#123;a: 123&#125;]</span></span><br></pre></td></tr></table></figure>
+<p><strong>4、另一种方式</strong></p>
+<p><strong>Map.of()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>.of(<span class="string">'key1'</span>,<span class="string">'value1'</span>,<span class="string">'key2'</span>,<span class="string">'value2'</span>,<span class="string">'key3'</span>,<span class="string">'value3'</span>).toJS()); <span class="comment">// &#123;key1: "value1", key2: "value2", key3: "value3"&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>List.of()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(List.of(&#123;<span class="attr">x</span>:<span class="number">1</span>&#125;, <span class="number">2</span>, [<span class="number">3</span>], <span class="number">4</span>).toJS()); <span class="comment">// [&#123;x:1&#125;, 2, [3], 4]</span></span><br></pre></td></tr></table></figure>
+<h3 id="判断是否是一个Map或者List"><a href="#判断是否是一个Map或者List" class="headerlink" title="判断是否是一个Map或者List"></a>判断是否是一个Map或者List</h3><p><strong>1、Map判断</strong></p>
+<ul>
+<li>判断是否是一个<code>Map</code> , 对原生<code>Object</code>不生效</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>.isMap(&#123;&#125;)); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>.isMap(<span class="built_in">Map</span>(&#123;&#125;))); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、List判断</strong></p>
+<blockquote>
+<p>判断是否是一个<code>List</code> , 对原生<code>Array</code>不生效</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(List.isList([])); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(List.isList(List([]))); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<h3 id="获取大小"><a href="#获取大小" class="headerlink" title="获取大小"></a>获取大小</h3><p><strong>1、size</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// list</span></span><br><span class="line"><span class="built_in">console</span>.log(List([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]).size);<span class="comment">// 4</span></span><br><span class="line"><span class="built_in">console</span>.log(List.of(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>).size);<span class="comment">// 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// map</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>(&#123;<span class="attr">key</span>: <span class="string">"value2"</span>, <span class="attr">key1</span>: <span class="string">"value1"</span>&#125;).size);<span class="comment">// 2</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Map</span>.of(&#123;<span class="attr">x</span>:<span class="number">1</span>&#125;, <span class="number">2</span>, [<span class="number">3</span>], <span class="number">4</span>).size);<span class="comment">// 2</span></span><br></pre></td></tr></table></figure>
+<p><strong>count()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">key</span>: <span class="string">"value2"</span>, <span class="attr">key1</span>: <span class="string">"value1"</span>&#125;).count());<span class="comment">// 4</span></span><br><span class="line"><span class="comment">// 可以定制条件，来确定大小</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">key</span>: <span class="number">1</span>, <span class="attr">key1</span>: <span class="number">34</span>&#125;).count(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">3</span>;</span><br><span class="line">&#125;));<span class="comment">// 1 value大于3的有两个</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// list</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).count());<span class="comment">// 4</span></span><br><span class="line"><span class="comment">// 可以制定条件，来确定 大小</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).count(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">3</span>;</span><br><span class="line">&#125;));<span class="comment">// 2 大于3的有两个</span></span><br></pre></td></tr></table></figure>
+<p><strong>countBy()</strong></p>
+<blockquote>
+<p><code>countBy()</code>和<code>count()</code>的区别就是它的返回值是一个对象。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">key</span>: <span class="number">1</span>, <span class="attr">key1</span>: <span class="number">34</span>&#125;).countBy(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">3</span>;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;false: 1, true: 1&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// list</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).countBy(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">3</span>;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;false: 2, true: 2&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="添加元素"><a href="#添加元素" class="headerlink" title="添加元素"></a>添加元素</h3><p><strong>1、Set</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// 将 key 位置的元素替换为 value</span></span><br><span class="line"><span class="keyword">const</span> $obj1 = <span class="built_in">Map</span>(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"><span class="built_in">console</span>.log($obj1.set(<span class="string">'a'</span>, <span class="number">0</span>).toJS()); <span class="comment">// &#123;a: 0, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log($obj1.set(<span class="string">'e'</span>, <span class="number">99</span>).toJS());  <span class="comment">// &#123;a: 1, b: 2, c: 3, d: 444, e: 99&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// 将 index 位置的元素替换为 value，即使索引越界也是安全的, 空位 undefined</span></span><br><span class="line"><span class="keyword">const</span> $arr1 = List([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</span><br><span class="line"><span class="built_in">console</span>.log($arr1.set(<span class="number">-1</span>, <span class="number">0</span>).toJS()); <span class="comment">// [1, 2, 0]  注意-1 等效于 $arr1.set($arr1.size + -1, 0)</span></span><br><span class="line"><span class="built_in">console</span>.log($arr1.set(<span class="number">4</span>, <span class="number">0</span>).toJS());  <span class="comment">// [ 1, 2, 3, undefined, 0 ]  空位置为了undefined</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、setIn</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: <span class="number">45</span>, <span class="attr">b</span>: <span class="number">64</span>&#125;]).setIn([<span class="string">'3'</span>, <span class="string">'a'</span>], <span class="number">1000</span>).toJS());<span class="comment">//[1, 2, 3, &#123;a: 1000, b: 64&#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: <span class="number">45</span>, <span class="attr">b</span>: <span class="number">64</span>&#125;]).setIn([<span class="string">'3'</span>, <span class="string">'a'</span>], <span class="number">1000</span>).toJS());<span class="comment">//[1, 2, 3, &#123;a: 1000, b: 64&#125;]</span></span><br></pre></td></tr></table></figure>
+<h3 id="List-特有的添加元素"><a href="#List-特有的添加元素" class="headerlink" title="List 特有的添加元素"></a>List 特有的添加元素</h3><p><strong>1、插入元素</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// insert(index: number, value: T)</span></span><br><span class="line"><span class="comment">// 向 index 位置插入 value</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]).insert(<span class="number">1</span>, <span class="number">1.5</span>).toJS()); <span class="comment">// [ 1, 1.5, 2, 3 ]</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、设置size</strong></p>
+<ul>
+<li>默认值<code>undefined</code></li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(List([]).setSize(<span class="number">2</span>).toJS()); <span class="comment">// [undefined, undefined]</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、pop、push、shift、unshift</strong></p>
+<blockquote>
+<p><code>List</code>数据类型也拥有<code>pop</code>、<code>push</code>、<code>shift</code>、<code>unshift</code>这四种操作方法，和原生<code>Array</code>的四种方法使用方式一致，但唯一区别就是返回新的<code>List</code>，并且不改变原来的数组本身，而原生则是会改变元素本身</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ImmutableJS：返回新的List，并且不改变元素本身</span></span><br><span class="line"><span class="keyword">const</span> $test = List([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);</span><br><span class="line"><span class="built_in">console</span>.log($test.pop().toJS(), $test.toJS()); <span class="comment">// [1, 2, 3] [1, 2, 3, 4]</span></span><br><span class="line"><span class="comment">// 原生：返回被改变的值，改变元素本身</span></span><br><span class="line"><span class="keyword">const</span> test = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];</span><br><span class="line"><span class="built_in">console</span>.log(test.pop(), test); <span class="comment">// 4 [1, 2, 3]</span></span><br></pre></td></tr></table></figure>
+<p><strong>4、花样插入</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// interpose</span></span><br><span class="line"><span class="comment">// 插入xxx之间</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).interpose(<span class="number">5555</span>).toJS()); <span class="comment">// [1, 5555, 2, 5555, 5, 5555, 6]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// interleave</span></span><br><span class="line"><span class="comment">// 被操作的两个数组，每个的第一项、第二项、第三项... 组成新的数组。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).interleave(Immutable.fromJS([<span class="number">555</span>, <span class="number">666</span>])).toJS()); <span class="comment">// [1, 555, 2, 666]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// zip</span></span><br><span class="line"><span class="comment">// 被操作的两个数组，抽离第一项和第二项组成新的子数组，放入到一个大数组中，形成二维数组。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).zip(Immutable.fromJS([<span class="number">555</span>, <span class="number">666</span>]).toJS())); <span class="comment">// [ [1, 555], [2, 666]]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义插入规则。</span></span><br><span class="line"><span class="comment">// zipWith</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">5</span>, <span class="number">6</span>]).zipWith(<span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;, Immutable.fromJS([<span class="number">555</span>, <span class="number">666</span>]).toJS())); <span class="comment">// [ 556, 668]</span></span><br></pre></td></tr></table></figure>
+<h3 id="删除元素"><a href="#删除元素" class="headerlink" title="删除元素"></a>删除元素</h3><p><strong>1、delete(key)</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// delete(index: number)</span></span><br><span class="line"><span class="comment">// 删除 index 位置的元素</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]).delete(<span class="number">1</span>).toJS(), $arr1.toJS());<span class="comment">// [ 1, 3 ] [ 1, 2, 3]</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]).delete(<span class="number">77</span>).toJS(), $arr1.toJS(), <span class="string">'超过范围不会强制报错'</span>);<span class="comment">// [ 1, 2, 3] [ 1, 2, 3] 超过范围不会强制报错</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).delete(<span class="string">'c'</span>).toJS(), $obj1.toJS());<span class="comment">// &#123;a: 1, b: 2, d: 444&#125;  &#123;a: 1, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).delete(<span class="string">'asdfasfd'</span>).toJS(), $obj1.toJS());<span class="comment">// &#123;a: 1, b: 2, c: 3, d: 444&#125; &#123;a: 1, b: 2, c: 3, d: 444&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、deleteIn</strong></p>
+<blockquote>
+<p>和 <code>setIn</code>使用方式一致</p>
+</blockquote>
+<p><strong>3、清空元素 lear()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]).clear().toJS());<span class="comment">// []</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).clear().toJS());<span class="comment">// &#123;&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="修改元素"><a href="#修改元素" class="headerlink" title="修改元素"></a>修改元素</h3><blockquote>
+<p>修改某一个元素</p>
+</blockquote>
+<p><strong>1、set setIn</strong></p>
+<blockquote>
+<p>上面已经介绍过</p>
+</blockquote>
+<p><strong>2、update</strong></p>
+<blockquote>
+<p>update(key: K, notSetValue: V, updater: (value: V) =&gt; V): Map&lt;K, V&gt;</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">const</span> $arr1 = Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</span><br><span class="line"><span class="built_in">console</span>.log($arr1.update(<span class="string">'2'</span>, (value)=&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS(), $arr1.toJS());<span class="comment">// [1, 2, 6] [1, 2, 3]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log($arr1.update(<span class="string">'6'</span>, <span class="number">1</span>, (value)=&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS(), $arr1.toJS());<span class="comment">// [1, 2, 3, undefined, undefined, undefined, 2] [1, 2, 3]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log($arr1.update(<span class="string">'6'</span>, <span class="number">0</span>, (value)=&gt; &#123; <span class="comment">// 默认值必须大于0 感觉有BUG，所以还是不要用了。</span></span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS(), $arr1.toJS());<span class="comment">// [1, 2, 3] [1, 2, 3]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="keyword">const</span> $obj1 = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"><span class="built_in">console</span>.log($obj1.update(<span class="string">'a'</span>, (value)=&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS(), $obj1.toJS());<span class="comment">// &#123;a: 2, b: 2, c: 3, d: 444&#125; &#123;a: 1, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log($obj1.update(<span class="string">'e'</span>, <span class="number">1</span>, (value)=&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS(), $obj1.toJS());<span class="comment">//   &#123;a: 1, b: 2, c: 3, d: 444, e: 2&#125; &#123;a: 1, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log($obj1.update(<span class="string">'e'</span>, <span class="number">0</span>, (value)=&gt; &#123; <span class="comment">// 默认值入手是number必须大于0 感觉有BUG，所以还是不要用了。</span></span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS(), $obj1.toJS());<span class="comment">//  &#123;a: 1, b: 2, c: 6, d: 444&#125; &#123;a: 1, b: 2, c: 3, d: 444&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、updateIn</strong></p>
+<blockquote>
+<p>使用方式和setIn一样。</p>
+</blockquote>
+<h3 id="获取某个元素值"><a href="#获取某个元素值" class="headerlink" title="获取某个元素值"></a>获取某个元素值</h3><p><strong>1、get getIn</strong></p>
+<ul>
+<li>使用方式：<code>get(key: number, notSetValue?: T)</code></li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">const</span> $test = Immutable.fromJS([<span class="number">1111111</span>, <span class="number">22222</span>, &#123;<span class="attr">a</span>: <span class="number">888123</span>&#125;]);</span><br><span class="line"><span class="built_in">console</span>.log($test.get(<span class="number">0</span>)); <span class="comment">// 1111111</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 只有数组可以用 number 类型 的key</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="number">1</span>: <span class="string">'abc'</span>&#125;).get(<span class="number">1</span>), Immutable.fromJS(&#123;<span class="number">1</span>: <span class="string">'abc'</span>&#125;).get(<span class="string">'1'</span>));<span class="comment">// undefined "abc" | 只有数组可以用 number 类型 的key</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// notSetValue 默认值，了解</span></span><br><span class="line"><span class="built_in">console</span>.log($test.get(<span class="number">11</span>, <span class="string">'no have value'</span>)); <span class="comment">// no have value</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// getIn</span></span><br><span class="line"><span class="built_in">console</span>.log($test.getIn([<span class="string">'2'</span>, <span class="string">'a'</span>], <span class="string">'child no have value'</span>)); <span class="comment">// 888123</span></span><br><span class="line"><span class="built_in">console</span>.log($test.getIn([<span class="string">'2'</span>, <span class="string">'b'</span>], <span class="string">'child no have value'</span>)); <span class="comment">// child no have value</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="keyword">const</span> $test = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"><span class="built_in">console</span>.log($test.get(<span class="string">'a'</span>)); <span class="comment">// 1111111</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// notSetValue 默认值，了解</span></span><br><span class="line"><span class="built_in">console</span>.log($test.get(<span class="string">'v'</span>, <span class="string">'no have value'</span>)); <span class="comment">// no have value</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// getIn</span></span><br><span class="line"><span class="built_in">console</span>.log($test.getIn([<span class="string">'a'</span>, <span class="string">'a1'</span>], <span class="string">'child no have value'</span>)); <span class="comment">// 222</span></span><br><span class="line"><span class="built_in">console</span>.log($test.getIn([<span class="string">'d'</span>, <span class="string">'b1'</span>], <span class="string">'child no have value'</span>)); <span class="comment">// child no have value</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、获取头、尾元素</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">const</span> $arr1 = Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</span><br><span class="line"><span class="built_in">console</span>.log($arr1.first());<span class="comment">// 1</span></span><br><span class="line"><span class="built_in">console</span>.log($arr1.last());<span class="comment">// 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line">Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"><span class="built_in">console</span>.log($obj1.first());<span class="comment">// &#123;a1: 34&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log($obj1.last());<span class="comment">// 444</span></span><br></pre></td></tr></table></figure>
+<h3 id="查找某个元素"><a href="#查找某个元素" class="headerlink" title="查找某个元素"></a>查找某个元素</h3><p><strong>1、find() findLast()</strong></p>
+<blockquote>
+<p><code>find()</code>、<code>findLast()</code>返回 <code>value</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">56</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).find(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> index === <span class="number">3</span>;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;a: &#123;b: 111&#125;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).find(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value === <span class="number">3</span>;</span><br><span class="line">&#125;));<span class="comment">// 3</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、findKey() findLastKey()</strong></p>
+<blockquote>
+<p><code>findKey()</code>、<code>findLastKey()</code> 返回 <code>key</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).findKey(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> index === <span class="number">3</span>;</span><br><span class="line">&#125;));<span class="comment">// 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).findKey(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value === <span class="number">3</span>;</span><br><span class="line">&#125;));<span class="comment">// c</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、findEntry() findLastEntry()</strong></p>
+<blockquote>
+<p><code>findEntry()</code>、<code>findLastEntry()</code> 返回 <code>key:value</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).findEntry(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> index === <span class="number">3</span>;</span><br><span class="line">&#125;));<span class="comment">// [3, Map]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).findEntry(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> Immutable.is(value, Immutable.fromJS(&#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;));</span><br><span class="line">&#125;));<span class="comment">// ["a", Map]</span></span><br></pre></td></tr></table></figure>
+<p><strong>4、keyOf() lastKeyOf()</strong></p>
+<blockquote>
+<p><code>keyOf()</code>、<code>lastKeyOf()</code> 根据 <code>value</code> 返回<code>key</code>。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">/ List</span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).keyOf(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;))); <span class="comment">// 3</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).keyOf(<span class="number">2</span>)); <span class="comment">// 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).keyOf(Immutable.fromJS(&#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;))); <span class="comment">// a</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).keyOf(<span class="number">2</span>)); <span class="comment">// b</span></span><br></pre></td></tr></table></figure>
+<h3 id="List-特有查找某个元素"><a href="#List-特有查找某个元素" class="headerlink" title="List 特有查找某个元素"></a>List 特有查找某个元素</h3><p><strong>1、indexOf() lastIndexOf()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 找不到 返回 -1</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).indexOf(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;))); <span class="comment">// 3</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、findIndex() findLastIndex()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">111</span>&#125;&#125;]).findIndex(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value/<span class="number">3</span> === <span class="number">1</span>;</span><br><span class="line">&#125;)); <span class="comment">// 2</span></span><br></pre></td></tr></table></figure>
+<h3 id="查找最大、最小元素"><a href="#查找最大、最小元素" class="headerlink" title="查找最大、最小元素"></a>查找最大、最小元素</h3><blockquote>
+<p><code>max()</code>、<code>maxBy()</code>默认比较规则为<code>&gt;</code>，<code>min()</code>、<code>minBy()</code>默认比较规则为<code>&gt;</code></p>
+</blockquote>
+<p><strong>1、max()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">301</span>, <span class="number">88</span>]).max()); <span class="comment">// 301</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义比较规则</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">301</span>, <span class="number">88</span>]).max(<span class="function">(<span class="params">valueA, valueB</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> valueA &gt; valueB;</span><br><span class="line">&#125;)); <span class="comment">// 301</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">8888</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).max()); <span class="comment">// 8888</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义比较规则</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">8888</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).max(<span class="function">(<span class="params">valueA, valueB</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> valueA &gt; valueB;</span><br><span class="line">&#125;)); <span class="comment">// 8888</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、maxBy()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// 自定义比较的元素</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([&#123;<span class="attr">a</span>: <span class="number">2</span>&#125;, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, &#123;<span class="attr">a</span>: <span class="number">2301</span>&#125;, &#123;<span class="attr">a</span>: <span class="number">222</span>&#125;]).maxBy(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a'</span>);</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;a: 2301&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义比较的元素，和比较规则</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([&#123;<span class="attr">a</span>: <span class="number">2</span>&#125;, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, &#123;<span class="attr">a</span>: <span class="number">2301</span>&#125;, &#123;<span class="attr">a</span>: <span class="number">222</span>&#125;]).maxBy(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a'</span>);</span><br><span class="line">&#125;, (valueA, valueB) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> valueA &gt; valueB;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;a: 2301&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// 自定义比较的元素</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: &#123;<span class="attr">a1</span>: <span class="number">11</span>&#125;, <span class="attr">c</span>: &#123;<span class="attr">a1</span>: <span class="number">33</span>&#125;, <span class="attr">d</span>: &#123;<span class="attr">a1</span>: <span class="number">54654</span>&#125;&#125;).maxBy(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a1'</span>);</span><br><span class="line">&#125;).toJS());<span class="comment">//  &#123;a1: 54654&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义比较的元素，和比较规则</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: &#123;<span class="attr">a1</span>: <span class="number">11</span>&#125;, <span class="attr">c</span>: &#123;<span class="attr">a1</span>: <span class="number">33</span>&#125;, <span class="attr">d</span>: &#123;<span class="attr">a1</span>: <span class="number">54654</span>&#125;&#125;).maxBy(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a1'</span>);</span><br><span class="line">&#125;, (valueA, valueB) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> valueA &gt; valueB;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;a1: 54654&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、min()</strong></p>
+<ul>
+<li>同<code>max()</code></li>
+</ul>
+<p><strong>4、minBy()</strong></p>
+<ul>
+<li>同<code>maxBy()</code></li>
+</ul>
+<p><strong>5、keys() values() entries()</strong></p>
+<blockquote>
+<p>获取<code>ES6 Iterable</code> 迭代器</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">const</span> $test = List([<span class="number">11</span>, <span class="number">22</span>, <span class="number">33</span>, <span class="number">44</span>]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> keys = $test.keys();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i <span class="keyword">of</span> keys) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> values = $test.values();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i <span class="keyword">of</span> values) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> entries = $test.entries();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i <span class="keyword">of</span> entries) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="keyword">const</span> $test = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> keys = $test.keys();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i <span class="keyword">of</span> keys) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i); <span class="comment">// a b c d</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> values = $test.values();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i <span class="keyword">of</span> values) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i); <span class="comment">// &#123;a1: 222&#125; 2 3 444</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> entries = $test.entries();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i <span class="keyword">of</span> entries) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(i);<span class="comment">// ["a", Map] ["b", 2] ["c", 3] ["d", 444]</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="截取"><a href="#截取" class="headerlink" title="截取"></a>截取</h3><p><strong>1、slice()</strong></p>
+<blockquote>
+<p>和原生<code>Array slice()</code>用法一致</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]).slice(<span class="number">0</span>).toJS());<span class="comment">// [1, 2, 3]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).slice(<span class="number">0</span>).toJS());<span class="comment">// &#123;a: Object, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">34</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).slice(<span class="number">1</span>).toJS());<span class="comment">// &#123;b: 2, c: 3, d: 444&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、rest() butLast()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">/ List</span><br><span class="line"><span class="comment">// rest() 返回删除第一个元素后的 List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).rest().rest().toJS()); <span class="comment">// [&#123;a: 1&#125;, 3, 4, 5, 6]</span></span><br><span class="line"><span class="comment">// butLast() 返回删除最后一个元素后的 List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).butLast().toJS()); <span class="comment">// [1, &#123;a: 1&#125;, 3, 4, 5]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// rest() 返回删除第一个元素后的 Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).rest().rest().toJS()); <span class="comment">// &#123;c: 3, d: 444&#125;</span></span><br><span class="line"><span class="comment">// butLast() 返回删除最后一个元素后的 Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).butLast().toJS()); <span class="comment">// &#123;a: &#123;a1: 222&#125;, b: 2, c: 3&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、skip() skipLast() skipWhile() skipUntil()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skip(number)</span></span><br><span class="line"><span class="comment">// 从头按照条件抛出number个元素，对剩余元素进行截取</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).skip(<span class="number">2</span>).toJS()); <span class="comment">// [3, 4, 5, 6]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skipLast(number)</span></span><br><span class="line"><span class="comment">// 从尾部按照条件抛出number个元素，对剩余元素进行截取</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).skipLast(<span class="number">2</span>).toJS()); <span class="comment">// [1, &#123;a: 1&#125;, 3, 4]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skipWhile()</span></span><br><span class="line"><span class="comment">// 从头开始循环，抛出满足 return 条件===true 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">111</span>, <span class="number">33</span> , <span class="number">22</span>, <span class="number">44</span>, <span class="number">55</span>, <span class="number">66</span>]).skipWhile(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">31</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">// [22, 44, 55, 66]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skipUntil()</span></span><br><span class="line"><span class="comment">// 从头开始循环，抛出满足 return 条件===false 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">32</span>, <span class="number">33</span> , <span class="number">40</span>, <span class="number">44</span>, <span class="number">55</span>, <span class="number">66</span>]).skipWhile(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &lt; <span class="number">39</span>;<span class="comment">// 抛出直到小于39的元素。</span></span><br><span class="line">&#125;).toJS()); <span class="comment">// [40, 44, 55, 66]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// skip(number)</span></span><br><span class="line"><span class="comment">// 从头开始循环，抛出满足 return 条件===true 的元素。</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).skip(<span class="number">2</span>).toJS()); <span class="comment">// &#123;c: 3, d: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skipLast(number)</span></span><br><span class="line"><span class="comment">// 从尾部按照条件抛出number个元素，对剩余元素进行截取</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).skipLast(<span class="number">2</span>).toJS()); <span class="comment">// &#123;a: &#123;a1: 222&#125;, b: 2&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skipWhile()</span></span><br><span class="line"><span class="comment">// 从头开始循环，抛出满足 return 条件===true 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">1</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).skipWhile(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value === <span class="number">1</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">// &#123;b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// skipUntil()</span></span><br><span class="line"><span class="comment">// 从头开始循环，抛出满足 return 条件===false 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).skipWhile(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &lt; <span class="number">39</span>;<span class="comment">// 抛出直到小于39的元素。</span></span><br><span class="line">&#125;).toJS()); <span class="comment">// &#123;d: 444&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>4、take() takeLast() takeWhile() takeUntil()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// take(number)</span></span><br><span class="line"><span class="comment">// 从头获取几个复合条件的元素</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).take(<span class="number">2</span>).toJS()); <span class="comment">// [1, &#123;a: 1&#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// takeLast(number)</span></span><br><span class="line"><span class="comment">// 从尾部获取几个复合条件的元素</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, &#123;<span class="attr">a</span>: <span class="number">1</span>&#125;, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).takeLast(<span class="number">2</span>).toJS()); <span class="comment">// [5, 6]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// takeWhile()</span></span><br><span class="line"><span class="comment">// 从头开始循环，获取满足 return 条件===true 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">111</span>, <span class="number">33</span> , <span class="number">22</span>, <span class="number">44</span>, <span class="number">55</span>, <span class="number">66</span>]).takeWhile(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">31</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">//[111, 33]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// takeUntil()</span></span><br><span class="line"><span class="comment">// 从头开始循环，获取满足 return 条件===false 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">32</span>, <span class="number">33</span> , <span class="number">40</span>, <span class="number">44</span>, <span class="number">55</span>, <span class="number">66</span>]).takeUntil(<span class="function">(<span class="params">value, index, array</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">41</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">//[32, 33 , 40]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// take(number)</span></span><br><span class="line"><span class="comment">// 从头获取几个复合条件的元素</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).take(<span class="number">2</span>).toJS()); <span class="comment">// &#123;a: 5, b: 2&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// takeLast(number)</span></span><br><span class="line"><span class="comment">// 从尾部获取几个复合条件的元素</span></span><br><span class="line"><span class="comment">// 参数 数量</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).takeLast(<span class="number">2</span>).toJS()); <span class="comment">// &#123;c: 3, d: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// takeWhile()</span></span><br><span class="line"><span class="comment">// 从头开始循环，获取满足 return 条件===true 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).takeWhile(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">2</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">//&#123;a: 5&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// takeUntil()</span></span><br><span class="line"><span class="comment">// 从头开始循环，获取满足 return 条件===false 的元素。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).takeUntil(<span class="function">(<span class="params">value, key, obj</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">39</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">//&#123;a: 5, b: 2, c: 3&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="循环遍历"><a href="#循环遍历" class="headerlink" title="循环遍历"></a>循环遍历</h3><p><strong>1、map() filter() every() some() forEach() reduce() reduceRight()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">//1. map()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).map(<span class="function">(<span class="params">value, index, array</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">// [2, 4, 6, 8, 10]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//2. filter()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).filter(<span class="function">(<span class="params">value, index, array</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value % <span class="number">2</span> === <span class="number">0</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">// [2, 4]</span></span><br><span class="line"><span class="comment">// filterNot() ...这个没有什么卵用</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//3. every()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).every(<span class="function">(<span class="params">value, index, array</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">2</span>;</span><br><span class="line">&#125;)); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//4. some()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).some(<span class="function">(<span class="params">value, index, array</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">2</span>;</span><br><span class="line">&#125;)); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//5. forEach() 返回迭代的条目数（包括返回false的最后一个迭代）</span></span><br><span class="line"><span class="comment">// 与Array 的 forEach不同，如果sideEffect的任何调用返回false，迭代将停止。 返回迭代的条目数（包括返回false的最后一个迭代）。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, &#123;<span class="attr">a</span>: <span class="number">123</span>&#125;]).forEach(<span class="function">(<span class="params">value, index, array</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(value, index, array.toJS(), <span class="string">'forEach'</span>);</span><br><span class="line">    <span class="keyword">return</span> value &lt; <span class="number">5</span>;</span><br><span class="line">&#125;)); <span class="comment">// 5</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//6. reduce()</span></span><br><span class="line"><span class="comment">// 同原生用法</span></span><br><span class="line"><span class="comment">//7. reduceRight()</span></span><br><span class="line"><span class="comment">// 同原生用法</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">//1. map()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).map(<span class="function">(<span class="params">value, key, obj</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value * <span class="number">2</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">// &#123;a: 10, b: 4, c: 6, d: 888&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//2. filter()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).filter(<span class="function">(<span class="params">value, key, obj</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value % <span class="number">2</span> === <span class="number">0</span>;</span><br><span class="line">&#125;).toJS()); <span class="comment">// &#123;b: 2, d: 444&#125;</span></span><br><span class="line"><span class="comment">// filterNot() ...这个没有什么卵用</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//3. every()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).every(<span class="function">(<span class="params">value, key, obj</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">2</span>;</span><br><span class="line">&#125;)); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//4. some()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).some(<span class="function">(<span class="params">value, key, obj</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value &gt; <span class="number">2</span>;</span><br><span class="line">&#125;)); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//5. forEach() 返回迭代的条目数（包括返回false的最后一个迭代）</span></span><br><span class="line"><span class="comment">// 与Array 的 forEach不同，如果sideEffect的任何调用返回false，迭代将停止。 返回迭代的条目数（包括返回false的最后一个迭代）。</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).forEach(<span class="function">(<span class="params">value, key, obj</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> value &lt; <span class="number">444</span>;</span><br><span class="line">&#125;)); <span class="comment">// 4</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//6. reduce()</span></span><br><span class="line"><span class="comment">// 同原List用法</span></span><br><span class="line"><span class="comment">//7. reduceRight()</span></span><br><span class="line"><span class="comment">// 同List用法</span></span><br></pre></td></tr></table></figure>
+<h3 id="Map-特有-mapKeys-mapEntries"><a href="#Map-特有-mapKeys-mapEntries" class="headerlink" title="Map 特有 mapKeys() mapEntries()"></a>Map 特有 mapKeys() mapEntries()</h3><blockquote>
+<p>对<code>Map</code>元素进行处理，返回处理后的对象</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//mapKeys() 返回对象</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).mapKeys(<span class="function">(<span class="params">key</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> key + <span class="string">'hhh'</span>;</span><br><span class="line">&#125;).toJS());</span><br><span class="line"><span class="comment">// &#123;ahhh: 5, bhhh: 2, chhh: 3, dhhh: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//mapEntries() 返回对象</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">a</span>: <span class="number">5</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).mapEntries(<span class="function">(<span class="params">[key, value]</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> [key + <span class="string">'aaa'</span>, value+<span class="string">'hhhh'</span>];</span><br><span class="line">&#125;).toJS());<span class="comment">//   &#123;aaaa: "5hhhh", baaa: "2hhhh", caaa: "3hhhh", daaa: "444hhhh"&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="merge"><a href="#merge" class="headerlink" title="merge"></a>merge</h3><p><strong>merge() mergeDeep() mergeWith() mergeDeepWith()</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">const</span> $test = Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">7</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">55</span>, <span class="attr">c</span>: <span class="number">66</span>&#125;&#125;]);</span><br><span class="line"><span class="keyword">const</span> $test1 = Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">6</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: <span class="number">333</span>, <span class="attr">d</span>: <span class="number">67</span>&#125;&#125;]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 浅merge</span></span><br><span class="line"><span class="built_in">console</span>.log($test.merge($test1).toJS(), $test.toJS());</span><br><span class="line"><span class="comment">// $test1 -&gt; $test [1, 2, 3, 6, &#123;b: 333, d: 67&#125;] [1, 2, 3, 7, &#123;a: &#123;b: 55, c: 66&#125;&#125;]</span></span><br><span class="line"><span class="comment">// 深merge</span></span><br><span class="line"><span class="built_in">console</span>.log($test.mergeDeep($test1).toJS(), $test.toJS());</span><br><span class="line"><span class="comment">// $test1 -&gt; $test [1, 2, 3, 6, &#123;b: 333, c: 66, d: 67&#125;] [1, 2, 3, 7, &#123;a: &#123;b: 55, c: 66&#125;&#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 浅merge自定义merge规则</span></span><br><span class="line"><span class="built_in">console</span>.log($test.mergeWith(<span class="function">(<span class="params">prev, next</span>)=&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义转换</span></span><br><span class="line">    <span class="keyword">return</span> prev;</span><br><span class="line">&#125;, $test1).toJS(), $test1.toJS());</span><br><span class="line"><span class="comment">// 深merge自定义merge规则</span></span><br><span class="line"><span class="built_in">console</span>.log($test.mergeDeepWith(<span class="function">(<span class="params">prev, next</span>)=&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义转换</span></span><br><span class="line">    <span class="keyword">return</span> prev;</span><br><span class="line">&#125;, $test1).toJS(), $test1.toJS());</span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="keyword">const</span> $test = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"><span class="keyword">const</span> $test1 = Immutable.fromJS(&#123;<span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a2</span>: <span class="number">234</span>&#125;, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 浅merge</span></span><br><span class="line"><span class="built_in">console</span>.log($test.merge($test1).toJS(), $test.toJS());</span><br><span class="line"><span class="comment">// $test1 -&gt; $test &#123;a: &#123;a1: 222, a2: 234&#125;, b: 2, c: 3, d: 444&#125; &#123;a: &#123;a1: 222, a3: 456&#125;, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"><span class="comment">// 深merge</span></span><br><span class="line"><span class="built_in">console</span>.log($test.mergeDeep($test1).toJS(), $test.toJS());</span><br><span class="line"><span class="comment">// $test1 -&gt; $test &#123;a: &#123;a1: 222, a2: 234, a3: 456&#125;, b: 2, c: 3, d: 444&#125; &#123;a: &#123;a1: 222, a3: 456&#125;, b: 2, c: 3, d: 444&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 浅merge自定义merge规则</span></span><br><span class="line"><span class="built_in">console</span>.log($test.mergeWith(<span class="function">(<span class="params">prev, next</span>)=&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义转换</span></span><br><span class="line">    <span class="keyword">return</span> prev;</span><br><span class="line">&#125;, $test1).toJS(), $test1.toJS());</span><br><span class="line"><span class="comment">// 深merge自定义merge规则</span></span><br><span class="line"><span class="built_in">console</span>.log($test.mergeDeepWith(<span class="function">(<span class="params">prev, next</span>)=&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 自定义转换</span></span><br><span class="line">    <span class="keyword">return</span> prev;</span><br><span class="line">&#125;, $test1).toJS(), $test1.toJS());</span><br></pre></td></tr></table></figure>
+<h3 id="jonin-转换为字符串"><a href="#jonin-转换为字符串" class="headerlink" title="jonin() 转换为字符串"></a>jonin() 转换为字符串</h3><blockquote>
+<p>使用方式和原生<code>Array</code>的<code>join()</code>一样</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: <span class="number">123</span>, <span class="attr">b</span>: <span class="number">321</span>&#125;]).join()); <span class="comment">// 1,2,3,Map &#123; "a": 123, "b": 321 &#125;</span></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).join()); <span class="comment">// 2,Map &#123; "a1": 222, "a3": 456 &#125;,3,444</span></span><br></pre></td></tr></table></figure>
+<h3 id="isEmpty-判空"><a href="#isEmpty-判空" class="headerlink" title="isEmpty() 判空"></a>isEmpty() 判空</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 判断空List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([]).isEmpty()); <span class="comment">// true</span></span><br><span class="line"><span class="comment">// 判断Map是否为空 比原生方便</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;&#125;).isEmpty()); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<h3 id="has-hasIn-检查是否有某个key"><a href="#has-hasIn-检查是否有某个key" class="headerlink" title="has() hasIn() 检查是否有某个key"></a>has() hasIn() 检查是否有某个key</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: <span class="number">123</span>, <span class="attr">b</span>: <span class="number">321</span>&#125;]).has(<span class="string">'0'</span>)); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, &#123;<span class="attr">a</span>: <span class="number">123</span>, <span class="attr">b</span>: <span class="number">321</span>&#125;]).hasIn([<span class="number">3</span>, <span class="string">'b'</span>])); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).has(<span class="string">'a'</span>)); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">444</span>&#125;).hasIn([<span class="string">'a'</span>, <span class="string">'a3'</span>])); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<h3 id="includes-是否包含某些元素"><a href="#includes-是否包含某些元素" class="headerlink" title="includes() 是否包含某些元素"></a>includes() 是否包含某些元素</h3><blockquote>
+<p><code>includes()</code>、<code>contains()</code>这俩等效</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// 对象是否包含某个元素，对Immutable元素使用Immutable.is 进行比较</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">89</span>]).includes(<span class="string">'89'</span>));<span class="comment">// 数组没有字符89，所以返回 false</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="string">'89'</span>]).contains(<span class="string">'89'</span>));<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>, Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>])]).contains(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>])));<span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// 对象是否包含某个元素，对Immutable元素使用Immutable.is 进行比较</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">89</span>&#125;).includes(<span class="string">'89'</span>));<span class="comment">// 数组没有字符89，所以返回 false</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="string">'89'</span>&#125;).contains(<span class="string">'89'</span>));<span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>])&#125;).contains(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>])));<span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<h3 id="isSubset-子集判断"><a href="#isSubset-子集判断" class="headerlink" title="isSubset() 子集判断"></a>isSubset() 子集判断</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// isSubset()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">1</span>, [<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>]]).isSubset(Immutable.fromJS([[<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>], <span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="string">'89'</span>])));<span class="comment">// true</span></span><br><span class="line"><span class="comment">// isSuperset 就是 isSubset 参数掉个个儿</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([[<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>], <span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="string">'89'</span>]).isSuperset(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">1</span>, [<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>]])));<span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// isSubset()</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;&#125;).isSubset(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;)));<span class="comment">// true</span></span><br><span class="line"><span class="comment">// isSuperset 就是 isSubset 参数掉个个儿</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).isSuperset(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;&#125;)));<span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<h3 id="reverse-反转"><a href="#reverse-反转" class="headerlink" title="reverse() 反转"></a>reverse() 反转</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).reverse().toJS());</span><br><span class="line"><span class="comment">// [6, 5, 4, 3, 2, 1]</span></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: <span class="number">222</span>, <span class="attr">a3</span>: <span class="number">456</span>&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).reverse().toJS());</span><br><span class="line"><span class="comment">// &#123;d: 5, c: 3, a: &#123;a1: 222, a3: 456&#125;, b: 2&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h3><blockquote>
+<p><code>sort()</code>和<code>sortBy()</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// sort(comparator?: (valueA: V, valueB: V) =&gt; number): Iterable&lt;K, V&gt;</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">6</span>, <span class="number">5</span>, <span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]).sort().toJS());</span><br><span class="line"><span class="comment">// 传入比较函数</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]).sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (a &lt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a &gt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a === b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).toJS());</span><br><span class="line"><span class="comment">// sortBy</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    sortBy&lt;C&gt;(</span></span><br><span class="line"><span class="comment">    comparatorValueMapper: (value: T, key: number, iter: Iterable&lt;number, T&gt;) =&gt; C,</span></span><br><span class="line"><span class="comment">    comparator?: (valueA: C, valueB: C) =&gt; number</span></span><br><span class="line"><span class="comment">    ): Iterable&lt;number, T&gt;</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([&#123;<span class="attr">a</span>: <span class="number">1</span>, <span class="attr">b</span>: &#123;<span class="attr">c</span>: <span class="number">22</span>&#125;&#125;, &#123;<span class="attr">a</span>: <span class="number">2</span>, <span class="attr">b</span>: &#123;<span class="attr">c</span>: <span class="number">22</span>&#125;&#125;, &#123;<span class="attr">a</span>: <span class="number">1</span>, <span class="attr">b</span>: &#123;<span class="attr">c</span>: <span class="number">22</span>&#125;&#125;,</span><br><span class="line">    &#123;<span class="attr">a</span>: <span class="number">3</span>, <span class="attr">b</span>: &#123;<span class="attr">c</span>: <span class="number">22</span>&#125;&#125;, &#123;<span class="attr">a</span>: <span class="number">10</span>, <span class="attr">b</span>: &#123;<span class="attr">c</span>: <span class="number">22</span>&#125;&#125;, &#123;<span class="attr">a</span>: <span class="number">9</span>, <span class="attr">b</span>: &#123;<span class="attr">c</span>: <span class="number">22</span>&#125;&#125;]).sortBy(<span class="function">(<span class="params">value, index, array</span>)=&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a'</span>)</span><br><span class="line">&#125;,(a, b) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (a &lt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a &gt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a === b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).toJS());</span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: <span class="number">88</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).sort().toJS());<span class="comment">// &#123;b: 2, c: 3, d: 5, a: 88&#125;</span></span><br><span class="line"><span class="comment">// 传入比较函数</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: <span class="number">88</span>, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (a &lt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a &gt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a === b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;b: 2, c: 3, d: 5, a: 88&#125;</span></span><br><span class="line"><span class="comment">// sortBy</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">sortBy&lt;C&gt;(</span></span><br><span class="line"><span class="comment">comparatorValueMapper: (value: T, key: number, iter: Iterable&lt;number, T&gt;) =&gt; C,</span></span><br><span class="line"><span class="comment">comparator?: (valueA: C, valueB: C) =&gt; number</span></span><br><span class="line"><span class="comment">): Iterable&lt;number, T&gt;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: &#123;<span class="attr">a</span>: <span class="number">2</span>&#125;, <span class="attr">a</span>: &#123;<span class="attr">a</span>: <span class="number">88</span>&#125;, <span class="attr">c</span>: &#123;<span class="attr">a</span>: <span class="number">3</span>&#125;, <span class="attr">d</span>: &#123;<span class="attr">a</span>: <span class="number">5</span>&#125;&#125;).sortBy(<span class="function">(<span class="params">value, key, obj</span>)=&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a'</span>)</span><br><span class="line">&#125;,(a, b) =&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> (a &lt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a &gt; b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (a === b) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).toJS());<span class="comment">// &#123;b: &#123;a: 2&#125;, c: &#123;a: 3&#125;, d: &#123;a: 5&#125;, a: &#123;a: 88&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="flatten-平铺"><a href="#flatten-平铺" class="headerlink" title="flatten() 平铺"></a>flatten() 平铺</h3><blockquote>
+<p>参数默认情况下，<code>false</code> 深度平铺，<code>true</code> 浅度平铺1层</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, [<span class="number">1</span>, <span class="number">11</span>, <span class="number">111</span>, <span class="number">12344</span>], &#123;<span class="attr">a</span>: <span class="number">1234</span>, <span class="attr">b</span>: &#123;<span class="attr">bb</span>: [<span class="number">777</span>, <span class="number">888</span>]&#125;&#125;, <span class="number">5</span>, <span class="number">6</span>]).flatten().toJS());</span><br><span class="line"><span class="comment">// [1, 2, 3, 4, 1, 11, 111, 12344, 1234, 777, 888, 5, 6]</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, [<span class="number">1</span>, <span class="number">11</span>, <span class="number">111</span>, <span class="number">12344</span>], &#123;<span class="attr">a</span>: <span class="number">1234</span>, <span class="attr">b</span>: &#123;<span class="attr">bb</span>: [<span class="number">777</span>, <span class="number">888</span>]&#125;&#125;, <span class="number">5</span>, <span class="number">6</span>]).flatten(<span class="literal">true</span>).toJS());</span><br><span class="line"><span class="comment">// [1, 2, 3, 4, 1, 11, 111, 12344, 1234, Object, 5, 6]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">a3</span>: [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).flatten().toJS());</span><br><span class="line"><span class="comment">// &#123;0: 1, 1: 2, 2: 3, b: 2, a5: 333, c: 3, d: 5&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">a3</span>: [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).flatten(<span class="literal">true</span>).toJS());</span><br><span class="line"><span class="comment">// &#123;b: 2, a1: Object, a3: Array[3], c: 3, d: 5&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="groupBy-分组"><a href="#groupBy-分组" class="headerlink" title="groupBy() 分组"></a>groupBy() 分组</h3><blockquote>
+<p>返回值是<code>OrderedMap</code></p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([&#123;<span class="attr">v</span>: <span class="number">0</span>, <span class="attr">a</span>: <span class="number">111</span>&#125;, &#123;<span class="attr">v</span>: <span class="number">1</span>, <span class="attr">a</span>: &#123;<span class="attr">b</span>: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]&#125;&#125;, &#123;<span class="attr">v</span>: <span class="number">1</span>, <span class="attr">a</span>: <span class="number">333</span>&#125;, &#123;<span class="attr">v</span>: <span class="number">0</span>, <span class="attr">a</span>: &#123;<span class="attr">b</span>: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]&#125;&#125;, &#123;<span class="attr">v</span>: <span class="number">1</span>, <span class="attr">a</span>: <span class="number">333</span>&#125;]).groupBy(<span class="function">(<span class="params">value</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a'</span>)</span><br><span class="line">&#125;).toJS());</span><br><span class="line"><span class="comment">// OrderedMap &#123;111: Array[1], 333: Array[2], Map &#123; "b": List [ 1, 2, 3 ] &#125;: Array[2]&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">a</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">c</span>: &#123;<span class="attr">a5</span>: <span class="number">334</span>&#125;, <span class="attr">d</span>: &#123;<span class="attr">a5</span>: <span class="number">334</span>&#125;&#125;).groupBy(<span class="function">(<span class="params">value</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> value.get(<span class="string">'a5'</span>)</span><br><span class="line">&#125;).toJS());</span><br><span class="line"><span class="comment">// OrderedMap  &#123;333: &#123;b: &#123;a5: 333&#125;, a: &#123;a5: 333&#125;&#125;, 334: &#123;c: &#123;a5: 334&#125;, d: &#123;a5: 334&#125;&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="flip-Map-特有翻转"><a href="#flip-Map-特有翻转" class="headerlink" title="flip() Map 特有翻转"></a>flip() Map 特有翻转</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="string">'b1'</span>, <span class="attr">a</span>: <span class="string">'a1'</span>, <span class="attr">c</span>: <span class="string">'c1'</span>, <span class="attr">d</span>: <span class="string">'d1'</span>&#125;).flip().toJS()); <span class="comment">// &#123;b1: "b", a1: "a", c1: "c", d1: "d"&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="连接-concat"><a href="#连接-concat" class="headerlink" title="连接 concat()"></a>连接 concat()</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="keyword">const</span> $test1 = Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>]);</span><br><span class="line"><span class="keyword">const</span> $test2 = Immutable.fromJS([<span class="number">111</span>, <span class="number">222</span>, <span class="number">333</span>, <span class="number">444</span>, <span class="number">555</span>, <span class="number">666</span>]);</span><br><span class="line"><span class="built_in">console</span>.log($test1.concat($test2).toJS()); <span class="comment">//[1, 2, 3, 4, 5, 6, 111, 222, 333, 444, 555, 666]</span></span><br><span class="line"><span class="built_in">console</span>.log($test1.toJS(), $test2.toJS()); <span class="comment">//[1, 2, 3, 4, 5, 6] [111, 222, 333, 444, 555, 666]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="keyword">const</span> $test1 = Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">a3</span>: [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;);</span><br><span class="line"><span class="keyword">const</span> $test2 = Immutable.fromJS(&#123;<span class="attr">b1</span>: <span class="number">22</span>, <span class="attr">b</span>: <span class="number">34</span>&#125;);</span><br><span class="line"><span class="built_in">console</span>.log($test1.concat($test2).toJS()); <span class="comment">//&#123;b: 34, a: Object, c: 3, d: 5, b1: 22&#125; 属性 b 被覆盖</span></span><br><span class="line"><span class="built_in">console</span>.log($test1.toJS(), $test2.toJS()); <span class="comment">//&#123;b: 2, a: &#123;a1: &#123;a5: 333&#125;, c: 3, d: 5&#125; b1: 22, b: 34&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="类型转换"><a href="#类型转换" class="headerlink" title="类型转换"></a>类型转换</h3><p><strong>1、转换为原生类型</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// List</span></span><br><span class="line"><span class="comment">// 浅层</span></span><br><span class="line"><span class="comment">// toArray</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: [<span class="number">1234</span>, <span class="number">22</span>]&#125;&#125;]).toArray());<span class="comment">// [1, 2, 3, 4, 5, 6, Map]</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, [<span class="number">1234</span>, <span class="number">22</span>]]).toArray());<span class="comment">// [1, 2, 3, 4, 5, 6, List]</span></span><br><span class="line"><span class="comment">// toObject</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, &#123;<span class="attr">a</span>: &#123;<span class="attr">b</span>: [<span class="number">1234</span>, <span class="number">22</span>]&#125;&#125;]).toObject());<span class="comment">// &#123;0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: Map&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, [<span class="number">1234</span>, <span class="number">22</span>]]).toObject());<span class="comment">// &#123;0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: List&#125;</span></span><br><span class="line"><span class="comment">//深层</span></span><br><span class="line"><span class="comment">// 就是一直在用的 toJS(); 不到万不得已，尽量不用。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Map</span></span><br><span class="line"><span class="comment">// 浅层</span></span><br><span class="line"><span class="comment">// toArray</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">a3</span>: [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).toArray());<span class="comment">// [2, Map, 3, 5]</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>], <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).toArray());<span class="comment">// [2, List, 3, 5]</span></span><br><span class="line"><span class="comment">// toObject</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: &#123;<span class="attr">a1</span>: &#123;<span class="attr">a5</span>: <span class="number">333</span>&#125;, <span class="attr">a3</span>: [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]&#125;, <span class="attr">c</span>: <span class="number">3</span>, <span class="attr">d</span>: <span class="number">5</span>&#125;).toObject());<span class="comment">// &#123;b: 2, a: Map, c: 3, d: 5&#125;</span></span><br><span class="line"><span class="built_in">console</span>.log(Immutable.fromJS(&#123;<span class="attr">b</span>: <span class="number">2</span>, <span class="attr">a</span>: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>]&#125;).toObject());<span class="comment">// &#123;b: 2, a: List&#125;</span></span><br><span class="line"><span class="comment">//深层</span></span><br><span class="line"><span class="comment">// 就是一直在用的 toJS(); 不到万不得已，尽量不用。</span></span><br></pre></td></tr></table></figure>
+<p><strong>2、转换为其他ImmutableJS数据类型</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// toMap()</span></span><br><span class="line"><span class="comment">// toOrderedMap()</span></span><br><span class="line"><span class="comment">// toSet()</span></span><br><span class="line"><span class="comment">// toOrderedSet()</span></span><br><span class="line"><span class="comment">// toList()</span></span><br><span class="line"><span class="comment">// toStack()</span></span><br></pre></td></tr></table></figure>
+<h2 id="七、和React-Redux-架构的结合"><a href="#七、和React-Redux-架构的结合" class="headerlink" title="七、和React Redux 架构的结合"></a>七、和React Redux 架构的结合</h2><blockquote>
+<p>利用 <code>immutable.js</code> 不可变的特性，可以极大的优化<code>React render</code>的冗余执行。<code>React</code> 官方提供的<code>PureRenderMixin</code>是浅比较</p>
+</blockquote>
+<p><strong>1、immutable-pure-render-decorator</strong></p>
+<blockquote>
+<p>专门针对<code>immutable</code>的<code>PureRenderMixin</code>，用来装饰<code>React</code>组件</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;React&#125; <span class="keyword">from</span> <span class="string">'base'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> pureRenderDecorator <span class="keyword">from</span> <span class="string">'../../../widgets/libs/immutable-pure-render-decorator'</span>;</span><br><span class="line"></span><br><span class="line">@pureRenderDecorator</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">PartA</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>(props) &#123;</span><br><span class="line">        <span class="keyword">super</span>(props);</span><br><span class="line">        <span class="comment">// 舍弃React.addons.PureRenderMixin</span></span><br><span class="line">        <span class="comment">// this.shouldComponentUpdate = React.addons.PureRenderMixin.shouldComponentUpdate.bind(this);</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    render() &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'组件PartA，render执行了'</span>);</span><br><span class="line">        <span class="keyword">const</span> data = <span class="keyword">this</span>.props.data;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            &lt;section&gt;</span><br><span class="line">                &lt;div&gt;</span><br><span class="line">                    &lt;p&gt;我是组件PartA&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">                    &lt;p&gt;&#123;data.toJSON ? JSON.stringify(data.toJSON()) : data&#125;&lt;/</span>p&gt;</span><br><span class="line">                &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">            &lt;/</span>section&gt;</span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>2、优化shouldComponentUpdate()</strong></p>
+<blockquote>
+<p>我们都知道官方提供的<code>React.addons.PureRenderMixin</code>提供的<code>shouldComponentUpdate()</code>，只能进行浅比较，对于引用类型<code>Object</code>、<code>Array</code>比较无力，而如果使用<code>Immutable</code>的<code>Map</code>和<code>List</code>替换<code>Object</code>、<code>Array</code>，则可以使用<code>Immutable.is()</code>来比较两个引用类型，从而补充了<code>React.addons.PureRenderMixin</code>的漏洞。</p>
+</blockquote>
+<p><strong>3、高阶组件封装</strong></p>
+<blockquote>
+<p>对于使用<code>immutable.js</code>的项目，在应用公共组件的时候，由于公共组件的内部实现一定是原<code>生</code>JS<code>数据，所以我们只能传递原生</code>JS<code>数据到公共组件，但是如果转换成了原生</code>JS<code>数据，就又会出现&quot;</code>React.addons.PureRenderMixin<code>提供的</code>shouldComponentUpdate()`是浅比较”问题，对此可以使用下面的高阶组件进行封装</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;React&#125; <span class="keyword">from</span> <span class="string">'base'</span>;</span><br><span class="line"><span class="comment">// 通过Immutable.is 封装过的 shouldComponentUpdate</span></span><br><span class="line"><span class="keyword">import</span> &#123;shouldComponentUpdate&#125; <span class="keyword">from</span> <span class="string">'../immutable-pure-render-decorator'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> ComposedComponent =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="class"><span class="keyword">class</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">        <span class="keyword">constructor</span>(props) &#123;</span><br><span class="line">            <span class="keyword">super</span>(props);</span><br><span class="line">            <span class="keyword">this</span>.shouldComponentUpdate = shouldComponentUpdate.bind(<span class="keyword">this</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        render() &#123;</span><br><span class="line">            <span class="keyword">const</span> props = <span class="keyword">this</span>.props.toJS ? <span class="keyword">this</span>.props.toJS() : <span class="keyword">this</span>.props;</span><br><span class="line">            <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">ComposedComponent</span> &#123;<span class="attr">...this.props</span>&#125; &#123;<span class="attr">...props</span>&#125; /&gt;</span>;</span></span><br><span class="line"><span class="xml">        &#125;</span></span><br><span class="line"><span class="xml">    &#125;</span></span><br><span class="line"><span class="xml">&#125;;</span></span><br></pre></td></tr></table></figure>
+<p><strong>3、Demo</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;React&#125; <span class="keyword">from</span> <span class="string">'base'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; connect &#125; <span class="keyword">from</span> <span class="string">'react-redux'</span>;</span><br><span class="line"><span class="keyword">import</span> highComponent <span class="keyword">from</span> <span class="string">'../../../../widgets/libs/utils/highComponent'</span>;</span><br><span class="line"><span class="keyword">import</span> actions <span class="keyword">from</span> <span class="string">'../../actions'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 公共组件</span></span><br><span class="line"><span class="keyword">import</span> Dialog <span class="keyword">from</span> <span class="string">'@alife/dialog'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// import Immutable from 'immutable';</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">mapStateToProps</span>(<span class="params">state</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        open: state.getIn([<span class="string">'dialog'</span>, <span class="string">'open'</span>]),</span><br><span class="line">        title: state.getIn([<span class="string">'dialog'</span>, <span class="string">'title'</span>])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">mapDispatchToProps</span>(<span class="params">dispatch</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        onPrimaryTouchTap: <span class="function"><span class="params">()</span>=&gt;</span> &#123;</span><br><span class="line">            dispatch(actions.toggleDialog(<span class="literal">false</span>));</span><br><span class="line">        &#125;,</span><br><span class="line">        onSecondaryTouchTap: <span class="function"><span class="params">()</span>=&gt;</span> &#123;</span><br><span class="line">            dispatch(actions.toggleDialog(<span class="literal">false</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> connect(mapStateToProps, mapDispatchToProps)(highComponent(Dialog))<span class="comment">//通过高阶组件封装</span></span><br></pre></td></tr></table></figure>
+<h2 id="八、思维导图总结API"><a href="#八、思维导图总结API" class="headerlink" title="八、思维导图总结API"></a>八、思维导图总结API</h2><ul>
+<li><a href="https://www.processon.com/view/link/5a12c0ede4b0d53d979b33da" target="_blank" rel="noopener">https://www.processon.com/view/link/5a12c0ede4b0d53d979b33da</a></li>
+</ul>
+<h2 id="九、更多参考"><a href="#九、更多参考" class="headerlink" title="九、更多参考"></a>九、更多参考</h2><ul>
+<li>facebook.github.io/immutable-js/docs/</li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/11/20/react-study-router-4-xx/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/12/24/js-api/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

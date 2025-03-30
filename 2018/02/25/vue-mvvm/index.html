@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>实现数据的双向绑定mvvm-剖析Vue的原理 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="MVVM,">
+  
+
+  <meta name="description" content="完成的效果  &amp;lt;div id=&quot;mvvm-app&quot;&amp;gt;    &amp;lt;input type=&quot;text&quot; v-model=&quot;word&quot;&amp;gt;    &amp;lt;p&amp;gt;&amp;#123;&amp;#123;word&amp;#125;&amp;#125;&amp;lt;/p&amp;gt;    &amp;lt;button v-on:click=&quot;sayHi&quot;&amp;gt;change model&amp;lt;/button&amp;gt;&amp;lt;/div">
+<meta name="keywords" content="MVVM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实现数据的双向绑定mvvm-剖析Vue的原理">
+<meta property="og:url" content="http://blog.poetries.top/2018/02/25/vue-mvvm/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="完成的效果  &amp;lt;div id=&quot;mvvm-app&quot;&amp;gt;    &amp;lt;input type=&quot;text&quot; v-model=&quot;word&quot;&amp;gt;    &amp;lt;p&amp;gt;&amp;#123;&amp;#123;word&amp;#125;&amp;#125;&amp;lt;/p&amp;gt;    &amp;lt;button v-on:click=&quot;sayHi&quot;&amp;gt;change model&amp;lt;/button&amp;gt;&amp;lt;/div">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/1.gif">
+<meta property="og:image" content="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/2.png">
+<meta property="og:image" content="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/3.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.506Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="实现数据的双向绑定mvvm-剖析Vue的原理">
+<meta name="twitter:description" content="完成的效果  &amp;lt;div id=&quot;mvvm-app&quot;&amp;gt;    &amp;lt;input type=&quot;text&quot; v-model=&quot;word&quot;&amp;gt;    &amp;lt;p&amp;gt;&amp;#123;&amp;#123;word&amp;#125;&amp;#125;&amp;lt;/p&amp;gt;    &amp;lt;button v-on:click=&quot;sayHi&quot;&amp;gt;change model&amp;lt;/button&amp;gt;&amp;lt;/div">
+<meta name="twitter:image" content="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/1.gif">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、几种实现双向绑定的做法"><span class="toc-text">一、几种实现双向绑定的做法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-发布者-订阅者模式"><span class="toc-text">1.1 发布者-订阅者模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-脏值检查"><span class="toc-text">1.2 脏值检查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-数据劫持"><span class="toc-text">1.3 数据劫持</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、实现思路"><span class="toc-text">二、实现思路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-实现Observer"><span class="toc-text">2.1 实现Observer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-实现Compile"><span class="toc-text">2.2 实现Compile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-实现Watcher"><span class="toc-text">2.3 实现Watcher</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、实现MVVM"><span class="toc-text">三、实现MVVM</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-vue-mvvm" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">实现数据的双向绑定mvvm-剖析Vue的原理</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.02.25</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 13分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>完成的效果</p>
+</blockquote>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"mvvm-app"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">v-model</span>=<span class="string">"word"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123;word&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> <span class="attr">v-on:click</span>=<span class="string">"sayHi"</span>&gt;</span>change model<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"observer.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"watcher.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"compile.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"mvvm.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="keyword">var</span> vm = <span class="keyword">new</span> MVVM(&#123;</span></span><br><span class="line"><span class="javascript">    el: <span class="string">'#mvvm-app'</span>,</span></span><br><span class="line">    data: &#123;</span><br><span class="line"><span class="javascript">        word: <span class="string">'Hello World!'</span></span></span><br><span class="line">    &#125;,</span><br><span class="line">    methods: &#123;</span><br><span class="line"><span class="javascript">        sayHi: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">            <span class="keyword">this</span>.word = <span class="string">'Hi, everybody!'</span>;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/1.gif" alt></p>
+<h2 id="一、几种实现双向绑定的做法"><a href="#一、几种实现双向绑定的做法" class="headerlink" title="一、几种实现双向绑定的做法"></a>一、几种实现双向绑定的做法</h2><blockquote>
+<p>目前几种主流的<code>mvc(vm)</code>框架都实现了单向数据绑定，而我所理解的双向数据绑定无非就是在单向绑定的基础上给可输入元素（<code>input</code>、<code>textare</code>等）添加了<code>change(input)</code>事件，来动态修改<code>model</code>和 <code>view</code>，并没有多高深。所以无需太过介怀是实现的单向或双向绑定。</p>
+</blockquote>
+<ul>
+<li>发布者-订阅者模式（<code>backbone.js</code>）</li>
+<li>脏值检查（<code>angular.js</code>） </li>
+<li>数据劫持（<code>vue.js</code>） </li>
+</ul>
+<h3 id="1-1-发布者-订阅者模式"><a href="#1-1-发布者-订阅者模式" class="headerlink" title="1.1 发布者-订阅者模式"></a>1.1 发布者-订阅者模式</h3><ul>
+<li>一般通过<code>sub</code>, <code>pub</code>的方式实现数据和视图的绑定监听，更新数据方式通常做法是 <code>vm.set(&#39;property&#39;, value)</code>，<a href="http://www.html-js.com/article/Study-of-twoway-data-binding-JavaScript-talk-about-JavaScript-every-day" target="_blank" rel="noopener">这里有篇文章讲的比较详细</a></li>
+<li>这种方式现在毕竟太low了，我们更希望通过 <code>vm.property = value</code>这种方式更新数据，同时自动更新视图，于是有了下面两种方式</li>
+</ul>
+<h3 id="1-2-脏值检查"><a href="#1-2-脏值检查" class="headerlink" title="1.2 脏值检查"></a>1.2 脏值检查</h3><blockquote>
+<p><code>angular.js</code> 是通过脏值检测的方式比对数据是否有变更，来决定是否更新视图，最简单的方式就是通过 <code>setInterval()</code> 定时轮询检测数据变动，当然Google不会这么low，angular只有在指定的事件触发时进入脏值检测，大致如下：</p>
+</blockquote>
+<ul>
+<li><code>DOM</code>事件，譬如用户输入文本，点击按钮等。( <code>ng-click</code> ) </li>
+<li><code>XHR</code>响应事件 ( <code>$http</code> ) </li>
+<li>浏览器<code>Location</code>变更事件 ( <code>$location</code> ) </li>
+<li><code>Timer</code>事件( <code>$timeout</code> , <code>$interval</code> ) </li>
+<li>执行 <code>$digest()</code> 或 <code>$apply()</code></li>
+</ul>
+<h3 id="1-3-数据劫持"><a href="#1-3-数据劫持" class="headerlink" title="1.3 数据劫持"></a>1.3 数据劫持</h3><ul>
+<li><code>vue.js</code>则是采用数据劫持结合发布者-订阅者模式的方式，通过<code>Object.defineProperty()</code>来劫持各个属性的<code>setter</code>，<code>getter</code>，在数据变动时发布消息给订阅者，触发相应的监听回调。</li>
+</ul>
+<h2 id="二、实现思路"><a href="#二、实现思路" class="headerlink" title="二、实现思路"></a>二、实现思路</h2><blockquote>
+<p>已经了解到<code>vue</code>是通过数据劫持的方式来做数据绑定的，其中最核心的方法便是通过<code>Object.defineProperty()</code>来实现对属性的劫持，达到监听数据变动的目的，无疑这个方法是本文中最重要、最基础的内容之一，如果不熟悉<code>defineProperty</code>，猛戳<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty" target="_blank" rel="noopener">这里</a></p>
+</blockquote>
+<p><strong>要实现mvvm的双向绑定，就必须要实现以下几点</strong></p>
+<ul>
+<li>实现一个数据监听器<code>Observer</code>，能够对数据对象的所有属性进行监听，如有变动可拿到最新值并通知订阅者</li>
+<li>实现一个指令解析器<code>Compile</code>，对每个元素节点的指令进行扫描和解析，根据指令模板替换数据，以及绑定相应的更新函数</li>
+<li>实现一个<code>Watcher</code>，作为连接<code>Observer</code>和<code>Compile</code>的桥梁，能够订阅并收到每个属性变动的通知，执行指令绑定的相应回调函数，从而更新视图</li>
+<li><code>mvvm</code>入口函数，整合以上三者</li>
+</ul>
+<p>上述流程如图所示：</p>
+<p><img src="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/2.png" alt></p>
+<h3 id="2-1-实现Observer"><a href="#2-1-实现Observer" class="headerlink" title="2.1 实现Observer"></a>2.1 实现Observer</h3><ul>
+<li>我们知道可以利用<code>Obeject.defineProperty()</code>来监听属性变动</li>
+<li>那么将需要<code>observe</code>的数据对象进行递归遍历，包括子属性对象的属性，都加上<code>setter</code>和<code>getter</code></li>
+<li>这样的话，给这个对象的某个值赋值，就会触发<code>setter</code>，那么就能监听到了数据变化。相关代码可以是这样</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> data = &#123;<span class="attr">name</span>: <span class="string">'kindeng'</span>&#125;;</span><br><span class="line">observe(data);</span><br><span class="line">data.name = <span class="string">'dmq'</span>; <span class="comment">// 哈哈哈，监听到值变化了 kindeng --&gt; dmq</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">observe</span>(<span class="params">data</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!data || <span class="keyword">typeof</span> data !== <span class="string">'object'</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 取出所有属性遍历</span></span><br><span class="line">    <span class="built_in">Object</span>.keys(data).forEach(<span class="function"><span class="keyword">function</span>(<span class="params">key</span>) </span>&#123;</span><br><span class="line">	    defineReactive(data, key, data[key]);</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">defineReactive</span>(<span class="params">data, key, val</span>) </span>&#123;</span><br><span class="line">    observe(val); <span class="comment">// 监听子属性</span></span><br><span class="line">    <span class="built_in">Object</span>.defineProperty(data, key, &#123;</span><br><span class="line">        enumerable: <span class="literal">true</span>, <span class="comment">// 可枚举</span></span><br><span class="line">        configurable: <span class="literal">false</span>, <span class="comment">// 不能再define</span></span><br><span class="line">        <span class="keyword">get</span>: function() &#123;</span><br><span class="line">            <span class="keyword">return</span> val;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="keyword">set</span>: function(newVal) &#123;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'哈哈哈，监听到值变化了 '</span>, val, <span class="string">' --&gt; '</span>, newVal);</span><br><span class="line">            val = newVal;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>完整代码 <a href="https://github.com/poetries/mvvm/blob/master/observer.js" target="_blank" rel="noopener">https://github.com/poetries/mvvm/blob/master/observer.js</a></li>
+</ul>
+<blockquote>
+<p>这样我们已经可以监听每个数据的变化了，那么监听到变化之后就是怎么通知订阅者了，所以接下来我们需要实现一个消息订阅器，很简单，维护一个数组，用来收集订阅者，数据变动触发<code>notify</code>，再调用订阅者的<code>update</code>方法，代码改善之后是这样</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ... 省略</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">defineReactive</span>(<span class="params">data, key, val</span>) </span>&#123;</span><br><span class="line">	<span class="keyword">var</span> dep = <span class="keyword">new</span> Dep();</span><br><span class="line">    observe(val); <span class="comment">// 监听子属性</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">Object</span>.defineProperty(data, key, &#123;</span><br><span class="line">        <span class="comment">// ... 省略</span></span><br><span class="line">        <span class="keyword">set</span>: function(newVal) &#123;</span><br><span class="line">        	<span class="keyword">if</span> (val === newVal) <span class="keyword">return</span>;</span><br><span class="line">            <span class="built_in">console</span>.log(<span class="string">'哈哈哈，监听到值变化了 '</span>, val, <span class="string">' --&gt; '</span>, newVal);</span><br><span class="line">            val = newVal;</span><br><span class="line">            dep.notify(); <span class="comment">// 通知所有订阅者</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Dep</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.subs = [];</span><br><span class="line">&#125;</span><br><span class="line">Dep.prototype = &#123;</span><br><span class="line">    addSub: <span class="function"><span class="keyword">function</span>(<span class="params">sub</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.subs.push(sub);</span><br><span class="line">    &#125;,</span><br><span class="line">    notify: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.subs.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">sub</span>) </span>&#123;</span><br><span class="line">            sub.update();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>那么问题来了，谁是订阅者，怎么往订阅器添加订阅者？</li>
+<li>没错，上面的思路整理中我们已经明确订阅者应该是<code>Watcher</code>, 而且<code>var dep = new Dep();</code>是在 <code>defineReactive</code>方法内部定义的，所以想通过<code>dep</code>添加订阅者，就必须要在闭包内操作，所以我们可以在<code>getter</code>里面动手脚：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Observer.js</span></span><br><span class="line"><span class="comment">// ...省略</span></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(data, key, &#123;</span><br><span class="line">	<span class="keyword">get</span>: function() &#123;</span><br><span class="line">		<span class="comment">// 由于需要在闭包内添加watcher，所以通过Dep定义一个全局target属性，暂存watcher, 添加完移除</span></span><br><span class="line">		Dep.target &amp;&amp; dep.addDep(Dep.target);</span><br><span class="line">		<span class="keyword">return</span> val;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">// ... 省略</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Watcher.js</span></span><br><span class="line">Watcher.prototype = &#123;</span><br><span class="line">	<span class="keyword">get</span>: function(key) &#123;</span><br><span class="line">		Dep.target = <span class="keyword">this</span>;</span><br><span class="line">		<span class="keyword">this</span>.value = data[key];	<span class="comment">// 这里会触发属性的getter，从而添加订阅者</span></span><br><span class="line">		Dep.target = <span class="literal">null</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>这里已经实现了一个<code>Observer</code>了，已经具备了监听数据和数据变化通知订阅者的功能。那么接下来就是实现<code>Compile</code>了</li>
+</ul>
+<h3 id="2-2-实现Compile"><a href="#2-2-实现Compile" class="headerlink" title="2.2 实现Compile"></a>2.2 实现<code>Compile</code></h3><ul>
+<li><code>compile</code>主要做的事情是解析模板指令，将模板中的变量替换成数据，然后初始化渲染页面视图</li>
+<li>并将每个指令对应的节点绑定更新函数，添加监听数据的订阅者，一旦数据有变动，收到通知，更新视图，如图所示</li>
+</ul>
+<p><img src="https://github.com/honeydlp/mvvm/raw/master/defineProperty/img/3.png" alt></p>
+<ul>
+<li>因为遍历解析的过程有多次操作<code>dom</code>节点，为提高性能和效率，会先将跟节点<code>el</code>转换成文档碎片<code>fragment</code>进行解析编译操作</li>
+<li>解析完成，再将<code>fragment</code>添加回原来的真实<code>dom</code>节点中</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Compile</span>(<span class="params">el</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.$el = <span class="keyword">this</span>.isElementNode(el) ? el : <span class="built_in">document</span>.querySelector(el);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.$el) &#123;</span><br><span class="line">        <span class="keyword">this</span>.$fragment = <span class="keyword">this</span>.node2Fragment(<span class="keyword">this</span>.$el);</span><br><span class="line">        <span class="keyword">this</span>.init();</span><br><span class="line">        <span class="keyword">this</span>.$el.appendChild(<span class="keyword">this</span>.$fragment);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">Compile.prototype = &#123;</span><br><span class="line">	init: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123; <span class="keyword">this</span>.compileElement(<span class="keyword">this</span>.$fragment); &#125;,</span><br><span class="line">    node2Fragment: <span class="function"><span class="keyword">function</span>(<span class="params">el</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> fragment = <span class="built_in">document</span>.createDocumentFragment(), child;</span><br><span class="line">        <span class="comment">// 将原生节点拷贝到fragment</span></span><br><span class="line">        <span class="keyword">while</span> (child = el.firstChild) &#123;</span><br><span class="line">            fragment.appendChild(child);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> fragment;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>compileElement</code>方法将遍历所有节点及其子节点，进行扫描解析编译，调用对应的指令渲染函数进行数据渲染，并调用对应的指令更新函数进行绑定，详看代码及注释说明</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">Compile.prototype = &#123;</span><br><span class="line">	<span class="comment">// ... 省略</span></span><br><span class="line">	compileElement: <span class="function"><span class="keyword">function</span>(<span class="params">el</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> childNodes = el.childNodes, me = <span class="keyword">this</span>;</span><br><span class="line">        [].slice.call(childNodes).forEach(<span class="function"><span class="keyword">function</span>(<span class="params">node</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> text = node.textContent;</span><br><span class="line">            <span class="keyword">var</span> reg = <span class="regexp">/\&#123;\&#123;(.*)\&#125;\&#125;/</span>;	<span class="comment">// 表达式文本</span></span><br><span class="line">            <span class="comment">// 按元素节点方式编译</span></span><br><span class="line">            <span class="keyword">if</span> (me.isElementNode(node)) &#123;</span><br><span class="line">                me.compile(node);</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (me.isTextNode(node) &amp;&amp; reg.test(text)) &#123;</span><br><span class="line">                me.compileText(node, <span class="built_in">RegExp</span>.$<span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 遍历编译子节点</span></span><br><span class="line">            <span class="keyword">if</span> (node.childNodes &amp;&amp; node.childNodes.length) &#123;</span><br><span class="line">                me.compileElement(node);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    compile: <span class="function"><span class="keyword">function</span>(<span class="params">node</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> nodeAttrs = node.attributes, me = <span class="keyword">this</span>;</span><br><span class="line">        [].slice.call(nodeAttrs).forEach(<span class="function"><span class="keyword">function</span>(<span class="params">attr</span>) </span>&#123;</span><br><span class="line">            <span class="comment">// 规定：指令以 v-xxx 命名</span></span><br><span class="line">            <span class="comment">// 如 &lt;span v-text="content"&gt;&lt;/span&gt; 中指令为 v-text</span></span><br><span class="line">            <span class="keyword">var</span> attrName = attr.name;	<span class="comment">// v-text</span></span><br><span class="line">            <span class="keyword">if</span> (me.isDirective(attrName)) &#123;</span><br><span class="line">                <span class="keyword">var</span> exp = attr.value; <span class="comment">// content</span></span><br><span class="line">                <span class="keyword">var</span> dir = attrName.substring(<span class="number">2</span>);	<span class="comment">// text</span></span><br><span class="line">                <span class="keyword">if</span> (me.isEventDirective(dir)) &#123;</span><br><span class="line">                	<span class="comment">// 事件指令, 如 v-on:click</span></span><br><span class="line">                    compileUtil.eventHandler(node, me.$vm, exp, dir);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                	<span class="comment">// 普通指令</span></span><br><span class="line">                    compileUtil[dir] &amp;&amp; compileUtil[dir](node, me.$vm, exp);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 指令处理集合</span></span><br><span class="line"><span class="keyword">var</span> compileUtil = &#123;</span><br><span class="line">    text: <span class="function"><span class="keyword">function</span>(<span class="params">node, vm, exp</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.bind(node, vm, exp, <span class="string">'text'</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// ...省略</span></span><br><span class="line">    bind: <span class="function"><span class="keyword">function</span>(<span class="params">node, vm, exp, dir</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> updaterFn = updater[dir + <span class="string">'Updater'</span>];</span><br><span class="line">        <span class="comment">// 第一次初始化视图</span></span><br><span class="line">        updaterFn &amp;&amp; updaterFn(node, vm[exp]);</span><br><span class="line">        <span class="comment">// 实例化订阅者，此操作会在对应的属性消息订阅器中添加了该订阅者watcher</span></span><br><span class="line">        <span class="keyword">new</span> Watcher(vm, exp, <span class="function"><span class="keyword">function</span>(<span class="params">value, oldValue</span>) </span>&#123;</span><br><span class="line">        	<span class="comment">// 一旦属性值有变化，会收到通知执行此更新函数，更新视图</span></span><br><span class="line">            updaterFn &amp;&amp; updaterFn(node, value, oldValue);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更新函数</span></span><br><span class="line"><span class="keyword">var</span> updater = &#123;</span><br><span class="line">    textUpdater: <span class="function"><span class="keyword">function</span>(<span class="params">node, value</span>) </span>&#123;</span><br><span class="line">        node.textContent = <span class="keyword">typeof</span> value == <span class="string">'undefined'</span> ? <span class="string">''</span> : value;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ...省略</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>完整代码 <a href="https://github.com/poetries/mvvm/blob/master/compile.js" target="_blank" rel="noopener">https://github.com/poetries/mvvm/blob/master/compile.js</a></p>
+</blockquote>
+<ul>
+<li>这里通过递归遍历保证了每个节点及子节点都会解析编译到</li>
+<li>指令的声明规定是通过特定前缀的节点属性来标记，如<code>&lt;span v-text=&quot;content&quot;</code>中<code>v-text</code>便是指令</li>
+<li>监听数据、绑定更新函数的处理是在<code>compileUtil.bind()</code>这个方法中，通过<code>new Watcher()</code>添加回调来接收数据变化的通知</li>
+<li>至此，一个简单的<code>Compile</code>就完成了。接下来要看看<code>Watcher</code>这个订阅者的具体实现了</li>
+</ul>
+<h3 id="2-3-实现Watcher"><a href="#2-3-实现Watcher" class="headerlink" title="2.3 实现Watcher"></a>2.3 实现Watcher</h3><blockquote>
+<p><code>Watcher</code>订阅者作为<code>Observer</code>和<code>Compile</code>之间通信的桥梁，主要做的事情是</p>
+</blockquote>
+<ul>
+<li>在自身实例化时往属性订阅器<code>dep</code>里面添加自己</li>
+<li>自身必须有一个<code>update()</code>方法</li>
+<li>待属性变动<code>dep.notice()</code>通知时，能调用自身的<code>update()</code>方法，并触发<code>Compile</code>中绑定的回调，则功成身退。</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Watcher</span>(<span class="params">vm, exp, cb</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.cb = cb;</span><br><span class="line">    <span class="keyword">this</span>.vm = vm;</span><br><span class="line">    <span class="keyword">this</span>.exp = exp;</span><br><span class="line">    <span class="comment">// 此处为了触发属性的getter，从而在dep添加自己，结合Observer更易理解</span></span><br><span class="line">    <span class="keyword">this</span>.value = <span class="keyword">this</span>.get(); </span><br><span class="line">&#125;</span><br><span class="line">Watcher.prototype = &#123;</span><br><span class="line">    update: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.run();	<span class="comment">// 属性值变化收到通知</span></span><br><span class="line">    &#125;,</span><br><span class="line">    run: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> value = <span class="keyword">this</span>.get(); <span class="comment">// 取到最新值</span></span><br><span class="line">        <span class="keyword">var</span> oldVal = <span class="keyword">this</span>.value;</span><br><span class="line">        <span class="keyword">if</span> (value !== oldVal) &#123;</span><br><span class="line">            <span class="keyword">this</span>.value = value;</span><br><span class="line">            <span class="keyword">this</span>.cb.call(<span class="keyword">this</span>.vm, value, oldVal); <span class="comment">// 执行Compile中绑定的回调，更新视图</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="keyword">get</span>: function() &#123;</span><br><span class="line">        Dep.target = <span class="keyword">this</span>;	<span class="comment">// 将当前订阅者指向自己</span></span><br><span class="line">        <span class="keyword">var</span> value = <span class="keyword">this</span>.vm[exp];	<span class="comment">// 触发getter，添加自己到属性订阅器中</span></span><br><span class="line">        Dep.target = <span class="literal">null</span>;	<span class="comment">// 添加完毕，重置</span></span><br><span class="line">        <span class="keyword">return</span> value;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 这里再次列出Observer和Dep，方便理解</span></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(data, key, &#123;</span><br><span class="line">	<span class="keyword">get</span>: function() &#123;</span><br><span class="line">		<span class="comment">// 由于需要在闭包内添加watcher，所以可以在Dep定义一个全局target属性，暂存watcher, 添加完移除</span></span><br><span class="line">		Dep.target &amp;&amp; dep.addDep(Dep.target);</span><br><span class="line">		<span class="keyword">return</span> val;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="comment">// ... 省略</span></span><br><span class="line">&#125;);</span><br><span class="line">Dep.prototype = &#123;</span><br><span class="line">    notify: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.subs.forEach(<span class="function"><span class="keyword">function</span>(<span class="params">sub</span>) </span>&#123;</span><br><span class="line">            sub.update(); <span class="comment">// 调用订阅者的update方法，通知变化</span></span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>完整代码 <a href="https://github.com/poetries/mvvm/blob/master/watcher.js" target="_blank" rel="noopener">https://github.com/poetries/mvvm/blob/master/watcher.js</a></p>
+</blockquote>
+<ul>
+<li>实例化<code>Watcher</code>的时候，调用<code>get()</code>方法，通过<code>Dep.target = watcherInstance</code>标记订阅者是当前<code>watcher</code>实例，强行触发属性定义的<code>getter</code>方法，<code>getter</code>方法执行的时候，就会在属性的订阅器<code>dep</code>添加当前<code>watcher</code>实例，从而在属性值有变化的时候，<code>watcherInstance</code>就能收到更新通知。</li>
+<li>基本上<code>vue</code>中数据绑定相关比较核心的几个模块也是这几个，猛戳<a href="https://github.com/vuejs/vue" target="_blank" rel="noopener">这里</a> , 在<code>src</code> 目录可找到<code>vue</code>源码。</li>
+</ul>
+<blockquote>
+<p>最后来讲讲<code>MVVM</code>入口文件的相关逻辑和实现吧，相对就比较简单了</p>
+</blockquote>
+<h2 id="三、实现MVVM"><a href="#三、实现MVVM" class="headerlink" title="三、实现MVVM"></a>三、实现MVVM</h2><blockquote>
+<p><code>MVVM</code>作为数据绑定的入口，整合<code>Observer</code>、<code>Compile</code>和<code>Watcher</code>三者，通过<code>Observer</code>来监听自己的<code>model</code>数据变化，通过<code>Compile</code>来解析编译模板指令，最终利用<code>Watcher</code>搭起<code>Observer</code>和<code>Compile</code>之间的通信桥梁，达到数据变化 -&gt; 视图更新；视图交互变化(<code>input</code>) -&gt; 数据<code>model</code>变更的双向绑定效果。</p>
+</blockquote>
+<ul>
+<li>一个简单的<code>MVVM</code>构造器是这样子：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MVVM</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.$options = options;</span><br><span class="line">    <span class="keyword">var</span> data = <span class="keyword">this</span>._data = <span class="keyword">this</span>.$options.data;</span><br><span class="line">    observe(data, <span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.$compile = <span class="keyword">new</span> Compile(options.el || <span class="built_in">document</span>.body, <span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>但是这里有个问题，从代码中可看出监听的数据对象是<code>options.data</code>，每次需要更新视图，则必须通过<code>var vm = new MVVM({data:{name: &#39;kindeng&#39;}}); vm._data.name = &#39;dmq&#39;;</code>这样的方式来改变数据。</li>
+<li>显然不符合我们一开始的期望，我们所期望的调用方式应该是这样的：<br><code>var vm = new MVVM({data: {name: &#39;kindeng&#39;}}); vm.name = &#39;dmq&#39;;</code></li>
+<li>所以这里需要给<code>MVVM</code>实例添加一个属性代理的方法，使访问<code>vm</code>的属性代理为访问<code>vm._data</code>的属性，改造后的代码如下：</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">MVVM</span>(<span class="params">options</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.$options = options;</span><br><span class="line">    <span class="keyword">var</span> data = <span class="keyword">this</span>._data = <span class="keyword">this</span>.$options.data, me = <span class="keyword">this</span>;</span><br><span class="line">    <span class="comment">// 属性代理，实现 vm.xxx -&gt; vm._data.xxx</span></span><br><span class="line">    <span class="built_in">Object</span>.keys(data).forEach(<span class="function"><span class="keyword">function</span>(<span class="params">key</span>) </span>&#123;</span><br><span class="line">        me._proxy(key);</span><br><span class="line">    &#125;);</span><br><span class="line">    observe(data, <span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">this</span>.$compile = <span class="keyword">new</span> Compile(options.el || <span class="built_in">document</span>.body, <span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">MVVM.prototype = &#123;</span><br><span class="line">	_proxy: <span class="function"><span class="keyword">function</span>(<span class="params">key</span>) </span>&#123;</span><br><span class="line">		<span class="keyword">var</span> me = <span class="keyword">this</span>;</span><br><span class="line">        <span class="built_in">Object</span>.defineProperty(me, key, &#123;</span><br><span class="line">            configurable: <span class="literal">false</span>,</span><br><span class="line">            enumerable: <span class="literal">true</span>,</span><br><span class="line">            <span class="keyword">get</span>: function proxyGetter() &#123;</span><br><span class="line">                <span class="keyword">return</span> me._data[key];</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">set</span>: function proxySetter(newVal) &#123;</span><br><span class="line">                me._data[key] = newVal;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完整代码 <a href="https://github.com/poetries/mvvm/blob/master/mvvm.js" target="_blank" rel="noopener">https://github.com/poetries/mvvm/blob/master/mvvm.js</a></p>
+<ul>
+<li>这里主要还是利用了<code>Object.defineProperty()</code>这个方法来劫持了<code>vm</code>实例对象的属性的读写权，使读写<code>vm</code>实例的属性转成读写了<code>vm._data</code>的属性值，达到鱼目混珠的效果</li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/02/25/nginx-study/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/02/26/http-2/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

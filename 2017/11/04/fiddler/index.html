@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>使用Fiddler做抓包分析 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="调试,Fiddler,">
+  
+
+  <meta name="description" content="一、Fiddler简介 Fiddler是位于客户端和服务器端的HTTP代理，也是目前最常用的http抓包工具之一 。 它能够记录客户端和服务器之间的所有 HTTP请求，可以针对特定的HTTP请求，分析请求数据、设置断点、调试web应用、修改请求的数据，甚至可以修改服务器返回的数据，功能非常强大，是web调试的利器   客户端的所有请求都要先经过Fiddler，然后转发到相应的服务器，反之，服务器端">
+<meta name="keywords" content="调试,Fiddler">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Fiddler做抓包分析">
+<meta property="og:url" content="http://blog.poetries.top/2017/11/04/fiddler/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一、Fiddler简介 Fiddler是位于客户端和服务器端的HTTP代理，也是目前最常用的http抓包工具之一 。 它能够记录客户端和服务器之间的所有 HTTP请求，可以针对特定的HTTP请求，分析请求数据、设置断点、调试web应用、修改请求的数据，甚至可以修改服务器返回的数据，功能非常强大，是web调试的利器   客户端的所有请求都要先经过Fiddler，然后转发到相应的服务器，反之，服务器端">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/187.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/188.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/189.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/190.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/191.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/192.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/193.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/194.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/195.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/196.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/197.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/198.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/199.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/200.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/201.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/202.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/203.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/204.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/205.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/206.png">
+<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/207.png">
+<meta property="og:updated_time" content="2025-03-30T13:54:29.462Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Fiddler做抓包分析">
+<meta name="twitter:description" content="一、Fiddler简介 Fiddler是位于客户端和服务器端的HTTP代理，也是目前最常用的http抓包工具之一 。 它能够记录客户端和服务器之间的所有 HTTP请求，可以针对特定的HTTP请求，分析请求数据、设置断点、调试web应用、修改请求的数据，甚至可以修改服务器返回的数据，功能非常强大，是web调试的利器   客户端的所有请求都要先经过Fiddler，然后转发到相应的服务器，反之，服务器端">
+<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/187.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、Fiddler简介"><span class="toc-text">一、Fiddler简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、HTTP请求图标说明"><span class="toc-text">二、HTTP请求图标说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Statistic"><span class="toc-text">三、Statistic</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、Inspectors"><span class="toc-text">四、Inspectors</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、Composer"><span class="toc-text">五、Composer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、fiddler过滤会话"><span class="toc-text">六、fiddler过滤会话</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、Response乱码时的处理方法"><span class="toc-text">七、Response乱码时的处理方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#八、反向代理-AutoResponder"><span class="toc-text">八、反向代理-AutoResponder</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#九、fiddler提供了一个功能，让我们模拟低速网路环境"><span class="toc-text">九、fiddler提供了一个功能，让我们模拟低速网路环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#十、直接在fiddler上配置host"><span class="toc-text">十、直接在fiddler上配置host</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#十一、Fiddler显示请求服务器的ip及系统环境的配置方法"><span class="toc-text">十一、Fiddler显示请求服务器的ip及系统环境的配置方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#十二、fiddler断点调试"><span class="toc-text">十二、fiddler断点调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#十三、配合SwitchySharp插件使用"><span class="toc-text">十三、配合SwitchySharp插件使用</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <div class="tencent_code">
+    <h4>关注作者公众号</h4> 
+    <p>和万千小伙伴一起学习</p> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-fiddler" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">使用Fiddler做抓包分析</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.11.04</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Tools/">Tools</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 1.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 4分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="一、Fiddler简介"><a href="#一、Fiddler简介" class="headerlink" title="一、Fiddler简介"></a>一、Fiddler简介</h2><blockquote>
+<p><code>Fiddler</code>是位于客户端和服务器端的<code>HTTP</code>代理，也是目前最常用的<code>http</code>抓包工具之一 。 它能够记录客户端和服务器之间的所有 <code>HTTP</code>请求，可以针对特定的<code>HTTP</code>请求，分析请求数据、设置断点、调试<code>web</code>应用、修改请求的数据，甚至可以修改服务器返回的数据，功能非常强大，是<code>web</code>调试的利器</p>
+</blockquote>
+<ul>
+<li>客户端的所有请求都要先经过<code>Fiddler</code>，然后转发到相应的服务器，反之，服务器端的所有响应，也都会先经过<code>Fiddler</code>然后发送到客户端</li>
+<li>使用了<code>Fiddler</code>之后，web客户端和服务器的请求如下所示</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/187.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/188.png" alt></p>
+<p><strong>主界面中主要包括四个常用的块</strong></p>
+<ul>
+<li><code>Fiddler</code>的菜单栏，上图绿色部分。包括捕获<code>http</code>请求，停止捕获请求，保存<code>http</code>请求，载入本地<code>session</code>、设置捕获规则等功能。</li>
+<li><code>Fiddler</code>的工具栏,上图红色部分。包括<code>Fiddler</code>针对当前<code>view</code>的操作（暂停，清除<code>session</code>,<code>decode</code>模式、清除缓存等）。</li>
+<li><code>web Session</code>面板，上图黄色区域，主要是<code>Fiddler</code>抓取到的每条<code>http</code>请求（每一条称为一个<code>session</code>）,主要包含了请求的<code>url</code>，协议，状态码，<code>body</code>等信息，详细的字段含义如下图所示</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/189.png" alt></p>
+<h2 id="二、HTTP请求图标说明"><a href="#二、HTTP请求图标说明" class="headerlink" title="二、HTTP请求图标说明"></a>二、HTTP请求图标说明</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/190.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/191.png" alt></p>
+<h2 id="三、Statistic"><a href="#三、Statistic" class="headerlink" title="三、Statistic"></a>三、Statistic</h2><blockquote>
+<p>关于HTTP请求的性能和其他数据分析</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/192.png" alt></p>
+<blockquote>
+<p>我们可以从中看出一些基本性能数据：如DNS解析的时间消耗是<code>8ms</code>,建立<code>TCP/IP</code>连接的时间消耗是<code>8ms</code>等等信息</p>
+</blockquote>
+<h2 id="四、Inspectors"><a href="#四、Inspectors" class="headerlink" title="四、Inspectors"></a>四、Inspectors</h2><blockquote>
+<p>分为上下两个部分，上半部分是请求头部分，下半部分是响应头部分。对于每一部分，提供了多种不同格式查看每个请求和响应的内容。</p>
+</blockquote>
+<ul>
+<li>JPG 格式使用 ImageView 就可以看到图片</li>
+<li>HTML/JS/CSS 使用 TextView可以看到响应的内容。</li>
+<li>Raw标签可以查看原始的符合HTTP标准的请求和响应头。</li>
+<li>Auth则可以查看授权Proxy-Authorization 和 Authorization的相关信息。</li>
+<li>Cookies标签可以看到请求的cookie和响应的set-cookie头信息</li>
+</ul>
+<h2 id="五、Composer"><a href="#五、Composer" class="headerlink" title="五、Composer"></a>五、Composer</h2><blockquote>
+<p>老版本的<code>fiddler</code>中叫<code>request-builder</code>.顾名思义，可以构建相应的请求，有两种常用的方式构建请求</p>
+</blockquote>
+<ul>
+<li><code>Parsed 输入请求的url之后</code>executed<code>即可，也可以修改相应的头信息（如添加常用的</code>accept<code>,</code>host<code>,</code>referrer<code>,</code>cookie<code>，</code>cache-control<code>等头部）后</code>execute`.</li>
+<li><code>Raw</code>。使用HTTP头部信息构建<code>http</code>请求。与上类似</li>
+</ul>
+<h2 id="六、fiddler过滤会话"><a href="#六、fiddler过滤会话" class="headerlink" title="六、fiddler过滤会话"></a>六、fiddler过滤会话</h2><blockquote>
+<p>问题：每次使用<code>Fiddler</code>,<br>打开一个网站，都能在<code>Fiddler</code>中看到几十个会话，看得眼花缭乱。</p>
+</blockquote>
+<ul>
+<li>期望：只想抓取自己想要的请求</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/193.png" alt></p>
+<h2 id="七、Response乱码时的处理方法"><a href="#七、Response乱码时的处理方法" class="headerlink" title="七、Response乱码时的处理方法"></a>七、Response乱码时的处理方法</h2><blockquote>
+<p>问题：有时候我们看到<code>Response</code>中的<code>HTML</code>是乱码的， 这是因为<code>HTML</code>被压缩了， 我们可以通过两种方法去解压缩</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/194.png" alt></p>
+<ul>
+<li>方法二：选中工具栏中的”Decode”。  这样会自动解压缩</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/195.png" alt></p>
+<h2 id="八、反向代理-AutoResponder"><a href="#八、反向代理-AutoResponder" class="headerlink" title="八、反向代理-AutoResponder"></a>八、反向代理-AutoResponder</h2><blockquote>
+<p>原理：利用<code>fiddler</code>作為反向代理。意思就是将外界的<code>request</code>请求端口修改掉！ 改写返回数据，最实用的功能</p>
+</blockquote>
+<ul>
+<li>用浏览器随意输入一个网址，如<code>http://www.baidu.com/</code></li>
+<li>选中序号<code>16</code>记录，右击-勾选<code>“Unlock fo Editing”</code>,选择<code>Fiddler</code>右侧<code>reponse</code>块下的<code>TextView</code>，这里修改<code>title</code>,如图：</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/196.png" alt></p>
+<ul>
+<li>选择<code>Fiddler</code>右侧<code>reponse</code>块下的<code>TextView</code>，这里修改<code>title</code>,如图：</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/197.png" alt></p>
+<ul>
+<li>去掉<code>“Unlock for Editing”</code>，再选择右侧上方的<code>AutoResponder</code>,勾选下方的<code>checkbox</code>选框，并将序号<code>16</code>托到下方，同时，里面会多条记录，如下图：</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/198.png" alt></p>
+<ul>
+<li>回到浏览器，刷新页面，如图，标题变为上面改的内容</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/199.png" alt></p>
+<h2 id="九、fiddler提供了一个功能，让我们模拟低速网路环境"><a href="#九、fiddler提供了一个功能，让我们模拟低速网路环境" class="headerlink" title="九、fiddler提供了一个功能，让我们模拟低速网路环境"></a>九、fiddler提供了一个功能，让我们模拟低速网路环境</h2><blockquote>
+<p>启用方法如：Rules → Performances → Simulate Modem Speeds</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/200.png" alt></p>
+<h2 id="十、直接在fiddler上配置host"><a href="#十、直接在fiddler上配置host" class="headerlink" title="十、直接在fiddler上配置host"></a>十、直接在fiddler上配置host</h2><blockquote>
+<p>点击<code>tools&gt;&gt;hosts</code>,在里面填写自己想要设置的<code>host</code>即可</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/201.png" alt></p>
+<h2 id="十一、Fiddler显示请求服务器的ip及系统环境的配置方法"><a href="#十一、Fiddler显示请求服务器的ip及系统环境的配置方法" class="headerlink" title="十一、Fiddler显示请求服务器的ip及系统环境的配置方法"></a>十一、Fiddler显示请求服务器的ip及系统环境的配置方法</h2><ul>
+<li>打开<code>Rules——&gt;Customize  Rules</code></li>
+<li>找到如下这段代码</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">Main</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="keyword">var</span> today: <span class="built_in">Date</span> = <span class="keyword">new</span> <span class="built_in">Date</span>();</span><br><span class="line">FiddlerObject.StatusText = <span class="string">" CustomRules.js was loaded at: "</span> + today;</span><br><span class="line"><span class="comment">// Uncomment to add a "Server" column containing the response "Server" header, if present</span></span><br><span class="line"></span><br><span class="line">在这一行后面添加如下代码：</span><br><span class="line"></span><br><span class="line"><span class="comment">// 显示服务器web环境</span></span><br><span class="line">FiddlerObject.UI.lvSessions.AddBoundColumn(<span class="string">"Server"</span>, <span class="number">50</span>, <span class="string">"@response.server"</span>);</span><br><span class="line"><span class="comment">// 显示服务器IP地址</span></span><br><span class="line">FiddlerObject.UI.lvSessions.AddBoundColumn(<span class="string">"HostIP"</span>, <span class="number">50</span>, <span class="string">"x-hostIP"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>设置后重启<code>fiddler</code>，效果如下</li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/202.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/203.png" alt></p>
+<h2 id="十二、fiddler断点调试"><a href="#十二、fiddler断点调试" class="headerlink" title="十二、fiddler断点调试"></a>十二、fiddler断点调试</h2><blockquote>
+<p>第一种方法：菜单栏 <code>Rules</code> –》 <code>Automatic Breakpoints</code> –》 <code>Before Requests</code>(请求被发送到服务器端之前)；或者 <code>After Responses</code>(响应返回客户端之前)，这种设置对客户机发出的所有请求都进行拦截</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/204.png" alt><br><img src="https://poetries1.gitee.io/img-repo/2019/10/205.png" alt></p>
+<h2 id="十三、配合SwitchySharp插件使用"><a href="#十三、配合SwitchySharp插件使用" class="headerlink" title="十三、配合SwitchySharp插件使用"></a>十三、配合SwitchySharp插件使用</h2><blockquote>
+<p>为<code>fiddler</code>创建一个规则，代理到本地的<code>8888</code>端口（<code>fiddler</code>所用的端口）<br><code>google</code>设置代理的方法：下载<code>SwitchySharp</code>插件，设置如下：</p>
+</blockquote>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/206.png" alt></p>
+<ul>
+<li>接着点击保存即可~ 这样在需要的时候可以切换到<code>Fiddler</code></li>
+</ul>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/207.png" alt></p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://poetries1.gitee.io/img-repo/2020/06/qrcode.jpg",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/10/28/jq-naotu/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/11/04/bootstrap-summary/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
