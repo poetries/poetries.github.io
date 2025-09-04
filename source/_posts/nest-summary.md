@@ -81,7 +81,7 @@ bootstrap();
 
 Nest中的控制器层负责处理传入的请求, 并返回对客户端的响应。
 
-![](https://s.poetries.work/uploads/2022/05/8b2fcd207249cb37.png)
+![](https://s.poetries.top/uploads/2022/05/8b2fcd207249cb37.png)
 
 > 控制器的目的是接收应用的特定请求。路由机制控制哪个控制器接收哪些请求。通常，每个控制器有多个路由，不同的路由可以执行不同的操作
 
@@ -96,7 +96,7 @@ Nest中的控制器层负责处理传入的请求, 并返回对客户端的响�
 - 创建模块：`nest g mo user module`
 - 默认以src为根路径生成
 
-![](https://s.poetries.work/uploads/2022/05/1c412ef436a4a04d.png)
+![](https://s.poetries.top/uploads/2022/05/1c412ef436a4a04d.png)
 
 ```
 nest g controller posts
@@ -191,7 +191,7 @@ export class PostsController {
 
 > Nestjs中的服务可以是`service` 也可以是`provider`。他们都可以`通过 constructor 注入依赖关系`。服务本质上就是通过`@Injectable()` 装饰器注解的类。在Nestjs中服务相当于`MVC`的`Model`
 
-![](https://s.poetries.work/uploads/2022/05/1c607b98268d7707.png)
+![](https://s.poetries.top/uploads/2022/05/1c607b98268d7707.png)
 
 **创建服务**
 
@@ -305,7 +305,7 @@ export class PostsService {
 
 > 模块是具有 `@Module()` 装饰器的类。 `@Module()` 装饰器提供了元数据，Nest 用它来组织应用程序结构
 
-![](https://s.poetries.work/uploads/2022/05/fcc23bae4de7fa32.png)
+![](https://s.poetries.top/uploads/2022/05/fcc23bae4de7fa32.png)
 
 > 每个 Nest 应用程序至少有一个模块，即根模块。根模块是 Nest 开始安排应用程序树的地方。事实上，根模块可能是应用程序中唯一的模块，特别是当应用程序很小时，但是对于大型程序来说这是没有意义的。在大多数情况下，您将拥有多个模块，每个模块都有一组紧密相关的功能。
 
@@ -340,7 +340,7 @@ export class PostsModule {}
 
 > 可以使用 `nest g res posts` 一键创建以上需要的各个模块
 
-![](https://s.poetries.work/uploads/2022/05/f63b444ed1c1d481.png)
+![](https://s.poetries.top/uploads/2022/05/f63b444ed1c1d481.png)
 
 ## 配置静态资源
 
@@ -690,7 +690,7 @@ export class AppModule { }
 
 从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: ‘xx’,password: ‘xx’}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤：
 
-![](https://s.poetries.work/uploads/2022/05/1670837aa99d6cb8.png)
+![](https://s.poetries.top/uploads/2022/05/1670837aa99d6cb8.png)
 
 
 
@@ -1127,7 +1127,7 @@ bootstrap();
 
 > 从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: ‘xx’,password: ‘xx’}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤：`
 
-![](https://s.poetries.work/uploads/2022/05/8bb8d3e0e2bdaebe.png)
+![](https://s.poetries.top/uploads/2022/05/8bb8d3e0e2bdaebe.png)
 
 项目需要包支持：
 
@@ -1144,7 +1144,7 @@ npm install --save rxjs xml2js class-validator class-transformer
 
 `nest g res user`
 
-![](https://s.poetries.work/uploads/2022/05/6b74e9b59b24a0fd.png)
+![](https://s.poetries.top/uploads/2022/05/6b74e9b59b24a0fd.png)
 
 user.controller.ts文件
 
@@ -1244,7 +1244,7 @@ export class AppModule {}
 > 异常过滤器(filters) — http-exception.filter.ts
 > 拦截器(interceptor) — response.interceptor.ts
 
-![](https://s.poetries.work/uploads/2022/05/b0bafbf19bde075f.png)
+![](https://s.poetries.top/uploads/2022/05/b0bafbf19bde075f.png)
 
 ```js
 // main.ts
@@ -1330,7 +1330,7 @@ export class XMLMiddleware implements NestMiddleware {
 
 - 模块注册：在对应的模块中注册如：`user.module.ts`
 
-![](https://s.poetries.work/uploads/2022/05/7985e11265cdecc2.png)
+![](https://s.poetries.top/uploads/2022/05/7985e11265cdecc2.png)
 
 > 同一路由注册多个中间件的执行顺序为，先是全局中间件执行，然后是模块中间件执行，模块中的中间件顺序按照`.apply`中注册的顺序执行
 
@@ -1396,7 +1396,7 @@ export class AuthGuard implements CanActivate {
 - 全局注册：在`main.ts`中导入需要的守卫模块如：`AuthGuard`。然后使用 `app.useGlobalGuards(new AuthGuard())` 即可
 - 模块注册：在需要注册的`controller`控制器中导入`AuthGuard`。然后从`@nestjs/common`中导`UseGuards`装饰器。最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可
 
-![](https://s.poetries.work/uploads/2022/05/976e8bcbe31b38ce.png)
+![](https://s.poetries.top/uploads/2022/05/976e8bcbe31b38ce.png)
 
 > 同一路由注册多个守卫的执行顺序为，先是全局守卫执行，然后是模块中守卫执行
 
@@ -1477,7 +1477,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
 }
 ```
 
-![](https://s.poetries.work/uploads/2022/05/8d262c4c5dcad632.png)
+![](https://s.poetries.top/uploads/2022/05/8d262c4c5dcad632.png)
 
 > 中间多了个全局管道以及自定义逻辑，即只有路由绑定的函数有正确的返回值之后才会有`next.handle()`之后的内容
 
@@ -1486,7 +1486,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
 - 全局注册：在`main.ts`中导入需要的模块如：`ResponseInterceptor`。然后使用 `app.useGlobalInterceptors(new ResponseInterceptor()) `即可
 - 模块注册：在需要注册的`controller`控制器中导入`ResponseInterceptor`。然后从`@nestjs/common`中导入`UseInterceptors`装饰器。最后直接放置在对应的`@Controller()`或者`@Post/@Get`…等装饰器之下即可
 
-![](https://s.poetries.work/uploads/2022/05/099d67812f591bc5.png)
+![](https://s.poetries.top/uploads/2022/05/099d67812f591bc5.png)
 
 > 同一路由注册多个拦截器时候，优先执行模块中绑定的拦截器，然后其拦截器转换的内容将作为全局拦截器的内容，即包裹两次返回内容如：
 
@@ -1515,12 +1515,12 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
 1. `ValidationPipe`：基于`class-validator`和`class-transformer`这两个npm包编写的一个常规的验证管道，可以从`class-validator`导入配置规则，然后直接使用验证(当前不需要了解`ValidationPipe`的原理，只需要知道从`class-validator`引规则，设定到对应字段，然后使用`ValidationPipe`即可)
 2. `ParseIntPipe`：转换传入的参数为数字
 
-![](https://s.poetries.work/uploads/2022/05/9b73303097ddcf73.png)
+![](https://s.poetries.top/uploads/2022/05/9b73303097ddcf73.png)
 
 如：传递过来的是/test?id=‘123’"这里会将字符串‘123’转换成数字123
 3. **ParseUUIDPipe**：验证字符串是否是 UUID(通用唯一识别码)
 
-![](https://s.poetries.work/uploads/2022/05/ea2ed3388b228548.png)
+![](https://s.poetries.top/uploads/2022/05/ea2ed3388b228548.png)
 
 如：传递过来的是/test?id=‘xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx’"这里会验证格式是否正确，不正确则抛出错误，否则调用findOne方法
 
@@ -1571,7 +1571,7 @@ export class ValidationPipe implements PipeTransform<any>{
 - 全局注册：在`main.ts`中导入需要的模块如：`ValidationPipe`；然后使用 `app.useGlobalPipes(new ValidationPipe())` 即可
 - 模块注册：在需要注册的`controller`控制器中导入`ValidationPipe`；然后从`@nestjs/common`中导入`UsePipes`装饰器；最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可，管道还允许注册在相关的参数上如：`@Body/@Query… `等
 
-![](https://s.poetries.work/uploads/2022/05/d9c2b21c632c9baa.png)
+![](https://s.poetries.top/uploads/2022/05/d9c2b21c632c9baa.png)
 
 > **注意：**同一路由注册多个管道的时候，优先执行全局管道，然后再执行模块管道：
 
@@ -1658,7 +1658,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 - 模块注册：在需要注册的`controller`控制器中导入`HttpExceptionFilter`然后从`@nestjs/common`中导入`UseFilters`装饰器；最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可
 
 
-![](https://s.poetries.work/uploads/2022/05/0263be3b963d942b.png)
+![](https://s.poetries.top/uploads/2022/05/0263be3b963d942b.png)
 
 > **注意：** 同一路由注册多个管道的时候，只会执行一个异常过滤器，优先执行模块中绑定的异常过滤器，如果模块中无绑定异常过滤则执行全局异常过滤器
 
@@ -1838,8 +1838,8 @@ export class UserService {
 }
 ```
 
-![](https://s.poetries.work/uploads/2022/05/21f5a8f9dbfad1f0.png)
-![](https://s.poetries.work/uploads/2022/05/38a1ae106ec9638c.png)
+![](https://s.poetries.top/uploads/2022/05/21f5a8f9dbfad1f0.png)
+![](https://s.poetries.top/uploads/2022/05/38a1ae106ec9638c.png)
 
 
 # 进阶
@@ -2131,7 +2131,7 @@ export class UploadModule {}
 
 nest如何实现图片随机验证码？
 
-![](https://s.poetries.work/uploads/2022/05/58d3d8e7ca89835f.png)
+![](https://s.poetries.top/uploads/2022/05/58d3d8e7ca89835f.png)
 
 这里使用的是**svg-captcha**这个库，你也可以使用其他的库
 
@@ -2530,7 +2530,7 @@ export class AppModule implements NestModule {}
 
 **使用postman测试**
 
-![](https://s.poetries.work/uploads/2022/05/154d26405e7a471a.png)
+![](https://s.poetries.top/uploads/2022/05/154d26405e7a471a.png)
 
 ## 对数据库的密码加密：md5和bcryptjs
 
@@ -2668,13 +2668,13 @@ if (compareSync(password, databasePassword3)) {
 
 用户表与角色表是多对多关系，角色表与菜单表是多对多关系
 
-![](https://s.poetries.work/uploads/2022/05/df5b0726d1260958.png)
+![](https://s.poetries.top/uploads/2022/05/df5b0726d1260958.png)
 
 
 
 **更加复杂的设计**
 
-![](https://s.poetries.work/uploads/2022/05/58f62ca515da28df.png)
+![](https://s.poetries.top/uploads/2022/05/58f62ca515da28df.png)
 
 **实现流程**
 
@@ -2861,7 +2861,7 @@ export class AccessEntity {
 
 由于要实现很多接口，这里只说明一部分，其实都是数据库的操作，所有接口如下：
 
-![](https://s.poetries.work/uploads/2022/05/ea6301b6c0da9373.png)
+![](https://s.poetries.top/uploads/2022/05/ea6301b6c0da9373.png)
 
 **根据用户的id获取信息**：id，用户名，部门名，角色，这些信息在做用户登陆时传递到token中。
 
@@ -3472,9 +3472,9 @@ export class UpdateUserDto {
 
 打开：localhost:3000/api-docs，开始测试接口
 
-![](https://s.poetries.work/uploads/2022/05/dd04126877af210f.png)
+![](https://s.poetries.top/uploads/2022/05/dd04126877af210f.png)
 
-![](https://s.poetries.work/uploads/2022/05/98f40271e2f2ed11.png)
+![](https://s.poetries.top/uploads/2022/05/98f40271e2f2ed11.png)
 
 # 数据库
 
@@ -3605,7 +3605,7 @@ export class MongodbService {
 
 浏览器测试 http://localhost:9000/api/mongodb/list
 
-![](https://s.poetries.work/uploads/2022/05/e14c1f5173139807.png)
+![](https://s.poetries.top/uploads/2022/05/e14c1f5173139807.png)
 
 ## typeORM操作Mysql数据库
 
@@ -4169,11 +4169,11 @@ bootstrap();
 
 失败
 
-![](https://s.poetries.work/uploads/2022/05/fe6da80fe7b316ce.png)
+![](https://s.poetries.top/uploads/2022/05/fe6da80fe7b316ce.png)
 
 成功
 
-![](https://s.poetries.work/uploads/2022/05/e0c55c5a0e22af66.png)
+![](https://s.poetries.top/uploads/2022/05/e0c55c5a0e22af66.png)
 
 ## 数据库实体设计与操作
 
@@ -4355,7 +4355,7 @@ export class UsersEntity {
 }
 ```
 
-![](https://s.poetries.work/uploads/2022/05/648cf1e9823e51c1.png)
+![](https://s.poetries.top/uploads/2022/05/648cf1e9823e51c1.png)
 
 ### **抽离部分重复的字段：使用继承**
 
@@ -5130,7 +5130,7 @@ service
 - 这里处理的是1对1关系：保存头像地址到`avatar`表，同时关联保存用户的`id`
 - 如果你不会1对1关系，请先去学习对应的知识
 
-![](https://s.poetries.work/uploads/2022/05/24be5e00069ab400.png)
+![](https://s.poetries.top/uploads/2022/05/24be5e00069ab400.png)
 
 ```js
 import { Injectable } from '@nestjs/common';
@@ -5913,7 +5913,7 @@ export class StarEntity {
 > 程序运行后，将会默认在数据库中生成三张表，users，star，users_follows_star，users_follows_star是中间表，用于记录users和star之间的多对多关系，它是自动生成的。
 
 为了测试方便，你可以在users表和star表创建一些数据：这些属于单表操作
-![](https://s.poetries.work/uploads/2022/05/f9afb65f660699e8.png)
+![](https://s.poetries.top/uploads/2022/05/f9afb65f660699e8.png)
 
 ### **多对多增删改查**
 
@@ -6411,7 +6411,7 @@ export class AuthService {
 }
 ```
 
-![](https://s.poetries.work/uploads/2022/05/f134cb6419f34607.png)
+![](https://s.poetries.top/uploads/2022/05/f134cb6419f34607.png)
 
 **验证token**
 

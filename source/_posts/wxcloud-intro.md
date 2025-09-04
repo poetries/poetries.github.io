@@ -18,7 +18,7 @@ categories: Front-End
 - 同时，微信云托管还集成持续交付部署，DevOps自动化，安全鉴权等众多能力，致力于帮助没有深层运维经验的业务开发者和研发团队，用最低的成本，打造出稳定性高，安全性强的后端服务。
 - 最重要的，微信云托管与微信生态深度融合，具有免鉴权，云调用，消息推送，微信支付等众多微信优势特性，开发者可以非常轻松和高效的完成互通，并且在安全、可靠性方面有微信团队的专业保障。
 
-![](https://s.poetries.work/uploads/2022/06/1399e820bc230d5c.png)
+![](https://s.poetries.top/uploads/2022/06/1399e820bc230d5c.png)
 
 ### 架构特点
 
@@ -26,7 +26,7 @@ categories: Front-End
 
 微信云托管使用目前主流的容器平台Docker以及容器编排技术Kubernetes（简称K8S），来管理你的项目
 
-![](https://s.poetries.work/uploads/2022/06/9a112314718e46da.png)
+![](https://s.poetries.top/uploads/2022/06/9a112314718e46da.png)
 
 ### 常见问题
 
@@ -77,10 +77,10 @@ FROM centos as centos  COPY --from=centos  /usr/share/zoneinfo/Asia/Shanghai /et
 
 > 访问 https://cloud.weixin.qq.com/cloudrun/onekey
 
-![](https://s.poetries.work/uploads/2022/06/faabdedf644f3e4e.png)
-![](https://s.poetries.work/uploads/2022/06/938ddd4770eac635.png)
-![](https://s.poetries.work/uploads/2022/06/ea9d4e50eebbc2c7.png)
-![](https://s.poetries.work/uploads/2022/06/7fc8863ea615b727.png)
+![](https://s.poetries.top/uploads/2022/06/faabdedf644f3e4e.png)
+![](https://s.poetries.top/uploads/2022/06/938ddd4770eac635.png)
+![](https://s.poetries.top/uploads/2022/06/ea9d4e50eebbc2c7.png)
+![](https://s.poetries.top/uploads/2022/06/7fc8863ea615b727.png)
 
 **小程序/公众号中调用**
 
@@ -134,23 +134,23 @@ cd nest-app && npm run start
 
 **新建服务**
 
-![](https://s.poetries.work/uploads/2022/06/d867bed19eb7d9ed.png)
+![](https://s.poetries.top/uploads/2022/06/d867bed19eb7d9ed.png)
 
-![](https://s.poetries.work/uploads/2022/06/a94985c89c5a77d0.png)
+![](https://s.poetries.top/uploads/2022/06/a94985c89c5a77d0.png)
 
 点击发布后，云托管会执行`Dockerfile`构建流水线，到日志可以查看构建进度
 
-![](https://s.poetries.work/uploads/2022/06/28c702aebeea51f1.png)
-![](https://s.poetries.work/uploads/2022/06/e381ee973e6b0128.png)
+![](https://s.poetries.top/uploads/2022/06/28c702aebeea51f1.png)
+![](https://s.poetries.top/uploads/2022/06/e381ee973e6b0128.png)
 
 **微信云托管部署成功后，可以在实例列表，点击进入容器看到代码**，这里里面的内容不能修改，在容器启动后会覆盖
 
-![](https://s.poetries.work/uploads/2022/06/f29ea9c2ac74fac7.png)
-![](https://s.poetries.work/uploads/2022/06/a4a8d047a18b8846.png)
+![](https://s.poetries.top/uploads/2022/06/f29ea9c2ac74fac7.png)
+![](https://s.poetries.top/uploads/2022/06/a4a8d047a18b8846.png)
 
 **调试接口**
 
-![](https://s.poetries.work/uploads/2022/06/71e72ba06d6335db.png)
+![](https://s.poetries.top/uploads/2022/06/71e72ba06d6335db.png)
 
 > [详细示例](https://developers.weixin.qq.com/miniprogram/dev/wxcloudrun/src/quickstart/custom/node.html)
 
@@ -184,7 +184,7 @@ wxcloud env:list [OPTIONS]
 wxcloud service:list [OPTIONS]
 ```
 
-![](https://s.poetries.work/uploads/2022/06/32865ab6963c425e.png)
+![](https://s.poetries.top/uploads/2022/06/32865ab6963c425e.png)
 
 ## 云托管本地调试
 
@@ -263,63 +263,63 @@ EXPOSE 9000
 
 > 如只在 VSCode 中同时编辑调试一个服务，`可直接打开服务代码目录作为根目录`（暂不支持 VSCode Workspace 工作区），保证根目录下有 `Dockerfile` 文件，插件面板中会显示该服务的名字
 
-![](https://s.poetries.work/uploads/2022/06/66fece8795fb4d24.png)
-![](https://s.poetries.work/uploads/2022/06/ac09af2107358e03.png)
+![](https://s.poetries.top/uploads/2022/06/66fece8795fb4d24.png)
+![](https://s.poetries.top/uploads/2022/06/ac09af2107358e03.png)
 
 > 调试过程中因需要获取微信信息，会使用云托管 CLI Key，因此需在 VSCode 插件配置填入小程序 appid 和 cli key，点击插件面板的 ⚙ 图标打开配置：
 
-![](https://s.poetries.work/uploads/2022/06/ce3c104e40011d61.png)
+![](https://s.poetries.top/uploads/2022/06/ce3c104e40011d61.png)
 
-![](https://s.poetries.work/uploads/2022/06/9ae3be753faf6d15.png)
+![](https://s.poetries.top/uploads/2022/06/9ae3be753faf6d15.png)
 
 **构建镜像，启动容器**
 
 右键服务名，选择 start，将构建镜像并启动容器
 
-![](https://s.poetries.work/uploads/2022/06/fcd6a583112c5092.png)
+![](https://s.poetries.top/uploads/2022/06/fcd6a583112c5092.png)
 
 可以看到构建过程
 
-![](https://s.poetries.work/uploads/2022/06/edf9e52ecc8be079.png)
+![](https://s.poetries.top/uploads/2022/06/edf9e52ecc8be079.png)
 
 启动容器需要相应的容器配置信息（`.cloudbase/container/debug.json`），如果没有会提示创建，配置文件字段和含义如下：
 
-![](https://s.poetries.work/uploads/2022/06/f012165c8689c0d7.png)
+![](https://s.poetries.top/uploads/2022/06/f012165c8689c0d7.png)
 
 > 其中需特别注意端口号 `containerPort`、`Dockerfile` 路径 `dockerfilePath`、自定义环境变量 `envParams`
 
 此时出现异常，我们修改`.cloudbase/container/debug.json`中的`containerPort`为koa服务中定义的9000端口，重新构建即可
 
-![](https://s.poetries.work/uploads/2022/06/45bf31849d1ea025.png)
-![](https://s.poetries.work/uploads/2022/06/170ccb5736623b06.png)
+![](https://s.poetries.top/uploads/2022/06/45bf31849d1ea025.png)
+![](https://s.poetries.top/uploads/2022/06/170ccb5736623b06.png)
 
 容器构建和启动成功后，在插件面板状态 icon 会相应更新：
 
-![](https://s.poetries.work/uploads/2022/06/119ccbcb1b5bda86.png)
+![](https://s.poetries.top/uploads/2022/06/119ccbcb1b5bda86.png)
 
 也可以通过`docker ps`查看已启动的服务
 
-![](https://s.poetries.work/uploads/2022/06/bffee56613a1852b.png)
+![](https://s.poetries.top/uploads/2022/06/bffee56613a1852b.png)
 
 我们在云托管后台可以看到此时默认启动了一个调试服务，我们不要去修改它
 
-![](https://s.poetries.work/uploads/2022/06/b9628146f2936d6d.png)
+![](https://s.poetries.top/uploads/2022/06/b9628146f2936d6d.png)
 
 > 此时可以请求容器了，在插件面板旁会展示两个端口号，通过第一个端口访问容器会带有微信相关信息（header 中包含 appid 等），通过第二个端口访问容器不会带有微信相关信息而是直接请求到容器内部，右键服务选择 Open in browser (via WX server) 和 Open in browser (no WX auth) 可以在浏览器中打开，分别对应这两种情况，也可以写代码或通过 POSTMAN 等工具请求
 
-![](https://s.poetries.work/uploads/2022/06/08a189b22f22d644.png)
+![](https://s.poetries.top/uploads/2022/06/08a189b22f22d644.png)
 
 **请求不经过微信服务器返回**：http://127.0.0.1:27081/
 
 > 不带微信信息的端口，直接访问即可，适合在浏览器调试
 
-![](https://s.poetries.work/uploads/2022/06/219c2a545a680211.png)
+![](https://s.poetries.top/uploads/2022/06/219c2a545a680211.png)
 
 **请求经过微信服务器返回**：http://127.0.0.1:27082/
 
 > 微信端口，请求时会模拟微信用户信息的 Header，如 x-wx-openid，适合微信开发者工具中使用
 
-![](https://s.poetries.work/uploads/2022/06/61300f5e0ee71be1.png)
+![](https://s.poetries.top/uploads/2022/06/61300f5e0ee71be1.png)
 
 **在微信开发者工具中，可以选择连接到 VSCode 启动的容器，从而在小程序模拟器中访问本地云托管容器**
 
@@ -328,15 +328,15 @@ EXPOSE 9000
 
 **创建一个小程序测试项目**
 
-![](https://s.poetries.work/uploads/2022/06/0682d26a6cb9733d.png)
+![](https://s.poetries.top/uploads/2022/06/0682d26a6cb9733d.png)
 
 > 在 微信开发者工具 的 `Docker` 面板中，找到 「`Running Containers`」，右击容器名称，选择 `Attach Weixin Devtools`，即可在小程序代码中，使用 `wx.cloud.callContainer` 访问容器。
 
-![](https://s.poetries.work/uploads/2022/06/24939ce50c3f697d.png)
+![](https://s.poetries.top/uploads/2022/06/24939ce50c3f697d.png)
 
 需要退出再次`Detach Weixin Devtools`
 
-![](https://s.poetries.work/uploads/2022/06/c7e521ee38851161.png)
+![](https://s.poetries.top/uploads/2022/06/c7e521ee38851161.png)
 
 > 调用时，需要注意 `Header` 中的 `X-WX-SERVICE` 需要与容器名保持一致
 
@@ -364,21 +364,21 @@ App({
 })
 ```
 
-![](https://s.poetries.work/uploads/2022/06/3c82a5b4cd77cb7e.png)
+![](https://s.poetries.top/uploads/2022/06/3c82a5b4cd77cb7e.png)
 
 **查看请求日志**
 
-![](https://s.poetries.work/uploads/2022/06/e789dfef49932c98.png)
+![](https://s.poetries.top/uploads/2022/06/e789dfef49932c98.png)
 
 或者通过`docker logs`查看
 
-![](https://s.poetries.work/uploads/2022/06/9e869917426b77ad.png)
+![](https://s.poetries.top/uploads/2022/06/9e869917426b77ad.png)
 
 **进入终端**
 
 > 如果需要进入到容器内部终端调试定位问题，可以右键服务名选择 Attach Shell 进入容器内终端
 
-![](https://s.poetries.work/uploads/2022/06/333fccccae7df026.png)
+![](https://s.poetries.top/uploads/2022/06/333fccccae7df026.png)
 
 ### 本地docker实时调试
 
@@ -386,13 +386,13 @@ App({
 
 **选择 Live Coding**
 
-![](https://s.poetries.work/uploads/2022/06/34196636c57afd14.png)
+![](https://s.poetries.top/uploads/2022/06/34196636c57afd14.png)
 
 > 右键点击需要调试的容器，选择 `Live Coding`，将自动生成 `Dockerfile.development` 和 `docker-compose.yml` 2 个文件并启动容器。
 
 如果生成失败，我们需要自行配置
 
-![](https://s.poetries.work/uploads/2022/06/312e14d5e6ca8287.png)
+![](https://s.poetries.top/uploads/2022/06/312e14d5e6ca8287.png)
 
 
 **开发模式的 docker-compose.yml**
@@ -467,11 +467,11 @@ CMD [ "nodemon", "-x", "node bin/www", "-w", "/app", "-e", "java, js, mjs, json,
 
 > 修改koa启动入口 `node www/bin`
 
-![](https://s.poetries.work/uploads/2022/06/8a10761b7b5e317a.png)
+![](https://s.poetries.top/uploads/2022/06/8a10761b7b5e317a.png)
 
 **启动实时服务**
 
-![](https://s.poetries.work/uploads/2022/06/27e38dab008bc840.png)
+![](https://s.poetries.top/uploads/2022/06/27e38dab008bc840.png)
 
 > 修改本地代码，不用重启容器即可查看效果
 
@@ -483,11 +483,11 @@ CMD [ "nodemon", "-x", "node bin/www", "-w", "/app", "-e", "java, js, mjs, json,
 
 填入环境ID
 
-![](https://s.poetries.work/uploads/2022/06/fb7e7d5bb09d2714.png)
+![](https://s.poetries.top/uploads/2022/06/fb7e7d5bb09d2714.png)
 
 启动`api.weixin.qq.com`服务
 
-![](https://s.poetries.work/uploads/2022/06/00ae0c2d76672797.png)
+![](https://s.poetries.top/uploads/2022/06/00ae0c2d76672797.png)
 
 启动自己的业务服务，在业务服务运行过程中，启动 vpc 中的 `api.weixin.qq.com` 服务
 
@@ -519,7 +519,7 @@ CMD [ "nodemon", "-x", "node bin/www", "-w", "/app", "-e", "java, js, mjs, json,
 /wxa/msg_sec_check
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0fe1195da2601738.png)
+![](https://s.poetries.top/uploads/2022/06/0fe1195da2601738.png)
 
 > 在云托管服务中，微信后台周期性的将开放接口所必须要的 `access_token`，推送到服务的容器实例中。在使用时只需要从容器本地读取令牌，就可以包装请求去调用了：
 
@@ -529,8 +529,8 @@ CMD [ "nodemon", "-x", "node bin/www", "-w", "/app", "-e", "java, js, mjs, json,
 
 **查看容器内access_token**
 
-![](https://s.poetries.work/uploads/2022/06/0ada5a6c6b6248c9.png)
-![](https://s.poetries.work/uploads/2022/06/b336245a70f0df92.png)
+![](https://s.poetries.top/uploads/2022/06/0ada5a6c6b6248c9.png)
+![](https://s.poetries.top/uploads/2022/06/b336245a70f0df92.png)
 
 如果需要获取容器内的`access_token`调试接口，需要在接口中填入`cloudbase_access_token=容器内的access_token`
 
@@ -601,20 +601,20 @@ router.get('/msg_sec_check', async (ctx, next) => {
 
 在云托管权限控制台添加接口权限
 
-![](https://s.poetries.work/uploads/2022/06/4ebb3911f85d34fa.png)
+![](https://s.poetries.top/uploads/2022/06/4ebb3911f85d34fa.png)
 
 开启 `api.poetries.top` 本地调试服务
 
-![](https://s.poetries.work/uploads/2022/06/528449d25dd3fe4b.png)
+![](https://s.poetries.top/uploads/2022/06/528449d25dd3fe4b.png)
 
 通过微信服务器模拟小程序请求
 
-![](https://s.poetries.work/uploads/2022/06/2599830982d2a3f9.png)
-![](https://s.poetries.work/uploads/2022/06/d0513c38eda2f996.png)
+![](https://s.poetries.top/uploads/2022/06/2599830982d2a3f9.png)
+![](https://s.poetries.top/uploads/2022/06/d0513c38eda2f996.png)
 
 也可以在小程序中访问
 
-![](https://s.poetries.work/uploads/2022/06/b662201bc3f48b26.png)
+![](https://s.poetries.top/uploads/2022/06/b662201bc3f48b26.png)
 
 
 ### 云托管内调用服务端云函数接口
@@ -661,7 +661,7 @@ router.get('/call-fn-banner', async (ctx, next) => {
 
 小程序云函数banner代码
 
-![](https://s.poetries.work/uploads/2022/06/cabf11a53af60f09.png)
+![](https://s.poetries.top/uploads/2022/06/cabf11a53af60f09.png)
 
 ```js
 // 云函数入口文件
@@ -707,20 +707,20 @@ exports.main = async (event, context) => {
 
 在云托管权限控制台添加接口权限
 
-![](https://s.poetries.work/uploads/2022/06/4015858c85719a6a.png)
+![](https://s.poetries.top/uploads/2022/06/4015858c85719a6a.png)
 
 开启 `api.poetries.top` 本地调试服务
 
-![](https://s.poetries.work/uploads/2022/06/528449d25dd3fe4b.png)
+![](https://s.poetries.top/uploads/2022/06/528449d25dd3fe4b.png)
 
 通过微信服务器模拟小程序请求
 
-![](https://s.poetries.work/uploads/2022/06/2599830982d2a3f9.png)
-![](https://s.poetries.work/uploads/2022/06/7629d70d78672b4e.png)
+![](https://s.poetries.top/uploads/2022/06/2599830982d2a3f9.png)
+![](https://s.poetries.top/uploads/2022/06/7629d70d78672b4e.png)
 
 也可以在小程序中访问
 
-![](https://s.poetries.work/uploads/2022/06/0b93736939cab19a.png)
+![](https://s.poetries.top/uploads/2022/06/0b93736939cab19a.png)
 
 ### 云托管内调用服务端获取小程序码接口
 
@@ -758,19 +758,19 @@ router.get('/getweappCode', async (ctx, next) => {
 
 在云托管权限控制台添加接口权限
 
-![](https://s.poetries.work/uploads/2022/06/f3bd515a0476f6bc.png)
+![](https://s.poetries.top/uploads/2022/06/f3bd515a0476f6bc.png)
 
 开启 `api.poetries.top` 本地调试服务
 
-![](https://s.poetries.work/uploads/2022/06/528449d25dd3fe4b.png)
+![](https://s.poetries.top/uploads/2022/06/528449d25dd3fe4b.png)
 
 通过微信服务器模拟小程序请求
 
-![](https://s.poetries.work/uploads/2022/06/2599830982d2a3f9.png)
+![](https://s.poetries.top/uploads/2022/06/2599830982d2a3f9.png)
 
 也可以在小程序中访问
 
-![](https://s.poetries.work/uploads/2022/06/426afbcda167a0d1.png)
+![](https://s.poetries.top/uploads/2022/06/426afbcda167a0d1.png)
 
 
 

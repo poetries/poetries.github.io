@@ -21,15 +21,15 @@ categories: Front-End
 
 传统的开发模式
 
-![](https://s.poetries.work/uploads/2022/06/f328901c0adb56de.png)
+![](https://s.poetries.top/uploads/2022/06/f328901c0adb56de.png)
 
 新型的serverless开发模式
 
-![](https://s.poetries.work/uploads/2022/06/bcc852ef2bc8fbd7.png)
+![](https://s.poetries.top/uploads/2022/06/bcc852ef2bc8fbd7.png)
 
 Serverless 正在改变未来软件开发的模式和流程
 
-![](https://s.poetries.work/uploads/2022/07/44fa5d83bc09c564.png)
+![](https://s.poetries.top/uploads/2022/07/44fa5d83bc09c564.png)
 
 ## 1.2 Serverless 和 ServerFul 架构的区别
 
@@ -37,20 +37,20 @@ Serverless 正在改变未来软件开发的模式和流程
 
 ServerFul 架构就是 n 台 Server 通过 网络通信 的 方式 协作在一起，也可以说 ServerFul 架构是基于 Server 和 网络通信（分布式计算） 的 软件实现架构 ， Server 可 以是 虚拟机 物理机 ，以及基于硬件实现的云的云服务器
 
-![](https://s.poetries.work/uploads/2022/07/a6ac5a7905e6f81c.png)
+![](https://s.poetries.top/uploads/2022/07/a6ac5a7905e6f81c.png)
 
 ### Serverless 架构模式
 
 Serverless 的核心特点就是实现自动弹性伸缩和按量付费
 
-![](https://s.poetries.work/uploads/2022/07/3d5b8a8b53bd5315.png)
+![](https://s.poetries.top/uploads/2022/07/3d5b8a8b53bd5315.png)
 
 ## 1.3 使用serverless的优势
 
 - **资源分配**: 在 `Serverless` 架构中，你不用关心应用运行的资源(比如服务配置、磁盘大小)只提供一份代码就行。
 - **计费方式**: 在` Serverless` 架构中，计费方式按实际使用量计费(比如函数调用次数、运 行时长)，不按传统的执行代码所需的资源计费(比如固定 `CPU`)。计费粒度也精确到了毫 秒级，而不是传统的小时级别。个别云厂商推出了每个月的免费额度，比如腾讯云提供了每 个月 40 万 GBs 的资源使用额度和 100 万次调用次数的免费额度。中小企业的网站访问量不 是特别大的话完全可以免费使用。
 
-![](https://s.poetries.work/uploads/2022/06/4f400ccd6d34b420.png)
+![](https://s.poetries.top/uploads/2022/06/4f400ccd6d34b420.png)
 
 - **弹性伸缩**:` Serverless` 架构的弹性伸缩更自动化、更精确，可以快速根据业务并发扩容更 多的实例，甚至允许缩容到零实例状态来实现零费用，对用户来说是完全无感知的。而传统 架构对服务器(虚拟机)进行扩容，虚拟机的启动速度也比较慢，需要几分钟甚至更久。
 
@@ -59,29 +59,29 @@ Serverless 的核心特点就是实现自动弹性伸缩和按量付费
 - **广义的 Serverless** 更多是指一种技术理念：Serverless 是构建和运行软件时不需要关心服务 器的一种架构思想。刚开始学 Serverless 你可以把它理解为虚拟主机的升级版本
 - **狭义的 Serverless** 是指现阶段主流的技术实现：狭义的 Serverless 是 `FaaS`和 `BaaS` 组成
 
-![](https://s.poetries.work/uploads/2022/07/e445b52f9d9a9958.png)
+![](https://s.poetries.top/uploads/2022/07/e445b52f9d9a9958.png)
 
 ## 1.5 Serverless 开发流程
 
-![](https://s.poetries.work/uploads/2022/07/1aa3208070a48915.png)
+![](https://s.poetries.top/uploads/2022/07/1aa3208070a48915.png)
 
 ## 1.6 为什么要学 Serverless
 
 先看看招聘信息
 
-![](https://s.poetries.work/uploads/2022/07/c50918e799e3068b.png)
+![](https://s.poetries.top/uploads/2022/07/c50918e799e3068b.png)
 
 看看最近 2 年 Github 的 start 数量和周下载量
 
-![](https://s.poetries.work/uploads/2022/07/9c63657e6a3dadb2.png)
+![](https://s.poetries.top/uploads/2022/07/9c63657e6a3dadb2.png)
 
-![](https://s.poetries.work/uploads/2022/07/c7c5fe6b663fbe4f.png)
+![](https://s.poetries.top/uploads/2022/07/c7c5fe6b663fbe4f.png)
 
-![](https://s.poetries.work/uploads/2022/07/750e45e4a038a162.png)
+![](https://s.poetries.top/uploads/2022/07/750e45e4a038a162.png)
 
 目前已经使用了 serverless 的大公司
 
-![](https://s.poetries.work/uploads/2022/07/d0ace73fab7e28ba.png)
+![](https://s.poetries.top/uploads/2022/07/d0ace73fab7e28ba.png)
 
 ## 1.7 Serverless 的能力
 
@@ -107,7 +107,7 @@ Serverless 的核心特点就是实现自动弹性伸缩和按量付费
 
 > Serverless 中云函数被第一次调用会执行冷启动，Serverless 中云函数被多次连续调用会 执行热启动
 
-![](https://s.poetries.work/uploads/2022/07/527e0cfb402fa738.png)
+![](https://s.poetries.top/uploads/2022/07/527e0cfb402fa738.png)
 
 - **冷启动** 是指你在服务器中新开辟一块空间供一个函数实例运行，这个过程有点像你把这 个函数放到虚拟机里去运行，每次运行前都要先启动虚拟机加载这个函数，以前冷启动非常 耗时，但是目前云厂商已经能做到毫秒级别的冷启动，这个过程我们也不需要关心，但是需 要注意的是使用 Seesion 的时候可能会导致 Session 丢失，所以我们的 Seesion 建议保存到数 据库。
 - **热启动** 则是说如果一个云函数被持续触发，那我就先不释放这个云函数实例，下次请求 仍然由之前已经创建了的云函数实例来运行，就好比我们打开虚拟机运行完这个函数之后没 有关闭虚拟机，而是让它待机，等待下一次被重新触发调用运行，这样做的好处就是省去了 给虚拟机「开机」的一个耗时环节，缺点是要一直维持这个虚拟机的激活状态，系统开销会 大一些。
@@ -170,7 +170,7 @@ sls registry
 sls
 ```
 
-![](https://s.poetries.work/uploads/2022/06/bb939fc00c99aa5a.png)
+![](https://s.poetries.top/uploads/2022/06/bb939fc00c99aa5a.png)
 
 ```bash
 # 例如初始化egg项目
@@ -196,58 +196,58 @@ sls deploy
 
 **界面上创建应用**
 
-![](https://s.poetries.work/uploads/2022/06/18c3d872701f1cfc.png)
+![](https://s.poetries.top/uploads/2022/06/18c3d872701f1cfc.png)
 
 - 在`vscode`上安装插件
 
-![](https://s.poetries.work/uploads/2022/06/0b0cf6ae03f9277b.png)
+![](https://s.poetries.top/uploads/2022/06/0b0cf6ae03f9277b.png)
 
 - 在`vscode`安装后插件登录并且拉取应用
 
 > 密钥地址 https://console.cloud.tencent.com/cam/capi 填入appID、secretID、secretKey即可拉取云函数到本地
 
-![](https://s.poetries.work/uploads/2022/07/66d614b9bba52dbf.png)
+![](https://s.poetries.top/uploads/2022/07/66d614b9bba52dbf.png)
 
 - 切换地域查看函数
 
-![](https://s.poetries.work/uploads/2022/07/d5010c1e04560057.png)
+![](https://s.poetries.top/uploads/2022/07/d5010c1e04560057.png)
 
 
 - 点击云函数，可以查看函数基本配置信息
 
-![](https://s.poetries.work/uploads/2022/07/9e081856b313fc45.png)
+![](https://s.poetries.top/uploads/2022/07/9e081856b313fc45.png)
 
 - 下载函数代码到本地调试，点击下载图标选择要保存的路径
 
-![](https://s.poetries.work/uploads/2022/07/a7b44ad3928be60f.png)
+![](https://s.poetries.top/uploads/2022/07/a7b44ad3928be60f.png)
 
 - 本地修改完代码后，上传函数代码到云端
 
-![](https://s.poetries.work/uploads/2022/07/9e2f3c3bc5832035.png)
-![](https://s.poetries.work/uploads/2022/07/f497c782f6070744.png)
+![](https://s.poetries.top/uploads/2022/07/9e2f3c3bc5832035.png)
+![](https://s.poetries.top/uploads/2022/07/f497c782f6070744.png)
 
 - 本地调试云函数
 
-![](https://s.poetries.work/uploads/2022/07/99f7dc28e086be60.png)
+![](https://s.poetries.top/uploads/2022/07/99f7dc28e086be60.png)
 
 ## 2.3 WebIDE创建云函数实践
 
 **创建一个云函数**
 
-![](https://s.poetries.work/uploads/2022/06/dd99f3d6323b8e15.png)
+![](https://s.poetries.top/uploads/2022/06/dd99f3d6323b8e15.png)
 
 **给云函数创建触发器来访问**
 
-![](https://s.poetries.work/uploads/2022/06/894bd8fb7cee9aa8.png)
+![](https://s.poetries.top/uploads/2022/06/894bd8fb7cee9aa8.png)
 
 创建了触发器后，就可以通过触发器里面的访问路径来访问云函数
 
-![](https://s.poetries.work/uploads/2022/06/6ea1e2875196d30e.png)
-![](https://s.poetries.work/uploads/2022/06/535aa49e41c50789.png)
+![](https://s.poetries.top/uploads/2022/06/6ea1e2875196d30e.png)
+![](https://s.poetries.top/uploads/2022/06/535aa49e41c50789.png)
 
 > 我们可以在控制台修改代码，然后重新部署云函数，或者开启自动安装依赖等
 
-![](https://s.poetries.work/uploads/2022/07/e5f68c50a4296d47.png)
+![](https://s.poetries.top/uploads/2022/07/e5f68c50a4296d47.png)
 
 # 三、Serverless Framework部署项目实战
 
@@ -279,7 +279,7 @@ sls deploy
 
 > https://github.com/serverless/serverless/tree/master/docs/providers
 
-![](https://s.poetries.work/uploads/2022/07/228c4a131acdb03c.png)
+![](https://s.poetries.top/uploads/2022/07/228c4a131acdb03c.png)
 
 ## 3.2 Serverless Components 支持组件列表
 
@@ -330,16 +330,16 @@ module.exports = (appInfo) => {
 1. 登录控制台 https://console.cloud.tencent.com/sls
 2. 单击新建应用，选择Web 应用>Egg 框架，如下图所示：
 
-![](https://s.poetries.work/uploads/2022/06/fbf0b03c839cd73e.png)
+![](https://s.poetries.top/uploads/2022/06/fbf0b03c839cd73e.png)
 
 3. 单击“下一步”，完成基础配置选择。
 
-![](https://s.poetries.work/uploads/2022/06/58b123659a00b194.png)
+![](https://s.poetries.top/uploads/2022/06/58b123659a00b194.png)
 
 4. 上传方式，选择示例代码直接部署，单击完成，即可开始应用的部署。
 5. 部署完成后，您可在应用详情页面，查看示例应用的基本信息，并通过 API 网关生成的访问路径 URL 进行访问，查看您部署的 Egg 项目。
 
-![](https://s.poetries.work/uploads/2022/06/c4c3e330b1a6af68.png)
+![](https://s.poetries.top/uploads/2022/06/c4c3e330b1a6af68.png)
 
 ### 控制台创建部署-自定义部署(推荐)
 
@@ -365,7 +365,7 @@ npm i
 
 您也可以在控制台完成该模块配置。
 
-![](https://s.poetries.work/uploads/2022/06/85b3d73ea922f0ea.png)
+![](https://s.poetries.top/uploads/2022/06/85b3d73ea922f0ea.png)
 
 > 在项目根目录下新建 `scf_bootstrap` 启动文件，在该文件添加如下内容（用于配置环境变量和启动服务，此处仅为示例，具体操作请以您实际业务场景来调整）：
 
@@ -415,21 +415,21 @@ chmod 777 scf_bootstrap
 
 启动文件以项目内文件为准，如果您的项目里已经包含 `scf_bootstrap` 文件，将不会覆盖该内容。
 
-![](https://s.poetries.work/uploads/2022/06/a96ce1c3799f5951.png)
-![](https://s.poetries.work/uploads/2022/06/ce48d9dd73af824f.png)
-![](https://s.poetries.work/uploads/2022/06/9a0e3dfa25a6ed3d.png)
+![](https://s.poetries.top/uploads/2022/06/a96ce1c3799f5951.png)
+![](https://s.poetries.top/uploads/2022/06/ce48d9dd73af824f.png)
+![](https://s.poetries.top/uploads/2022/06/9a0e3dfa25a6ed3d.png)
 
-![](https://s.poetries.work/uploads/2022/06/e9dd1225bf0d37cd.png)
+![](https://s.poetries.top/uploads/2022/06/e9dd1225bf0d37cd.png)
 
 查看函数，修改代码查看日志等
 
-![](https://s.poetries.work/uploads/2022/06/ca238c35541dd8df.png)
+![](https://s.poetries.top/uploads/2022/06/ca238c35541dd8df.png)
 
 **高级配置管理**
 
 > 您可在“高级配置”里进行更多应用管理操作，如创建层、绑定自定义域名、配置环境变量等。
 
-![](https://s.poetries.work/uploads/2022/06/4ab13bbb74bcdf89.png)
+![](https://s.poetries.top/uploads/2022/06/4ab13bbb74bcdf89.png)
 
 
 ### HTTP 组件方式部署(推荐)
@@ -525,7 +525,7 @@ inputs:
 
 > 创建完成后，在根目录下执行 `sls deploy` 进行部署，组件会根据选择的框架类型，自动生成 `scf_bootstrap` 启动文件进行部署
 
-![](https://s.poetries.work/uploads/2022/06/8e11d14d715ba443.png)
+![](https://s.poetries.top/uploads/2022/06/8e11d14d715ba443.png)
 
 我们也可以在项目跟目录自己创建启动文件`scf_bootstrap` ，然后`chmod 777 scf_bootstrap`
 
@@ -577,35 +577,35 @@ sls deploy
 
 > 注意：由于启动文件逻辑与用户业务逻辑强关联，默认生成的启动文件可能导致框架无法正常启动，建议您根据实际业务需求，手动配置启动文件，[详情参考各框架的部署指引文档](https://cloud.tencent.com/document/product/1154/59447)。
 
-![](https://s.poetries.work/uploads/2022/06/9d3580eef444d80f.png)
+![](https://s.poetries.top/uploads/2022/06/9d3580eef444d80f.png)
 
 > 如果部署过程遇到问题不好排除，如以下问题：
 
-![](https://s.poetries.work/uploads/2022/06/6d5fd5ba537850dd.png)
+![](https://s.poetries.top/uploads/2022/06/6d5fd5ba537850dd.png)
 
 来到控制台创建项目
 
-![](https://s.poetries.work/uploads/2022/06/1ac3905f67789812.png)
-![](https://s.poetries.work/uploads/2022/06/715ea0e1c4d12298.png)
-![](https://s.poetries.work/uploads/2022/06/a3921110151f0ba3.png)
-![](https://s.poetries.work/uploads/2022/06/f91266106e6e1d78.png)
-![](https://s.poetries.work/uploads/2022/06/2117adef0814c390.png)
+![](https://s.poetries.top/uploads/2022/06/1ac3905f67789812.png)
+![](https://s.poetries.top/uploads/2022/06/715ea0e1c4d12298.png)
+![](https://s.poetries.top/uploads/2022/06/a3921110151f0ba3.png)
+![](https://s.poetries.top/uploads/2022/06/f91266106e6e1d78.png)
+![](https://s.poetries.top/uploads/2022/06/2117adef0814c390.png)
 
 **在控制台安装依赖包**
 
 > 我们在`sls deploy`忽略了`node_modules`，因此需要在控制台安装依赖
 
-![](https://s.poetries.work/uploads/2022/06/d47f6e73f93d5055.png)
+![](https://s.poetries.top/uploads/2022/06/d47f6e73f93d5055.png)
 
 访问应用
 
-![](https://s.poetries.work/uploads/2022/06/9ad37b26fbab516d.png)
+![](https://s.poetries.top/uploads/2022/06/9ad37b26fbab516d.png)
 
 到控制台查看
 
-![](https://s.poetries.work/uploads/2022/06/14c5cc6d18060612.png)
-![](https://s.poetries.work/uploads/2022/06/369867cf3dc9a1e1.png)
-![](https://s.poetries.work/uploads/2022/06/3cdd7bf1c596d876.png)
+![](https://s.poetries.top/uploads/2022/06/14c5cc6d18060612.png)
+![](https://s.poetries.top/uploads/2022/06/369867cf3dc9a1e1.png)
+![](https://s.poetries.top/uploads/2022/06/3cdd7bf1c596d876.png)
 
 删除应用
 
@@ -613,7 +613,7 @@ sls deploy
 sls remove
 ```
 
-![](https://s.poetries.work/uploads/2022/06/9db881d3d57a0c59.png)
+![](https://s.poetries.top/uploads/2022/06/9db881d3d57a0c59.png)
 
 ### 使用Layer 来减小项目文件大小
 
@@ -658,21 +658,21 @@ inputs:
 
 创建后可见层对应信息
 
-![](https://s.poetries.work/uploads/2022/06/7e5abeb49a56f460.png)
+![](https://s.poetries.top/uploads/2022/06/7e5abeb49a56f460.png)
 
 我们也可以在控制台新建层绑定到对应的函数即可
 
-![](https://s.poetries.work/uploads/2022/06/d10f5ea7b0cac331.png)
+![](https://s.poetries.top/uploads/2022/06/d10f5ea7b0cac331.png)
 
 控制台上传层有大小限制
 
-![](https://s.poetries.work/uploads/2022/06/683f6152002db3a9.png)
+![](https://s.poetries.top/uploads/2022/06/683f6152002db3a9.png)
 
 文件夹支持250M
 
-![](https://s.poetries.work/uploads/2022/06/6495e575646c3035.png)
+![](https://s.poetries.top/uploads/2022/06/6495e575646c3035.png)
 
-![](https://s.poetries.work/uploads/2022/06/740312afd66bc342.png)
+![](https://s.poetries.top/uploads/2022/06/740312afd66bc342.png)
 
 
 **修改以上项目下的serverless.yml加入层配置**
@@ -746,10 +746,10 @@ layers:
 
 > 接着执行命令 `sls deploy --target=./layer`部署层，然后再次部署`sls deploy`看看速度应该更快了
 
-![](https://s.poetries.work/uploads/2022/06/f5d5c8b90fdf942c.png)
-![](https://s.poetries.work/uploads/2022/06/6683161cf18fc51c.png)
-![](https://s.poetries.work/uploads/2022/06/88d1098b222f184b.png)
-![](https://s.poetries.work/uploads/2022/06/b5b0c69b6962434d.png)
+![](https://s.poetries.top/uploads/2022/06/f5d5c8b90fdf942c.png)
+![](https://s.poetries.top/uploads/2022/06/6683161cf18fc51c.png)
+![](https://s.poetries.top/uploads/2022/06/88d1098b222f184b.png)
+![](https://s.poetries.top/uploads/2022/06/b5b0c69b6962434d.png)
 
 每次`node_modules`改变都需要 
 
@@ -852,26 +852,26 @@ sls deploy # sls deploy --debug可以查看日志
 
 3. 扫描登录部署会在项目下创建一个`.env`的`serverless`的登录信息
 
-![](https://s.poetries.work/uploads/2022/06/4bb68977c923970f.png)
+![](https://s.poetries.top/uploads/2022/06/4bb68977c923970f.png)
 
 4. 部署成功，打开地址访问，此时会报错，我们没有把node_modules一起上传
 
-![](https://s.poetries.work/uploads/2022/06/b6d50b9d2070559c.png)
-![](https://s.poetries.work/uploads/2022/06/fecba16d7e2071eb.png)
+![](https://s.poetries.top/uploads/2022/06/b6d50b9d2070559c.png)
+![](https://s.poetries.top/uploads/2022/06/fecba16d7e2071eb.png)
 
 浏览器打开提示缺少模块
 
-![](https://s.poetries.work/uploads/2022/06/08a0618ffe147378.png)
+![](https://s.poetries.top/uploads/2022/06/08a0618ffe147378.png)
 
 我们在控制台上点击
 
-![](https://s.poetries.work/uploads/2022/06/e6454fd010815c3f.png)
-![](https://s.poetries.work/uploads/2022/06/50bcc5c01f3af862.png)
+![](https://s.poetries.top/uploads/2022/06/e6454fd010815c3f.png)
+![](https://s.poetries.top/uploads/2022/06/50bcc5c01f3af862.png)
 
 打开自动安装依赖后重新部署即可看到`node_modules`，这时再次访问浏览器地址
 
-![](https://s.poetries.work/uploads/2022/06/fd6229e7d654a470.png)
-![](https://s.poetries.work/uploads/2022/06/53fa2c373a8a69cd.png)
+![](https://s.poetries.top/uploads/2022/06/fd6229e7d654a470.png)
+![](https://s.poetries.top/uploads/2022/06/53fa2c373a8a69cd.png)
 
 
 
@@ -882,16 +882,16 @@ sls deploy # sls deploy --debug可以查看日志
 1. 登录 [Serverless 应用控制台](https://console.cloud.tencent.com/sls)。
 2. 单击新建应用，选择Web 应用>Nest.js 框架，如下图所示：
 
-![](https://s.poetries.work/uploads/2022/06/c05fcae4ea2a8593.png)
+![](https://s.poetries.top/uploads/2022/06/c05fcae4ea2a8593.png)
 
 3. 单击“下一步”，完成基础配置选择
 
-![](https://s.poetries.work/uploads/2022/06/c23d3219be7ab860.png)
+![](https://s.poetries.top/uploads/2022/06/c23d3219be7ab860.png)
 
 - 上传方式，选择示例代码直接部署，单击完成，即可开始应用的部署。
 - 部署完成后，您可在应用详情页面，查看示例应用的基本信息，并通过 API 网关生成的访问路径 URL 进行访问，查看您部署的 Nest.js 项目
 
-![](https://s.poetries.work/uploads/2022/06/60f6e95248310f40.png)
+![](https://s.poetries.top/uploads/2022/06/60f6e95248310f40.png)
 
 ### 自定义模板部署nest(推荐)
 
@@ -919,13 +919,13 @@ cd nest-app && npm run start
 
 1. 修改启动文件`main.ts`，监听端口改为`9000`:
 
-![](https://s.poetries.work/uploads/2022/06/12736ad9dda9b911.png)
+![](https://s.poetries.top/uploads/2022/06/12736ad9dda9b911.png)
 
 2. 在项目根目录下新建 `scf_bootstrap` 启动文件，在该文件添加如下内容（用于启动服务）：
 
 您也可以在控制台完成该模块配置。
 
-![](https://s.poetries.work/uploads/2022/06/9a96d63935762fc3.png)
+![](https://s.poetries.top/uploads/2022/06/9a96d63935762fc3.png)
 
 ```bash
 # scf_bootstrap
@@ -946,7 +946,7 @@ chmod 777 scf_bootstrap
 > 注意：启动文件以项目内文件为准，如果您的项目里已经包含 scf_bootstrap 文件，将不会覆盖该内容。
 
 
-![](https://s.poetries.work/uploads/2022/06/c1fe93fe050d5f5c.png)
+![](https://s.poetries.top/uploads/2022/06/c1fe93fe050d5f5c.png)
 
 
 ### 使用http组件(推荐)
@@ -1046,9 +1046,9 @@ exclude: # 被排除的文件或目录
 
 执行 `sls deploy` （`sls deploy --debug` 查看部署日志）
 
-![](https://s.poetries.work/uploads/2022/06/15d73875b2f56fd4.png)
-![](https://s.poetries.work/uploads/2022/06/903af650eb01b169.png)
-![](https://s.poetries.work/uploads/2022/06/a47a05e9bd8eb7c9.png)
+![](https://s.poetries.top/uploads/2022/06/15d73875b2f56fd4.png)
+![](https://s.poetries.top/uploads/2022/06/903af650eb01b169.png)
+![](https://s.poetries.top/uploads/2022/06/a47a05e9bd8eb7c9.png)
 
 **查看部署信息**
 
@@ -1056,7 +1056,7 @@ exclude: # 被排除的文件或目录
 sls info
 ```
 
-![](https://s.poetries.work/uploads/2022/06/68b296819ee39d4f.png)
+![](https://s.poetries.top/uploads/2022/06/68b296819ee39d4f.png)
 
 **实时开发并上传**
 
@@ -1072,7 +1072,7 @@ sls dev
 sls remove
 ```
 
-![](https://s.poetries.work/uploads/2022/06/1c33faad7da0be9c.png)
+![](https://s.poetries.top/uploads/2022/06/1c33faad7da0be9c.png)
 
 ### 使用Layer 来减小项目文件大小
 
@@ -1166,7 +1166,7 @@ layers: # 配置对应的 layer
 
 > 接着执行命令 `sls deploy --target=./layer`部署层，然后再次部署`sls deploy`看看速度应该更快了
 
-![](https://s.poetries.work/uploads/2022/06/b1a9175c8c6d1404.png)
+![](https://s.poetries.top/uploads/2022/06/b1a9175c8c6d1404.png)
 
 每次`node_modules`改变都需要 
 
@@ -1277,13 +1277,13 @@ inputs:
 1. 登录 [Serverless 应用控制台](https://console.cloud.tencent.com/sls)。
 2. 单击新建应用，选择Web 应用>Koa 框架，如下图所示：
 
-![](https://s.poetries.work/uploads/2022/06/6382481121ebc584.png)
+![](https://s.poetries.top/uploads/2022/06/6382481121ebc584.png)
 
 3. 单击“下一步”，完成基础配置选择。
 4. 上传方式，选择示例代码直接部署，单击完成，即可开始应用的部署。
 5. 部署完成后，您可在应用详情页面，查看示例应用的基本信息，并通过 API 网关生成的访问路径 URL 进行访问，查看您部署的 Koa 项目
 
-![](https://s.poetries.work/uploads/2022/06/6ab832e2d0343c64.png)
+![](https://s.poetries.top/uploads/2022/06/6ab832e2d0343c64.png)
 
 ### 自定义模板部署
 
@@ -1320,10 +1320,10 @@ npm start
 
 在 Koa 示例项目中，修改监听端口到 `9000`
 
-![](https://s.poetries.work/uploads/2022/06/6be48886a199d8df.png)
-![](https://s.poetries.work/uploads/2022/06/dd5fd8c12cb5d46a.png)
-![](https://s.poetries.work/uploads/2022/06/f4edaeba5e1bd1f2.png)
-![](https://s.poetries.work/uploads/2022/06/92152ad6865809d8.png)
+![](https://s.poetries.top/uploads/2022/06/6be48886a199d8df.png)
+![](https://s.poetries.top/uploads/2022/06/dd5fd8c12cb5d46a.png)
+![](https://s.poetries.top/uploads/2022/06/f4edaeba5e1bd1f2.png)
+![](https://s.poetries.top/uploads/2022/06/92152ad6865809d8.png)
 
 ### 使用HTTP组件部署
 
@@ -1387,9 +1387,9 @@ chmod 777 scf_bootstrap
 sls deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/74ac915db74d3dd6.png)
-![](https://s.poetries.work/uploads/2022/06/34fceabfeb33c9e9.png)
-![](https://s.poetries.work/uploads/2022/06/4dcbaf2dbb72cef4.png)
+![](https://s.poetries.top/uploads/2022/06/74ac915db74d3dd6.png)
+![](https://s.poetries.top/uploads/2022/06/34fceabfeb33c9e9.png)
+![](https://s.poetries.top/uploads/2022/06/4dcbaf2dbb72cef4.png)
 
 **查看部署信息**
 
@@ -1397,7 +1397,7 @@ sls deploy
 sls info
 ```
 
-![](https://s.poetries.work/uploads/2022/06/80ed7651618d4bd1.png)
+![](https://s.poetries.top/uploads/2022/06/80ed7651618d4bd1.png)
 
 **移除**
 
@@ -1464,8 +1464,8 @@ sls deploy
 
 > 如果希望查看更多部署过程的信息，可以通过`sls deploy --debug` 命令查看部署过程中的实时日志信息
 
-![](https://s.poetries.work/uploads/2022/06/22914c1b39955760.png)
-![](https://s.poetries.work/uploads/2022/06/84f4b895e0ef3e1a.png)
+![](https://s.poetries.top/uploads/2022/06/22914c1b39955760.png)
+![](https://s.poetries.top/uploads/2022/06/84f4b895e0ef3e1a.png)
 
 **开发调试**
 
@@ -1536,9 +1536,9 @@ inputs:
   #     autoRefresh: true #开启自动 CDN 刷新，用于快速更新和同步加速域名中展示的站点内容
 ```
 
-![](https://s.poetries.work/uploads/2022/06/8614efb6787a455f.png)
-![](https://s.poetries.work/uploads/2022/06/4048c87e395ebe98.png)
-![](https://s.poetries.work/uploads/2022/06/6aa33661c29780c8.png)
+![](https://s.poetries.top/uploads/2022/06/8614efb6787a455f.png)
+![](https://s.poetries.top/uploads/2022/06/4048c87e395ebe98.png)
+![](https://s.poetries.top/uploads/2022/06/6aa33661c29780c8.png)
 
 
 实时监控项目部署
@@ -1547,11 +1547,11 @@ inputs:
 sls dev
 ```
 
-![](https://s.poetries.work/uploads/2022/06/a226acca0bb48bed.png)
+![](https://s.poetries.top/uploads/2022/06/a226acca0bb48bed.png)
 
 ## 4.3 sls部署vuepress项目
 
-![](https://s.poetries.work/uploads/2022/06/3e7f22a3df08fa4b.png)
+![](https://s.poetries.top/uploads/2022/06/3e7f22a3df08fa4b.png)
 
 **编写serverless.yml配置**
 
@@ -1591,7 +1591,7 @@ inputs:
 sls deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/f150204a59359b6d.png)
+![](https://s.poetries.top/uploads/2022/06/f150204a59359b6d.png)
 
 **移除**
 
@@ -1609,7 +1609,7 @@ sls remove
 
 **注意**：配置私有网络的服务器需要在同一个地区
 
-![](https://s.poetries.work/uploads/2022/07/1063776f916665ad.png)
+![](https://s.poetries.top/uploads/2022/07/1063776f916665ad.png)
 
 ### Nodejs Serverless 中操作 Mysql
 
@@ -1618,45 +1618,45 @@ sls remove
 
 **购买云数据库mysql**
 
-![](https://s.poetries.work/uploads/2022/07/a32767996808f68f.png)
+![](https://s.poetries.top/uploads/2022/07/a32767996808f68f.png)
 
-![](https://s.poetries.work/uploads/2022/07/ca2c192149944c02.png)
+![](https://s.poetries.top/uploads/2022/07/ca2c192149944c02.png)
 
-![](https://s.poetries.work/uploads/2022/07/fb6f3d7a624a73f6.png)
+![](https://s.poetries.top/uploads/2022/07/fb6f3d7a624a73f6.png)
 
 **新建mysql云函数**
 
-![](https://s.poetries.work/uploads/2022/07/968044649cbdbfee.png)
+![](https://s.poetries.top/uploads/2022/07/968044649cbdbfee.png)
 
 - 选择和mysql同一个地域，程序之间通过VPC网络连接
 
-![](https://s.poetries.work/uploads/2022/07/e7285b3cba07f7bf.png)
+![](https://s.poetries.top/uploads/2022/07/e7285b3cba07f7bf.png)
 
 - 选择私有网络，和mysql所在网络一致
 
-![](https://s.poetries.work/uploads/2022/07/c31cd4d7d163bb89.png)
-![](https://s.poetries.work/uploads/2022/07/1d3382cca02d0f05.png)
+![](https://s.poetries.top/uploads/2022/07/c31cd4d7d163bb89.png)
+![](https://s.poetries.top/uploads/2022/07/1d3382cca02d0f05.png)
 
 如果没有需要新建私有网络，需要和msyql实例同一个地区，选择了新建的私有网络，mysql实例那边网络需要修改一致
 
-![](https://s.poetries.work/uploads/2022/07/e848fe3eabb20b49.png)
-![](https://s.poetries.work/uploads/2022/07/e5dfce33f28ac2f0.png)
+![](https://s.poetries.top/uploads/2022/07/e848fe3eabb20b49.png)
+![](https://s.poetries.top/uploads/2022/07/e5dfce33f28ac2f0.png)
 
 - 登录mysql数据库增加测试数据
 
-![](https://s.poetries.work/uploads/2022/07/765e9fdf679b9661.png)
+![](https://s.poetries.top/uploads/2022/07/765e9fdf679b9661.png)
 
 新建test数据库
 
-![](https://s.poetries.work/uploads/2022/07/794bc6fe87c43f55.png)
+![](https://s.poetries.top/uploads/2022/07/794bc6fe87c43f55.png)
 
 创建user表
 
-![](https://s.poetries.work/uploads/2022/07/bc6c668125921773.png)
+![](https://s.poetries.top/uploads/2022/07/bc6c668125921773.png)
 
 - 修改云函数代码，保存部署即可
 
-![](https://s.poetries.work/uploads/2022/07/0ec0d7030a1a171a.png)
+![](https://s.poetries.top/uploads/2022/07/0ec0d7030a1a171a.png)
 
 ```js 
 /**************************************************
@@ -1703,17 +1703,17 @@ exports.main_handler = async (event, context, callback) => {
 
 重新部署
 
-![](https://s.poetries.work/uploads/2022/07/be2ad63b73cd90cb.png)
+![](https://s.poetries.top/uploads/2022/07/be2ad63b73cd90cb.png)
 
 - 创建API网关触发器，在浏览器中访问
 
-![](https://s.poetries.work/uploads/2022/07/4d25248bad953017.png)
+![](https://s.poetries.top/uploads/2022/07/4d25248bad953017.png)
 
-![](https://s.poetries.work/uploads/2022/07/280e12f1381ad19b.png)
+![](https://s.poetries.top/uploads/2022/07/280e12f1381ad19b.png)
 
 浏览器中访问查看效果
 
-![](https://s.poetries.work/uploads/2022/07/3bf2e7588ef4db51.png)
+![](https://s.poetries.top/uploads/2022/07/3bf2e7588ef4db51.png)
 
 ### Nodejs Serverless 中操作 Mongodb
 
@@ -1722,20 +1722,20 @@ exports.main_handler = async (event, context, callback) => {
 
 **购买MongoDB数据库**
 
-![](https://s.poetries.work/uploads/2022/07/88f6da606016085b.png)
-![](https://s.poetries.work/uploads/2022/07/81895e9b9ae7dac9.png)
+![](https://s.poetries.top/uploads/2022/07/88f6da606016085b.png)
+![](https://s.poetries.top/uploads/2022/07/81895e9b9ae7dac9.png)
 
 **创建云函数**
 
-![](https://s.poetries.work/uploads/2022/07/ada2715770b68f92.png)
+![](https://s.poetries.top/uploads/2022/07/ada2715770b68f92.png)
 
 - 选择地区
 
-![](https://s.poetries.work/uploads/2022/07/cdc6c87499019a46.png)
+![](https://s.poetries.top/uploads/2022/07/cdc6c87499019a46.png)
 
 - 选择私有网络，和mongodb所在网络一致
 
-![](https://s.poetries.work/uploads/2022/07/cfdd4a0e3e82ee18.png)
+![](https://s.poetries.top/uploads/2022/07/cfdd4a0e3e82ee18.png)
 
 - 修改云函数代码
 
@@ -1771,9 +1771,9 @@ exports.main_handler = async (event, context, callback) => {
 
 创建触发器
 
-![](https://s.poetries.work/uploads/2022/07/1da43f40efc683d6.png)
+![](https://s.poetries.top/uploads/2022/07/1da43f40efc683d6.png)
 
-![](https://s.poetries.work/uploads/2022/07/5a8d14fb5d7417c0.png)
+![](https://s.poetries.top/uploads/2022/07/5a8d14fb5d7417c0.png)
 
 
 ## 5.2 Serverless BaaS 对象云存储Cos介绍、Node操作Cos、实现图片上传到Cos中
@@ -1782,11 +1782,11 @@ exports.main_handler = async (event, context, callback) => {
 
 狭义的 Serverless 是指现阶段主流的技术实现：狭义的 Serverless 是 `FaaS` 和 `BaaS` 组成
 
-![](https://s.poetries.work/uploads/2022/07/396be7b44eb9dd81.png)
+![](https://s.poetries.top/uploads/2022/07/396be7b44eb9dd81.png)
 
 > 对象存储（Cloud Object Storage，COS）是一种存储海量文件的分布式存储服务，具有高扩 展性、低成本、可靠安全等优点。通过控制台、API、SDK 和工具等多样化方式，用户可简 单、快速地接入 COS，进行多格式文件的上传、下载和管理，实现海量数据存储和管理。
 
-![](https://s.poetries.work/uploads/2022/07/0fc384f78966e294.png)
+![](https://s.poetries.top/uploads/2022/07/0fc384f78966e294.png)
 
 ### Nodejs 操作 Cos
 
@@ -1960,7 +1960,7 @@ module.exports={
 
 > https://github.com/serverless-components/tencent-koa/blob/master/docs/upload.md
 
-![](https://s.poetries.work/uploads/2022/07/d959441445eecfb5.png)
+![](https://s.poetries.top/uploads/2022/07/d959441445eecfb5.png)
 
 修改`serverless.yml`
 
@@ -2014,21 +2014,21 @@ sls deploy
 
 找到云函数对应的 api 网关
 
-![](https://s.poetries.work/uploads/2022/07/7c53c0ead5e166f7.png)
+![](https://s.poetries.top/uploads/2022/07/7c53c0ead5e166f7.png)
 
 编辑 api 网关 点击域名管理
 
-![](https://s.poetries.work/uploads/2022/07/fa2e097f55e8460b.png)
+![](https://s.poetries.top/uploads/2022/07/fa2e097f55e8460b.png)
 
 新建域名
 
-![](https://s.poetries.work/uploads/2022/07/9f4acfb1d41d15ec.png)
+![](https://s.poetries.top/uploads/2022/07/9f4acfb1d41d15ec.png)
 
-![](https://s.poetries.work/uploads/2022/07/cbc5cd59595597bc.png)
+![](https://s.poetries.top/uploads/2022/07/cbc5cd59595597bc.png)
 
 解析域名
 
-![](https://s.poetries.work/uploads/2022/07/c2dc26b03c9b36be.png)
+![](https://s.poetries.top/uploads/2022/07/c2dc26b03c9b36be.png)
 
 ### Serverless 中配置 https 访问
 
@@ -2046,37 +2046,37 @@ HTTPS 是在 HTTP 的基础上添加了安全层，从原来的明文传输变�
 
 **创建证书**
 
-![](https://s.poetries.work/uploads/2022/07/c0bd93006ea724cd.png)
+![](https://s.poetries.top/uploads/2022/07/c0bd93006ea724cd.png)
 
 选择证书
 
-![](https://s.poetries.work/uploads/2022/07/c7ecd5414acc9881.png)
+![](https://s.poetries.top/uploads/2022/07/c7ecd5414acc9881.png)
 
 ### Cos 中配置域名
 
 配置域名
 
-![](https://s.poetries.work/uploads/2022/07/565fff50504ea193.png)
+![](https://s.poetries.top/uploads/2022/07/565fff50504ea193.png)
 
 域名解析
 
-![](https://s.poetries.work/uploads/2022/07/08646a66aeb4c8fb.png)
+![](https://s.poetries.top/uploads/2022/07/08646a66aeb4c8fb.png)
 
 
 # 六、QA
 
 ## scf_bootstrap启动文件与sls.js启动文件区别
 
-![](https://s.poetries.work/uploads/2022/06/c70fc14a6975b58d.png)
+![](https://s.poetries.top/uploads/2022/06/c70fc14a6975b58d.png)
 
 - `scf_bootstrap` 文件是针对 `web` 函数的，
 - `sls.js` 入口文件是针对事件函数，主要是 `serverless` 封装了一些开源框架，改造的入口文件。
 
 ## 关于serverless.yml写法问题，是更推荐HTTP组件方式吗
 
-![](https://s.poetries.work/uploads/2022/06/bf28a299163edd25.png)
-![](https://s.poetries.work/uploads/2022/06/73dd2079f12bc9e2.png)
-![](https://s.poetries.work/uploads/2022/06/2fd1b2033733a2f9.png)
+![](https://s.poetries.top/uploads/2022/06/bf28a299163edd25.png)
+![](https://s.poetries.top/uploads/2022/06/73dd2079f12bc9e2.png)
+![](https://s.poetries.top/uploads/2022/06/2fd1b2033733a2f9.png)
 
 > 目前推荐使用 web 函数，也就是 `HTTP 组件`，现在所有的serverless web 应用都是基于 `component: http` 组件的。
 
@@ -2084,7 +2084,7 @@ HTTPS 是在 HTTP 的基础上添加了安全层，从原来的明文传输变�
 
 云函数 scf 针对每个用户帐号，均有一定的配额限制：
 
-![](https://s.poetries.work/uploads/2022/06/a75c8ba81b1830ac.png)
+![](https://s.poetries.top/uploads/2022/06/a75c8ba81b1830ac.png)
 
 > 其中需要重点关注的就是单个函数代码体积 `500mb` 的上限。在实际操作中，云函数虽然提供了 `500mb`。但也存在着一个 `deploy` 解压上限。
 

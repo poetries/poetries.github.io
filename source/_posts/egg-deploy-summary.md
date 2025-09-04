@@ -15,7 +15,7 @@ mac下安装docker: `brew install docker`
 
 ## 1.1 设置国内镜像源
 
-![](https://s.poetries.work/uploads/2022/06/82cdc649caaa9a4d.png)
+![](https://s.poetries.top/uploads/2022/06/82cdc649caaa9a4d.png)
 
 ```json
 {
@@ -63,37 +63,37 @@ $ docker rmi $(docker images | grep "none" | awk '{print $3}') //删除镜像
 
 重命名镜像后IMAGE ID都是一样的
 
-![](https://s.poetries.work/uploads/2022/06/59d83f0139c878de.png)
+![](https://s.poetries.top/uploads/2022/06/59d83f0139c878de.png)
 
 也可以导出镜像到本地备份 `docker save -o node.image(导出镜像要起的名称) 28faf336034d(要导出的镜像的ID)`
 
-![](https://s.poetries.work/uploads/2022/06/7b993abfdc8f07b6.png)
+![](https://s.poetries.top/uploads/2022/06/7b993abfdc8f07b6.png)
 
 我们先删除之前的镜像 `docker rmi 28faf336034d -f` 强制删除
 
-![](https://s.poetries.work/uploads/2022/06/df79f11b704aae4d.png)
+![](https://s.poetries.top/uploads/2022/06/df79f11b704aae4d.png)
 
 再次导入本地镜像
 
 `docker load -i node.image(导入的镜像名称)`
 
-![](https://s.poetries.work/uploads/2022/06/566d2f2270c40840.png)
+![](https://s.poetries.top/uploads/2022/06/566d2f2270c40840.png)
 
 然后再次重命名镜像即可
 
 `docker tag 28faf336034d node:v1.0(版本v1.0)`
 
-![](https://s.poetries.work/uploads/2022/06/129f0a59b6d7c5d4.png)
+![](https://s.poetries.top/uploads/2022/06/129f0a59b6d7c5d4.png)
 
 ### 2、安装MySQL镜像
 
 进入`https://hub.daocloud.io` 搜索mysql，切换到版本获取下载地址
 
-![](https://s.poetries.work/uploads/2022/06/a6a34ed8d66f7cdc.png)
+![](https://s.poetries.top/uploads/2022/06/a6a34ed8d66f7cdc.png)
 
 - `docker pull daocloud.io/library/mysql:8.0.20`
 
-![](https://s.poetries.work/uploads/2022/06/f7e34f9ea2331ffb.png)
+![](https://s.poetries.top/uploads/2022/06/f7e34f9ea2331ffb.png)
 
 **启动MySQL镜像**
 
@@ -107,7 +107,7 @@ docker run -d(后台运行) -p 3307:3306(本机端口:MySQL运行端口) --name 
 docker ps -a(正在运行和停止的镜像-a都可见)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/5ba00266271ef558.png)
+![](https://s.poetries.top/uploads/2022/06/5ba00266271ef558.png)
 
 **删除容器**
 
@@ -123,11 +123,11 @@ docker rm bac2692e2b9a(容器ID：docker ps获取)
 docker exec -it bac2692e2b9a(容器ID) sh(指定进入方式)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/16c4541cf84b6e48.png)
+![](https://s.poetries.top/uploads/2022/06/16c4541cf84b6e48.png)
 
 我们使用Navicat新建一个连接测试一下
 
-![](https://s.poetries.work/uploads/2022/06/65357b17bf38f12e.png)
+![](https://s.poetries.top/uploads/2022/06/65357b17bf38f12e.png)
 
 说明我们使用docker安装MySQL的方式是没问题的
 
@@ -136,7 +136,7 @@ docker exec -it bac2692e2b9a(容器ID) sh(指定进入方式)
 ```
 docker logs -f(查看最后几条)  bac2692e2b9a(容器ID)
 ```
-![](https://s.poetries.work/uploads/2022/06/639c44fb75dfe354.png)
+![](https://s.poetries.top/uploads/2022/06/639c44fb75dfe354.png)
 
 **重启容器**
 
@@ -173,11 +173,11 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 FLUSH PRIVILEGES;
 ```
 
-![](https://s.poetries.work/uploads/2022/06/2ce28bda82ab01d4.png)
+![](https://s.poetries.top/uploads/2022/06/2ce28bda82ab01d4.png)
 
 ### 3、安装redis镜像
 
-![](https://s.poetries.work/uploads/2022/06/b38b5f228f3bcafe.png)
+![](https://s.poetries.top/uploads/2022/06/b38b5f228f3bcafe.png)
 
 ```
 docker pull daocloud.io/library/redis:6.0.3-alpine3.11
@@ -189,11 +189,11 @@ docker pull daocloud.io/library/redis:6.0.3-alpine3.11
 docker run -d -p 6380:6379 --name redis 29c713657d31(镜像ID) --requirepass 123456(redis登录密码)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/57a4ce88939753b0.png)
+![](https://s.poetries.top/uploads/2022/06/57a4ce88939753b0.png)
 
 或进入redis镜像后在输入密码
 
-![](https://s.poetries.work/uploads/2022/06/b6183fc0a23c353d.png)
+![](https://s.poetries.top/uploads/2022/06/b6183fc0a23c353d.png)
 
 **交互式进入redis容器**
 
@@ -201,18 +201,18 @@ docker run -d -p 6380:6379 --name redis 29c713657d31(镜像ID) --requirepass 123
 docker exec -it 9751cbc96861(容器ID) sh
 ```
 
-![](https://s.poetries.work/uploads/2022/06/ab4cf5d68cdd846b.png)
+![](https://s.poetries.top/uploads/2022/06/ab4cf5d68cdd846b.png)
 
 
 ### 4、安装Nginx镜像
 
-![](https://s.poetries.work/uploads/2022/06/49bb3cc9f49c2dd1.png)
+![](https://s.poetries.top/uploads/2022/06/49bb3cc9f49c2dd1.png)
 
 ```
 docker pull daocloud.io/library/nginx:1.13.0-alpine
 ```
 
-![](https://s.poetries.work/uploads/2022/06/1f9aea9f1c9a18fc.png)
+![](https://s.poetries.top/uploads/2022/06/1f9aea9f1c9a18fc.png)
 
 **启动Nginx镜像**
 
@@ -230,16 +230,16 @@ docker run --name nginx -d -p 8666:80 -v /Users/poetry/Downloads/docker/nginx/lo
 
 > 把docker容器中的Nginx服务配置映射本地方便管理
 
-![](https://s.poetries.work/uploads/2022/06/691129b326f9fb23.png)
+![](https://s.poetries.top/uploads/2022/06/691129b326f9fb23.png)
 
 访问docker暴露的8666端口即可
 
-![](https://s.poetries.work/uploads/2022/06/6d9b07b85c22e0b5.png)
+![](https://s.poetries.top/uploads/2022/06/6d9b07b85c22e0b5.png)
 
 当我们修改了html中的文件，无需重启容器即可看到效果
 
-![](https://s.poetries.work/uploads/2022/06/d0ded5a28d96ce59.png)
-![](https://s.poetries.work/uploads/2022/06/cb0109ef19b551e4.png)
+![](https://s.poetries.top/uploads/2022/06/d0ded5a28d96ce59.png)
+![](https://s.poetries.top/uploads/2022/06/cb0109ef19b551e4.png)
 
 ## 1.4 部署egg代码
 
@@ -279,7 +279,7 @@ CMD yarn prod
 docker run -d(后台启动) -p 7001:7001(本机:容器) --name server(容器名称) af9360186a24(镜像ID)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/1332f6a87ae0879f.png)
+![](https://s.poetries.top/uploads/2022/06/1332f6a87ae0879f.png)
 
 
 # 二、docker-compose部署
@@ -360,7 +360,7 @@ networks:
 
 **修改egg服务代码**
 
-![](https://s.poetries.work/uploads/2022/06/a799a68a83398d4b.png)
+![](https://s.poetries.top/uploads/2022/06/a799a68a83398d4b.png)
 
 **常用命令**
 
@@ -375,11 +375,11 @@ networks:
 
 后台启动服务 `docker-compose up -d`
 
-![](https://s.poetries.work/uploads/2022/06/e8a4d267eb9342c1.png)
+![](https://s.poetries.top/uploads/2022/06/e8a4d267eb9342c1.png)
 
 查看应用状态 `docker-compose ps`
 
-![](https://s.poetries.work/uploads/2022/06/85c0f4122baf860d.png)
+![](https://s.poetries.top/uploads/2022/06/85c0f4122baf860d.png)
 
 停止服务 `docker-compose down`
 
@@ -388,11 +388,11 @@ networks:
 
 把前端打包的文件放到Nginx目录下访问
 
-![](https://s.poetries.work/uploads/2022/06/8ec0512b8a2a0652.png)
+![](https://s.poetries.top/uploads/2022/06/8ec0512b8a2a0652.png)
 
-![](https://s.poetries.work/uploads/2022/06/4a710e9a2a883e24.png)
+![](https://s.poetries.top/uploads/2022/06/4a710e9a2a883e24.png)
 
-![](https://s.poetries.work/uploads/2022/06/0bb97a6d629301ac.png)
+![](https://s.poetries.top/uploads/2022/06/0bb97a6d629301ac.png)
 
 # 四、docker部署到云服务器
 
@@ -404,7 +404,7 @@ networks:
 yum install yum-utils device-mapper-persistent-data lvm2 -y
 ```
 
-![](https://s.poetries.work/uploads/2022/06/e0f4f8f2621b11c0.png)
+![](https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png)
 
 ### 设置阿里镜像源
 
@@ -412,7 +412,7 @@ yum install yum-utils device-mapper-persistent-data lvm2 -y
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0b017f9a76914c6e.png)
+![](https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png)
 
 ### 安装docker
 
@@ -457,7 +457,7 @@ systemctl restart docker
 docker pull daocloud.io/library/mysql:8.0.20
 ```
 
-![](https://s.poetries.work/uploads/2022/06/dad88a1878a7a12f.png)
+![](https://s.poetries.top/uploads/2022/06/dad88a1878a7a12f.png)
 
 **运行mysql镜像**
 
@@ -465,11 +465,11 @@ docker pull daocloud.io/library/mysql:8.0.20
 docker run -d -p 3307:3306 --name mysql -e MYSQL_ROOT_PASSWORD=123456(设置登录密码) be0dbf01a0f3(镜像ID)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/fb606d9823c4f0ff.png)
+![](https://s.poetries.top/uploads/2022/06/fb606d9823c4f0ff.png)
 
 **进入mysql容器内部**
 
-![](https://s.poetries.work/uploads/2022/06/3a9f7618e1baf34f.png)
+![](https://s.poetries.top/uploads/2022/06/3a9f7618e1baf34f.png)
 
 > 至此mysql镜像搭建成功，下面我们使用`docker-compose`来管理docker容器，不在单独一个个安装MySQL、redis、nginx
 
@@ -505,7 +505,7 @@ docker-compose version 1.22.0, build f46880fe
 
 登录服务器后台放行对应端口
 
-![](https://s.poetries.work/uploads/2022/06/e4657b28bcea9b61.png)
+![](https://s.poetries.top/uploads/2022/06/e4657b28bcea9b61.png)
 
 ## 4.4 部署egg项目
 
@@ -513,12 +513,12 @@ docker-compose version 1.22.0, build f46880fe
 
 **修改Nginx配置**
 
-![](https://s.poetries.work/uploads/2022/06/bcaf72ea48991732.png)
-![](https://s.poetries.work/uploads/2022/06/1bf0445f94a779a6.png)
+![](https://s.poetries.top/uploads/2022/06/bcaf72ea48991732.png)
+![](https://s.poetries.top/uploads/2022/06/1bf0445f94a779a6.png)
 
 **修改config/config.prod.js**
 
-![](https://s.poetries.work/uploads/2022/06/2744890d4980cfc8.png)
+![](https://s.poetries.top/uploads/2022/06/2744890d4980cfc8.png)
 
 **docker-compose.yml**
 
@@ -2513,7 +2513,7 @@ jemalloc-bg-thread yes
 scp -rp egg.zip root@43.138.12.18:/home
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0327d670f6d365a3.png)
+![](https://s.poetries.top/uploads/2022/06/0327d670f6d365a3.png)
 
 **解压**
 
@@ -2521,7 +2521,7 @@ scp -rp egg.zip root@43.138.12.18:/home
 unzip -u -d server egg.zip
 ```
 
-![](https://s.poetries.work/uploads/2022/06/1b6745e93aa9117b.png)
+![](https://s.poetries.top/uploads/2022/06/1b6745e93aa9117b.png)
 
 ### 启动egg服务
 
@@ -2532,15 +2532,15 @@ unzip -u -d server egg.zip
 docker-compose up -d
 ```
 
-![](https://s.poetries.work/uploads/2022/06/bc579093039d5dff.png)
-![](https://s.poetries.work/uploads/2022/06/e0867be8b406e212.png)
-![](https://s.poetries.work/uploads/2022/06/b2cacc63e98f5a06.png)
+![](https://s.poetries.top/uploads/2022/06/bc579093039d5dff.png)
+![](https://s.poetries.top/uploads/2022/06/e0867be8b406e212.png)
+![](https://s.poetries.top/uploads/2022/06/b2cacc63e98f5a06.png)
 
 ### 测试服务
 
 **vscode本地连接线上数据库测试**
 
-![](https://s.poetries.work/uploads/2022/06/1f3bfb1ae436d23a.png)
+![](https://s.poetries.top/uploads/2022/06/1f3bfb1ae436d23a.png)
 
 **redis服务连接测试**
 
@@ -2550,8 +2550,8 @@ docker-compose up -d
 redis-cli -h 43.23.121.12 -p 6380
 ```
 
-![](https://s.poetries.work/uploads/2022/06/eda7643690d38f9d.png)
-![](https://s.poetries.work/uploads/2022/06/52c4f5f008df9f52.png)
+![](https://s.poetries.top/uploads/2022/06/eda7643690d38f9d.png)
+![](https://s.poetries.top/uploads/2022/06/52c4f5f008df9f52.png)
 
 设置密码后的登录方式
 
@@ -2562,20 +2562,20 @@ keys *
 auth [username] password
 ```
 
-![](https://s.poetries.work/uploads/2022/06/ca3f547b33538895.png)
+![](https://s.poetries.top/uploads/2022/06/ca3f547b33538895.png)
 
 > 缓存服务测试
 
-![](https://s.poetries.work/uploads/2022/06/575fadaac0763dc6.png)
-![](https://s.poetries.work/uploads/2022/06/54f7c259eaf6172c.png)
+![](https://s.poetries.top/uploads/2022/06/575fadaac0763dc6.png)
+![](https://s.poetries.top/uploads/2022/06/54f7c259eaf6172c.png)
 
 **测试egg接口**
 
-![](https://s.poetries.work/uploads/2022/06/dc8e99cf5574f3fd.png)
+![](https://s.poetries.top/uploads/2022/06/dc8e99cf5574f3fd.png)
 
 **访问前端项目测试接口**
 
-![](https://s.poetries.work/uploads/2022/06/64b59c23ed0cc0d7.png)
+![](https://s.poetries.top/uploads/2022/06/64b59c23ed0cc0d7.png)
 
 # 五、部署到云托管
 
@@ -2585,51 +2585,51 @@ auth [username] password
 
 这里我们上面部署使用的自建服务器上docker搭建的redis服务作为演示
 
-![](https://s.poetries.work/uploads/2022/06/c74e6e89043a20d6.png)
+![](https://s.poetries.top/uploads/2022/06/c74e6e89043a20d6.png)
 
 ## 5.2 mysql服务
 
 这里我们上面部署使用的自建服务器上docker搭建的mysql服务作为演示
 
-![](https://s.poetries.work/uploads/2022/06/1e17df55d9c3634f.png)
+![](https://s.poetries.top/uploads/2022/06/1e17df55d9c3634f.png)
 
 ## 5.3 egg部署
 
 ### 修改代码
 
-![](https://s.poetries.work/uploads/2022/06/144606d89bc20359.png)
+![](https://s.poetries.top/uploads/2022/06/144606d89bc20359.png)
 
 然后上传代码到github，通过云托管流水线构建
 
 ### 新建服务
 
-![](https://s.poetries.work/uploads/2022/06/c09974e946ab3075.png)
+![](https://s.poetries.top/uploads/2022/06/c09974e946ab3075.png)
 
-![](https://s.poetries.work/uploads/2022/06/71c1f38043c67c1b.png)
+![](https://s.poetries.top/uploads/2022/06/71c1f38043c67c1b.png)
 
 点击发布后，云托管会执行Dockerfile构建流水线，到日志可以查看构建进度
 
-![](https://s.poetries.work/uploads/2022/06/2c6ce688f421ef04.png)
+![](https://s.poetries.top/uploads/2022/06/2c6ce688f421ef04.png)
 
-![](https://s.poetries.work/uploads/2022/06/0f3919c9924b6071.png)
+![](https://s.poetries.top/uploads/2022/06/0f3919c9924b6071.png)
 
 **微信云托管部署成功后，可以在实例列表，点击进入容器看到代码**，这里里面的内容不能修改，在容器启动后会覆盖
 
-![](https://s.poetries.work/uploads/2022/06/3e1b91db0e2b0718.png)
-![](https://s.poetries.work/uploads/2022/06/d0dd17b85fd1e305.png)
+![](https://s.poetries.top/uploads/2022/06/3e1b91db0e2b0718.png)
+![](https://s.poetries.top/uploads/2022/06/d0dd17b85fd1e305.png)
 
 ### 调试接口
 
-![](https://s.poetries.work/uploads/2022/06/e3a9c648993208d2.png)
+![](https://s.poetries.top/uploads/2022/06/e3a9c648993208d2.png)
 
 **postman测试**
 
-![](https://s.poetries.work/uploads/2022/06/713c1e6256b93b9a.png)
+![](https://s.poetries.top/uploads/2022/06/713c1e6256b93b9a.png)
 
 **测试redis服务**
 
-![](https://s.poetries.work/uploads/2022/06/c3b97b3e633cb928.png)
-![](https://s.poetries.work/uploads/2022/06/91202ab620ae6b65.png)
+![](https://s.poetries.top/uploads/2022/06/c3b97b3e633cb928.png)
+![](https://s.poetries.top/uploads/2022/06/91202ab620ae6b65.png)
 
 至此部署到微信云托管完成，后续修改代码提交到github会自动触发云托管部署
 
@@ -2637,7 +2637,7 @@ auth [username] password
 
 需要注意，云函数的代码包不能超过500M
 
-![](https://s.poetries.work/uploads/2022/06/41b9fcbf9242921f.png)
+![](https://s.poetries.top/uploads/2022/06/41b9fcbf9242921f.png)
 
 ## 6.1 修改egg配置
 
@@ -2687,9 +2687,9 @@ inputs:
 - 部署命令： `sls deploy`(意: `sls` 是 `serverless` 命令的简写。)
 - 更多配置参考 https://github.com/serverless-components/tencent-egg/tree/v2
 
-![](https://s.poetries.work/uploads/2022/06/bdea8f2beb76abc4.png)
-![](https://s.poetries.work/uploads/2022/06/471ac2511396e898.png)
-![](https://s.poetries.work/uploads/2022/06/51a5bdc6a3e2ee10.png)
+![](https://s.poetries.top/uploads/2022/06/bdea8f2beb76abc4.png)
+![](https://s.poetries.top/uploads/2022/06/471ac2511396e898.png)
+![](https://s.poetries.top/uploads/2022/06/51a5bdc6a3e2ee10.png)
 
 ### 移除
 
@@ -2721,16 +2721,16 @@ TENCENT_SECRET_KEY=XXX
 1. 登录控制台 https://console.cloud.tencent.com/sls
 2. 单击新建应用，选择Web 应用>Egg 框架，如下图所示：
 
-![](https://s.poetries.work/uploads/2022/06/fbf0b03c839cd73e.png)
+![](https://s.poetries.top/uploads/2022/06/fbf0b03c839cd73e.png)
 
 3. 单击“下一步”，完成基础配置选择。
 
-![](https://s.poetries.work/uploads/2022/06/58b123659a00b194.png)
+![](https://s.poetries.top/uploads/2022/06/58b123659a00b194.png)
 
 4. 上传方式，选择示例代码直接部署，单击完成，即可开始应用的部署。
 5. 部署完成后，您可在应用详情页面，查看示例应用的基本信息，并通过 API 网关生成的访问路径 URL 进行访问，查看您部署的 Egg 项目。
 
-![](https://s.poetries.work/uploads/2022/06/c4c3e330b1a6af68.png)
+![](https://s.poetries.top/uploads/2022/06/c4c3e330b1a6af68.png)
 
 ## 6.4 控制台创建部署-自定义部署
 
@@ -2756,7 +2756,7 @@ npm i
 
 您也可以在控制台完成该模块配置。
 
-![](https://s.poetries.work/uploads/2022/06/85b3d73ea922f0ea.png)
+![](https://s.poetries.top/uploads/2022/06/85b3d73ea922f0ea.png)
 
 > 在项目根目录下新建 `scf_bootstrap` 启动文件，在该文件添加如下内容（用于配置环境变量和启动服务，此处仅为示例，具体操作请以您实际业务场景来调整）：
 
@@ -2806,24 +2806,24 @@ chmod 777 scf_bootstrap
 
 启动文件以项目内文件为准，如果您的项目里已经包含 `scf_bootstrap` 文件，将不会覆盖该内容。
 
-![](https://s.poetries.work/uploads/2022/06/a96ce1c3799f5951.png)
-![](https://s.poetries.work/uploads/2022/06/ce48d9dd73af824f.png)
-![](https://s.poetries.work/uploads/2022/06/9a0e3dfa25a6ed3d.png)
+![](https://s.poetries.top/uploads/2022/06/a96ce1c3799f5951.png)
+![](https://s.poetries.top/uploads/2022/06/ce48d9dd73af824f.png)
+![](https://s.poetries.top/uploads/2022/06/9a0e3dfa25a6ed3d.png)
 
-![](https://s.poetries.work/uploads/2022/06/e9dd1225bf0d37cd.png)
+![](https://s.poetries.top/uploads/2022/06/e9dd1225bf0d37cd.png)
 
 查看函数，修改代码查看日志等
 
-![](https://s.poetries.work/uploads/2022/06/ca238c35541dd8df.png)
+![](https://s.poetries.top/uploads/2022/06/ca238c35541dd8df.png)
 
 **高级配置管理**
 
 > 您可在“高级配置”里进行更多应用管理操作，如创建层、绑定自定义域名、配置环境变量等。
 
-![](https://s.poetries.work/uploads/2022/06/4ab13bbb74bcdf89.png)
+![](https://s.poetries.top/uploads/2022/06/4ab13bbb74bcdf89.png)
 
 ## 6.5 测试接口
 
-![](https://s.poetries.work/uploads/2022/06/5a4f88d78a4740fb.png)
-![](https://s.poetries.work/uploads/2022/06/692ad2fc22a7721d.png)
-![](https://s.poetries.work/uploads/2022/06/38120fb475238537.png)
+![](https://s.poetries.top/uploads/2022/06/5a4f88d78a4740fb.png)
+![](https://s.poetries.top/uploads/2022/06/692ad2fc22a7721d.png)
+![](https://s.poetries.top/uploads/2022/06/38120fb475238537.png)

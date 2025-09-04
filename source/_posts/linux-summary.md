@@ -512,7 +512,7 @@ systemctl start mongod
 $ mongo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/366a505fdb77ca61.png)
+![](https://s.poetries.top/uploads/2022/06/366a505fdb77ca61.png)
 
 5. 设置开机启动mongodb	
 
@@ -526,7 +526,7 @@ systemctl enable mongod
 - 修改mongo.conf文件
 	- 命令：`sudo  vi /etc/mongod.conf`
 	- 将原来bindIp: `127.0.0.1` 修改为`0.0.0.0`
-  ![](https://s.poetries.work/uploads/2022/06/2e64b45acc69230d.png)
+  ![](https://s.poetries.top/uploads/2022/06/2e64b45acc69230d.png)
 - 重启动mongo服务：`service mongod restart`
 - 永久开放`27017`端口：
 	- `firewall-cmd --zone=public --add-port=27017/tcp --permanent;` （`--permanent`永久生效，没有此参数重启后失效）
@@ -658,7 +658,7 @@ redis-cli
 
 ### nginx+nodejs 一台服务器站架多个网站
 
-![](https://s.poetries.work/uploads/2022/06/f3bd51d6f4acf247.png)
+![](https://s.poetries.top/uploads/2022/06/f3bd51d6f4acf247.png)
 
 #### 搭建 Nodejs 生产环境
 
@@ -764,7 +764,7 @@ firewall-cmd --zone=public --add-port=80/tcp --permanent
 
 找到 `/etc/nginx/conf.d` 然后在里面新建对应网站的配置文件
 
-![](https://s.poetries.work/uploads/2022/06/34c70c7723b1c5b3.png)
+![](https://s.poetries.top/uploads/2022/06/34c70c7723b1c5b3.png)
 
 ```bash
 server { 
@@ -822,7 +822,7 @@ firewall-cmd --zone= public --remove-port=3306/tcp --permanent
 
 #### nginx+nodejs多台服务器负载均衡
 
-![](https://s.poetries.work/uploads/2022/06/2025927792fe986a.png)
+![](https://s.poetries.top/uploads/2022/06/2025927792fe986a.png)
 
 **负载均衡的种类**
 
@@ -842,7 +842,7 @@ firewall-cmd --zone= public --remove-port=3306/tcp --permanent
 - 配置负载均衡
   - 找到 `/etc/nginx/conf.d` 然后在里面新建对应网站的配置文件
 
-![](https://s.poetries.work/uploads/2022/06/2977a3d908a6b1b3.png)
+![](https://s.poetries.top/uploads/2022/06/2977a3d908a6b1b3.png)
 
 > 重启 nginx：`systemctl restart nginx`
 
@@ -969,7 +969,7 @@ server {
 
 > 我们使用docker跑三个nodejs应用程序作为演示
 
-![](https://s.poetries.work/uploads/2022/06/7bdc4513afb0e8c5.png)
+![](https://s.poetries.top/uploads/2022/06/7bdc4513afb0e8c5.png)
 
 - **使用koa搭建三个服务3001,3002,3003**
 
@@ -1071,7 +1071,7 @@ server {
 
 > 修改`upstream bakeaaa`中的权重等，可以看到不断刷新页面，可以看到不同的服务器负载均衡的效果
 
-![](https://s.poetries.work/uploads/2022/06/99bc3d74f889990a.png)
+![](https://s.poetries.top/uploads/2022/06/99bc3d74f889990a.png)
 
 ### 云服务器部署node项目
 
@@ -1211,8 +1211,8 @@ server {
 
 刚开始学 Docker 你可以把它理解成我们以前学过的虚拟机，但是 Docke 和传统虚拟化方式 的不同之处。传统虚拟机技术是虚拟出一套硬件后，在其上运行一个完整操作系统，在该系 统上再运行所需应用进程；Docker 相比传统的虚拟化技术要更轻量级，Docker 容器内的应 用程序是直接运行在宿主内核中的，容器内没有自己的内核，也没有进行硬件虚拟
 
-![](https://s.poetries.work/uploads/2022/06/d475d80c46a6b836.png)
-![](https://s.poetries.work/uploads/2022/06/5f8aa431399633c4.png)
+![](https://s.poetries.top/uploads/2022/06/d475d80c46a6b836.png)
+![](https://s.poetries.top/uploads/2022/06/5f8aa431399633c4.png)
 
 > 因此 Docker 容器要比传统虚拟机占用资源更小、系统支持量更大、启动速度更快、更容易 维护和扩展。 目前 Docker 是全栈开发者必备的技能之一。 官网：https://hub.docker.com
 
@@ -1233,7 +1233,7 @@ mac下安装docker: `brew install docker`，或者下载安装 https://docs.dock
 
 设置国内镜像源
 
-![](https://s.poetries.work/uploads/2022/06/82cdc649caaa9a4d.png)
+![](https://s.poetries.top/uploads/2022/06/82cdc649caaa9a4d.png)
 
 ```json
 {
@@ -1343,7 +1343,7 @@ Server:
 yum install yum-utils device-mapper-persistent-data lvm2 -y
 ```
 
-![](https://s.poetries.work/uploads/2022/06/e0f4f8f2621b11c0.png)
+![](https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png)
 
 **设置阿里镜像源**
 
@@ -1351,7 +1351,7 @@ yum install yum-utils device-mapper-persistent-data lvm2 -y
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0b017f9a76914c6e.png)
+![](https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png)
 
 **安装docker**
 
@@ -1399,7 +1399,7 @@ systemctl restart docker
 yum list docker-ce --showduplicates | sort -r
 ```
 
-![](https://s.poetries.work/uploads/2022/06/717f82025ea75291.png)
+![](https://s.poetries.top/uploads/2022/06/717f82025ea75291.png)
 
 ```
 sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.i o
@@ -1417,7 +1417,7 @@ sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> conta
 
 访问 https://www.aliyun.com/ 搜索 “容器镜像服务”
 
-![](https://s.poetries.work/uploads/2022/06/dacef356b4101fd5.png)
+![](https://s.poetries.top/uploads/2022/06/dacef356b4101fd5.png)
 
 您可以通过修改daemon配置文件`/etc/docker/daemon.json`来使用加速器
 
@@ -1434,8 +1434,8 @@ sudo systemctl restart docker
 
 ### docker镜像容器仓库
 
-![](https://s.poetries.work/uploads/2022/06/311938585465b33b.png)
-![](https://s.poetries.work/uploads/2022/06/4c1ecee2ce96588b.png)
+![](https://s.poetries.top/uploads/2022/06/311938585465b33b.png)
+![](https://s.poetries.top/uploads/2022/06/4c1ecee2ce96588b.png)
 
 #### 镜像
 
@@ -1444,7 +1444,7 @@ sudo systemctl restart docker
 - 镜像是分层（Layer）的：即一个镜像可以多个中间层组成，多个镜像可以共享同一中 间层，我们也可以通过在镜像添加多一层来生成一个新的镜像。
 - 镜像是只读的（read-only）：镜像在构建完成之后，便不可以再修改，而上面我们所说 的添加一层构建新的镜像，这中间实际是通过创建一个临时的容器，在容器上增加或 删除文件，从而形成新的镜像，因为容器是可以动态改变的
 
-![](https://s.poetries.work/uploads/2022/06/a524edcdba080105.png)
+![](https://s.poetries.top/uploads/2022/06/a524edcdba080105.png)
 
 #### 容器
 
@@ -1453,7 +1453,7 @@ sudo systemctl restart docker
 - 因为容器是通过镜像来创建的，所以必须先有镜像才能创建容器，而生成的容器是一个独立 于宿主机的隔离进程，并且有属于容器自己的网络和命名空间
 - 镜像由多个中间层（layer）组成，生成的镜像是只读的，但容器却是可读 可写的，这是因为容器是在镜像上面添一层读写层（writer/read layer）来实现的，如下图所 示：
 
-![](https://s.poetries.work/uploads/2022/06/2681b9ce8eeab9d5.png)
+![](https://s.poetries.top/uploads/2022/06/2681b9ce8eeab9d5.png)
 
 #### 仓库
 
@@ -1549,37 +1549,37 @@ sudo systemctl restart docker
 
 重命名镜像后IMAGE ID都是一样的
 
-![](https://s.poetries.work/uploads/2022/06/59d83f0139c878de.png)
+![](https://s.poetries.top/uploads/2022/06/59d83f0139c878de.png)
 
 也可以导出镜像到本地备份 `docker save -o node.image(导出镜像要起的名称) 28faf336034d(要导出的镜像的ID)`
 
-![](https://s.poetries.work/uploads/2022/06/7b993abfdc8f07b6.png)
+![](https://s.poetries.top/uploads/2022/06/7b993abfdc8f07b6.png)
 
 我们先删除之前的镜像 `docker rmi 28faf336034d -f` 强制删除
 
-![](https://s.poetries.work/uploads/2022/06/df79f11b704aae4d.png)
+![](https://s.poetries.top/uploads/2022/06/df79f11b704aae4d.png)
 
 再次导入本地镜像
 
 `docker load -i node.image(导入的镜像名称)`
 
-![](https://s.poetries.work/uploads/2022/06/566d2f2270c40840.png)
+![](https://s.poetries.top/uploads/2022/06/566d2f2270c40840.png)
 
 然后再次重命名镜像即可
 
 `docker tag 28faf336034d node:v1.0(版本v1.0)`
 
-![](https://s.poetries.work/uploads/2022/06/129f0a59b6d7c5d4.png)
+![](https://s.poetries.top/uploads/2022/06/129f0a59b6d7c5d4.png)
 
 #### 安装Nginx
 
-![](https://s.poetries.work/uploads/2022/06/49bb3cc9f49c2dd1.png)
+![](https://s.poetries.top/uploads/2022/06/49bb3cc9f49c2dd1.png)
 
 ```
 docker pull daocloud.io/library/nginx:1.13.0-alpine
 ```
 
-![](https://s.poetries.work/uploads/2022/06/1f9aea9f1c9a18fc.png)
+![](https://s.poetries.top/uploads/2022/06/1f9aea9f1c9a18fc.png)
 
 **启动Nginx镜像**
 
@@ -1597,26 +1597,26 @@ docker run --name nginx -d -p 8666:80 -v /Users/poetry/Downloads/docker/nginx/lo
 
 > 把docker容器中的Nginx服务配置映射本地方便管理
 
-![](https://s.poetries.work/uploads/2022/06/691129b326f9fb23.png)
+![](https://s.poetries.top/uploads/2022/06/691129b326f9fb23.png)
 
 访问docker暴露的8666端口即可
 
-![](https://s.poetries.work/uploads/2022/06/6d9b07b85c22e0b5.png)
+![](https://s.poetries.top/uploads/2022/06/6d9b07b85c22e0b5.png)
 
 当我们修改了html中的文件，无需重启容器即可看到效果
 
-![](https://s.poetries.work/uploads/2022/06/d0ded5a28d96ce59.png)
-![](https://s.poetries.work/uploads/2022/06/cb0109ef19b551e4.png)
+![](https://s.poetries.top/uploads/2022/06/d0ded5a28d96ce59.png)
+![](https://s.poetries.top/uploads/2022/06/cb0109ef19b551e4.png)
 
 #### 安装mysql
 
 进入`https://hub.daocloud.io` 搜索mysql，切换到版本获取下载地址
 
-![](https://s.poetries.work/uploads/2022/06/a6a34ed8d66f7cdc.png)
+![](https://s.poetries.top/uploads/2022/06/a6a34ed8d66f7cdc.png)
 
 - `docker pull daocloud.io/library/mysql:8.0.20`
 
-![](https://s.poetries.work/uploads/2022/06/f7e34f9ea2331ffb.png)
+![](https://s.poetries.top/uploads/2022/06/f7e34f9ea2331ffb.png)
 
 **启动MySQL镜像**
 
@@ -1630,7 +1630,7 @@ docker run -d(后台运行) -p 3307:3306(本机端口:MySQL运行端口) --name 
 docker ps -a(正在运行和停止的镜像-a都可见)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/5ba00266271ef558.png)
+![](https://s.poetries.top/uploads/2022/06/5ba00266271ef558.png)
 
 **删除容器**
 
@@ -1646,11 +1646,11 @@ docker rm bac2692e2b9a(容器ID：docker ps获取)
 docker exec -it bac2692e2b9a(容器ID) sh(指定进入方式)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/16c4541cf84b6e48.png)
+![](https://s.poetries.top/uploads/2022/06/16c4541cf84b6e48.png)
 
 我们使用Navicat新建一个连接测试一下
 
-![](https://s.poetries.work/uploads/2022/06/65357b17bf38f12e.png)
+![](https://s.poetries.top/uploads/2022/06/65357b17bf38f12e.png)
 
 说明我们使用docker安装MySQL的方式是没问题的
 
@@ -1659,7 +1659,7 @@ docker exec -it bac2692e2b9a(容器ID) sh(指定进入方式)
 ```
 docker logs -f(查看最后几条)  bac2692e2b9a(容器ID)
 ```
-![](https://s.poetries.work/uploads/2022/06/639c44fb75dfe354.png)
+![](https://s.poetries.top/uploads/2022/06/639c44fb75dfe354.png)
 
 **重启容器**
 
@@ -1696,7 +1696,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 FLUSH PRIVILEGES;
 ```
 
-![](https://s.poetries.work/uploads/2022/06/2ce28bda82ab01d4.png)
+![](https://s.poetries.top/uploads/2022/06/2ce28bda82ab01d4.png)
 
 **挂载配置文件目录**
 
@@ -1715,7 +1715,7 @@ docker inspect bac2692e2b9a | grep mysql
 
 #### 安装redis
 
-![](https://s.poetries.work/uploads/2022/06/b38b5f228f3bcafe.png)
+![](https://s.poetries.top/uploads/2022/06/b38b5f228f3bcafe.png)
 
 ```
 docker pull daocloud.io/library/redis:6.0.3-alpine3.11
@@ -1727,11 +1727,11 @@ docker pull daocloud.io/library/redis:6.0.3-alpine3.11
 docker run -d -p 6380:6379 --name redis 29c713657d31(镜像ID) --requirepass 123456(redis登录密码)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/57a4ce88939753b0.png)
+![](https://s.poetries.top/uploads/2022/06/57a4ce88939753b0.png)
 
 或进入redis镜像后在输入密码
 
-![](https://s.poetries.work/uploads/2022/06/b6183fc0a23c353d.png)
+![](https://s.poetries.top/uploads/2022/06/b6183fc0a23c353d.png)
 
 **交互式进入redis容器**
 
@@ -1739,7 +1739,7 @@ docker run -d -p 6380:6379 --name redis 29c713657d31(镜像ID) --requirepass 123
 docker exec -it 9751cbc96861(容器ID) sh
 ```
 
-![](https://s.poetries.work/uploads/2022/06/ab4cf5d68cdd846b.png)
+![](https://s.poetries.top/uploads/2022/06/ab4cf5d68cdd846b.png)
 
 #### 安装MongoDB
 
@@ -1747,7 +1747,7 @@ docker exec -it 9751cbc96861(容器ID) sh
 docker pull mongo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/c40b78b7f3a083f7.png)
+![](https://s.poetries.top/uploads/2022/06/c40b78b7f3a083f7.png)
 
 启动容器 映射端口 挂载目录
 
@@ -1755,19 +1755,19 @@ docker pull mongo
 docker run --name mongoTest -p 27018:27017 -v ~/Downloads/docker/mongo:/data/db -d mongo(镜像ID或名称)
 ```
 
-![](https://s.poetries.work/uploads/2022/06/ee188453d7a2fa5d.png)
+![](https://s.poetries.top/uploads/2022/06/ee188453d7a2fa5d.png)
 
 可以看到通过 `-v`挂载到本地的数据
 
-![](https://s.poetries.work/uploads/2022/06/c7bda56df3a23c53.png)
+![](https://s.poetries.top/uploads/2022/06/c7bda56df3a23c53.png)
 
 进入容器内部 `docker exec -it mongoTest(镜像ID或名称) sh`
 
-![](https://s.poetries.work/uploads/2022/06/34f02c9235be1c72.png)
+![](https://s.poetries.top/uploads/2022/06/34f02c9235be1c72.png)
 
 输入mongo，可以看到mongo已经安装成功了，我们从容器外连接容器的mongo
 
-![](https://s.poetries.work/uploads/2022/06/5e31f8c9d31961df.png)
+![](https://s.poetries.top/uploads/2022/06/5e31f8c9d31961df.png)
 
 **连接需要密码**
 
@@ -1777,11 +1777,11 @@ docker run -d --name authMongo -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INIT
 
 进入容器内部
 
-![](https://s.poetries.work/uploads/2022/06/7be573b2aa974fb0.png)
+![](https://s.poetries.top/uploads/2022/06/7be573b2aa974fb0.png)
 
 远程连接
 
-![](https://s.poetries.work/uploads/2022/06/dcd42440f0686a39.png)
+![](https://s.poetries.top/uploads/2022/06/dcd42440f0686a39.png)
 
 ### Dockerfile
 
@@ -1922,11 +1922,11 @@ CMD node app.js
 
 多个容器之间如何通信，是否可以直接连接
 
-![](https://s.poetries.work/uploads/2022/06/26463dace73153a0.png)
+![](https://s.poetries.top/uploads/2022/06/26463dace73153a0.png)
 
 首先看看网卡信息
 
-![](https://s.poetries.work/uploads/2022/06/d994954b9bc09429.png)
+![](https://s.poetries.top/uploads/2022/06/d994954b9bc09429.png)
 
 > ：默认情况同一台主机上面的容器是可以互相通信的，默认情况同一台主机上面的容器 和主机之间是可以互相通信的
 
@@ -1955,13 +1955,13 @@ CMD node app.js
 
 使用 host 模式的容器可以直接使用宿主机的 IP 地址与外界通信，容器内部的服务端口也可 以使用宿主机的端口，不需要进行 NAT，host 最大的优势就是网络性能比较好，但是 docker host 上已经使用的端口就不能再用了，网络的隔离性不好
 
-![](https://s.poetries.work/uploads/2022/06/c6301becc0c6096b.png)
+![](https://s.poetries.top/uploads/2022/06/c6301becc0c6096b.png)
 
 **container 模式**
 
 > 这个模式指定新创建的容器和已经存在的一个容器共享一个 Network Namespace，而不是和 宿主机共享。新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器 共享 IP、端口范围等。同样，两个容器除了网络方面，其他的如文件系统、进程列表等还 是隔离的。两个容器的进程可以通过 lo 网卡设备通信
 
-![](https://s.poetries.work/uploads/2022/06/eb659e57bfedb72b.png)
+![](https://s.poetries.top/uploads/2022/06/eb659e57bfedb72b.png)
 
 **none 模式**
 
@@ -1969,13 +1969,13 @@ CMD node app.js
 
 这种网络模式下容器只有 lo 回环网络，没有其他网卡。none 模式可以在容器创建时通过 `--network=none` 来指定。这种类型的网络没有办法联网，封闭的网络能很好的保证容器的安 全性
 
-![](https://s.poetries.work/uploads/2022/06/9edcca445e5df197.png)
+![](https://s.poetries.top/uploads/2022/06/9edcca445e5df197.png)
 
 **bridge 模式**
 
 > 当Docker进程启动时，会在主机上创建一个名为docker0的虚拟网桥，此主机上启动的Docker 容器会连接到这个虚拟网桥上。虚拟网桥的工作方式和物理交换机类似，这样主机上的所有 容器就通过交换机连在了一个二层网络中
 
-![](https://s.poetries.work/uploads/2022/06/69625851feead1f2.png)
+![](https://s.poetries.top/uploads/2022/06/69625851feead1f2.png)
 
 **docker network create 创建网络以及启动容器指定网络**
 
@@ -2054,7 +2054,7 @@ ping 172.17.0.2
 
 > 这样我们就把 centos04 和 centos05 加入了我们自定义的 mysqlNet 网络，这样的话 centos04 和 centos05 是互通的，但是 mysqlNet 网络和 docker0 网络默认是不互通的
 
-![](https://s.poetries.work/uploads/2022/06/a45d6c71c3c73341.png)
+![](https://s.poetries.top/uploads/2022/06/a45d6c71c3c73341.png)
 
 **docker network connect 实现不同网络之间的连通**
 

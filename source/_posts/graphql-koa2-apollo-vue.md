@@ -37,7 +37,7 @@ GraphQL 的出现整好弥补了 RESTful APi 的不足
 
 目前已经有很多的公司在使用 GraphQL（https://graphql.org/users/）
 
-![](https://s.poetries.work/uploads/2022/06/1f26bea368abe7ae.png)
+![](https://s.poetries.top/uploads/2022/06/1f26bea368abe7ae.png)
 
 ## 1.2 为什么推荐 GraphQL 而不是 RESTful API
 
@@ -153,7 +153,7 @@ const RowType=newGraphQLObjectType({
 
 > 新版本的GraphQL还支持`subscription`，这是为了处理订阅更新这种比较复杂的实时数据更新场景而设计的操作
 
-![](https://s.poetries.work/uploads/2022/07/505bd2a4b2604bcf.png)
+![](https://s.poetries.top/uploads/2022/07/505bd2a4b2604bcf.png)
 
 # 三、Express中集成GraphQl 实现 Server API
 
@@ -500,7 +500,7 @@ module.exports=Db.getInstance();
 
 http://localhost:3000/graphql
 
-![](https://s.poetries.work/uploads/2022/06/f906b572a508f1bc.png)
+![](https://s.poetries.top/uploads/2022/06/f906b572a508f1bc.png)
 
 # 四、Koa中集成GraphQl实现 Server API
 
@@ -997,23 +997,23 @@ module.exports=Db.getInstance();
 
 **启动服务**
 
-![](https://s.poetries.work/uploads/2022/07/1550d35a92e40d2e.png)
+![](https://s.poetries.top/uploads/2022/07/1550d35a92e40d2e.png)
 
-![](https://s.poetries.work/uploads/2022/07/7c07e1cc36336aa9.png)
+![](https://s.poetries.top/uploads/2022/07/7c07e1cc36336aa9.png)
 
 ## 4.4 聚合查询
 
 **聚合查询文章分类信息，分类信息的方式要放在article的schema里面，这样才能聚合查询到**
 
-![](https://s.poetries.work/uploads/2022/07/3312490f4089a734.png)
+![](https://s.poetries.top/uploads/2022/07/3312490f4089a734.png)
 
 聚合查询结果
 
-![](https://s.poetries.work/uploads/2022/07/ef305f6e77e96b5f.png)
+![](https://s.poetries.top/uploads/2022/07/ef305f6e77e96b5f.png)
 
 **查询订单，聚合查询订单关联的商品信息返回，实现类似以下效果**
 
-![](https://s.poetries.work/uploads/2022/07/d4573ffa0133b43f.png)
+![](https://s.poetries.top/uploads/2022/07/d4573ffa0133b43f.png)
 
 
 ```js 
@@ -1105,15 +1105,15 @@ var RootSchema=new GraphQLObjectType({
 })
 ```
 
-![](https://s.poetries.work/uploads/2022/07/7d04081f284a53c4.png)
+![](https://s.poetries.top/uploads/2022/07/7d04081f284a53c4.png)
 
 查询订单详情
 
-![](https://s.poetries.work/uploads/2022/07/eb55ac8b7201d6e9.png)
+![](https://s.poetries.top/uploads/2022/07/eb55ac8b7201d6e9.png)
 
 需要哪些字段，就返回哪些字段，编辑器会自定提示
 
-![](https://s.poetries.work/uploads/2022/07/f43be591155843e5.png)
+![](https://s.poetries.top/uploads/2022/07/f43be591155843e5.png)
 
 ## 4.5 分页查询
 
@@ -1304,23 +1304,23 @@ module.exports=new GraphQLSchema({
 
 - 新增
 
-![](https://s.poetries.work/uploads/2022/07/52aab4cf8421000b.png)
+![](https://s.poetries.top/uploads/2022/07/52aab4cf8421000b.png)
 
 可以看到必填字段不填会提示
 
-![](https://s.poetries.work/uploads/2022/07/9d5c6adb31018789.png)
+![](https://s.poetries.top/uploads/2022/07/9d5c6adb31018789.png)
 
 再次查询列表
 
-![](https://s.poetries.work/uploads/2022/07/a91926ec7799fd92.png)
+![](https://s.poetries.top/uploads/2022/07/a91926ec7799fd92.png)
 
 - 修改
 
-![](https://s.poetries.work/uploads/2022/07/afd87b6526705d2b.png)
+![](https://s.poetries.top/uploads/2022/07/afd87b6526705d2b.png)
 
 - 删除
 
-![](https://s.poetries.work/uploads/2022/07/db769eb8c3a823aa.png)
+![](https://s.poetries.top/uploads/2022/07/db769eb8c3a823aa.png)
 
 # 五、Vue中使用GraphQl
 
@@ -1354,7 +1354,7 @@ const apolloClient = newApolloClient({
 
 可以打开 http://118.123.14.36:3002/graphql 在控制台查看查询结果
 
-![](https://s.poetries.work/uploads/2022/07/580837041d7098cc.png)
+![](https://s.poetries.top/uploads/2022/07/580837041d7098cc.png)
 
 4. 在`src/main.js`配置`vue-apollo`插件
 
@@ -1644,7 +1644,7 @@ import gql from 'graphql-tag';
 
 服务器端接口
 
-![](https://s.poetries.work/uploads/2022/07/5a2e957da5d677af.png)
+![](https://s.poetries.top/uploads/2022/07/5a2e957da5d677af.png)
 
 ```html 
 <template>
@@ -1746,11 +1746,11 @@ import gql from 'graphql-tag';
 </script>
 ```
 
-![](https://s.poetries.work/uploads/2022/07/a68e014f0e3fee3c.png)
+![](https://s.poetries.top/uploads/2022/07/a68e014f0e3fee3c.png)
 
 可以看到新增成功效果
 
-![](https://s.poetries.work/uploads/2022/07/990bcf87b1a4293f.png)
+![](https://s.poetries.top/uploads/2022/07/990bcf87b1a4293f.png)
 
 ## 5.3 上拉分页加载更多
 
@@ -1930,7 +1930,7 @@ li {
 
 分页效果 
 
-![](https://s.poetries.work/uploads/2022/07/a1ddb2379d5c7287.png)
+![](https://s.poetries.top/uploads/2022/07/a1ddb2379d5c7287.png)
 
 > 项目例子完整代码下载地址 https://blog.poetries.top/assets/graphql-code.zip
 

@@ -21,15 +21,15 @@ categories: Front-End
 
 在产品中选择云开发产品
 
-![](https://s.poetries.work/uploads/2022/06/97bfb6a300ede8cb.png)
+![](https://s.poetries.top/uploads/2022/06/97bfb6a300ede8cb.png)
 
 > 创建一个项目, 这里要选择好区域，下次创建了项目，区域不一样，可能项目就看不到
 
-![](https://s.poetries.work/uploads/2022/06/4a9fa09df00ae121.png)
-![](https://s.poetries.work/uploads/2022/06/f91fc2a56fd7d19f.png)
-![](https://s.poetries.work/uploads/2022/06/111082e4a79965b8.png)
-![](https://s.poetries.work/uploads/2022/06/3cae71f70a9723d2.png)
-![](https://s.poetries.work/uploads/2022/06/4cccec9f4013b9aa.png)
+![](https://s.poetries.top/uploads/2022/06/4a9fa09df00ae121.png)
+![](https://s.poetries.top/uploads/2022/06/f91fc2a56fd7d19f.png)
+![](https://s.poetries.top/uploads/2022/06/111082e4a79965b8.png)
+![](https://s.poetries.top/uploads/2022/06/3cae71f70a9723d2.png)
+![](https://s.poetries.top/uploads/2022/06/4cccec9f4013b9aa.png)
 
 
 
@@ -96,7 +96,7 @@ tcb new nest-cloundbase nest-starter
 
 选择自己已经创建的环境,如果没有就 创建新环境,这时候会打开浏览器
 
-![](https://s.poetries.work/uploads/2022/06/6b018bec4591c9aa.png)
+![](https://s.poetries.top/uploads/2022/06/6b018bec4591c9aa.png)
 
 本地打开项目并且安装依赖包
 
@@ -112,12 +112,12 @@ npm run dev
 npm run deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/c9016bdd4a84dac4.png)
-![](https://s.poetries.work/uploads/2022/06/00b5a9d585e5f5ee.png)
+![](https://s.poetries.top/uploads/2022/06/c9016bdd4a84dac4.png)
+![](https://s.poetries.top/uploads/2022/06/00b5a9d585e5f5ee.png)
 
 部署完成后可以使用 `tcb fn list` 命令查看已经部署完成的函数列表
 
-![](https://s.poetries.work/uploads/2022/06/d83d3bfc9b7d025b.png)
+![](https://s.poetries.top/uploads/2022/06/d83d3bfc9b7d025b.png)
 
 ### 3.4 环境
 
@@ -127,7 +127,7 @@ npm run deploy
 tcb env list
 ```
 
-![](https://s.poetries.work/uploads/2022/06/417413944366f8e2.png)
+![](https://s.poetries.top/uploads/2022/06/417413944366f8e2.png)
 
 **安全域名**
 
@@ -139,7 +139,7 @@ tcb env list
 tcb env domain list
 ```
 
-![](https://s.poetries.work/uploads/2022/06/efa5ad40c4f22218.png)
+![](https://s.poetries.top/uploads/2022/06/efa5ad40c4f22218.png)
 
 新增安全域名
 
@@ -157,7 +157,7 @@ tcb env domain create www.domain1.com/www.domain2.com/www.domain3.com
 tcb env domain delete
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0f6c3726e168a64b.png)
+![](https://s.poetries.top/uploads/2022/06/0f6c3726e168a64b.png)
 
 **登录方式**
 
@@ -169,7 +169,7 @@ tcb env domain delete
 tcb env login list
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0afa72546600b36a.png)
+![](https://s.poetries.top/uploads/2022/06/0afa72546600b36a.png)
 
 您可以使用下面的命令新建登录方式：
 
@@ -179,13 +179,13 @@ tcb env login create
 
 > 您需要选择配置的平台，登录方式状态，以及对应的 AppId 和 AppSecret，登录方式请选择启用。在添加方式时不会校验 AppId 和 AppSecret 的有效性，只有在请求时，AppId 和 AppSecret 才会被校验，所以请确保您添加的 AppId 和 AppSecret 是有效的。
 
-![](https://s.poetries.work/uploads/2022/06/14072565a7df9cfc.png)
+![](https://s.poetries.top/uploads/2022/06/14072565a7df9cfc.png)
 
 修改登录方式
 
 > 您也可以使用 `tcb env login update` 修改已经配置的登录方式，如切换启用状态，修改 AppId 和 AppSecret。
 
-![](https://s.poetries.work/uploads/2022/06/4c5a0f883f8093dd.png)
+![](https://s.poetries.top/uploads/2022/06/4c5a0f883f8093dd.png)
 
 #### 动态变量
 
@@ -440,7 +440,7 @@ Cloudbase CLI 为 Node.js 云函数提供了默认选项，您在部署 Node.js 
 tcb fn list
 ```
 
-![](https://s.poetries.work/uploads/2022/06/7f14d68f7629334e.png)
+![](https://s.poetries.top/uploads/2022/06/7f14d68f7629334e.png)
 
 - 指定返回条数和偏移量
 
@@ -466,8 +466,8 @@ tcb fn code download <functionName> [destPath]
 
 默认情况下，函数代码会下载到 `functionRoot` 下，以函数名称作为存储文件夹，您可以指定函数存放的文件夹地址，函数的所有代码文件会直接下载到指定的文件夹中。
 
-![](https://s.poetries.work/uploads/2022/06/d3b9aed0b63bb50b.png)
-![](https://s.poetries.work/uploads/2022/06/c4dc431bcd542129.png)
+![](https://s.poetries.top/uploads/2022/06/d3b9aed0b63bb50b.png)
+![](https://s.poetries.top/uploads/2022/06/c4dc431bcd542129.png)
 
 - 查看函数详情
 
@@ -476,7 +476,7 @@ tcb fn code download <functionName> [destPath]
 tcb fn detail vue-echo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/2437d329c6b5e767.png)
+![](https://s.poetries.top/uploads/2022/06/2437d329c6b5e767.png)
 
 - 删除函数
 
@@ -624,7 +624,7 @@ tcb fn code update app
 tcb fn list-function-versions <name>
 ```
 
-![](https://s.poetries.work/uploads/2022/06/88eb3713574d7f1b.png)
+![](https://s.poetries.top/uploads/2022/06/88eb3713574d7f1b.png)
 
 #### 函数日志
 
@@ -635,7 +635,7 @@ tcb fn list-function-versions <name>
 tcb fn log vue-echo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/8f3777524f8f6e77.png)
+![](https://s.poetries.top/uploads/2022/06/8f3777524f8f6e77.png)
 
 默认情况下，Cloudbase CLI 会打印最近的 20 条日志，您可以通过在命令后附加下面的可用选项指定返回日志的筛选条件：
 
@@ -658,7 +658,7 @@ tcb fn log vue-echo
 
 - 编写`cloudbaserc.json文件`
 
-![](https://s.poetries.work/uploads/2022/06/705a1f9853edda3a.png)
+![](https://s.poetries.top/uploads/2022/06/705a1f9853edda3a.png)
 
 ```json
 {
@@ -682,7 +682,7 @@ tcb fn log vue-echo
 tcb fn deploy vue-echo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/840a923b27e4ee59.png)
+![](https://s.poetries.top/uploads/2022/06/840a923b27e4ee59.png)
 
 - 查看已部署的函数
 
@@ -690,7 +690,7 @@ tcb fn deploy vue-echo
 tcb fn list
 ```
 
-![](https://s.poetries.work/uploads/2022/06/7f14d68f7629334e.png)
+![](https://s.poetries.top/uploads/2022/06/7f14d68f7629334e.png)
 
 
 
@@ -713,11 +713,11 @@ cd dist
 tcb hosting deploy -e envId
 ```
 
-![](https://s.poetries.work/uploads/2022/06/cd6fa613aa0ba32c.png)
+![](https://s.poetries.top/uploads/2022/06/cd6fa613aa0ba32c.png)
 
 **您可以使用下面的命令展示静态网站的状态，访问域名等信息**
 
-![](https://s.poetries.work/uploads/2022/06/08f8a4eed05f40c3.png)
+![](https://s.poetries.top/uploads/2022/06/08f8a4eed05f40c3.png)
 
 **删除文件**
 
@@ -745,7 +745,7 @@ tcb hosting delete -e envId
 tcb hosting list -e envId
 ```
 
-![](https://s.poetries.work/uploads/2022/06/68112e40d3a20d26.png)
+![](https://s.poetries.top/uploads/2022/06/68112e40d3a20d26.png)
 
 
 ## 四、云开发登录鉴权
@@ -762,7 +762,7 @@ tcb hosting list -e envId
 
 ### 4.1 登录鉴权
 
-![](https://s.poetries.work/uploads/2022/06/015d7200d6f0ed7b.png)
+![](https://s.poetries.top/uploads/2022/06/015d7200d6f0ed7b.png)
 
 > 每个登录 CloudBase 的用户，都有一个对应的 CloudBase 账号，用户通过此账号访问调用 CloudBase 的数据与资源。
 
@@ -774,7 +774,7 @@ tcb hosting list -e envId
 
 您可以指定登录状态如何持久保留。默认为 `local`，相关选项包括
 
-![](https://s.poetries.work/uploads/2022/06/aafc37032a793f1c.png)
+![](https://s.poetries.top/uploads/2022/06/aafc37032a793f1c.png)
 
 例如，对于网页应用，最佳选择是 `local`，即在用户关闭浏览器之后仍保留该用户的会话。这样，用户不需要每次访问该网页时重复登录，避免给用户带来诸多不便体验。
 
@@ -1009,13 +1009,13 @@ const auth = app.auth({
 
 > 登录 腾讯云 CloudBase 控制台，在 [登录授权页面中](https://console.cloud.tencent.com/tcb/env/login)，将匿名登录一栏打开或关闭。
 
-![](https://s.poetries.work/uploads/2022/06/e95ddf99a0e2939c.png)
+![](https://s.poetries.top/uploads/2022/06/e95ddf99a0e2939c.png)
 
 **添加安全域名（可选）**
 
 Web 应用需要将域名添加到 CloudBase 控制台的[Web 安全域名](https://console.cloud.tencent.com/tcb/env/safety)列表中，否则将被识别为非法来源：
 
-![](https://s.poetries.work/uploads/2022/06/3404d8f9e5a8d4cf.png)
+![](https://s.poetries.top/uploads/2022/06/3404d8f9e5a8d4cf.png)
 
 ```js
 import cloudbase from '@cloudbase/js-sdk';
@@ -1036,11 +1036,11 @@ async function login(){
 login();
 ```
 
-![](https://s.poetries.work/uploads/2022/06/b34c3d3acc92627a.png)
+![](https://s.poetries.top/uploads/2022/06/b34c3d3acc92627a.png)
 
 可以看到token缓存到了本地
 
-![](https://s.poetries.work/uploads/2022/06/501a1e7be7791960.png)
+![](https://s.poetries.top/uploads/2022/06/501a1e7be7791960.png)
 
 > 每个 `CloudBase` 环境的匿名用户数量不超过 `1000` 万个
 
@@ -1049,7 +1049,7 @@ login();
 - 云数据库匿名用户不可读写；
 - 云存储所有用户可读，匿名用户不可写。
 
-![](https://s.poetries.work/uploads/2022/06/f49d51410d41a7e2.png)
+![](https://s.poetries.top/uploads/2022/06/f49d51410d41a7e2.png)
 
 **转化为正式用户**
 
@@ -1060,7 +1060,7 @@ login();
 
 - 匿名登录与未登录有什么区别？
 
-![](https://s.poetries.work/uploads/2022/06/d8b255edaee3b012.png)
+![](https://s.poetries.top/uploads/2022/06/d8b255edaee3b012.png)
 
 - 匿名登录的用户达到上限后怎么办？
 
@@ -1077,13 +1077,13 @@ login();
 
 登录 云开发 CloudBase 控制台，在 [登录授权](https://console.cloud.tencent.com/tcb/env/login) 中，将未登录一栏打开或关闭。
 
-![](https://s.poetries.work/uploads/2022/06/46c9989ef1cea582.png)
+![](https://s.poetries.top/uploads/2022/06/46c9989ef1cea582.png)
 
 **添加安全域名（可选）**
 
 Web 应用需要将域名添加到 CloudBase 控制台的[Web 安全域名](https://console.cloud.tencent.com/tcb/env/safety)列表中，否则将被识别为非法来源：
 
-![](https://s.poetries.work/uploads/2022/06/3404d8f9e5a8d4cf.png)
+![](https://s.poetries.top/uploads/2022/06/3404d8f9e5a8d4cf.png)
 
 **使用流程**
 
@@ -1103,7 +1103,7 @@ Web 应用需要将域名添加到 CloudBase 控制台的[Web 安全域名](http
 
 在原始私有读 `doc._openid==auth.openid` 的基础上，允许了所有未登录用户进行读资源。详细可查看 [编写安全规则](https://docs.cloudbase.net/rule/rule-example)。
 
-![](https://s.poetries.work/uploads/2022/06/4bf8025e0f47dce5.png)
+![](https://s.poetries.top/uploads/2022/06/4bf8025e0f47dce5.png)
 
 2. 初始化 SDK 发起调用
 
@@ -1117,7 +1117,7 @@ const app = cloudbase.init({
 
 SDK 初始化完成后可以正常发起云开发资源的调用。
 
-![](https://s.poetries.work/uploads/2022/06/c81cf50a598dd81f.png)
+![](https://s.poetries.top/uploads/2022/06/c81cf50a598dd81f.png)
 
 #### 邮箱登录
 
@@ -1129,13 +1129,13 @@ SDK 初始化完成后可以正常发起云开发资源的调用。
 
 进入 云开发 CloudBase 控制台，在 登录授权 设置页面中，开启邮箱登录:
 
-![](https://s.poetries.work/uploads/2022/06/bdff32d173347663.png)
+![](https://s.poetries.top/uploads/2022/06/bdff32d173347663.png)
 
 2. 配置发件邮箱
 
 > 填入您邮箱的 SMTP 账号信息
 
-![](https://s.poetries.work/uploads/2022/06/d5760279a4e8d4b9.png)
+![](https://s.poetries.top/uploads/2022/06/d5760279a4e8d4b9.png)
 
 3. 设置应用名称及自动跳转链接
 
@@ -1144,7 +1144,7 @@ SDK 初始化完成后可以正常发起云开发资源的调用。
 - 您设置的应用名称将会出现在验证邮件的内容中；
 - CloudBase 发送的邮件中会包含一个 URL，用户打开邮件中的 URL 后，会自动跳转到您设置的自动跳转链接。
 
-![](https://s.poetries.work/uploads/2022/06/75fe3a786ac2f19b.png)
+![](https://s.poetries.top/uploads/2022/06/75fe3a786ac2f19b.png)
 
 **登录流程**
 
@@ -1175,11 +1175,11 @@ app
 
 > 密码强度要求:密码长度不小于 8 位，不大于 32 位，需要包含字母和数字。
 
-![](https://s.poetries.work/uploads/2022/06/8dfd1a122cf97ef9.png)
+![](https://s.poetries.top/uploads/2022/06/8dfd1a122cf97ef9.png)
 
 可以看到注册成功的账户
 
-![](https://s.poetries.work/uploads/2022/06/88c3a1a2a39dab05.png)
+![](https://s.poetries.top/uploads/2022/06/88c3a1a2a39dab05.png)
 
 3. 使用邮箱+密码登录 CloudBase
 
@@ -1192,7 +1192,7 @@ app
   });
 ```
 
-![](https://s.poetries.work/uploads/2022/06/3dbf8e6a924809df.png)
+![](https://s.poetries.top/uploads/2022/06/3dbf8e6a924809df.png)
 
 
 #### 微信授权登录
@@ -1212,13 +1212,13 @@ app
 
 以微信公众平台为例，在“开发 - 基本配置”中有以下内容：
 
-![](https://s.poetries.work/uploads/2022/06/d9590e7139fec14a.png)
+![](https://s.poetries.top/uploads/2022/06/d9590e7139fec14a.png)
 
 > 开发者密码（AppSecret）是非常私密的信息，每次点击上图中的「重置」按钮都会获取一个新的 AppSecret。
 
 2. 开启微信登录
 
-![](https://s.poetries.work/uploads/2022/06/c6f20fd79e5cf432.png)
+![](https://s.poetries.top/uploads/2022/06/c6f20fd79e5cf432.png)
 
 点击启用按钮后在弹窗的对应位置填入 AppId 和 AppSecret。
 
@@ -1226,7 +1226,7 @@ app
 
 Web 应用需要将域名添加到 CloudBase 控制台的[Web 安全域名](https://console.cloud.tencent.com/tcb/env/safety)列表中，否则将被识别为非法来源：
 
-![](https://s.poetries.work/uploads/2022/06/3404d8f9e5a8d4cf.png)
+![](https://s.poetries.top/uploads/2022/06/3404d8f9e5a8d4cf.png)
 
 **微信登录流程**
 
@@ -1255,7 +1255,7 @@ const provider = auth.weixinAuthProvider({
 });
 ```
 
-![](https://s.poetries.work/uploads/2022/06/befa9164c6b90b3f.png)
+![](https://s.poetries.top/uploads/2022/06/befa9164c6b90b3f.png)
 
 - 如果用户使用 `snsapi_userinfo` 或 `snsapi_login` 登录，并且是首次登录，那么 CloudBase 将会自动拉取、同步微信的用户基本信息。
 - 如果用户不是首次登录，将不会有此行为。
@@ -1299,7 +1299,7 @@ provider.getRedirectResult().then((loginState) => {
 
 > 登录 CloudBase 控制台，在 [环境 -> 登录授权](https://console.cloud.tencent.com/tcb/env/login)下的自定义登录栏中，点击「私钥下载」或者「私钥复制」：
 
-![](https://s.poetries.work/uploads/2022/06/0d8163e0ab3193ec.png)
+![](https://s.poetries.top/uploads/2022/06/0d8163e0ab3193ec.png)
 
 > 私钥是一份携带有 JSON 数据的文件，请将下载或复制的私钥文件保存到您的服务器或者云函数中，假设路径为`/path/to/your/tcb_custom_login.json`。
 
@@ -1364,7 +1364,7 @@ async function login(){
 login();
 ```
 
-![](https://s.poetries.work/uploads/2022/06/bf6484c27c260614.png)
+![](https://s.poetries.top/uploads/2022/06/bf6484c27c260614.png)
 
 **自定义登录一定需要自己假设用于创建 Ticket 的服务器吗？**
 
@@ -1379,7 +1379,7 @@ login();
 
 进入 云开发 CloudBase 控制台，在 登录授权 设置页面中，开启用户名密码登录:
 
-![](https://s.poetries.work/uploads/2022/06/6d0258075bf46615.png)
+![](https://s.poetries.top/uploads/2022/06/6d0258075bf46615.png)
 
 **绑定用户名流程**
 
@@ -1404,7 +1404,7 @@ const auth = app.auth();
 await auth.signInWithEmailAndPassword(email, password); // 邮箱登录
 ```
 
-![](https://s.poetries.work/uploads/2022/06/acd1fb389d6c9a6d.png)
+![](https://s.poetries.top/uploads/2022/06/acd1fb389d6c9a6d.png)
 
 
 3. 绑定用户名
@@ -1435,7 +1435,7 @@ const loginState = await auth.signInWithUsernameAndPassword(username, password);
 
 **开通短信验证码登录**
 
-![](https://s.poetries.work/uploads/2022/06/e4eac02d22f679e0.png)
+![](https://s.poetries.top/uploads/2022/06/e4eac02d22f679e0.png)
 
 **登录流程**
 
@@ -1501,15 +1501,15 @@ app
 
 > 云开发应用可以理解为运行在云开发环境的应用，例如一个包含前后端、数据库等能力等服务，可以通过一键部署，直接部署在云开发环境中，使用云开发底层的各项 Serverless 资源，享受弹性免运维的优势。
 
-![](https://s.poetries.work/uploads/2022/06/40bd0c9ceadc339e.png)
+![](https://s.poetries.top/uploads/2022/06/40bd0c9ceadc339e.png)
 
 一个云开发应用可以拆解为三个部分，包括代码、声明式配置和环境变量信息。
 
-![](https://s.poetries.work/uploads/2022/06/7215d3f021c80ef9.png)
+![](https://s.poetries.top/uploads/2022/06/7215d3f021c80ef9.png)
 
 **如何开发一个云开发应用**
 
-![](https://s.poetries.work/uploads/2022/06/3731b6c2de7002eb.png)
+![](https://s.poetries.top/uploads/2022/06/3731b6c2de7002eb.png)
 
 
 ### 5.2 cloudbase framework配置文件
@@ -1521,7 +1521,7 @@ app
 
 **CloudBase Framework 配置文件包含以下几类配置信息：**
 
-![](https://s.poetries.work/uploads/2022/06/3e69b0ecfb4b5b1c.png)
+![](https://s.poetries.top/uploads/2022/06/3e69b0ecfb4b5b1c.png)
 
 1. plugins：描述您的应用依赖哪些 CloudBase Framework 插件，以便根据配置来构建和部署您的应用，应用可以使用多个插件，具体插件配置方式参考下文。
 
@@ -2374,7 +2374,7 @@ exports.tcbGetApp = async () => {
 tcb new egg-demo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/627d5a83ca20f2ae.png)
+![](https://s.poetries.top/uploads/2022/06/627d5a83ca20f2ae.png)
 
 **编写cloudbaserc.json**
 
@@ -2422,8 +2422,8 @@ exports.tcbGetApp = () => {
 tcb framework deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/2f3e27804bd7105b.png)
-![](https://s.poetries.work/uploads/2022/06/c2500d4d92e0da5e.png)
+![](https://s.poetries.top/uploads/2022/06/2f3e27804bd7105b.png)
+![](https://s.poetries.top/uploads/2022/06/c2500d4d92e0da5e.png)
 
 
 #### 云开发部署Koa
@@ -2467,8 +2467,8 @@ tcb new koa-demo
 tcb framework deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/e287aea2c9821cc4.png)
-![](https://s.poetries.work/uploads/2022/06/966fc0e7f631cba5.png)
+![](https://s.poetries.top/uploads/2022/06/e287aea2c9821cc4.png)
+![](https://s.poetries.top/uploads/2022/06/966fc0e7f631cba5.png)
 
 #### 云开发部署React
 
@@ -2542,8 +2542,8 @@ tcb new react-demo
 tcb framework deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/50d7e5c2d8654dff.png)
-![](https://s.poetries.work/uploads/2022/06/ad02ca3fac62bdec.png)
+![](https://s.poetries.top/uploads/2022/06/50d7e5c2d8654dff.png)
+![](https://s.poetries.top/uploads/2022/06/ad02ca3fac62bdec.png)
 
 #### 云开发部署Vue
 
@@ -2552,7 +2552,7 @@ tcb framework deploy
 tcb new vue-demo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/4af41bcbd091b686.png)
+![](https://s.poetries.top/uploads/2022/06/4af41bcbd091b686.png)
 
 **编写cloudbaserc.json**
 
@@ -2586,8 +2586,8 @@ tcb new vue-demo
 tcb framework deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/c34f69c797a05e2b.png)
-![](https://s.poetries.work/uploads/2022/06/569a41e7e44d4911.png)
+![](https://s.poetries.top/uploads/2022/06/c34f69c797a05e2b.png)
+![](https://s.poetries.top/uploads/2022/06/569a41e7e44d4911.png)
 
 #### 部署hexo
 
@@ -2629,8 +2629,8 @@ tcb new hexo-demo
 tcb framework deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/fb0f146a969d6506.png)
-![](https://s.poetries.work/uploads/2022/06/f09f236c850cdbc6.png)
+![](https://s.poetries.top/uploads/2022/06/fb0f146a969d6506.png)
+![](https://s.poetries.top/uploads/2022/06/f09f236c850cdbc6.png)
 
 ## 六、使用云开发部署web应用
 
@@ -2651,8 +2651,8 @@ npx hexo init hexo-hello-world
 cloudbase framework deploy -e <your-env-id>
 ```
 
-![](https://s.poetries.work/uploads/2022/06/8a0f9b7b169f862a.png)
-![](https://s.poetries.work/uploads/2022/06/2e99b96c91ea6bf4.png)
+![](https://s.poetries.top/uploads/2022/06/8a0f9b7b169f862a.png)
+![](https://s.poetries.top/uploads/2022/06/2e99b96c91ea6bf4.png)
 
 
 ### 6.2 部署Vue
@@ -2672,13 +2672,13 @@ npx vue create vue-hello-world
 tcb framework deploy -e <your-env-id>
 ```
 
-![](https://s.poetries.work/uploads/2022/06/bc8ba28de42ff604.png)
+![](https://s.poetries.top/uploads/2022/06/bc8ba28de42ff604.png)
 
 ## 七、在云开发中使用NoSQL数据库
 
 > 在面板上创建一个`NoSQL`的数据库，[参考地址](https://docs.cloudbase.net/database/introduce)
 
-![](https://s.poetries.work/uploads/2022/06/fd5954cd15c3e0e9.png)
+![](https://s.poetries.top/uploads/2022/06/fd5954cd15c3e0e9.png)
 
 > 在项目中安装连接数据库的`SDK`[参考文档](https://docs.cloudbase.net/api-reference/server/node-sdk/introduction)
 
@@ -2707,11 +2707,11 @@ const db = app.database();
 
 `env`的获取地址
 
-![](https://s.poetries.work/uploads/2022/06/45dad89cf73176e3.png)
+![](https://s.poetries.top/uploads/2022/06/45dad89cf73176e3.png)
 
 `secretId` 和`secretKey`获取：https://console.cloud.tencent.com/cam/capi
 
-![](https://s.poetries.work/uploads/2022/06/8cab74708230b661.png)
+![](https://s.poetries.top/uploads/2022/06/8cab74708230b661.png)
 
 ## 八、在VS Code中使用Toolkit管理云开发项目 
 
@@ -2732,17 +2732,17 @@ const db = app.database();
 
 同时，VS Code 插件也支持了云函数本地调试与云端调试，帮助你快速定位代码问题
 
-![](https://s.poetries.work/uploads/2022/06/b09bcd56a8afaba5.png)
+![](https://s.poetries.top/uploads/2022/06/b09bcd56a8afaba5.png)
 
 
 **登录**
 
-![](https://s.poetries.work/uploads/2022/06/79fedf80af936261.png)
-![](https://s.poetries.work/uploads/2022/06/d64d37ed50ab8a11.png)
+![](https://s.poetries.top/uploads/2022/06/79fedf80af936261.png)
+![](https://s.poetries.top/uploads/2022/06/d64d37ed50ab8a11.png)
 
 **创建新项目**
 
-![](https://s.poetries.work/uploads/2022/06/8398b4d1b46da096.png)
+![](https://s.poetries.top/uploads/2022/06/8398b4d1b46da096.png)
 
 > **注意**：`CloudBase Toolkit` 插件依赖于 `cloudbaserc.json` 配置文件，`只有当前项目的根目录下存在 cloudbaserc.json 配置文件时`，才能使用 `CloudBase Toolkit` 插件进行相关操作。
 
@@ -2752,23 +2752,23 @@ const db = app.database();
 
 - 选择地区
 
-![](https://s.poetries.work/uploads/2022/06/6e62d9caf3ead536.png)
+![](https://s.poetries.top/uploads/2022/06/6e62d9caf3ead536.png)
 
 - 选择地区关联的环境ID
 
-![](https://s.poetries.work/uploads/2022/06/c0077a6f7d345269.png)
+![](https://s.poetries.top/uploads/2022/06/c0077a6f7d345269.png)
 
 - 选择对应的模板
 
-![](https://s.poetries.work/uploads/2022/06/2fe16d3cb23b86fe.png)
+![](https://s.poetries.top/uploads/2022/06/2fe16d3cb23b86fe.png)
 
 - 项目创建成功
 
-![](https://s.poetries.work/uploads/2022/06/c274c86297e0037e.png)
+![](https://s.poetries.top/uploads/2022/06/c274c86297e0037e.png)
 
 - 项目目录结构
 
-![](https://s.poetries.work/uploads/2022/06/d0ea2cb4f67df0a8.png)
+![](https://s.poetries.top/uploads/2022/06/d0ea2cb4f67df0a8.png)
 
 > VS Code 插件会默认使用当前窗口打开文件夹的根目录下的 `cloudbaserc.json` 配置文件，如果你使用了 VS Code 工作区，则会使用工作区中的第一个项目文件夹根目录下的配置文件
 
@@ -2781,7 +2781,7 @@ const db = app.database();
 tcb framework deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/7841d0aab3b6def2.png)
+![](https://s.poetries.top/uploads/2022/06/7841d0aab3b6def2.png)
 
 ### 8.2 云函数操作
 
@@ -2794,25 +2794,25 @@ tcb framework deploy
 - 部署云函数（上传全部文件）：即将函数目录下的所有文件上传，也包含 `node_modules` 目录
 - 部署云函数（云端安装依赖）：只部署代码文件，会忽略 `node_modules` 目录，云函数会自动在线安装依赖
 
-![](https://s.poetries.work/uploads/2022/06/7164c1d025fed2f2.png)
-![](https://s.poetries.work/uploads/2022/06/f6436c7624819c45.png)
-![](https://s.poetries.work/uploads/2022/06/27161771a757fa8c.png)
+![](https://s.poetries.top/uploads/2022/06/7164c1d025fed2f2.png)
+![](https://s.poetries.top/uploads/2022/06/f6436c7624819c45.png)
+![](https://s.poetries.top/uploads/2022/06/27161771a757fa8c.png)
 
 - 查看函数配置信息
 
-![](https://s.poetries.work/uploads/2022/06/fd07b75bb7e5dfb9.png)
+![](https://s.poetries.top/uploads/2022/06/fd07b75bb7e5dfb9.png)
 
 **下载函数代码**
 
 使用下载函数代码功能，可以将云端函数代码下载到本地，进行操作时，需要选择云函数名称对应的目录。CloudBase Toolkit 支持同时选择多个云函数，下载云函数代码。
 
-![](https://s.poetries.work/uploads/2022/06/715c72c283832c56.png)
+![](https://s.poetries.top/uploads/2022/06/715c72c283832c56.png)
 
 **增量更新**
 
 CloudBase Toolkit 支持上传单个文件或文件夹到云函数中，而无需重新上传整个云函数
 
-![](https://s.poetries.work/uploads/2022/06/b474aafabd470e8e.png)
+![](https://s.poetries.top/uploads/2022/06/b474aafabd470e8e.png)
 
 ### 8.3 静态网站
 
@@ -2823,7 +2823,7 @@ CloudBase Toolkit 提供了两种上传方法：
 - 上传到静态托管：需要输入云端存放文件（夹）的文件夹路径，选中的文件（夹）将被上传到此路径下。
 - 上传到静态托管（根目录）：选中的文件（夹）将被直接上传到根目录下
 
-![](https://s.poetries.work/uploads/2022/06/5fda60ae03e5f96c.png)
+![](https://s.poetries.top/uploads/2022/06/5fda60ae03e5f96c.png)
 
 ## 九、cloudBase之CMS内容管理系统
 
@@ -2838,30 +2838,30 @@ CloudBase Toolkit 提供了两种上传方法：
 
 工作原理
 
-![](https://s.poetries.work/uploads/2022/06/eb1db5b08062b46c.png)
+![](https://s.poetries.top/uploads/2022/06/eb1db5b08062b46c.png)
 
 ### 9.1 控制台部署CMS
 
 > 环境需要使用按量付费
 
-![](https://s.poetries.work/uploads/2022/06/f475b1efc04f182a.png)
-![](https://s.poetries.work/uploads/2022/06/fa0e23cb97283134.png)
+![](https://s.poetries.top/uploads/2022/06/f475b1efc04f182a.png)
+![](https://s.poetries.top/uploads/2022/06/fa0e23cb97283134.png)
 
 安装完成可以看到已经部署好的云函数、静态资源、云数据库
 
-![](https://s.poetries.work/uploads/2022/06/0078ed499a50ee78.png)
-![](https://s.poetries.work/uploads/2022/06/ae2ae82d69b699f2.png)
-![](https://s.poetries.work/uploads/2022/06/eb3ef08b8ab0bc95.png)
+![](https://s.poetries.top/uploads/2022/06/0078ed499a50ee78.png)
+![](https://s.poetries.top/uploads/2022/06/ae2ae82d69b699f2.png)
+![](https://s.poetries.top/uploads/2022/06/eb3ef08b8ab0bc95.png)
 
 登录部署的CMS界面操作演示
 
-![](https://s.poetries.work/uploads/2022/06/b00248881e212a34.png)
-![](https://s.poetries.work/uploads/2022/06/1ff5d829ce888659.png)
+![](https://s.poetries.top/uploads/2022/06/b00248881e212a34.png)
+![](https://s.poetries.top/uploads/2022/06/1ff5d829ce888659.png)
 
-![](https://s.poetries.work/uploads/2022/06/a4850b81e9666030.png)
-![](https://s.poetries.work/uploads/2022/06/5f57eee40dfb7381.png)
-![](https://s.poetries.work/uploads/2022/06/f298c715b04eaf35.png)
-![](https://s.poetries.work/uploads/2022/06/87fbb479196de69b.png)
+![](https://s.poetries.top/uploads/2022/06/a4850b81e9666030.png)
+![](https://s.poetries.top/uploads/2022/06/5f57eee40dfb7381.png)
+![](https://s.poetries.top/uploads/2022/06/f298c715b04eaf35.png)
+![](https://s.poetries.top/uploads/2022/06/87fbb479196de69b.png)
 
 ### 9.2 如有二次修改，我们可以使用源码方式部署
 
@@ -2968,38 +2968,38 @@ npm install && npm run setup
 npm run deploy
 ```
 
-![](https://s.poetries.work/uploads/2022/06/d937a67646160b02.png)
-![](https://s.poetries.work/uploads/2022/06/39a38172b39daa80.png)
+![](https://s.poetries.top/uploads/2022/06/d937a67646160b02.png)
+![](https://s.poetries.top/uploads/2022/06/39a38172b39daa80.png)
 
 **控制台管理**
 
 - 我的应用
 
-![](https://s.poetries.work/uploads/2022/06/4f48480646204dd2.png)
-![](https://s.poetries.work/uploads/2022/06/6742f2c96f05ad0e.png)
+![](https://s.poetries.top/uploads/2022/06/4f48480646204dd2.png)
+![](https://s.poetries.top/uploads/2022/06/6742f2c96f05ad0e.png)
 
 - 云托管服务
 
-![](https://s.poetries.work/uploads/2022/06/ac2eddfa13237bd9.png)
+![](https://s.poetries.top/uploads/2022/06/ac2eddfa13237bd9.png)
 
 > `tcb-ext-cms-servic`：该服务提供登录鉴权功能，用户在 CMS 管理界面通过通过用户名和密码来进行登录时，会通过 HTTP 来请求该函数；提供 API 接口功能，所有对内容的操作和管理都会经过此函数调用，内容操作会根据用户权限来进行数据库操作。
 
 - 管理云函数
 
-![](https://s.poetries.work/uploads/2022/06/107b9e3f346af8a5.png)
+![](https://s.poetries.top/uploads/2022/06/107b9e3f346af8a5.png)
 
 > - `tcb-ext-cms-init`：提供初始化应用功能，安装扩展后，会通过该函数来进行静态资源的部署和密码的生成和设置，修改账号密码或者部署路径等扩展参数都会再次执行该函数来进行更新
 > - `tcb-ext-cms-api`：提供 `CMS RESTful API` 访问能力，所有 `RESTful API` 请求都会经过此函数调用
 
 - 云存储，存放静态网站
 
-![](https://s.poetries.work/uploads/2022/06/eaad8e647a753095.png)
+![](https://s.poetries.top/uploads/2022/06/eaad8e647a753095.png)
 
 > 存储图片、文件等 CMS 系统上传的文件。
 
 - 云数据库
 
-![](https://s.poetries.work/uploads/2022/06/4b866be7e0bf7cfe.png)
+![](https://s.poetries.top/uploads/2022/06/4b866be7e0bf7cfe.png)
 
 - `tcb-ext-cms-projects` 集合：CMS 系统项目数据
 - `tcb-ext-cms-schemas` 集合：CMS 系统内容配置数据，CMS 所有的系统内容类型配置、字段配置等信息都存储在该集合内
@@ -3063,8 +3063,8 @@ window.TcbCmsConfig = {
 
 4. 添加安全域名，否则本地开发会报跨域错误
 
-![](https://s.poetries.work/uploads/2022/06/c9c7dc7c0ebba705.png)
-![](https://s.poetries.work/uploads/2022/06/c15711674e3c175d.png)
+![](https://s.poetries.top/uploads/2022/06/c9c7dc7c0ebba705.png)
+![](https://s.poetries.top/uploads/2022/06/c15711674e3c175d.png)
 
 **安装依赖**
 
@@ -3092,7 +3092,7 @@ cd packages/admin && npm run dev
 cd packages/service && npm run dev
 ```
 
-![](https://s.poetries.work/uploads/2022/06/17ff255d213e43ac.png)
+![](https://s.poetries.top/uploads/2022/06/17ff255d213e43ac.png)
 
 #### 微应用开发
 
@@ -3107,29 +3107,29 @@ tcb new vue-app cms-microapp-vue
 
 - 打包vue应用`npm run build`
 
-![](https://s.poetries.work/uploads/2022/06/065be64fc55c529a.png)
+![](https://s.poetries.top/uploads/2022/06/065be64fc55c529a.png)
 
 - 上传微应用
 
-![](https://s.poetries.work/uploads/2022/06/ea112b0d249492c2.png)
+![](https://s.poetries.top/uploads/2022/06/ea112b0d249492c2.png)
 
 新建
 
-![](https://s.poetries.work/uploads/2022/06/8c672f52136b621a.png)
+![](https://s.poetries.top/uploads/2022/06/8c672f52136b621a.png)
 
-![](https://s.poetries.work/uploads/2022/06/710cbc17f21b8d93.png)
+![](https://s.poetries.top/uploads/2022/06/710cbc17f21b8d93.png)
 
 > 上传成功后，可以在管理后台中查看
 
-![](https://s.poetries.work/uploads/2022/06/534042fe753270f5.png)
+![](https://s.poetries.top/uploads/2022/06/534042fe753270f5.png)
 
 - 自定义菜单展示微应用
 
-![](https://s.poetries.work/uploads/2022/06/44a89633db979007.png)
+![](https://s.poetries.top/uploads/2022/06/44a89633db979007.png)
 
 - 设置后，在关联的项目中可见
 
-![](https://s.poetries.work/uploads/2022/06/48a0980a8ea7075a.png)
+![](https://s.poetries.top/uploads/2022/06/48a0980a8ea7075a.png)
 
 **2. react微应用接入**
 
@@ -3147,27 +3147,27 @@ tcb new react-app cms-microapp-react
 
 **在系统设置中开启API访问**
 
-![](https://s.poetries.work/uploads/2022/06/359d527fd134c1a3.png)
+![](https://s.poetries.top/uploads/2022/06/359d527fd134c1a3.png)
 
-![](https://s.poetries.work/uploads/2022/06/a066957524d06f9d.png)
+![](https://s.poetries.top/uploads/2022/06/a066957524d06f9d.png)
 
 **在项目设置中的 API 访问 Tab 设置允许通过 RESTful API 访问**
 
-![](https://s.poetries.work/uploads/2022/06/19a698c8050fa3eb.png)
+![](https://s.poetries.top/uploads/2022/06/19a698c8050fa3eb.png)
 
 然后复制访问连接，在postman中访问查看效果
 
-![](https://s.poetries.work/uploads/2022/06/3fefbba31221042c.png)
+![](https://s.poetries.top/uploads/2022/06/3fefbba31221042c.png)
 
 **API鉴权访问**
 
 在系统设置中开启API鉴权访问，并创建token
 
-![](https://s.poetries.work/uploads/2022/06/26f7c1f886045461.png)
+![](https://s.poetries.top/uploads/2022/06/26f7c1f886045461.png)
 
 提示需要接口授权才可以访问
 
-![](https://s.poetries.work/uploads/2022/06/33b9b9370a87a245.png)
+![](https://s.poetries.top/uploads/2022/06/33b9b9370a87a245.png)
 
 在请求头加入创建好的token即可
 
@@ -3179,16 +3179,16 @@ Authorization: Bearer API_TOKEN
 
 `API_Token` 为在系统设置中生成的 `Token`，`Bearer` 为固有字段，两者通过空格连接。
 
-![](https://s.poetries.work/uploads/2022/06/e083278e128641d0.png)
+![](https://s.poetries.top/uploads/2022/06/e083278e128641d0.png)
 
-![](https://s.poetries.work/uploads/2022/06/2baff45a779d611a.png)
+![](https://s.poetries.top/uploads/2022/06/2baff45a779d611a.png)
 
 ### 9.3 微信开发者工具部署
 
 > 参考 https://docs.cloudbase.net/cms/install/mp
 
-![](https://s.poetries.work/uploads/2022/06/4ba6ed3a0a6541da.png)
-![](https://s.poetries.work/uploads/2022/06/81875bb480c85e7d.png)
+![](https://s.poetries.top/uploads/2022/06/4ba6ed3a0a6541da.png)
+![](https://s.poetries.top/uploads/2022/06/81875bb480c85e7d.png)
 
 ## 十、云开发部署腾讯微搭低代码
 

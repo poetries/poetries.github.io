@@ -18,15 +18,15 @@ categories: Front-End
 
 **支持如下语言**
 
-![](https://s.poetries.work/uploads/2022/07/bb6538297dd29493.png)
+![](https://s.poetries.top/uploads/2022/07/bb6538297dd29493.png)
 
 **sentry功能架构**
 
-![](https://s.poetries.work/uploads/2022/07/ea60de5188aaa2a1.png)
+![](https://s.poetries.top/uploads/2022/07/ea60de5188aaa2a1.png)
 
 **sentry核心架构**
 
-![](https://s.poetries.work/uploads/2022/07/31d57c95765101aa.png)
+![](https://s.poetries.top/uploads/2022/07/31d57c95765101aa.png)
 
 ## 环境搭建配置
 
@@ -36,7 +36,7 @@ categories: Front-End
 
 登录官网 https://sentry.io 注册账号后接入sdk即可使用
 
-![](https://s.poetries.work/uploads/2022/07/5db080cc6f487560.png)
+![](https://s.poetries.top/uploads/2022/07/5db080cc6f487560.png)
 
 ### Sentry私有化部署
 
@@ -62,7 +62,7 @@ sentry 本身是基于 Django 开发的，而且也依赖到其他的如 Postgre
 yum install yum-utils device-mapper-persistent-data lvm2 -y
 ```
 
-![](https://s.poetries.work/uploads/2022/06/e0f4f8f2621b11c0.png)
+![](https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png)
 
 设置阿里镜像源
 
@@ -70,7 +70,7 @@ yum install yum-utils device-mapper-persistent-data lvm2 -y
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 ```
 
-![](https://s.poetries.work/uploads/2022/06/0b017f9a76914c6e.png)
+![](https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png)
 
 安装docker
 
@@ -93,7 +93,7 @@ systemctl enable docker
 
 登录阿里云官网，打开 [阿里云容器镜像服务](https://cr.console.aliyun.com)。点击左侧菜单最下面的 `镜像加速器` ，选择 `Centos`
 
-![](https://s.poetries.work/uploads/2022/07/48ed424be7911056.png)
+![](https://s.poetries.top/uploads/2022/07/48ed424be7911056.png)
 
 ```
 vi /etc/docker/daemon.json
@@ -167,43 +167,43 @@ cd onpremise
 
 后续一步一步安装下来
 
-![](https://s.poetries.work/uploads/2022/07/ec9447e63222462a.png)
+![](https://s.poetries.top/uploads/2022/07/ec9447e63222462a.png)
 
 设置管理员账号（如果跳过此步，可手动创建）
 
-![](https://s.poetries.work/uploads/2022/07/c960c51703ae0a14.png)
+![](https://s.poetries.top/uploads/2022/07/c960c51703ae0a14.png)
 
 #### 启动项目执行
 
 在执行结束后，会提示创建完毕，运行 `docker-compose up -d` 启动服务
 
-![](https://s.poetries.work/uploads/2022/07/751ff76231406eec.png)
+![](https://s.poetries.top/uploads/2022/07/751ff76231406eec.png)
 
 ```
 docker-compose up -d
 ```
 
-![](https://s.poetries.work/uploads/2022/07/5fe231a45329b6bf.png)
+![](https://s.poetries.top/uploads/2022/07/5fe231a45329b6bf.png)
 
 查看服务运行状态`docker-compose ps`
 
-![](https://s.poetries.work/uploads/2022/07/d00aa7e4b2070d77.png)
+![](https://s.poetries.top/uploads/2022/07/d00aa7e4b2070d77.png)
 
 
 #### 访问项目
 
 > 所有服务都启动成功后,就可以访问`sentry`后台了,后台默认运行在服务器的`9000`端口,这里的`账户密码就是安装时让你设置`的那个
 
-![](https://s.poetries.work/uploads/2022/07/e714d0cdfa38438d.png)
+![](https://s.poetries.top/uploads/2022/07/e714d0cdfa38438d.png)
 
-![](https://s.poetries.work/uploads/2022/07/26405ca96fbdf205.png)
+![](https://s.poetries.top/uploads/2022/07/26405ca96fbdf205.png)
 
 
 ### 设置语言和时区
 
 点击头像`User settings - Account Details`的相应菜单设置，刷新后生效
 
-![](https://s.poetries.work/uploads/2022/07/d86d96288fe1ea13.png)
+![](https://s.poetries.top/uploads/2022/07/d86d96288fe1ea13.png)
 
 ## Vue2 + Sentry
 
@@ -218,7 +218,7 @@ vue create vue2-sentry
 
 ### 接入sentry
 
-![](https://s.poetries.work/uploads/2022/07/c4137ad12fdccfbd.png)
+![](https://s.poetries.top/uploads/2022/07/c4137ad12fdccfbd.png)
 
 ```bash
 # Using npm
@@ -267,9 +267,9 @@ new Vue({
 
 我们手动抛出异常，在控制台可见捕获了错误
 
-![](https://s.poetries.work/uploads/2022/07/893f765fac6d2520.png)
+![](https://s.poetries.top/uploads/2022/07/893f765fac6d2520.png)
 
-![](https://s.poetries.work/uploads/2022/07/695199f400f7e40d.png)
+![](https://s.poetries.top/uploads/2022/07/695199f400f7e40d.png)
 
 
 ### 上传sourceMap到sentry
@@ -317,15 +317,15 @@ module.exports = {
 
 获取`TOKEN`
 
-![](https://s.poetries.work/uploads/2022/07/d2cf43bc99c8125d.png)
+![](https://s.poetries.top/uploads/2022/07/d2cf43bc99c8125d.png)
 
-![](https://s.poetries.work/uploads/2022/07/f427cd23cd15f067.png)
+![](https://s.poetries.top/uploads/2022/07/f427cd23cd15f067.png)
 
-![](https://s.poetries.work/uploads/2022/07/1db9fed291b04c9c.png)
+![](https://s.poetries.top/uploads/2022/07/1db9fed291b04c9c.png)
 
 获取`org`
 
-![](https://s.poetries.work/uploads/2022/07/8962b2ec56f2cc19.png)
+![](https://s.poetries.top/uploads/2022/07/8962b2ec56f2cc19.png)
 
 在项目根目录创建`.sentryclirc`
 
@@ -354,18 +354,18 @@ npm run build
 
 上传后的`sourcemap`在这里可以看到
 
-![](https://s.poetries.work/uploads/2022/07/fc614a806ae0c774.png)
+![](https://s.poetries.top/uploads/2022/07/fc614a806ae0c774.png)
 
 
 正确上传过 `source-map` 的项目，可以看到很清晰的报错位置
 
 > 进入本地打包的dist，`http-server -p 6002` 启动一个模拟正式环境部署的服务访问看看效果
 
-![](https://s.poetries.work/uploads/2022/07/c28db99ceb1e7001.png)
+![](https://s.poetries.top/uploads/2022/07/c28db99ceb1e7001.png)
 
 还可以通过 `面包屑` 功能查看，报错前发生了什么操作
 
-![](https://s.poetries.work/uploads/2022/07/1d6f7cba82780187.png)
+![](https://s.poetries.top/uploads/2022/07/1d6f7cba82780187.png)
 
 **记得别把sourcemap文件传到生产环境，又大又不安全** 删除`sourcemap`, 基于vue2演示的三种方式
 
@@ -402,7 +402,7 @@ configureWebpack(config) {
 
 ### 查看 Performance
 
-![](https://s.poetries.work/uploads/2022/07/d02c70b8bed7be49.png)
+![](https://s.poetries.top/uploads/2022/07/d02c70b8bed7be49.png)
 
 > `Sentry.init()` 中，`new Integrations.BrowserTracing()` 的功能是将浏览器页面加载和导航检测作为事物，并捕获请求，指标和错误。
 
@@ -509,7 +509,7 @@ export default defineConfig({
 
 > 此时当执行`vite build`时，`viteSentry`这个插件会将构建的`sourcemap`文件上传到s`entry`对应的项目`release`之下。当次版本新捕获到错误时就可以还原出错误行，以及详细的错误信息。
 
-![](https://s.poetries.work/uploads/2022/07/605e5eb69a429340.png)
+![](https://s.poetries.top/uploads/2022/07/605e5eb69a429340.png)
 
 
 ## React + Sentry
@@ -524,7 +524,7 @@ mkdir umi-sentry && cd  umi-sentry
 yarn create umi
 ```
 
-![](https://s.poetries.work/uploads/2022/07/b7e76f88d489b17f.png)
+![](https://s.poetries.top/uploads/2022/07/b7e76f88d489b17f.png)
 
 ```bash
 # Using npm
@@ -555,7 +555,7 @@ Sentry.init({
 
 手动抛出异常查看是否能正确上报到sentry
 
-![](https://s.poetries.work/uploads/2022/07/1742ca6bb482613a.png)
+![](https://s.poetries.top/uploads/2022/07/1742ca6bb482613a.png)
 
 ### sourcemap上传
 
@@ -606,11 +606,11 @@ npm run build
 # 进入dist文件，启动http-server 本地服务模拟线上效果
 ```
 
-![](https://s.poetries.work/uploads/2022/07/3dce162037de39ac.png)
+![](https://s.poetries.top/uploads/2022/07/3dce162037de39ac.png)
 
 修改代码抛出异常，查看控制台sourcemap解析的效果
 
-![](https://s.poetries.work/uploads/2022/07/3cd50955a8f30718.png)
+![](https://s.poetries.top/uploads/2022/07/3cd50955a8f30718.png)
 
 **注意：npm run build之后，不要把sourcemap上传到生产环境，记得删除**
 
@@ -631,7 +631,7 @@ Sentry.setUser({
 Vue.prototype.$Sentry = Sentry
 ```
 
-![](https://s.poetries.work/uploads/2022/07/5406d9288512bbf5.png)
+![](https://s.poetries.top/uploads/2022/07/5406d9288512bbf5.png)
 
 ### 错误边界
 
@@ -673,11 +673,11 @@ Sentry.init({
 
 在报错后，可以录屏播放错误发生的情况
 
-![](https://s.poetries.work/uploads/2022/07/d7231e857e234509.png)
+![](https://s.poetries.top/uploads/2022/07/d7231e857e234509.png)
 
 ### 手动设置报警
 
 - 设置报警规则，当我们某些情况，如 `issues`，`performance` 超过我们设置的阈值，会触发 `alert`。
 - 我们可以通过提醒等功能来帮助我们即时发现问题。
 
-![](https://s.poetries.work/uploads/2022/07/4bd87c7949fd6a74.png)
+![](https://s.poetries.top/uploads/2022/07/4bd87c7949fd6a74.png)
