@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Claude Skills：如何将提示词升级为可复用技能 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Claude,AI 工具,提示词工程,效率提升,Agent,">
+  
+
+  <meta name="description" content="深入解析 Claude Skills 的核心原理、渐进披露架构和最佳实践，手把手教你创建自定义技能，实现从临时提示词到可复用资产的升级。">
+<meta name="keywords" content="Claude,AI 工具,提示词工程,效率提升,Agent">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Skills：如何将提示词升级为可复用技能">
+<meta property="og:url" content="http://blog.poetries.top/2026/02/23/claude-skills/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="深入解析 Claude Skills 的核心原理、渐进披露架构和最佳实践，手把手教你创建自定义技能，实现从临时提示词到可复用资产的升级。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/8c274a2fc57dad1a.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/1b07212169ff587a.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/eb48ac7dfa895269.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/b9c19bec1a1ddc9e.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/be799e2a29bad872.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/da959cdf5d6f6a84.png">
+<meta property="og:updated_time" content="2026-03-02T13:14:01.295Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Claude Skills：如何将提示词升级为可复用技能">
+<meta name="twitter:description" content="深入解析 Claude Skills 的核心原理、渐进披露架构和最佳实践，手把手教你创建自定义技能，实现从临时提示词到可复用资产的升级。">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/03/8c274a2fc57dad1a.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#痛点与解决方案"><span class="toc-text">痛点与解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Skills基础知识"><span class="toc-text">Skills基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#什么是Skills"><span class="toc-text">什么是Skills</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#为什么使用-Skills"><span class="toc-text">为什么使用 Skills</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Skills-架构"><span class="toc-text">Skills 架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Skills-的核心原理：渐进披露架构"><span class="toc-text">Skills 的核心原理：渐进披露架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第一层：元数据扫描"><span class="toc-text">第一层：元数据扫描</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第二层：完整说明加载"><span class="toc-text">第二层：完整说明加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#第三层：代码与资源按需加载"><span class="toc-text">第三层：代码与资源按需加载</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#快速上手：启用官方-Skills"><span class="toc-text">快速上手：启用官方 Skills</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#安装Skill"><span class="toc-text">安装Skill</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#官方-Skills-能做什么"><span class="toc-text">官方 Skills 能做什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#创建你的第一个自定义-Skill"><span class="toc-text">创建你的第一个自定义 Skill</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#非程序员路径：引导式创建"><span class="toc-text">非程序员路径：引导式创建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#程序员路径：本地自定义"><span class="toc-text">程序员路径：本地自定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#如何触发Skills"><span class="toc-text">如何触发Skills</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Skills-与其他功能的协同"><span class="toc-text">Skills 与其他功能的协同</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Skills-vs-Prompts"><span class="toc-text">Skills vs Prompts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Skills-vs-Projects"><span class="toc-text">Skills vs Projects</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Skills-Subagents-MCP-的组合拳"><span class="toc-text">Skills + Subagents + MCP 的组合拳</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#典型应用场景"><span class="toc-text">典型应用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#场景一：品牌规范化管理"><span class="toc-text">场景一：品牌规范化管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景二：标准化文档流程"><span class="toc-text">场景二：标准化文档流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景三：专业领域知识沉淀"><span class="toc-text">场景三：专业领域知识沉淀</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#场景四：个人工作习惯"><span class="toc-text">场景四：个人工作习惯</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#最佳实践建议"><span class="toc-text">最佳实践建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#从小处着手"><span class="toc-text">从小处着手</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#保持-Skill-的专注性"><span class="toc-text">保持 Skill 的专注性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#定期迭代优化"><span class="toc-text">定期迭代优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#善用渐进披露机制"><span class="toc-text">善用渐进披露机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#推荐Skills"><span class="toc-text">推荐Skills</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-claude-skills" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">Claude Skills：如何将提示词升级为可复用技能</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.02.23</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/AI/">AI</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.4k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 13分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>阅读完本文你将掌握：Claude Skills 的核心概念与渐进披露原理、官方 Skills 的启用方法、自定义 Skills 的创建流程，以及 Skills 与 Projects、Subagents、MCP 的协同工作方式。</p>
+</blockquote>
+<h2 id="痛点与解决方案"><a href="#痛点与解决方案" class="headerlink" title="痛点与解决方案"></a>痛点与解决方案</h2><p>在日常使用 <code>Claude</code> 的过程中，你是否经常遇到这些困扰：每次让 <code>Claude</code> 生成品牌宣传材料，都要重新解释一遍品牌规范；每次做数据分析，都要重复强调输出格式和注意事项；换了一个对话窗口，之前积累的「最佳实践」全部丢失。这些问题都指向同一个根本原因：<strong>纯提示词模式的局限性</strong>。</p>
+<p>当你依赖对话中的即时指令时，<code>Claude</code> 无法跨对话保持一致性，也难以处理需要精确执行的复杂任务。传统方式下，让 <code>Claude</code> 画图，它只能生成简单的 <code>HTML</code> 页面，输出质量完全不可控。</p>
+<p><strong><code>Claude Skills</code></strong> 正是为解决这些问题而设计。它将「临时起意的提示词」升级为「可以积累的技能资产」，让你能够把专业经验、工作流程和偏好设置持久化地沉淀下来。使用 <code>Skills</code> 后，<code>Claude</code> 会调用 <code>Python</code> 代码执行精确的视觉渲染，输出质量更稳定、可控。</p>
+<h2 id="Skills基础知识"><a href="#Skills基础知识" class="headerlink" title="Skills基础知识"></a>Skills基础知识</h2><h3 id="什么是Skills"><a href="#什么是Skills" class="headerlink" title="什么是Skills"></a>什么是Skills</h3><blockquote>
+<p>Agent Skills 是扩展 Claude 功能的模块化能力。每个 Skill 打包了指令、元数据和可选资源（脚本、模板），Claude 会在相关时自动使用它们</p>
+</blockquote>
+<ul>
+<li><a href="https://platform.claude.com/docs/zh-CN/agents-and-tools/agent-skills/overview" target="_blank" rel="noopener">Claude: Agent Skills</a></li>
+<li><a href="https://developers.openai.com/codex/skills" target="_blank" rel="noopener">Codex: Agent Skills</a></li>
+<li><a href="https://cursor.com/cn/docs/context/skills#agent-skills" target="_blank" rel="noopener">Cursor：Agent Skills</a></li>
+</ul>
+<h3 id="为什么使用-Skills"><a href="#为什么使用-Skills" class="headerlink" title="为什么使用 Skills"></a>为什么使用 Skills</h3><p><code>Skills</code> 是可重用的、基于文件系统的资源，为 <code>Claude</code> 提供特定领域的专业知识：工作流程、上下文和最佳实践，将通用型智能体转变为专家。与提示词（用于一次性任务的对话级指令）不同，<code>Skills</code> 按需加载，消除了在多个对话中重复提供相同指导的需要</p>
+<p><strong>主要优势：</strong></p>
+<ul>
+<li>专业化 Claude：为特定领域任务定制能力</li>
+<li>减少重复：创建一次，自动使用</li>
+<li>组合能力：组合 Skills 构建复杂工作流程</li>
+</ul>
+<h3 id="Skills-架构"><a href="#Skills-架构" class="headerlink" title="Skills 架构"></a>Skills 架构</h3><p>Skills 在代码执行环境中运行，Claude 在该环境中拥有文件系统访问、bash 命令和代码执行能力。可以这样理解：Skills 作为目录存在于虚拟机上，Claude 使用与您在计算机上浏览文件相同的 bash 命令与它们交互。</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/8c274a2fc57dad1a.png" alt></p>
+<h3 id="Skills-的核心原理：渐进披露架构"><a href="#Skills-的核心原理：渐进披露架构" class="headerlink" title="Skills 的核心原理：渐进披露架构"></a>Skills 的核心原理：渐进披露架构</h3><p>理解 <code>Skills</code> 的技术设计，有助于更好地使用它。</p>
+<p><code>Claude Skills</code> 采用了一种名为「渐进披露」（Progressive Disclosure）的架构设计。这意味着 <code>Claude</code> 不会一次性加载所有技能信息，而是根据任务需要分三层逐步加载。</p>
+<h3 id="第一层：元数据扫描"><a href="#第一层：元数据扫描" class="headerlink" title="第一层：元数据扫描"></a>第一层：元数据扫描</h3><p>当 <code>Claude</code> 接收到任务时，它会先扫描所有已安装 <code>Skills</code> 的简短描述（约 100 tokens）。这一层的目的是快速判断当前任务与哪些 <code>Skill</code> 相关。这个设计确保了 <code>Claude</code> 能够快速筛选出可能需要的技能，而不会被大量的技能信息所淹没。</p>
+<h3 id="第二层：完整说明加载"><a href="#第二层：完整说明加载" class="headerlink" title="第二层：完整说明加载"></a>第二层：完整说明加载</h3><p>一旦确定某个 <code>Skill</code> 与任务相关，<code>Claude</code> 才会加载完整的 <code>SKILL.md</code> 文件（官方建议上限约 5k tokens）。这里包含详细的步骤流程、注意事项、输出格式要求和风格偏好。这个层面才是技能的核心定义区域。</p>
+<h3 id="第三层：代码与资源按需加载"><a href="#第三层：代码与资源按需加载" class="headerlink" title="第三层：代码与资源按需加载"></a>第三层：代码与资源按需加载</h3><p>某些 <code>Skill</code> 还附带脚本、模板或参考文件。<code>Claude</code> 只在真正需要执行相关操作时，才会将这些内容纳入上下文。这种按需加载的方式极大地优化了上下文长度的使用效率。</p>
+<p>这种设计的核心优势在于：<strong>你可以安装数十个 Skills，而不会在每次对话开始时就被上下文长度限制压垮</strong>。<code>Claude</code> 只会翻阅它认为有用的那本「操作手册」。</p>
+<h2 id="快速上手：启用官方-Skills"><a href="#快速上手：启用官方-Skills" class="headerlink" title="快速上手：启用官方 Skills"></a>快速上手：启用官方 Skills</h2><h3 id="安装Skill"><a href="#安装Skill" class="headerlink" title="安装Skill"></a>安装Skill</h3><ul>
+<li>下载SKILL包后，在<code>~/.claude/skills</code>下导入<code>skill</code>文件</li>
+</ul>
+<p><img src="https://s.poetries.top/uploads/2026/03/1b07212169ff587a.png" alt></p>
+<ul>
+<li>通过<code>skillsmp.com</code>市场来安装，找到合适的skill安装即可</li>
+</ul>
+<p><img src="https://s.poetries.top/uploads/2026/03/eb48ac7dfa895269.png" alt></p>
+<h3 id="官方-Skills-能做什么"><a href="#官方-Skills-能做什么" class="headerlink" title="官方 Skills 能做什么"></a>官方 Skills 能做什么</h3><p><code>Anthropic</code> 提供了一系列开箱即用的官方 <code>Skills</code>，主要集中在文档处理领域。访问 <a href="https://github.com/anthropics/skills/tree/main" target="_blank" rel="noopener">官方 Skills 仓库</a> 可以查看完整的技能列表。</p>
+<p>官方提供的核心 <code>Skills</code> 包括：</p>
+<table>
+<thead>
+<tr>
+<th>技能名称</th>
+<th>功能描述</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docx</code></td>
+<td>Word 文档的创建、编辑、审阅</td>
+<td>合同流转、合规文档</td>
+</tr>
+<tr>
+<td><code>pdf</code></td>
+<td>PDF 文本提取、表格抽取、合并拆分</td>
+<td>票据归档、数据抽取</td>
+</tr>
+<tr>
+<td><code>pptx</code></td>
+<td>PPT 布局调整、模板应用、图表生成</td>
+<td>销售演示、周会汇报</td>
+</tr>
+<tr>
+<td><code>xlsx</code></td>
+<td>Excel 公式编写、格式设置、数据分析</td>
+<td>报表生成、指标盘</td>
+</tr>
+</tbody>
+</table>
+<h2 id="创建你的第一个自定义-Skill"><a href="#创建你的第一个自定义-Skill" class="headerlink" title="创建你的第一个自定义 Skill"></a>创建你的第一个自定义 Skill</h2><ul>
+<li>官方 <code>Skills</code> 虽然好用，但真正的价值在于创建符合你自身需求的定制技能。</li>
+<li>创建<code>.claude/skills/frontend-design</code>文件夹</li>
+<li>然后创建<code>SKILL.md</code>，将官方给的前端设计的skill粘贴进入</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">name: frontend-design</span><br><span class="line">description: Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI). Generates creative, polished code and UI design that avoids generic AI aesthetics.</span><br><span class="line">license: Complete terms in LICENSE.txt</span><br><span class="line">---</span><br><span class="line"></span><br><span class="line">This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic &quot;AI slop&quot; aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.</span><br><span class="line"></span><br><span class="line">The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.</span><br><span class="line"></span><br><span class="line">## Design Thinking</span><br><span class="line"></span><br><span class="line">Before coding, understand the context and commit to a BOLD aesthetic direction:</span><br><span class="line">- **Purpose**: What problem does this interface solve? Who uses it?</span><br><span class="line">- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.</span><br><span class="line">- **Constraints**: Technical requirements (framework, performance, accessibility).</span><br><span class="line">- **Differentiation**: What makes this UNFORGETTABLE? What&apos;s the one thing someone will remember?</span><br><span class="line"></span><br><span class="line">**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work - the key is intentionality, not intensity.</span><br><span class="line"></span><br><span class="line">Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:</span><br><span class="line">- Production-grade and functional</span><br><span class="line">- Visually striking and memorable</span><br><span class="line">- Cohesive with a clear aesthetic point-of-view</span><br><span class="line">- Meticulously refined in every detail</span><br><span class="line"></span><br><span class="line">## Frontend Aesthetics Guidelines</span><br><span class="line"></span><br><span class="line">Focus on:</span><br><span class="line">- **Typography**: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial and Inter; opt instead for distinctive choices that elevate the frontend&apos;s aesthetics; unexpected, characterful font choices. Pair a distinctive display font with a refined body font.</span><br><span class="line">- **Color &amp; Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.</span><br><span class="line">- **Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.</span><br><span class="line">- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.</span><br><span class="line">- **Backgrounds &amp; Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Add contextual effects and textures that match the overall aesthetic. Apply creative forms like gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, and grain overlays.</span><br><span class="line"></span><br><span class="line">NEVER use generic AI-generated aesthetics like overused font families (Inter, Roboto, Arial, system fonts), cliched color schemes (particularly purple gradients on white backgrounds), predictable layouts and component patterns, and cookie-cutter design that lacks context-specific character.</span><br><span class="line"></span><br><span class="line">Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.</span><br><span class="line"></span><br><span class="line">**IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.</span><br><span class="line"></span><br><span class="line">Remember: Claude is capable of extraordinary creative work. Don&apos;t hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.</span><br></pre></td></tr></table></figure>
+<h3 id="非程序员路径：引导式创建"><a href="#非程序员路径：引导式创建" class="headerlink" title="非程序员路径：引导式创建"></a>非程序员路径：引导式创建</h3><p>即使你完全不懂编程，<code>Claude</code> 也提供了完整的引导流程：</p>
+<ol>
+<li>在对话中直接告诉 <code>Claude</code>：「我想创建一个 Skill，请引导我完成」</li>
+<li><code>Claude</code> 会启动专门的创建引导流程，询问你技能名称、功能描述、预期用途</li>
+<li>完成后系统会生成一个 <code>ZIP</code> 包</li>
+<li>在 <code>Skills</code> 设置页面点击上传安装</li>
+</ol>
+<p><img src="https://s.poetries.top/uploads/2026/03/b9c19bec1a1ddc9e.png" alt></p>
+<h3 id="程序员路径：本地自定义"><a href="#程序员路径：本地自定义" class="headerlink" title="程序员路径：本地自定义"></a>程序员路径：本地自定义</h3><p>对于有技术背景的用户，你可以手动创建 <code>Skill</code> 文件夹结构：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">my-skill/</span><br><span class="line">├── SKILL.md        <span class="comment"># 技能说明文档（核心）</span></span><br><span class="line">├── metadata.json   <span class="comment"># 元数据配置</span></span><br><span class="line">├── scripts/        <span class="comment"># 可执行脚本</span></span><br><span class="line">└── resources/      <span class="comment"># 参考资源</span></span><br></pre></td></tr></table></figure>
+<p><strong><code>SKILL.md</code> 是核心文件</strong>，它定义了 <code>Skill</code> 的完整行为。基本的结构包括：</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">name: 技能名称</span><br><span class="line">description: 技能描述元数据</span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section"># 技能名称</span></span><br><span class="line"></span><br><span class="line"><span class="section">## 触发条件</span></span><br><span class="line"></span><br><span class="line">描述在什么情况下应该使用这个技能</span><br><span class="line"></span><br><span class="line"><span class="section">## 执行步骤</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1. </span>第一步做什么</span><br><span class="line"><span class="bullet">2. </span>第二步做什么</span><br><span class="line"></span><br><span class="line"><span class="section">## 输出要求</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">- </span>格式要求</span><br><span class="line"><span class="bullet">- </span>风格要求</span><br><span class="line"><span class="bullet">- </span>注意事项</span><br></pre></td></tr></table></figure>
+<h3 id="如何触发Skills"><a href="#如何触发Skills" class="headerlink" title="如何触发Skills"></a>如何触发Skills</h3><ul>
+<li>我们可以直接用<code>/</code>开头，然后去触发对应的 Skills。这种一般是针对于这个 Skills 是重复直接执行的工作流</li>
+</ul>
+<p><img src="https://s.poetries.top/uploads/2026/03/be799e2a29bad872.png" alt></p>
+<ul>
+<li>AI主动触发关键字</li>
+</ul>
+<p>如果你的提示词里面含有相关的关键字，这个关键词能够命中 <code>Skills</code> 的描述，那就会自动触发该 Skill。</p>
+<ul>
+<li>直接说明（推荐）</li>
+</ul>
+<p>最推荐的是直接说明我需要使用某个 Skill，来让 AI 精准的触发</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/da959cdf5d6f6a84.png" alt></p>
+<h2 id="Skills-与其他功能的协同"><a href="#Skills-与其他功能的协同" class="headerlink" title="Skills 与其他功能的协同"></a>Skills 与其他功能的协同</h2><p><code>Claude</code> 的功能生态并非孤立存在，理解它们之间的关系有助于构建更强大的工作流。</p>
+<h3 id="Skills-vs-Prompts"><a href="#Skills-vs-Prompts" class="headerlink" title="Skills vs Prompts"></a>Skills vs Prompts</h3><p>这是最需要理清的一对概念。</p>
+<p><strong>Prompts</strong> 是对话中的即时指令，适合一次性任务和临时需求。它不会在不同对话之间自动保留。也就是说，你今天费心写了一个很长的「代码安全审计」提示词，明天开新对话，还得重新粘一遍。</p>
+<p><strong>Skills</strong> 是持久化的能力模块，适合需要反复使用的流程和标准。当你在多个对话中反复输入类似的指令时，就是该升级为 <code>Skill</code> 的信号。</p>
+<p>一个简单的判断标准：<strong>只说一次的事情用 Prompts，需要累计沉淀的经验用 Skills</strong>。</p>
+<h3 id="Skills-vs-Projects"><a href="#Skills-vs-Projects" class="headerlink" title="Skills vs Projects"></a>Skills vs Projects</h3><p><strong>Projects</strong> 提供的是「知识场景」——它解决的是「Claude 需要知道什么」。每个 <code>Project</code> 有独立的历史记录、知识库和项目级指令。</p>
+<p><strong>Skills</strong> 提供的是「能力模组」——它解决的是「Claude 应该怎么做」。<code>Skill</code> 是全局可用的，而 <code>Project</code> 只在特定项目空间内生效。</p>
+<p>两者配合使用时，<code>Project</code> 负责提供背景知识，<code>Skill</code> 负责定义处理方法。</p>
+<h3 id="Skills-Subagents-MCP-的组合拳"><a href="#Skills-Subagents-MCP-的组合拳" class="headerlink" title="Skills + Subagents + MCP 的组合拳"></a>Skills + Subagents + MCP 的组合拳</h3><p>对于复杂任务，这三者可以协同工作：</p>
+<ul>
+<li><strong>MCP</strong> 负责连接外部系统（数据库、文件、API）</li>
+<li><strong>Skills</strong> 定义如何使用这些外部工具的流程</li>
+<li><strong>Subagents</strong> 作为专职执行者，调用特定 <code>Skills</code> 完成子任务</li>
+</ul>
+<p>例如，一个竞品分析 <code>Agent</code> 可以这样构建：<code>Subagent A</code> 负责市场调研（调用市场分析 <code>Skill</code>），<code>Subagent B</code> 负责技术分析（调用代码审查 <code>Skill</code>），两者通过 <code>MCP</code> 获取的外部数据完成各自职责。</p>
+<h2 id="典型应用场景"><a href="#典型应用场景" class="headerlink" title="典型应用场景"></a>典型应用场景</h2><p>基于实际使用经验，以下场景特别适合使用 <code>Skills</code>：</p>
+<h3 id="场景一：品牌规范化管理"><a href="#场景一：品牌规范化管理" class="headerlink" title="场景一：品牌规范化管理"></a>场景一：品牌规范化管理</h3><p>将品牌色彩、字体、版式、<code>LOGO</code> 使用规范封装为 <code>Skill</code>。每次生成营销材料时自动应用，无需重复叮嘱。</p>
+<h3 id="场景二：标准化文档流程"><a href="#场景二：标准化文档流程" class="headerlink" title="场景二：标准化文档流程"></a>场景二：标准化文档流程</h3><p>将合同审阅、数据报告、需求文档的格式标准写入 <code>Skill</code>。确保输出的一致性和专业性。</p>
+<h3 id="场景三：专业领域知识沉淀"><a href="#场景三：专业领域知识沉淀" class="headerlink" title="场景三：专业领域知识沉淀"></a>场景三：专业领域知识沉淀</h3><p>将行业特定的分析框架、评审标准、最佳实践固化为 <code>Skill</code>。新成员加入后可直接使用团队积累的专业经验。</p>
+<h3 id="场景四：个人工作习惯"><a href="#场景四：个人工作习惯" class="headerlink" title="场景四：个人工作习惯"></a>场景四：个人工作习惯</h3><p>将你的笔记格式、代码风格偏好、研究方法论封装为 <code>Skill</code>。在任何对话中都能保持个人习惯的一致性。</p>
+<h2 id="最佳实践建议"><a href="#最佳实践建议" class="headerlink" title="最佳实践建议"></a>最佳实践建议</h2><h3 id="从小处着手"><a href="#从小处着手" class="headerlink" title="从小处着手"></a>从小处着手</h3><p>不必追求一步到位的完美 <code>Skill</code>。先从最简单的重复性任务开始，积累经验后再扩展复杂流程。</p>
+<h3 id="保持-Skill-的专注性"><a href="#保持-Skill-的专注性" class="headerlink" title="保持 Skill 的专注性"></a>保持 Skill 的专注性</h3><p>一个 <code>Skill</code> 建议只专注解决一类问题。过于通用的 <code>Skill</code> 反而难以提供精准的指导。</p>
+<h3 id="定期迭代优化"><a href="#定期迭代优化" class="headerlink" title="定期迭代优化"></a>定期迭代优化</h3><p>随着使用经验的积累，你会逐渐发现 <code>Skill</code> 的不足之处。及时更新 <code>SKILL.md</code> 内容，让技能越来越好用。</p>
+<h3 id="善用渐进披露机制"><a href="#善用渐进披露机制" class="headerlink" title="善用渐进披露机制"></a>善用渐进披露机制</h3><p>不要在 <code>SKILL.md</code> 中堆积过多信息。只保留当前任务真正需要的流程和规则，其他细节可以通过 <code>Prompts</code> 临时补充。</p>
+<h2 id="推荐Skills"><a href="#推荐Skills" class="headerlink" title="推荐Skills"></a>推荐Skills</h2><ul>
+<li>frontend-design： <a href="https://skillsmp.com/zh/skills/anthropics-claude-code-plugins-frontend-design-skills-frontend-design-skill-md" target="_blank" rel="noopener">https://skillsmp.com/zh/skills/anthropics-claude-code-plugins-frontend-design-skills-frontend-design-skill-md</a></li>
+<li>Nextjs-best-practices：<a href="https://skillsmp.com/zh/skills/xenitv1-claude-code-maestro-skills-nextjs-best-practices-skill-md" target="_blank" rel="noopener">https://skillsmp.com/zh/skills/xenitv1-claude-code-maestro-skills-nextjs-best-practices-skill-md</a></li>
+<li>tailwind-design-system：<a href="https://skillsmp.com/zh/skills/wshobson-agents-plugins-frontend-mobile-development-skills-tailwind-design-system-skill-md" target="_blank" rel="noopener">https://skillsmp.com/zh/skills/wshobson-agents-plugins-frontend-mobile-development-skills-tailwind-design-system-skill-md</a></li>
+<li>landing-page-guide-v2：<a href="https://skillsmp.com/zh/skills/bear2u-my-skills-claude-skills-landing-page-guide-v2-skill-md" target="_blank" rel="noopener">https://skillsmp.com/zh/skills/bear2u-my-skills-claude-skills-landing-page-guide-v2-skill-md</a></li>
+<li>seo-review：<a href="https://skillsmp.com/zh/skills/leonardomso-33-js-concepts-opencode-skill-seo-review-skill-md" target="_blank" rel="noopener">https://skillsmp.com/zh/skills/leonardomso-33-js-concepts-opencode-skill-seo-review-skill-md</a></li>
+<li>ui-ux-pro-max： <a href="https://skillsmp.com/skills/nextlevelbuilder-ui-ux-pro-max-skill-claude-skills-ui-ux-pro-max-skill-md" target="_blank" rel="noopener">https://skillsmp.com/skills/nextlevelbuilder-ui-ux-pro-max-skill-claude-skills-ui-ux-pro-max-skill-md</a></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Claude Skills</code> 代表了一种从「临时交互」到「能力积累」的范式转变。它不仅仅是一个功能升级，更是一种工作效率思维的进化。当你开始系统性地将重复性工作封装为 <code>Skills</code> 时，你会发现 <code>Claude</code> 从一个聊天助手，逐步变成了一个真正懂你、能够持续学习你工作方式的智能伙伴。</p>
+<p>与其每次都从零开始，不如现在就开始构建你的第一个 <code>Skill</code>。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://skillsmp.com" target="_blank" rel="noopener">skillsmp</a></li>
+<li><a href="https://github.com/ComposioHQ/awesome-claude-skills" target="_blank" rel="noopener">awesome-claude-skills</a></li>
+<li><a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">anthropics/skills</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/02/10/react-native-web-local-file-loading/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2026/03/02/claude-figma-mcp-minmax/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

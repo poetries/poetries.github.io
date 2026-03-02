@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>基于Claude Code + MinMax + Figma MCP高精度还原设计稿 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Claude,AI 工具,提示词工程,效率提升,Agent,Figma,MinMax,">
+  
+
+  <meta name="description" content="详解如何使用Claude Code配合MinMax大模型和Figma MCP实现设计稿到代码的高精度自动还原，大幅提升前端开发效率">
+<meta name="keywords" content="Claude,AI 工具,提示词工程,效率提升,Agent,Figma,MinMax">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Claude Code + MinMax + Figma MCP高精度还原设计稿">
+<meta property="og:url" content="http://blog.poetries.top/2026/03/02/claude-figma-mcp-minmax/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="详解如何使用Claude Code配合MinMax大模型和Figma MCP实现设计稿到代码的高精度自动还原，大幅提升前端开发效率">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/415ed438e1b1e769.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/da22995d65af2d99.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/5bdd1d4c83d93146.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/63ea70d820fc7da8.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/4ffa433b7d7e8912.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/7dc808eb2ec0ba78.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/f93117a0957eac99.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/e36ec0df89daabaf.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/a0e0152712e0e967.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/8a87a46853f9f488.png">
+<meta property="og:updated_time" content="2026-03-02T14:00:40.003Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于Claude Code + MinMax + Figma MCP高精度还原设计稿">
+<meta name="twitter:description" content="详解如何使用Claude Code配合MinMax大模型和Figma MCP实现设计稿到代码的高精度自动还原，大幅提升前端开发效率">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/03/415ed438e1b1e769.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#安装-Figma-MCP"><span class="toc-text">安装 Figma MCP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#授权-Figma-账户"><span class="toc-text">授权 Figma 账户</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#配置-MinMax-模型（可选）"><span class="toc-text">配置 MinMax 模型（可选）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#使用-Figma-MCP-还原设计稿"><span class="toc-text">使用 Figma MCP 还原设计稿</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#选择目标设计稿"><span class="toc-text">选择目标设计稿</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#获取设计元素链接"><span class="toc-text">获取设计元素链接</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#调用-Claude-Code-生成代码"><span class="toc-text">调用 Claude Code 生成代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#验证还原效果"><span class="toc-text">验证还原效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#参考资料"><span class="toc-text">参考资料</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-claude-figma-mcp-minmax" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">基于Claude Code + MinMax + Figma MCP高精度还原设计稿</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.03.02</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/AI/">AI</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 555字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 2分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>本文详细介绍如何通过 Claude Code + MinMax + Figma MCP 的组合方案，实现设计稿到代码的高精度自动还原。</p>
+<h2 id="安装-Figma-MCP"><a href="#安装-Figma-MCP" class="headerlink" title="安装 Figma MCP"></a>安装 Figma MCP</h2><p>首先在终端中执行以下命令安装 Figma MCP：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">claude mcp add --scope user --transport http figma https://mcp.figma.com/mcp</span><br></pre></td></tr></table></figure>
+<p>安装完成后，使用 <code>claude mcp list</code> 查看已安装的 MCP 列表：</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/415ed438e1b1e769.png" alt></p>
+<h2 id="授权-Figma-账户"><a href="#授权-Figma-账户" class="headerlink" title="授权 Figma 账户"></a>授权 Figma 账户</h2><p>MCP 安装成功后，需要在 Claude Code 界面中完成 Figma 账户的授权操作。点击授权按钮后会跳转到 Figma 官网的 OAuth 页面，登录并确认授权即可。</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/da22995d65af2d99.png" alt></p>
+<p><img src="https://s.poetries.top/uploads/2026/03/5bdd1d4c83d93146.png" alt></p>
+<p>授权成功后，MCP 即可正常连接并读取你的 Figma 文件：</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/63ea70d820fc7da8.png" alt></p>
+<h2 id="配置-MinMax-模型（可选）"><a href="#配置-MinMax-模型（可选）" class="headerlink" title="配置 MinMax 模型（可选）"></a>配置 MinMax 模型（可选）</h2><p>如果你希望降低 API 调用成本，可以在 Claude Code 中配置 MinMax 作为模型供应商。使用 <code>claude switch</code> 命令调出模型切换面板，添加新的供应商：</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/4ffa433b7d7e8912.png" alt></p>
+<p>详细配置步骤可参考 <a href="https://platform.minimaxi.com/docs/guides/text-ai-coding-tools#%E5%AE%89%E8%A3%85-claude-code" target="_blank" rel="noopener">MinMax 官方文档</a>。</p>
+<h2 id="使用-Figma-MCP-还原设计稿"><a href="#使用-Figma-MCP-还原设计稿" class="headerlink" title="使用 Figma MCP 还原设计稿"></a>使用 Figma MCP 还原设计稿</h2><p>接下来演示如何使用 Figma MCP 从设计稿自动生成代码。</p>
+<h3 id="选择目标设计稿"><a href="#选择目标设计稿" class="headerlink" title="选择目标设计稿"></a>选择目标设计稿</h3><p>本示例使用的是 Figma Community 上的一个咖啡馆落地页设计稿：</p>
+<ul>
+<li><a href="https://www.figma.com/files/team/1578338715267053469/resources/community/file/1444331896024589155?fuid=1578338713432883311" target="_blank" rel="noopener">设计稿地址</a></li>
+</ul>
+<p>打开设计稿后，点击【Open in Figma】进入画布页面：</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/7dc808eb2ec0ba78.png" alt></p>
+<h3 id="获取设计元素链接"><a href="#获取设计元素链接" class="headerlink" title="获取设计元素链接"></a>获取设计元素链接</h3><p>在 Figma 画布中选择你想要复刻的 Layer 层或 Frame，点击右键选择【Copy link to selection】获取元素链接：</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/f93117a0957eac99.png" alt></p>
+<h3 id="调用-Claude-Code-生成代码"><a href="#调用-Claude-Code-生成代码" class="headerlink" title="调用 Claude Code 生成代码"></a>调用 Claude Code 生成代码</h3><p>切换到 Claude Code 界面，输入以下提示词即可自动还原设计稿：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">请使用Figma MCP，在 @test.html 页面还原落地页设计：https://www.figma.com/design/zZQZmhP0lSw4OeCsBvuzFG/Bean-Scene-Coffee--Community-?node-id=1-4&amp;t=2TnBNPKQMGuHxi8w-4</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：提示词中的 <a href="mailto:`@test.html" target="_blank" rel="noopener">`@test.html</a>` 指定了输出文件名，Figma 链接包含了文件 ID 和节点 ID 信息，MCP 会据此解析设计元素属性并生成对应代码。</p>
+</blockquote>
+<p>MCP 会自动读取设计稿的颜色、字体、间距等属性，并生成对应的 HTML 和 CSS 代码：</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/e36ec0df89daabaf.png" alt></p>
+<p><img src="https://s.poetries.top/uploads/2026/03/a0e0152712e0e967.png" alt></p>
+<h3 id="验证还原效果"><a href="#验证还原效果" class="headerlink" title="验证还原效果"></a>验证还原效果</h3><p>代码生成完成后，打开生成的 test.html 文件查看效果：还原度还是很高的</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/8a87a46853f9f488.png" alt></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/#claude-code" target="_blank" rel="noopener">Figma MCP Server 官方文档</a></li>
+<li><a href="https://platform.minimaxi.com/docs/guides/text-ai-coding-tools#%E5%AE%89%E8%A3%85-claude-code" target="_blank" rel="noopener">MinMax Claude Code 接入指南</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/02/23/claude-skills/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
