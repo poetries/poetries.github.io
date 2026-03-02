@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>微前端常见落地方案对比总结 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="微前端,qiankun,Module Federation,Web Components,前端架构,">
+  
+
+  <meta name="description" content="本文对比微前端五大主流落地方案：iframe、qiankun、Module Federation、Web Components、EMP，从技术原理、优缺点、适用场景等维度进行全面分析，并深入讲解JS沙箱机制和CSS隔离方案。">
+<meta name="keywords" content="微前端,qiankun,Module Federation,Web Components,前端架构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微前端常见落地方案对比总结">
+<meta property="og:url" content="http://blog.poetries.top/2024/02/25/micro-frontend-comparison/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="本文对比微前端五大主流落地方案：iframe、qiankun、Module Federation、Web Components、EMP，从技术原理、优缺点、适用场景等维度进行全面分析，并深入讲解JS沙箱机制和CSS隔离方案。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2026-03-02T10:29:29.604Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="微前端常见落地方案对比总结">
+<meta name="twitter:description" content="本文对比微前端五大主流落地方案：iframe、qiankun、Module Federation、Web Components、EMP，从技术原理、优缺点、适用场景等维度进行全面分析，并深入讲解JS沙箱机制和CSS隔离方案。">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#导语"><span class="toc-text">导语</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#什么是微前端"><span class="toc-text">什么是微前端</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#微前端的核心价值与适用场景"><span class="toc-text">微前端的核心价值与适用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#微前端五大主流方案对比"><span class="toc-text">微前端五大主流方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#方案一：iframe-派"><span class="toc-text">方案一：iframe 派</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方案二：路由分发-资源处理派"><span class="toc-text">方案二：路由分发 + 资源处理派</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-single-spa-原理与实战"><span class="toc-text">2.1 single-spa 原理与实战</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-qiankun-原理与实战"><span class="toc-text">2.2 qiankun 原理与实战</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-Garfish-原理"><span class="toc-text">2.3 Garfish 原理</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方案三：Module-Federation-派"><span class="toc-text">方案三：Module Federation 派</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方案四：Component-driven-派"><span class="toc-text">方案四：Component-driven 派</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方案五：Web-Components-派"><span class="toc-text">方案五：Web Components 派</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JS-沙箱机制详解"><span class="toc-text">JS 沙箱机制详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#快照沙箱"><span class="toc-text">快照沙箱</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Proxy-代理沙箱"><span class="toc-text">Proxy 代理沙箱</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#qiankun-的沙箱实现"><span class="toc-text">qiankun 的沙箱实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CSS-隔离方案详解"><span class="toc-text">CSS 隔离方案详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#子应用之间样式隔离"><span class="toc-text">子应用之间样式隔离</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#主应用与子应用之间的样式隔离"><span class="toc-text">主应用与子应用之间的样式隔离</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#方案一：BEM-命名规范"><span class="toc-text">方案一：BEM 命名规范</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#方案二：CSS-Modules"><span class="toc-text">方案二：CSS Modules</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#方案三：Shadow-DOM"><span class="toc-text">方案三：Shadow DOM</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#方案四：CSS-in-JS"><span class="toc-text">方案四：CSS-in-JS</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#qiankun-的样式隔离"><span class="toc-text">qiankun 的样式隔离</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#主流方案综合对比"><span class="toc-text">主流方案综合对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#选型建议与最佳实践"><span class="toc-text">选型建议与最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-text">总结</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-micro-frontend-comparison" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">微前端常见落地方案对比总结</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2024.02.25</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 5.5k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 21分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="导语"><a href="#导语" class="headerlink" title="导语"></a>导语</h2><p>在大型前端项目开发中，团队常常面临巨石应用的困境。随着业务迭代，项目代码量急剧膨胀，模块间耦合度高，开发效率低下，维护成本攀升。微前端作为一种将微服务理念拓展到前端开发的架构风格，能够将庞大的单体应用拆分为多个可独立开发、测试、部署的小型应用，从根本上解决团队协作和系统维护的难题。</p>
+<p>本文将深入对比目前业界主流的五大微前端落地方案，包括基于 <code>iframe</code> 的传统方案、基于路由分发的 <code>qiankun</code> 与 <code>single-spa</code>、基于构建工具的 <code>Module Federation</code>、组件驱动的 <code>Bit</code> 方案，以及基于浏览器原生标准的 <code>Web Components</code> 方案。通过对各方案的<strong>技术原理、核心特性、优缺点和适用场景</strong>进行全方位剖析，并重点讲解 <strong>JS 沙箱机制</strong> 和 <strong>CSS 隔离方案</strong> 的实现原理，帮助技术团队快速建立对微前端的整体认知，并做出符合业务需求的技术选型决策。</p>
+<h2 id="什么是微前端"><a href="#什么是微前端" class="headerlink" title="什么是微前端"></a>什么是微前端</h2><p>微前端（Micro Frontends）这一概念由 Thoughtworks 于 2016 年 11 月在 Technology Radar 文章中率先提出。其核心定义是：<strong>一种由独立交付的多个前端应用组成整体的架构风格，将前端应用分解成更小、更简单的能够独立开发、测试、部署的应用，而在用户看来仍然是内聚的单个产品。</strong></p>
+<p>Martin Fowler 给出了一个更为简洁的英文解释：<em>An architectural style where independently deliverable frontend applications are composed into a greater whole.</em> 微前端本质上借鉴了 2014 年提出的微服务（Microservices）架构思想，两者在解决的问题上高度相似——随着应用规模扩大，耦合度升高，导致缺乏灵活性，难以维护。</p>
+<p>需要特别澄清的是，微前端并非一门具体的技术，而是一套整合了技术、策略和方法的完整架构体系。它可能以脚手架、配套工具和规范约束等多种形式呈现，不同方案各有利弊，适合业务场景的就是好方案。此外，微前端本身没有技术栈约束，技术栈无关不是微前端的固有要求，各团队可以根据实际情况选择 <code>React</code>、<code>Vue</code> 或其他框架。微前端也不要求各应用必须能独立运行，拆分的粒度可以是应用级、页面级，甚至组件级。</p>
+<h2 id="微前端的核心价值与适用场景"><a href="#微前端的核心价值与适用场景" class="headerlink" title="微前端的核心价值与适用场景"></a>微前端的核心价值与适用场景</h2><p>微前端的兴起主要源于三类业务需求。<strong>遗留系统迁移</strong>是最常见的原因——许多企业存在使用 Backbone.js、Angular.js 或 Vue.js 1 等老旧技术栈构建的应用，这些应用在线上稳定运行但缺乏新功能投入，在不重写原有系统的前提下接入新业务是极其诱人的选择。<strong>后端解耦、前端聚合</strong>是第二个重要需求，特别是 To B 应用场景，用户希望像使用单一产品一样使用企业提供的多个系统，聚合成为技术趋势。第三类需求是<strong>系统需要支持动态插拔机制</strong>，具备清晰的服务边界，支持不同团队独立演进。</p>
+<p>然而，微前端并非万能解决方案。当团队具备系统内所有架构组件的话语权、有足够动力去治理和改造整个系统、或者系统本身已是不可分离的架构量子时，引入微前端可能带来不必要的复杂性。技术团队需要在引入微前端之前，充分评估收益与成本的平衡。</p>
+<h2 id="微前端五大主流方案对比"><a href="#微前端五大主流方案对比" class="headerlink" title="微前端五大主流方案对比"></a>微前端五大主流方案对比</h2><p>目前业界实现的微前端主流方案多达二十余种，按照技术实现方式可以划分为五大流派。接下来我们将逐一分析各流派的代表方案、技术原理和适用场景。</p>
+<h3 id="方案一：iframe-派"><a href="#方案一：iframe-派" class="headerlink" title="方案一：iframe 派"></a>方案一：iframe 派</h3><p><code>iframe</code> 是最传统也是最简单的微前端实现方式。HTML 内联框架元素 <code>&lt;iframe&gt;</code> 表示嵌套的浏览上下文，能有效地将另一个 HTML 页面嵌入到当前页面中。这种方案的核心优势体现在三个方面：<strong>即来即用</strong>，开发者可以直接使用，无需引入额外依赖；<strong>隔离完美</strong>，<code>iframe</code> 可以创建全新独立的宿主环境，子应用之间互不干扰；<strong>组合灵活</strong>，支持在一个页面放置多个应用。</p>
+<p>然而，<code>iframe</code> 方案存在多个致命缺陷。<strong>视窗大小不同步</strong>是典型问题，例如在 <code>iframe</code> 内的弹窗想要居中展示就非常困难。<strong>子应用间通信受限</strong>，只能通过 <code>postMessage</code> 传递序列化的消息，增加了开发复杂度。<strong>性能开销显著</strong>，加载速度慢、构建 <code>iframe</code> 环境会导致白屏时间过长。<strong>路由状态丢失</strong>也是常见痛点，刷新页面后 <code>iframe</code> 的 URL 状态会丢失，用户体验不佳。</p>
+<p><strong>无界（Wujie）</strong> 是腾讯在 2021 年推出的创新方案，定位为「基于 iframe 的全新微前端方案」。它继承 <code>iframe</code> 的优点同时补足其缺点，核心思路是：利用 <code>iframe</code> 的隔离性把 JS 代码放到 <code>iframe</code> 里执行（通过 Proxy），利用 Shadow DOM 的隔离性把子应用的 DOM 写到 ShadowRoot 中实现样式隔离。无界的主要优点包括单页面中多应用同时激活、隔离机制优雅、组件式使用方便；缺点是 Shadow DOM 和 Proxy 导致兼容性一般。</p>
+<h3 id="方案二：路由分发-资源处理派"><a href="#方案二：路由分发-资源处理派" class="headerlink" title="方案二：路由分发 + 资源处理派"></a>方案二：路由分发 + 资源处理派</h3><p>这一流派是业界最主流的微前端实现方式，突出特点是 <strong>production-ready</strong>，提供完整的基座应用与子应用的主从关系、路由分发机制、子应用资源处理、JS 沙箱隔离、样式隔离支持以及完善的配套体系。代表方案包括基于 <code>single-spa</code> 的 <code>qiankun</code>、字节的 <code>Garfish</code>、阿里巴巴的 <code>icestark</code> 等。</p>
+<h4 id="2-1-single-spa-原理与实战"><a href="#2-1-single-spa-原理与实战" class="headerlink" title="2.1 single-spa 原理与实战"></a>2.1 single-spa 原理与实战</h4><p><strong>single-spa</strong> 是这一流派的开山鼻祖，核心定位是「为实现前端微服务化的 js 路由」。它实现了主应用通过路由匹配实现对子应用生命周期的管理。</p>
+<p><strong>核心原理</strong>：single-spa 通过监听浏览器 URL 的变化，在路由切换时判断是否需要加载或卸载某个子应用。核心思想是将整个应用视为一个 SPA，但在内部根据路由规则加载不同的子应用。每个子应用需要导出标准的生命周期方法供主应用调用。</p>
+<p>single-spa 的核心 API 简洁明了：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 主工程注册子应用</span></span><br><span class="line">singleSpa.registerApplication(&#123;</span><br><span class="line">    name: <span class="string">'app1'</span>, <span class="comment">// 子应用名称</span></span><br><span class="line">    app: <span class="function"><span class="params">()</span> =&gt;</span> System.import(<span class="string">'app1'</span>), <span class="comment">// 如何加载子应用（用户自定义）</span></span><br><span class="line">    activeWhen: <span class="string">'/app1'</span>, <span class="comment">// URL 匹配规则，表示何时激活这个子应用</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 启动主应用</span></span><br><span class="line">singleSpa.start();</span><br></pre></td></tr></table></figure>
+<p>子应用需要导出三个核心生命周期方法：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 子应用导出生命周期</span></span><br><span class="line"><span class="keyword">import</span> SubApp <span class="keyword">from</span> <span class="string">'./index.tsx'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> bootstrap = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 初始化逻辑，只在应用首次加载时执行一次</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'子应用 bootstrap'</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> mount = <span class="function">(<span class="params">props</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 挂载逻辑，每次应用激活时执行</span></span><br><span class="line">    ReactDOM.render(&lt;SubApp /&gt;, props.container);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">export const unmount = (props) =&gt; &#123;</span><br><span class="line">    // 卸载逻辑，每次应用切换时执行</span><br><span class="line">    ReactDOM.unmountComponentAtNode(props.container);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>single-spa-vue</code> 封装 Vue 子应用的示例：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// main.js</span></span><br><span class="line"><span class="keyword">import</span> singleSpaVue <span class="keyword">from</span> <span class="string">'single-spa-vue'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> appOptions = &#123;</span><br><span class="line">   el: <span class="string">'#vue'</span>,</span><br><span class="line">   router,</span><br><span class="line">   render: <span class="function"><span class="params">h</span> =&gt;</span> h(App)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在非子应用中正常挂载应用</span></span><br><span class="line"><span class="keyword">if</span> (!<span class="built_in">window</span>.singleSpaNavigate) &#123;</span><br><span class="line">    <span class="keyword">delete</span> appOptions.el;</span><br><span class="line">    <span class="keyword">new</span> Vue(appOptions).$mount(<span class="string">'#app'</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> vueLifeCycle = singleSpaVue(&#123;</span><br><span class="line">   Vue,</span><br><span class="line">   appOptions</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子应用必须导出以下生命周期</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> bootstrap = vueLifeCycle.bootstrap;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> mount = vueLifeCycle.mount;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> unmount = vueLifeCycle.unmount;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> vueLifeCycle;</span><br></pre></td></tr></table></figure>
+<p><strong>single-spa 的优势与局限</strong>：</p>
+<ul>
+<li>优势：轻量级（小于 5kb gzip）、框架无关、路由劫持机制完善</li>
+<li>局限：<strong>不支持 JS 沙箱隔离</strong>、<strong>不支持 CSS 隔离</strong>，这也是众多框架基于它做二次封装的原因</li>
+</ul>
+<h4 id="2-2-qiankun-原理与实战"><a href="#2-2-qiankun-原理与实战" class="headerlink" title="2.2 qiankun 原理与实战"></a>2.2 qiankun 原理与实战</h4><p><strong>qiankun</strong> 是蚂蚁金服基于 <code>single-spa</code> 孵化的微前端实现库，定位为「快速、简单、完整的微前端解决方案」，口号是「可能是你见过最完善的微前端解决方案」。<code>qiankun</code> 是目前国内影响力最大的面向生产的微前端方案，也是唯一得到 <code>single-spa</code> 官方推荐的方案。</p>
+<p><strong>核心原理</strong>：qiankun 在 <code>single-spa</code> 基础上引入了 <code>import-html-entry</code> 库来加载和处理子应用的 HTML、JS、CSS 资源，并实现了完整的 JS 沙箱和 CSS 隔离机制。</p>
+<p><strong>主应用配置示例</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; registerMicroApps, start &#125; <span class="keyword">from</span> <span class="string">'qiankun'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册子应用</span></span><br><span class="line"><span class="keyword">const</span> apps = [</span><br><span class="line">  &#123;</span><br><span class="line">    name: <span class="string">'vueApp'</span>, <span class="comment">// 子应用名称</span></span><br><span class="line">    <span class="comment">// 默认会加载这个 HTML，解析里面的 js 动态执行（子应用必须支持跨域）</span></span><br><span class="line">    entry: <span class="string">'//localhost:10000'</span>,</span><br><span class="line">    container: <span class="string">'#vue'</span>, <span class="comment">// 容器</span></span><br><span class="line">    activeRule: <span class="string">'/vue'</span>, <span class="comment">// 激活的路径</span></span><br><span class="line">    props: &#123; <span class="comment">// 传递属性给子应用</span></span><br><span class="line">      a: <span class="number">1</span>,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    name: <span class="string">'reactApp'</span>,</span><br><span class="line">    entry: <span class="string">'//localhost:20000'</span>,</span><br><span class="line">    container: <span class="string">'#react'</span>,</span><br><span class="line">    activeRule: <span class="string">'/react'</span></span><br><span class="line">  &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 注册应用</span></span><br><span class="line">registerMicroApps(apps);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 启动</span></span><br><span class="line">start(&#123;</span><br><span class="line">  prefetch: <span class="literal">false</span>, <span class="comment">// 取消预加载</span></span><br><span class="line">  sandbox: <span class="literal">true</span> <span class="comment">// 开启沙箱</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>子 Vue 应用配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/main.js</span></span><br><span class="line"><span class="keyword">let</span> instance = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  instance = <span class="keyword">new</span> Vue(&#123;</span><br><span class="line">    router,</span><br><span class="line">    render: <span class="function"><span class="params">h</span> =&gt;</span> h(App)</span><br><span class="line">  &#125;).$mount(<span class="string">'#app'</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 独立运行微应用</span></span><br><span class="line"><span class="keyword">if</span> (!<span class="built_in">window</span>.__POWERED_BY_QIANKUN__) &#123;</span><br><span class="line">  render();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果被 qiankun 使用，动态注入路径</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">window</span>.__POWERED_BY_QIANKUN__) &#123;</span><br><span class="line">  __webpack_public_path__ = <span class="built_in">window</span>.__INJECTED_PUBLIC_PATH_BY_QIANKUN__;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 子应用的协议 - 导出供父应用调用</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">bootstrap</span>(<span class="params"></span>) </span>&#123;&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">mount</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  render();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">unmount</span>(<span class="params">props</span>) </span>&#123;</span><br><span class="line">  instance.$destroy();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">    devServer: &#123;</span><br><span class="line">        port: <span class="number">10000</span>,</span><br><span class="line">        headers: &#123;</span><br><span class="line">            <span class="string">'Access-Control-Allow-Origin'</span>: <span class="string">'*'</span> <span class="comment">// 允许跨域</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    configureWebpack: &#123;</span><br><span class="line">        output: &#123;</span><br><span class="line">            library: <span class="string">'vueApp'</span>,</span><br><span class="line">            libraryTarget: <span class="string">'umd'</span> <span class="comment">// 打包成 UMD 格式</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>子 React 应用配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">render</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  ReactDOM.render(</span><br><span class="line">    &lt;React.StrictMode&gt;</span><br><span class="line">      &lt;App /&gt;</span><br><span class="line">    &lt;<span class="regexp">/React.StrictMode&gt;,</span></span><br><span class="line"><span class="regexp">    document.getElementById('root')</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 独立运行</span></span><br><span class="line"><span class="regexp">if (!window.__POWERED_BY_QIANKUN__) &#123;</span></span><br><span class="line"><span class="regexp">  render();</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 子应用协议</span></span><br><span class="line"><span class="regexp">export async function bootstrap() &#123;&#125;</span></span><br><span class="line"><span class="regexp">export async function mount() &#123;</span></span><br><span class="line"><span class="regexp">  render();</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp">export async function unmount() &#123;</span></span><br><span class="line"><span class="regexp">  ReactDOM.unmountComponentAtNode(document.getElementById("root"));</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// config-overrides.js</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  webpack: <span class="function">(<span class="params">config</span>) =&gt;</span> &#123;</span><br><span class="line">    config.output.library = <span class="string">'reactApp'</span>;</span><br><span class="line">    config.output.libraryTarget = <span class="string">"umd"</span>;</span><br><span class="line">    config.output.publicPath = <span class="string">'http://localhost:20000/'</span>;</span><br><span class="line">    <span class="keyword">return</span> config;</span><br><span class="line">  &#125;,</span><br><span class="line">  devServer: <span class="function"><span class="keyword">function</span> (<span class="params">configFunction</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">proxy, allowedHost</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">const</span> config = configFunction(proxy, allowedHost);</span><br><span class="line">      config.headers = &#123;</span><br><span class="line">        <span class="string">"Access-Control-Allow-Origin"</span>: <span class="string">"*"</span>,</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="keyword">return</span> config;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h4 id="2-3-Garfish-原理"><a href="#2-3-Garfish-原理" class="headerlink" title="2.3 Garfish 原理"></a>2.3 Garfish 原理</h4><p><strong>Garfish</strong> 是字节跳动完全自研的微前端框架，与 <code>qiankun</code> 的不同在于它没有基于 <code>single-spa</code> 和 <code>import-html-entry</code>，完全自研。其主要特点包括：</p>
+<ul>
+<li>支持任意框架技术体系接入</li>
+<li>强大的预加载能力（自动记录用户应用加载习惯增加加载权重）</li>
+<li>支持依赖共享，降低整体包体积</li>
+<li>支持多实例能力（页面中同时运行多个子应用）</li>
+<li>提供业务插件满足定制需求</li>
+</ul>
+<p>在样式隔离方面，Garfish 处理得更为细致，劫持各种事件和资源，把插入的样式全部收集起来统一隔离管理，同时也支持 Shadow DOM。</p>
+<h3 id="方案三：Module-Federation-派"><a href="#方案三：Module-Federation-派" class="headerlink" title="方案三：Module Federation 派"></a>方案三：Module Federation 派</h3><p>Module Federation（以下简称 MF）是 Webpack 5 引入的新特性，官方定义是「多个独立的构建可以组成一个应用程序，这些独立的构建之间不应该存在依赖关系，因此可以单独开发和部署。这通常被称作微前端，但并不仅限于此。」这一流派的核心特点是<strong>去中心化</strong>——每个应用既可以是暴露模块供其它应用调用的 remote，也可以是使用其它应用模块的 host。</p>
+<p><strong>配置示例</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// App1 - 提供方</span></span><br><span class="line"><span class="keyword">const</span> HtmlWebpackPlugin = <span class="built_in">require</span>(<span class="string">'html-webpack-plugin'</span>);</span><br><span class="line"><span class="keyword">const</span> &#123; ModuleFederationPlugin &#125; = <span class="built_in">require</span>(<span class="string">'webpack'</span>).container;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="keyword">new</span> ModuleFederationPlugin(&#123;</span><br><span class="line">      name: <span class="string">"app1"</span>,</span><br><span class="line">      filename: <span class="string">"remoteEntry.js"</span>,</span><br><span class="line">      library: &#123; <span class="attr">type</span>: <span class="string">'var'</span>, <span class="attr">name</span>: <span class="string">'app1'</span> &#125;,</span><br><span class="line">      exposes: &#123;</span><br><span class="line">        <span class="string">"./Button"</span>: <span class="string">"./src/components/Button"</span>, <span class="comment">// 暴露的模块</span></span><br><span class="line">      &#125;,</span><br><span class="line">      shared: [<span class="string">'vue'</span>, <span class="string">'element-ui'</span>] <span class="comment">// 公共依赖</span></span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="keyword">new</span> HtmlWebpackPlugin(&#123;</span><br><span class="line">      template: <span class="string">"./public/index.html"</span>,</span><br><span class="line">    &#125;)</span><br><span class="line">  ],</span><br><span class="line">  devServer: &#123;</span><br><span class="line">    port: <span class="number">3001</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// App2 - 消费方</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="keyword">new</span> ModuleFederationPlugin(&#123;</span><br><span class="line">      name: <span class="string">'app2'</span>,</span><br><span class="line">      filename: <span class="string">"remoteEntry.js"</span>,</span><br><span class="line">      remotes: &#123;</span><br><span class="line">        <span class="comment">// 引用远程模块</span></span><br><span class="line">        app1: <span class="string">'app1@http://localhost:3001/remoteEntry.js'</span></span><br><span class="line">      &#125;,</span><br><span class="line">      shared: [<span class="string">'vue'</span>, <span class="string">'element-ui'</span>]</span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用远程模块</span></span><br><span class="line"><span class="keyword">import</span> Button <span class="keyword">from</span> <span class="string">'app1/Button'</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>EMP（Enterprise Micro Frontends）</strong> 是欢聚时代业务中台前端团队基于 Module Federation 实现的微前端解决方案，核心特点包括：通过 MF 实现第三方依赖共享、每个微应用独立部署运行并通过 CDN 引入主程序、动态更新微应用、去中心化弱化中心应用概念、跨技术栈组件式调用。</p>
+<h3 id="方案四：Component-driven-派"><a href="#方案四：Component-driven-派" class="headerlink" title="方案四：Component-driven 派"></a>方案四：Component-driven 派</h3><p>这一流派将微前端的粒度从应用级延伸到了组件级，代表方案是 <strong>Bit</strong>。Bit 在 GitHub 上有超过 17k 的 star，已被 eBay、Dell、Tesla 等大公司采用。</p>
+<h3 id="方案五：Web-Components-派"><a href="#方案五：Web-Components-派" class="headerlink" title="方案五：Web Components 派"></a>方案五：Web Components 派</h3><p><strong>MicroApp</strong> 是京东推出的基于类 WebComponent 进行渲染的微前端框架，接入成本极低：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 只需用标签包裹即可</span></span><br><span class="line">&lt;micro-app name=<span class="string">"app1"</span> url=<span class="string">"http://localhost:3000"</span> baseurl=<span class="string">"/app1"</span>&gt;&lt;/micro-app&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>Magic Microservices</strong> 是字节跳动开源的基于 Web Components 的轻量级微前端工厂函数。</p>
+<h2 id="JS-沙箱机制详解"><a href="#JS-沙箱机制详解" class="headerlink" title="JS 沙箱机制详解"></a>JS 沙箱机制详解</h2><p>JS 沙箱机制是微前端方案的核心技术之一，用于隔离不同子应用之间的 JavaScript 执行环境，防止子应用对全局环境造成污染。</p>
+<h3 id="快照沙箱"><a href="#快照沙箱" class="headerlink" title="快照沙箱"></a>快照沙箱</h3><p>快照沙箱的原理是在应用激活时遍历 Window 上的变量并存储为一个”快照”，应用卸载时再次遍历对比，将不同的变量存储并将 Window 恢复。其核心实现如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SnapshotSandbox</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>() &#123;</span><br><span class="line">        <span class="keyword">this</span>.proxy = <span class="built_in">window</span>;</span><br><span class="line">        <span class="keyword">this</span>.modifyPropsMap = &#123;&#125;; <span class="comment">// 记录修改的属性</span></span><br><span class="line">        <span class="keyword">this</span>.active(); <span class="comment">// 初始化时激活</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 激活：记录当前 window 快照</span></span><br><span class="line">    active() &#123;</span><br><span class="line">        <span class="keyword">this</span>.windowSnapshot = &#123;&#125;;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">const</span> prop <span class="keyword">in</span> <span class="built_in">window</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">window</span>.hasOwnProperty(prop)) &#123;</span><br><span class="line">                <span class="comment">// 将 window 上的属性进行拍照</span></span><br><span class="line">                <span class="keyword">this</span>.windowSnapshot[prop] = <span class="built_in">window</span>[prop];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 恢复之前修改的属性</span></span><br><span class="line">        <span class="built_in">Object</span>.keys(<span class="keyword">this</span>.modifyPropsMap).forEach(<span class="function"><span class="params">p</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="built_in">window</span>[p] = <span class="keyword">this</span>.modifyPropsMap[p];</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 失活：记录变更并还原 window</span></span><br><span class="line">    inactive() &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">const</span> prop <span class="keyword">in</span> <span class="built_in">window</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">window</span>.hasOwnProperty(prop)) &#123;</span><br><span class="line">                <span class="comment">// 将上次拍照的结果和本次 window 属性做对比</span></span><br><span class="line">                <span class="keyword">if</span> (<span class="built_in">window</span>[prop] !== <span class="keyword">this</span>.windowSnapshot[prop]) &#123;</span><br><span class="line">                    <span class="comment">// 保存修改后的结果</span></span><br><span class="line">                    <span class="keyword">this</span>.modifyPropsMap[prop] = <span class="built_in">window</span>[prop];</span><br><span class="line">                    <span class="comment">// 还原 window</span></span><br><span class="line">                    <span class="built_in">window</span>[prop] = windowSnapshot[prop];</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>使用示例</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> sandbox = <span class="keyword">new</span> SnapshotSandbox();</span><br><span class="line"></span><br><span class="line">(<span class="function">(<span class="params"><span class="built_in">window</span></span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">window</span>.a = <span class="number">1</span>;</span><br><span class="line">    <span class="built_in">window</span>.b = <span class="number">2</span>;</span><br><span class="line">    <span class="built_in">window</span>.c = <span class="number">3</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">window</span>.a, <span class="built_in">window</span>.b, <span class="built_in">window</span>.c); <span class="comment">// 1, 2, 3</span></span><br><span class="line">    sandbox.inactive(); <span class="comment">// 卸载，window 恢复原状</span></span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">window</span>.a, <span class="built_in">window</span>.b, <span class="built_in">window</span>.c); <span class="comment">// undefined, undefined, undefined</span></span><br><span class="line">&#125;)(sandbox.proxy);</span><br></pre></td></tr></table></figure>
+<p><strong>局限性</strong>：快照沙箱只能针对单实例应用场景，如果是多个实例同时挂载的情况则无法解决，这时只能通过 Proxy 代理沙箱来实现。</p>
+<h3 id="Proxy-代理沙箱"><a href="#Proxy-代理沙箱" class="headerlink" title="Proxy 代理沙箱"></a>Proxy 代理沙箱</h3><p>Proxy 代理沙箱通过创建独立的代理对象来隔离每个子应用的执行环境，每个应用都在自己的代理对象上操作，不会影响全局 window。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ProxySandbox</span> </span>&#123;</span><br><span class="line">    <span class="keyword">constructor</span>() &#123;</span><br><span class="line">        <span class="keyword">const</span> rawWindow = <span class="built_in">window</span>;</span><br><span class="line">        <span class="keyword">const</span> fakeWindow = &#123;&#125;;</span><br><span class="line">        <span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(fakeWindow, &#123;</span><br><span class="line">            <span class="keyword">set</span>(target, p, value) &#123;</span><br><span class="line">                target[p] = value;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="keyword">get</span>(target, p) &#123;</span><br><span class="line">                <span class="comment">// 优先从 fakeWindow 取，否则从真实 window 取</span></span><br><span class="line">                <span class="keyword">return</span> target[p] || rawWindow[p];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">this</span>.proxy = proxy;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用示例</span></span><br><span class="line"><span class="keyword">let</span> sandbox1 = <span class="keyword">new</span> ProxySandbox();</span><br><span class="line"><span class="keyword">let</span> sandbox2 = <span class="keyword">new</span> ProxySandbox();</span><br><span class="line"></span><br><span class="line"><span class="built_in">window</span>.a = <span class="number">1</span>; <span class="comment">// 全局变量</span></span><br><span class="line"></span><br><span class="line">(<span class="function">(<span class="params"><span class="built_in">window</span></span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">window</span>.a = <span class="string">'hello'</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">window</span>.a); <span class="comment">// hello（只在 sandbox1 中）</span></span><br><span class="line">&#125;)(sandbox1.proxy);</span><br><span class="line"></span><br><span class="line">(<span class="function">(<span class="params"><span class="built_in">window</span></span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">window</span>.a = <span class="string">'world'</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">window</span>.a); <span class="comment">// world（只在 sandbox2 中）</span></span><br><span class="line">&#125;)(sandbox2.proxy);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.a); <span class="comment">// 1（全局 window 未受影响）</span></span><br></pre></td></tr></table></figure>
+<p><strong>优势</strong>：每个应用都创建独立的 Proxy 代理，好处是每个应用都是相对独立的，不需要直接更改全局的 <code>window</code> 属性，可以支持多实例同时运行。</p>
+<h3 id="qiankun-的沙箱实现"><a href="#qiankun-的沙箱实现" class="headerlink" title="qiankun 的沙箱实现"></a>qiankun 的沙箱实现</h3><p>qiankun 同时支持快照沙箱和 Proxy 沙箱两种模式，通过配置选择：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">start(&#123;</span><br><span class="line">    sandbox: &#123;</span><br><span class="line">        <span class="comment">// true 开启代理沙箱（默认），'legacy' 开启快照沙箱</span></span><br><span class="line">        strictStyleIsolation: <span class="literal">true</span>, <span class="comment">// 开启严格的样式隔离</span></span><br><span class="line">        experimentalStyleIsolation: <span class="literal">true</span> <span class="comment">// 实验性的样式隔离</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>Proxy 沙箱的优势在于天然支持多实例运行（一个页面同时挂多个子应用），对副作用的隔离控制权更高。</p>
+<h2 id="CSS-隔离方案详解"><a href="#CSS-隔离方案详解" class="headerlink" title="CSS 隔离方案详解"></a>CSS 隔离方案详解</h2><p>CSS 隔离是微前端的另一个核心技术难题，主要包括子应用之间的样式隔离和主应用与子应用之间的样式隔离。</p>
+<h3 id="子应用之间样式隔离"><a href="#子应用之间样式隔离" class="headerlink" title="子应用之间样式隔离"></a>子应用之间样式隔离</h3><p><strong>Dynamic Stylesheet（动态样式表）</strong> 是目前主流的解决方案。当应用切换时，移除老应用的样式表，再添加新应用的样式表，保证在一个时间点内只有一个应用的样式表生效。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// qiankun 中的实现原理</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">patchLooseStyle</span>(<span class="params">appName</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> styles = <span class="built_in">document</span>.querySelectorAll(<span class="string">'style'</span>);</span><br><span class="line">    styles.forEach(<span class="function"><span class="params">style</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// 判断样式属于哪个子应用</span></span><br><span class="line">        <span class="keyword">const</span> app = style.getAttribute(<span class="string">'data-webpack'</span>);</span><br><span class="line">        <span class="keyword">if</span> (app &amp;&amp; app !== appName) &#123;</span><br><span class="line">            style.disabled = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="主应用与子应用之间的样式隔离"><a href="#主应用与子应用之间的样式隔离" class="headerlink" title="主应用与子应用之间的样式隔离"></a>主应用与子应用之间的样式隔离</h3><h4 id="方案一：BEM-命名规范"><a href="#方案一：BEM-命名规范" class="headerlink" title="方案一：BEM 命名规范"></a>方案一：BEM 命名规范</h4><p>通过约定项目前缀来避免样式冲突：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 主应用 */</span></span><br><span class="line"><span class="selector-class">.main-app-button</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 子应用 */</span></span><br><span class="line"><span class="selector-class">.child-app-button</span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="方案二：CSS-Modules"><a href="#方案二：CSS-Modules" class="headerlink" title="方案二：CSS Modules"></a>方案二：CSS Modules</h4><p>打包时生成不冲突的选择器名：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// webpack 配置</span></span><br><span class="line">&#123;</span><br><span class="line">    modules: &#123;</span><br><span class="line">        localIdentName: <span class="string">'[name]__[local]--[hash:base64:5]'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>编译后的 class 名：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.App__button--abc12</span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="方案三：Shadow-DOM"><a href="#方案三：Shadow-DOM" class="headerlink" title="方案三：Shadow DOM"></a>方案三：Shadow DOM</h4><p>Shadow DOM 可以实现真正意义上的样式隔离，其内部的元素始终不会影响到它的外部元素：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Shadow DOM 隔离<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">      <span class="comment">// 创建 Shadow DOM</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> shadowDOM = <span class="built_in">document</span>.getElementById(<span class="string">'container'</span>).attachShadow(&#123;<span class="attr">mode</span>: <span class="string">'open'</span>&#125;);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="comment">// 添加样式（隔离在 Shadow DOM 内部）</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> styleEle = <span class="built_in">document</span>.createElement(<span class="string">'style'</span>);</span></span><br><span class="line">      styleEle.textContent = `</span><br><span class="line">        p &#123; color: red; &#125;</span><br><span class="line">        .title &#123; font-size: 20px; &#125;</span><br><span class="line">      `;</span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="comment">// 添加内容</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> pEle = <span class="built_in">document</span>.createElement(<span class="string">'p'</span>);</span></span><br><span class="line"><span class="javascript">      pEle.textContent = <span class="string">'Hello Shadow DOM'</span>;</span></span><br><span class="line"><span class="javascript">      pEle.className = <span class="string">'title'</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="comment">// 追加到 Shadow DOM</span></span></span><br><span class="line">      shadowDOM.appendChild(styleEle);</span><br><span class="line">      shadowDOM.appendChild(pEle);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 全局样式不会影响 Shadow DOM 内部 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>这是外部的 p，不会被影响<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>注意</strong>：React 和 Vue 中的弹框等组件通常挂载到 body 上，使用 Shadow DOM 会导致样式无法应用到这些全局元素。</p>
+<h4 id="方案四：CSS-in-JS"><a href="#方案四：CSS-in-JS" class="headerlink" title="方案四：CSS-in-JS"></a>方案四：CSS-in-JS</h4><p>使用 CSS-in-JS 方案如 styled-components、emotion 等，可以将样式封装在组件级别：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> styled <span class="keyword">from</span> <span class="string">'styled-components'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> Button = styled.button<span class="string">`</span></span><br><span class="line"><span class="string">  background: blue;</span></span><br><span class="line"><span class="string">  color: white;</span></span><br><span class="line"><span class="string">  padding: 10px 20px;</span></span><br><span class="line"><span class="string">`</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 每个组件的样式都是独立的</span></span><br></pre></td></tr></table></figure>
+<h4 id="qiankun-的样式隔离"><a href="#qiankun-的样式隔离" class="headerlink" title="qiankun 的样式隔离"></a>qiankun 的样式隔离</h4><p>qiankun 支持两种样式隔离方式：</p>
+<ol>
+<li><strong>动态样式表隔离</strong>：切换应用时移除旧应用的样式</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 内部实现简化版</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">handleStyleElement</span>(<span class="params">styleElement, appName</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (styleElement._use) &#123;</span><br><span class="line">        <span class="comment">// 禁用其他应用的样式</span></span><br><span class="line">        <span class="built_in">document</span>.querySelectorAll(<span class="string">'style[data-single]'</span>).forEach(<span class="function"><span class="params">el</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (el !== styleElement) &#123;</span><br><span class="line">                el.disabled = <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li><strong>Shadow DOM 隔离</strong>（严格模式）：</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">start(&#123;</span><br><span class="line">    sandbox: &#123;</span><br><span class="line">        strictStyleIsolation: <span class="literal">true</span> <span class="comment">// 开启 Shadow DOM 隔离</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="主流方案综合对比"><a href="#主流方案综合对比" class="headerlink" title="主流方案综合对比"></a>主流方案综合对比</h2><p>下表从多个关键维度对比各主流微前端方案：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>团队</th>
+<th>GitHub Star</th>
+<th>JS 沙箱</th>
+<th>CSS 隔离</th>
+<th>多实例支持</th>
+<th>框架无关</th>
+<th>独立部署</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>qiankun</strong></td>
+<td>蚂蚁金服</td>
+<td>15.1k</td>
+<td>✅ Proxy/快照</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>企业级中后台应用</td>
+</tr>
+<tr>
+<td><strong>single-spa</strong></td>
+<td>Joel Denning</td>
+<td>12.8k</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>微前端入门基础</td>
+</tr>
+<tr>
+<td><strong>MicroApp</strong></td>
+<td>京东</td>
+<td>5k</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>需快速接入场景</td>
+</tr>
+<tr>
+<td><strong>无界</strong></td>
+<td>腾讯</td>
+<td>3.5k</td>
+<td>✅ Proxy</td>
+<td>✅ ShadowDOM</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>对隔离性要求高</td>
+</tr>
+<tr>
+<td><strong>Garfish</strong></td>
+<td>字节跳动</td>
+<td>2.3k</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>大型复杂应用</td>
+</tr>
+<tr>
+<td><strong>EMP</strong></td>
+<td>YY</td>
+<td>2.2k</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>部分</td>
+<td>✅</td>
+<td>同技术栈应用</td>
+</tr>
+<tr>
+<td><strong>icestark</strong></td>
+<td>阿里巴巴</td>
+<td>2k</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>阿里生态应用</td>
+</tr>
+<tr>
+<td><strong>Bit</strong></td>
+<td>Bit</td>
+<td>17.3k</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>组件复用优先</td>
+</tr>
+<tr>
+<td><strong>Module Federation</strong></td>
+<td>Webpack</td>
+<td>-</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>构建时集成</td>
+</tr>
+</tbody>
+</table>
+<h2 id="选型建议与最佳实践"><a href="#选型建议与最佳实践" class="headerlink" title="选型建议与最佳实践"></a>选型建议与最佳实践</h2><p>微前端选型需要综合考虑多个维度。<strong>框架限制</strong>是首要因素——如果后台只有一个前端框架，可选范围更大；如果需要兼容遗留系统，则需要选择跨技术栈能力强的方案。<strong>浏览器兼容性</strong>也很关键，如果需要支持 IE，很多现代方案将受限。<strong>依赖独立</strong>需求决定了各子应用的依赖是统一管理还是独立管理，统一管理可解决重复加载问题，独立管理会带来额外流量开销。</p>
+<p>对于<strong>中大型企业级应用</strong>，推荐 <code>qiankun</code> 或 <code>Garfish</code>，两者都经过大量生产环境验证，配套体系完善。对于<strong>遗留系统迁移</strong>场景，无界和 MicroApp 的接入成本较低。对于<strong>组件复用优先</strong>的场景，Bit 提供了更细粒度的解决方案。对于<strong>同技术栈团队</strong>且主要诉求是构建优化的场景，EMP 和 Module Federation 提供了更轻量的选择。</p>
+<p>最后需要强调的是，一切技术选型都是权衡。微前端带来了系统复杂度提升、性能开销（体积增大）、额外问题的不可预见性等副作用。技术团队应该根据业务实际需求而非技术热度来做决策，避免「热闹驱动开发」。只有适用于业务场景的方案才是最好的方案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文系统梳理了微前端五大主流落地方案的核心原理和特性。<code>iframe</code> 方案简单直接但体验欠佳；<code>qiankun</code> 作为国内最成熟的方案提供了完整的沙箱和隔离机制；<code>Module Federation</code> 提供了构建时集成的新思路；<code>Web Components</code> 代表了面向未来的浏览器原生标准；<code>Bit</code> 则将微前端粒度延伸到组件级别。</p>
+<p>在技术选型时，团队应该重点关注四个方面：业务是否真正需要微前端（避免过度设计）、各方案的隔离能力和性能开销是否可接受、技术团队是否具备维护能力、方案是否有完善的生态和社区支持。微前端架构虽然在带来灵活性的同时增加了系统复杂度，但只要运用得当，它能够有效支撑大规模前端项目的团队协作和持续演进。</p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2024/01/05/react-18-new-features/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2024/04/28/eslint-9-upgrade-guide/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

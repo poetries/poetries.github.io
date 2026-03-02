@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>MobX核心概念解析，与React协同构建响应式应用的最佳实践 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="React,MobX,Redux,前端工程化,状态管理,">
+  
+
+  <meta name="description" content="深度解读MobX响应式状态管理库的核心概念，详细对比Redux与MobX的差异，全面介绍observable、computed、action、observer等API用法，通过计数器案例和最佳实践帮助开发者快速上手。">
+<meta name="keywords" content="React,MobX,Redux,前端工程化,状态管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MobX核心概念解析，与React协同构建响应式应用的最佳实践">
+<meta property="og:url" content="http://blog.poetries.top/2024/11/26/mobx-react-best-practices/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="深度解读MobX响应式状态管理库的核心概念，详细对比Redux与MobX的差异，全面介绍observable、computed、action、observer等API用法，通过计数器案例和最佳实践帮助开发者快速上手。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2026-03-02T10:29:29.615Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MobX核心概念解析，与React协同构建响应式应用的最佳实践">
+<meta name="twitter:description" content="深度解读MobX响应式状态管理库的核心概念，详细对比Redux与MobX的差异，全面介绍observable、computed、action、observer等API用法，通过计数器案例和最佳实践帮助开发者快速上手。">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、为什么选择MobX"><span class="toc-text">一、为什么选择MobX</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-传统状态管理的痛点"><span class="toc-text">1.1 传统状态管理的痛点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-MobX的核心理念"><span class="toc-text">1.2 MobX的核心理念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-MobX与Redux对比"><span class="toc-text">1.3 MobX与Redux对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-MobX的优缺点分析"><span class="toc-text">1.4 MobX的优缺点分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、核心API详解"><span class="toc-text">二、核心API详解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-observable-定义可观察状态"><span class="toc-text">2.1 observable - 定义可观察状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-computed-计算属性"><span class="toc-text">2.2 computed - 计算属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-action-修改状态"><span class="toc-text">2.3 action - 修改状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-observer-响应式组件"><span class="toc-text">2.4 observer - 响应式组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-autorun-自动运行"><span class="toc-text">2.5 autorun - 自动运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-reaction-响应式副作用"><span class="toc-text">2.6 reaction - 响应式副作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-flow-异步流程管理"><span class="toc-text">2.7 flow - 异步流程管理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、计数器完整示例"><span class="toc-text">三、计数器完整示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、最佳实践"><span class="toc-text">四、最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Store-的组织方式"><span class="toc-text">4.1 Store 的组织方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-严格模式配置"><span class="toc-text">4.2 严格模式配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-组件中的使用方式"><span class="toc-text">4.3 组件中的使用方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-异步操作最佳实践"><span class="toc-text">4.4 异步操作最佳实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-性能优化技巧"><span class="toc-text">4.5 性能优化技巧</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、总结"><span class="toc-text">五、总结</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-mobx-react-best-practices" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">MobX核心概念解析，与React协同构建响应式应用的最佳实践</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2024.11.26</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.4k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 19分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>在前端应用开发中，状态管理一直是核心议题。随着应用复杂度不断攀升，如何高效、可维护地管理应用状态成为开发者必须面对的挑战。<code>MobX</code> 作为一款响应式状态管理库，以其简洁的API和优秀的性能表现赢得了众多开发者的青睐。本文将带你深入了解 <code>MobX</code> 的核心概念，并通过实际案例展示如何与 <code>React</code> 协同构建响应式应用。</p>
+<h2 id="一、为什么选择MobX"><a href="#一、为什么选择MobX" class="headerlink" title="一、为什么选择MobX"></a>一、为什么选择MobX</h2><h3 id="1-1-传统状态管理的痛点"><a href="#1-1-传统状态管理的痛点" class="headerlink" title="1.1 传统状态管理的痛点"></a>1.1 传统状态管理的痛点</h3><p>在 <code>MobX</code> 出现之前，开发者通常使用 <code>Redux</code> 来管理应用状态。<code>Redux</code> 采用单一数据源模式，所有状态存储在一个只读的 <code>store</code> 中，只能通过 <code>action</code> 和 <code>reducer</code> 来更新状态。这种方式虽然逻辑清晰，但在实际应用中存在一些痛点：</p>
+<p><strong>状态冗余更新问题</strong>：由于 <code>Redux</code> 的状态是不可变的，每次更新都需要创建新的状态对象。这导致与 <code>store</code> 连接的 <code>UI</code> 组件都会重新渲染，即使它们只依赖状态中的部分数据。虽然可以使用 <code>PureRenderMixin</code> 或 <code>reselect</code> 来优化，但增加了额外的开发成本。</p>
+<p><strong>样板代码繁多</strong>：使用 <code>Redux</code> 需要编写大量的 <code>action types</code>、<code>action creators</code>、<code>reducers</code>，即使是一个简单的功能也需要完整的模板代码。</p>
+<p><strong>学习曲线陡峭</strong>：理解 <code>Redux</code> 的数据流需要掌握 <code>action</code>、<code>reducer</code>、<code>middleware</code> 等概念，对新手不太友好。</p>
+<h3 id="1-2-MobX的核心理念"><a href="#1-2-MobX的核心理念" class="headerlink" title="1.2 MobX的核心理念"></a>1.2 MobX的核心理念</h3><p><code>MobX</code> 采用了完全不同的设计理念：利用 <code>JavaScript</code> 的代理（Proxy）机制，自动追踪状态的变化并更新依赖它的组件。这种方式被称为<strong>响应式编程</strong>。</p>
+<p><code>MobX</code> 的核心理念可以概括为三点：</p>
+<ol>
+<li><p><strong>可观察的状态（Observable State）</strong>：将普通的 <code>JavaScript</code> 对象转换为可观察的对象，任何对状态的修改都能被追踪。</p>
+</li>
+<li><p><strong>自动推导（Computed Values）</strong>：根据现有状态自动计算衍生值，类似 Excel 的公式功能。</p>
+</li>
+<li><p><strong>响应式副作用（Reactions）</strong>：当状态变化时自动执行副作用操作，如更新 <code>UI</code>、打印日志、发起网络请求等。</p>
+</li>
+</ol>
+<h3 id="1-3-MobX与Redux对比"><a href="#1-3-MobX与Redux对比" class="headerlink" title="1.3 MobX与Redux对比"></a>1.3 MobX与Redux对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>MobX</th>
+<th>Redux</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据结构</td>
+<td>多 <code>store</code>，支持普通对象</td>
+<td>单一 <code>store</code>，不可变数据</td>
+</tr>
+<tr>
+<td>更新方式</td>
+<td>直接修改，可选严格模式</td>
+<td>只能通过 <code>action</code> 和 <code>reducer</code></td>
+</tr>
+<tr>
+<td>依赖追踪</td>
+<td>自动追踪，按需更新</td>
+<td>手动订阅，可能过度渲染</td>
+</tr>
+<tr>
+<td>代码量</td>
+<td>简洁，样板代码少</td>
+<td>较多模板代码</td>
+</tr>
+<tr>
+<td>学习成本</td>
+<td>较低</td>
+<td>较高</td>
+</tr>
+<tr>
+<td>调试工具</td>
+<td>友好的时间旅行调试</td>
+<td>强大的 DevTools</td>
+</tr>
+</tbody>
+</table>
+<p>从数据流角度看，<code>Redux</code> 管理的是 <code>STORE -&gt; VIEW -&gt; ACTION</code> 的完整闭环，而 <code>MobX</code> 更关注 <code>STORE -&gt; VIEW</code> 的部分。<code>action</code> 在 <code>MobX</code> 中是可选的，你可以直接修改状态，但这也带来了一个潜在问题：状态的修改入口不统一。</p>
+<h3 id="1-4-MobX的优缺点分析"><a href="#1-4-MobX的优缺点分析" class="headerlink" title="1.4 MobX的优缺点分析"></a>1.4 MobX的优缺点分析</h3><p><strong>优点</strong></p>
+<p>第一点是基于运行时的数据订阅。<code>MobX</code> 的数据依赖始终保持最小，而且是基于运行时自动追踪的。相比之下，使用 <code>Redux</code> 时可能一不小心就多订阅或者少订阅了数据，导致性能问题。因此在使用 <code>Redux</code> 时，我们需要借助 <code>PureRenderMixin</code> 以及 <code>reselect</code> 对 <code>selector</code> 做缓存优化。</p>
+<p>第二点是通过面向对象的方式组织领域模型。<code>OOP</code> 的方式在某些场景下会比较方便，尤其是容易抽取 <code>domain model</code> 的时候。由于 <code>MobX</code> 支持引用方式引用数据，可以非常容易形成模型图（model graph），这有助于更好地理解应用结构。</p>
+<p>第三点是修改数据方便自然。<code>MobX</code> 基于原生的 <code>JavaScript</code> 对象、数组和 <code>Class</code> 实现，修改数据不需要额外语法成本，也不需要始终返回一个新的数据，而是直接操作数据。</p>
+<p><strong>缺点</strong></p>
+<p>第一点是缺少最佳实践和社区积累。<code>MobX</code> 相对较新，遇到的问题可能社区都没有遇到过。并且，<code>MobX</code> 并没有很好的扩展和插件机制。</p>
+<p>第二点是随意修改 <code>store</code> 的风险。我们都知道 <code>Redux</code> 里唯一可以改数据的地方是 <code>reducer</code>，这样可以保证应用的安全稳定；而 <code>MobX</code> 可以随意修改数据，触发更新，给人一种不安全的感觉。不过最新的 <code>MobX 2.2</code> 版本加入了 <code>action</code> 支持，并且开启 <code>strict mode</code> 之后，就只有 <code>action</code> 可以对数据进行修改，限制数据的修改入口，可以解决这个问题。</p>
+<p>第三点是逻辑层的限制。如果更新逻辑不能很好地封装在 <code>domain class</code> 里，用 <code>Redux</code> 会更合适。另外，<code>MobX</code> 缺少类似 <code>redux-saga</code> 的库，业务逻辑的整合不知道放哪合适。</p>
+<h2 id="二、核心API详解"><a href="#二、核心API详解" class="headerlink" title="二、核心API详解"></a>二、核心API详解</h2><h3 id="2-1-observable-定义可观察状态"><a href="#2-1-observable-定义可观察状态" class="headerlink" title="2.1 observable - 定义可观察状态"></a>2.1 observable - 定义可观察状态</h3><p><code>@observable</code> 装饰器用于将 <code>JavaScript</code> 对象属性转换为可观察的属性。被装饰的属性会暴露出来供观察者使用，当属性值发生变化时，所有依赖该属性的地方都会收到通知。</p>
+<p><code>Observable</code> 值可以是 <code>JavaScript</code> 基本数据类型、引用类型、普通对象、类实例、数组和映射。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Counter</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 基本类型</span></span><br><span class="line">  count = <span class="number">0</span></span><br><span class="line">  name = <span class="string">'计数器'</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 引用类型</span></span><br><span class="line">  user = &#123;</span><br><span class="line">    name: <span class="string">'张三'</span>,</span><br><span class="line">    age: <span class="number">25</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 数组</span></span><br><span class="line">  items = []</span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    <span class="comment">// makeAutoObservable 会自动推断类型并添加相应的装饰器</span></span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  increment() &#123;</span><br><span class="line">    <span class="keyword">this</span>.count++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  decrement() &#123;</span><br><span class="line">    <span class="keyword">this</span>.count--</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  setName(name) &#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> counter = <span class="keyword">new</span> Counter()</span><br></pre></td></tr></table></figure>
+<p>如果使用装饰器模式，需要配置 <code>babel</code> 支持：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 使用装饰器写法</span></span><br><span class="line"><span class="keyword">import</span> &#123; observable, computed, action &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Counter</span> </span>&#123;</span><br><span class="line">  @observable count = <span class="number">0</span></span><br><span class="line">  @observable title = <span class="string">'this is about page'</span></span><br><span class="line">  @observable num = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// computed - 计算值</span></span><br><span class="line">  @computed <span class="keyword">get</span> getUserInfo() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">`我是computed经过计算的getter, current num: <span class="subst">$&#123;<span class="keyword">this</span>.num&#125;</span>`</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// action - 动作</span></span><br><span class="line">  @action.bound add() &#123;</span><br><span class="line">    <span class="keyword">this</span>.num++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @action.bound reduce() &#123;</span><br><span class="line">    <span class="keyword">this</span>.num--</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-computed-计算属性"><a href="#2-2-computed-计算属性" class="headerlink" title="2.2 computed - 计算属性"></a>2.2 computed - 计算属性</h3><p>计算值（<code>Computed Values</code>）是可以根据现有的状态或其它计算值衍生出的值。用于获取由基础 <code>state</code> 衍生出来的值，如果基础值没有变，获取衍生值时就会走缓存，这样就不会引起虚拟 DOM 的重新渲染。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable, computed &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OrderStore</span> </span>&#123;</span><br><span class="line">  items = []</span><br><span class="line">  taxRate = <span class="number">0.1</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>, &#123;</span><br><span class="line">      <span class="comment">// 显式声明 computed 属性</span></span><br><span class="line">      subtotal: computed,</span><br><span class="line">      tax: computed,</span><br><span class="line">      total: computed</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> subtotal() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.items.reduce(<span class="function">(<span class="params">sum, item</span>) =&gt;</span> sum + item.price * item.quantity, <span class="number">0</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> tax() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.subtotal * <span class="keyword">this</span>.taxRate</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> total() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.subtotal + <span class="keyword">this</span>.tax</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  addItem(item) &#123;</span><br><span class="line">    <span class="keyword">this</span>.items.push(item)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>计算属性还支持 setter，用于实现逆向推导：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Foo</span> </span>&#123;</span><br><span class="line">  @observable length = <span class="number">2</span></span><br><span class="line"></span><br><span class="line">  @computed <span class="keyword">get</span> squared() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.length * <span class="keyword">this</span>.length</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> squared(value) &#123;</span><br><span class="line">    <span class="comment">// 这是一个自动的动作，不需要注解</span></span><br><span class="line">    <span class="comment">// 设置 squared 时，自动推导出 length</span></span><br><span class="line">    <span class="keyword">this</span>.length = <span class="built_in">Math</span>.sqrt(value)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-action-修改状态"><a href="#2-3-action-修改状态" class="headerlink" title="2.3 action - 修改状态"></a>2.3 action - 修改状态</h3><p>只有 在 <code>actions</code> 中，才可以修改 <code>MobX</code> 中 <code>state</code> 的值。通过引入 <code>MobX</code> 定义的严格模式，可以强制使用 <code>action</code> 来修改状态，保证状态修改的可追溯性。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; configure, makeAutoObservable, runInAction &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 开启严格模式 - 只有 action 可以修改状态</span></span><br><span class="line">configure(&#123; <span class="attr">enforceActions</span>: <span class="string">'always'</span> &#125;)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Counter</span> </span>&#123;</span><br><span class="line">  count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  increment() &#123;</span><br><span class="line">    <span class="keyword">this</span>.count++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  decrement() &#123;</span><br><span class="line">    <span class="keyword">this</span>.count--</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> fetchData() &#123;</span><br><span class="line">    <span class="comment">// 在异步操作中使用 runInAction</span></span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> fetch(<span class="string">'/api/data'</span>).then(<span class="function"><span class="params">r</span> =&gt;</span> r.json())</span><br><span class="line">    runInAction(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.data = data</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>runInAction</code> 是一个实用的工具函数，用于在异步操作中批量更新状态：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; runInAction &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">fetchUser</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> user = <span class="keyword">await</span> api.getUser()</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 所有的状态更新都放在 runInAction 中</span></span><br><span class="line">  runInAction(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.user = user</span><br><span class="line">    <span class="keyword">this</span>.loading = <span class="literal">false</span></span><br><span class="line">    <span class="keyword">this</span>.error = <span class="literal">null</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-observer-响应式组件"><a href="#2-4-observer-响应式组件" class="headerlink" title="2.4 observer - 响应式组件"></a>2.4 observer - 响应式组件</h3><p><code>observer</code> 是由 <code>mobx-react</code> 包提供的高阶组件，用于将 <code>React</code> 组件转换为响应式组件。在组件的 <code>render</code> 函数中使用的任何 <code>observable</code> 发生变化时，组件都会自动重新渲染。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">'mobx-react'</span></span><br><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Counter</span> </span>&#123;</span><br><span class="line">  count = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  increment() &#123;</span><br><span class="line">    <span class="keyword">this</span>.count++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  decrement() &#123;</span><br><span class="line">    <span class="keyword">this</span>.count--</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> counter = <span class="keyword">new</span> Counter()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用 observer 包裹组件</span></span><br><span class="line">@observer</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterView</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">        &lt;p&gt;计数: &#123;counter.count&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">        &lt;button onClick=&#123;() =&gt; counter.increment()&#125;&gt;+&lt;/</span>button&gt;</span><br><span class="line">        &lt;button onClick=&#123;() =&gt; counter.decrement()&#125;&gt;-&lt;/button&gt;</span><br><span class="line">      &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    )</span></span><br><span class="line"><span class="regexp">  &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 或者使用 hook 写法 (mobx-react-lite)</span></span><br><span class="line"><span class="regexp">const CounterView2 = observer(() =&gt; &#123;</span></span><br><span class="line"><span class="regexp">  return (</span></span><br><span class="line"><span class="regexp">    &lt;div&gt;</span></span><br><span class="line"><span class="regexp">      &lt;p&gt;计数: &#123;counter.count&#125;&lt;/</span>p&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; counter.increment()&#125;&gt;+&lt;/button&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; counter.decrement()&#125;&gt;-&lt;/button&gt;</span><br><span class="line">    &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;)</span></span><br></pre></td></tr></table></figure>
+<p><code>observer</code> 的原理是用 <code>mobx.autorun</code> 包装了组件的 <code>render</code> 函数，确保任何组件渲染中使用的数据变化时都可以强制刷新组件。</p>
+<h3 id="2-5-autorun-自动运行"><a href="#2-5-autorun-自动运行" class="headerlink" title="2.5 autorun - 自动运行"></a>2.5 autorun - 自动运行</h3><p>当可观察对象中保存的值发生变化时，可以在 <code>mobx.autorun</code> 中被观察到。<code>autorun</code> 在 <code>observable</code> 的值初始化或改变时自动运行。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; autorun, makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">  name = <span class="string">''</span></span><br><span class="line">  age = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> person = <span class="keyword">new</span> Person()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 当 name 或 age 变化时，自动执行回调</span></span><br><span class="line">autorun(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`姓名: <span class="subst">$&#123;person.name&#125;</span>, 年龄: <span class="subst">$&#123;person.age&#125;</span>`</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">person.name = <span class="string">'张三'</span> <span class="comment">// 输出: 姓名: 张三, 年龄: 0</span></span><br><span class="line">person.age = <span class="number">25</span>     <span class="comment">// 输出: 姓名: 张三, 年龄: 25</span></span><br></pre></td></tr></table></figure>
+<p>如果你想响应式地产生一个可以被其它 <code>observer</code> 使用的值，请使用 <code>@computed</code>；如果你不想产生新值，而想要达到一个效果（如打印日志、发起网络请求），请使用 <code>autorun</code>。</p>
+<h3 id="2-6-reaction-响应式副作用"><a href="#2-6-reaction-响应式副作用" class="headerlink" title="2.6 reaction - 响应式副作用"></a>2.6 reaction - 响应式副作用</h3><p><code>Reactions</code> 和计算值很像，但它不是产生一个新的值，而是会产生一些副作用，比如打印到控制台、网络请求、递增地更新 <code>React</code> 组件树以修补 <code>DOM</code> 等。简而言之，<code>reactions</code> 在响应式编程和命令式编程之间建立沟通的桥梁。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; reaction, makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DataStore</span> </span>&#123;</span><br><span class="line">  data = <span class="literal">null</span></span><br><span class="line">  loading = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> fetchData() &#123;</span><br><span class="line">    <span class="keyword">this</span>.loading = <span class="literal">true</span></span><br><span class="line">    <span class="keyword">const</span> response = <span class="keyword">await</span> fetch(<span class="string">'/api/data'</span>)</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> response.json()</span><br><span class="line"></span><br><span class="line">    reaction(</span><br><span class="line">      <span class="comment">// data 变化时执行的函数</span></span><br><span class="line">      () =&gt; <span class="keyword">this</span>.data,</span><br><span class="line">      <span class="comment">// 副作用逻辑</span></span><br><span class="line">      (data, prevData) =&gt; &#123;</span><br><span class="line">        <span class="keyword">if</span> (data &amp;&amp; !prevData) &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">'数据加载完成:'</span>, data)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.data = data</span><br><span class="line">    <span class="keyword">this</span>.loading = <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>reaction</code> 接收两个函数参数：第一个是数据追踪函数，第二个是副作用函数。与 <code>autorun</code> 不同的是，<code>reaction</code> 不会在初始化时立即执行，只会在追踪的数据发生变化时才执行。</p>
+<h3 id="2-7-flow-异步流程管理"><a href="#2-7-flow-异步流程管理" class="headerlink" title="2.7 flow - 异步流程管理"></a>2.7 flow - 异步流程管理</h3><p><code>flow()</code> 接收 <code>generator</code> 函数作为输入，配合 <code>yield</code> 关键字可以优雅地处理异步操作。在 <code>flow</code> 中，使用 <code>yield</code> 代替 <code>await</code>，异步代码会自动被 <code>action</code> 包装。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable, flow &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GitHubStore</span> </span>&#123;</span><br><span class="line">  githubProjects = []</span><br><span class="line">  state = <span class="string">'pending'</span> <span class="comment">// 'pending' / 'done' / 'error'</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>, &#123;</span><br><span class="line">      fetchProjects: flow</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 使用 flow 处理异步操作</span></span><br><span class="line">  *fetchProjects() &#123;</span><br><span class="line">    <span class="keyword">this</span>.githubProjects = []</span><br><span class="line">    <span class="keyword">this</span>.state = <span class="string">'pending'</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> projects = <span class="keyword">yield</span> fetch(<span class="string">'/api/projects'</span>).then(<span class="function"><span class="params">r</span> =&gt;</span> r.json())</span><br><span class="line">      <span class="keyword">const</span> filteredProjects = <span class="keyword">this</span>.preprocess(projects)</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 异步代码自动会被 action 包装</span></span><br><span class="line">      <span class="keyword">this</span>.state = <span class="string">'done'</span></span><br><span class="line">      <span class="keyword">this</span>.githubProjects = filteredProjects</span><br><span class="line">    &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">      <span class="keyword">this</span>.state = <span class="string">'error'</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  preprocess(projects) &#123;</span><br><span class="line">    <span class="keyword">return</span> projects.filter(<span class="function"><span class="params">p</span> =&gt;</span> p.isPublic)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 <code>flow</code> 的好处是：代码看起来像同步代码一样直观，但实际上是异步执行的；同时自动处理了状态更新，无需手动包装 <code>runInAction</code>。</p>
+<h2 id="三、计数器完整示例"><a href="#三、计数器完整示例" class="headerlink" title="三、计数器完整示例"></a>三、计数器完整示例</h2><p>下面是一个完整的计数器示例，展示了如何将 <code>MobX</code> 与 <code>React</code> 结合使用：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React, &#123; Component &#125; <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"><span class="keyword">import</span> &#123; render &#125; <span class="keyword">from</span> <span class="string">'react-dom'</span></span><br><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable, runInAction &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">'mobx-react'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 第一步：定义数据 Store</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterStore</span> </span>&#123;</span><br><span class="line">  number = <span class="number">0</span></span><br><span class="line">  loading = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// action - 增加</span></span><br><span class="line">  increment() &#123;</span><br><span class="line">    <span class="keyword">this</span>.number++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// action - 减少</span></span><br><span class="line">  decrement() &#123;</span><br><span class="line">    <span class="keyword">this</span>.number--</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// action - 重置</span></span><br><span class="line">  reset() &#123;</span><br><span class="line">    <span class="keyword">this</span>.number = <span class="number">0</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// computed - 获取描述信息</span></span><br><span class="line">  <span class="keyword">get</span> description() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">`当前计数: <span class="subst">$&#123;<span class="keyword">this</span>.number&#125;</span>`</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// computed - 判断是否为偶数</span></span><br><span class="line">  <span class="keyword">get</span> isEven() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.number % <span class="number">2</span> === <span class="number">0</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 异步 action</span></span><br><span class="line">  <span class="keyword">async</span> incrementAsync() &#123;</span><br><span class="line">    <span class="keyword">this</span>.loading = <span class="literal">true</span></span><br><span class="line">    <span class="comment">// 模拟异步操作</span></span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> setTimeout(resolve, <span class="number">1000</span>))</span><br><span class="line"></span><br><span class="line">    runInAction(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.number++</span><br><span class="line">      <span class="keyword">this</span>.loading = <span class="literal">false</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建 store 实例</span></span><br><span class="line"><span class="keyword">const</span> counterStore = <span class="keyword">new</span> CounterStore()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二步：创建响应式组件</span></span><br><span class="line">@observer</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CounterView</span> <span class="keyword">extends</span> <span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; number, loading, description, isEven &#125; = counterStore</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;div style=&#123;&#123; <span class="attr">padding</span>: <span class="string">'20px'</span>, <span class="attr">textAlign</span>: <span class="string">'center'</span> &#125;&#125;&gt;</span><br><span class="line">        &lt;h2&gt;MobX 计数器示例&lt;<span class="regexp">/h2&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">        &#123;/</span>* 显示计数 *<span class="regexp">/&#125;</span></span><br><span class="line"><span class="regexp">        &lt;div style=&#123;&#123; fontSize: '48px', margin: '20px 0' &#125;&#125;&gt;</span></span><br><span class="line"><span class="regexp">          &#123;number&#125;</span></span><br><span class="line"><span class="regexp">        &lt;/</span>div&gt;</span><br><span class="line"></span><br><span class="line">        &#123;<span class="comment">/* computed 属性 */</span>&#125;</span><br><span class="line">        &lt;p&gt;&#123;description&#125;&lt;<span class="regexp">/p&gt;</span></span><br><span class="line"><span class="regexp">        &lt;p&gt;&#123;isEven ? '✅ 偶数' : '❌ 奇数'&#125;&lt;/</span>p&gt;</span><br><span class="line"></span><br><span class="line">        &#123;<span class="comment">/* 加载状态 */</span>&#125;</span><br><span class="line">        &#123;loading &amp;&amp; &lt;p&gt;加载中...&lt;/p&gt;&#125;</span><br><span class="line"></span><br><span class="line">        &#123;<span class="comment">/* 操作按钮 */</span>&#125;</span><br><span class="line">        &lt;div style=&#123;&#123; <span class="attr">marginTop</span>: <span class="string">'20px'</span> &#125;&#125;&gt;</span><br><span class="line">          &lt;button onClick=&#123;() =&gt; counterStore.decrement()&#125;&gt;</span><br><span class="line">            - 减少</span><br><span class="line">          &lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">          &lt;button onClick=&#123;() =&gt; counterStore.reset()&#125; style=&#123;&#123; margin: '0 10px' &#125;&#125;&gt;</span></span><br><span class="line"><span class="regexp">            重置</span></span><br><span class="line"><span class="regexp">          &lt;/</span>button&gt;</span><br><span class="line"></span><br><span class="line">          &lt;button onClick=&#123;() =&gt; counterStore.increment()&#125;&gt;</span><br><span class="line">            + 增加</span><br><span class="line">          &lt;<span class="regexp">/button&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">          &lt;button</span></span><br><span class="line"><span class="regexp">            onClick=&#123;() =&gt; counterStore.incrementAsync()&#125;</span></span><br><span class="line"><span class="regexp">            disabled=&#123;loading&#125;</span></span><br><span class="line"><span class="regexp">            style=&#123;&#123; marginLeft: '10px' &#125;&#125;</span></span><br><span class="line"><span class="regexp">          &gt;</span></span><br><span class="line"><span class="regexp">            异步增加</span></span><br><span class="line"><span class="regexp">          &lt;/</span>button&gt;</span><br><span class="line">        &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">      &lt;/</span>div&gt;</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 第三步：渲染应用</span></span><br><span class="line"><span class="keyword">const</span> App = <span class="function"><span class="params">()</span> =&gt;</span> &lt;CounterView /&gt;</span><br><span class="line"></span><br><span class="line">render(&lt;App /&gt;, document.getElementById('root'))</span><br></pre></td></tr></table></figure>
+<p>这个示例完整展示了 <code>MobX</code> 的核心概念：</p>
+<ol>
+<li><strong>makeAutoObservable</strong> - 自动将所有属性和方法转换为对应的 <code>observable</code>、<code>computed</code> 或 <code>action</code></li>
+<li><strong>observable</strong> - <code>number</code> 和 <code>loading</code> 属性是可观察的</li>
+<li><strong>computed</strong> - <code>description</code> 和 <code>isEven</code> 是计算属性，基于 <code>number</code> 自动推导</li>
+<li><strong>action</strong> - <code>increment</code>、<code>decrement</code>、<code>reset</code> 是修改状态的方法</li>
+<li><strong>observer</strong> - <code>CounterView</code> 组件订阅了 <code>store</code> 的变化，自动重新渲染</li>
+</ol>
+<h2 id="四、最佳实践"><a href="#四、最佳实践" class="headerlink" title="四、最佳实践"></a>四、最佳实践</h2><h3 id="4-1-Store-的组织方式"><a href="#4-1-Store-的组织方式" class="headerlink" title="4.1 Store 的组织方式"></a>4.1 Store 的组织方式</h3><p>在实际项目中，推荐按照功能模块来组织 <code>Store</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// stores/RootStore.js</span></span><br><span class="line"><span class="keyword">import</span> &#123; createContext, useContext &#125; <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RootStore</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 用户模块</span></span><br><span class="line">  userStore = <span class="keyword">new</span> UserStore(<span class="keyword">this</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 商品模块</span></span><br><span class="line">  productStore = <span class="keyword">new</span> ProductStore(<span class="keyword">this</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 订单模块</span></span><br><span class="line">  orderStore = <span class="keyword">new</span> OrderStore(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建根 store 实例</span></span><br><span class="line"><span class="keyword">const</span> rootStore = <span class="keyword">new</span> RootStore()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建 Context</span></span><br><span class="line"><span class="keyword">const</span> StoreContext = createContext(rootStore)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义 Hook</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> useStore = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> useContext(StoreContext)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 分别导出子 store</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> useUserStore = <span class="function"><span class="params">()</span> =&gt;</span> useStore().userStore</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> useProductStore = <span class="function"><span class="params">()</span> =&gt;</span> useStore().productStore</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> useOrderStore = <span class="function"><span class="params">()</span> =&gt;</span> useStore().orderStore</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-严格模式配置"><a href="#4-2-严格模式配置" class="headerlink" title="4.2 严格模式配置"></a>4.2 严格模式配置</h3><p>为了保证状态修改的可追踪性，建议开启严格模式：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; configure &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 配置 MobX 严格模式</span></span><br><span class="line">configure(&#123;</span><br><span class="line">  <span class="comment">// 'always' - 强制所有状态修改都在 action 中</span></span><br><span class="line">  <span class="comment">// 'observed' - 只对观察中的状态强制此规则</span></span><br><span class="line">  <span class="comment">// false - 关闭严格模式（默认）</span></span><br><span class="line">  enforceActions: <span class="string">'always'</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 禁用修改未观察的状态时的警告</span></span><br><span class="line">  computedRequiresReaction: <span class="literal">false</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 禁止在严格模式下外部修改状态</span></span><br><span class="line">  reactionRequiresObservable: <span class="literal">true</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 调试时抛出异常</span></span><br><span class="line">  isolateGlobalState: <span class="literal">false</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h3 id="4-3-组件中的使用方式"><a href="#4-3-组件中的使用方式" class="headerlink" title="4.3 组件中的使用方式"></a>4.3 组件中的使用方式</h3><p>推荐使用自定义 Hook 的方式在组件中使用 <code>Store</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span></span><br><span class="line"><span class="keyword">import</span> &#123; useStore &#125; <span class="keyword">from</span> <span class="string">'../stores/RootStore'</span></span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">'mobx-react'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式一：使用 observer HOC</span></span><br><span class="line">@observer</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserProfile</span> <span class="keyword">extends</span> <span class="title">React</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line">  render() &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; userStore &#125; = useStore()</span><br><span class="line">    <span class="keyword">const</span> &#123; user, loading &#125; = userStore</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (loading) <span class="keyword">return</span> &lt;div&gt;加载中...&lt;/div&gt;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">        &lt;h1&gt;&#123;user.name&#125;&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">        &lt;p&gt;&#123;user.email&#125;&lt;/</span>p&gt;</span><br><span class="line">      &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">    )</span></span><br><span class="line"><span class="regexp">  &#125;</span></span><br><span class="line"><span class="regexp">&#125;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">/</span><span class="regexp">/ 方式二：使用 observer hook (mobx-react-lite)</span></span><br><span class="line"><span class="regexp">const UserProfile2 = observer(() =&gt; &#123;</span></span><br><span class="line"><span class="regexp">  const &#123; userStore &#125; = useStore()</span></span><br><span class="line"><span class="regexp">  const &#123; user, loading &#125; = userStore</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">  if (loading) return &lt;div&gt;加载中...&lt;/</span>div&gt;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;h1&gt;&#123;user.name&#125;&lt;<span class="regexp">/h1&gt;</span></span><br><span class="line"><span class="regexp">      &lt;p&gt;&#123;user.email&#125;&lt;/</span>p&gt;</span><br><span class="line">    &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp">  )</span></span><br><span class="line"><span class="regexp">&#125;)</span></span><br></pre></td></tr></table></figure>
+<h3 id="4-4-异步操作最佳实践"><a href="#4-4-异步操作最佳实践" class="headerlink" title="4.4 异步操作最佳实践"></a>4.4 异步操作最佳实践</h3><p>对于异步操作，推荐使用 <code>flow</code> 或 <code>runInAction</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; flow, runInAction, makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApiStore</span> </span>&#123;</span><br><span class="line">  data = <span class="literal">null</span></span><br><span class="line">  error = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    makeAutoObservable(<span class="keyword">this</span>, &#123;</span><br><span class="line">      fetchData: flow</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 方式一：使用 flow (推荐)</span></span><br><span class="line">  *fetchData() &#123;</span><br><span class="line">    <span class="keyword">this</span>.error = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> response = <span class="keyword">yield</span> fetch(<span class="string">'/api/data'</span>)</span><br><span class="line">      <span class="keyword">const</span> data = <span class="keyword">yield</span> response.json()</span><br><span class="line"></span><br><span class="line">      <span class="comment">// flow 会自动包装异步代码到 action 中</span></span><br><span class="line">      <span class="keyword">this</span>.data = data</span><br><span class="line">    &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">      <span class="keyword">this</span>.error = error.message</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 方式二：使用 runInAction</span></span><br><span class="line">  <span class="keyword">async</span> fetchData2() &#123;</span><br><span class="line">    <span class="keyword">this</span>.error = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> response = <span class="keyword">await</span> fetch(<span class="string">'/api/data'</span>)</span><br><span class="line">      <span class="keyword">const</span> data = <span class="keyword">await</span> response.json()</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 手动包装到 runInAction</span></span><br><span class="line">      runInAction(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.data = data</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">      runInAction(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.error = error.message</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="4-5-性能优化技巧"><a href="#4-5-性能优化技巧" class="headerlink" title="4.5 性能优化技巧"></a>4.5 性能优化技巧</h3><p><strong>只订阅需要的状态</strong>：避免在组件中访问不必要的 <code>store</code> 属性，这会导致不必要的重新渲染。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 不推荐：访问整个 store</span></span><br><span class="line"><span class="keyword">const</span> &#123; userStore &#125; = useStore()</span><br><span class="line"><span class="keyword">const</span> &#123; user &#125; = userStore</span><br><span class="line"></span><br><span class="line"><span class="comment">// 推荐：只访问需要的属性</span></span><br><span class="line"><span class="keyword">const</span> user = useUserStore().user</span><br></pre></td></tr></table></figure>
+<p><strong>使用 shallow 优化数组比较</strong>：对于大型数组，可以使用 <code>shallow</code> 优化比较：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">'mobx-react'</span></span><br><span class="line"><span class="keyword">import</span> &#123; shallow &#125; <span class="keyword">from</span> <span class="string">'mobx'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ItemList = observer(<span class="function">(<span class="params">&#123; store &#125;</span>) =&gt;</span> (</span><br><span class="line">  &lt;ul&gt;</span><br><span class="line">    &#123;store.items.map(<span class="function"><span class="params">item</span> =&gt;</span> (</span><br><span class="line">      &lt;Item key=&#123;item.id&#125; item=&#123;item&#125; /&gt;</span><br><span class="line">    ))&#125;</span><br><span class="line">  &lt;<span class="regexp">/ul&gt;</span></span><br><span class="line"><span class="regexp">), &#123;</span></span><br><span class="line"><span class="regexp">  /</span><span class="regexp">/ 使用 shallow 优化深比较</span></span><br><span class="line"><span class="regexp">  forwardRef: true</span></span><br><span class="line"><span class="regexp">&#125;)</span></span><br></pre></td></tr></table></figure>
+<p><strong>分离读写操作</strong>：将读和写操作分离到不同的组件中，避免不必要的数据订阅。</p>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><p><code>MobX</code> 作为一款响应式状态管理库，以其简洁的 API 和优秀的性能表现，为前端状态管理提供了一种新的选择。通过本文的学习，你应该已经掌握了以下内容：</p>
+<ol>
+<li><p><strong>核心概念</strong>：理解 <code>observable</code>、<code>computed</code>、<code>action</code>、<code>observer</code> 等核心 API 的作用和使用场景。</p>
+</li>
+<li><p><strong>与Redux对比</strong>：了解 <code>MobX</code> 与 <code>Redux</code> 的区别，根据项目需求选择合适的状态管理方案。</p>
+</li>
+<li><p><strong>最佳实践</strong>：掌握 <code>Store</code> 组织、严格模式配置、异步操作处理等最佳实践。</p>
+</li>
+<li><p><strong>性能优化</strong>：了解如何避免不必要的渲染，优化应用性能。</p>
+</li>
+</ol>
+<p>总的来说，如果你需要快速开发、喜欢简洁的代码风格、或者应用状态逻辑适合用面向对象的方式组织，<code>MobX</code> 是一个值得考虑的选择。建议在中小型项目中使用，能够充分发挥其优势；对于超大型项目，可以根据团队熟悉度和具体场景进行权衡。</p>
+<hr>
+<p><em>参考资料：</em></p>
+<ul>
+<li><a href="https://mobx.js.org/" target="_blank" rel="noopener">MobX 官方文档</a></li>
+<li><a href="https://mobx-react.js.org/" target="_blank" rel="noopener">MobX React 集成</a></li>
+<li><a href="https://redux.js.org/faq/general#when-should-i-use-redux" target="_blank" rel="noopener">Redux vs MobX</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2024/10/05/large-file-upload-nodejs/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2024/12/28/react-18-concurrency/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

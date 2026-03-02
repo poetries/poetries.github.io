@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Webpack 5 核心特性深度总结 构建性能与优化实践完全指南 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="性能优化,前端工程化,Webpack,构建工具,">
+  
+
+  <meta name="description" content="深度解读Webpack 5核心新特性，包括持久化缓存、Tree-shaking、SplitChunks分包优化、并行构建等，详细讲解构建性能优化最佳实践。">
+<meta name="keywords" content="性能优化,前端工程化,Webpack,构建工具">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Webpack 5 核心特性深度总结 构建性能与优化实践完全指南">
+<meta property="og:url" content="http://blog.poetries.top/2023/09/17/webpack-5-build-optimization/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="深度解读Webpack 5核心新特性，包括持久化缓存、Tree-shaking、SplitChunks分包优化、并行构建等，详细讲解构建性能优化最佳实践。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2026-03-02T10:29:29.744Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Webpack 5 核心特性深度总结 构建性能与优化实践完全指南">
+<meta name="twitter:description" content="深度解读Webpack 5核心新特性，包括持久化缓存、Tree-shaking、SplitChunks分包优化、并行构建等，详细讲解构建性能优化最佳实践。">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、持久化缓存：构建性能提升数十倍的秘密"><span class="toc-text">一、持久化缓存：构建性能提升数十倍的秘密</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-持久化缓存简介"><span class="toc-text">1.1 持久化缓存简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-缓存配置详解"><span class="toc-text">1.2 缓存配置详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-缓存原理深度解析"><span class="toc-text">1.3 缓存原理深度解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-Loader层面的缓存方案"><span class="toc-text">1.4 Loader层面的缓存方案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、Tree-shaking：删除无用代码的利器"><span class="toc-text">二、Tree-shaking：删除无用代码的利器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Tree-shaking原理概述"><span class="toc-text">2.1 Tree-shaking原理概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Tree-shaking实现机制"><span class="toc-text">2.2 Tree-shaking实现机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Tree-shaking最佳实践"><span class="toc-text">2.3 Tree-shaking最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、SplitChunks：智能代码分割策略"><span class="toc-text">三、SplitChunks：智能代码分割策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-为什么需要代码分割"><span class="toc-text">3.1 为什么需要代码分割</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Chunk类型详解"><span class="toc-text">3.2 Chunk类型详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-SplitChunks核心配置"><span class="toc-text">3.3 SplitChunks核心配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-缓存组最佳实践"><span class="toc-text">3.4 缓存组最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、并行构建：榨干多核CPU性能"><span class="toc-text">四、并行构建：榨干多核CPU性能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-并行构建概述"><span class="toc-text">4.1 并行构建概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Thread-loader用法"><span class="toc-text">4.2 Thread-loader用法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-并行压缩"><span class="toc-text">4.3 并行压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-HappyPack用法（Webpack-4）"><span class="toc-text">4.4 HappyPack用法（Webpack 4）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-并行方案选择建议"><span class="toc-text">4.5 并行方案选择建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、其他核心优化技巧"><span class="toc-text">五、其他核心优化技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-模块热替换（HMR）"><span class="toc-text">5.1 模块热替换（HMR）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-SourceMap最佳实践"><span class="toc-text">5.2 SourceMap最佳实践</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-构建性能分析工具"><span class="toc-text">5.3 构建性能分析工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-完整的Webpack-5优化配置示例"><span class="toc-text">5.4 完整的Webpack 5优化配置示例</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、Webpack-5新特性总结"><span class="toc-text">六、Webpack 5新特性总结</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-webpack-5-build-optimization" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">Webpack 5 核心特性深度总结 构建性能与优化实践完全指南</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2023.09.17</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 17分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>在前端开发日益复杂化的今天，构建工具的性能直接影响着开发体验和最终产品质量。Webpack作为最主流的前端打包工具，从4版本到5版本的演进中带来了诸多革命性的新特性。Webpack 5不仅解决了长期困扰开发者的缓存问题，还引入了更智能的代码分割策略、更高效的<code>Tree-shaking</code>算法，以及更灵活的性能优化手段。</p>
+<p>本文将基于大量实践案例，深入解析Webpack 5的核心新特性与性能优化最佳实践，帮助你全面掌握现代前端构建技术。</p>
+<h2 id="一、持久化缓存：构建性能提升数十倍的秘密"><a href="#一、持久化缓存：构建性能提升数十倍的秘密" class="headerlink" title="一、持久化缓存：构建性能提升数十倍的秘密"></a>一、持久化缓存：构建性能提升数十倍的秘密</h2><h3 id="1-1-持久化缓存简介"><a href="#1-1-持久化缓存简介" class="headerlink" title="1.1 持久化缓存简介"></a>1.1 持久化缓存简介</h3><p>Webpack 5最令人振奋的特性之一便是持久化缓存（<code>Persistent Caching</code>）。它能够将首次构建的过程与结果数据持久化保存到本地文件系统，在下次执行构建时跳过解析、链接、编译等一系列非常消耗性能的操作，直接复用上次的<code>Module</code>、<code>ModuleGraph</code>、<code>Chunk</code>对象数据，迅速构建出最终产物。</p>
+<p>持久化缓存的性能提升效果非常出众。以包含约360份JS文件、合计3万行代码的中大型项目为例，配置<code>babel-loader</code>、<code>eslint-loader</code>后，未使用缓存特性时构建耗时大约在11000毫秒到18000毫秒之间；启动缓存功能后，第二次构建耗时降低到500毫秒到800毫秒之间，两者相差接近50倍！</p>
+<p>开启持久化缓存非常简单，只需在Webpack 5中设置<code>cache.type</code>为<code>filesystem</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">  cache: &#123;</span><br><span class="line">    type: <span class="string">'filesystem'</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-缓存配置详解"><a href="#1-2-缓存配置详解" class="headerlink" title="1.2 缓存配置详解"></a>1.2 缓存配置详解</h3><p>除了基础的<code>type</code>配置外，Webpack还提供了多个用于配置缓存效果和缓存周期的选项：</p>
+<p><strong><code>cache.cacheDirectory</code></strong>：缓存文件路径，默认为<code>node_modules/.cache/webpack</code>。这个路径可以自定义到项目的其他位置，便于版本控制时排除缓存文件。</p>
+<p><strong><code>cache.buildDependencies</code></strong>：额外的依赖文件，当这些文件内容发生变化时，缓存会完全失效而执行完整的编译构建。通常可设置为各种配置文件：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  cache: &#123;</span><br><span class="line">    type: <span class="string">'filesystem'</span>,</span><br><span class="line">    buildDependencies: &#123;</span><br><span class="line">      config: [</span><br><span class="line">        path.join(__dirname, <span class="string">'webpack.dll_config.js'</span>),</span><br><span class="line">        path.join(__dirname, <span class="string">'.babelrc'</span>)</span><br><span class="line">      ],</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong><code>cache.managedPaths</code></strong>：受控目录，Webpack构建时会跳过新旧代码哈希值与时间戳的对比，直接使用缓存副本，默认值为<code>[&#39;./node_modules&#39;]</code>。</p>
+<p><strong><code>cache.maxAge</code></strong>：缓存失效时间，默认值为<code>5184000000</code>毫秒（约60天）。</p>
+<p><strong><code>cache.profile</code></strong>：是否输出缓存处理过程的详细日志，默认为<code>false</code>。</p>
+<p>完整的缓存配置示例：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  cache: &#123;</span><br><span class="line">    type: <span class="string">'filesystem'</span>,</span><br><span class="line">    cacheDirectory: path.resolve(__dirname, <span class="string">'.webpack-cache'</span>),</span><br><span class="line">    buildDependencies: &#123;</span><br><span class="line">      config: [__filename],</span><br><span class="line">    &#125;,</span><br><span class="line">    managedPaths: [<span class="regexp">/^(.+?[\\/]node_modules[\\/])/</span>],</span><br><span class="line">    maxAge: <span class="number">30</span> * <span class="number">24</span> * <span class="number">60</span> * <span class="number">60</span> * <span class="number">1000</span>, <span class="comment">// 30天</span></span><br><span class="line">    compression: <span class="string">'gzip'</span>,</span><br><span class="line">    profile: <span class="literal">true</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-缓存原理深度解析"><a href="#1-3-缓存原理深度解析" class="headerlink" title="1.3 缓存原理深度解析"></a>1.3 缓存原理深度解析</h3><p>Webpack的构建过程大致可分为三个阶段：</p>
+<p><strong>初始化阶段</strong>：根据配置信息设置内置的各类插件。</p>
+<p><strong>Make阶段</strong>：从<code>entry</code>开始，执行以下操作：</p>
+<ul>
+<li>读入文件内容</li>
+<li>调用<code>Loader</code>转译文件内容</li>
+<li>调用<code>acorn</code>生成<code>AST</code>结构</li>
+<li>分析<code>AST</code>，确定模块依赖列表</li>
+<li>遍历模块依赖列表，对每一个依赖模块重新执行上述流程，直到生成完整的模块依赖图——<code>ModuleGraph</code>对象</li>
+</ul>
+<p><strong>Seal阶段</strong>：</p>
+<ul>
+<li>遍历模块依赖图，对每一个模块执行代码转译（如<code>import</code>转换为<code>require</code>调用）</li>
+<li>分析运行时依赖</li>
+<li>合并模块代码与运行时代码，生成<code>chunk</code></li>
+<li>执行产物优化操作，如<code>Tree-shaking</code></li>
+<li>将最终结果写出到产物文件</li>
+</ul>
+<p>持久化缓存的核心原理是：Webpack在首次构建完毕后将<code>Module</code>、<code>Chunk</code>、<code>ModuleGraph</code>三类对象的状态序列化并记录到缓存文件中；在下次构建开始时，尝试读入并恢复这些对象的状态，从而跳过执行<code>Loader</code>链、解析<code>AST</code>、解析依赖等耗时操作，大幅提升编译性能。</p>
+<h3 id="1-4-Loader层面的缓存方案"><a href="#1-4-Loader层面的缓存方案" class="headerlink" title="1.4 Loader层面的缓存方案"></a>1.4 Loader层面的缓存方案</h3><p>除了Webpack原生的持久化缓存外，各个<code>Loader</code>也提供了独立的缓存能力。</p>
+<p><strong>babel-loader缓存配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [&#123;</span><br><span class="line">      test: <span class="regexp">/\.m?js$/</span>,</span><br><span class="line">      loader: <span class="string">'babel-loader'</span>,</span><br><span class="line">      options: &#123;</span><br><span class="line">        cacheDirectory: <span class="literal">true</span>,</span><br><span class="line">        cacheCompression: <span class="literal">false</span>, <span class="comment">// 关闭压缩以提升缓存读写速度</span></span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;]</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>ESLint与Stylelint缓存配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> ESLintPlugin = <span class="built_in">require</span>(<span class="string">'eslint-webpack-plugin'</span>);</span><br><span class="line"><span class="keyword">const</span> StylelintPlugin = <span class="built_in">require</span>(<span class="string">'stylelint-webpack-plugin'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="keyword">new</span> ESLintPlugin(&#123;</span><br><span class="line">      cache: <span class="literal">true</span>,</span><br><span class="line">      cacheLocation: <span class="string">'./.eslintcache'</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="keyword">new</span> StylelintPlugin(&#123;</span><br><span class="line">      files: <span class="string">'**/*.css'</span>,</span><br><span class="line">      cache: <span class="literal">true</span>,</span><br><span class="line">      cacheLocation: <span class="string">'./.stylelintcache'</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>开启这些<code>Loader</code>级别的缓存后，构建性能通常能提升30%到80%不等。</p>
+<h2 id="二、Tree-shaking：删除无用代码的利器"><a href="#二、Tree-shaking：删除无用代码的利器" class="headerlink" title="二、Tree-shaking：删除无用代码的利器"></a>二、<code>Tree-shaking</code>：删除无用代码的利器</h2><h3 id="2-1-Tree-shaking原理概述"><a href="#2-1-Tree-shaking原理概述" class="headerlink" title="2.1 Tree-shaking原理概述"></a>2.1 <code>Tree-shaking</code>原理概述</h3><p><code>Tree-shaking</code>是一种基于<code>ES Module</code>规范的<code>Dead Code Elimination</code>技术，它会在运行过程中静态分析模块之间的导入导出，确定ESM模块中哪些导出值未曾被其他模块使用，并将其删除，以此实现打包产物的优化。Webpack自2.0版本开始支持这一特性。</p>
+<p>启动<code>Tree-shaking</code>功能必须同时满足三个条件：</p>
+<ol>
+<li>使用<code>ESM</code>规范编写模块代码</li>
+<li>配置<code>optimization.usedExports</code>为<code>true</code>启动标记功能</li>
+<li>启动代码优化功能（<code>mode=production</code>或配置<code>optimization.minimize</code>为<code>true</code>）</li>
+</ol>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  entry: <span class="string">"./src/index"</span>,</span><br><span class="line">  mode: <span class="string">"production"</span>,</span><br><span class="line">  devtool: <span class="literal">false</span>,</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    usedExports: <span class="literal">true</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-Tree-shaking实现机制"><a href="#2-2-Tree-shaking实现机制" class="headerlink" title="2.2 Tree-shaking实现机制"></a>2.2 <code>Tree-shaking</code>实现机制</h3><p>Webpack中<code>Tree-shaking</code>的实现分为两个关键步骤。</p>
+<p><strong>第一步：标记阶段</strong></p>
+<p>需要配置<code>optimization.usedExports</code>为<code>true</code>开启。标记的效果就是删除那些没有被其他模块使用的导出语句。</p>
+<p>例如源代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// bar.js</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> bar = <span class="string">'bar'</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> foo = <span class="string">'foo'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="keyword">import</span> &#123; bar &#125; <span class="keyword">from</span> <span class="string">'./bar'</span>;</span><br><span class="line"><span class="built_in">console</span>.log(bar);</span><br></pre></td></tr></table></figure>
+<p>经过标记后，构建产物中<code>foo</code>变量对应的导出语句就会被删除，但<code>foo</code>变量的定义语句还会保留。</p>
+<p><strong>第二步：压缩阶段</strong></p>
+<p>标记功能只会影响到模块的导出语句，真正执行<code>Shaking</code>操作的是<code>Terser</code>插件。<code>foo</code>变量经过标记后已变成一段<code>Dead Code</code>——不可能被执行到的代码，此时只需用<code>Terser</code>提供的<code>DCE</code>功能删除这一段定义语句，即可实现完整的<code>Tree-shaking</code>效果。</p>
+<h3 id="2-3-Tree-shaking最佳实践"><a href="#2-3-Tree-shaking最佳实践" class="headerlink" title="2.3 Tree-shaking最佳实践"></a>2.3 <code>Tree-shaking</code>最佳实践</h3><p><strong>实践一：始终使用ESM</strong></p>
+<p><code>Tree-shaking</code>强依赖于ESM模块化方案的静态分析能力，应尽量坚持使用ESM编写模块代码。ESM要求所有的导入导出语句只能出现在模块顶层，且导入导出的模块名必须为字符串常量。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ✅ 推荐：ESM写法</span></span><br><span class="line"><span class="keyword">import</span> &#123; bar, foo &#125; <span class="keyword">from</span> <span class="string">'./bar'</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> baz = <span class="string">'baz'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ❌ 不推荐：动态导入</span></span><br><span class="line"><span class="keyword">const</span> moduleName = <span class="string">'bar'</span>;</span><br><span class="line"><span class="keyword">import</span>(moduleName);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ❌ 不推荐：条件导出</span></span><br><span class="line"><span class="keyword">if</span> (process.env.NODE_ENV === <span class="string">'development'</span>) &#123;</span><br><span class="line">  <span class="keyword">export</span> <span class="keyword">const</span> devTool = <span class="string">'dev'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>实践二：禁止Babel转译模块导入导出语句</strong></p>
+<p>Babel可以将<code>import/export</code>风格的ESM语句转译为<code>CommonJS</code>风格，但这会导致Webpack无法对转译后的模块导入导出内容做静态分析。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// babel.config.js</span></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  presets: [</span><br><span class="line">    [<span class="string">'@babel/preset-env'</span>, &#123;</span><br><span class="line">      modules: <span class="literal">false</span>, <span class="comment">// 关键：关闭模块转换，保留ESM</span></span><br><span class="line">    &#125;],</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>实践三：优化导出值的粒度</strong></p>
+<p><code>Tree-shaking</code>逻辑作用在ESM的<code>export</code>语句上，即使只用到<code>default</code>导出值的其中一个属性，整个<code>default</code>对象依然会被完整保留。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 不推荐：整个对象被保留</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  bar: <span class="string">'bar'</span>,</span><br><span class="line">  foo: <span class="string">'foo'</span>,</span><br><span class="line">  baz: <span class="string">'baz'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 推荐：按需导出</span></span><br><span class="line"><span class="keyword">const</span> bar = <span class="string">'bar'</span>;</span><br><span class="line"><span class="keyword">const</span> foo = <span class="string">'foo'</span>;</span><br><span class="line"><span class="keyword">const</span> baz = <span class="string">'baz'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123; bar, foo, baz &#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 推荐：独立文件导出</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> bar = <span class="string">'bar'</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> foo = <span class="string">'foo'</span>;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> baz = <span class="string">'baz'</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>实践四：使用<code>#pure</code>标注</strong></p>
+<p>对于没有副作用的函数调用，可以使用<code>/*#__PURE__*/</code>备注明确告诉Webpack该次函数调用不会对上下文环境产生副作用。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 不带pure标注，代码被保留</span></span><br><span class="line"><span class="keyword">const</span> result = someFunction(<span class="string">'retained'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 带pure标注，函数调用被删除（如果返回值未使用）</span></span><br><span class="line"><span class="keyword">const</span> result = <span class="comment">/*#__PURE__*/</span> someFunction(<span class="string">'removed'</span>);</span><br></pre></td></tr></table></figure>
+<p>在React中标记组件为纯函数：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ✅ 标记组件为pure，可以被Tree-shaking</span></span><br><span class="line"><span class="keyword">const</span> MyComponent = <span class="comment">/*#__PURE__*/</span> React.memo(<span class="function">(<span class="params">&#123; name &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;name&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>实践五：使用支持Tree-shaking的包</strong></p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 不推荐：lodash整个包被引入</span></span><br><span class="line"><span class="keyword">import</span> _ <span class="keyword">from</span> <span class="string">'lodash'</span>;</span><br><span class="line">_.map([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], n =&gt; n * <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 推荐：lodash-es支持Tree-shaking</span></span><br><span class="line"><span class="keyword">import</span> &#123; map &#125; <span class="keyword">from</span> <span class="string">'lodash-es'</span>;</span><br><span class="line">map([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], n =&gt; n * <span class="number">2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 推荐：使用具体函数</span></span><br><span class="line"><span class="keyword">import</span> map <span class="keyword">from</span> <span class="string">'lodash/map'</span>;</span><br></pre></td></tr></table></figure>
+<p><strong>实践六：异步模块的Tree-shaking</strong></p>
+<p>Webpack 5支持通过备注语法实现异步模块的<code>Tree-shaking</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span>(<span class="comment">/* webpackExports: ["foo", "default"] */</span> <span class="string">"./foo"</span>).then(<span class="function">(<span class="params"><span class="built_in">module</span></span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="built_in">module</span>.foo);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="三、SplitChunks：智能代码分割策略"><a href="#三、SplitChunks：智能代码分割策略" class="headerlink" title="三、SplitChunks：智能代码分割策略"></a>三、<code>SplitChunks</code>：智能代码分割策略</h2><h3 id="3-1-为什么需要代码分割"><a href="#3-1-为什么需要代码分割" class="headerlink" title="3.1 为什么需要代码分割"></a>3.1 为什么需要代码分割</h3><p>Webpack默认会将尽可能多的模块代码打包在一起，这种方式的优点是能减少最终页面的HTTP请求数，但缺点也很明显：</p>
+<ol>
+<li><strong>页面初始代码包过大</strong>：影响首屏渲染性能</li>
+<li><strong>无法有效应用浏览器缓存</strong>：特别对于NPM包这类变动较少的代码，业务代码哪怕改了一行都会导致NPM包缓存失效</li>
+</ol>
+<p><code>SplitChunksPlugin</code>是Webpack 4之后内置实现的最新分包方案，与Webpack3时代的<code>CommonsChunkPlugin</code>相比，它能够基于更灵活、合理的启发式规则将<code>Module</code>编排进不同的<code>Chunk</code>。</p>
+<h3 id="3-2-Chunk类型详解"><a href="#3-2-Chunk类型详解" class="headerlink" title="3.2 Chunk类型详解"></a>3.2 <code>Chunk</code>类型详解</h3><p><code>Chunk</code>是Webpack内部非常重要的底层设计，用于组织、管理、优化最终产物。在构建流程进入<code>Seal</code>阶段后：</p>
+<ol>
+<li>Webpack首先根据<code>entry</code>配置创建若干<code>Chunk</code>对象</li>
+<li>遍历构建阶段找到的所有<code>Module</code>对象，同一<code>Entry</code>下的模块分配到对应的<code>Chunk</code>中</li>
+<li>遇到异步模块则创建新的<code>Chunk</code>对象</li>
+<li>最后根据<code>SplitChunksPlugin</code>的启发式算法进一步对这些<code>Chunk</code>执行裁剪、拆分、合并、代码调优</li>
+</ol>
+<p>Webpack默认会将以下三种模块做分包处理：</p>
+<p><strong><code>Initial Chunk</code></strong>：<code>entry</code>模块及相应子模块打包成<code>Initial Chunk</code></p>
+<p><strong><code>Async Chunk</code></strong>：通过<code>import(&#39;./xx&#39;)</code>等语句导入的异步模块及相应子模块组成的<code>Async Chunk</code></p>
+<p><strong><code>Runtime Chunk</code></strong>：运行时代码抽离成<code>Runtime Chunk</code></p>
+<h3 id="3-3-SplitChunks核心配置"><a href="#3-3-SplitChunks核心配置" class="headerlink" title="3.3 SplitChunks核心配置"></a>3.3 <code>SplitChunks</code>核心配置</h3><p><strong><code>chunks</code></strong>：设置分包作用范围</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    splitChunks: &#123;</span><br><span class="line">      chunks: <span class="string">'all'</span>, <span class="comment">// 'initial' | 'async' | 'all'</span></span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>&#39;all&#39;</code>：对<code>Initial Chunk</code>和<code>Async Chunk</code>都生效（推荐）</li>
+<li><code>&#39;initial&#39;</code>：只对<code>Initial Chunk</code>生效</li>
+<li><code>&#39;async&#39;</code>：只对<code>Async Chunk</code>生效</li>
+</ul>
+<p><strong><code>minChunks</code></strong>：设置引用阈值</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">splitChunks: &#123;</span><br><span class="line">  minChunks: <span class="number">2</span>, <span class="comment">// 被2个以上Chunk引用的模块才会单独分包</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>minSize/maxSize</code></strong>：限制分包体积</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">splitChunks: &#123;</span><br><span class="line">  minSize: <span class="number">20000</span>,  <span class="comment">// 超过20KB才分包</span></span><br><span class="line">  maxSize: <span class="number">244000</span>, <span class="comment">// 超过244KB尝试进一步拆分</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>maxInitialRequest/maxAsyncRequests</code></strong>：限制并行请求数</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">splitChunks: &#123;</span><br><span class="line">  maxInitialRequests: <span class="number">30</span>,</span><br><span class="line">  maxAsyncRequests: <span class="number">30</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-4-缓存组最佳实践"><a href="#3-4-缓存组最佳实践" class="headerlink" title="3.4 缓存组最佳实践"></a>3.4 缓存组最佳实践</h3><p>缓存组的作用在于能为不同类型的资源设置更具适用性的分包规则。</p>
+<p><strong>典型 vendors 分包配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    splitChunks: &#123;</span><br><span class="line">      chunks: <span class="string">'all'</span>,</span><br><span class="line">      cacheGroups: &#123;</span><br><span class="line">        vendors: &#123;</span><br><span class="line">          test: <span class="regexp">/[\\/]node_modules[\\/]/</span>,</span><br><span class="line">          minChunks: <span class="number">1</span>,</span><br><span class="line">          minSize: <span class="number">0</span>,</span><br><span class="line">          priority: <span class="number">10</span>,</span><br><span class="line">          name: <span class="string">'vendors'</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">        common: &#123;</span><br><span class="line">          minChunks: <span class="number">2</span>,</span><br><span class="line">          priority: <span class="number">5</span>,</span><br><span class="line">          reuseExistingChunk: <span class="literal">true</span>,</span><br><span class="line">          name: <span class="string">'common'</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>完整的生产环境配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    splitChunks: &#123;</span><br><span class="line">      chunks: <span class="string">'all'</span>,</span><br><span class="line">      maxInitialRequests: <span class="number">30</span>,</span><br><span class="line">      maxAsyncRequests: <span class="number">30</span>,</span><br><span class="line">      minSize: <span class="number">20000</span>,</span><br><span class="line">      cacheGroups: &#123;</span><br><span class="line">        <span class="comment">// 第三方库单独打包</span></span><br><span class="line">        vendors: &#123;</span><br><span class="line">          test: <span class="regexp">/[\\/]node_modules[\\/]/</span>,</span><br><span class="line">          name: <span class="string">'vendors'</span>,</span><br><span class="line">          priority: <span class="number">10</span>,</span><br><span class="line">          chunks: <span class="string">'initial'</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 大型第三方库单独打包</span></span><br><span class="line">        largeVendors: &#123;</span><br><span class="line">          test: <span class="regexp">/[\\/]node_modules[\\/](react|react-dom|lodash)[\\/]/</span>,</span><br><span class="line">          name: <span class="string">'large-vendors'</span>,</span><br><span class="line">          priority: <span class="number">20</span>,</span><br><span class="line">          chunks: <span class="string">'all'</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 公共模块打包</span></span><br><span class="line">        common: &#123;</span><br><span class="line">          name: <span class="string">'common'</span>,</span><br><span class="line">          minChunks: <span class="number">2</span>,</span><br><span class="line">          priority: <span class="number">5</span>,</span><br><span class="line">          reuseExistingChunk: <span class="literal">true</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 运行时独立打包</span></span><br><span class="line">    runtimeChunk: <span class="string">'single'</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>Webpack内置缓存组</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Webpack内置配置</span></span><br><span class="line">cacheGroups: &#123;</span><br><span class="line">  <span class="keyword">default</span>: &#123;</span><br><span class="line">    idHint: <span class="string">""</span>,</span><br><span class="line">    reuseExistingChunk: <span class="literal">true</span>,</span><br><span class="line">    minChunks: <span class="number">2</span>,</span><br><span class="line">    priority: <span class="number">-20</span></span><br><span class="line">  &#125;,</span><br><span class="line">  defaultVendors: &#123;</span><br><span class="line">    idHint: <span class="string">"vendors"</span>,</span><br><span class="line">    reuseExistingChunk: <span class="literal">true</span>,</span><br><span class="line">    test: <span class="regexp">/[\\/]node_modules[\\/]/i</span>,</span><br><span class="line">    priority: <span class="number">-10</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="四、并行构建：榨干多核CPU性能"><a href="#四、并行构建：榨干多核CPU性能" class="headerlink" title="四、并行构建：榨干多核CPU性能"></a>四、并行构建：榨干多核CPU性能</h2><h3 id="4-1-并行构建概述"><a href="#4-1-并行构建概述" class="headerlink" title="4.1 并行构建概述"></a>4.1 并行构建概述</h3><p>受限于Node.js的单线程架构，原生Webpack对所有资源文件做的所有解析、转译、合并操作本质上都是在同一个线程内串行执行，CPU利用率极低。</p>
+<p>主要方案包括：</p>
+<ul>
+<li><strong><code>HappyPack</code></strong>：多进程方式运行<code>Loader</code>逻辑</li>
+<li><strong><code>Thread-loader</code></strong>：Webpack官方出品，同样以多进程方式运行<code>Loader</code>逻辑</li>
+<li><strong><code>Parallel-Webpack</code></strong>：多进程方式运行多个Webpack构建实例</li>
+<li><strong><code>TerserWebpackPlugin</code></strong>：支持多进程方式执行代码压缩</li>
+</ul>
+<h3 id="4-2-Thread-loader用法"><a href="#4-2-Thread-loader用法" class="headerlink" title="4.2 Thread-loader用法"></a>4.2 <code>Thread-loader</code>用法</h3><p><code>Thread-loader</code>由Webpack官方提供，用法比<code>HappyPack</code>简单。</p>
+<p><strong>基础用法</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [</span><br><span class="line">      &#123;</span><br><span class="line">        test: <span class="regexp">/\.js$/</span>,</span><br><span class="line">        use: [</span><br><span class="line">          <span class="string">"thread-loader"</span>,</span><br><span class="line">          <span class="string">"babel-loader"</span>,</span><br><span class="line">          <span class="string">"eslint-loader"</span>,</span><br><span class="line">        ],</span><br><span class="line">      &#125;,</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>完整配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> threadLoader = <span class="built_in">require</span>(<span class="string">'thread-loader'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> threadLoaderOptions = &#123;</span><br><span class="line">  workers: <span class="built_in">require</span>(<span class="string">'os'</span>).cpus().length - <span class="number">1</span>,</span><br><span class="line">  workerParallelJobs: <span class="number">50</span>,</span><br><span class="line">  poolTimeout: <span class="number">500</span>,</span><br><span class="line">  poolRespawn: <span class="literal">false</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [</span><br><span class="line">      &#123;</span><br><span class="line">        test: <span class="regexp">/\.js$/</span>,</span><br><span class="line">        use: [</span><br><span class="line">          &#123;</span><br><span class="line">            loader: <span class="string">'thread-loader'</span>,</span><br><span class="line">            options: threadLoaderOptions,</span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="string">'babel-loader'</span>,</span><br><span class="line">        ],</span><br><span class="line">      &#125;,</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>预热配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> threadLoader = <span class="built_in">require</span>(<span class="string">'thread-loader'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 预热worker进程</span></span><br><span class="line">threadLoader.warmup(</span><br><span class="line">  &#123;</span><br><span class="line">    workers: <span class="number">2</span>,</span><br><span class="line">    workerParallelJobs: <span class="number">50</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  [</span><br><span class="line">    <span class="string">'babel-loader'</span>,</span><br><span class="line">    <span class="string">'@babel/preset-env'</span>,</span><br><span class="line">  ]</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123; <span class="comment">/* ... */</span> &#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>注意事项</strong>：<code>Thread-loader</code>使用时需要注意：</p>
+<ul>
+<li>在<code>Thread-loader</code>中运行的<code>Loader</code>不能调用<code>emitAsset</code>等接口</li>
+<li><code>Loader</code>中不能获取<code>compilation</code>、<code>compiler</code>等实例对象</li>
+<li>解决方案是将这类组件放置在<code>thread-loader</code>之前</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// ❌ 错误：style-loader无法正常工作</span></span><br><span class="line">use: [<span class="string">'thread-loader'</span>, <span class="string">'style-loader'</span>, <span class="string">'css-loader'</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 正确：style-loader在thread-loader之前</span></span><br><span class="line">use: [<span class="string">'style-loader'</span>, <span class="string">'thread-loader'</span>, <span class="string">'css-loader'</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="4-3-并行压缩"><a href="#4-3-并行压缩" class="headerlink" title="4.3 并行压缩"></a>4.3 并行压缩</h3><p>Webpack 5默认使用<code>Terser</code>实现代码压缩，<code>TerserWebpackPlugin</code>插件默认已开启并行压缩。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> TerserPlugin = <span class="built_in">require</span>(<span class="string">'terser-webpack-plugin'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    minimize: <span class="literal">true</span>,</span><br><span class="line">    minimizer: [</span><br><span class="line">      <span class="keyword">new</span> TerserPlugin(&#123;</span><br><span class="line">        parallel: <span class="literal">true</span>, <span class="comment">// 默认开启，可设置具体数值</span></span><br><span class="line">        terserOptions: &#123;</span><br><span class="line">          compress: &#123;</span><br><span class="line">            drop_console: <span class="literal">true</span>,</span><br><span class="line">            drop_debugger: <span class="literal">true</span>,</span><br><span class="line">          &#125;,</span><br><span class="line">          output: &#123;</span><br><span class="line">            comments: <span class="literal">false</span>,</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="4-4-HappyPack用法（Webpack-4）"><a href="#4-4-HappyPack用法（Webpack-4）" class="headerlink" title="4.4 HappyPack用法（Webpack 4）"></a>4.4 <code>HappyPack</code>用法（Webpack 4）</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> HappyPack = <span class="built_in">require</span>(<span class="string">'happypack'</span>);</span><br><span class="line"><span class="keyword">const</span> os = <span class="built_in">require</span>(<span class="string">'os'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> happyThreadPool = HappyPack.ThreadPool(&#123;</span><br><span class="line">  size: os.cpus().length - <span class="number">1</span>,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  <span class="built_in">module</span>: &#123;</span><br><span class="line">    rules: [</span><br><span class="line">      &#123;</span><br><span class="line">        test: <span class="regexp">/\.js$/</span>,</span><br><span class="line">        use: <span class="string">'happypack/loader?id=js'</span>,</span><br><span class="line">      &#125;,</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="keyword">new</span> HappyPack(&#123;</span><br><span class="line">      id: <span class="string">'js'</span>,</span><br><span class="line">      threadPool: happyThreadPool,</span><br><span class="line">      loaders: [<span class="string">'babel-loader'</span>, <span class="string">'eslint-loader'</span>],</span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="4-5-并行方案选择建议"><a href="#4-5-并行方案选择建议" class="headerlink" title="4.5 并行方案选择建议"></a>4.5 并行方案选择建议</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>适用场景</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HappyPack</code></td>
+<td>Webpack 4之前</td>
+<td>已停止维护</td>
+</tr>
+<tr>
+<td><code>Thread-loader</code></td>
+<td>Webpack 4+</td>
+<td>官方维护，推荐使用</td>
+</tr>
+<tr>
+<td><code>Parallel-Webpack</code></td>
+<td>多入口/MPA</td>
+<td>适合类库打包</td>
+</tr>
+<tr>
+<td><code>TerserWebpackPlugin</code></td>
+<td>生产环境</td>
+<td>默认开启</td>
+</tr>
+</tbody>
+</table>
+<p>需要注意的是，Node单线程架构下所谓的并行计算都只能依托于派生子进程执行，而创建进程本身就有不小的消耗，大约600毫秒。对于小型项目，构建成本可能很低，引入多进程技术反而导致整体成本增加。</p>
+<h2 id="五、其他核心优化技巧"><a href="#五、其他核心优化技巧" class="headerlink" title="五、其他核心优化技巧"></a>五、其他核心优化技巧</h2><h3 id="5-1-模块热替换（HMR）"><a href="#5-1-模块热替换（HMR）" class="headerlink" title="5.1 模块热替换（HMR）"></a>5.1 模块热替换（<code>HMR</code>）</h3><p>模块热替换（<code>Hot Module Replacement</code>）是Webpack最强大的开发特性之一，它允许在运行时替换、添加或删除模块，而无需完全刷新页面或重启开发服务器。</p>
+<p><strong>HMR配置示例</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">'webpack'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  devServer: &#123;</span><br><span class="line">    hot: <span class="literal">true</span>,</span><br><span class="line">    hotOnly: <span class="literal">false</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="keyword">new</span> webpack.HotModuleReplacementPlugin(),</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>HMR API使用</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 判断是否支持HMR</span></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">module</span>.hot) &#123;</span><br><span class="line">  <span class="comment">// 接受模块更新</span></span><br><span class="line">  <span class="built_in">module</span>.hot.accept(<span class="string">'./module'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'模块已更新'</span>);</span><br><span class="line">    <span class="comment">// 重新执行更新逻辑</span></span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 条件性接受更新</span></span><br><span class="line">  <span class="built_in">module</span>.hot.accept([<span class="string">'./module1'</span>, <span class="string">'./module2'</span>], <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 处理多个模块更新</span></span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 拒绝更新（回退到刷新）</span></span><br><span class="line">  <span class="built_in">module</span>.hot.decline(<span class="string">'./module'</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="5-2-SourceMap最佳实践"><a href="#5-2-SourceMap最佳实践" class="headerlink" title="5.2 SourceMap最佳实践"></a>5.2 <code>SourceMap</code>最佳实践</h3><p><code>SourceMap</code>用于将压缩后的代码映射回原始源代码，极大方便开发者调试。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>构建速度</th>
+<th>调试支持</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>eval</code></td>
+<td>最快</td>
+<td>仅限业务代码</td>
+<td>快速开发</td>
+</tr>
+<tr>
+<td><code>eval-source-map</code></td>
+<td>较慢</td>
+<td>完整</td>
+<td>开发调试</td>
+</tr>
+<tr>
+<td><code>cheap-module-source-map</code></td>
+<td>中等</td>
+<td>仅行</td>
+<td>生产开发</td>
+</tr>
+<tr>
+<td><code>hidden-source-map</code></td>
+<td>较慢</td>
+<td>完整</td>
+<td>生产环境</td>
+</tr>
+<tr>
+<td><code>source-map</code></td>
+<td>最慢</td>
+<td>完整</td>
+<td>正式发布</td>
+</tr>
+</tbody>
+</table>
+<p><strong>开发环境配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  mode: <span class="string">'development'</span>,</span><br><span class="line">  devtool: <span class="string">'eval-cheap-module-source-map'</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>生产环境配置</strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  mode: <span class="string">'production'</span>,</span><br><span class="line">  devtool: <span class="string">'hidden-source-map'</span>,</span><br><span class="line">  <span class="comment">// 或使用nosources-source-map不生成源码内容</span></span><br><span class="line">  devtool: <span class="string">'nosources-source-map'</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="5-3-构建性能分析工具"><a href="#5-3-构建性能分析工具" class="headerlink" title="5.3 构建性能分析工具"></a>5.3 构建性能分析工具</h3><p><strong><code>webpack-bundle-analyzer</code></strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> BundleAnalyzerPlugin = <span class="built_in">require</span>(<span class="string">'webpack-bundle-analyzer'</span>).BundleAnalyzerPlugin;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  plugins: [</span><br><span class="line">    <span class="keyword">new</span> BundleAnalyzerPlugin(&#123;</span><br><span class="line">      analyzerMode: <span class="string">'static'</span>,</span><br><span class="line">      openAnalyzer: <span class="literal">false</span>,</span><br><span class="line">      reportFilename: <span class="string">'bundle-report.html'</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong><code>speed-measure-webpack-plugin</code></strong>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> SpeedMeasurePlugin = <span class="built_in">require</span>(<span class="string">'speed-measure-webpack-plugin'</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> smp = <span class="keyword">new</span> SpeedMeasurePlugin();</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = smp.wrap(&#123;</span><br><span class="line">  <span class="comment">// webpack配置</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="5-4-完整的Webpack-5优化配置示例"><a href="#5-4-完整的Webpack-5优化配置示例" class="headerlink" title="5.4 完整的Webpack 5优化配置示例"></a>5.4 完整的Webpack 5优化配置示例</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>);</span><br><span class="line"><span class="keyword">const</span> TerserPlugin = <span class="built_in">require</span>(<span class="string">'terser-webpack-plugin'</span>);</span><br><span class="line"><span class="keyword">const</span> BundleAnalyzerPlugin = <span class="built_in">require</span>(<span class="string">'webpack-bundle-analyzer'</span>).BundleAnalyzerPlugin;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  mode: <span class="string">'production'</span>,</span><br><span class="line">  entry: <span class="string">'./src/index.js'</span>,</span><br><span class="line">  output: &#123;</span><br><span class="line">    path: path.resolve(__dirname, <span class="string">'dist'</span>),</span><br><span class="line">    filename: <span class="string">'[name].[contenthash].js'</span>,</span><br><span class="line">    chunkFilename: <span class="string">'[name].[contenthash].chunk.js'</span>,</span><br><span class="line">    clean: <span class="literal">true</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// 持久化缓存</span></span><br><span class="line">  cache: &#123;</span><br><span class="line">    type: <span class="string">'filesystem'</span>,</span><br><span class="line">    buildDependencies: &#123;</span><br><span class="line">      config: [__filename],</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  optimization: &#123;</span><br><span class="line">    <span class="comment">// Tree-shaking</span></span><br><span class="line">    usedExports: <span class="literal">true</span>,</span><br><span class="line">    <span class="comment">// 代码分割</span></span><br><span class="line">    splitChunks: &#123;</span><br><span class="line">      chunks: <span class="string">'all'</span>,</span><br><span class="line">      cacheGroups: &#123;</span><br><span class="line">        vendors: &#123;</span><br><span class="line">          test: <span class="regexp">/[\\/]node_modules[\\/]/</span>,</span><br><span class="line">          name: <span class="string">'vendors'</span>,</span><br><span class="line">          priority: <span class="number">10</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 运行时独立</span></span><br><span class="line">    runtimeChunk: <span class="string">'single'</span>,</span><br><span class="line">    <span class="comment">// 并行压缩</span></span><br><span class="line">    minimizer: [</span><br><span class="line">      <span class="keyword">new</span> TerserPlugin(&#123;</span><br><span class="line">        parallel: <span class="literal">true</span>,</span><br><span class="line">        terserOptions: &#123;</span><br><span class="line">          compress: &#123;</span><br><span class="line">            drop_console: <span class="literal">true</span>,</span><br><span class="line">          &#125;,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="comment">// 性能提示</span></span><br><span class="line">  performance: &#123;</span><br><span class="line">    hints: <span class="string">'warning'</span>,</span><br><span class="line">    maxEntrypointSize: <span class="number">512000</span>,</span><br><span class="line">    maxAssetSize: <span class="number">512000</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="六、Webpack-5新特性总结"><a href="#六、Webpack-5新特性总结" class="headerlink" title="六、Webpack 5新特性总结"></a>六、Webpack 5新特性总结</h2><p>Webpack 5相比4版本带来了诸多重要改进：</p>
+<ul>
+<li><strong>持久化缓存</strong>：让二次构建性能提升数十倍</li>
+<li><strong>更智能的<code>Tree-shaking</code></strong>：减少无用代码</li>
+<li><strong>更好的代码分割策略</strong>：优化首屏加载</li>
+<li><strong><code>Module Federation</code></strong>：支持微前端架构</li>
+<li><strong>更强的长期缓存</strong>：优化浏览器缓存利用率</li>
+<li><strong><code>Asset Modules</code></strong>：资源模块化，无需额外<code>Loader</code></li>
+</ul>
+<p>在实际项目中，建议优先启用持久化缓存、配置合理的<code>splitChunks</code>规则、使用<code>Tree-shaking</code>优化产物、启用并行构建提升构建速度。这些优化手段组合使用，能够显著提升开发体验和最终产品质量。</p>
+<p>掌握Webpack 5的核心特性与优化技巧，将帮助你在前端工程化道路上走得更远，构建出更高效、更优质的现代Web应用。</p>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2023/06/08/frontend-file-download-solutions/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2023/09/24/charles-android/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

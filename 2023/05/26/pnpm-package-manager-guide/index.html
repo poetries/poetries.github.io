@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>拯救磁盘空间 为什么pnpm是更好的包管理工具 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="前端工程化,pnpm,npm,yarn,包管理工具,Workspace,">
+  
+
+  <meta name="description" content="深度解读pnpm包管理工具，对比npm/yarn的差异，详解硬链接与软链接原理，分析pnpm的性能优势、磁盘空间优化和安全性保障，包含Workspace工作空间完整用法。">
+<meta name="keywords" content="前端工程化,pnpm,npm,yarn,包管理工具,Workspace">
+<meta property="og:type" content="article">
+<meta property="og:title" content="拯救磁盘空间 为什么pnpm是更好的包管理工具">
+<meta property="og:url" content="http://blog.poetries.top/2023/05/26/pnpm-package-manager-guide/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="深度解读pnpm包管理工具，对比npm/yarn的差异，详解硬链接与软链接原理，分析pnpm的性能优势、磁盘空间优化和安全性保障，包含Workspace工作空间完整用法。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2026-03-02T10:29:29.667Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="拯救磁盘空间 为什么pnpm是更好的包管理工具">
+<meta name="twitter:description" content="深度解读pnpm包管理工具，对比npm/yarn的差异，详解硬链接与软链接原理，分析pnpm的性能优势、磁盘空间优化和安全性保障，包含Workspace工作空间完整用法。">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、为什么需要更好的包管理工具"><span class="toc-text">一、为什么需要更好的包管理工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-npm与yarn的发展历程"><span class="toc-text">1.1 npm与yarn的发展历程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-扁平化依赖带来的新问题"><span class="toc-text">1.2 扁平化依赖带来的新问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、pnpm是什么"><span class="toc-text">二、pnpm是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、pnpm核心优势"><span class="toc-text">三、pnpm核心优势</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-安装速度快"><span class="toc-text">3.1 安装速度快</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-节省磁盘空间"><span class="toc-text">3.2 节省磁盘空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-安全性高"><span class="toc-text">3.3 安全性高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-支持Monorepo"><span class="toc-text">3.4 支持Monorepo</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、pnpm依赖管理原理"><span class="toc-text">四、pnpm依赖管理原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-npm-yarn的安装原理"><span class="toc-text">4.1 npm/yarn的安装原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-node-modules目录结构"><span class="toc-text">4.2 node_modules目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-软链接与硬链接的协作"><span class="toc-text">4.3 软链接与硬链接的协作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、pnpm工作空间-Workspace-完全指南"><span class="toc-text">五、pnpm工作空间(Workspace)完全指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-什么是Monorepo"><span class="toc-text">5.1 什么是Monorepo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-创建Workspace项目"><span class="toc-text">5.2 创建Workspace项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Workspace常用命令"><span class="toc-text">5.3 Workspace常用命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Workspace内部依赖"><span class="toc-text">5.4 Workspace内部依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-发布配置"><span class="toc-text">5.5 发布配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、pnpm基本使用"><span class="toc-text">六、pnpm基本使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-安装依赖"><span class="toc-text">6.1 安装依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-更新与卸载"><span class="toc-text">6.2 更新与卸载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-运行脚本"><span class="toc-text">6.3 运行脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-其他常用命令"><span class="toc-text">6.4 其他常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、三者功能对比一览"><span class="toc-text">七、三者功能对比一览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#核心差异解读"><span class="toc-text">核心差异解读</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#八、总结"><span class="toc-text">八、总结</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-pnpm-package-manager-guide" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">拯救磁盘空间 为什么pnpm是更好的包管理工具</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2023.05.26</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.1k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 11分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>在前端开发中，我们每天都会与各种<code>npm</code>包打交道，选择一个合适的包管理工具能显著提升开发体验和构建效率。近年来，<code>pnpm</code>作为一款新兴的包管理工具逐渐受到越来越多开发者青睐，它究竟有何魅力能让众多开源项目纷纷转投其怀抱？本文将带你深入了解<code>pnpm</code>的原理与优势。</p>
+<h2 id="一、为什么需要更好的包管理工具"><a href="#一、为什么需要更好的包管理工具" class="headerlink" title="一、为什么需要更好的包管理工具"></a>一、为什么需要更好的包管理工具</h2><h3 id="1-1-npm与yarn的发展历程"><a href="#1-1-npm与yarn的发展历程" class="headerlink" title="1.1 npm与yarn的发展历程"></a>1.1 npm与yarn的发展历程</h3><p>在早期<code>npm 1</code>、<code>npm 2</code>时代，项目的<code>node_modules</code>会呈现出嵌套结构：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">└─ foo</span><br><span class="line">   ├─ index.js</span><br><span class="line">   ├─ package.json</span><br><span class="line">   └─ node_modules</span><br><span class="line">      └─ bar</span><br><span class="line">         ├─ index.js</span><br><span class="line">         └─ package.json</span><br></pre></td></tr></table></figure>
+<p>这种嵌套依赖树设计存在三个严重问题：</p>
+<p><strong>问题一：依赖层级太深</strong></p>
+<p>这会导致文件的路径过长的问题，尤其在Windows系统下文件路径默认最多支持256个字符。</p>
+<p><strong>问题二：包重复安装</strong></p>
+<p>比如<code>foo</code>和<code>zoo</code>都依赖于<code>bar</code>，那么<code>bar</code>就会在两者的<code>node_modules</code>中被安装两次，导致项目体积暴涨。</p>
+<p><strong>问题三：模块实例不能共享</strong></p>
+<p>比如React有一些内部变量，在两个不同包引入的React不是同一个模块实例，因此无法共享内部变量，导致一些不可预知的bug。</p>
+<p>后来<code>yarn</code>横空出世解决了这些问题，<code>npm</code>也在3.0版本中沿用了<code>yarn</code>的解决方案，这个解决方案就是<strong>扁平化依赖</strong>。</p>
+<h3 id="1-2-扁平化依赖带来的新问题"><a href="#1-2-扁平化依赖带来的新问题" class="headerlink" title="1.2 扁平化依赖带来的新问题"></a>1.2 扁平化依赖带来的新问题</h3><p>所谓的扁平化依赖就是将所有依赖铺平，放到同一级目录下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">├─ foo</span><br><span class="line">│  ├─ index.js</span><br><span class="line">│  └─ package.json</span><br><span class="line">└─ bar</span><br><span class="line">   ├─ index.js</span><br><span class="line">   └─ package.json</span><br></pre></td></tr></table></figure>
+<p>虽然之前的问题得到了解决，但这种扁平化的处理方式自身也存在许多问题：</p>
+<p><strong>问题一：幽灵依赖</strong></p>
+<p>所谓的幽灵依赖是指我们明明没有在<code>package.json</code>的<code>dependencies</code>里声明某个依赖，但在代码里却可以<code>import</code>进来。因为项目依赖被铺平了，那么依赖的依赖自然也是可以被引入到项目中。</p>
+<p>幽灵依赖带来的弊端很明显：我们显式依赖了A，A又依赖了B，这时候我们在项目中直接使用B是可以的，但如果某一天A不再依赖于B，那么我们项目中使用B的地方就会报错。</p>
+<p><strong>问题二：依赖结构不确定性</strong></p>
+<p>举例来说，如果项目同时依赖<code>foo</code>和<code>bar</code>，而它们都依赖不同版本的<code>lodash</code>，那么最终安装哪个版本是不确定的，完全取决于<code>package.json</code>中的声明顺序。</p>
+<p>这就是为什么会产生依赖结构的<code>不确定</code>问题，也是<code>lock文件</code>诞生的原因，无论是<code>package-lock.json</code>还是<code>yarn.lock</code>，都是为了保证install之后都产生确定的<code>node_modules</code>结构。</p>
+<p><strong>问题三：非法访问依赖</strong></p>
+<p>由于扁平化结构，如果A依赖B，B依赖C，那么A当中是可以直接使用C的，但A并没有声明C这个依赖，这就是非法访问。</p>
+<p>在monorepo项目中，如果A依赖X，B依赖X，还有一个C，它不依赖X，但它代码里面用到了X。由于依赖提升的存在，npm/yarn会把X放到根目录的node_modules中，这样C在本地是能够跑起来的。但试想一下，一旦C单独发包出去，用户单独安装C，那么就找不到X了，执行到引用X的代码时就直接报错了。</p>
+<p>正是这些问题促使了<code>pnpm</code>的诞生。</p>
+<h2 id="二、pnpm是什么"><a href="#二、pnpm是什么" class="headerlink" title="二、pnpm是什么"></a>二、pnpm是什么</h2><p><code>pnpm</code>（Performant NPM）是一个<strong>快速的</strong>、<strong>节省磁盘空间</strong>的包管理工具，同时它还对<code>monorepo</code>有良好的支持。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装pnpm</span></span><br><span class="line">npm i pnpm -g</span><br></pre></td></tr></table></figure>
+<p>它的用处与<code>npm</code>和<code>yarn</code>并没有什么本质区别，甚至连用法都十分相似，但却在性能和安全性方面有显著优势。</p>
+<h2 id="三、pnpm核心优势"><a href="#三、pnpm核心优势" class="headerlink" title="三、pnpm核心优势"></a>三、pnpm核心优势</h2><h3 id="3-1-安装速度快"><a href="#3-1-安装速度快" class="headerlink" title="3.1 安装速度快"></a>3.1 安装速度快</h3><p>根据官方文档的benchmark测试数据，<code>pnpm</code>在大多数场景下的安装速度都要优于<code>npm</code>和<code>yarn</code>。</p>
+<p>可以看到，<code>pnpm</code>在绝多大数场景下，包安装的速度都是明显优于<code>npm/yarn</code>，速度会比<code>npm/yarn</code>快2-3倍。</p>
+<p>对yarn比较熟悉的同学可能会说，yarn不是有<code>PnP安装模式</code>吗？直接去掉<code>node_modules</code>，将依赖包内容写在磁盘，节省了node文件I/O的开销，这样也能提升安装速度。</p>
+<p>但总体而言，<code>pnpm</code>的包安装速度还是明显优于<code>yarn</code> <code>npm</code>。</p>
+<p>这是因为<code>pnpm</code>采用了并行的网络请求和本地缓存策略，减少了等待时间。</p>
+<h3 id="3-2-节省磁盘空间"><a href="#3-2-节省磁盘空间" class="headerlink" title="3.2 节省磁盘空间"></a>3.2 节省磁盘空间</h3><p><code>pnpm</code>内部使用<strong>基于内容寻址存储（CAS - Content-addressable store）</strong>的方式来存储依赖。</p>
+<p><strong>硬链接与软链接机制</strong></p>
+<ul>
+<li><strong>硬链接</strong>（hard link）：多个文件平等地共享同一个文件存储单元</li>
+<li><strong>符号链接/软链接</strong>（Symbolic link）：一种特殊的文件，包含有一条指向其它文件或者目录的引用</li>
+</ul>
+<p>软链接其实很好理解，它就相当于Windows系统中的快捷方式。一个符号链接文件仅包含有一个文本字符串，其被操作系统解释为一条指向另一个文件或者目录的路径。它是一个独立文件，其存在并不依赖于目标文件。</p>
+<p>硬链接可以理解成给同一个文件创建了多个入口，它们都指向磁盘上的同一个存储位置。删除任何一个硬链接不影响其他链接，只有当所有硬链接都被删除时，文件才会被真正删除。</p>
+<p><code>pnpm</code>的磁盘空间优化策略包括：</p>
+<ol>
+<li><p><strong>不会重复安装同一个包</strong>：用<code>npm/yarn</code>的时候，如果100个项目都依赖<code>lodash</code>，那么<code>lodash</code>很可能就被安装了100次，磁盘中就有100个地方写入了这部分代码。但使用<code>pnpm</code>则只会安装一次，磁盘中只有一个地方写入，后面再次使用都会直接使用<strong>硬链接</strong>。</p>
+</li>
+<li><p><strong>不同版本复用</strong>：即使一个包的不同版本，<code>pnpm</code>也会极大程度地复用之前版本的代码。比如<code>lodash</code>有100个文件，更新版本之后多了一个文件，那么磁盘当中并不会重新写入101个文件，而是保留原来100个文件的硬链接，<strong>仅仅写入那一个新增的文件</strong>。</p>
+</li>
+</ol>
+<h3 id="3-3-安全性高"><a href="#3-3-安全性高" class="headerlink" title="3.3 安全性高"></a>3.3 安全性高</h3><p><code>pnpm</code>自创了一套依赖管理方式——<strong>虚拟存储目录</strong>，很好地解决了幽灵依赖和非法访问的问题。</p>
+<p>在<code>pnpm</code>中，只有在<code>package.json</code>中显式声明的依赖才能被访问，未声明的依赖是无法引入的，这保证了项目的安全性。</p>
+<h3 id="3-4-支持Monorepo"><a href="#3-4-支持Monorepo" class="headerlink" title="3.4 支持Monorepo"></a>3.4 支持Monorepo</h3><p><code>pnpm</code>对<code>monorepo</code>的支持体现在各个子命令的功能上：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在根目录下执行，所有package都会被添加依赖</span></span><br><span class="line">pnpm add A -r</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用filter指定package</span></span><br><span class="line">pnpm add lodash --filter package<span class="_">-a</span></span><br></pre></td></tr></table></figure>
+<h2 id="四、pnpm依赖管理原理"><a href="#四、pnpm依赖管理原理" class="headerlink" title="四、pnpm依赖管理原理"></a>四、pnpm依赖管理原理</h2><h3 id="4-1-npm-yarn的安装原理"><a href="#4-1-npm-yarn的安装原理" class="headerlink" title="4.1 npm/yarn的安装原理"></a>4.1 npm/yarn的安装原理</h3><p>当执行<code>npm/yarn install</code>命令之后，首先会构建依赖树，然后针对每个节点下的包会经历以下四个步骤：</p>
+<ol>
+<li>将依赖包的版本区间解析为某个具体的版本号</li>
+<li>下载对应版本依赖的tar包到本地离线镜像</li>
+<li>将依赖从离线镜像解压到本地缓存</li>
+<li>将依赖从缓存拷贝到当前目录的node_modules目录</li>
+</ol>
+<h3 id="4-2-node-modules目录结构"><a href="#4-2-node-modules目录结构" class="headerlink" title="4.2 node_modules目录结构"></a>4.2 node_modules目录结构</h3><p>使用<code>pnpm</code>安装<code>express</code>后，目录结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">├─ .pnpm</span><br><span class="line">│  ├─ express@4.17.1</span><br><span class="line">│  │  └─ node_modules</span><br><span class="line">│  │     ├─ accept</span><br><span class="line">│  │     └─ express</span><br><span class="line">│  └─ accepts@1.3.7</span><br><span class="line">│     └─ node_modules</span><br><span class="line">│        └─ accepts</span><br><span class="line">└─ express  → 软链接，指向.pnpm/express@4.17.1/node_modules/express</span><br></pre></td></tr></table></figure>
+<p>可以明显感觉到<code>pnpm</code>的目录结构更加合理：项目只依赖了<code>express</code>，那么<code>node_modules</code>中就只存在<code>express</code>的文件。</p>
+<p>展开<code>.pnpm</code>文件夹，我们可以找到其真正的位置：<code>express</code>的真正位置位于<a href="mailto:`.pnpm/express@4.17.1" target="_blank" rel="noopener">`.pnpm/express@4.17.1</a>/node_modules/express`。</p>
+<p>这也代表了<code>pnpm</code>中的依赖规律，也是<code>&lt;package-name&gt;@version/node_modules/&lt;package-name&gt;</code>这种目录结构。</p>
+<h3 id="4-3-软链接与硬链接的协作"><a href="#4-3-软链接与硬链接的协作" class="headerlink" title="4.3 软链接与硬链接的协作"></a>4.3 软链接与硬链接的协作</h3><p><code>pnpm</code>的依赖规律是<code>&lt;package-name&gt;@version/node_modules/&lt;package-name&gt;</code>这种目录结构：</p>
+<ol>
+<li>所有的依赖都是从全局<code>store</code><strong>硬链接</strong>到了<code>node_modules/.pnpm</code>下</li>
+<li>项目中的直接依赖通过<strong>软链接</strong>指向<code>.pnpm</code>中的实际位置</li>
+<li>依赖包中的每个文件再硬链接到<code>.pnpm store</code></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">.pnpm</span><br><span class="line">├─ accepts@1.3.7</span><br><span class="line">│  └─ node_modules</span><br><span class="line">│     └─ accepts  → 硬链接到store</span><br><span class="line">├─ express@4.17.1</span><br><span class="line">│  └─ node_modules</span><br><span class="line">│     ├─ accepts  → ../accepts@1.3.7/node_modules/accepts (软链接)</span><br><span class="line">│     └─ express</span><br><span class="line">│        └─ index.js → 硬链接到store</span><br></pre></td></tr></table></figure>
+<p>这种设计将<code>包本身</code>和<code>依赖</code>放在同一个<code>node_module</code>下面，与原生Node完全兼容，又能将package与相关的依赖很好地组织到一起，设计十分精妙。</p>
+<h2 id="五、pnpm工作空间-Workspace-完全指南"><a href="#五、pnpm工作空间-Workspace-完全指南" class="headerlink" title="五、pnpm工作空间(Workspace)完全指南"></a>五、pnpm工作空间(Workspace)完全指南</h2><h3 id="5-1-什么是Monorepo"><a href="#5-1-什么是Monorepo" class="headerlink" title="5.1 什么是Monorepo"></a>5.1 什么是Monorepo</h3><p>Monorepo（单体仓库）是一种将多个项目存放在同一个代码仓库中的开发策略。相比传统的多仓库方案，Monorepo可以让代码共享更加方便版本管理更加统一。</p>
+<p><code>pnpm</code>从设计上就原生支持Monorepo，通过<code>workspace</code>功能可以轻松管理多个包。</p>
+<h3 id="5-2-创建Workspace项目"><a href="#5-2-创建Workspace项目" class="headerlink" title="5.2 创建Workspace项目"></a>5.2 创建Workspace项目</h3><p>首先在项目根目录创建<code>pnpm-workspace.yaml</code>文件：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># pnpm-workspace.yaml</span></span><br><span class="line"><span class="attr">packages:</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">'packages/*'</span></span><br><span class="line"><span class="bullet">  -</span> <span class="string">'apps/*'</span></span><br></pre></td></tr></table></figure>
+<p>然后创建项目结构：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">my-monorepo/</span><br><span class="line">├── pnpm-workspace.yaml</span><br><span class="line">├── package.json</span><br><span class="line">├── packages/</span><br><span class="line">│   ├── pkg1/</span><br><span class="line">│   │   ├── package.json</span><br><span class="line">│   │   └── src/index.js</span><br><span class="line">│   └── pkg2/</span><br><span class="line">│       ├── package.json</span><br><span class="line">│       └── src/index.js</span><br><span class="line">└── apps/</span><br><span class="line">    └── web/</span><br><span class="line">        ├── package.json</span><br><span class="line">        └── src/index.js</span><br></pre></td></tr></table></figure>
+<h3 id="5-3-Workspace常用命令"><a href="#5-3-Workspace常用命令" class="headerlink" title="5.3 Workspace常用命令"></a>5.3 Workspace常用命令</h3><p><strong>安装所有依赖</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装workspace下所有packages的依赖</span></span><br><span class="line">pnpm install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或使用-r递归安装</span></span><br><span class="line">pnpm install -r</span><br></pre></td></tr></table></figure>
+<p><strong>在所有package中安装依赖</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在根目录执行，所有package都会被添加lodash依赖</span></span><br><span class="line">pnpm add lodash -r</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定添加到某个package</span></span><br><span class="line">pnpm add lodash --filter pkg1</span><br></pre></td></tr></table></figure>
+<p><strong>使用filter过滤</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 只在pkg1中安装</span></span><br><span class="line">pnpm add lodash --filter pkg1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只在以@apps开头的package中安装</span></span><br><span class="line">pnpm add lodash --filter <span class="string">'@apps/*'</span></span><br></pre></td></tr></table></figure>
+<p><strong>在特定package中执行命令</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在pkg1中执行构建命令</span></span><br><span class="line">pnpm --filter pkg1 run build</span><br><span class="line"></span><br><span class="line"><span class="comment"># 简写形式</span></span><br><span class="line">pnpm -F pkg1 run build</span><br></pre></td></tr></table></figure>
+<h3 id="5-4-Workspace内部依赖"><a href="#5-4-Workspace内部依赖" class="headerlink" title="5.4 Workspace内部依赖"></a>5.4 Workspace内部依赖</h3><p>在workspace中，不同package之间可以相互引用：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 将pkg2添加到pkg1的依赖中</span></span><br><span class="line">pnpm add pkg2 --filter pkg1</span><br></pre></td></tr></table></figure>
+<p>这会自动在<code>packages/pkg1/package.json</code>中添加：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"dependencies"</span>: &#123;</span><br><span class="line">    <span class="attr">"pkg2"</span>: <span class="string">"workspace:*"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用<code>workspace:*</code>可以引用当前workspace中的版本，确保所有package使用一致的内部依赖版本。</p>
+<h3 id="5-5-发布配置"><a href="#5-5-发布配置" class="headerlink" title="5.5 发布配置"></a>5.5 发布配置</h3><p>在根目录的<code>package.json</code>中配置发布相关设置：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">"name"</span>: <span class="string">"my-monorepo"</span>,</span><br><span class="line">  <span class="attr">"private"</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">"publishConfig"</span>: &#123;</span><br><span class="line">    <span class="attr">"access"</span>: <span class="string">"public"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="六、pnpm基本使用"><a href="#六、pnpm基本使用" class="headerlink" title="六、pnpm基本使用"></a>六、pnpm基本使用</h2><p><code>pnpm</code>的使用成本非常低，因为它的基础命令和<code>npm/yarn</code>基本相似。</p>
+<h3 id="6-1-安装依赖"><a href="#6-1-安装依赖" class="headerlink" title="6.1 安装依赖"></a>6.1 安装依赖</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装项目所有依赖</span></span><br><span class="line">pnpm install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 lodash</span></span><br><span class="line">pnpm install lodash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加至 devDependencies</span></span><br><span class="line">pnpm install lodash -D</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加至 dependencies</span></span><br><span class="line">pnpm install lodash -S</span><br></pre></td></tr></table></figure>
+<h3 id="6-2-更新与卸载"><a href="#6-2-更新与卸载" class="headerlink" title="6.2 更新与卸载"></a>6.2 更新与卸载</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 更新依赖到最新版本</span></span><br><span class="line">pnpm update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载依赖</span></span><br><span class="line">pnpm uninstall lodash</span><br></pre></td></tr></table></figure>
+<h3 id="6-3-运行脚本"><a href="#6-3-运行脚本" class="headerlink" title="6.3 运行脚本"></a>6.3 运行脚本</h3><figure class="highlight json"><table><tr><td class="code"><pre><span class="line">// package.json</span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">"scripts"</span>: &#123;</span><br><span class="line">    <span class="attr">"dev"</span>: <span class="string">"webpack serve"</span>,</span><br><span class="line">    <span class="attr">"build"</span>: <span class="string">"webpack build"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 运行脚本</span></span><br><span class="line">pnpm run dev</span><br><span class="line"><span class="comment"># 或简写</span></span><br><span class="line">pnpm dev</span><br></pre></td></tr></table></figure>
+<h3 id="6-4-其他常用命令"><a href="#6-4-其他常用命令" class="headerlink" title="6.4 其他常用命令"></a>6.4 其他常用命令</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看依赖信息</span></span><br><span class="line">pnpm list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理缓存</span></span><br><span class="line">pnpm store prune</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看store路径</span></span><br><span class="line">pnpm store path</span><br><span class="line"></span><br><span class="line"><span class="comment"># 动态执行包（类似npx）</span></span><br><span class="line">pnpm dlx create-react-app my-app</span><br></pre></td></tr></table></figure>
+<h2 id="七、三者功能对比一览"><a href="#七、三者功能对比一览" class="headerlink" title="七、三者功能对比一览"></a>七、三者功能对比一览</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th style="text-align:center">pnpm</th>
+<th style="text-align:center">Yarn</th>
+<th style="text-align:center">npm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>工作空间支持</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+</tr>
+<tr>
+<td>隔离的node_modules</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+</tr>
+<tr>
+<td>提升的node_modules</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+</tr>
+<tr>
+<td>Plug’n’Play</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>自动安装对等依赖</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">✅</td>
+</tr>
+<tr>
+<td>零安装</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>修补依赖项</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>管理Node.js版本</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>内容可寻址存储</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>动态包执行</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+</tr>
+<tr>
+<td>副作用缓存</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>目录(Catalogs)</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>配置依赖项</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>脚本运行前自动安装</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+<td style="text-align:center">❌</td>
+</tr>
+<tr>
+<td>列出许可证</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">✅</td>
+<td style="text-align:center">❌</td>
+</tr>
+</tbody>
+</table>
+<h3 id="核心差异解读"><a href="#核心差异解读" class="headerlink" title="核心差异解读"></a>核心差异解读</h3><ol>
+<li><p><strong>pnpm vs npm/yarn 最大的区别</strong>在于node_modules的结构：</p>
+<ul>
+<li>npm/yarn采用扁平化结构，会产生幽灵依赖</li>
+<li>pnpm采用虚拟存储目录，依赖严格隔离</li>
+</ul>
+</li>
+<li><p><strong>内容可寻址存储</strong>让pnpm能够：</p>
+<ul>
+<li>同一包的不同项目只安装一次</li>
+<li>不同版本之间复用相同文件</li>
+</ul>
+</li>
+<li><p><strong>pnpm独有的功能</strong>：</p>
+<ul>
+<li><code>pnpm env</code>：管理Node.js版本</li>
+<li><code>pnpm patch</code>：修补依赖项</li>
+<li><code>Catalogs</code>：目录功能</li>
+</ul>
+</li>
+</ol>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p><code>pnpm</code>相比<code>npm/yarn</code>的核心优势在于：</p>
+<ol>
+<li><strong>更快</strong>：安装速度比<code>npm/yarn</code>快2-3倍</li>
+<li><strong>更省空间</strong>：通过硬链接机制避免重复安装，节省大量磁盘空间</li>
+<li><strong>更安全</strong>：严格的依赖管理避免幽灵依赖和非法访问</li>
+<li><strong>更规范</strong>：清晰的目录结构，原生支持Monorepo</li>
+</ol>
+<p>综合来看，<code>pnpm</code>是一个相比<code>npm/yarn</code>更为优秀的包管理方案。推荐在新项目中使用，体验现代包管理工具带来的效率提升。</p>
+<hr>
+<p><em>参考资料：</em></p>
+<ul>
+<li><a href="https://pnpm.io/zh/motivation" target="_blank" rel="noopener">pnpm官方文档</a></li>
+<li><a href="https://pnpm.io/zh/benchmarks" target="_blank" rel="noopener">pnpm性能基准测试</a></li>
+<li><a href="https://classic.yarnpkg.com/en/docs/pnp/" target="_blank" rel="noopener">Yarn PnP特性</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2023/01/17/formily-complex-forms-guide/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2023/06/08/frontend-file-download-solutions/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>

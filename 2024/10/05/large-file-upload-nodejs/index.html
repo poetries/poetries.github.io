@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>大文件上传解决方案-基于Node.js的分片与断点续传实践 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="大文件上传,分片上传,断点续传,Node.js,Web Worker,">
+  
+
+  <meta name="description" content="详细讲解大文件上传的完整解决方案，包括分片上传原理、断点续传、秒传功能，以及前端Web Worker优化和不同方案对比。">
+<meta name="keywords" content="大文件上传,分片上传,断点续传,Node.js,Web Worker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="大文件上传解决方案-基于Node.js的分片与断点续传实践">
+<meta property="og:url" content="http://blog.poetries.top/2024/10/05/large-file-upload-nodejs/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="详细讲解大文件上传的完整解决方案，包括分片上传原理、断点续传、秒传功能，以及前端Web Worker优化和不同方案对比。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/03/b67367eefca01a72.png">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2024/png/207857/1728637248107-179bf62b-b82b-4430-9d6f-6654eabc948a.png">
+<meta property="og:image" content="https://cdn.nlark.com/yuque/0/2024/png/207857/1728636569044-963d0117-d76b-4ee0-a5e7-7e3f73937aeb.png">
+<meta property="og:updated_time" content="2026-03-02T10:29:29.591Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="大文件上传解决方案-基于Node.js的分片与断点续传实践">
+<meta name="twitter:description" content="详细讲解大文件上传的完整解决方案，包括分片上传原理、断点续传、秒传功能，以及前端Web Worker优化和不同方案对比。">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/03/b67367eefca01a72.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+</head>
+</html>
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#导语"><span class="toc-text">导语</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#一、大文件上传核心概念"><span class="toc-text">一、大文件上传核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-什么是分片上传"><span class="toc-text">1.1 什么是分片上传</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-断点续传原理"><span class="toc-text">1.2 断点续传原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-秒传原理"><span class="toc-text">1.3 秒传原理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、前置知识"><span class="toc-text">二、前置知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-File-对象"><span class="toc-text">2.1 File 对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Blob-与分片"><span class="toc-text">2.2 Blob 与分片</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-FileReader-读取文件"><span class="toc-text">2.3 FileReader 读取文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-FormData-上传"><span class="toc-text">2.4 FormData 上传</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、完整实现方案"><span class="toc-text">三、完整实现方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-前端实现"><span class="toc-text">3.1 前端实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#文件分片与-Hash-计算"><span class="toc-text">文件分片与 Hash 计算</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#分片上传入口"><span class="toc-text">分片上传入口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-后端-Node-js-实现"><span class="toc-text">3.2 后端 Node.js 实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#接收分片"><span class="toc-text">接收分片</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#验证文件状态（断点续传-秒传）"><span class="toc-text">验证文件状态（断点续传/秒传）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#合并分片"><span class="toc-text">合并分片</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、上传流程图"><span class="toc-text">四、上传流程图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#五、性能优化"><span class="toc-text">五、性能优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Web-Worker-优化"><span class="toc-text">5.1 Web Worker 优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-Hash-策略优化"><span class="toc-text">5.2 Hash 策略优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-并发控制"><span class="toc-text">5.3 并发控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#六、方案对比"><span class="toc-text">六、方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-主流上传方案对比"><span class="toc-text">6.1 主流上传方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-方案选择建议"><span class="toc-text">6.2 方案选择建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-还需要考虑的因素"><span class="toc-text">6.3 还需要考虑的因素</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#七、常见问题"><span class="toc-text">七、常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-分片大小如何选择"><span class="toc-text">7.1 分片大小如何选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-如何保证分片顺序"><span class="toc-text">7.2 如何保证分片顺序</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-如何处理上传失败"><span class="toc-text">7.3 如何处理上传失败</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-为什么使用-spark-md5"><span class="toc-text">7.4 为什么使用 spark-md5</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#总结"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#面试简洁版本"><span class="toc-text">面试简洁版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#一句话概括"><span class="toc-text">一句话概括</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#核心流程（4步）"><span class="toc-text">核心流程（4步）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#关键实现"><span class="toc-text">关键实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#常见面试题"><span class="toc-text">常见面试题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#方案选择建议"><span class="toc-text">方案选择建议</span></a></li></ol></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-large-file-upload-nodejs" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">大文件上传解决方案-基于Node.js的分片与断点续传实践</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2024.10.05</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.2k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 13分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <h2 id="导语"><a href="#导语" class="headerlink" title="导语"></a>导语</h2><p>在日常开发中，我们经常会遇到大文件上传的需求，比如视频上传、文档备份等场景。普通的单次上传方式在面对数百MB甚至数GB的文件时会遇到诸多问题：请求超时、内存占用过高、网络中断后需要重新上传等。</p>
+<p>本文将深入讲解大文件上传的核心解决方案，包括<strong>分片上传</strong>、<strong>断点续传</strong>和<strong>秒传</strong>三大核心功能，并提供完整的代码实现。</p>
+<h2 id="一、大文件上传核心概念"><a href="#一、大文件上传核心概念" class="headerlink" title="一、大文件上传核心概念"></a>一、大文件上传核心概念</h2><h3 id="1-1-什么是分片上传"><a href="#1-1-什么是分片上传" class="headerlink" title="1.1 什么是分片上传"></a>1.1 什么是分片上传</h3><p>分片上传的原理是将大文件切割成多个小块（Chunk），每个小块单独发送请求到服务端，服务端接收并保存所有分片后再合并成完整的文件。</p>
+<p><img src="https://s.poetries.top/uploads/2026/03/b67367eefca01a72.png" alt></p>
+<p>分片上传的优势：</p>
+<ul>
+<li><strong>支持断点续传</strong>：网络中断后，只需上传未完成的分片</li>
+<li><strong>并行上传</strong>：多个分片可以并行传输，提高上传速度</li>
+<li><strong>减少内存占用</strong>：分片处理，不需要一次性加载整个文件到内存</li>
+</ul>
+<h3 id="1-2-断点续传原理"><a href="#1-2-断点续传原理" class="headerlink" title="1.2 断点续传原理"></a>1.2 断点续传原理</h3><p>断点续传的核心是记录已上传的分片信息。客户端首先询问服务端文件的上传状态，服务端返回已上传的分片列表，客户端只需上传剩余分片。</p>
+<h3 id="1-3-秒传原理"><a href="#1-3-秒传原理" class="headerlink" title="1.3 秒传原理"></a>1.3 秒传原理</h3><p>秒传是断点续传的特例。当服务端检测到相同文件已存在时，直接返回成功，无需真正上传文件。实现秒传的关键是<strong>文件唯一标识</strong>——通过 Hash 算法（如 MD5）计算文件的指纹。</p>
+<h2 id="二、前置知识"><a href="#二、前置知识" class="headerlink" title="二、前置知识"></a>二、前置知识</h2><h3 id="2-1-File-对象"><a href="#2-1-File-对象" class="headerlink" title="2.1 File 对象"></a>2.1 File 对象</h3><p><code>File</code> 对象是特殊类型的 <code>Blob</code>，包含文件的基本信息：</p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>File.name</code></td>
+<td>文件名</td>
+</tr>
+<tr>
+<td><code>File.size</code></td>
+<td>文件大小（字节）</td>
+</tr>
+<tr>
+<td><code>File.type</code></td>
+<td>文件 MIME 类型</td>
+</tr>
+<tr>
+<td><code>File.lastModified</code></td>
+<td>最后修改时间</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-2-Blob-与分片"><a href="#2-2-Blob-与分片" class="headerlink" title="2.2 Blob 与分片"></a>2.2 Blob 与分片</h3><p>使用 <code>Blob.slice()</code> 方法可以对文件进行分片：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;</span><br><span class="line"><span class="keyword">const</span> chunk = blobSlice.call(file, start, end); <span class="comment">// 返回指定范围的 Blob</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-3-FileReader-读取文件"><a href="#2-3-FileReader-读取文件" class="headerlink" title="2.3 FileReader 读取文件"></a>2.3 FileReader 读取文件</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fileReader = <span class="keyword">new</span> FileReader();</span><br><span class="line">fileReader.readAsArrayBuffer(blob); <span class="comment">// 读取为 ArrayBuffer</span></span><br><span class="line">fileReader.onload = <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(e.target.result); <span class="comment">// 读取结果</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="2-4-FormData-上传"><a href="#2-4-FormData-上传" class="headerlink" title="2.4 FormData 上传"></a>2.4 FormData 上传</h3><p>大文件上传必须使用 <code>multipart/form-data</code> 格式：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> formData = <span class="keyword">new</span> FormData();</span><br><span class="line">formData.append(<span class="string">'chunk'</span>, <span class="keyword">new</span> Blob([chunkData])); <span class="comment">// 文件分片</span></span><br><span class="line">formData.append(<span class="string">'index'</span>, <span class="number">1</span>); <span class="comment">// 分片索引</span></span><br><span class="line">formData.append(<span class="string">'fileHash'</span>, <span class="string">'xxx'</span>); <span class="comment">// 文件哈希</span></span><br></pre></td></tr></table></figure>
+<h2 id="三、完整实现方案"><a href="#三、完整实现方案" class="headerlink" title="三、完整实现方案"></a>三、完整实现方案</h2><h3 id="3-1-前端实现"><a href="#3-1-前端实现" class="headerlink" title="3.1 前端实现"></a>3.1 前端实现</h3><h4 id="文件分片与-Hash-计算"><a href="#文件分片与-Hash-计算" class="headerlink" title="文件分片与 Hash 计算"></a>文件分片与 Hash 计算</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> SparkMD5 <span class="keyword">from</span> <span class="string">'spark-md5'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将目标文件分片并计算文件 Hash</span></span><br><span class="line"><span class="comment"> * @param &#123;File&#125; targetFile 目标上传文件</span></span><br><span class="line"><span class="comment"> * @param &#123;number&#125; baseChunkSize 分片大小（单位 MB）</span></span><br><span class="line"><span class="comment"> * @returns &#123;chunkList: ArrayBuffer[], fileHash: string&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">sliceFile</span>(<span class="params">targetFile, baseChunkSize = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 兼容不同浏览器的分片方法</span></span><br><span class="line">    <span class="keyword">const</span> blobSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> chunkSize = baseChunkSize * <span class="number">1024</span> * <span class="number">1024</span>;</span><br><span class="line">    <span class="keyword">const</span> targetChunkCount = <span class="built_in">Math</span>.ceil(targetFile.size / chunkSize);</span><br><span class="line">    <span class="keyword">let</span> currentChunkCount = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">const</span> chunkList = [];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> spark = <span class="keyword">new</span> SparkMD5.ArrayBuffer();</span><br><span class="line">    <span class="keyword">const</span> fileReader = <span class="keyword">new</span> FileReader();</span><br><span class="line"></span><br><span class="line">    fileReader.onload = <span class="function">(<span class="params">e</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> curChunk = e.target.result;</span><br><span class="line">      spark.append(curChunk); <span class="comment">// 追加到 Hash 计算</span></span><br><span class="line">      currentChunkCount++;</span><br><span class="line">      chunkList.push(curChunk);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (currentChunkCount &gt;= targetChunkCount) &#123;</span><br><span class="line">        <span class="comment">// 全部读取完成，获取文件 Hash</span></span><br><span class="line">        <span class="keyword">const</span> fileHash = spark.end();</span><br><span class="line">        resolve(&#123; chunkList, fileHash &#125;);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        loadNext();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    fileReader.onerror = <span class="function"><span class="params">()</span> =&gt;</span> reject(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> loadNext = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> start = chunkSize * currentChunkCount;</span><br><span class="line">      <span class="keyword">const</span> end = <span class="built_in">Math</span>.min(start + chunkSize, targetFile.size);</span><br><span class="line">      fileReader.readAsArrayBuffer(blobSlice.call(targetFile, start, end));</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    loadNext();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="分片上传入口"><a href="#分片上传入口" class="headerlink" title="分片上传入口"></a>分片上传入口</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">uploadFile</span>(<span class="params">file, baseChunkSize, uploadUrl, verifyUrl, mergeUrl, progressCallback</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 1. 分片并计算 Hash</span></span><br><span class="line">  <span class="keyword">const</span> &#123; chunkList, fileHash &#125; = <span class="keyword">await</span> sliceFile(file, baseChunkSize);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> neededChunkList = [];</span><br><span class="line">  <span class="keyword">let</span> progress = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 验证文件上传状态</span></span><br><span class="line">  <span class="keyword">if</span> (verifyUrl) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; data &#125; = <span class="keyword">await</span> requestInstance.post(verifyUrl, &#123;</span><br><span class="line">      fileHash,</span><br><span class="line">      totalCount: chunkList.length,</span><br><span class="line">      extname: <span class="string">'.'</span> + file.name.split(<span class="string">'.'</span>).pop(),</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> &#123; neededFileList, message &#125; = data;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 秒传成功</span></span><br><span class="line">    <span class="keyword">if</span> (!neededFileList.length) &#123;</span><br><span class="line">      progressCallback(<span class="number">100</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    neededChunkList = neededFileList;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 计算断点续传的初始进度</span></span><br><span class="line">  progress = ((chunkList.length - neededChunkList.length) / chunkList.length) * <span class="number">100</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 4. 上传分片</span></span><br><span class="line">  <span class="keyword">if</span> (chunkList.length) &#123;</span><br><span class="line">    <span class="keyword">const</span> requestList = chunkList.map(<span class="keyword">async</span> (chunk, index) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (neededChunkList.includes(index + <span class="number">1</span>)) &#123;</span><br><span class="line">        <span class="keyword">await</span> uploadChunk(chunk, index + <span class="number">1</span>, fileHash, uploadUrl);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 更新进度</span></span><br><span class="line">        progress += <span class="built_in">Math</span>.ceil(<span class="number">100</span> / chunkList.length);</span><br><span class="line">        <span class="keyword">if</span> (progress &gt;= <span class="number">100</span>) progress = <span class="number">100</span>;</span><br><span class="line">        progressCallback(progress);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">Promise</span>.all(requestList).then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 5. 通知服务端合并分片</span></span><br><span class="line">      requestInstance.post(mergeUrl, &#123;</span><br><span class="line">        fileHash,</span><br><span class="line">        extname: <span class="string">'.mp4'</span></span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 上传单个分片</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">uploadChunk</span>(<span class="params">chunk, index, fileHash, uploadUrl</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> formData = <span class="keyword">new</span> FormData();</span><br><span class="line">  <span class="comment">// ArrayBuffer 需要转为 Blob</span></span><br><span class="line">  formData.append(<span class="string">'chunk'</span>, <span class="keyword">new</span> Blob([chunk]));</span><br><span class="line">  formData.append(<span class="string">'index'</span>, index);</span><br><span class="line">  formData.append(<span class="string">'fileHash'</span>, fileHash);</span><br><span class="line">  <span class="keyword">return</span> requestInstance.post(uploadUrl, formData);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-后端-Node-js-实现"><a href="#3-2-后端-Node-js-实现" class="headerlink" title="3.2 后端 Node.js 实现"></a>3.2 后端 Node.js 实现</h3><h4 id="接收分片"><a href="#接收分片" class="headerlink" title="接收分片"></a>接收分片</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">'fs'</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">'path'</span>);</span><br><span class="line"></span><br><span class="line">uploadChunk(chunk, chunkInfo) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; fileHash, index &#125; = chunkInfo;</span><br><span class="line">  <span class="keyword">const</span> dirPath = path.join(__dirname, <span class="string">'uploadedFiles/chunkFile'</span>, fileHash);</span><br><span class="line">  <span class="keyword">const</span> chunkPath = path.join(dirPath, <span class="string">`chunk-<span class="subst">$&#123;index&#125;</span>`</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检查文件夹是否存在</span></span><br><span class="line">  <span class="keyword">if</span> (!fs.existsSync(dirPath)) &#123;</span><br><span class="line">    fs.mkdirSync(dirPath, &#123; <span class="attr">recursive</span>: <span class="literal">true</span> &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检查分片是否已存在</span></span><br><span class="line">  <span class="keyword">if</span> (fs.existsSync(chunkPath)) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 写入分片文件</span></span><br><span class="line">  fs.writeFileSync(chunkPath, chunk.buffer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="验证文件状态（断点续传-秒传）"><a href="#验证文件状态（断点续传-秒传）" class="headerlink" title="验证文件状态（断点续传/秒传）"></a>验证文件状态（断点续传/秒传）</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">verifyFile</span>(<span class="params">fileHash, totalCount, extname</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> dirPath = path.join(__dirname, <span class="string">'uploadedFiles/chunkFile'</span>, fileHash);</span><br><span class="line">  <span class="keyword">const</span> filePath = path.join(dirPath, fileHash + extname);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 完整数组：[1, 2, 3, 4, 5...]</span></span><br><span class="line">  <span class="keyword">let</span> res = <span class="built_in">Array</span>(totalCount).fill(<span class="number">0</span>).map(<span class="function">(<span class="params">_, index</span>) =&gt;</span> index + <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 检查完整文件是否存在 → 秒传</span></span><br><span class="line">    fs.statSync(filePath);</span><br><span class="line">    <span class="keyword">return</span> &#123; <span class="attr">neededFileList</span>: [], <span class="attr">message</span>: <span class="string">'上传成功（秒传）'</span> &#125;;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (fileError) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 检查分片目录</span></span><br><span class="line">      <span class="keyword">const</span> files = fs.readdirSync(dirPath);</span><br><span class="line">      <span class="keyword">if</span> (files.length &lt; totalCount) &#123;</span><br><span class="line">        <span class="comment">// 计算待上传的分片</span></span><br><span class="line">        res = res.filter(<span class="function"><span class="params">fileIndex</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> !files.includes(<span class="string">`chunk-<span class="subst">$&#123;fileIndex&#125;</span>`</span>);</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">return</span> &#123; <span class="attr">neededFileList</span>: res &#125;; <span class="comment">// 断点续传</span></span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 分片完整，进行合并</span></span><br><span class="line">        <span class="keyword">await</span> <span class="keyword">this</span>.mergeFile(fileHash, extname);</span><br><span class="line">        <span class="keyword">return</span> &#123; <span class="attr">neededFileList</span>: [], <span class="attr">message</span>: <span class="string">'上传成功'</span> &#125;;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (dirError) &#123;</span><br><span class="line">      <span class="comment">// 目录不存在，需要全部上传</span></span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">neededFileList</span>: res &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="合并分片"><a href="#合并分片" class="headerlink" title="合并分片"></a>合并分片</h4><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">mergeFile</span>(<span class="params">fileHash, extname</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> dirPath = path.join(__dirname, <span class="string">'uploadedFiles/chunkFile'</span>, fileHash);</span><br><span class="line">  <span class="keyword">const</span> fullPath = path.join(dirPath, fileHash + extname);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> writeStream = fs.createWriteStream(fullPath);</span><br><span class="line">  <span class="keyword">let</span> files = fs.readdirSync(dirPath);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 按分片索引排序</span></span><br><span class="line">  files.sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> indexA = <span class="built_in">parseInt</span>(a.split(<span class="string">'-'</span>).pop());</span><br><span class="line">    <span class="keyword">const</span> indexB = <span class="built_in">parseInt</span>(b.split(<span class="string">'-'</span>).pop());</span><br><span class="line">    <span class="keyword">return</span> indexA - indexB;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 按顺序合并</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> filename <span class="keyword">of</span> files) &#123;</span><br><span class="line">    <span class="keyword">const</span> curFilePath = path.join(dirPath, filename);</span><br><span class="line">    <span class="keyword">const</span> readStream = fs.createReadStream(curFilePath);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">      readStream.pipe(writeStream, &#123; <span class="attr">end</span>: <span class="literal">false</span> &#125;);</span><br><span class="line">      readStream.on(<span class="string">'end'</span>, resolve);</span><br><span class="line">      readStream.on(<span class="string">'error'</span>, reject);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  writeStream.end();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 删除分片目录</span></span><br><span class="line">  fs.rmdirSync(dirPath, &#123; <span class="attr">recursive</span>: <span class="literal">true</span> &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="string">'合并完成'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="四、上传流程图"><a href="#四、上传流程图" class="headerlink" title="四、上传流程图"></a>四、上传流程图</h2><p>整个上传流程如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1. 选择文件 → 客户端分片 + 计算 Hash</span><br><span class="line">2. 发送验证请求 → 服务端返回上传状态</span><br><span class="line">3. 根据状态处理：</span><br><span class="line">   - 文件已存在 → 秒传成功</span><br><span class="line">   - 部分分片存在 → 断点续传（上传剩余分片）</span><br><span class="line">   - 文件不存在 → 上传所有分片</span><br><span class="line">4. 全部上传完成后 → 通知服务端合并</span><br></pre></td></tr></table></figure>
+<p><img src="https://cdn.nlark.com/yuque/0/2024/png/207857/1728637248107-179bf62b-b82b-4430-9d6f-6654eabc948a.png" alt="上传流程"></p>
+<h2 id="五、性能优化"><a href="#五、性能优化" class="headerlink" title="五、性能优化"></a>五、性能优化</h2><h3 id="5-1-Web-Worker-优化"><a href="#5-1-Web-Worker-优化" class="headerlink" title="5.1 Web Worker 优化"></a>5.1 Web Worker 优化</h3><p>当文件非常大时，Hash 计算会占用大量主线程资源，导致页面卡顿。使用 Web Worker 可以在<strong>后台线程</strong>中执行计算，不影响用户交互。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 主线程</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">uploadFile</span>(<span class="params">file, baseChunkSize, ...</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 创建 Worker</span></span><br><span class="line">  <span class="keyword">const</span> worker = <span class="keyword">new</span> Worker(<span class="keyword">new</span> URL(<span class="string">'./sliceFileWorker.js'</span>, <span class="keyword">import</span>.meta.url), &#123;</span><br><span class="line">    type: <span class="string">'module'</span></span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  worker.postMessage(&#123; <span class="attr">targetFile</span>: file, baseChunkSize &#125;);</span><br><span class="line"></span><br><span class="line">  worker.onmessage = <span class="keyword">async</span> (e) =&gt; &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; chunkList, fileHash &#125; = e.data;</span><br><span class="line">    <span class="comment">// 后续上传逻辑...</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// sliceFileWorker.js</span></span><br><span class="line">self.onmessage = <span class="keyword">async</span> (e) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; targetFile, baseChunkSize &#125; = e.data;</span><br><span class="line">  <span class="keyword">const</span> &#123; chunkList, fileHash &#125; = <span class="keyword">await</span> sliceFile(targetFile, baseChunkSize);</span><br><span class="line">  self.postMessage(&#123; chunkList, fileHash &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="5-2-Hash-策略优化"><a href="#5-2-Hash-策略优化" class="headerlink" title="5.2 Hash 策略优化"></a>5.2 Hash 策略优化</h3><p>对于超大文件，即使在 Worker 中计算 Hash 也会耗时较长。可以采用<strong>抽样 Hash</strong> 策略：</p>
+<ul>
+<li>仅 Hash 文件的第一个分片 + 中间分片的首尾 + 最后一个分片</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2024/png/207857/1728636569044-963d0117-d76b-4ee0-a5e7-7e3f73937aeb.png" alt="抽样 Hash 策略"></p>
+<p>这种策略的缺点是碰撞概率略高，但在大多数业务场景下是可接受的。</p>
+<h3 id="5-3-并发控制"><a href="#5-3-并发控制" class="headerlink" title="5.3 并发控制"></a>5.3 并发控制</h3><p>使用 <code>Promise.all</code> 并行上传所有分片，但需要注意控制并发数量，避免占用过多资源：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 控制并发数为 3</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">function</span> <span class="title">uploadWithConcurrency</span>(<span class="params">chunks, concurrency = <span class="number">3</span></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> results = [];</span><br><span class="line">  <span class="keyword">const</span> executing = [];</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> chunk <span class="keyword">of</span> chunks) &#123;</span><br><span class="line">    <span class="keyword">const</span> promise = uploadChunk(chunk);</span><br><span class="line">    results.push(promise);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (chunks.length &gt;= concurrency) &#123;</span><br><span class="line">      <span class="keyword">const</span> executingPromise = promise.then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        executing.splice(executing.indexOf(executingPromise), <span class="number">1</span>);</span><br><span class="line">      &#125;);</span><br><span class="line">      executing.push(executingPromise);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (executing.length &gt;= concurrency) &#123;</span><br><span class="line">        <span class="keyword">await</span> <span class="built_in">Promise</span>.race(executing);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Promise</span>.all(results);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="六、方案对比"><a href="#六、方案对比" class="headerlink" title="六、方案对比"></a>六、方案对比</h2><h3 id="6-1-主流上传方案对比"><a href="#6-1-主流上传方案对比" class="headerlink" title="6.1 主流上传方案对比"></a>6.1 主流上传方案对比</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>普通上传</strong></td>
+<td>实现简单</td>
+<td>大文件易超时、内存占用高</td>
+<td>小文件（&lt; 10MB）</td>
+</tr>
+<tr>
+<td><strong>分片上传</strong></td>
+<td>支持断点续传、减少内存占用</td>
+<td>实现复杂、服务器存储分片</td>
+<td>大文件上传</td>
+</tr>
+<tr>
+<td><strong>秒传</strong></td>
+<td>重复文件极速上传</td>
+<td>需要存储文件 Hash</td>
+<td>允许重复上传的场景</td>
+</tr>
+<tr>
+<td><strong>Web Worker</strong></td>
+<td>不阻塞主线程</td>
+<td>增加复杂度</td>
+<td>超大文件</td>
+</tr>
+<tr>
+<td><strong>抽样 Hash</strong></td>
+<td>计算速度快</td>
+<td>碰撞概率略高</td>
+<td>超大文件优化</td>
+</tr>
+<tr>
+<td><strong>CDN 加速</strong></td>
+<td>上传速度快</td>
+<td>成本较高</td>
+<td>面向全国用户</td>
+</tr>
+</tbody>
+</table>
+<h3 id="6-2-方案选择建议"><a href="#6-2-方案选择建议" class="headerlink" title="6.2 方案选择建议"></a>6.2 方案选择建议</h3><ol>
+<li><strong>小文件（&lt; 10MB）</strong>：直接使用普通上传即可</li>
+<li><strong>中等文件（10MB - 100MB）</strong>：分片上传 + 断点续传</li>
+<li><strong>大文件（&gt; 100MB）</strong>：分片上传 + 断点续传 + 秒传 + Web Worker</li>
+<li><strong>超大文件（&gt; 1GB）</strong>：分片上传 + 抽样 Hash + 并发控制</li>
+</ol>
+<h3 id="6-3-还需要考虑的因素"><a href="#6-3-还需要考虑的因素" class="headerlink" title="6.3 还需要考虑的因素"></a>6.3 还需要考虑的因素</h3><ul>
+<li><strong>服务器存储</strong>：分片上传会产生大量小文件，需要定期清理</li>
+<li><strong>安全性</strong>：防止恶意用户上传超大文件耗尽存储</li>
+<li><strong>用户体验</strong>：进度条显示、错误提示、自动重试</li>
+<li><strong>网络环境</strong>：弱网环境下的上传体验</li>
+</ul>
+<h2 id="七、常见问题"><a href="#七、常见问题" class="headerlink" title="七、常见问题"></a>七、常见问题</h2><h3 id="7-1-分片大小如何选择"><a href="#7-1-分片大小如何选择" class="headerlink" title="7.1 分片大小如何选择"></a>7.1 分片大小如何选择</h3><p>建议分片大小设置为 <strong>1MB - 5MB</strong>。过小的分片会增加 HTTP 请求次数，过大的分片会影响断点续传的粒度。</p>
+<h3 id="7-2-如何保证分片顺序"><a href="#7-2-如何保证分片顺序" class="headerlink" title="7.2 如何保证分片顺序"></a>7.2 如何保证分片顺序</h3><p>服务端按分片索引命名文件（如 <code>chunk-1</code>, <code>chunk-2</code>），合并时按索引排序即可保证顺序。</p>
+<h3 id="7-3-如何处理上传失败"><a href="#7-3-如何处理上传失败" class="headerlink" title="7.3 如何处理上传失败"></a>7.3 如何处理上传失败</h3><p>分片上传支持重试机制，失败的单个分片可以单独重试，不影响其他分片。</p>
+<h3 id="7-4-为什么使用-spark-md5"><a href="#7-4-为什么使用-spark-md5" class="headerlink" title="7.4 为什么使用 spark-md5"></a>7.4 为什么使用 spark-md5</h3><p><code>spark-md5</code> 是专门为大规模文件设计的 MD5 库，支持分块计算 Hash，避免一次性加载整个文件到内存。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文详细讲解了大文件上传的完整解决方案：</p>
+<ol>
+<li><strong>分片上传</strong>：将大文件切割成小块并行上传，提升稳定性</li>
+<li><strong>断点续传</strong>：记录已上传分片，网络中断后可继续上传</li>
+<li><strong>秒传</strong>：通过文件 Hash 判断重复，重复文件直接返回成功</li>
+<li><strong>Web Worker</strong>：将计算密集型任务移到后台线程，避免页面卡顿</li>
+<li><strong>抽样 Hash</strong>：对超大文件采用抽样策略，大幅缩短计算时间</li>
+</ol>
+<p>在实际项目中，需要根据业务需求选择合适的方案组合。希望本文能帮助你在面试和实际开发中更好地应对大文件上传的场景。</p>
+<hr>
+<h2 id="面试简洁版本"><a href="#面试简洁版本" class="headerlink" title="面试简洁版本"></a>面试简洁版本</h2><blockquote>
+<p>以下是面试时可用的精简版回答，建议背诵核心流程和关键点</p>
+</blockquote>
+<h3 id="一句话概括"><a href="#一句话概括" class="headerlink" title="一句话概括"></a>一句话概括</h3><p>大文件上传通常采用<strong>分片上传 + 断点续传 + 秒传</strong>的方案：前端将文件切片并行上传，服务端存储分片，合并成完整文件；通过文件 Hash 标识实现断点续传和秒传。</p>
+<h3 id="核心流程（4步）"><a href="#核心流程（4步）" class="headerlink" title="核心流程（4步）"></a>核心流程（4步）</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1. 前端：File.slice() 分片 + spark-md5 计算文件 Hash</span><br><span class="line">2. 前端：发送验证请求，询问服务端文件上传状态</span><br><span class="line">3. 服务端返回状态：</span><br><span class="line">   - 文件已存在 → 秒传成功</span><br><span class="line">   - 部分分片存在 → 断点续传（只传剩余分片）</span><br><span class="line">   - 文件不存在 → 全部上传</span><br><span class="line">4. 所有分片上传完成后，通知服务端合并</span><br></pre></td></tr></table></figure>
+<h3 id="关键实现"><a href="#关键实现" class="headerlink" title="关键实现"></a>关键实现</h3><p><strong>前端分片：</strong><br><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Blob.slice 分片，FileReader 读取，spark-md5 计算 Hash</span></span><br><span class="line"><span class="keyword">const</span> chunk = file.slice(start, end)  <span class="comment">// 分片</span></span><br><span class="line">fileReader.readAsArrayBuffer(chunk)     <span class="comment">// 读取</span></span><br><span class="line">spark.append(chunk)                     <span class="comment">// 累加 Hash</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>上传请求：</strong><br><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// FormData 格式，包含分片内容、索引、文件 Hash</span></span><br><span class="line">formData.append(<span class="string">'chunk'</span>, <span class="keyword">new</span> Blob([chunk]))</span><br><span class="line">formData.append(<span class="string">'index'</span>, <span class="number">1</span>)</span><br><span class="line">formData.append(<span class="string">'fileHash'</span>, <span class="string">'abc123'</span>)</span><br></pre></td></tr></table></figure></p>
+<p><strong>后端合并：</strong><br><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 按索引排序，用流管道按顺序写入</span></span><br><span class="line">files.sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.index - b.index)</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> file <span class="keyword">of</span> files) &#123;</span><br><span class="line">  readStream.pipe(writeStream, &#123; <span class="attr">end</span>: <span class="literal">false</span> &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="常见面试题"><a href="#常见面试题" class="headerlink" title="常见面试题"></a>常见面试题</h3><p><strong>Q1：大文件上传如何实现断点续传？</strong></p>
+<p>A：核心是记录已上传的分片。每次上传前先问服务端”这个文件传了多少”，服务端返回已上传的分片列表，前端只传剩余的。</p>
+<p><strong>Q2：怎么保证文件唯一性（秒传）？</strong></p>
+<p>A：用 Hash 算法（如 MD5）计算文件的”指纹”。上传前先问服务端”这个 Hash 的文件有没有”，有就直接返回成功。</p>
+<p><strong>Q3：大文件 Hash 计算太慢怎么办？</strong></p>
+<p>A：两个方案：1）用 Web Worker 在后台线程计算，不卡主线程；2）用抽样 Hash（只算首+中+尾分片），牺牲一点准确性换速度。</p>
+<p><strong>Q4：分片大小怎么选？</strong></p>
+<p>A：一般 1-5MB。太小请求太多，太大断点粒度粗。</p>
+<p><strong>Q5：上传失败怎么处理？</strong></p>
+<p>A：Promise.all 并行上传，失败的单个分片单独重试，不影响其他分片。</p>
+<p><strong>Q6：为什么用 spark-md5 不用 crypto-md5？</strong></p>
+<p>A：spark-md5 支持分块计算，不会一次性把整个文件加载到内存，更适合大文件。</p>
+<h3 id="方案选择建议"><a href="#方案选择建议" class="headerlink" title="方案选择建议"></a>方案选择建议</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>小文件（&lt;10MB）</td>
+<td>普通上传</td>
+</tr>
+<tr>
+<td>中等文件（10-100MB）</td>
+<td>分片 + 断点续传</td>
+</tr>
+<tr>
+<td>大文件（&gt;100MB）</td>
+<td>分片 + 断点续传 + 秒传 + Web Worker</td>
+</tr>
+<tr>
+<td>超大文件（&gt;1GB）</td>
+<td>+ 抽样 Hash + 并发控制</td>
+</tr>
+</tbody>
+</table>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2024/04/28/eslint-9-upgrade-guide/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2024/11/26/mobx-react-best-practices/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
