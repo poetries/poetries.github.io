@@ -551,7 +551,7 @@ services:
             - 3307:3306 # 本机端口:容器端口
         restart: on-failure
         environment: 
-            - MYSQL_ROOT_PASSWORD=993412 # root用户密码
+            - MYSQL_ROOT_PASSWORD=123456 # root用户密码
         volumes:
             - ./deploy/mysql/db:/var/lib/mysql # 用来存放了数据库表文件
             - ./deploy/mysql/conf/my.cnf:/etc/my.cnf # 存放自定义的配置文件
