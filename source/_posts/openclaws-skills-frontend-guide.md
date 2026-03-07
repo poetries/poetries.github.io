@@ -10,7 +10,7 @@ tags:
 categories: AI
 ---
 
-# OpenClaw Skills 进阶实战：前端开发者的AI技能库搭建指南1
+# OpenClaw Skills 进阶实战：前端开发者的AI技能库搭建指南
 
 部署好OpenClaw后，很多人会发现它还只是个"聊天机器"。其实，OpenClaw真正强大的地方在于Skills生态——通过不同的技能插件，你的AI助手可以具备代码生成、UI设计、性能优化、调试排错等前端开发能力。
 
