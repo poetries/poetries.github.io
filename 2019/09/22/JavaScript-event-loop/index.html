@@ -4,7 +4,7 @@
   <html class="dark page-post">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>彻底弄懂 JavaScript 执行机制[转] | 前端进阶之旅</title>
@@ -12,23 +12,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,Event Loop,">
+    <meta name="keywords" content="JavaScript,Event Loop," />
   
 
   <meta name="description" content="javascript是一门单线程语言，在最新的HTML5中提出了Web-Worker，但javascript是单线程这一核心仍未改变。所以一切javascript版的”多线程”都是用单线程模拟出来的，一切javascript多线程都是纸老虎  一、javascript事件循环 既然js是单线程，那就像只有一个窗口的银行，客户需要排队一个一个办理业务，同理js任务也要一个一个顺序执行。如果一个任务">
-<meta name="keywords" content="JavaScript,Event Loop">
 <meta property="og:type" content="article">
 <meta property="og:title" content="彻底弄懂 JavaScript 执行机制[转]">
 <meta property="og:url" content="http://blog.poetries.top/2019/09/22/JavaScript-event-loop/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
 <meta property="og:description" content="javascript是一门单线程语言，在最新的HTML5中提出了Web-Worker，但javascript是单线程这一核心仍未改变。所以一切javascript版的”多线程”都是用单线程模拟出来的，一切javascript多线程都是纸老虎  一、javascript事件循环 既然js是单线程，那就像只有一个窗口的银行，客户需要排队一个一个办理业务，同理js任务也要一个一个顺序执行。如果一个任务">
-<meta property="og:locale" content="zh-Hans">
+<meta property="og:locale">
 <meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190922/event-loop-1.png">
 <meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190922/event-loop-2.png">
-<meta property="og:updated_time" content="2025-03-30T13:54:29.448Z">
+<meta property="article:published_time" content="2019-09-22T02:20:54.000Z">
+<meta property="article:modified_time" content="2025-03-30T13:54:29.448Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="Event Loop">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="彻底弄懂 JavaScript 执行机制[转]">
-<meta name="twitter:description" content="javascript是一门单线程语言，在最新的HTML5中提出了Web-Worker，但javascript是单线程这一核心仍未改变。所以一切javascript版的”多线程”都是用单线程模拟出来的，一切javascript多线程都是纸老虎  一、javascript事件循环 既然js是单线程，那就像只有一个窗口的银行，客户需要排队一个一个办理业务，同理js任务也要一个一个顺序执行。如果一个任务">
 <meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/20190922/event-loop-1.png">
 
   
@@ -42,7 +43,9 @@
 
 
   
-    <link rel="stylesheet" href="/css/personal-style.css">
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
   
 
   
@@ -111,8 +114,9 @@
         }
       }
    </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
 </head>
-</html>
+
 <body>
   
   
@@ -204,7 +208,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、javascript事件循环"><span class="toc-text">一、javascript事件循环</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、setTimeout和setInterval"><span class="toc-text">二、setTimeout和setInterval</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-setTimeout"><span class="toc-text">2.1 setTimeout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-setInterval"><span class="toc-text">2.2 setInterval</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、Promise与process-nextTick-callback"><span class="toc-text">三、Promise与process.nextTick(callback)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、总结"><span class="toc-text">四、总结</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81javascript%E4%BA%8B%E4%BB%B6%E5%BE%AA%E7%8E%AF"><span class="toc-text">一、javascript事件循环</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81setTimeout%E5%92%8CsetInterval"><span class="toc-text">二、setTimeout和setInterval</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-setTimeout"><span class="toc-text">2.1 setTimeout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-setInterval"><span class="toc-text">2.2 setInterval</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Promise%E4%B8%8Eprocess-nextTick-callback"><span class="toc-text">三、Promise与process.nextTick(callback)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">四、总结</span></a></li></ol>
   </div>
   
 
@@ -269,7 +273,7 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.8k字</span>
+            <span>字数统计 2.9k字</span>
           </span>
 
           <span class="post-count">
@@ -301,7 +305,7 @@
 <blockquote>
 <p>当我们打开网站时，网页的渲染过程就是一大堆同步任务，比如页面骨架和页面元素的渲染。而像加载图片音乐之类占用资源大耗时久的任务，就是异步任务。关于这部分有严格的文字定义，但本文的目的是用最小的学习成本彻底弄懂执行机制，所以我们用导图来说明</p>
 </blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20190922/event-loop-1.png" alt></p>
+<p><img src="https://poetries1.gitee.io/img-repo/20190922/event-loop-1.png"></p>
 <ul>
 <li>同步和异步任务分别进入不同的执行”场所”，同步的进入主线程，异步的进入<code>Event Table</code>并注册函数。</li>
 <li>当指定的事情完成时，<code>Event Table</code>会将这个函数移入<code>Event Queue</code>。</li>
@@ -311,7 +315,8 @@
 <blockquote>
 <p>我们不禁要问了，那怎么知道主线程执行栈为空啊？<code>js</code>引擎存在<code>monitoring process</code>进程，会持续不断的检查主线程执行栈是否为空，一旦为空，就会去<code>Event Queue</code>那里检查是否有等待被调用的函数</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> data = [];</span><br><span class="line">$.ajax(&#123;</span><br><span class="line">    url:www.javascript.com,</span><br><span class="line">    data:data,</span><br><span class="line">    success:<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'发送成功!'</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'代码执行结束'</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> data = [];</span><br><span class="line">$.<span class="title function_">ajax</span>(&#123;</span><br><span class="line">    <span class="attr">url</span>:www.<span class="property">javascript</span>.<span class="property">com</span>,</span><br><span class="line">    <span class="attr">data</span>:data,</span><br><span class="line">    <span class="attr">success</span>:<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;发送成功!&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;代码执行结束&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
 <p>上面是一段简易的ajax请求代码</p>
 <ul>
 <li><code>ajax</code>进入<code>Event Table</code>，注册回调函数success。</li>
@@ -320,15 +325,19 @@
 <li>主线程从<code>Event Queue</code>读取回调函数<code>success</code>并执行</li>
 </ul>
 <h2 id="二、setTimeout和setInterval"><a href="#二、setTimeout和setInterval" class="headerlink" title="二、setTimeout和setInterval"></a>二、setTimeout和setInterval</h2><h3 id="2-1-setTimeout"><a href="#2-1-setTimeout" class="headerlink" title="2.1 setTimeout"></a>2.1 setTimeout</h3><p>大名鼎鼎的<code>setTimeout</code>无需再多言，大家对他的第一印象就是异步可以延时执行，我们经常这么实现延时3秒执行</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'延时3秒'</span>);</span><br><span class="line">&#125;,<span class="number">3000</span>)</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;延时3秒&#x27;</span>);</span><br><span class="line">&#125;,<span class="number">3000</span>)</span><br></pre></td></tr></table></figure>
+
 <p>渐渐的<code>setTimeout</code>用的地方多了，问题也出现了，有时候明明写的延时3秒，实际却5，6秒才执行函数，这又咋回事啊？</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    task();</span><br><span class="line">&#125;,<span class="number">3000</span>)</span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'执行console'</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">task</span>();</span><br><span class="line">&#125;,<span class="number">3000</span>)</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;执行console&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
 <blockquote>
 <p>根据前面我们的结论，<code>setTimeout</code>是异步的，应该先执行<code>console.log</code>这个同步任务，所以我们的结论是：</p>
 </blockquote>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">//执行console</span><br><span class="line">//task()</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//执行console</span><br><span class="line">//task()</span><br></pre></td></tr></table></figure>
+
 <p>去验证一下，结果正确！<br>然后我们修改一下前面的代码</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">setTimeout(() =&gt; &#123;</span><br><span class="line">    task()</span><br><span class="line">&#125;,3000)</span><br><span class="line"></span><br><span class="line">sleep(10000000)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">setTimeout(() =&gt; &#123;</span><br><span class="line">    task()</span><br><span class="line">&#125;,3000)</span><br><span class="line"></span><br><span class="line">sleep(10000000)</span><br></pre></td></tr></table></figure>
+
 <p>乍一看其实差不多嘛，但我们把这段代码在chrome执行一下，却发现控制台执行task()需要的时间远远超过3秒，说好的延时三秒，为啥现在需要这么长时间啊？</p>
 <p><strong>这时候我们需要重新理解setTimeout的定义。我们先说上述代码是怎么执行的</strong></p>
 <ul>
@@ -344,12 +353,16 @@
 <li>我们还经常遇到<code>setTimeout(fn,0)</code>这样的代码，0秒后执行又是什么意思呢？是不是可以立即执行呢？</li>
 <li>答案是不会的<code>，setTimeout(fn,0)</code>的含义是，指定某个任务在主线程最早可得的空闲时间执行，意思就是不用再等多少秒了，只要主线程执行栈内的同步任务全部执行完成，栈为空就马上执行。举例说明：</li>
 </ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//代码1</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'先执行这里'</span>);</span><br><span class="line">setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'执行啦'</span>)</span><br><span class="line">&#125;,<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//代码2</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'先执行这里'</span>);</span><br><span class="line">setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'执行啦'</span>)</span><br><span class="line">&#125;,<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//代码1</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;先执行这里&#x27;</span>);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;执行啦&#x27;</span>)</span><br><span class="line">&#125;,<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//代码2</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;先执行这里&#x27;</span>);</span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;执行啦&#x27;</span>)</span><br><span class="line">&#125;,<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
+
 <p>代码1的输出结果是：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">//先执行这里</span><br><span class="line">//执行啦</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//先执行这里</span><br><span class="line">//执行啦</span><br></pre></td></tr></table></figure>
+
 <p>代码2的输出结果是：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">//先执行这里</span><br><span class="line">// ... 3s later</span><br><span class="line">// 执行啦</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//先执行这里</span><br><span class="line">// ... 3s later</span><br><span class="line">// 执行啦</span><br></pre></td></tr></table></figure>
+
 <blockquote>
 <p>关于<code>setTimeout</code>要补充的是，即便主线程为空，0毫秒实际上也是达不到的。根据HTML的标准，最低是<code>4</code>毫秒。有兴趣的同学可以自行了解</p>
 </blockquote>
@@ -376,7 +389,8 @@
 <blockquote>
 <p>事件循环的顺序，决定js代码的执行顺序。进入整体代码(宏任务)后，开始第一次循环。接着执行所有的微任务。然后再次从宏任务开始，找到其中一个任务队列执行完毕，再执行所有的微任务。听起来有点绕，我们用文章最开始的一段代码说明</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'setTimeout'</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'promise'</span>);</span><br><span class="line">&#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'then'</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'console'</span>);</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="built_in">setTimeout</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;setTimeout&#x27;</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;promise&#x27;</span>);</span><br><span class="line">&#125;).<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;then&#x27;</span>);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;console&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
 <ul>
 <li>这段代码作为宏任务，进入主线程。</li>
 <li>先遇到<code>setTimeout</code>，那么将其回调函数注册后分发到宏任务<code>Event Queue</code>。(注册过程与上同，下文不再描述)</li>
@@ -389,11 +403,12 @@
 <blockquote>
 <p>事件循环，宏任务，微任务的关系如图所示：</p>
 </blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20190922/event-loop-2.png" alt></p>
+<p><img src="https://poetries1.gitee.io/img-repo/20190922/event-loop-2.png"></p>
 <blockquote>
 <p>我们来分析一段较复杂的代码，看看你是否真的掌握了js的执行机制</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(<span class="string">'1'</span>);</span><br><span class="line"></span><br><span class="line">setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'2'</span>);</span><br><span class="line">    process.nextTick(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'3'</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'4'</span>);</span><br><span class="line">        resolve();</span><br><span class="line">    &#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'5'</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line">process.nextTick(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'6'</span>);</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'7'</span>);</span><br><span class="line">    resolve();</span><br><span class="line">&#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'8'</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'9'</span>);</span><br><span class="line">    process.nextTick(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'10'</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="keyword">function</span>(<span class="params">resolve</span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'11'</span>);</span><br><span class="line">        resolve();</span><br><span class="line">    &#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'12'</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;2&#x27;</span>);</span><br><span class="line">    process.<span class="title function_">nextTick</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;3&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;4&#x27;</span>);</span><br><span class="line">        <span class="title function_">resolve</span>();</span><br><span class="line">    &#125;).<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;5&#x27;</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line">process.<span class="title function_">nextTick</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;6&#x27;</span>);</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;7&#x27;</span>);</span><br><span class="line">    <span class="title function_">resolve</span>();</span><br><span class="line">&#125;).<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;8&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;9&#x27;</span>);</span><br><span class="line">    process.<span class="title function_">nextTick</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;10&#x27;</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;11&#x27;</span>);</span><br><span class="line">        <span class="title function_">resolve</span>();</span><br><span class="line">    &#125;).<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;12&#x27;</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
 <p><strong>第一轮事件循环流程分析如下</strong></p>
 <ul>
 <li>整体<code>script</code>作为第一个宏任务进入主线程，遇到<code>console.log</code>，输出<code>1</code>。</li>
@@ -409,8 +424,7 @@
 <th>微任务Event Queue</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td><code>setTimeout1</code></td>
 <td><code>process1</code></td>
 </tr>
@@ -418,8 +432,7 @@
 <td><code>setTimeout2</code></td>
 <td><code>then1</code></td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <ul>
 <li>上表是第一轮事件循环宏任务结束时各<code>Event Queue的</code>情况，此时已经输出了<code>1</code>和<code>7</code>。</li>
 <li>我们发现了<code>process1</code>和<code>then1</code>两个微任务。</li>
@@ -439,8 +452,7 @@
 <th>微任务Event Queue</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td><code>setTimeout2</code></td>
 <td><code>process2</code></td>
 </tr>
@@ -448,8 +460,7 @@
 <td></td>
 <td><code>then2</code></td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <ul>
 <li>第二轮事件循环宏任务结束，我们发现有<code>process2</code>和<code>then2</code>两个微任务可以执行。</li>
 <li>输出3。</li>
@@ -468,8 +479,7 @@
 <th>微任务Event Queue</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td></td>
 <td><code>process3</code></td>
 </tr>
@@ -477,8 +487,7 @@
 <td></td>
 <td><code>then3</code></td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <ul>
 <li>第三轮事件循环宏任务执行结束，执行两个微任务<code>process3</code>和<code>then3</code>。</li>
 <li>输出10。</li>

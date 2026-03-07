@@ -4,7 +4,7 @@
   <html class="dark page-post">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>React之setState原理分析 | 前端进阶之旅</title>
@@ -12,25 +12,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Javascript,React,">
+    <meta name="keywords" content="Javascript,React," />
   
 
   <meta name="description" content="一、setState异步更新 我们都知道，React通过this.state来访问state，通过this.setState()方法来更新state。当this.setState()方法被调用的时候，React会重新调用render方法来重新渲染UI 首先如果直接在setState后面获取state的值是获取不到的。在React内部机制能检测到的地方， setState就是异步的；在React检测">
-<meta name="keywords" content="Javascript,React">
 <meta property="og:type" content="article">
 <meta property="og:title" content="React之setState原理分析">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/21/react-setState/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
 <meta property="og:description" content="一、setState异步更新 我们都知道，React通过this.state来访问state，通过this.setState()方法来更新state。当this.setState()方法被调用的时候，React会重新调用render方法来重新渲染UI 首先如果直接在setState后面获取state的值是获取不到的。在React内部机制能检测到的地方， setState就是异步的；在React检测">
-<meta property="og:locale" content="zh-Hans">
+<meta property="og:locale">
 <meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/431.png">
 <meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/432.png">
 <meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/433.png">
 <meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/434.png">
-<meta property="og:updated_time" content="2025-03-30T13:54:29.494Z">
+<meta property="article:published_time" content="2018-12-20T16:00:24.000Z">
+<meta property="article:modified_time" content="2025-03-30T13:54:29.494Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Javascript">
+<meta property="article:tag" content="React">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="React之setState原理分析">
-<meta name="twitter:description" content="一、setState异步更新 我们都知道，React通过this.state来访问state，通过this.setState()方法来更新state。当this.setState()方法被调用的时候，React会重新调用render方法来重新渲染UI 首先如果直接在setState后面获取state的值是获取不到的。在React内部机制能检测到的地方， setState就是异步的；在React检测">
 <meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/431.png">
 
   
@@ -44,7 +45,9 @@
 
 
   
-    <link rel="stylesheet" href="/css/personal-style.css">
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
   
 
   
@@ -113,8 +116,9 @@
         }
       }
    </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
 </head>
-</html>
+
 <body>
   
   
@@ -206,7 +210,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#一、setState异步更新"><span class="toc-text">一、setState异步更新</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-setState批量更新的过程"><span class="toc-text">1.1 setState批量更新的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-为什么直接修改this-state无效"><span class="toc-text">1.2 为什么直接修改this.state无效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-什么是批量更新-Batch-Update"><span class="toc-text">1.3 什么是批量更新 Batch Update</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-setState之后发生的事情"><span class="toc-text">1.4 setState之后发生的事情</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-如何知道state已经被更新"><span class="toc-text">1.5 如何知道state已经被更新</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#二、setState循环调用风险"><span class="toc-text">二、setState循环调用风险</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#三、事务"><span class="toc-text">三、事务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#四、总结"><span class="toc-text">四、总结</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81setState%E5%BC%82%E6%AD%A5%E6%9B%B4%E6%96%B0"><span class="toc-text">一、setState异步更新</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-setState%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">1.1 setState批量更新的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%B4%E6%8E%A5%E4%BF%AE%E6%94%B9this-state%E6%97%A0%E6%95%88"><span class="toc-text">1.2 为什么直接修改this.state无效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BB%80%E4%B9%88%E6%98%AF%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0-Batch-Update"><span class="toc-text">1.3 什么是批量更新 Batch Update</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-setState%E4%B9%8B%E5%90%8E%E5%8F%91%E7%94%9F%E7%9A%84%E4%BA%8B%E6%83%85"><span class="toc-text">1.4 setState之后发生的事情</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93state%E5%B7%B2%E7%BB%8F%E8%A2%AB%E6%9B%B4%E6%96%B0"><span class="toc-text">1.5 如何知道state已经被更新</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81setState%E5%BE%AA%E7%8E%AF%E8%B0%83%E7%94%A8%E9%A3%8E%E9%99%A9"><span class="toc-text">二、setState循环调用风险</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BA%8B%E5%8A%A1"><span class="toc-text">三、事务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">四、总结</span></a></li></ol>
   </div>
   
 
@@ -294,11 +298,11 @@
 <li>我们都知道，<code>React</code>通过<code>this.state</code>来访问<code>state</code>，通过<code>this.setState()</code>方法来更新<code>state</code>。当<code>this.setState()</code>方法被调用的时候，<code>React</code>会重新调用<code>render</code>方法来重新渲染<code>UI</code></li>
 <li>首先如果直接在<code>setState</code>后面获取<code>state</code>的值是获取不到的。在<code>React</code>内部机制能检测到的地方， <code>setState</code>就是异步的；<code>在React</code>检测不到的地方，例如<code>setInterval</code>,<code>setTimeout</code>，<code>setState</code>就是同步更新的</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/431.png" alt></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/431.png"></p>
 <blockquote>
 <p>因为<code>setState</code>是可以接受两个参数的，一个<code>state</code>，一个回调函数。因此我们可以在回调函数里面获取值</p>
 </blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/432.png" alt></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/432.png"></p>
 <ul>
 <li><code>setState</code>方法通过一个队列机制实现<code>state</code>更新，当执行<code>setState</code>的时候，会将需要更新的<code>state</code>合并之后放入状态队列，而不会立即更新<code>this.state</code></li>
 <li>如果我们不使用<code>setState</code>而是使用<code>this.state.key</code>来修改，将不会触发组件的<code>re-render</code>。</li>
@@ -307,14 +311,14 @@
 <h3 id="1-1-setState批量更新的过程"><a href="#1-1-setState批量更新的过程" class="headerlink" title="1.1 setState批量更新的过程"></a>1.1 setState批量更新的过程</h3><blockquote>
 <p>在<code>react</code>生命周期和合成事件执行前后都有相应的钩子，分别是<code>pre</code>钩子和<code>post</code>钩子，<code>pre</code>钩子会调用<code>batchedUpdate</code>方法将<code>isBatchingUpdates</code>变量置为<code>true</code>，开启批量更新，而<code>post</code>钩子会将<code>isBatchingUpdates</code>置为<code>false</code></p>
 </blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/433.png" alt></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/433.png"></p>
 <ul>
-<li><code>isBatchingUpdates</code>变量置为<code>true</code>，则会走批量更新分支，<code>setState</code>的更新会被存入队列中，待同步代码执行完后，再执行队列中的<code>state</code>更新。 <code>isBatchingUpdates</code>为 <code>true</code>，则把当前组件（即调用了 <code>setState</code>的组件）放入 <code>dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新</li>
+<li><code>isBatchingUpdates</code>变量置为<code>true</code>，则会走批量更新分支，<code>setState</code>的更新会被存入队列中，待同步代码执行完后，再执行队列中的<code>state</code>更新。 <code>isBatchingUpdates </code>为 <code>true</code>，则把当前组件（即调用了 <code>setState </code>的组件）放入 <code>dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新</li>
 <li>而在原生事件和异步操作中，不会执行<code>pre</code>钩子，或者生命周期的中的异步操作之前执行了<code>pre</code>钩子，但是<code>pos</code>钩子也在异步操作之前执行完了，<code>isBatchingUpdates</code>必定为<code>false</code>，也就不会进行批量更新</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/434.png" alt></p>
+<p><img src="https://poetries1.gitee.io/img-repo/2019/10/434.png"></p>
 <blockquote>
-<p><code>enqueueUpdate</code>包含了<code>React</code>避免重复<code>render</code>的逻辑。<code>mountComponent</code>和<code>updateComponent</code>方法在执行的最开始，会调用到<code>batchedUpdates</code>进行批处理更新，此时会将<code>isBatchingUpdates</code>设置为<code>true</code>，也就是将状态标记为现在正处于更新阶段了。 <code>isBatchingUpdates</code>为 <code>true</code>，则把当前组件（即调用了 <code>setState</code> 的组件）放入<code>dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新</p>
+<p><code>enqueueUpdate</code>包含了<code>React</code>避免重复<code>render</code>的逻辑。<code>mountComponent</code>和<code>updateComponent</code>方法在执行的最开始，会调用到<code>batchedUpdates</code>进行批处理更新，此时会将<code>isBatchingUpdates</code>设置为<code>true</code>，也就是将状态标记为现在正处于更新阶段了。 <code>isBatchingUpdates </code>为 <code>true</code>，则把当前组件（即调用了 <code>setState</code> 的组件）放入<code> dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新</p>
 </blockquote>
 <h3 id="1-2-为什么直接修改this-state无效"><a href="#1-2-为什么直接修改this-state无效" class="headerlink" title="1.2 为什么直接修改this.state无效"></a>1.2 为什么直接修改this.state无效</h3><ul>
 <li>要知道<code>setState</code>本质是通过一个队列机制实现<code>state</code>更新的。 执行<code>setState</code>时，会将需要更新的state合并后放入状态队列，而不会立刻更新<code>state</code>，队列机制可以批量更新<code>state</code>。</li>
@@ -331,11 +335,13 @@
 <h3 id="1-5-如何知道state已经被更新"><a href="#1-5-如何知道state已经被更新" class="headerlink" title="1.5 如何知道state已经被更新"></a>1.5 如何知道state已经被更新</h3><blockquote>
 <p>传入回调函数</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">setState(&#123;</span><br><span class="line">    index: <span class="number">1</span></span><br><span class="line">&#125;&#125;, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="keyword">this</span>.state.index);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">setState</span>(&#123;</span><br><span class="line">    <span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">&#125;&#125;, <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">index</span>);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
 <blockquote>
 <p>在钩子函数中体现</p>
 </blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">componentDidUpdate()&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="keyword">this</span>.state.index);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">componentDidUpdate</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">index</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <h2 id="二、setState循环调用风险"><a href="#二、setState循环调用风险" class="headerlink" title="二、setState循环调用风险"></a>二、setState循环调用风险</h2><ul>
 <li>当调用<code>setState</code>时，实际上会执行<code>enqueueSetState</code>方法，并对<code>partialState</code>以及<code>_pending-StateQueue</code>更新队列进行合并操作，最终通过<code>enqueueUpdate</code>执行<code>state</code>更新 </li>
 <li>而<code>performUpdateIfNecessary</code>方法会获<code>取_pendingElement</code>,<code>_pendingStateQueue</code>，<code>_pending-ForceUpdate</code>，并调用<code>receiveComponent</code>和<code>updateComponent</code>方法进行组件更新 </li>

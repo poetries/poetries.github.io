@@ -4,7 +4,7 @@
   <html class="dark page-post">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>一次node文件操作过多排查过程总结 | 前端进阶之旅</title>
@@ -12,22 +12,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Node,">
+    <meta name="keywords" content="Node," />
   
 
-  <meta name="description" content="最近在优化公司内部的脚手架，遇到一个问题，Error: EMFILE, too many open files也就是nodejs打开文件过多会导致错误，一次次排查，最后找到了一个有效的方法，总结记录一下 当我尝试去操作大量文件的时候 for(var i=0; i&amp;lt;200000; i++) &amp;#123;    fq.readFile(&apos;./somefile.txt&apos;, &amp;#123;encodi">
-<meta name="keywords" content="Node">
+  <meta name="description" content="最近在优化公司内部的脚手架，遇到一个问题，Error: EMFILE, too many open files也就是nodejs打开文件过多会导致错误，一次次排查，最后找到了一个有效的方法，总结记录一下 当我尝试去操作大量文件的时候 for(var i&#x3D;0; i&lt;200000; i++) &#123;    fq.readFile(&#x27;.&#x2F;somefile.txt&#x27;, &amp;#">
 <meta property="og:type" content="article">
 <meta property="og:title" content="一次node文件操作过多排查过程总结">
 <meta property="og:url" content="http://blog.poetries.top/2022/02/16/node-fs-youhua/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="最近在优化公司内部的脚手架，遇到一个问题，Error: EMFILE, too many open files也就是nodejs打开文件过多会导致错误，一次次排查，最后找到了一个有效的方法，总结记录一下 当我尝试去操作大量文件的时候 for(var i=0; i&amp;lt;200000; i++) &amp;#123;    fq.readFile(&apos;./somefile.txt&apos;, &amp;#123;encodi">
-<meta property="og:locale" content="zh-Hans">
+<meta property="og:description" content="最近在优化公司内部的脚手架，遇到一个问题，Error: EMFILE, too many open files也就是nodejs打开文件过多会导致错误，一次次排查，最后找到了一个有效的方法，总结记录一下 当我尝试去操作大量文件的时候 for(var i&#x3D;0; i&lt;200000; i++) &#123;    fq.readFile(&#x27;.&#x2F;somefile.txt&#x27;, &amp;#">
+<meta property="og:locale">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/202202161407524.png">
-<meta property="og:updated_time" content="2025-03-30T13:54:29.490Z">
+<meta property="article:published_time" content="2022-02-16T07:55:24.000Z">
+<meta property="article:modified_time" content="2025-03-30T13:54:29.490Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Node">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="一次node文件操作过多排查过程总结">
-<meta name="twitter:description" content="最近在优化公司内部的脚手架，遇到一个问题，Error: EMFILE, too many open files也就是nodejs打开文件过多会导致错误，一次次排查，最后找到了一个有效的方法，总结记录一下 当我尝试去操作大量文件的时候 for(var i=0; i&amp;lt;200000; i++) &amp;#123;    fq.readFile(&apos;./somefile.txt&apos;, &amp;#123;encodi">
 <meta name="twitter:image" content="https://blog.poetries.top/img/static/images/202202161407524.png">
 
   
@@ -41,7 +41,9 @@
 
 
   
-    <link rel="stylesheet" href="/css/personal-style.css">
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
   
 
   
@@ -110,8 +112,9 @@
         }
       }
    </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
 </head>
-</html>
+
 <body>
   
   
@@ -262,7 +265,7 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 518字</span>
+            <span>字数统计 536字</span>
           </span>
 
           <span class="post-count">
@@ -283,14 +286,17 @@
       <div id="container">
         <p>最近在优化公司内部的脚手架，遇到一个问题，<code>Error: EMFILE, too many open files</code>也就是nodejs打开文件过多会导致错误，一次次排查，最后找到了一个有效的方法，总结记录一下</p>
 <p>当我尝试去操作大量文件的时候</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>; i&lt;<span class="number">200000</span>; i++) &#123;</span><br><span class="line">    fq.readFile(<span class="string">'./somefile.txt'</span>, &#123;<span class="attr">encoding</span>: <span class="string">'utf8'</span>&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err, somefile</span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">"data from somefile.txt without crashing!"</span>, somefile);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>; i&lt;<span class="number">200000</span>; i++) &#123;</span><br><span class="line">    fq.<span class="title function_">readFile</span>(<span class="string">&#x27;./somefile.txt&#x27;</span>, &#123;<span class="attr">encoding</span>: <span class="string">&#x27;utf8&#x27;</span>&#125;, <span class="keyword">function</span>(<span class="params">err, somefile</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;data from somefile.txt without crashing!&quot;</span>, somefile);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <blockquote>
 <p>以上导致<code>Error: EMFILE: too many open files</code>错误。我不必关闭文件，因为显然可以<code>fs.readFile</code>对文件进行操作并为我关闭文件。我在<code>Mac OS</code>上，我的<code>ulimit</code>设置为<code>8192</code></p>
 </blockquote>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ ulimit -a</span><br><span class="line">-t: cpu time (seconds)              unlimited</span><br><span class="line">-f: file size (blocks)              unlimited</span><br><span class="line">-d: data seg size (kbytes)          unlimited</span><br><span class="line">-s: stack size (kbytes)             8192</span><br><span class="line">-c: core file size (blocks)         0</span><br><span class="line">-v: address space (kbytes)          unlimited</span><br><span class="line">-l: locked-in-memory size (kbytes)  unlimited</span><br><span class="line">-u: processes                       1392</span><br><span class="line">-n: file descriptors                256</span><br></pre></td></tr></table></figure>
-<p><img src="https://blog.poetries.top/img/static/images/202202161407524.png" alt></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ ulimit -a</span><br><span class="line">-t: cpu time (seconds)              unlimited</span><br><span class="line">-f: file size (blocks)              unlimited</span><br><span class="line">-d: data seg size (kbytes)          unlimited</span><br><span class="line">-s: stack size (kbytes)             8192</span><br><span class="line">-c: core file size (blocks)         0</span><br><span class="line">-v: address space (kbytes)          unlimited</span><br><span class="line">-l: locked-in-memory size (kbytes)  unlimited</span><br><span class="line">-u: processes                       1392</span><br><span class="line">-n: file descriptors                256</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://blog.poetries.top/img/static/images/202202161407524.png"></p>
 <p>可以通过修改系统配置，但是不太推荐</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ echo kern.maxfiles=65536 | sudo tee -a /etc/sysctl.conf</span><br><span class="line">$ echo kern.maxfilesperproc=65536 | sudo tee -a /etc/sysctl.conf</span><br><span class="line">$ sudo sysctl -w kern.maxfiles=65536</span><br><span class="line">$ sudo sysctl -w kern.maxfilesperproc=65536</span><br><span class="line">$ ulimit -n 65536</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ echo kern.maxfiles=65536 | sudo tee -a /etc/sysctl.conf</span><br><span class="line">$ echo kern.maxfilesperproc=65536 | sudo tee -a /etc/sysctl.conf</span><br><span class="line">$ sudo sysctl -w kern.maxfiles=65536</span><br><span class="line">$ sudo sysctl -w kern.maxfilesperproc=65536</span><br><span class="line">$ ulimit -n 65536 </span><br></pre></td></tr></table></figure>
+
 <blockquote>
 <ul>
 <li>由于<code>node.js</code>的异步特性，因此会发生此错误。进程试图打开的文件超出允许的数量，因此会产生错误。</li>
@@ -302,11 +308,14 @@
 <p>Instantiate Filequeue with a maximum number of files to be opened at once (default is 200)</p>
 </blockquote>
 <p><strong>how to use</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> FileQueue = <span class="built_in">require</span>(<span class="string">'filequeue'</span>);</span><br><span class="line"><span class="keyword">var</span> fq = <span class="keyword">new</span> FileQueue(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// additional instances will attempt to use the same instance (and therefore the same maxfiles)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> FileQueue2 = <span class="built_in">require</span>(<span class="string">'filequeue'</span>);</span><br><span class="line"><span class="keyword">var</span> fq2 = <span class="keyword">new</span> FileQueue2(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(fq === fq2); <span class="comment">// =&gt; true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// you can force a new instance of filequeue with the `newQueue` parameter</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> fq3 = <span class="keyword">new</span> FileQueue(<span class="number">100</span>, <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(fq === fq3); <span class="comment">// =&gt; false</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="title class_">FileQueue</span> = <span class="built_in">require</span>(<span class="string">&#x27;filequeue&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> fq = <span class="keyword">new</span> <span class="title class_">FileQueue</span>(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// additional instances will attempt to use the same instance (and therefore the same maxfiles)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> <span class="title class_">FileQueue2</span> = <span class="built_in">require</span>(<span class="string">&#x27;filequeue&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> fq2 = <span class="keyword">new</span> <span class="title class_">FileQueue2</span>(<span class="number">100</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(fq === fq2); <span class="comment">// =&gt; true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// you can force a new instance of filequeue with the `newQueue` parameter</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> fq3 = <span class="keyword">new</span> <span class="title class_">FileQueue</span>(<span class="number">100</span>, <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(fq === fq3); <span class="comment">// =&gt; false</span></span><br></pre></td></tr></table></figure>
+
 <p><strong>filequeue支持以下方法</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">readFile</span><br><span class="line">writeFile</span><br><span class="line">readdir</span><br><span class="line">rename</span><br><span class="line">symlink</span><br><span class="line">mkdir</span><br><span class="line">stat</span><br><span class="line">exists</span><br><span class="line">createReadStream</span><br><span class="line">createWriteStream</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">readFile</span><br><span class="line">writeFile</span><br><span class="line">readdir</span><br><span class="line">rename</span><br><span class="line">symlink</span><br><span class="line">mkdir</span><br><span class="line">stat</span><br><span class="line">exists</span><br><span class="line">createReadStream</span><br><span class="line">createWriteStream</span><br></pre></td></tr></table></figure>
+
 <p>使用<code>filequeue</code>就可以正常运行了</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> FileQueue = <span class="built_in">require</span>(<span class="string">'filequeue'</span>);</span><br><span class="line"><span class="keyword">var</span> fq = <span class="keyword">new</span> FileQueue(<span class="number">100</span>); <span class="comment">// 限制每次打开的文件数量</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>; i&lt;<span class="number">200000</span>; i++) &#123;</span><br><span class="line">    fq.readFile(<span class="string">'./demo.txt'</span>, &#123;<span class="attr">encoding</span>: <span class="string">'utf8'</span>&#125;, <span class="function"><span class="keyword">function</span>(<span class="params">err, somefile</span>) </span>&#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">"data from somefile.txt without crashing!"</span>, somefile);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="title class_">FileQueue</span> = <span class="built_in">require</span>(<span class="string">&#x27;filequeue&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> fq = <span class="keyword">new</span> <span class="title class_">FileQueue</span>(<span class="number">100</span>); <span class="comment">// 限制每次打开的文件数量</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i=<span class="number">0</span>; i&lt;<span class="number">200000</span>; i++) &#123;</span><br><span class="line">    fq.<span class="title function_">readFile</span>(<span class="string">&#x27;./demo.txt&#x27;</span>, &#123;<span class="attr">encoding</span>: <span class="string">&#x27;utf8&#x27;</span>&#125;, <span class="keyword">function</span>(<span class="params">err, somefile</span>) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;data from somefile.txt without crashing!&quot;</span>, somefile);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 
       </div>
     

@@ -4,7 +4,7 @@
   <html class="dark page-post">
 
 
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>JavaScript词法分析和作用域闭包 | 前端进阶之旅</title>
@@ -12,21 +12,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,">
+    <meta name="keywords" content="JavaScript," />
   
 
   <meta name="description" content="在函数运行时 会进词法分析（预编译） 预编译做了哪些工作 分析参数 分析变量声明(分析带var的变量声明) 分析函数声明">
-<meta name="keywords" content="JavaScript">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JavaScript词法分析和作用域闭包">
-<meta property="og:url" content="http://blog.poetries.top/2016/07/27/JavaScript词法分析和作用域闭包/index.html">
+<meta property="og:url" content="http://blog.poetries.top/2016/07/27/JavaScript%E8%AF%8D%E6%B3%95%E5%88%86%E6%9E%90%E5%92%8C%E4%BD%9C%E7%94%A8%E5%9F%9F%E9%97%AD%E5%8C%85/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
 <meta property="og:description" content="在函数运行时 会进词法分析（预编译） 预编译做了哪些工作 分析参数 分析变量声明(分析带var的变量声明) 分析函数声明">
-<meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2025-03-30T13:54:29.450Z">
+<meta property="og:locale">
+<meta property="article:published_time" content="2016-07-26T16:50:43.000Z">
+<meta property="article:modified_time" content="2025-03-30T13:54:29.450Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="JavaScript">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="JavaScript词法分析和作用域闭包">
-<meta name="twitter:description" content="在函数运行时 会进词法分析（预编译） 预编译做了哪些工作 分析参数 分析变量声明(分析带var的变量声明) 分析函数声明">
 
   
 
@@ -39,7 +39,9 @@
 
 
   
-    <link rel="stylesheet" href="/css/personal-style.css">
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
   
 
   
@@ -108,8 +110,9 @@
         }
       }
    </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
 </head>
-</html>
+
 <body>
   
   
@@ -284,16 +287,21 @@
 <li>预编译做了哪些工作<ul>
 <li>分析参数</li>
 <li>分析变量声明(分析带var的变量声明)</li>
-<li>分析函数声明 <a id="more"></a></li>
+<li>分析函数声明</li>
 </ul>
 </li>
+</ul>
+<span id="more"></span>
+<ul>
 <li>如何分析变量声明？<ul>
-<li>答：对于var声明的变量 以<code>var str = ‘local’</code>为例，分为 分析过程 和执行过程 先分析后执行<br>先分析<code>var str</code>即仅仅声明了一个str变量 <code>str</code>变量此时没有赋值 值是<code>undefined</code> 然后在进行执行过程</li>
+<li>答：对于var声明的变量 以<code>var str = ‘local’</code>为例，分为 分析过程 和执行过程 先分析后执行<br> 先分析<code>var str </code>即仅仅声明了一个str变量 <code>str</code>变量此时没有赋值 值是<code>undefined</code> 然后在进行执行过程</li>
 </ul>
 </li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*var age = 22;</span></span><br><span class="line"><span class="comment">var num = 99;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> function t()&#123;</span></span><br><span class="line"><span class="comment"> 	var num = 88;</span></span><br><span class="line"><span class="comment"> 	var str = 'hello';</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> 	function a()&#123;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> 		var  str = 'world';</span></span><br><span class="line"><span class="comment"> 		alert(str);//world</span></span><br><span class="line"><span class="comment"> 		alert(num);//88</span></span><br><span class="line"><span class="comment"> 		alert(age);//22</span></span><br><span class="line"><span class="comment"> 	&#125;</span></span><br><span class="line"><span class="comment"> 	a();</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> &#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> t();</span></span><br></pre></td></tr></table></figure>
- <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/*var str = 'global';</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">function t()&#123;</span></span><br><span class="line"><span class="comment">	alert(str);//undefined</span></span><br><span class="line"><span class="comment">	var str = 'local';//local</span></span><br><span class="line"><span class="comment">	alert(str);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">	//词法分析</span></span><br><span class="line"><span class="comment">	var str;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">	//执行语句</span></span><br><span class="line"><span class="comment">	alert(str)</span></span><br><span class="line"><span class="comment">	str = 'local'</span></span><br><span class="line"><span class="comment">	alert(str)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">t();</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*var age = 22;</span></span><br><span class="line"><span class="comment">var num = 99;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> function t()&#123;</span></span><br><span class="line"><span class="comment"> 	var num = 88;</span></span><br><span class="line"><span class="comment"> 	var str = &#x27;hello&#x27;;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> 	function a()&#123;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> 		var  str = &#x27;world&#x27;;</span></span><br><span class="line"><span class="comment"> 		alert(str);//world</span></span><br><span class="line"><span class="comment"> 		alert(num);//88</span></span><br><span class="line"><span class="comment"> 		alert(age);//22</span></span><br><span class="line"><span class="comment"> 	&#125;</span></span><br><span class="line"><span class="comment"> 	a();</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> &#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> t();</span></span><br><span class="line"><span class="comment"> </span></span><br></pre></td></tr></table></figure>
+ <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/*var str = &#x27;global&#x27;;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">function t()&#123;</span></span><br><span class="line"><span class="comment">	alert(str);//undefined</span></span><br><span class="line"><span class="comment">	var str = &#x27;local&#x27;;//local</span></span><br><span class="line"><span class="comment">	alert(str);</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">	//词法分析</span></span><br><span class="line"><span class="comment">	var str;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">	//执行语句</span></span><br><span class="line"><span class="comment">	alert(str)</span></span><br><span class="line"><span class="comment">	str = &#x27;local&#x27;</span></span><br><span class="line"><span class="comment">	alert(str)</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">&#125;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">t();</span></span><br><span class="line"><span class="comment"></span></span><br></pre></td></tr></table></figure>
+
+
 <ul>
 <li><p><strong>活动对象、激活对象 Active Object</strong></p>
 </li>
@@ -308,20 +316,26 @@
 </li>
 <li><p>在函数调用瞬间 <code>AO</code>这样形成</p>
 </li>
-<li>首先分析参数 把分析的的参数形成<code>AO</code>属性 如果传来实参 则把实参赋给相应的属性</li>
-<li>其次分析var声明 以<code>var str= hello</code>为例 把str声明为AO的属性 值为<code>undefined</code></li>
-<li>如果var声明的变量名与形参名称一致 不产生影响 因为<code>AO</code>的str已经存在</li>
-<li><p>最后分析函数声明，<code>function函数名(){}</code>//有函数名</p>
+<li><p>首先分析参数 把分析的的参数形成<code>AO</code>属性 如果传来实参 则把实参赋给相应的属性</p>
+</li>
+<li><p>其次分析var声明 以<code>var str= hello</code>为例 把str声明为AO的属性 值为<code>undefined  </code></p>
+</li>
+<li><p>如果var声明的变量名与形参名称一致 不产生影响 因为<code>AO</code>的str已经存在</p>
+</li>
+<li><p>最后分析函数声明，<code> function函数名()&#123;&#125;</code>&#x2F;&#x2F;有函数名</p>
 </li>
 <li><p>函数的变量有其作用域，引用某变量时，在某个范围内查询该变量，这个范围又在哪里？在AO上找 在函数调用的瞬间  会产生一个AO 这个AO对象的属性 即存储着该函数所能引用的到的变量</p>
 </li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> str = <span class="string">'global'</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">t</span>(<span class="params">age</span>)</span>&#123;</span><br><span class="line">	alert(age);<span class="comment">//99</span></span><br><span class="line">	<span class="keyword">var</span> age = <span class="number">12</span>;</span><br><span class="line">	alert(age);<span class="comment">//12</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line">t();</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> str = <span class="string">&#x27;global&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">t</span>(<span class="params">age</span>)&#123;</span><br><span class="line">	<span class="title function_">alert</span>(age);<span class="comment">//99</span></span><br><span class="line">	<span class="keyword">var</span> age = <span class="number">12</span>;</span><br><span class="line">	<span class="title function_">alert</span>(age);<span class="comment">//12</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">t</span>();</span><br></pre></td></tr></table></figure>
+
 <p>对上面的结果进行分析：</p>
-<p>AO：{age:undefined} //词法分析得到<br>AO：{age:99} //实参赋值 AO.age属性<br>AO:{age:12}  //修改AO.age的值</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f</span>(<span class="params">age,hei</span>)</span>&#123;</span><br><span class="line">	<span class="keyword">var</span> age;</span><br><span class="line">	alert(age);</span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">age</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		alert(<span class="string">'he'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>AO：{age:undefined} &#x2F;&#x2F;词法分析得到<br>AO：{age:99} &#x2F;&#x2F;实参赋值 AO.age属性<br>AO:{age:12}  &#x2F;&#x2F;修改AO.age的值</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">f</span>(<span class="params">age,hei</span>)&#123;</span><br><span class="line">	<span class="keyword">var</span> age;</span><br><span class="line">	<span class="title function_">alert</span>(age);</span><br><span class="line">	<span class="keyword">function</span> <span class="title function_">age</span>(<span class="params"></span>)&#123;</span><br><span class="line">		<span class="title function_">alert</span>(<span class="string">&#x27;he&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <ul>
-<li>分析过程：<ul>
+<li><p>分析过程：</p>
+<ul>
 <li>AO:{}</li>
 <li>AO:{age:undefined,hei:undefined}</li>
 <li>AO:{age:32,hei,undefined}</li>
@@ -331,22 +345,23 @@
 <li>alert(age)—》AO.age—》函数</li>
 </ul>
 </li>
-</ul>
-<ul>
 <li><p>函数就是变量 函数声明就是变量声明</p>
 </li>
 <li><p>函数声明：假设函数名fn 函数声明会把函数赋值为AO.fn属性的值 </p>
 </li>
 <li><p><strong>函数声明与函数表达式的区别</strong></p>
 </li>
-<li>表达式必有一个返回值 （即 匿名函数赋给了一个变量 此时 就是普通的赋值过程）</li>
-<li>函数表达式返回返回 并把函数作为值 赋给变量</li>
-<li><p>函数声明的优先级高 例如<br><code>function fn(){} 则会把AO.fn = function fn(){}</code></p>
+<li><p>表达式必有一个返回值 （即 匿名函数赋给了一个变量 此时 就是普通的赋值过程）</p>
+</li>
+<li><p>函数表达式返回返回 并把函数作为值 赋给变量</p>
+</li>
+<li><p>函数声明的优先级高 例如<br><code> function fn()&#123;&#125; 则会把AO.fn = function fn()&#123;&#125;</code></p>
 </li>
 <li><p><strong>函数表达式</strong></p>
 </li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	alert(age);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> age = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		alert(<span class="string">'hahh'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	alert(age);</span><br><span class="line">&#125;</span><br><span class="line">fn1(<span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//结果： 32 function</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//函数声明</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fn1</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	alert(age);</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">function</span> <span class="title">age</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		alert(<span class="string">'hahh'</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	alert(age);</span><br><span class="line">&#125;</span><br><span class="line">fn1(<span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//结果： function function</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">fn1</span>(<span class="params"></span>)&#123;</span><br><span class="line">	<span class="title function_">alert</span>(age);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> age = <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">		<span class="title function_">alert</span>(<span class="string">&#x27;hahh&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="title function_">alert</span>(age);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">fn1</span>(<span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//结果： 32 function</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//函数声明</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">fn1</span>(<span class="params"></span>)&#123;</span><br><span class="line">	<span class="title function_">alert</span>(age);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">function</span> <span class="title function_">age</span>(<span class="params"></span>)&#123;</span><br><span class="line">		<span class="title function_">alert</span>(<span class="string">&#x27;hahh&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="title function_">alert</span>(age);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">fn1</span>(<span class="number">32</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//结果： function function</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 <ul>
 <li><p><strong>闭包</strong></p>
 <ul>
@@ -365,12 +380,14 @@
 <li>定义在自己的栈里面 执行在自己的堆里面</li>
 <li>运行在运行的环境中</li>
 <li>函数每调用前  只是一个地址</li>
-<li>只要调用一次函数就会动态开辟一块内存 创建一个封闭的空间 在自己的封闭的空间的栈中定义<code>var</code>在执行</li>
+<li>只要调用一次函数就会动态开辟一块内存 创建一个封闭的空间 在自己的封闭的空间的栈中定义<code>var </code>在执行</li>
 <li>函数执行完 里面的东西全部销毁</li>
 </ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//alert(x);//9:执行弹出x,结果x没定义,错误.</span></span><br><span class="line">alert(i);<span class="comment">//9:执行弹出i,然而i之前已经定义,只不过没地址,因此是undefiend</span></span><br><span class="line"><span class="keyword">var</span> i = <span class="number">10</span>;<span class="comment">//1:var i;    10:把常量池中10的地址赋给栈中的i</span></span><br><span class="line"><span class="keyword">var</span> j = <span class="string">"你好"</span>;<span class="comment">//2:var j;   11:把常量池中 你好 的地址复给栈中的j</span></span><br><span class="line"><span class="keyword">var</span> k = z = <span class="literal">null</span>;<span class="comment">//3:var k,z;  12:把堆中null的地址赋值给z和k</span></span><br><span class="line"><span class="keyword">var</span> m = <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;<span class="comment">//4:var m;   5:function匿名函数  13:把匿名函数在堆中的地址赋给栈中的m</span></span><br><span class="line">    alert(<span class="number">2</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> b = <span class="built_in">document</span>.body;<span class="comment">//6:var b;    14:把堆中document.body对象的地址赋给栈中的b</span></span><br><span class="line"><span class="keyword">var</span> f = <span class="literal">true</span>;<span class="comment">//7:var f; 15:把常量池中true的地址赋给栈中的变量f</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">m</span>(<span class="params"></span>)</span>&#123;<span class="comment">//8:function m;</span></span><br><span class="line">    alert(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">m</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    c = <span class="number">50</span>;<span class="comment">//在局部变量中找不到定义的c 沿着作用域链找到了全局变量的c</span></span><br><span class="line">    alert(<span class="string">'哈哈哈'</span>);</span><br><span class="line">    <span class="comment">//var c;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> c = <span class="number">150</span>; <span class="comment">// 函数m()还未执行到 还没被销毁 此时全局c的值c=50</span></span><br><span class="line">m();</span><br><span class="line"><span class="keyword">var</span> c = <span class="number">20</span>;<span class="comment">//到这里一步 m()已经执行完了 函数已经销毁了  这里的c还是20</span></span><br><span class="line">alert(c);<span class="comment">//20</span></span><br></pre></td></tr></table></figure>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">m</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    c = <span class="number">50</span>;<span class="comment">//在局部变量中找不到定义的c 沿着作用域链找到了全局变量的c</span></span><br><span class="line">    alert(<span class="string">'哈哈哈'</span>);</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">inner</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">        c = <span class="number">30</span>;</span><br><span class="line">        alert(<span class="string">'嘻嘻'</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    inner();<span class="comment">//c在函数内部找不到定义 所以沿着作用域链找到了全局的c</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> c = <span class="number">20</span>;<span class="comment">//到这里一步 m()还没执行 函数没被销毁  这里的c是30</span></span><br><span class="line">m();</span><br><span class="line"></span><br><span class="line">alert(c);<span class="comment">//30</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//alert(x);//9:执行弹出x,结果x没定义,错误.</span></span><br><span class="line"><span class="title function_">alert</span>(i);<span class="comment">//9:执行弹出i,然而i之前已经定义,只不过没地址,因此是undefiend</span></span><br><span class="line"><span class="keyword">var</span> i = <span class="number">10</span>;<span class="comment">//1:var i;    10:把常量池中10的地址赋给栈中的i</span></span><br><span class="line"><span class="keyword">var</span> j = <span class="string">&quot;你好&quot;</span>;<span class="comment">//2:var j;   11:把常量池中 你好 的地址复给栈中的j</span></span><br><span class="line"><span class="keyword">var</span> k = z = <span class="literal">null</span>;<span class="comment">//3:var k,z;  12:把堆中null的地址赋值给z和k</span></span><br><span class="line"><span class="keyword">var</span> m = <span class="keyword">function</span>(<span class="params"></span>)&#123;<span class="comment">//4:var m;   5:function匿名函数  13:把匿名函数在堆中的地址赋给栈中的m</span></span><br><span class="line">    <span class="title function_">alert</span>(<span class="number">2</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> b = <span class="variable language_">document</span>.<span class="property">body</span>;<span class="comment">//6:var b;    14:把堆中document.body对象的地址赋给栈中的b</span></span><br><span class="line"><span class="keyword">var</span> f = <span class="literal">true</span>;<span class="comment">//7:var f; 15:把常量池中true的地址赋给栈中的变量f</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">m</span>(<span class="params"></span>)&#123;<span class="comment">//8:function m;</span></span><br><span class="line">    <span class="title function_">alert</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">m</span>(<span class="params"></span>)&#123;</span><br><span class="line">    c = <span class="number">50</span>;<span class="comment">//在局部变量中找不到定义的c 沿着作用域链找到了全局变量的c</span></span><br><span class="line">    <span class="title function_">alert</span>(<span class="string">&#x27;哈哈哈&#x27;</span>);</span><br><span class="line">    <span class="comment">//var c;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> c = <span class="number">150</span>; <span class="comment">// 函数m()还未执行到 还没被销毁 此时全局c的值c=50</span></span><br><span class="line"><span class="title function_">m</span>();</span><br><span class="line"><span class="keyword">var</span> c = <span class="number">20</span>;<span class="comment">//到这里一步 m()已经执行完了 函数已经销毁了  这里的c还是20</span></span><br><span class="line"><span class="title function_">alert</span>(c);<span class="comment">//20</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">m</span>(<span class="params"></span>)&#123;</span><br><span class="line">    c = <span class="number">50</span>;<span class="comment">//在局部变量中找不到定义的c 沿着作用域链找到了全局变量的c</span></span><br><span class="line">    <span class="title function_">alert</span>(<span class="string">&#x27;哈哈哈&#x27;</span>);</span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">inner</span>(<span class="params"></span>)&#123;</span><br><span class="line">        c = <span class="number">30</span>;</span><br><span class="line">        <span class="title function_">alert</span>(<span class="string">&#x27;嘻嘻&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">inner</span>();<span class="comment">//c在函数内部找不到定义 所以沿着作用域链找到了全局的c</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> c = <span class="number">20</span>;<span class="comment">//到这里一步 m()还没执行 函数没被销毁  这里的c是30</span></span><br><span class="line"><span class="title function_">m</span>();</span><br><span class="line"></span><br><span class="line"><span class="title function_">alert</span>(c);<span class="comment">//30</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
       </div>
     
@@ -526,10 +543,10 @@ $("#toc.toc-article").toggle(1000);
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2016/07/27/parsetInt-parsetFloat与eval-isNaN用法/">
+    <a class="show pull-left" href="/2016/07/27/parsetInt-parsetFloat%E4%B8%8Eeval-isNaN%E7%94%A8%E6%B3%95/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2016/07/27/JavaScript对象/">
+    <a class="show pull-right" href="/2016/07/27/JavaScript%E5%AF%B9%E8%B1%A1/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
