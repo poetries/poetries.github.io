@@ -10,31 +10,38 @@ tags:
 categories: AI
 ---
 
-部署好OpenClaw后，很多人会发现它还只是个"聊天机器"。其实，OpenClaw真正强大的地方在于Skills生态——通过不同的技能插件，你的AI助手可以具备代码生成、UI设计、性能优化、调试排错等前端开发能力。
+
+![](https://s.poetries.top/uploads/2026/03/a1423ce7140e6c1b.png)
+
+部署好 OpenClaw 后，很多人会发现它还只是个“聊天机器”。其实，OpenClaw 真正强大的地方在于 Skills 生态——通过不同的技能插件，你的 AI 助手可以具备代码生成、UI 设计、性能优化、调试排错等前端开发能力。
 
 本文不打算重复那些基础配置操作，而是聚焦于：**如何针对前端开发场景，构建真正有用的技能矩阵**。
 
-## 一、按需构建：前端开发者的Skills选择策略
+## 一、按需构建：前端开发者的 Skills 选择策略
 
-不要看到什么Skill都想安装。更好的方式是：根据你的技术栈和业务场景，按需选择。
+![](https://s.poetries.top/uploads/2026/03/7418fc6eab5cda05.png)
 
-### 不同技术栈对应的Skills组合
+不要看到什么 Skill 都想安装。更好的方式是：根据你的技术栈和业务场景，按需选择。
 
-| 技术栈 | 推荐Skills组合 |
-|--------|----------------|
+### 不同技术栈对应的 Skills 组合
+
+| 技术栈 | 推荐 Skills 组合 |
+| --- | --- |
 | React 全栈开发 | React + Frontend Design + UI/UX Pro Max + Zustand Patterns |
 | Vue 开发 | Vue + Component Api Design + Frontend Design |
 | 移动端开发 | React Native Skills + Radon AI |
 | UI/UX 设计 | UI/UX Pro Max + UI Audit + Frontend Design Extractor |
 | 性能优化 | Frontend Performance + Browser Devtools Inspector |
 
-## 二、Skills安装全攻略
+## 二、Skills 安装全攻略
 
-万事开头难，很多人一听到要配置Skills就头大。其实OpenClaw提供了多种安装方式，总有一款适合你。
+![](https://s.poetries.top/uploads/2026/03/e1627219d47657a7.png)
 
-### 方法一：使用OpenClaw自带的53个Skills
+万事开头难，很多人一听到要配置 Skills 就头大。其实 OpenClaw 提供了多种安装方式，总有一款适合你。
 
-OpenClaw内置了一批基础Skills，包含飞书、Discord、ClawHub等常用能力：
+### 方法一：使用 OpenClaw 自带的 53 个 Skills
+
+OpenClaw 内置了一批基础 Skills，包含飞书、Discord、ClawHub 等常用能力：
 
 ```bash
 # 列出所有技能
@@ -56,9 +63,9 @@ openclaw skills disable <技能名称>
 openclaw skills check <技能名称>
 ```
 
-### 方法二：ClawHub安装（推荐）
+### 方法二：ClawHub 安装（推荐）
 
-[ClawHub](https://clawhub.ai/)是OpenClaw官方维护的Skills注册中心，目前已有17000+ Skills，是最推荐的安装方式。
+[ClawHub ](https://clawhub.ai/)是 OpenClaw 官方维护的 Skills 注册中心，目前已有 17000+ Skills，是最推荐的安装方式。
 
 ```bash
 # 安装 ClawHub 服务
@@ -69,7 +76,7 @@ npm i -g clawhub
 pnpm add -g clawhub
 ```
 
-安装完成后，管理Skills非常简单：
+安装完成后，管理 Skills 非常简单：
 
 ```bash
 # 搜索技能
@@ -86,11 +93,12 @@ clawhub update --all                  # 更新所有已安装技能
 
 # 查看已安装技能
 clawhub list
+</skill-slug></skill-slug></skill-slug></skill-slug>
 ```
 
-### 方法三：GitHub手动安装
+### 方法三：GitHub 手动安装
 
-对于GitHub上直接托管的Skills，可以手动克隆到本地：
+对于 GitHub 上直接托管的 Skills，可以手动克隆到本地：
 
 ```bash
 # 进入到工作区的Skills文件夹下
@@ -100,11 +108,11 @@ cd ~/.openclaw/workspace/skills
 git clone https://github.com/BankrBot/openclaw-skills.git ./skills
 ```
 
-### 方法四：直接对话安装（最推荐�❤️）
+### 方法四：直接对话安装
 
-最简单的方式——直接告诉OpenClaw你要安装什么：
+最简单的方式——直接告诉 OpenClaw 你要安装什么：
 
-```
+```plaintext
 请帮我安装这个skills，github链接是 xxxx
 ```
 
@@ -112,25 +120,261 @@ git clone https://github.com/BankrBot/openclaw-skills.git ./skills
 
 ### 安装后的安全检查
 
-在安装任何第三方Skills之前，安全必须是第一优先级：
+在安装任何第三方 Skills 之前，安全必须是第一优先级：
 
-**Skill-Vetter** — 安装任何Skills之前，用它扫描检测恶意代码：
+**Skill-Vetter** — 安装任何 Skills 之前，用它扫描检测恶意代码：
 
 ```bash
 # 安装
 clawhub install skill-vetter
 
 # 使用
-skill-vetter <skill-name>
+skill-vetter <skill-name></skill-name>
 ```
 
-## 三、这些前端Skills值得优先安装
+## 三、2026 年最热门的 OpenClaw Skills 推荐
 
-> 💡 强烈建议：先安装 Skills 安装方法中列出的安全类Skills，确保后续安装其他Skills的安全性。
+
+![](https://s.poetries.top/uploads/2026/03/7b308caf14cdecee.png)
+
+
+在深入前端专项技能之前，让我们先看看 OpenClaw 社区中最受欢迎、下载量最高的技能。这些技能经过了大量用户的验证，安全性和实用性都有保障。
+
+### 🛡️ 安全第一：必装安全工具
+
+> ⚠️ **重要提醒**：在安装任何第三方 Skills 之前，务必先安装这两个安全工具！
+
+**1. Skill Vetter（3.5K 下载）** — 技能安全审查工具
+
+```bash
+clawhub install skill-vetter
+
+# 使用方法：在安装其他技能前先扫描
+skill-vetter <skill-name></skill-name>
+```
+
+**2. Link Checker（2.1K 下载）** — URL 安全和钓鱼检测
+
+```bash
+clawhub install link-checker
+```
+
+### 🏆 前 5 个必装技能（零风险，超高下载量）
+
+**1. Gog（33.8K 下载）** — Google 全家桶集成
+
+一次性接入 Gmail、Calendar、Drive、Docs、Sheets、Contacts 等所有 Google 服务，是目前下载量最高的技能。
+
+```bash
+clawhub install gog
+```
+
+**2. self-improving-agent（32K 下载，338 星⭐）** — 自我改进代理
+
+这是 GitHub 星数最高的技能！能让你的 AI 助手自我学习和优化，持续提升能力。
+
+```bash
+clawhub install self-improving-agent
+```
+
+**3. Summarize（26.1K 下载）** — 全能内容总结工具
+
+支持总结 URL、PDF、图片、音频、YouTube 视频等多种格式，是内容处理的瑞士军刀。
+
+```bash
+clawhub install summarize
+```
+
+**4. Github（24.8K 下载）** — GitHub CLI 集成
+
+管理 issues、PRs、CI 运行，让你在对话中完成所有 GitHub 操作。
+
+```bash
+clawhub install github
+```
+
+**5. Weather（21.1K 下载）** — 天气查询
+
+无需 API key，开箱即用的天气查询工具。
+
+```bash
+clawhub install weather
+```
+
+### 🍎 macOS 用户专属（零配置，原生集成）
+
+![](https://s.poetries.top/uploads/2026/03/62142c5082ce10e0.png)
+
+如果你是 Mac 用户，这些技能可以直接调用系统原生应用，无需任何配置：
+
+```bash
+# Apple Notes（6.5K下载）
+clawhub install apple-notes
+
+# Apple Reminders（5.8K下载）
+clawhub install apple-reminders
+
+# Apple Calendar（4.4K下载）
+clawhub install apple-calendar
+
+# Apple Shortcuts（5.9K下载）- 运行任何Apple快捷指令
+clawhub install apple-shortcuts
+
+# iMessage（3.5K下载）
+clawhub install imessage
+```
+
+### 🔍 搜索和研究工具
+
+**Tavily Web Search（28K 下载）** — AI 优化的搜索引擎
+
+```bash
+clawhub install tavily-web-search
+```
+
+**Brave Search（10.4K 下载）** — 隐私优先的搜索
+
+```bash
+clawhub install brave-search
+```
+
+**Multi Search Engine（4.5K 下载）** — 17 个搜索引擎聚合，无需 API key
+
+```bash
+clawhub install multi-search-engine
+```
+
+### 📊 生产力和知识管理
+
+**Ontology（27.6K 下载）** — 结构化知识图谱
+
+```bash
+clawhub install ontology
+```
+
+**Notion（13.9K 下载）** — Notion API 集成
+
+```bash
+clawhub install notion
+```
+
+**Obsidian（12.4K 下载）** — 本地 Markdown 笔记管理
+
+```bash
+clawhub install obsidian
+```
+
+### 💻 通信工具
+
+```bash
+# Himalaya（9.2K下载）- IMAP/SMTP邮件，支持任何邮件提供商
+clawhub install himalaya
+
+# Slack（8.8K下载）
+clawhub install slack
+
+# Discord（6.6K下载）
+clawhub install discord
+
+# Signal（5.7K下载）- 安全消息，本地运行
+clawhub install signal
+```
+
+### ✍️ 媒体和内容创作
+
+**Nano Banana Pro（13.4K 下载）** — Gemini 3 Pro 图像生成和编辑
+
+```bash
+clawhub install nano-banana-pro
+```
+
+**OpenAI Whisper（11.5K 下载）** — 本地语音转文字
+
+```bash
+clawhub install openai-whisper
+```
+
+**YouTube Watcher（9.1K 下载）** — YouTube 字幕获取
+
+```bash
+clawhub install youtube-watcher
+```
+
+### 💻 开发工具（通用）
+
+**API Gateway（13K 下载）** — 连接 100+ API（Stripe、Salesforce 等）
+
+```bash
+clawhub install api-gateway
+```
+
+**Mcporter（11.1K 下载）** — 官方 MCP 服务器管理
+
+```bash
+clawhub install mcporter
+```
+
+**Commit Message（3K 下载）** — 自动生成 git 提交信息
+
+```bash
+clawhub install commit-message
+```
+
+### 🤖 AI 和代理增强
+
+**Free Ride（11.3K 下载）** — 免费 AI 模型访问（OpenRouter）
+
+```bash
+clawhub install free-ride
+```
+
+**Model Usage（8.3K 下载）** — 按模型成本跟踪
+
+```bash
+clawhub install model-usage
+```
+
+**Oracle（3.3K 下载）** — 第二模型审查调试
+
+```bash
+clawhub install oracle
+```
+
+### 🏠 智能家居
+
+**Sonos CLI（20.2K 下载）** — Sonos 音箱控制
+
+```bash
+clawhub install sonos-cli
+```
+
+**Home Assistant（6.1K 下载）** — Home Assistant 集成
+
+```bash
+clawhub install home-assistant
+```
+
+### 🚀 推荐安装顺序
+
+![](https://s.poetries.top/uploads/2026/03/b64554568f5d840c.png)
+
+1. **先装安全工具**：Skill Vetter + Link Checker
+
+2. **再装前 5 必装**：Gog + self-improving-agent + Summarize + Github + Weather
+
+3. **根据平台选择**：macOS 用户装 Apple 原生套件
+
+4. **按需添加**：根据你的工作流添加其他技能
+
+---
+
+## 四、前端开发专项 Skills 推荐
+
+> 💡 强烈建议：先完成上一章节的安全工具和基础技能安装，再继续安装前端专项技能。
 
 ### 1. React 全栈开发
 
-**React** — 全栈React 19工程能力，涵盖Server Components、hooks、性能优化、测试和部署：
+**React** — 全栈 React 19 工程能力，涵盖 Server Components、hooks、性能优化、测试和部署：
 
 ```bash
 # 安装
@@ -140,7 +384,7 @@ clawhub install react
 https://clawhub.ai/ivangdavila/react
 ```
 
-**React Production Engineering** — 生产级React应用构建方法论，包含架构决策、组件设计、状态管理：
+**React Production Engineering** — 生产级 React 应用构建方法论，包含架构决策、组件设计、状态管理：
 
 ```bash
 # 安装
@@ -150,7 +394,7 @@ clawhub install react-production
 https://clawhub.ai/1kalin/afrexai-react-production
 ```
 
-**React Component Generator** — 一键生成React组件模板，支持Function/Class组件、Hooks、TypeScript：
+**React Component Generator** — 一键生成 React 组件模板，支持 Function/Class 组件、Hooks、TypeScript:
 
 ```bash
 # 安装
@@ -160,7 +404,7 @@ clawhub install react-component-generator
 https://clawhub.ai/Sunshine-del-ux/react-component-generator
 ```
 
-**Zustand Patterns** — Zustand状态管理实战模式，适合React项目：
+**Zustand Patterns** — Zustand 状态管理实战模式，适合 React 项目：
 
 ```bash
 # 安装
@@ -172,22 +416,24 @@ https://clawhub.ai/bingfoon/zustand-patterns
 
 ### 2. UI/UX 设计相关（强烈推荐）
 
-> 🎨 特别推荐：Canvas Design — AI Logo设计神器
+![](https://s.poetries.top/uploads/2026/03/640cef426041db02.png)
 
-**Canvas Design** — 这是一个颠覆传统设计方式的Skill！和一般设计工具不同，Canvas Design可以从哲学思想到视觉设计进行深度沟通后直接出图。它不是简单的你让画啥就画啥，而是先从灵魂深层理解你的诉求最后再完成设计。
+> 🎨 特别推荐：Canvas Design — AI Logo 设计神器
 
-最关键的是，一键生成PNG、SVG以及各种布局和尺寸。
+**Canvas Design** — 这是一个颠覆传统设计方式的 Skill！和一般设计工具不同，Canvas Design 可以从哲学思想到视觉设计进行深度沟通后直接出图。它不是简单的你让画啥就画啥，而是先从灵魂深层理解你的诉求最后再完成设计。
+
+最关键的是，一键生成 PNG、SVG 以及各种布局和尺寸。
 
 ```bash
 # 安装
 npx skills add https://github.com/anthropics/skills --skill canvas-design --agent claude-code -y
 ```
 
-> 📺 实际案例：小米当时花了几百万请日本设计师改Logo，最后大家评价改了个寂寞。而使用Canvas Design，从哲学思想到视觉设计30分钟就搞定了，而且设计效果非常令人满意！
+> 📺 实际案例：小米当时花了几百万请日本设计师改 Logo，最后大家评价改了个寂寞。而使用 Canvas Design，从哲学思想到视觉设计 30 分钟就搞定了，而且设计效果非常令人满意！
 
 ---
 
-**UI/UX Pro Max** — 顶级UI/UX设计智能助手，支持React、Next.js、Vue、Svelte、Tailwind等9种技术栈：
+**UI/UX Pro Max** — 顶级 UI/UX 设计智能助手，支持 React、Next.js、Vue、Svelte、Tailwind 等 9 种技术栈：
 
 ```bash
 # 安装
@@ -197,13 +443,17 @@ clawhub install ui-ux-pro-max
 https://clawhub.ai/xobi667/ui-ux-pro-max
 ```
 
-这个Skill堪称全能：
-- 50+设计风格（玻璃拟态、粘土风、极简主义、粗野主义等）
-- 21种配色方案
-- 50种字体搭配
-- 支持生成落地页、Dashboard、电商、SaaS等各类项目
+这个 Skill 堪称全能：
 
-**UI/UX Design Guide** — 移动优先的UI/UX设计指导，包含WCAG 2.2无障碍规范：
+- 50+设计风格（玻璃拟态、粘土风、极简主义、粗野主义等）
+
+- 21 种配色方案
+
+- 50 种字体搭配
+
+- 支持生成落地页、Dashboard、电商、SaaS 等各类项目
+
+**UI/UX Design Guide** — 移动优先的 UI/UX 设计指导，包含 WCAG 2.2 无障碍规范：
 
 ```bash
 # 安装
@@ -213,7 +463,7 @@ clawhub install ui-ux-design
 https://clawhub.ai/itsjustdri/ui-ux-design
 ```
 
-**Frontend Design** — 使用React、Next.js、Tailwind CSS构建生产级界面：
+**Frontend Design** — 使用 React、Next.js、Tailwind CSS 构建生产级界面：
 
 ```bash
 # 安装
@@ -223,7 +473,7 @@ clawhub install frontend
 https://clawhub.ai/ivangdavila/frontend
 ```
 
-**UI Audit** — 自动化的UI审核工具，基于Nielsen Norman可用性原则：
+**UI Audit** — 自动化的 UI 审核工具，基于 Nielsen Norman 可用性原则：
 
 ```bash
 # 安装
@@ -245,7 +495,7 @@ clawhub install frontend-performance
 https://clawhub.ai/wangzhiming1999/frontend-performance
 ```
 
-**Browser Devtools Inspector** — 通过浏览器DevTools调试前端问题（Console、Network、Performance）：
+**Browser Devtools Inspector** — 通过浏览器 DevTools 调试前端问题（Console、Network、Performance）：
 
 ```bash
 # 安装
@@ -257,7 +507,7 @@ https://clawhub.ai/QtadaGM/qtada-browser-devtools-inspector
 
 ### 4. 组件库相关
 
-**Ant Design Skill** — 高效构建Ant Design v5+ React组件库：
+**Ant Design Skill** — 高效构建 Ant Design v5+ React 组件库：
 
 ```bash
 # 安装
@@ -267,7 +517,7 @@ clawhub install ant-design-skill
 https://clawhub.ai/FelipeOFF/ant-design-skill
 ```
 
-**Component Api Design** — 可复用组件API和文件结构设计：
+**Component Api Design** — 可复用组件 API 和文件结构设计：
 
 ```bash
 # 安装
@@ -279,7 +529,7 @@ https://clawhub.ai/wangzhiming1999/component-api-design
 
 ### 5. 移动端开发
 
-**React Native Skills** — React Native和Expo最佳实践：
+**React Native Skills** — React Native 和 Expo 最佳实践：
 
 ```bash
 # 安装
@@ -289,7 +539,7 @@ clawhub install vercel-react-native-skills
 https://clawhub.ai/xaiohuangningde/vercel-react-native-skills
 ```
 
-**Radon AI** — React Native开发AI工具，支持查看日志、网络请求、组件树检查：
+**Radon AI** — React Native 开发 AI 工具，支持查看日志、网络请求、组件树检查：
 
 ```bash
 # 安装
@@ -299,15 +549,17 @@ clawhub install radon-ai
 https://clawhub.ai/latekvo/radon-ai
 ```
 
-## 四、重头戏：如何自定义开发一个Skill
+## 四、重头戏：如何自定义开发一个 Skill
 
-官方提供的Skills再多，也不可能覆盖所有场景。这时候，你需要自己动手开发定制技能。
+![](https://s.poetries.top/uploads/2026/03/824a0cd95edd2a53.png)
 
-### Skill的基本结构
+官方提供的 Skills 再多，也不可能覆盖所有场景。这时候，你需要自己动手开发定制技能。
 
-一个标准的OpenClaw Skill通常包含以下文件：
+### Skill 的基本结构
 
-```
+一个标准的 OpenClaw Skill 通常包含以下文件：
+
+```plaintext
 my-custom-skill/
 ├── SKILL.md          # Skill的元信息和使用说明
 ├── skill.json        # 配置文件
@@ -315,9 +567,9 @@ my-custom-skill/
 └── requirements.txt  # 依赖列表
 ```
 
-### 快速创建一个前端组件生成Skill
+### 快速创建一个前端组件生成 Skill
 
-**第一步：创建SKILL.md**
+**第一步：[创建 SKILL.md](http://xn--SKILL-ll6hz28e.md)**
 
 ```markdown
 ---
@@ -334,6 +586,7 @@ description: 自定义前端组件生成器
 `gen component [组件名] [类型]` - 生成指定类型的组件
 
 示例：
+
 - `gen component Button primary` - 生成主按钮组件
 - `gen component Card dark` - 生成暗色卡片组件
 ```
@@ -350,7 +603,7 @@ description: 自定义前端组件生成器
 }
 ```
 
-**第三步：编写主逻辑 main.py**
+**第三步：编写主逻辑 [main.py](http://main.py)**
 
 ```python
 import json
@@ -373,10 +626,7 @@ export const {{ name }}: React.FC<{{ name }}Props> = ({
   children
 }) => {
   return (
-    <button 
-      className={`btn btn-${variant}`}
-      onClick={onClick}
-    >
+    <button classname="{`btn" btn-${variant}`}="" onclick="{onClick}">
       {children}
     </button>
   );
@@ -399,9 +649,9 @@ export const {{ name }}: React.FC<{{ name }}Props> = ({
   variant = 'light'
 }) => {
   return (
-    <div className={`card card-${variant}`}>
-      <h3 className="card-title">{title}</h3>
-      {content && <p className="card-content">{content}</p>}
+    <div classname="{`card" card-${variant}`}="">
+      <h3 classname="card-title">{title}</h3>
+      {content && <p classname="card-content">{content}</p>}
     </div>
   );
 };
@@ -409,32 +659,35 @@ export const {{ name }}: React.FC<{{ name }}Props> = ({
 
 def handle(request):
     message = request.get("message", "").lower()
-    
+
     # 解析命令: gen component Button primary
     parts = message.split()
     if len(parts) < 4 or parts[0] != "gen" or parts[1] != "component":
         return {
             "status": "error",
-            "message": "请使用格式：gen component [组件名] [类型]\n例如：gen component Button primary"
+            "message": "请使用格式：gen component [组件名] [类型]
+例如：gen component Button primary"
         }
-    
+
     component_name = parts[2]
     component_type = parts[3]
-    
+
     # 选择模板
     templates = {
         "button": BUTTON_TEMPLATE,
         "card": CARD_TEMPLATE,
     }
-    
+
     template_key = component_type if component_type in templates else "button"
     template = Template(templates[template_key])
-    
+
     code = template.render(name=component_name)
-    
+
     return {
         "status": "success",
-        "message": f"生成的 {component_name} 组件代码：\n\n```{code}```"
+        "message": f"生成的 {component_name} 组件代码：
+
+```{code}```"
     }
 
 if __name__ == "__main__":
@@ -442,29 +695,35 @@ if __name__ == "__main__":
     print(handle(test_request))
 ```
 
-### Skill的触发机制
+### Skill 的触发机制
 
-OpenClaw的Skills通过**关键词匹配**或**意图识别**触发。配置时需要注意：
+OpenClaw 的 Skills 通过**关键词匹配**或**意图识别**触发。配置时需要注意：
 
-1. **明确的触发词** — 在SKILL.md中用 \`code\` 格式标注命令格式
+1. **明确的触发词** — 在 [SKILL.md](http://SKILL.md) 中用 `code` 格式标注命令格式
+
 2. **合理的参数解析** — 用户输入可能有多种表达方式，需要兼容
+
 3. **清晰的错误提示** — 当用户指令不明确时，给出正确的使用方式
 
-### 发布你的Skill
+### 发布你的 Skill
 
 开发完成后，可以通过以下方式分享：
 
-1. **提交到ClawHub** — 让更多开发者可以使用你的Skill
-2. **GitHub仓库** — 符合OpenClaw的目录结构后分享
-3. **直接安装** — 告诉朋友"请帮我安装这个skills，github链接是xxx"
+1. **提交到 ClawHub** — 让更多开发者可以使用你的 Skill
 
-## 五、进阶技巧：前端Skills组合使用
+2. **GitHub 仓库** — 符合 OpenClaw 的目录结构后分享
 
-单个Skill的能力有限，但组合使用会产生意想不到的效果。
+3. **直接安装** — 告诉朋友“请帮我安装这个 skills，github 链接是 xxx”
+
+## 五、进阶技巧：前端 Skills 组合使用
+
+![](https://s.poetries.top/uploads/2026/03/352a6eceffc1c585.png)
+
+单个 Skill 的能力有限，但组合使用会产生意想不到的效果。
 
 ### 示例：自动化组件开发工作流
 
-```
+```plaintext
 用户输入：帮我创建一个用户列表页面
 
 → UI/UX Pro Max 确定页面布局和设计风格
@@ -475,7 +734,7 @@ OpenClaw的Skills通过**关键词匹配**或**意图识别**触发。配置时�
 
 ### 示例：技术调研自动化
 
-```
+```plaintext
 用户输入：调研React 19的Server Actions
 
 → GitHub 获取官方文档和RFC
@@ -486,23 +745,27 @@ OpenClaw的Skills通过**关键词匹配**或**意图识别**触发。配置时�
 
 ## 六、避坑指南
 
-1. **不要安装来源不明的Skills** — 安装前用skill-vetter扫描
-2. **定期更新** — 使用auto-updater保持Skills最新，但更新前做好测试
-3. **注意API配额** — 很多Skills依赖第三方API，免费额度用完会失效
-4. **敏感信息处理** — 涉及API Key等敏感信息时，务必谨慎
-5. **测试环境先行** — 新安装的Skills先在非关键场景测试，确认稳定后再用于核心任务
+1. **不要安装来源不明的 Skills** — 安装前用 skill-vetter 扫描
 
-## 七、更多前端Skills资源
+2. **定期更新** — 使用 auto-updater 保持 Skills 最新，但更新前做好测试
 
-如果你在寻找特定功能的Skills，以下资源值得收藏：
+3. **注意 API 配额** — 很多 Skills 依赖第三方 API，免费额度用完会失效
+
+4. **敏感信息处理** — 涉及 API Key 等敏感信息时，务必谨慎
+
+5. **测试环境先行** — 新安装的 Skills 先在非关键场景测试，确认稳定后再用于核心任务
+
+## 七、更多前端 Skills 资源
+
+如果你在寻找特定功能的 Skills，以下资源值得收藏：
 
 | 资源站 | 链接 |
-|--------|------|
-| ClawHub 官网 | https://clawhub.ai/ |
-| Awesome OpenClaw Skills | https://github.com/VoltAgent/awesome-openclaw-skills |
-| OpenClaw 官方 Skills | https://github.com/openclaw/skills |
+| --- | --- |
+| ClawHub 官网 | <https://clawhub.ai/> |
+| Awesome OpenClaw Skills | <https://github.com/VoltAgent/awesome-openclaw-skills> |
+| OpenClaw 官方 Skills | <https://github.com/openclaw/skills> |
 
-### 其他常用检索/效率类Skills
+### 其他常用检索/效率类 Skills
 
 ```bash
 # 网页检索
@@ -522,8 +785,10 @@ clawhub install self-improving-agent
 
 ## 结语
 
-OpenClaw的Skills生态为前端开发者提供了强大的能力扩展。从基础的React/Vue组件生成，到复杂的UI设计系统，再到性能优化和调试——你的AI助手能帮你做多少事情，取决于你愿意投入多少精力去配置和打磨。
+![](https://s.poetries.top/uploads/2026/03/00fa72d44af712eb.png)
 
-不要试图一步到位。从最需要的1-2个Skills开始，在使用中学习，在学习中扩展——这才是真正有效的进阶路径。
+OpenClaw 的 Skills 生态为前端开发者提供了强大的能力扩展。从基础的 React/Vue 组件生成，到复杂的 UI 设计系统，再到性能优化和调试——你的 AI 助手能帮你做多少事情，取决于你愿意投入多少精力去配置和打磨。
+
+不要试图一步到位。从最需要的 1-2 个 Skills 开始，在使用中学习，在学习中扩展——这才是真正有效的进阶路径。
 
 作为前端开发者，我个人最推荐优先安装：**UI/UX Pro Max + React + Frontend Design**，这个组合已经能覆盖大部分日常开发需求。
