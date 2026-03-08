@@ -2,16 +2,15 @@
 title: OpenClaw Skills 进阶实战：前端开发者的AI技能库搭建指南
 date: 2026-03-07 15:40:10
 description: 从Skills安装到自定义开发，手把手教你为前端开发场景构建AI助手技能矩阵，包含React/Vue/UI设计/性能优化等实用Skills及来源地址
-tags: 
+tags:
   - OpenClaw
   - AI助手
-  - Skills
   - 前端开发
 categories: AI
 ---
 
 
-![](https://s.poetries.top/uploads/2026/03/a1423ce7140e6c1b.png)
+![](https://s.poetries.top/blog/1.png)
 
 部署好 OpenClaw 后，很多人会发现它还只是个“聊天机器”。其实，OpenClaw 真正强大的地方在于 Skills 生态——通过不同的技能插件，你的 AI 助手可以具备代码生成、UI 设计、性能优化、调试排错等前端开发能力。
 
@@ -19,7 +18,7 @@ categories: AI
 
 ## 一、按需构建：前端开发者的 Skills 选择策略
 
-![](https://s.poetries.top/uploads/2026/03/7418fc6eab5cda05.png)
+![](https://s.poetries.top/blog/2.png)
 
 不要看到什么 Skill 都想安装。更好的方式是：根据你的技术栈和业务场景，按需选择。
 
@@ -35,7 +34,7 @@ categories: AI
 
 ## 二、Skills 安装全攻略
 
-![](https://s.poetries.top/uploads/2026/03/e1627219d47657a7.png)
+![](https://s.poetries.top/blog/3.png)
 
 万事开头难，很多人一听到要配置 Skills 就头大。其实 OpenClaw 提供了多种安装方式，总有一款适合你。
 
@@ -135,7 +134,7 @@ skill-vetter <skill-name></skill-name>
 ## 三、2026 年最热门的 OpenClaw Skills 推荐
 
 
-![](https://s.poetries.top/uploads/2026/03/7b308caf14cdecee.png)
+![](https://s.poetries.top/blog/4.png)
 
 
 在深入前端专项技能之前，让我们先看看 OpenClaw 社区中最受欢迎、下载量最高的技能。这些技能经过了大量用户的验证，安全性和实用性都有保障。
@@ -203,7 +202,7 @@ clawhub install weather
 
 ### 🍎 macOS 用户专属（零配置，原生集成）
 
-![](https://s.poetries.top/uploads/2026/03/62142c5082ce10e0.png)
+![](https://s.poetries.top/blog/5.png)
 
 如果你是 Mac 用户，这些技能可以直接调用系统原生应用，无需任何配置：
 
@@ -356,7 +355,7 @@ clawhub install home-assistant
 
 ### 🚀 推荐安装顺序
 
-![](https://s.poetries.top/uploads/2026/03/b64554568f5d840c.png)
+![](https://s.poetries.top/blog/6.png)
 
 1. **先装安全工具**：Skill Vetter + Link Checker
 
@@ -416,7 +415,7 @@ https://clawhub.ai/bingfoon/zustand-patterns
 
 ### 2. UI/UX 设计相关（强烈推荐）
 
-![](https://s.poetries.top/uploads/2026/03/640cef426041db02.png)
+![](https://s.poetries.top/blog/7.png)
 
 > 🎨 特别推荐：Canvas Design — AI Logo 设计神器
 
@@ -551,7 +550,7 @@ https://clawhub.ai/latekvo/radon-ai
 
 ## 四、重头戏：如何自定义开发一个 Skill
 
-![](https://s.poetries.top/uploads/2026/03/824a0cd95edd2a53.png)
+![](https://s.poetries.top/blog/8.png)
 
 官方提供的 Skills 再多，也不可能覆盖所有场景。这时候，你需要自己动手开发定制技能。
 
@@ -717,7 +716,7 @@ OpenClaw 的 Skills 通过**关键词匹配**或**意图识别**触发。配置�
 
 ## 五、进阶技巧：前端 Skills 组合使用
 
-![](https://s.poetries.top/uploads/2026/03/352a6eceffc1c585.png)
+![](https://s.poetries.top/blog/9.png)
 
 单个 Skill 的能力有限，但组合使用会产生意想不到的效果。
 
@@ -785,7 +784,7 @@ clawhub install self-improving-agent
 
 ## 结语
 
-![](https://s.poetries.top/uploads/2026/03/00fa72d44af712eb.png)
+![](https://s.poetries.top/blog/10.png)
 
 OpenClaw 的 Skills 生态为前端开发者提供了强大的能力扩展。从基础的 React/Vue 组件生成，到复杂的 UI 设计系统，再到性能优化和调试——你的 AI 助手能帮你做多少事情，取决于你愿意投入多少精力去配置和打磨。
 
