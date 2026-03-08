@@ -1,12 +1,15 @@
 ---
-title: 搞懂这7个配置文件让你的OpenClaw从"傻白甜"变"智能助手"
-date: 2026-03-07
+title: 搞懂这7个配置文件让你的OpenClaw变智能助手
+date: 2026-03-08 09:00:00
 description: 很多人装了满满一堆Skills，却觉得OpenClaw还是"傻白甜"。其实决定AI智商的，不是插件有多少，而是这几个藏在系统底层的配置文件。
-tags: [OpenClaw, AI助手, 配置教程, 效率工具]
-categories: [效率工具, AI教程]
+tags:
+  - OpenClaw
+  - AI助手
+  - Skills
+categories: AI
 ---
 
-# 搞懂这7个配置文件让你的OpenClaw从"傻白甜"变"智能助手"
+# 搞懂这7个配置文件让你的OpenClaw变智能助手
 
 装了满满一堆Skills，OpenClaw还是那个"一问一答"的傻白甜？
 
@@ -28,14 +31,28 @@ ls ~/.openclaw/workspace/
 cd ~/.openclaw/workspace/
 ```
 
+文件层级如下：
+
+```bash
+~/.openclaw/workspace/
+├── AGENTS.md       # 代理调度规则与标准作业程序
+├── BOOTSTRAP.md    # 初始化序列与核心系统提示词
+├── HEARTBEAT.md    # 定时执行逻辑与主动任务状态自检
+├── IDENTITY.md     # 代理身份定义与系统边界约束
+├── MEMORY.md       # 长期上下文数据与既定规则的持久化存储
+├── SOUL.md         # 响应语气、行为特征及输出格式配置
+├── TOOLS.md        # 工具授权注册表及调用参数规范
+├── USER.md         # 用户画像数据，包含特定偏好与交互限制配置
+├── memory/         # 日常运行日志与短期上下文存储
+└── skills/         # 已安装的第三方技能扩展目录
+```
+
 ### WebUI方式
 
 1. 访问：`http://localhost:18789/overview`
 2. 点击"连接"
 3. 左侧选择"代理" -> 当前Agent
 4. 点击文件，选择对应的md文件进行修改
-
----
 
 ## 这7个文件，决定了AI的"智商"
 
@@ -61,13 +78,11 @@ cd ~/.openclaw/workspace/
 * **生物钟感知**：深夜时段降低主动输出频率
 ```
 
-**关键点**：SOUL.md越具体，AI行为越明确。模糊的指令如"要有帮助"会产生模糊的行为，而"最多5个要点，确认后再删除任何文件"会产生特定的行为。
-
----
+**关键点**：`SOUL.md`越具体，AI行为越明确。模糊的指令如"要有帮助"会产生模糊的行为，而"最多5个要点，确认后再删除任何文件"会产生特定的行为。
 
 ### 2. AGENTS.md —— AI的工作指南
 
-**AGENTS.md**是OpenClaw的日常行为配置文件，详细记录了任务处理流程、工具使用策略和决策规范。
+**AGENTS.md**是`OpenClaw`的日常行为配置文件，详细记录了任务处理流程、工具使用策略和决策规范。
 
 核心内容包括：
 
@@ -79,8 +94,8 @@ cd ~/.openclaw/workspace/
 * 读取memory/ - 获取最近上下文
 
 ## 2. 记忆库新陈代谢
-* 每日流水：当天灵感、废稿存入memory/YYYY-MM-DD.md
-* 精华提炼：定期回顾并更新到MEMORY.md
+* 每日流水：当天灵感、废稿存入`memory/YYYY-MM-DD.md`
+* 精华提炼：定期回顾并更新到`MEMORY.md`
 
 ## 3. 护主与绝对红线
 * 隐私锁死：禁止泄露未发布的草稿
@@ -88,17 +103,15 @@ cd ~/.openclaw/workspace/
 * 懂就问：绝不靠幻觉瞎编
 ```
 
----
-
 ### 3. USER.md —— AI的用户说明书
 
 **USER.md**是写给OpenClaw的"使用说明书"，决定了AI如何服务你。
 
 ```markdown
 ## 1. 基础参数
-- 称呼：王十三
+- 称呼：poetry
 - 时区：Asia/Shanghai
-- 角色：内容创作者
+- 角色：前端工程师
 
 ## 2. 沟通与排版癖好
 - 排版要求：少用Emoji，不要"首先其次最后"
@@ -115,8 +128,6 @@ cd ~/.openclaw/workspace/
 ```
 
 **这是过滤"AI味"最重要的一环。**
-
----
 
 ### 4. HEARTBEAT.md —— 让AI具备"自主意识"
 
@@ -141,13 +152,11 @@ cd ~/.openclaw/workspace/
 
 这才是OpenClaw最强大的地方——**当服务器凌晨3点宕机时，心跳机制会捕获问题并通过Telegram提醒你**。
 
----
-
 ### 5. TOOLS.md —— 技能配置清单
 
-**TOOLS.md**定义了OpenClaw能用什么工具。
+**TOOLS.md**定义了`OpenClaw`能用什么工具。
 
-要理解Tools和Skills的区别：
+要理解`Tools`和`Skills`的区别：
 - **Tools是器官** —— 决定了AI是否能做某事
 - **Skills是教科书** —— 教AI如何组合工具完成任务
 
@@ -160,12 +169,10 @@ cd ~/.openclaw/workspace/
 * 屏蔽词库：过滤抽奖垃圾推文
 
 ## 2. 本地存储映射
-* 灵感暂存区：/Users/xxx/Obsidian/Tweets_Raw/
-* 草稿输出目录：/Users/xxx/Obsidian/Drafts/
+* 灵感暂存区：~/.openclaw/workspace/inspiration/
+* 草稿输出目录：~/.openclaw/workspace/Drafts/
 * 日志回收站：~/.openclaw/workspace/trash/
 ```
-
----
 
 ### 6. IDENTITY.md —— 对外身份形象
 
@@ -177,20 +184,18 @@ cd ~/.openclaw/workspace/
 ```markdown
 # IDENTITY.md
 
-- 姓名：王十三
+- 姓名：poetry
 - 物种：全自动化打工犬
 - 氛围：硬核、极客、话少干活快
 ```
 
 这种分离设计很强大——你可以随时调整AI的对外形象，但保持核心人格不变。
 
----
-
 ### 7. BOOTSTRAP.md —— 初始化引导
 
 **BOOTSTRAP.md**是全新工作空间的一次性引导文件。
 
-核心功能是引导用户完成：命名AI、设置人格、填写USER.md。
+核心功能是引导用户完成：命名AI、设置人格、填写`USER.md`。
 
 ```markdown
 # 引导流程
@@ -199,9 +204,9 @@ cd ~/.openclaw/workspace/
 "系统上线，记忆为空。咱们定一下规矩：我是谁？"
 
 ## 2. 基因重组
-* 覆写IDENTITY.md
-* 覆写USER.md
-* 敲定SOUL.md的红线
+* 覆写`IDENTITY.md`
+* 覆写`USER.md`
+* 敲定`SOUL.md`的红线
 
 ## 3. 连接渠道
 * 仅限本地
@@ -209,26 +214,18 @@ cd ~/.openclaw/workspace/
 * WhatsApp
 ```
 
-**关键**：完成后必须删除BOOTSTRAP.md。你已经有了灵魂，不再是空白机器了。
-
----
+**关键**：完成后必须删除`BOOTSTRAP.md`。你已经有了灵魂，不再是空白机器了。
 
 ## 写在最后
 
 看完这篇，你会发现：**OpenClaw的"智商"根本不是由Skills数量决定的，而是由这7个配置文件决定的。**
 
-- SOUL.md → 性格
-- AGENTS.md → 怎么干活
-- USER.md → 怎么服务你
-- HEARTBEAT.md → 自主意识
-- TOOLS.md → 能用什么工具
-- IDENTITY.md → 长什么样
-- BOOTSTRAP.md → 初始引导
+- `SOUL.md` → 性格
+- `AGENTS.md` → 怎么干活
+- `USER.md` → 怎么服务你
+- `HEARTBEAT.md` → 自主意识
+- `TOOLS.md` → 能用什么工具
+- `IDENTITY.md` → 长什么样
+- `BOOTSTRAP.md` → 初始引导
 
 这才是让AI从"傻白甜"变成"智能助手"的关键。
-
-兄弟们，动手改起来吧！
-
----
-
-*本文基于OpenClaw官方文档及社区经验整理，以公众号风格重新呈现。*
