@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>重新认识 Claude Code 架构治理与团队工程化实战全景 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Claude Code,AI Coding,Agent,工程化,DevOps," />
+  
+
+  <meta name="description" content="深度解构 Claude Code 的核心架构与治理机制，覆盖 SubAgent、Skills、Hooks、Permission、MCP、CLAUDE.md 等模块，给出从个人到团队的工程化落地路线图。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重新认识 Claude Code 架构治理与团队工程化实战全景">
+<meta property="og:url" content="http://blog.poetries.top/2026/05/18/claude-code-engineering-architecture-governance/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="深度解构 Claude Code 的核心架构与治理机制，覆盖 SubAgent、Skills、Hooks、Permission、MCP、CLAUDE.md 等模块，给出从个人到团队的工程化落地路线图。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-05-18T01:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-17T16:30:28.425Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="AI Coding">
+<meta property="article:tag" content="Agent">
+<meta property="article:tag" content="工程化">
+<meta property="article:tag" content="DevOps">
+<meta name="twitter:card" content="summary">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-text">痛点与解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Claude-Code-%E4%B8%8D%E5%8F%AA%E6%98%AF-AI-%E7%BC%96%E7%A8%8B"><span class="toc-text">一、Claude Code 不只是 AI 编程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%AD%E4%B8%AA%E4%B8%80%E7%AD%89%E5%85%AC%E6%B0%91%E6%A8%A1%E5%9D%97"><span class="toc-text">二、六个一等公民模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Slash-Commands-%E4%B8%8D%E5%8F%AA%E6%98%AF%E5%BF%AB%E6%8D%B7%E5%91%BD%E4%BB%A4"><span class="toc-text">Slash Commands 不只是快捷命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SubAgent-%E5%88%86%E5%BD%A2-AI-%E5%9B%A2%E9%98%9F"><span class="toc-text">SubAgent 分形 AI 团队</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Skills-%E6%B8%90%E8%BF%9B%E6%8A%AB%E9%9C%B2%E7%9A%84%E8%83%BD%E5%8A%9B%E5%B0%81%E8%A3%85"><span class="toc-text">Skills 渐进披露的能力封装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Hooks-%E4%BA%8B%E4%BB%B6%E6%80%BB%E7%BA%BF"><span class="toc-text">Hooks 事件总线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MCP-Servers-%E5%A4%96%E6%8C%82%E8%83%BD%E5%8A%9B"><span class="toc-text">MCP Servers 外挂能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Permission-%E4%BF%A1%E4%BB%BB%E8%BE%B9%E7%95%8C"><span class="toc-text">Permission 信任边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81CLAUDE-md-%E7%9A%84%E4%B8%89%E5%B1%82%E4%BC%98%E5%85%88%E7%BA%A7%E6%A8%A1%E5%9E%8B"><span class="toc-text">三、CLAUDE.md 的三层优先级模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%B2%BB%E7%90%86%EF%BC%9A%E6%8A%8A-AI-%E6%8E%A5%E8%BF%9B%E5%9B%A2%E9%98%9F-SOP"><span class="toc-text">四、治理：把 AI 接进团队 SOP</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BD%BB-%E4%B8%AD-%E5%A4%A7%E4%BB%BB%E5%8A%A1%E5%88%86%E6%B5%81"><span class="toc-text">五、轻 &#x2F; 中 &#x2F; 大任务分流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E8%A7%81%E5%8F%8D%E6%A8%A1%E5%BC%8F%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-text">六、常见反模式与修复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E6%A8%A1%E5%BC%8F-1%EF%BC%9ACLAUDE-md-%E5%BD%93%E4%B8%80%E6%AC%A1%E6%80%A7-prompt"><span class="toc-text">反模式 1：CLAUDE.md 当一次性 prompt</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E6%A8%A1%E5%BC%8F-2%EF%BC%9A%E6%BB%A5%E7%94%A8-SubAgent-%E6%94%B9%E5%90%8C%E4%B8%80%E6%96%87%E4%BB%B6"><span class="toc-text">反模式 2：滥用 SubAgent 改同一文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E6%A8%A1%E5%BC%8F-3%EF%BC%9A%E8%B7%B3%E8%BF%87-verification-%E7%9B%B4%E6%8E%A5%E5%A3%B0%E6%98%8E%E5%AE%8C%E6%88%90"><span class="toc-text">反模式 3：跳过 verification 直接声明完成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E6%A8%A1%E5%BC%8F-4%EF%BC%9AMCP-%E5%85%A8%E5%BC%80%E5%AF%BC%E8%87%B4%E6%9D%83%E9%99%90%E6%BB%A5%E5%8F%91"><span class="toc-text">反模式 4：MCP 全开导致权限滥发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E6%A8%A1%E5%BC%8F-5%EF%BC%9A%E6%8A%8A%E6%89%80%E6%9C%89%E4%BA%8B%E6%83%85%E5%A1%9E%E8%BF%9B%E4%B8%BB-Agent-%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-text">反模式 5：把所有事情塞进主 Agent 上下文</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%89%E6%A1%A3%E8%90%BD%E5%9C%B0%E8%B7%AF%E7%BA%BF%E5%9B%BE"><span class="toc-text">七、三档落地路线图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AA%E4%BA%BA%E5%BC%80%E5%8F%91%E8%80%85%EF%BC%88%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E7%89%88%EF%BC%89"><span class="toc-text">个人开发者（最小可用版）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B0%8F%E5%9B%A2%E9%98%9F%EF%BC%885-15-%E4%BA%BA%EF%BC%89"><span class="toc-text">小团队（5-15 人）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%A7%E5%9B%A2%E9%98%9F%EF%BC%88%E4%B8%AD%E5%9E%8B%E5%85%AC%E5%8F%B8%E5%8F%8A%E4%BB%A5%E4%B8%8A%EF%BC%89"><span class="toc-text">大团队（中型公司及以上）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E4%BB%BB%E5%8A%A1%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-text">八、一个完整任务的最佳实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E7%BB%99%E8%AF%BB%E8%80%85%E7%9A%84%E5%BB%BA%E8%AE%AE"><span class="toc-text">九、给读者的建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-claude-code-engineering-architecture-governance" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">重新认识 Claude Code 架构治理与团队工程化实战全景</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.05.18</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/AI/">AI</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.8k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 14分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>多数人把 <code>Claude Code</code> 当成「命令行版 <code>Cursor</code>」，写代码顺手用一下，关掉终端就忘了。但真正长期用下来你会发现：它不是一把瑞士军刀，而是一个完整的 <strong>AI 工程化操作系统</strong>。本文系统拆解 <code>Claude Code</code> 的架构、治理和团队落地实践。</p>
+</blockquote>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>为什么 <code>Claude Code</code> 不只是 AI 编程工具</li>
+<li>六个一等公民模块：<code>Slash Commands</code>、<code>SubAgent</code>、<code>Skills</code>、<code>Hooks</code>、<code>MCP</code>、<code>Permission</code></li>
+<li><code>CLAUDE.md</code> 的三层优先级模型怎么生效</li>
+<li>个人 &#x2F; 小团队 &#x2F; 大团队的三档落地路线图</li>
+<li>常见反模式与可执行的修复建议</li>
+<li>一份完整的 SOP 模板，照搬就能用</li>
+</ul>
+<h2 id="痛点与解决方案"><a href="#痛点与解决方案" class="headerlink" title="痛点与解决方案"></a>痛点与解决方案</h2><p>很多人第一次用 <code>Claude Code</code> 的体验是：跑个 <code>claude</code> 命令，让它写段代码，跑通了关掉终端，工作结束。这种用法没有错，但只发挥了 5% 的能力。当你想把 AI 接到真实业务里，会立刻撞上几堵墙：</p>
+<ul>
+<li><strong>上下文漂移</strong>：每次开新会话都要重新解释项目背景、技术栈、命名约定，重复劳动</li>
+<li><strong>行为不一致</strong>：今天让它写 React 组件用 antd，明天它给你混进 shadcn，没人管它</li>
+<li><strong>没有审计</strong>：它擅自跑了 <code>rm -rf</code>、<code>git push --force</code>，等你发现已经晚了</li>
+<li><strong>协作失控</strong>：团队两个人各用各的 Claude Code，对同一份代码的判断完全不一样</li>
+</ul>
+<p>这些问题不靠「再 prompt 一遍」解决，而是要把 <code>Claude Code</code> 当成一个<strong>有架构、有治理、有 SOP 的系统</strong>去配置。<code>Claude Code</code> 现在已经长成了一个高度结构化的平台，本文我们就把它的全貌拆开看。</p>
+<h2 id="一、Claude-Code-不只是-AI-编程"><a href="#一、Claude-Code-不只是-AI-编程" class="headerlink" title="一、Claude Code 不只是 AI 编程"></a>一、Claude Code 不只是 AI 编程</h2><p>把 <code>Claude Code</code> 类比成命令行版的 <code>Cursor</code> &#x2F; <code>Copilot</code> 是常见误解。<code>Cursor</code> 是 IDE 增强，本质是把 AI 嵌进编辑器；<code>Claude Code</code> 是 <strong>AI Agent runtime</strong>，本质是给你一个会用工具的同事。</p>
+<p>具体差别在哪？看下面这张职责对比：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Cursor &#x2F; Copilot</th>
+<th>Claude Code</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>形态</td>
+<td>IDE 插件 &#x2F; 编辑器</td>
+<td>终端 + 跨 IDE Agent runtime</td>
+</tr>
+<tr>
+<td>主战场</td>
+<td>写代码补全、问答</td>
+<td>多步任务执行、跨工具协作</td>
+</tr>
+<tr>
+<td>上下文承载</td>
+<td>单文件 &#x2F; Cursor Rules</td>
+<td><code>CLAUDE.md</code> + Skills + Hooks + MCP</td>
+</tr>
+<tr>
+<td>工具调用</td>
+<td>内置少量</td>
+<td>任意 Bash &#x2F; 文件 &#x2F; Web &#x2F; MCP server</td>
+</tr>
+<tr>
+<td>多代理</td>
+<td>无</td>
+<td><code>SubAgent</code> 派发、并行隔离</td>
+</tr>
+<tr>
+<td>行为治理</td>
+<td>较弱</td>
+<td><code>Permission</code> + <code>Hooks</code> 强约束</td>
+</tr>
+</tbody></table>
+<p>简单说：<code>Cursor</code> 帮你写完一行代码就退场，<code>Claude Code</code> 会陪你跑完一个完整任务（写代码、跑测试、查日志、提 PR、看 CI），中间任何一步都能被你的约定接管。</p>
+<h2 id="二、六个一等公民模块"><a href="#二、六个一等公民模块" class="headerlink" title="二、六个一等公民模块"></a>二、六个一等公民模块</h2><p>理解 <code>Claude Code</code> 先理解它的「构件」。这六个模块是平台级一等公民，缺一不可。</p>
+<h3 id="Slash-Commands-不只是快捷命令"><a href="#Slash-Commands-不只是快捷命令" class="headerlink" title="Slash Commands 不只是快捷命令"></a>Slash Commands 不只是快捷命令</h3><p><code>/&lt;command&gt;</code> 形式的斜杠命令是用户和系统交互的入口。常见的内置命令有 <code>/help</code>、<code>/clear</code>、<code>/config</code> 等。但更关键的是：<strong>你可以把任意一段标准操作变成一个自定义 slash command</strong>，让团队所有人用同样的姿势调用。</p>
+<p>举两个例子：</p>
+<ul>
+<li><code>/review</code> —— 自定义为「读 git diff、按团队 review checklist 检查、给出修改建议」</li>
+<li><code>/ship</code> —— 自定义为「跑测试、写 commit、push、开 PR」</li>
+</ul>
+<p>斜杠命令本质是<strong>可执行 prompt 模板</strong> + 可选脚本，它把「人脑里的 SOP」变成了「键盘上的快捷键」。</p>
+<h3 id="SubAgent-分形-AI-团队"><a href="#SubAgent-分形-AI-团队" class="headerlink" title="SubAgent 分形 AI 团队"></a>SubAgent 分形 AI 团队</h3><p><code>SubAgent</code> 是 <code>Claude Code</code> 最反直觉但威力最大的能力之一。主 Agent 可以派发独立的子 Agent 去完成边界清晰的子任务，子 Agent 有自己的上下文窗口，跑完只把结果回传一句话。</p>
+<p>适合派子代理的场景：</p>
+<ul>
+<li>3 个独立 spec 文档的并行 review</li>
+<li>5 个不同文件的并行 lint 修复</li>
+<li>多目录的并行代码搜索 &#x2F; 关键字定位</li>
+<li><code>frontend</code> &#x2F; <code>backend</code> &#x2F; <code>docs</code> 三个独立模块的并行研究</li>
+</ul>
+<p>不适合派的场景：</p>
+<ul>
+<li>任务有顺序依赖（B 必须等 A 完成）</li>
+<li>多个子任务改同一个文件、<code>schema</code>、<code>package.json</code>、<code>lockfile</code></li>
+<li>单一目标的 bug 修复（根因未明时）</li>
+</ul>
+<p><code>SubAgent</code> 的核心价值不只是「并行加速」，更是<strong>保护主 Agent 的上下文</strong>：让它不必把 50 个文件的搜索结果塞进自己的窗口。</p>
+<h3 id="Skills-渐进披露的能力封装"><a href="#Skills-渐进披露的能力封装" class="headerlink" title="Skills 渐进披露的能力封装"></a>Skills 渐进披露的能力封装</h3><p><code>Skills</code> 是 <code>Claude</code> 体系里相对新的设计，它把「让 Claude 做某类专业任务」从「每次重写一遍 prompt」升级为「一次定义、按需加载」。</p>
+<p><code>Skills</code> 用渐进披露（Progressive Disclosure）架构：</p>
+<ol>
+<li><strong>元数据扫描</strong>：~100 tokens，判断当前任务和哪些 Skill 相关</li>
+<li><strong>完整加载</strong>：<code>SKILL.md</code> 内容（约 5k tokens），含具体步骤、注意事项</li>
+<li><strong>资源按需</strong>：脚本、模板、参考文件，只在真要执行时才入栈</li>
+</ol>
+<p>这个设计让你能挂几十个 <code>Skills</code> 而不撑爆上下文。<code>frontend-design</code>、<code>figma-use</code>、<code>ship</code>、<code>code-review</code>、<code>investigate</code>、<code>dev-guide</code> —— 每一个都是封装好的「领域专家」。</p>
+<h3 id="Hooks-事件总线"><a href="#Hooks-事件总线" class="headerlink" title="Hooks 事件总线"></a>Hooks 事件总线</h3><p><code>Hooks</code> 是 <code>Claude Code</code> 的事件钩子系统。它在固定时刻（<code>SessionStart</code>、<code>UserPromptSubmit</code>、<code>PreToolUse</code>、<code>PostToolUse</code>、<code>Stop</code>）执行你定义的 shell 命令，命令的输出会被注入到 Agent 的对话上下文里。</p>
+<p><code>Hooks</code> 解决一个核心问题：<strong>那些「每次都要做」的事情，不能靠 Claude 记住，要靠系统强制执行</strong>。比如：</p>
+<ul>
+<li><code>SessionStart</code>：注入项目最新 git 状态、当前分支、未提交文件</li>
+<li><code>PreToolUse</code>：拦截危险命令（如 <code>rm -rf</code> 路径校验、<code>git push --force</code> 二次确认）</li>
+<li><code>PostToolUse</code>：测试跑完自动追加结果到上下文</li>
+<li><code>Stop</code>：要求 Claude 跑完任务必须输出验证证据</li>
+</ul>
+<p>记住一个判定：<strong>「从现在起 &#x2F; 每次 &#x2F; 在 X 之前都要 Y」这种自动化诉求只能用 Hooks 实现</strong>，不能写进 memory 或 CLAUDE.md（那只是文字提醒，没有强制力）。</p>
+<h3 id="MCP-Servers-外挂能力"><a href="#MCP-Servers-外挂能力" class="headerlink" title="MCP Servers 外挂能力"></a>MCP Servers 外挂能力</h3><p><code>MCP</code>（Model Context Protocol）是把外部系统接入 AI Agent 的标准协议。你可以接 <code>Figma</code>、<code>GitHub</code>、禅道、<code>Linear</code>、自建数据库 —— 接好后 Agent 就拥有了「操作这些系统」的能力。</p>
+<p>接 MCP 时要注意三条护栏：</p>
+<ul>
+<li><strong>只暴露最小工具集</strong>：禅道 MCP 没必要把所有 REST API 都开，只开「读 bug、读详情、加评论」就够了</li>
+<li><strong>Token 缓存与 HTTPS 强约束</strong>：避免每次调用都重新登录、避免明文传输</li>
+<li><strong>路径白名单</strong>：上传 &#x2F; 写文件类工具必须限制相对路径</li>
+</ul>
+<h3 id="Permission-信任边界"><a href="#Permission-信任边界" class="headerlink" title="Permission 信任边界"></a>Permission 信任边界</h3><p><code>Permission</code> 系统决定了 Claude 在没有人类确认的情况下能跑哪些命令。默认大量动作（<code>Bash</code>、<code>Edit</code>、<code>Write</code>、MCP 工具）会触发确认弹窗。</p>
+<p>聪明的做法不是「全部 allow」，而是<strong>精细化 allowlist</strong>：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;permissions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;allow&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;Bash(yarn tsc)&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;Bash(yarn lint)&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;Bash(yarn build:*)&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;Bash(git status)&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;Bash(git diff:*)&quot;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;deny&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;Bash(rm -rf:*)&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;Bash(git push --force:*)&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;Bash(curl:* | sh)&quot;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>只读、可逆、低风险的命令放 allow；破坏性命令放 deny 兜底。这样既减少打断，又给关键动作留确认环节。</p>
+<h2 id="三、CLAUDE-md-的三层优先级模型"><a href="#三、CLAUDE-md-的三层优先级模型" class="headerlink" title="三、CLAUDE.md 的三层优先级模型"></a>三、CLAUDE.md 的三层优先级模型</h2><p><code>CLAUDE.md</code> 是 <code>Claude Code</code> 的「项目宪法」。它不是一次性 prompt，而是每次会话都会被加载的<strong>持久化指令集</strong>。</p>
+<p>优先级是这样设计的：</p>
+<ol>
+<li><strong>用户当下指令</strong>（最高）</li>
+<li><strong>项目级 <code>CLAUDE.md</code></strong>（当前工作目录）</li>
+<li><strong>全局 <code>~/.claude/CLAUDE.md</code></strong></li>
+<li><strong>系统默认 prompt</strong>（最低）</li>
+</ol>
+<p>这套优先级让你能做出<strong>分层治理</strong>：</p>
+<ul>
+<li>全局层写「我所有项目都遵守的原则」（比如：禁止 AI 主动 push、危险命令必须二次确认）</li>
+<li>项目层写「这个仓库特有的事实」（技术栈、命令清单、UI 双栈规则、部署方式）</li>
+<li>任务层（用户消息）覆盖前两层做临时调整</li>
+</ul>
+<p>一份好的项目级 <code>CLAUDE.md</code> 通常包含：项目身份、技术栈速查、命令清单、路径别名、UI 选用规则、提交规则、护栏、Change Delivery Gate（完成 &#x2F; commit &#x2F; push 之前必须满足什么）。</p>
+<h2 id="四、治理：把-AI-接进团队-SOP"><a href="#四、治理：把-AI-接进团队-SOP" class="headerlink" title="四、治理：把 AI 接进团队 SOP"></a>四、治理：把 AI 接进团队 SOP</h2><p>光有架构不够，要把它变成团队能跑的流程。下面是一个真实落地过的三层分工：</p>
+<ul>
+<li><strong>规范层（<code>OpenSpec</code>）</strong>：影响对外行为 &#x2F; API &#x2F; SEO &#x2F; 部署形态的变更，走 <code>/opsx:propose</code>，产出 <code>proposal.md</code> + <code>design.md</code> + <code>tasks.md</code></li>
+<li><strong>流程层（<code>superpowers</code>）</strong>：plan &#x2F; brainstorm &#x2F; debug &#x2F; TDD &#x2F; verify &#x2F; code review</li>
+<li><strong>执行层（<code>gstack</code>）</strong>：浏览器 &#x2F; QA &#x2F; ship &#x2F; deploy &#x2F; canary &#x2F; 危险命令护栏</li>
+</ul>
+<p>类比一下：<code>OpenSpec</code> 是蓝图，<code>superpowers</code> 是大脑，<code>gstack</code> 是手脚。</p>
+<p>配套的 Change Delivery Gate（声明完成、准备 commit 之前必须满足）：</p>
+<ol>
+<li>已完成相关验证，并如实报告结果</li>
+<li>已过对应质量门禁（review &#x2F; verification）</li>
+<li>关键验证无法执行时必须明确说明原因</li>
+<li>禁止虚构命令输出</li>
+<li>没有验证证据，不得声称「通过」&#x2F;「完成」</li>
+</ol>
+<p>可接受的证据形式：测试输出真实日志、<code>/qa</code> 报告、<code>/browse</code> 截图、<code>/canary</code> 部署后比对、type checker 与 linter 的真实输出。<strong>「证据优先」是把 AI 拉回工程纪律的关键约束</strong>。</p>
+<h2 id="五、轻-中-大任务分流"><a href="#五、轻-中-大任务分流" class="headerlink" title="五、轻 &#x2F; 中 &#x2F; 大任务分流"></a>五、轻 &#x2F; 中 &#x2F; 大任务分流</h2><p>不是所有任务都要走完整流程，那是过度工程。按任务规模分流：</p>
+<table>
+<thead>
+<tr>
+<th>任务规模</th>
+<th>典型场景</th>
+<th>推荐流程</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>只读</td>
+<td>解释代码、架构问题</td>
+<td>直接答</td>
+</tr>
+<tr>
+<td>轻量</td>
+<td>单文件 bug、文案、配置</td>
+<td>直接改 + 定向验证</td>
+</tr>
+<tr>
+<td>中等</td>
+<td>多文件新功能、明确重构</td>
+<td><code>/opsx:propose</code> + 短 brainstorm + 实现 + <code>/browse</code> 或 <code>/qa</code></td>
+</tr>
+<tr>
+<td>重量</td>
+<td>跨模块、共享逻辑、新架构、公共 API</td>
+<td>完整闭环：spec → plan → executing-plans + worktree + TDD → <code>/qa</code> → review → <code>/ship</code> → <code>/canary</code></td>
+</tr>
+</tbody></table>
+<p>判定方法：<strong>变更是否影响对外可观察行为 &#x2F; 接口契约 &#x2F; 数据形状 &#x2F; 公共 API？</strong> 是 → 中或重；否 → 轻量。这是一条很实用的快速判断线。</p>
+<h2 id="六、常见反模式与修复"><a href="#六、常见反模式与修复" class="headerlink" title="六、常见反模式与修复"></a>六、常见反模式与修复</h2><p>下面这些坑大多数人都踩过，逐条对照能省很多返工。</p>
+<h3 id="反模式-1：CLAUDE-md-当一次性-prompt"><a href="#反模式-1：CLAUDE-md-当一次性-prompt" class="headerlink" title="反模式 1：CLAUDE.md 当一次性 prompt"></a>反模式 1：CLAUDE.md 当一次性 prompt</h3><p>写一长串「这次任务请注意 X、Y、Z」，结果下次会话全忘了。</p>
+<p><strong>修复</strong>：把通用规则沉淀进项目 <code>CLAUDE.md</code>，把项目独有 SOP 拆成 <code>skill</code>，把强制行为升级为 <code>hooks</code>。</p>
+<h3 id="反模式-2：滥用-SubAgent-改同一文件"><a href="#反模式-2：滥用-SubAgent-改同一文件" class="headerlink" title="反模式 2：滥用 SubAgent 改同一文件"></a>反模式 2：滥用 SubAgent 改同一文件</h3><p>「并行才快」于是开 5 个子代理同时改 <code>package.json</code>，结果互相覆盖。</p>
+<p><strong>修复</strong>：<code>package.json</code> &#x2F; <code>yarn.lock</code> &#x2F; <code>tsconfig</code> &#x2F; 根配置 &#x2F; <code>schema</code> 默认串行。子任务必须独立、无共享状态、可独立验证。</p>
+<h3 id="反模式-3：跳过-verification-直接声明完成"><a href="#反模式-3：跳过-verification-直接声明完成" class="headerlink" title="反模式 3：跳过 verification 直接声明完成"></a>反模式 3：跳过 verification 直接声明完成</h3><p>最常见的「AI 说通过了」其实根本没跑过测试。</p>
+<p><strong>修复</strong>：Change Delivery Gate 强制要求证据。配 <code>Stop</code> hook 拦截无证据的「完成」表述。</p>
+<h3 id="反模式-4：MCP-全开导致权限滥发"><a href="#反模式-4：MCP-全开导致权限滥发" class="headerlink" title="反模式 4：MCP 全开导致权限滥发"></a>反模式 4：MCP 全开导致权限滥发</h3><p>接一个新 MCP server，把它所有工具都加进 allowlist。</p>
+<p><strong>修复</strong>：每个 MCP 只暴露真正需要的工具。Token 缓存、HTTPS、相对路径白名单三件套必配。</p>
+<h3 id="反模式-5：把所有事情塞进主-Agent-上下文"><a href="#反模式-5：把所有事情塞进主-Agent-上下文" class="headerlink" title="反模式 5：把所有事情塞进主 Agent 上下文"></a>反模式 5：把所有事情塞进主 Agent 上下文</h3><p>让主 Agent 自己读 50 个文件做研究，上下文窗口被撑爆，后续任务质量暴跌。</p>
+<p><strong>修复</strong>：研究 &#x2F; 大范围搜索派 <code>Explore</code> subagent；分支 &#x2F; 跨模块任务派 <code>general-purpose</code> 或带 worktree 的隔离 subagent。</p>
+<h2 id="七、三档落地路线图"><a href="#七、三档落地路线图" class="headerlink" title="七、三档落地路线图"></a>七、三档落地路线图</h2><p>不同规模团队的起步路径不一样，下面给一份可直接复制的路线。</p>
+<h3 id="个人开发者（最小可用版）"><a href="#个人开发者（最小可用版）" class="headerlink" title="个人开发者（最小可用版）"></a>个人开发者（最小可用版）</h3><ul>
+<li>写一份 50 行的项目 <code>CLAUDE.md</code>：技术栈 + 命令清单 + 提交规则</li>
+<li>装 3 个 skill：<code>dev-guide</code>（项目事实来源）、<code>investigate</code>（debug）、<code>ship</code>（提交 PR）</li>
+<li>配 <code>Permission</code> allowlist：把日常只读命令放行</li>
+<li>1-2 个 <code>Hooks</code>：<code>SessionStart</code> 注入 git 状态，<code>PreToolUse</code> 拦截危险命令</li>
+</ul>
+<h3 id="小团队（5-15-人）"><a href="#小团队（5-15-人）" class="headerlink" title="小团队（5-15 人）"></a>小团队（5-15 人）</h3><ul>
+<li>在个人版基础上加：<ul>
+<li>公共 <code>Skills</code> 仓库（<code>code-review</code> &#x2F; <code>qa</code> &#x2F; <code>release</code>）</li>
+<li>团队级 <code>MCP</code> 接入（禅道 &#x2F; Linear &#x2F; Figma）</li>
+<li><code>Hooks</code> 加 <code>PostToolUse</code> 自动追加测试结果</li>
+<li><code>CLAUDE.md</code> 加完整 Change Delivery Gate 章节</li>
+</ul>
+</li>
+</ul>
+<h3 id="大团队（中型公司及以上）"><a href="#大团队（中型公司及以上）" class="headerlink" title="大团队（中型公司及以上）"></a>大团队（中型公司及以上）</h3><ul>
+<li>在小团队版基础上加：<ul>
+<li><code>OpenSpec</code> 强制：影响对外行为的变更必须先走 spec</li>
+<li><code>Permission</code> 集中下发：仓库根 <code>.claude/settings.json</code> 定义安全策略</li>
+<li>审计 <code>Hooks</code>：所有命令落日志，可追溯</li>
+<li>多角色 review 链路：CEO &#x2F; Eng &#x2F; Design 三视角 plan review</li>
+<li>安全护栏分层：<code>/careful</code>（prod 改动）&#x2F; <code>/freeze</code>（沙箱边界）&#x2F; <code>/guard</code>（合体）</li>
+</ul>
+</li>
+</ul>
+<h2 id="八、一个完整任务的最佳实践"><a href="#八、一个完整任务的最佳实践" class="headerlink" title="八、一个完整任务的最佳实践"></a>八、一个完整任务的最佳实践</h2><p>假设你要给项目加一个新功能，下面是一份可以直接照搬的执行清单。</p>
+<ol>
+<li><strong>明确分类</strong>：是否影响对外行为？是 → 中或重任务</li>
+<li><strong>走 OpenSpec</strong>：<code>/opsx:propose</code>，产出 <code>proposal.md</code> + <code>design.md</code> + <code>tasks.md</code></li>
+<li><strong>短 brainstorm</strong>：选用 superpowers <code>brainstorming</code> skill 收敛设计细节</li>
+<li><strong>写计划</strong>：用 <code>writing-plans</code> 把 tasks 拆成文件级、命令级步骤</li>
+<li><strong>创建 worktree</strong>：用 <code>using-git-worktrees</code> 隔离工作分支</li>
+<li><strong>TDD 实施</strong>：先写测试，再写实现</li>
+<li><strong>跑验证</strong>：<code>yarn tsc</code>、<code>yarn lint</code>、<code>yarn build</code>，输出真实日志</li>
+<li><strong>跑 <code>/browse</code> 或 <code>/qa</code></strong>：UI 改动看截图，业务改动看 QA 报告</li>
+<li><strong><code>requesting-code-review</code></strong>：开独立通道做 code review</li>
+<li><strong><code>/ship</code></strong>：commit、push、开 PR，附验证证据</li>
+<li><strong><code>/land-and-deploy</code></strong>：CI 通过后合并 + 部署</li>
+<li><strong><code>/canary</code></strong>：部署后监控指标</li>
+<li><strong><code>/opsx:archive</code></strong>：变更归档到 <code>openspec/changes/archive/</code></li>
+</ol>
+<p>整套流程跑一次 30-60 分钟，但<strong>每一步都有证据、可追溯、可回滚</strong>。这是它和「随手让 AI 写一段代码」的根本差别。</p>
+<h2 id="九、给读者的建议"><a href="#九、给读者的建议" class="headerlink" title="九、给读者的建议"></a>九、给读者的建议</h2><p><code>Claude Code</code> 的能力远超「写代码」，但很多人没意识到。我的几个具体建议：</p>
+<ul>
+<li><strong>先把 <code>CLAUDE.md</code> 写好</strong>：项目宪法值得花 1-2 小时认真写，回报会持续几个月</li>
+<li><strong>从 3 个 Skill 起步</strong>：不要一上来挂 50 个，先把 <code>dev-guide</code>、<code>investigate</code>、<code>ship</code> 配明白</li>
+<li><strong>把强制行为升级为 Hooks</strong>：写在 memory 里不算约束，写在 hooks 里才算</li>
+<li><strong><code>Permission</code> 不是越宽越好</strong>：精细 allowlist 反而打断更少，因为该挡的挡住了</li>
+<li><strong>任务分流要诚实</strong>：不是所有事都要走 OpenSpec，但影响对外行为的不能跳</li>
+</ul>
+<p>工具的目标是「让 AI 写出来的代码像工程师写的一样可靠」，但流程本身<strong>不能成为枷锁</strong>。每加一层治理都问一次：它解决了什么真实问题？解决不了就别加。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Claude Code</code> 不是「命令行版 Cursor」，它是一个具备完整架构、治理机制和工程化能力的 AI Agent runtime。本文我们拆解了它的六个一等公民模块（<code>Slash Commands</code> &#x2F; <code>SubAgent</code> &#x2F; <code>Skills</code> &#x2F; <code>Hooks</code> &#x2F; <code>MCP</code> &#x2F; <code>Permission</code>）、三层优先级模型（<code>CLAUDE.md</code>）、三层职责分工（规范 &#x2F; 流程 &#x2F; 执行）、Change Delivery Gate 证据约束，以及个人 &#x2F; 小团队 &#x2F; 大团队三档落地路线。</p>
+<p>最重要的判断只有两条：</p>
+<ol>
+<li><strong>架构提供能力，治理提供边界，工程化提供节奏</strong> —— 三者缺一不可</li>
+<li><strong>任务分流要诚实</strong> —— 不是所有需求都值得走完整流程，但触碰对外行为的必须走</li>
+</ol>
+<p>把这套体系跑顺，你会发现 <code>Claude Code</code> 不只在帮你写代码，它在帮你把整个研发流程标准化、可观测、可审计。这是 AI 真正进入工程化的开始。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.claude.com/en/docs/claude-code">Claude Code 官方文档</a></li>
+<li><a href="https://github.com/Fission-AI/OpenSpec">OpenSpec GitHub</a></li>
+<li><a href="https://feinterview.poetries.top/blog/claude-skills">Claude Skills 如何将提示词升级为可复用技能</a></li>
+<li><a href="https://github.com/anthropics/skills">Anthropic Skills 仓库</a></li>
+<li><a href="https://modelcontextprotocol.io/">Model Context Protocol 规范</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/05/17/ai-agent-zentao-bug-mcp-integration/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2026/05/18/claude-code-openspec-sdd-practice/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
