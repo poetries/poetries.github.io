@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>AI Agent 直连禅道 bug 平台的完整链路实战 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="MCP,禅道,AI Agent,Bug 流程,Node.js," />
+  
+
+  <meta name="description" content="用一份自建 MCP Server 把禅道 bug 流程接入 Claude &#x2F; Cursor &#x2F; Codex，含从 0 到 1 的分步实施、最小可用代码、Token 缓存与多形态 bug 列表回退、截图落档及本地归档 SKILL。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent 直连禅道 bug 平台的完整链路实战">
+<meta property="og:url" content="http://blog.poetries.top/2026/05/17/ai-agent-zentao-bug-mcp-integration/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="用一份自建 MCP Server 把禅道 bug 流程接入 Claude &#x2F; Cursor &#x2F; Codex，含从 0 到 1 的分步实施、最小可用代码、Token 缓存与多形态 bug 列表回退、截图落档及本地归档 SKILL。">
+<meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/05/dd225fcc5f9ccc02.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/05/b06b7baf75b29831.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/05/e9ca4a0cb1adaa25.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/05/ea1129ed1a122776.jpg">
+<meta property="article:published_time" content="2026-05-17T06:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-17T14:02:29.294Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="禅道">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Bug 流程">
+<meta property="article:tag" content="Node.js">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/05/dd225fcc5f9ccc02.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-text">痛点与解决方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-text">一、整体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BA%94%E5%88%86%E9%92%9F%E8%B7%91%E9%80%9A%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E7%89%88%E6%9C%AC"><span class="toc-text">二、五分钟跑通最小可用版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1-%E5%87%86%E5%A4%87%E7%A6%85%E9%81%93%E5%AE%9E%E4%BE%8B%E4%BF%A1%E6%81%AF"><span class="toc-text">Step 1 准备禅道实例信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2-%E5%88%9B%E5%BB%BA%E5%B7%A5%E7%A8%8B%E9%AA%A8%E6%9E%B6"><span class="toc-text">Step 2 创建工程骨架</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3-%E5%86%99%E4%B8%80%E4%B8%AA%E8%83%BD%E6%8B%BF-Token-%E7%9A%84%E6%9C%80%E5%B0%8F-client"><span class="toc-text">Step 3 写一个能拿 Token 的最小 client</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-4-%E6%B3%A8%E5%86%8C%E7%AC%AC%E4%B8%80%E4%B8%AA%E5%B7%A5%E5%85%B7"><span class="toc-text">Step 4 注册第一个工具</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-5-%E6%8E%A5%E5%85%A5-Claude-Desktop-Cursor"><span class="toc-text">Step 5 接入 Claude Desktop &#x2F; Cursor</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%8C%E6%95%B4%E5%B7%A5%E5%85%B7%E9%9B%86%E8%AE%BE%E8%AE%A1"><span class="toc-text">三、完整工具集设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Token-%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%B1%82%E7%9A%84%E5%AE%89%E5%85%A8%E6%8A%A4%E6%A0%8F"><span class="toc-text">四、Token 与请求层的安全护栏</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%89%E9%BB%98%E8%AE%A4-HTTPS%EF%BC%8C%E4%B8%8D%E5%85%81%E8%AE%B8%E8%A3%B8-HTTP"><span class="toc-text">1）默认 HTTPS，不允许裸 HTTP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%89%E7%9B%B8%E5%AF%B9%E8%B7%AF%E5%BE%84%E7%99%BD%E5%90%8D%E5%8D%95"><span class="toc-text">2）相对路径白名单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%EF%BC%89%E8%AF%B7%E6%B1%82%E8%B6%85%E6%97%B6"><span class="toc-text">3）请求超时</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%EF%BC%89%E6%97%A5%E5%BF%97%E8%84%B1%E6%95%8F"><span class="toc-text">4）日志脱敏</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81bug-%E5%88%97%E8%A1%A8%E7%9A%84%E5%A4%9A%E5%BD%A2%E6%80%81%E9%80%82%E9%85%8D"><span class="toc-text">五、bug 列表的多形态适配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81bug-%E8%AF%A6%E6%83%85%E4%B8%8E%E5%9B%BE%E7%89%87%E8%90%BD%E6%A1%A3"><span class="toc-text">六、bug 详情与图片落档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%8A%B6%E6%80%81%E6%89%AD%E8%BD%AC%E5%B7%A5%E5%85%B7"><span class="toc-text">七、状态扭转工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%85%8D%E5%A5%97-SKILL-%E8%90%BD%E6%A1%A3%E5%88%B0%E6%9C%AC%E5%9C%B0"><span class="toc-text">八、配套 SKILL 落档到本地</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%90%BD%E6%A1%A3%E7%9B%AE%E5%BD%95%E7%BA%A6%E6%9D%9F"><span class="toc-text">落档目录约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8%E9%A1%B9%E7%9B%AE%E9%87%8C%E5%90%AF%E7%94%A8-SKILL-%E7%9A%84%E6%AD%A5%E9%AA%A4"><span class="toc-text">在项目里启用 SKILL 的步骤</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8A%E7%94%9F%E4%BA%A7%E5%89%8D%E7%9A%84%E5%AE%89%E5%85%A8-checklist"><span class="toc-text">九、上生产前的安全 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-ai-agent-zentao-bug-mcp-integration" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">AI Agent 直连禅道 bug 平台的完整链路实战</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.05.17</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.5k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 19分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>文章首发于: <a href="https://feinterview.poetries.top/blog/ai-agent-zentao-bug-mcp-integration">https://feinterview.poetries.top/blog/ai-agent-zentao-bug-mcp-integration</a></p>
+</blockquote>
+<blockquote>
+<p>用一份自建 <code>MCP Server</code> 把禅道 bug 流程接入 <code>Claude</code> &#x2F; <code>Cursor</code> &#x2F; <code>Codex</code>，文章配套完整的分步落地方案：5 分钟跑通最小版本、关键模块代码、<code>Token</code> 缓存、多形态 bug 列表回退、截图落档与归档 <code>SKILL</code>，照着做就能把团队的禅道 bug 流程接到 AI Agent 上。</p>
+</blockquote>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>为什么不要让 AI Agent 直接「裸调」禅道 REST API</li>
+<li>用 <code>Node.js 18+</code> 实现一份纯 <code>stdio</code> 的 <code>MCP Server</code> 的完整步骤</li>
+<li>Token 缓存、HTTPS 强约束、相对路径白名单等安全护栏</li>
+<li>「我的 bug &#x2F; 产品 bug &#x2F; 项目集 bug」三种视角的回退策略</li>
+<li>bug 详情里 HTML 描述、内嵌截图、动态时间线的解析与脱敏裁剪</li>
+<li>配套 <code>SKILL</code> 把 bug 上下文按日期 + 经办人沉淀到本地工作目录</li>
+<li>生产环境上线前的安全 checklist</li>
+</ul>
+<h2 id="痛点与解决方案"><a href="#痛点与解决方案" class="headerlink" title="痛点与解决方案"></a>痛点与解决方案</h2><p>在一些以禅道（<code>ZenTao</code>）为唯一 bug 平台的团队里，常见的协作节奏是：测试在禅道里提 bug → 开发翻邮件或 IM 提醒 → 进禅道复制描述、下载截图、看历史动态 → 拉本地分支修 → 回禅道点「解决」并写说明。这个流程的核心矛盾不在禅道本身，而在「<strong>bug 上下文是网页里的活数据，AI Agent 看不见</strong>」：你让 <code>Cursor</code> &#x2F; <code>Claude</code> 帮你定位代码，它最多看到你贴过来的一段标题，没法读到内嵌截图、字段编辑历史、上一次评审意见。</p>
+<p>解决方法是把禅道 RESTful API 包成一份<strong>只暴露最小工具集的 <code>MCP Server</code></strong>，加一份配套 <code>SKILL</code> 让 Agent 主动把 bug 落到本地工作底稿。下面会给出一份从 0 到 1 的完整落地步骤，你照着走就能让团队的 AI Agent 接入禅道。</p>
+<h2 id="一、整体架构"><a href="#一、整体架构" class="headerlink" title="一、整体架构"></a>一、整体架构</h2><p>整套系统是「Agent ↔ MCP Server ↔ 禅道 REST API」三段式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">┌─────────────┐   stdio    ┌──────────────────┐   HTTPS    ┌────────────────┐</span><br><span class="line">│  Claude /   │ ◄────────► │  zentao-mcp-     │ ◄────────► │  禅道实例      │</span><br><span class="line">│  Cursor /   │   JSON-RPC │  server (Node)   │   Token    │  /api.php/v1   │</span><br><span class="line">│  Codex      │            │  (10 个工具)     │            │                │</span><br><span class="line">└─────────────┘            └──────────────────┘            └────────────────┘</span><br><span class="line">       │                          │                                │</span><br><span class="line">       │                          ▼                                │</span><br><span class="line">       │                  ┌───────────────┐                        │</span><br><span class="line">       └────────────────► │ bugfix/&lt;date&gt; │ ◄──── 落档 SKILL       │</span><br><span class="line">                          │  /bug-N-...   │   按日期 + 经办人归档  │</span><br><span class="line">                          └───────────────┘                        │</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s.poetries.top/uploads/2026/05/dd225fcc5f9ccc02.jpg" alt="整体架构：AI Agent 通过 stdio 连接 MCP Server，MCP Server 通过 HTTPS 调禅道 REST API，bug 上下文落档到本地 bugfix 目录"></p>
+<p>三处选型说明：</p>
+<ul>
+<li><strong>要求 <code>Node.js 18+</code></strong>：直接用内置 <code>fetch</code> + <code>AbortController</code>，省掉 <code>node-fetch</code> 这类依赖，发布包体积小、攻击面小。</li>
+<li><strong><code>stdio</code> 而非 <code>HTTP</code></strong>：MCP 客户端把进程 stdin&#x2F;stdout 接到协议层，Server 不监听端口，省掉鉴权、CORS、TLS 这些自找的麻烦。</li>
+<li><strong>不在仓库里存密钥</strong>：所有凭证只从环境变量读，配套 <code>.env.example</code>；连默认日志都做了字段脱敏。</li>
+</ul>
+<h2 id="二、五分钟跑通最小可用版本"><a href="#二、五分钟跑通最小可用版本" class="headerlink" title="二、五分钟跑通最小可用版本"></a>二、五分钟跑通最小可用版本</h2><p>下面是一份照抄就能跑的最小路径，先把链路打通，再做下一步优化。</p>
+<p><img src="https://s.poetries.top/uploads/2026/05/b06b7baf75b29831.jpg" alt="五分钟跑通的五个步骤：拿凭证 → 起工程 → Token 客户端 → 装 MCP 工具 → 启动 Server"></p>
+<h3 id="Step-1-准备禅道实例信息"><a href="#Step-1-准备禅道实例信息" class="headerlink" title="Step 1 准备禅道实例信息"></a>Step 1 准备禅道实例信息</h3><p>向运维 &#x2F; DBA 拿到三样东西并验证：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1. 禅道访问入口（必须 HTTPS）</span></span><br><span class="line">ZENTAO_BASE_URL=<span class="string">&quot;https://zentao.example.com&quot;</span></span><br><span class="line"><span class="comment"># 2. 一个最小权限的服务账号（强烈不要用管理员账号）</span></span><br><span class="line">ZENTAO_ACCOUNT=<span class="string">&quot;bot_account&quot;</span></span><br><span class="line">ZENTAO_PASSWORD=<span class="string">&quot;&lt;from-vault&gt;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证 token 接口是否通</span></span><br><span class="line">curl -sS -X POST <span class="string">&quot;<span class="variable">$ZENTAO_BASE_URL</span>/api.php/v1/tokens&quot;</span> \</span><br><span class="line">  -H <span class="string">&#x27;Content-Type: application/json&#x27;</span> \</span><br><span class="line">  -d <span class="string">&quot;&#123;\&quot;account\&quot;:\&quot;<span class="variable">$ZENTAO_ACCOUNT</span>\&quot;,\&quot;password\&quot;:\&quot;<span class="variable">$ZENTAO_PASSWORD</span>\&quot;&#125;&quot;</span></span><br><span class="line"><span class="comment"># 期望返回 &#123; &quot;token&quot;: &quot;xxxxxxxxxxxxxxxx&quot;, ... &#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>返回里没有 <code>token</code> 字段就<strong>先不要往下做</strong>，先找运维确认 <code>apiPrefix</code> 是不是 <code>/api.php/v1</code>、是否开启了 RESTful API v1 接口。</p>
+<h3 id="Step-2-创建工程骨架"><a href="#Step-2-创建工程骨架" class="headerlink" title="Step 2 创建工程骨架"></a>Step 2 创建工程骨架</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> zentao-mcp-server &amp;&amp; <span class="built_in">cd</span> zentao-mcp-server</span><br><span class="line">npm init -y</span><br><span class="line">npm i @modelcontextprotocol/sdk</span><br><span class="line">node -e <span class="string">&quot;console.log(process.versions.node)&quot;</span>   <span class="comment"># 必须 &gt;= 18</span></span><br></pre></td></tr></table></figure>
+
+<p>在 <code>package.json</code> 里加上 <code>&quot;type&quot;: &quot;module&quot;</code> 和启动脚本：</p>
+<figure class="highlight jsonc"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;module&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;main&quot;</span><span class="punctuation">:</span> <span class="string">&quot;src/index.js&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;start&quot;</span><span class="punctuation">:</span> <span class="string">&quot;node src/index.js&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;@modelcontextprotocol/sdk&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^1.0.0&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-3-写一个能拿-Token-的最小-client"><a href="#Step-3-写一个能拿-Token-的最小-client" class="headerlink" title="Step 3 写一个能拿 Token 的最小 client"></a>Step 3 写一个能拿 Token 的最小 client</h3><p>新建 <code>src/zentao.js</code>，先把「鉴权 + 请求」这条骨架打通：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">createZenTaoClient</span>(<span class="params">&#123; baseUrl, account, password &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> cachedToken = <span class="string">&quot;&quot;</span>;</span><br><span class="line">  <span class="keyword">let</span> cachedAt = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">const</span> <span class="variable constant_">TTL</span> = <span class="number">50</span> * <span class="number">60</span> * <span class="number">1000</span>; <span class="comment">// 50 分钟</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">getToken</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (cachedToken &amp;&amp; <span class="title class_">Date</span>.<span class="title function_">now</span>() - cachedAt &lt; <span class="variable constant_">TTL</span>) <span class="keyword">return</span> cachedToken;</span><br><span class="line">    <span class="keyword">const</span> resp = <span class="keyword">await</span> <span class="title function_">fetch</span>(<span class="string">`<span class="subst">$&#123;baseUrl&#125;</span>/api.php/v1/tokens`</span>, &#123;</span><br><span class="line">      <span class="attr">method</span>: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">      <span class="attr">headers</span>: &#123; <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/json&quot;</span> &#125;,</span><br><span class="line">      <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123; account, password &#125;),</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> resp.<span class="title function_">json</span>();</span><br><span class="line">    <span class="keyword">const</span> token = data?.<span class="property">token</span> || data?.<span class="property">data</span>?.<span class="property">token</span>;</span><br><span class="line">    <span class="keyword">if</span> (!token) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;token field missing&quot;</span>);</span><br><span class="line">    cachedToken = token;</span><br><span class="line">    cachedAt = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">    <span class="keyword">return</span> token;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">call</span>(<span class="params">path, &#123; method = <span class="string">&quot;GET&quot;</span>, query, body &#125; = &#123;&#125;</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> token = <span class="keyword">await</span> <span class="title function_">getToken</span>();</span><br><span class="line">    <span class="keyword">const</span> url = <span class="keyword">new</span> <span class="title function_">URL</span>(<span class="string">`<span class="subst">$&#123;baseUrl&#125;</span>/api.php/v1<span class="subst">$&#123;path&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">if</span> (query) <span class="keyword">for</span> (<span class="keyword">const</span> [k, v] <span class="keyword">of</span> <span class="title class_">Object</span>.<span class="title function_">entries</span>(query)) &#123;</span><br><span class="line">      <span class="keyword">if</span> (v != <span class="literal">null</span>) url.<span class="property">searchParams</span>.<span class="title function_">set</span>(k, <span class="title class_">String</span>(v));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> resp = <span class="keyword">await</span> <span class="title function_">fetch</span>(url, &#123;</span><br><span class="line">      method,</span><br><span class="line">      <span class="attr">headers</span>: &#123; <span class="title class_">Token</span>: token, <span class="string">&quot;Content-Type&quot;</span>: <span class="string">&quot;application/json&quot;</span> &#125;,</span><br><span class="line">      <span class="attr">body</span>: body ? <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(body) : <span class="literal">undefined</span>,</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">if</span> (!resp.<span class="property">ok</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`HTTP <span class="subst">$&#123;resp.status&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">return</span> resp.<span class="title function_">json</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123; getToken, call &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里是<strong>最小骨架</strong>，省略了 <code>AbortController</code> 超时、相对路径白名单、HTTPS 校验等安全护栏 —— 第四节会补齐。</p>
+</blockquote>
+<h3 id="Step-4-注册第一个工具"><a href="#Step-4-注册第一个工具" class="headerlink" title="Step 4 注册第一个工具"></a>Step 4 注册第一个工具</h3><p>新建 <code>src/index.js</code>，先只暴露一个 <code>get_my_bugs</code> 工具，跑通端到端：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Server</span> &#125; <span class="keyword">from</span> <span class="string">&quot;@modelcontextprotocol/sdk/server/index.js&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">StdioServerTransport</span> &#125; <span class="keyword">from</span> <span class="string">&quot;@modelcontextprotocol/sdk/server/stdio.js&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">CallToolRequestSchema</span>, <span class="title class_">ListToolsRequestSchema</span> &#125;</span><br><span class="line">  <span class="keyword">from</span> <span class="string">&quot;@modelcontextprotocol/sdk/types.js&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; createZenTaoClient &#125; <span class="keyword">from</span> <span class="string">&quot;./zentao.js&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> zentao = <span class="title function_">createZenTaoClient</span>(&#123;</span><br><span class="line">  <span class="attr">baseUrl</span>: process.<span class="property">env</span>.<span class="property">ZENTAO_BASE_URL</span>.<span class="title function_">replace</span>(<span class="regexp">/\/+$/</span>, <span class="string">&quot;&quot;</span>),</span><br><span class="line">  <span class="attr">account</span>: process.<span class="property">env</span>.<span class="property">ZENTAO_ACCOUNT</span>,</span><br><span class="line">  <span class="attr">password</span>: process.<span class="property">env</span>.<span class="property">ZENTAO_PASSWORD</span>,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">TOOLS</span> = [&#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&quot;get_my_bugs&quot;</span>,</span><br><span class="line">  <span class="attr">description</span>: <span class="string">&quot;Get bugs assigned to current account&quot;</span>,</span><br><span class="line">  <span class="attr">inputSchema</span>: &#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&quot;object&quot;</span>,</span><br><span class="line">    <span class="attr">properties</span>: &#123;</span><br><span class="line">      <span class="attr">status</span>: &#123; <span class="attr">type</span>: <span class="string">&quot;string&quot;</span>, <span class="attr">enum</span>: [<span class="string">&quot;active&quot;</span>, <span class="string">&quot;resolved&quot;</span>, <span class="string">&quot;closed&quot;</span>] &#125;,</span><br><span class="line">      <span class="attr">limit</span>:  &#123; <span class="attr">type</span>: <span class="string">&quot;number&quot;</span>, <span class="attr">default</span>: <span class="number">20</span> &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> server = <span class="keyword">new</span> <span class="title class_">Server</span>(</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">&quot;zentao-mcp-server&quot;</span>, <span class="attr">version</span>: <span class="string">&quot;0.1.0&quot;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">capabilities</span>: &#123; <span class="attr">tools</span>: &#123;&#125; &#125; &#125;,</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">server.<span class="title function_">setRequestHandler</span>(<span class="title class_">ListToolsRequestSchema</span>, <span class="title function_">async</span> () =&gt; (&#123; <span class="attr">tools</span>: <span class="variable constant_">TOOLS</span> &#125;));</span><br><span class="line">server.<span class="title function_">setRequestHandler</span>(<span class="title class_">CallToolRequestSchema</span>, <span class="title function_">async</span> (req) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; name, <span class="attr">arguments</span>: args = &#123;&#125; &#125; = req.<span class="property">params</span>;</span><br><span class="line">  <span class="keyword">if</span> (name === <span class="string">&quot;get_my_bugs&quot;</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> zentao.<span class="title function_">call</span>(<span class="string">&quot;/bugs&quot;</span>, &#123;</span><br><span class="line">      <span class="attr">query</span>: &#123; <span class="attr">limit</span>: args.<span class="property">limit</span> ?? <span class="number">20</span>, <span class="attr">status</span>: args.<span class="property">status</span>, <span class="attr">assignedTo</span>: process.<span class="property">env</span>.<span class="property">ZENTAO_ACCOUNT</span> &#125;,</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">return</span> &#123; <span class="attr">content</span>: [&#123; <span class="attr">type</span>: <span class="string">&quot;text&quot;</span>, <span class="attr">text</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(data, <span class="literal">null</span>, <span class="number">2</span>) &#125;] &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`Unknown tool: <span class="subst">$&#123;name&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> server.<span class="title function_">connect</span>(<span class="keyword">new</span> <span class="title class_">StdioServerTransport</span>());</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-5-接入-Claude-Desktop-Cursor"><a href="#Step-5-接入-Claude-Desktop-Cursor" class="headerlink" title="Step 5 接入 Claude Desktop &#x2F; Cursor"></a>Step 5 接入 Claude Desktop &#x2F; Cursor</h3><p>在 MCP 客户端配置里加这一段（路径换成你自己的）：</p>
+<figure class="highlight jsonc"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;zentao&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;node&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;/abs/path/to/zentao-mcp-server/src/index.js&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;ZENTAO_BASE_URL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://zentao.example.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;ZENTAO_ACCOUNT&quot;</span><span class="punctuation">:</span> <span class="string">&quot;bot_account&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;ZENTAO_PASSWORD&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&lt;from-vault&gt;&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>重启客户端，跟 Agent 说一句「<strong>列出我现在 active 的 bug</strong>」，如果能拿到列表，端到端就跑通了。</p>
+<h2 id="三、完整工具集设计"><a href="#三、完整工具集设计" class="headerlink" title="三、完整工具集设计"></a>三、完整工具集设计</h2><p>最小版本跑通后，再补到生产可用需要 10 个工具，按职责分组：</p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>工具</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>鉴权</td>
+<td><code>get_token</code></td>
+<td>拿&#x2F;刷新 Token，回显只给脱敏摘要</td>
+</tr>
+<tr>
+<td>探查</td>
+<td><code>list_my_projects</code></td>
+<td>列出「我参与的项目」，方便对路径</td>
+</tr>
+<tr>
+<td>读取</td>
+<td><code>get_my_bugs</code></td>
+<td>取「指派给我」的 bug，支持产品&#x2F;项目集</td>
+</tr>
+<tr>
+<td>读取</td>
+<td><code>get_bug_detail</code></td>
+<td>单条 bug 详情，含动态时间线</td>
+</tr>
+<tr>
+<td>读取</td>
+<td><code>get_bug_image</code></td>
+<td>把 bug 截图按 <code>fileId</code> 拉成 <code>base64</code></td>
+</tr>
+<tr>
+<td>写入</td>
+<td><code>resolve_bug</code></td>
+<td>处理 bug，默认 <code>resolution=fixed</code></td>
+</tr>
+<tr>
+<td>写入</td>
+<td><code>batch_resolve_my_bugs</code></td>
+<td>批量处理「我的 bug」，默认遇错即停</td>
+</tr>
+<tr>
+<td>写入</td>
+<td><code>close_bug</code></td>
+<td>关闭 bug</td>
+</tr>
+<tr>
+<td>写入</td>
+<td><code>verify_bug</code></td>
+<td>验证结果：<code>pass</code>&#x3D;关闭 &#x2F; <code>fail</code>&#x3D;激活</td>
+</tr>
+<tr>
+<td>写入</td>
+<td><code>comment_bug</code></td>
+<td>添加备注</td>
+</tr>
+</tbody></table>
+<p>设计要点：</p>
+<ul>
+<li><strong>读写分离命名</strong>：所有动作类工具名是动宾结构（<code>resolve_bug</code> &#x2F; <code>close_bug</code>），让模型一眼看出副作用。</li>
+<li><strong>每个工具都有结构化错误</strong>：<code>&#123; ok: false, tool, message, status, hint &#125;</code>，并在 <code>hint</code> 里写出最常见的修复建议（比如「报 <code>Need product id</code> 时设置 <code>ZENTAO_PRODUCT_ID</code>」），减少来回试错的轮次。</li>
+<li><strong>批量动作默认 stopOnError</strong>：批量改 bug 是个高危操作，宁可半途停下让用户复核，也不要静默吞错继续跑。</li>
+</ul>
+<h2 id="四、Token-与请求层的安全护栏"><a href="#四、Token-与请求层的安全护栏" class="headerlink" title="四、Token 与请求层的安全护栏"></a>四、Token 与请求层的安全护栏</h2><p>Step 3 的骨架代码够用但不够安全，上生产前一定要补齐三条硬护栏：</p>
+<p><img src="https://s.poetries.top/uploads/2026/05/e9ca4a0cb1adaa25.jpg" alt="四道安全护栏：HTTPS 强约束、相对路径白名单、请求超时、日志字段脱敏"></p>
+<h3 id="1）默认-HTTPS，不允许裸-HTTP"><a href="#1）默认-HTTPS，不允许裸-HTTP" class="headerlink" title="1）默认 HTTPS，不允许裸 HTTP"></a>1）默认 HTTPS，不允许裸 HTTP</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> parsed = <span class="keyword">new</span> <span class="title function_">URL</span>(baseUrl);</span><br><span class="line"><span class="keyword">const</span> allowInsecure = <span class="title class_">String</span>(process.<span class="property">env</span>.<span class="property">ZENTAO_ALLOW_INSECURE_HTTP</span>) === <span class="string">&quot;true&quot;</span>;</span><br><span class="line"><span class="keyword">if</span> (parsed.<span class="property">protocol</span> !== <span class="string">&quot;https:&quot;</span> &amp;&amp; !(allowInsecure &amp;&amp; parsed.<span class="property">protocol</span> === <span class="string">&quot;http:&quot;</span>)) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;baseUrl must use HTTPS unless ZENTAO_ALLOW_INSECURE_HTTP=true&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2）相对路径白名单"><a href="#2）相对路径白名单" class="headerlink" title="2）相对路径白名单"></a>2）相对路径白名单</h3><p>所有动态 path 都必须过校验，禁止绝对 URL、<code>?</code> &#x2F; <code>#</code>、<code>%2F</code> &#x2F; <code>%5C</code> &#x2F; <code>%2E</code>、<code>..</code> 段：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">assertSafeRelativePath</span>(<span class="params">value, field</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> raw = <span class="title class_">String</span>(value || <span class="string">&quot;&quot;</span>).<span class="title function_">trim</span>();</span><br><span class="line">  <span class="keyword">if</span> (!raw) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`<span class="subst">$&#123;field&#125;</span> is required`</span>);</span><br><span class="line">  <span class="keyword">if</span> (<span class="regexp">/^https?:\/\//i</span>.<span class="title function_">test</span>(raw)) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`<span class="subst">$&#123;field&#125;</span> must be relative`</span>);</span><br><span class="line">  <span class="keyword">if</span> (raw.<span class="title function_">startsWith</span>(<span class="string">&quot;//&quot;</span>)) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`<span class="subst">$&#123;field&#125;</span> must not be protocol-relative`</span>);</span><br><span class="line">  <span class="keyword">const</span> normalized = raw.<span class="title function_">startsWith</span>(<span class="string">&quot;/&quot;</span>) ? raw : <span class="string">`/<span class="subst">$&#123;raw&#125;</span>`</span>;</span><br><span class="line">  <span class="keyword">if</span> (normalized.<span class="title function_">includes</span>(<span class="string">&quot;?&quot;</span>) || normalized.<span class="title function_">includes</span>(<span class="string">&quot;#&quot;</span>))</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`<span class="subst">$&#123;field&#125;</span> must not include query or hash`</span>);</span><br><span class="line">  <span class="keyword">const</span> low = normalized.<span class="title function_">toLowerCase</span>();</span><br><span class="line">  <span class="keyword">if</span> (<span class="regexp">/(^|\/)\.&#123;1,2&#125;(?:\/|$)/</span>.<span class="title function_">test</span>(normalized) || low.<span class="title function_">includes</span>(<span class="string">&quot;%2e&quot;</span>))</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`<span class="subst">$&#123;field&#125;</span> must not contain dot segments`</span>);</span><br><span class="line">  <span class="keyword">return</span> normalized;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是为了防止模型把外部 URL 当 path 传进来，把整套 Server 当成 SSRF 代理。</p>
+<h3 id="3）请求超时"><a href="#3）请求超时" class="headerlink" title="3）请求超时"></a>3）请求超时</h3><p>用 <code>AbortController</code> 给每个请求加超时，避免禅道卡住时 MCP Server 整条挂住：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createAbortSignal</span>(<span class="params">timeoutMs</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>();</span><br><span class="line">  <span class="keyword">const</span> t = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>(<span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;Request timeout&quot;</span>)), timeoutMs);</span><br><span class="line">  <span class="keyword">return</span> &#123; <span class="attr">signal</span>: controller.<span class="property">signal</span>, <span class="attr">cleanup</span>: <span class="function">() =&gt;</span> <span class="built_in">clearTimeout</span>(t) &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4）日志脱敏"><a href="#4）日志脱敏" class="headerlink" title="4）日志脱敏"></a>4）日志脱敏</h3><p><code>ZENTAO_DEBUG=true</code> 打开后，所有工具调用入参会写到 stderr。脱敏在分发层做一道：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">REDACTED</span> = <span class="keyword">new</span> <span class="title class_">Set</span>([<span class="string">&quot;body&quot;</span>, <span class="string">&quot;query&quot;</span>, <span class="string">&quot;comment&quot;</span>, <span class="string">&quot;solution&quot;</span>, <span class="string">&quot;password&quot;</span>, <span class="string">&quot;token&quot;</span>]);</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">sanitize</span>(<span class="params">args</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> out = &#123;&#125;;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> [k, v] <span class="keyword">of</span> <span class="title class_">Object</span>.<span class="title function_">entries</span>(args || &#123;&#125;)) &#123;</span><br><span class="line">    out[k] = <span class="variable constant_">REDACTED</span>.<span class="title function_">has</span>(k) ? <span class="string">&quot;&lt;redacted&gt;&quot;</span> : v;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> out;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>solution</code> &#x2F; <code>comment</code> 之所以也算敏感，是因为修复说明经常会带上文件路径、内部接口名、复现账号等细节，团队默认不希望进调试日志里。</p>
+<h2 id="五、bug-列表的多形态适配"><a href="#五、bug-列表的多形态适配" class="headerlink" title="五、bug 列表的多形态适配"></a>五、bug 列表的多形态适配</h2><p>这是整套实现里<strong>最复杂、最有现实价值</strong>的一块。原因是：禅道在不同公司被改造得很厉害，<strong>同一个「指派给我的 bug」可能挂在三个完全不同的视角下</strong>：</p>
+<ul>
+<li><strong>产品视角（最常见）</strong>：<code>/products/&#123;productId&#125;/bugs</code>，需要 <code>ZENTAO_PRODUCT_ID</code>。</li>
+<li><strong>项目集（program&#x2F;projectset）视角</strong>：bug 挂在某个项目集下的项目里，需要 <code>/projectsets/&#123;id&#125;/bugs</code> 或 <code>/programs/&#123;id&#125;/projects/&#123;pid&#125;/bugs</code>。</li>
+<li><strong>「我的」视角</strong>：直接走 <code>/my/bug</code> &#x2F; <code>/my/bugs</code>，这是部分实例上唯一能命中的入口。</li>
+</ul>
+<p><img src="https://s.poetries.top/uploads/2026/05/ea1129ed1a122776.jpg" alt="bug 列表多形态回退：产品视角 &#x2F; 项目集视角 &#x2F; 「我的」视角三条候选路径，顺序尝试 → 合并 → 去重 → 输出统一列表"></p>
+<p>实现策略是「<strong>候选路径列表 + 顺序回退 + 合并去重</strong>」：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> candidatePaths = [];</span><br><span class="line"><span class="keyword">if</span> (preferProjectSetPath) candidatePaths.<span class="title function_">push</span>(...projectSetPaths);</span><br><span class="line">candidatePaths.<span class="title function_">push</span>(primaryPath);</span><br><span class="line"><span class="keyword">if</span> (effectiveProductId) candidatePaths.<span class="title function_">push</span>(<span class="string">`/products/<span class="subst">$&#123;effectiveProductId&#125;</span>/bugs`</span>);</span><br><span class="line"><span class="keyword">if</span> (!preferProjectSetPath) candidatePaths.<span class="title function_">push</span>(...projectSetPaths);</span><br><span class="line"><span class="keyword">if</span> (configuredMyBugsPath) candidatePaths.<span class="title function_">push</span>(configuredMyBugsPath);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> fallback <span class="keyword">of</span> fallbackPaths) candidatePaths.<span class="title function_">push</span>(fallback);</span><br></pre></td></tr></table></figure>
+
+<p>每个候选路径都会被逐个尝试，<strong>即使首个路径返回空列表也继续尝试</strong>，所有成功的结果再按 bug id 合并去重。同时返回的 <code>raw.triedPaths</code> 里会带上每条路径的 HTTP 状态码和命中数，方便排查「为什么这条 bug 找不到」。</p>
+<p>两个细节值得说：</p>
+<ul>
+<li><strong>「我的 bug」 &#x2F; 「项目集 bug」端点常常不接受 <code>assignedTo</code> &#x2F; <code>status</code> &#x2F; <code>product</code> 查询参数</strong>，所以这两类路径下 Server 只传 <code>limit</code> &#x2F; <code>page</code>，拿回来后<strong>本地再按 assignedTo &#x2F; status 过滤</strong>。</li>
+<li><strong><code>list_my_projects</code> 不能作为发现项目集 bug 的唯一入口</strong>：有些项目集本身没有创建实际项目，但仍然有「我的 bug」挂在上面，这类数据不会出现在项目列表里。Server 因此在项目集 ID 已知时<strong>优先直接打项目集 bug 路径</strong>，绕过项目列表这一步。</li>
+</ul>
+<h2 id="六、bug-详情与图片落档"><a href="#六、bug-详情与图片落档" class="headerlink" title="六、bug 详情与图片落档"></a>六、bug 详情与图片落档</h2><p><code>get_bug_detail</code> 做了五件事：</p>
+<ol>
+<li><p><strong>走固定 <code>/bugs/&#123;id&#125;</code> 接口</strong>，避免模型乱传 path。</p>
+</li>
+<li><p><strong>响应裁剪成安全字段</strong>：通过 <code>buildSafeBugDetail()</code> 只保留 <code>title</code> &#x2F; <code>status</code> &#x2F; <code>severity</code> &#x2F; <code>pri</code> &#x2F; <code>openedBy</code> 等明确字段，把 <code>assignedTo</code> 这种「有时是对象、有时是字符串」的字段统一过 <code>normalizeUserIdentity()</code>。</p>
+</li>
+<li><p><strong>保留 <code>stepsHtml</code> &#x2F; <code>commentHtml</code> 原始 HTML</strong>：因为内嵌的 <code>&lt;img src=&quot;...fileID=N&quot;&gt;</code> 是后续抽截图的来源，纯文本版反而丢信息。</p>
+</li>
+<li><p><strong>抽取 <code>imageFileIds[]</code></strong>：从 <code>steps</code> + <code>comment</code> + 每条 <code>action.comment</code> 里用两条正则扫出 <code>fileID=N</code> 和 <code>/files/N</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> patterns = [<span class="regexp">/fileID=(\d+)/gi</span>, <span class="regexp">/\/files\/(\d+)/gi</span>];</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">extractFileIds</span>(<span class="params">html</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> ids = <span class="keyword">new</span> <span class="title class_">Set</span>();</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> re <span class="keyword">of</span> patterns) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> m <span class="keyword">of</span> <span class="title class_">String</span>(html || <span class="string">&quot;&quot;</span>).<span class="title function_">matchAll</span>(re)) &#123;</span><br><span class="line">      <span class="keyword">const</span> n = <span class="title class_">Number</span>(m[<span class="number">1</span>]);</span><br><span class="line">      <span class="keyword">if</span> (<span class="title class_">Number</span>.<span class="built_in">isFinite</span>(n) &amp;&amp; n &gt; <span class="number">0</span>) ids.<span class="title function_">add</span>(n);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> [...ids];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>同源 URL 白名单</strong>：所有外链都过 <code>normalizeResourceUrl()</code>，只放行与 <code>ZENTAO_BASE_URL</code> 同源的链接，<strong>外部图床、第三方 CDN 一律剔除</strong>——避免模型被钓鱼链接污染。</p>
+</li>
+</ol>
+<p>图片本身用 <code>get_bug_image(&#123; fileId &#125;)</code> 单独拉。Server 调 <code>/api.php/v1/files/&#123;id&#125;</code> 拿到二进制流，按 <code>maxBytes</code>（默认 2MB、上限 5MB）截断后 base64 返回，并在响应里带上 <code>truncated: true</code> 标志，让客户端知道这张图被截过、需要的话可以传更大的 <code>maxBytes</code> 重拉。</p>
+<h2 id="七、状态扭转工具"><a href="#七、状态扭转工具" class="headerlink" title="七、状态扭转工具"></a>七、状态扭转工具</h2><p>写操作的语义其实很简单，但参数设计花了功夫：</p>
+<ul>
+<li><p><code>resolve_bug</code> 必传 <code>id</code>，默认 <code>resolution=fixed</code>，建议 <code>solution</code> 写清「根因 + 修复思路 + 改动逻辑 + 影响范围」。Server 内部用 <code>buildResolutionComment()</code> 拼出最终评论：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">buildResolutionComment</span>(<span class="params">&#123; solution, comment, resolution &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> s = <span class="title class_">String</span>(solution || <span class="string">&quot;&quot;</span>).<span class="title function_">trim</span>();</span><br><span class="line">  <span class="keyword">if</span> (s) <span class="keyword">return</span> <span class="string">`解决说明：<span class="subst">$&#123;s&#125;</span>`</span>;</span><br><span class="line">  <span class="keyword">const</span> c = <span class="title class_">String</span>(comment || <span class="string">&quot;&quot;</span>).<span class="title function_">trim</span>();</span><br><span class="line">  <span class="keyword">if</span> (c) <span class="keyword">return</span> c;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">`已处理，resolution=<span class="subst">$&#123;resolution || <span class="string">&quot;fixed&quot;</span>&#125;</span>`</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>verify_bug</code> 实际是 <code>close</code> &#x2F; <code>activate</code> 的语义糖：<code>result=pass</code> → 走 <code>close</code>，<code>result=fail</code> → 走 <code>activate</code>，让 QA 流程映射得更自然。</p>
+</li>
+<li><p><code>batch_resolve_my_bugs</code> 默认 <code>maxItems=20</code>、硬上限 <code>100</code>、<code>stopOnError=true</code>。批量动作必须显式传 <code>solution</code> 才有意义，避免出现「批量 fixed 但说明为空」这种没法回溯的痕迹。</p>
+</li>
+<li><p><code>comment_bug</code> 在 <code>/bugs/&#123;id&#125;/comment</code> 失败时<strong>只对 404 回退到 <code>/bugs/&#123;id&#125;/comments</code></strong>，其他错误直接抛出 —— 避免在 5xx 上瞎重试导致重复评论。</p>
+</li>
+</ul>
+<h2 id="八、配套-SKILL-落档到本地"><a href="#八、配套-SKILL-落档到本地" class="headerlink" title="八、配套 SKILL 落档到本地"></a>八、配套 SKILL 落档到本地</h2><p>光有 MCP 工具还不够。如果 Agent 每次都从禅道实时拉，下一次会话就什么都没有了。配套 <code>SKILL</code> 解决这个问题。</p>
+<h3 id="落档目录约束"><a href="#落档目录约束" class="headerlink" title="落档目录约束"></a>落档目录约束</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;项目根&gt;/</span><br><span class="line">└── bugfix/</span><br><span class="line">    └── &lt;YYYY-MM-DD&gt;/                        # 当天日期</span><br><span class="line">        └── bug-&lt;id&gt;-&lt;assignee&gt;/             # bug-1024-frontend_a</span><br><span class="line">            ├── index.md                     # 人类可读总结</span><br><span class="line">            ├── raw.json                     # MCP 原始响应</span><br><span class="line">            └── images/                      # 全部截图</span><br><span class="line">                └── file-12.png</span><br></pre></td></tr></table></figure>
+
+<p>约束按重要度排序：</p>
+<ol>
+<li><strong>目录命名强约束</strong>：<code>bugfix/</code>（小写、单数）&#x2F; <code>&lt;YYYY-MM-DD&gt;</code> &#x2F; <code>bug-&lt;id&gt;-&lt;assignee&gt;</code>，assignee 转小写并把非 <code>[a-z0-9_-]</code> 替换成 <code>_</code>，避免空格 &#x2F; 中文 &#x2F; 斜杠落进目录名。</li>
+<li><strong>只落档 active bug</strong>：列表型查询不触发，已 resolved &#x2F; closed 的也不落，避免归档目录被历史 bug 灌满。</li>
+<li><strong>同一 bug 重新指派后走新经办人目录</strong>：<code>bug-1024-frontend_a</code> &#x2F; <code>bug-1024-frontend_b</code> 可同日并存，保留交接痕迹。</li>
+<li><strong>HTML → Markdown 的关键替换</strong>：<code>&lt;img src=&quot;...fileID=N&quot;&gt;</code> 全部替换为本地 <code>./images/file-N.png</code>，其它富文本剥成纯文本 + Markdown。</li>
+<li><strong><code>bugfix/</code> 默认进 <code>.gitignore</code></strong>：里面含内部截图，不入库；需要分享某条 bug 上下文时单独通过 IM 传那一份目录。</li>
+</ol>
+<h3 id="在项目里启用-SKILL-的步骤"><a href="#在项目里启用-SKILL-的步骤" class="headerlink" title="在项目里启用 SKILL 的步骤"></a>在项目里启用 SKILL 的步骤</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1. 在项目根创建 SKILL 目录（Claude Code 会自动加载）</span></span><br><span class="line"><span class="built_in">mkdir</span> -p .claude/skills/zentao-bugfix</span><br><span class="line"><span class="built_in">touch</span> .claude/skills/zentao-bugfix/SKILL.md</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 把 bugfix/ 加进 .gitignore</span></span><br><span class="line"><span class="built_in">echo</span> -e <span class="string">&quot;\n# Zentao bug context (本地修复底稿；可能含内部截图)\n/bugfix/&quot;</span> &gt;&gt; .gitignore</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 在 SKILL.md 里写清触发条件 + 目录约束 + index.md 模板</span></span><br><span class="line"><span class="comment">#    （触发：用户说&quot;看下 bug N / 拉 bug N / 修一下 bug N&quot;，或 Agent 自己调 get_bug_detail）</span></span><br></pre></td></tr></table></figure>
+
+<p><code>SKILL.md</code> 的核心就是把上面的目录约束 + <code>index.md</code> 模板 + action 字段翻译表落成 Markdown，让 Agent 每次调 <code>get_bug_detail</code> 时都按同一模板归档。具体模板可以直接抄本节的目录结构 + 第六节的字段裁剪。</p>
+<h2 id="九、上生产前的安全-checklist"><a href="#九、上生产前的安全-checklist" class="headerlink" title="九、上生产前的安全 checklist"></a>九、上生产前的安全 checklist</h2><p>在把 MCP Server 推给团队用之前，对照这份清单挨条检查：</p>
+<ul>
+<li><input disabled="" type="checkbox"> <strong>使用最小权限账号</strong>：只授权要访问的产品 &#x2F; 项目集，不要复用管理员账号</li>
+<li><input disabled="" type="checkbox"> <strong><code>ZENTAO_BASE_URL</code> 必须 HTTPS</strong>，不开 <code>ZENTAO_ALLOW_INSECURE_HTTP</code></li>
+<li><input disabled="" type="checkbox"> <strong><code>.env</code> 不进 git</strong>：本地用 <code>.env.example</code> 占位，凭证从密钥管理（1Password &#x2F; Vault）下发</li>
+<li><input disabled="" type="checkbox"> <strong>凭证不进 Agent 上下文</strong>：MCP Server 进程内存里持有 Token，不要把 Token 回显给模型</li>
+<li><input disabled="" type="checkbox"> <strong>写操作必须 <code>resolve</code> &#x2F; <code>close</code> &#x2F; <code>verify</code> &#x2F; <code>comment</code> 四个语义工具</strong>，不允许通用 <code>POST</code> 接口</li>
+<li><input disabled="" type="checkbox"> <strong>批量动作默认 <code>stopOnError=true</code></strong>，<code>maxItems</code> 不超过 100</li>
+<li><input disabled="" type="checkbox"> <strong>路径全部走白名单 + 相对路径校验</strong>，禁止 SSRF</li>
+<li><input disabled="" type="checkbox"> <strong>图片按同源白名单 + <code>maxBytes</code> 截断</strong>，外部链接全部剔除</li>
+<li><input disabled="" type="checkbox"> <strong>日志默认关闭</strong>，开 <code>ZENTAO_DEBUG=true</code> 时所有敏感字段写 <code>&lt;redacted&gt;</code></li>
+<li><input disabled="" type="checkbox"> <strong>配套 SKILL 的 <code>bugfix/</code> 目录在 <code>.gitignore</code></strong>，不让内部截图意外推到远端</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把禅道接入 AI Agent 的本质，不是「让 Agent 能调禅道 API」，而是「<strong>把 bug 流程的上下文从禅道网页搬到 Agent 可操作的工具表和本地工作目录里</strong>」。落地分四步走：先用 MCP SDK 跑一个最小可用版本（5 分钟）；补齐 Token 缓存、相对路径白名单、HTTPS 强约束、日志脱敏四道护栏（半天）；做多形态 bug 列表回退与图片同源裁剪（1 天）；最后接配套归档 SKILL（半天）。</p>
+<p>这套实现里最值得复用的几个决策：</p>
+<ul>
+<li><strong>MCP 是边界</strong>：所有禅道操作都通过 10 个明确语义的工具暴露，凭证不进上下文，写操作必须显式参数。</li>
+<li><strong>路径多形态回退</strong>：不要假设禅道只有一种形态；候选路径 + 顺序回退 + 合并去重，是适配不同部署的现实办法。</li>
+<li><strong>HTML 解析要保留原始结构</strong>：纯文本会丢截图，但内嵌 URL 必须过同源白名单。</li>
+<li><strong>SKILL 把瞬时数据沉淀成可追溯档案</strong>：bug 上下文按日期 + 经办人归档，比让 Agent「记住」靠谱得多。</li>
+</ul>
+<p>当 AI 越来越多承担「读 bug、定位代码、写修复」的工作时，bug 平台一定是最值得早做集成的外部系统之一。一份控制得当的 MCP Server + 一份硬约束的归档 SKILL，就是这一步最小可行的工程化方案。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://modelcontextprotocol.io/">Model Context Protocol 官方文档</a></li>
+<li><a href="https://www.npmjs.com/package/@modelcontextprotocol/sdk">@modelcontextprotocol&#x2F;sdk npm</a></li>
+<li><a href="https://www.zentao.net/book/api/api.html">禅道开源版 RESTful API 文档</a></li>
+<li><a href="https://docs.anthropic.com/en/docs/claude-code/mcp">Claude Desktop MCP 配置说明</a></li>
+<li><a href="https://nodejs.org/api/globals.html#fetch">Node.js Fetch &amp; AbortController</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/03/08/openclaw-7-config-files/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
