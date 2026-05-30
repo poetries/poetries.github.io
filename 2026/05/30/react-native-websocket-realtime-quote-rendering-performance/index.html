@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>WebSocket高频行情渲染不卡顿-React Native解决手机发热掉帧与内存暴涨 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="性能优化,RN,WebSocket," />
+  
+
+  <meta name="description" content="一份React Native高频行情列表的性能实战。从主线程51%与JS线程36%双饱和的真机trace出发，拆解四个永不停的CPU黑洞，给出按需订阅、per-symbol精准订阅、FlashList渲染稳定性、心跳边沿侦测四刀解法的完整脱敏代码，配实时入站帧率与GC监控面板。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WebSocket高频行情渲染不卡顿-React Native解决手机发热掉帧与内存暴涨">
+<meta property="og:url" content="http://blog.poetries.top/2026/05/30/react-native-websocket-realtime-quote-rendering-performance/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一份React Native高频行情列表的性能实战。从主线程51%与JS线程36%双饱和的真机trace出发，拆解四个永不停的CPU黑洞，给出按需订阅、per-symbol精准订阅、FlashList渲染稳定性、心跳边沿侦测四刀解法的完整脱敏代码，配实时入站帧率与GC监控面板。">
+<meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/05/628e9af35aa6293c.jpg">
+<meta property="article:published_time" content="2026-05-30T08:20:36.000Z">
+<meta property="article:modified_time" content="2026-05-30T07:35:51.522Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="RN">
+<meta property="article:tag" content="WebSocket">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/05/628e9af35aa6293c.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%E7%8E%B0%E5%9C%BA%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%89%E4%B8%AA%E7%97%87%E7%8A%B6%E4%B8%80%E8%B5%B7%E6%9D%A5"><span class="toc-text">一、问题现场为什么三个症状一起来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%9A%E4%BD%8D%E5%9B%9B%E4%B8%AA%E6%B0%B8%E4%B8%8D%E5%81%9C%E7%9A%84-CPU-%E9%BB%91%E6%B4%9E"><span class="toc-text">二、定位四个永不停的 CPU 黑洞</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%AC%AC%E4%B8%80%E5%88%80%E6%8C%89%E9%9C%80%E8%AE%A2%E9%98%85%E5%8F%AA%E4%B8%BA%E5%8F%AF%E8%A7%86%E5%8C%BA%E5%BB%BA%E7%AB%8B%E8%AE%A2%E9%98%85"><span class="toc-text">三、第一刀按需订阅只为可视区建立订阅</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%AC%AC%E4%BA%8C%E5%88%80per-symbol%E7%B2%BE%E5%87%86%E8%AE%A2%E9%98%85%E5%88%87%E6%96%AD%E5%BF%83%E8%B7%B3rerender"><span class="toc-text">四、第二刀per-symbol精准订阅切断心跳rerender</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%AC%AC%E4%B8%89%E5%88%80FlashList%E6%B8%B2%E6%9F%93%E7%A8%B3%E5%AE%9A%E6%80%A7%E8%AE%A9%E5%A4%8D%E7%94%A8%E9%93%BE%E4%B8%8D%E6%96%AD"><span class="toc-text">五、第三刀FlashList渲染稳定性让复用链不断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%AC%AC%E5%9B%9B%E5%88%80%E5%BF%83%E8%B7%B3%E9%99%8D%E9%A2%91%E8%BE%B9%E6%B2%BF%E4%BE%A6%E6%B5%8B%E4%B8%8EAppState%E5%90%AF%E5%81%9C"><span class="toc-text">六、第四刀心跳降频边沿侦测与AppState启停</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%BB%99-App-%E5%86%85%E7%BD%AE%E5%AE%9E%E6%97%B6%E8%A1%8C%E6%83%85%E7%9B%91%E6%8E%A7%E9%9D%A2%E6%9D%BF"><span class="toc-text">七、给 App 内置实时行情监控面板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%87%8F%E5%8C%96%E9%AA%8C%E6%94%B6%E4%BC%98%E5%8C%96%E5%88%B0%E5%BA%95%E6%9C%89%E6%B2%A1%E6%9C%89%E7%94%9F%E6%95%88"><span class="toc-text">八、量化验收优化到底有没有生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%9B%9B%E5%88%80%E7%9A%84%E8%90%BD%E5%9C%B0%E9%A1%BA%E5%BA%8F%E4%B8%8E%E9%80%90%E5%88%80%E9%AA%8C%E8%AF%81"><span class="toc-text">九、四刀的落地顺序与逐刀验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%B8%85%E5%8D%95"><span class="toc-text">十、最佳实践清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-react-native-websocket-realtime-quote-rendering-performance" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">WebSocket高频行情渲染不卡顿-React Native解决手机发热掉帧与内存暴涨</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.05.30</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 6.6k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 27分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>做股票行情类 <code>App</code> 绕不开一个场景：一屏列表里几十个品种，每个品种的买价、卖价、涨跌幅都在通过 <code>WebSocket</code> 长连接每秒推好几次，价格一变还要闪一下涨跌色。功能写出来不难，难的是用户停在行情页两分钟后开始抱怨：手机背面发烫、列表滑动一卡一卡、内存监控里数字只涨不回落。</p>
+<p>我接手的那个项目最严重时，<code>iPhone 16 Pro Max</code> 的 <code>Release</code> 包在行情页<strong>主线程 51%、JS 线程 36% 双线饱和</strong>，<code>FPS</code> 在稳态期周期性掉到 <code>0~10</code>，虽然没触发系统热降频，但持续发烫已经成了投诉点。这篇文章把整个排查和优化过程完整复盘，所有代码已脱敏，核心是四刀解法——它们对任何”高频数据 + 长列表”的场景（行情、弹幕、IM、实时大屏）都通用。</p>
+<p>在本篇文章中，我们将从浅入深，一起搞定以下内容：</p>
+<ul>
+<li>高频行情渲染为什么会同时引发发热、掉帧、内存三个问题</li>
+<li>用真机 <code>trace</code> 定位四个”永不停”的 <code>CPU</code> 黑洞</li>
+<li>第一刀：按需订阅，只为可视区品种建立 <code>WebSocket</code> 订阅</li>
+<li>第二刀：per-symbol 精准订阅，切断”心跳让全表 <code>rerender</code>“</li>
+<li>第三刀：<code>FlashList</code> 渲染稳定性，让滑动复用链不断</li>
+<li>第四刀：心跳降频 + 边沿侦测 + <code>AppState</code> 启停，杀掉后台空转</li>
+<li>给 <code>App</code> 内置实时入站帧率、断连原因、<code>GC</code> 监控面板</li>
+<li>用量化阈值表验收”优化到底有没有生效”</li>
+</ul>
+<h2 id="一、问题现场为什么三个症状一起来"><a href="#一、问题现场为什么三个症状一起来" class="headerlink" title="一、问题现场为什么三个症状一起来"></a>一、问题现场为什么三个症状一起来</h2><p>发热、掉帧、内存暴涨看起来是三个问题，根子其实是同一个：<strong><code>CPU</code> 在被持续无意义地烧</strong>。</p>
+<p><code>WebSocket</code> 把行情帧推到 <code>JS</code> 线程，每帧都要 <code>JSON.parse</code>、写状态、触发 <code>React</code> 重渲染、再走 <code>Fabric</code> 的 <code>ShadowTree commit</code> 和原生 <code>mount transaction</code>。这条链路里任何一环只要频率失控，就会：</p>
+<ul>
+<li><strong>发热</strong>：<code>CPU</code> 长期高占用，芯片功耗上去了，热量自然来——<code>GC</code> 频繁、<code>mount transaction</code> 每秒几十次都是元凶。</li>
+<li><strong>掉帧</strong>：主线程被 <code>mount transaction</code> 和 <code>clipping</code> 递归占满，渲染管线挤不进 <code>16ms</code> 一帧的预算，<code>FPS</code> 就塌了。</li>
+<li><strong>内存暴涨</strong>：高频 <code>JSON.parse</code> 产生海量临时对象，<code>Hermes</code> 堆反复扩张；如果订阅没按需回收，可见区外的几百个品种状态还挂在内存里只涨不回落。</li>
+</ul>
+<p>所以优化的总目标只有一句话：<strong>让 <code>CPU</code> 只在”真的有价格变化、且这个品种用户真的看得到”的时候才干活，其余时间一律闲着。</strong> 四刀解法全是围绕这句话展开的。</p>
+<h2 id="二、定位四个永不停的-CPU-黑洞"><a href="#二、定位四个永不停的-CPU-黑洞" class="headerlink" title="二、定位四个永不停的 CPU 黑洞"></a>二、定位四个永不停的 CPU 黑洞</h2><p>光说”<code>CPU</code> 高”没用，得拿真机 <code>Release</code> 包的 <code>Instruments</code> <code>trace</code> 把热点钉死。交叉审计 <code>trace</code> 关键字和源码后，我定位到四组”持续运行、永不停”的隐性黑洞：</p>
+<p><strong>黑洞一：全局心跳定时器永不停。</strong> 一个 <code>80ms</code>（<code>12.5Hz</code>）的全局 <code>setInterval</code>，模块加载就起、息屏后台都不停，每次都写一个 <code>SharedValue</code>，触发每个挂载过的行情文本组件的 <code>useDerivedValue worklet</code> 重算”价格新鲜度”。<code>trace</code> 里 <code>reanimated</code>+<code>worklet</code> 关键字 <code>inclusive</code> 累计 <code>207s</code>，是 <code>18.67s</code> 采样的绝对头部。</p>
+<p><strong>黑洞二：<code>Fabric</code> mount transaction 每秒 66 次。</strong> 每次 <code>commit</code> 都递归遍历整棵子视图树做 <code>clipping</code>（<code>updateClippedSubviewsWithClipRect</code> 主线程占 <code>17.2%</code>，递归 <code>30+</code> 层）。源头多半是黑洞一频繁写动画样式属性触发的 <code>ShadowTree commit</code>。</p>
+<p><strong>黑洞三：把超大业务 store 当订阅源。</strong> 行情单元格订阅了一个杂烩 <code>store</code>（订单、持仓、余额、设置几十个字段都在里面），结果任意业务字段写入（下单、切 tab、<code>HTTP</code> 刷新）都把全部可见单元格的 <code>selector</code> 同步跑一遍。<code>trace</code> 里 <code>Hermes</code> 解释器 <code>34s inclusive</code>。</p>
+<p><strong>黑洞四：单元格视图层级太深 + 多层圆角裁剪。</strong> <code>Pressable → View → View → ... → Icon</code> 嵌套 <code>8+</code> 层，每层 <code>rounded-xl</code> 都触发圆角图片绘制和 <code>clipping</code> 递归向更深扫描，把前三条的 <code>CPU</code> 成本进一步放大。</p>
+<p>四条同时存在、叠加放大，导致<strong>单独优化任何一条都看不出效果，必须一次性收口</strong>。下面按 <code>ROI</code> 从高到低逐刀拆解，整体解法和收口效果先看这张全景图：</p>
+<p><img src="https://s.poetries.top/uploads/2026/05/628e9af35aa6293c.jpg" alt="WebSocket 高频行情渲染四刀解法全景：按需订阅、精准订阅、渲染稳定、心跳治理，收口后发热掉帧内存三症状一起消失"></p>
+<h2 id="三、第一刀按需订阅只为可视区建立订阅"><a href="#三、第一刀按需订阅只为可视区建立订阅" class="headerlink" title="三、第一刀按需订阅只为可视区建立订阅"></a>三、第一刀按需订阅只为可视区建立订阅</h2><p>最大的浪费是：列表里有几百个品种，但用户一屏只看得到十几个，却给全部品种都开了 <code>WebSocket</code> 订阅、全部都在接收推送、全部都在 <code>parse</code> 和写状态。</p>
+<p>解法是「可视区订阅」：只为当前屏幕可见的品种 + 上下各 <code>5</code> 个缓冲建立订阅，滑出去的退订。<code>FlashList</code> 的 <code>onViewableItemsChanged</code> 给我们可见区索引，<code>debounce</code> 合并滚动过程中的高频回调：</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="keyword">type</span> &#123; <span class="title class_">ViewToken</span>, <span class="title class_">ListRenderItemInfo</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@shopify/flash-list&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; useCallback, useRef &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; setVisibleSymbols, <span class="variable constant_">VISIBLE_BUFFER_RADIUS</span>, <span class="variable constant_">VISIBLE_DEBOUNCE_MS</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@/lib/ws&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useVisibleSubscription</span>(<span class="params"><span class="attr">scopeKey</span>: <span class="string">&#x27;list&#x27;</span> | <span class="string">&#x27;modal&#x27;</span>, <span class="attr">listRef</span>: <span class="title class_">React</span>.<span class="title class_">RefObject</span>&lt;<span class="title class_">Item</span>[]&gt;</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> lastIndicesRef = useRef&lt;&#123; <span class="attr">first</span>: <span class="built_in">number</span>; <span class="attr">last</span>: <span class="built_in">number</span> &#125;&gt;(&#123; <span class="attr">first</span>: -<span class="number">1</span>, <span class="attr">last</span>: -<span class="number">1</span> &#125;)</span><br><span class="line">  <span class="keyword">const</span> debounceTimerRef = useRef&lt;<span class="title class_">ReturnType</span>&lt;<span class="keyword">typeof</span> <span class="built_in">setTimeout</span>&gt; | <span class="literal">null</span>&gt;(<span class="literal">null</span>)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 把&quot;可见区 ± buffer&quot;的品种算出来，提交给订阅层 reconcile</span></span><br><span class="line">  <span class="keyword">const</span> flushVisible = <span class="title function_">useCallback</span>(<span class="function">(<span class="params"><span class="attr">reason</span>: <span class="built_in">string</span></span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> list = listRef.<span class="property">current</span></span><br><span class="line">    <span class="keyword">const</span> &#123; first, last &#125; = lastIndicesRef.<span class="property">current</span></span><br><span class="line">    <span class="keyword">if</span> (first &lt; <span class="number">0</span> || last &lt; <span class="number">0</span> || !list.<span class="property">length</span>) &#123;</span><br><span class="line">      <span class="title function_">setVisibleSymbols</span>(scopeKey, [], <span class="string">`<span class="subst">$&#123;reason&#125;</span>:empty`</span>)</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> lo = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, first - <span class="variable constant_">VISIBLE_BUFFER_RADIUS</span>)</span><br><span class="line">    <span class="keyword">const</span> hi = <span class="title class_">Math</span>.<span class="title function_">min</span>(list.<span class="property">length</span> - <span class="number">1</span>, last + <span class="variable constant_">VISIBLE_BUFFER_RADIUS</span>)</span><br><span class="line">    <span class="keyword">const</span> <span class="attr">symbols</span>: <span class="built_in">string</span>[] = []</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = lo; i &lt;= hi; i++) &#123;</span><br><span class="line">      <span class="keyword">const</span> s = list[i]?.<span class="property">symbol</span></span><br><span class="line">      <span class="keyword">if</span> (s) symbols.<span class="title function_">push</span>(s)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">setVisibleSymbols</span>(scopeKey, symbols, reason)</span><br><span class="line">  &#125;, [scopeKey, listRef])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> onViewableItemsChanged = <span class="title function_">useCallback</span>(<span class="function">(<span class="params"><span class="attr">info</span>: &#123; viewableItems: ViewToken&lt;Item&gt;[] &#125;</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> viewable = info.<span class="property">viewableItems</span></span><br><span class="line">    <span class="keyword">if</span> (!viewable.<span class="property">length</span>) &#123;</span><br><span class="line">      lastIndicesRef.<span class="property">current</span> = &#123; <span class="attr">first</span>: -<span class="number">1</span>, <span class="attr">last</span>: -<span class="number">1</span> &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">let</span> first = <span class="title class_">Infinity</span>, last = -<span class="title class_">Infinity</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">const</span> v <span class="keyword">of</span> viewable) &#123;</span><br><span class="line">        <span class="keyword">if</span> (v.<span class="property">index</span> == <span class="literal">null</span>) <span class="keyword">continue</span></span><br><span class="line">        first = <span class="title class_">Math</span>.<span class="title function_">min</span>(first, v.<span class="property">index</span>)</span><br><span class="line">        last = <span class="title class_">Math</span>.<span class="title function_">max</span>(last, v.<span class="property">index</span>)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (!<span class="built_in">isFinite</span>(first) || !<span class="built_in">isFinite</span>(last)) <span class="keyword">return</span></span><br><span class="line">      lastIndicesRef.<span class="property">current</span> = &#123; first, last &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// debounce：滚动中合并多次回调，停止 200ms 后再发 reconcile</span></span><br><span class="line">    <span class="keyword">if</span> (debounceTimerRef.<span class="property">current</span>) <span class="built_in">clearTimeout</span>(debounceTimerRef.<span class="property">current</span>)</span><br><span class="line">    debounceTimerRef.<span class="property">current</span> = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      debounceTimerRef.<span class="property">current</span> = <span class="literal">null</span></span><br><span class="line">      <span class="title function_">flushVisible</span>(<span class="string">&#x27;viewable&#x27;</span>)</span><br><span class="line">    &#125;, <span class="variable constant_">VISIBLE_DEBOUNCE_MS</span>)</span><br><span class="line">  &#125;, [flushVisible])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123; onViewableItemsChanged, flushVisible &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>光”算出该订阅哪些”还不够，真正发订阅 &#x2F; 退订协议时还有两个工程问题：滚动来回会产生大量 <code>sub/unsub</code> 协议噪音；切 tab 瞬间会有短暂”全退又全订”。所以订阅层再加一个 <code>flush</code> 调度器做批量合并——订阅立即发、退订冷却 <code>5s</code> 后才发，冷却期内同一品种又滚回来就取消退订：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="variable constant_">FLUSH_DEBOUNCE_MS</span>, <span class="variable constant_">UNSUB_COOLDOWN_MS</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;../config&#x27;</span> <span class="comment">// 50ms / 5000ms</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> pendingAdd = <span class="keyword">new</span> <span class="title class_">Set</span>&lt;<span class="built_in">string</span>&gt;()          <span class="comment">// 待订阅</span></span><br><span class="line"><span class="keyword">const</span> pendingRemove = <span class="keyword">new</span> <span class="title class_">Map</span>&lt;<span class="built_in">string</span>, <span class="built_in">number</span>&gt;() <span class="comment">// 待退订 key → 入队时间戳</span></span><br><span class="line"><span class="keyword">let</span> <span class="attr">flushTimer</span>: <span class="title class_">ReturnType</span>&lt;<span class="keyword">typeof</span> <span class="built_in">setTimeout</span>&gt; | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** 新订阅入队；若该品种正在 pendingRemove 冷却中，则取消退订（来回滚动不再抖动协议）。 */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">enqueueAdds</span>(<span class="params"><span class="attr">keys</span>: <span class="built_in">string</span>[]</span>) &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> k <span class="keyword">of</span> keys) &#123; pendingAdd.<span class="title function_">add</span>(k); pendingRemove.<span class="title function_">delete</span>(k) &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 退订入队，冷却 UNSUB_COOLDOWN_MS 后才真正发包；保留原入队时间戳，避免反复滚动永远发不出 cancel。 */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">enqueueRemoves</span>(<span class="params"><span class="attr">keys</span>: <span class="built_in">string</span>[]</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> now = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> k <span class="keyword">of</span> keys) &#123;</span><br><span class="line">    pendingAdd.<span class="title function_">delete</span>(k)</span><br><span class="line">    <span class="keyword">if</span> (!pendingRemove.<span class="title function_">has</span>(k)) pendingRemove.<span class="title function_">set</span>(k, now)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">scheduleFlush</span>(<span class="params">delayMs = FLUSH_DEBOUNCE_MS</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (flushTimer) <span class="keyword">return</span> <span class="comment">// 短时间内多次 reconcile 合并到一次发包</span></span><br><span class="line">  flushTimer = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123; flushTimer = <span class="literal">null</span>; <span class="title function_">flush</span>() &#125;, delayMs)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">flush</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 1. 立即发 subscribe</span></span><br><span class="line">  <span class="keyword">const</span> toSubscribe = <span class="title class_">Array</span>.<span class="title function_">from</span>(pendingAdd); pendingAdd.<span class="title function_">clear</span>()</span><br><span class="line">  <span class="keyword">if</span> (toSubscribe.<span class="property">length</span>) <span class="title function_">sendSubscribe</span>(toSubscribe)</span><br><span class="line">  <span class="comment">// 2. 只发冷却到期的 cancel</span></span><br><span class="line">  <span class="keyword">const</span> now = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line">  <span class="keyword">const</span> <span class="attr">dueCancel</span>: <span class="built_in">string</span>[] = []</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> [k, ts] <span class="keyword">of</span> pendingRemove) <span class="keyword">if</span> (now - ts &gt;= <span class="variable constant_">UNSUB_COOLDOWN_MS</span>) dueCancel.<span class="title function_">push</span>(k)</span><br><span class="line">  <span class="keyword">if</span> (dueCancel.<span class="property">length</span>) &#123; <span class="title function_">sendCancel</span>(dueCancel); dueCancel.<span class="title function_">forEach</span>(<span class="function">(<span class="params">k</span>) =&gt;</span> pendingRemove.<span class="title function_">delete</span>(k)) &#125;</span><br><span class="line">  <span class="comment">// 3. 仍有未到期项 → 按最早入队时间精确调度下一次 flush</span></span><br><span class="line">  <span class="keyword">if</span> (pendingRemove.<span class="property">size</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> earliest = <span class="title class_">Infinity</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> ts <span class="keyword">of</span> pendingRemove.<span class="title function_">values</span>()) earliest = <span class="title class_">Math</span>.<span class="title function_">min</span>(earliest, ts)</span><br><span class="line">    <span class="title function_">scheduleFlush</span>(<span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="variable constant_">UNSUB_COOLDOWN_MS</span> - (now - earliest), <span class="variable constant_">FLUSH_DEBOUNCE_MS</span>))</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一刀直接把”同时活跃的订阅数”从几百压到十几二十个，<code>JSON.parse</code> 的量级和写状态的频率都跟着掉一个数量级。<code>debounce 200ms</code> + <code>冷却 5s</code> 这两个常量是反复调出来的——太短了滚动有协议噪音，太长了切 tab 残留订阅浪费带宽。</p>
+<h2 id="四、第二刀per-symbol精准订阅切断心跳rerender"><a href="#四、第二刀per-symbol精准订阅切断心跳rerender" class="headerlink" title="四、第二刀per-symbol精准订阅切断心跳rerender"></a>四、第二刀per-symbol精准订阅切断心跳rerender</h2><p>按需订阅解决了”接收多少帧”，但还有个更隐蔽的问题：<strong>就算只订阅可视区，单元格订阅 store 的方式不对，照样会被无关更新带起重渲染。</strong></p>
+<p>最典型的坑是把整个业务 <code>store</code> 当订阅源（黑洞三）。解法是给行情元数据单独切一个 <code>sub-store</code>，让单元格只订阅”自己这个品种”的关键字段，用 <code>zustand</code> 的 <code>useShallow</code> 做浅比较：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useMemo &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; useShallow &#125; <span class="keyword">from</span> <span class="string">&#x27;zustand/react/shallow&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; useWsStore &#125; <span class="keyword">from</span> <span class="string">&#x27;../internal&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; useQuoteMetaStore &#125; <span class="keyword">from</span> <span class="string">&#x27;../state/quoteMeta&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 单品种行情派生 hook（FlashList 滚动性能关键路径专用）。</span></span><br><span class="line"><span class="comment"> * 只对目标 symbol 做 per-symbol 订阅 + useShallow 浅比较，仅当本品种关键字段</span></span><br><span class="line"><span class="comment"> * （buy/sell/diff）变化时才触发组件重渲；其它几十个品种的 tick 不会带起本组件。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">useSymbolQuote</span>(<span class="params"><span class="attr">symbol</span>?: <span class="built_in">string</span></span>): <span class="title class_">SymbolQuoteResult</span> &#123;</span><br><span class="line">  <span class="comment">// 1. 元数据切片：只订阅本品种的 digits / ticker，与业务 store 字段解耦</span></span><br><span class="line">  <span class="keyword">const</span> symbolMeta = <span class="title function_">useQuoteMetaStore</span>(</span><br><span class="line">    <span class="title function_">useShallow</span>(<span class="function">(<span class="params">s</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (!<span class="built_in">symbol</span>) <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">      <span class="keyword">const</span> info = s.<span class="property">symbolMapAll</span>?.[<span class="built_in">symbol</span>]</span><br><span class="line">      <span class="keyword">if</span> (!info) <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">      <span class="keyword">const</span> dataSourceKey = <span class="string">`<span class="subst">$&#123;s.accountGroupId ?? <span class="string">&#x27;visitor&#x27;</span>&#125;</span>/<span class="subst">$&#123;<span class="built_in">symbol</span>&#125;</span>`</span></span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        dataSourceKey,</span><br><span class="line">        <span class="attr">digits</span>: <span class="title class_">Number</span>(info.<span class="property">symbolDecimal</span> || <span class="number">2</span>),</span><br><span class="line">        <span class="attr">tickerOpen</span>: s.<span class="property">tickerMap</span>?.[<span class="built_in">symbol</span>]?.<span class="property">open</span>,</span><br><span class="line">        <span class="attr">tickerHigh</span>: s.<span class="property">tickerMap</span>?.[<span class="built_in">symbol</span>]?.<span class="property">high</span>,</span><br><span class="line">        <span class="attr">tickerLow</span>: s.<span class="property">tickerMap</span>?.[<span class="built_in">symbol</span>]?.<span class="property">low</span>,</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  )</span><br><span class="line">  <span class="keyword">const</span> dataSourceKey = symbolMeta?.<span class="property">dataSourceKey</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. 行情切片：⚠ 关键——不要把时间戳 ts 放进比较字段！</span></span><br><span class="line">  <span class="comment">//    心跳类 tick 会让 ts 单调推进而买卖价完全不变，把 ts 列入比较会让所有可见</span></span><br><span class="line">  <span class="comment">//    cell 跟着心跳 rerender，在 24 cell × 12 ticks/s 下产生 ~290/s 的 mountingTransaction。</span></span><br><span class="line">  <span class="keyword">const</span> tickFlat = <span class="title function_">useWsStore</span>(</span><br><span class="line">    <span class="title function_">useShallow</span>(<span class="function">(<span class="params">s</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> q = dataSourceKey ? s.<span class="property">quotes</span>.<span class="title function_">get</span>(dataSourceKey) : <span class="literal">undefined</span></span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="attr">buy</span>: <span class="title class_">Number</span>(q?.<span class="property">priceData</span>?.<span class="property">buy</span> ?? <span class="number">0</span>),</span><br><span class="line">        <span class="attr">sell</span>: <span class="title class_">Number</span>(q?.<span class="property">priceData</span>?.<span class="property">sell</span> ?? <span class="number">0</span>),</span><br><span class="line">        <span class="attr">bidDiff</span>: q?.<span class="property">bidDiff</span> ?? <span class="number">0</span>,</span><br><span class="line">        <span class="attr">askDiff</span>: q?.<span class="property">askDiff</span> ?? <span class="number">0</span>,</span><br><span class="line">        <span class="attr">hasQuote</span>: !!q?.<span class="property">priceData</span>?.<span class="property">buy</span>,</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 派生字段（涨跌幅、最高最低、涨跌色信号）在 useMemo 内重算，</span></span><br><span class="line">  <span class="comment">//    不会因为别的 symbol tick 而重渲。</span></span><br><span class="line">  <span class="keyword">return</span> useMemo&lt;<span class="title class_">SymbolQuoteResult</span>&gt;(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="built_in">symbol</span> || !symbolMeta) <span class="keyword">return</span> <span class="variable constant_">EMPTY_RESULT</span></span><br><span class="line">    <span class="keyword">const</span> &#123; digits, tickerOpen, tickerHigh, tickerLow &#125; = symbolMeta</span><br><span class="line">    <span class="keyword">const</span> bidNum = tickFlat.<span class="property">buy</span></span><br><span class="line">    <span class="keyword">const</span> open = <span class="title class_">Number</span>(tickerOpen || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">const</span> percent = bidNum &amp;&amp; open ? (((bidNum - open) / open) * <span class="number">100</span>).<span class="title function_">toFixed</span>(<span class="number">2</span>) : <span class="number">0</span></span><br><span class="line">    <span class="comment">// 涨跌色：仅 diff !== 0 那一帧 override 静息色，形成短暂闪烁；其余帧维持涨跌底色</span></span><br><span class="line">    <span class="keyword">const</span> restingDir = <span class="title class_">Number</span>(percent) &gt; <span class="number">0</span> ? <span class="string">&#x27;up&#x27;</span> : <span class="title class_">Number</span>(percent) &lt; <span class="number">0</span> ? <span class="string">&#x27;down&#x27;</span> : <span class="string">&#x27;same&#x27;</span></span><br><span class="line">    <span class="keyword">const</span> bidColor = tickFlat.<span class="property">hasQuote</span> &amp;&amp; tickFlat.<span class="property">bidDiff</span> !== <span class="number">0</span></span><br><span class="line">      ? (tickFlat.<span class="property">bidDiff</span> &gt; <span class="number">0</span> ? <span class="string">&#x27;up&#x27;</span> : <span class="string">&#x27;down&#x27;</span>) : restingDir</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="built_in">symbol</span>, digits,</span><br><span class="line">      <span class="attr">bid</span>: bidNum.<span class="title function_">toFixed</span>(digits),</span><br><span class="line">      <span class="attr">ask</span>: tickFlat.<span class="property">sell</span>.<span class="title function_">toFixed</span>(digits),</span><br><span class="line">      <span class="attr">high</span>: <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="title class_">Number</span>(tickerHigh || <span class="number">0</span>), bidNum &gt; <span class="number">0</span> ? bidNum : <span class="number">0</span>).<span class="title function_">toFixed</span>(digits),</span><br><span class="line">      <span class="attr">low</span>: bidNum &gt; <span class="number">0</span> ? <span class="title class_">Math</span>.<span class="title function_">min</span>(<span class="title class_">Number</span>(tickerLow || <span class="number">0</span>), bidNum).<span class="title function_">toFixed</span>(digits) : tickerLow,</span><br><span class="line">      percent, bidColor, <span class="attr">hasQuote</span>: tickFlat.<span class="property">hasQuote</span>,</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, [<span class="built_in">symbol</span>, symbolMeta, tickFlat])</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有个<strong>全文最值钱的细节</strong>，我用注释专门标了：<strong>绝对不要把行情时间戳 <code>ts</code> 放进 <code>useShallow</code> 的比较字段。</strong> 服务端的心跳类 <code>tick</code> 会让 <code>ts</code> 单调推进，但买卖价、<code>diff</code> 完全不变。如果你图省事把 <code>ts</code> 列进比较，结果就是所有可见单元格跟着心跳一起 <code>rerender</code>——<code>24</code> 个单元格 × <code>12 ticks/s</code> 实测会产生约 <code>290/s</code> 的 <code>mountingTransaction</code>，主线程直接被打爆。需要 <code>ts</code> 的地方就在 <code>useMemo</code> 里用 <code>getState()</code> 实时读，它只用于派生输出字段、不参与订阅触发语义。</p>
+<h2 id="五、第三刀FlashList渲染稳定性让复用链不断"><a href="#五、第三刀FlashList渲染稳定性让复用链不断" class="headerlink" title="五、第三刀FlashList渲染稳定性让复用链不断"></a>五、第三刀FlashList渲染稳定性让复用链不断</h2><p>订阅和数据派生都精准了，还要保证 <code>FlashList</code> 这一层不自己制造重渲染。这一刀有四个要点。</p>
+<p><strong>要点一：<code>renderItem</code> 引用必须稳定。</strong> <code>FlashList</code> 的 <code>renderItem</code> 引用或返回组件类型一变，会把全部可见单元格 <code>unmount → remount</code>，十几个 <code>useSymbolQuote</code> 同帧重建，<code>JS FPS</code> 直接掉到个位数。所以把布局模式作为 prop 传进单元格内部条件渲染，而不是在外面切换组件类型：</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> renderItem = <span class="title function_">useCallback</span>(</span><br><span class="line">  <span class="function">(<span class="params">&#123; item &#125;: <span class="title class_">ListRenderItemInfo</span>&lt;<span class="title class_">Item</span>&gt;</span>) =&gt;</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">QuoteCell</span> <span class="attr">item</span>=<span class="string">&#123;item&#125;</span> <span class="attr">layoutMode</span>=<span class="string">&#123;quoteMode&#125;</span> <span class="attr">theme</span>=<span class="string">&#123;cellTheme&#125;</span> <span class="attr">onPressItem</span>=<span class="string">&#123;onPressItem&#125;</span> /&gt;</span></span></span><br><span class="line">  ),</span><br><span class="line">  [cellTheme, onPressItem, quoteMode]</span><br><span class="line">)</span><br><span class="line"><span class="keyword">const</span> keyExtractor = <span class="title function_">useCallback</span>(<span class="function">(<span class="params"><span class="attr">item</span>: <span class="title class_">Item</span></span>) =&gt;</span> item.<span class="property">symbol</span>, [])</span><br></pre></td></tr></table></figure>
+
+<p><strong>要点二：主题用快照而不是整对象。</strong> 主题对象引用一抖动，全表重 <code>paint</code>。所以在列表层把单元格真正用到的几个字段拍成一个 <code>memo</code> 快照传下去：</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 行情 cell 主题快照：仅随涨跌色 / colors 变，避免 theme 整对象引用抖动触发整表重渲</span></span><br><span class="line"><span class="keyword">const</span> cellTheme = <span class="title function_">useMemo</span>(</span><br><span class="line">  <span class="function">() =&gt;</span> (&#123; <span class="attr">up</span>: theme.<span class="property">up</span>, <span class="attr">down</span>: theme.<span class="property">down</span>, <span class="attr">colors</span>: theme.<span class="property">colors</span> &#125;),</span><br><span class="line">  [theme.<span class="property">up</span>, theme.<span class="property">down</span>, theme.<span class="property">colors</span>]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>要点三：单元格 <code>memo</code> 用自定义相等函数。</strong> 默认浅比较挡不住派生对象每帧新建。手写一个”只比视觉相关字段”的相等函数，价格没变就不重渲：</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">symbolQuoteVisualEqual</span>(<span class="params"><span class="attr">a</span>: <span class="title class_">SymbolQuoteResult</span>, <span class="attr">b</span>: <span class="title class_">SymbolQuoteResult</span></span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    a.<span class="property">bid</span> === b.<span class="property">bid</span> &amp;&amp; a.<span class="property">ask</span> === b.<span class="property">ask</span> &amp;&amp; a.<span class="property">percent</span> === b.<span class="property">percent</span> &amp;&amp;</span><br><span class="line">    a.<span class="property">low</span> === b.<span class="property">low</span> &amp;&amp; a.<span class="property">high</span> === b.<span class="property">high</span> &amp;&amp; a.<span class="property">hasQuote</span> === b.<span class="property">hasQuote</span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">layoutPropsAreEqual</span>(<span class="params"><span class="attr">prev</span>: <span class="title class_">LayoutProps</span>, <span class="attr">next</span>: <span class="title class_">LayoutProps</span></span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    prev.<span class="property">item</span>.<span class="property">symbol</span> === next.<span class="property">item</span>.<span class="property">symbol</span> &amp;&amp;</span><br><span class="line">    prev.<span class="property">marketOpen</span> === next.<span class="property">marketOpen</span> &amp;&amp;</span><br><span class="line">    prev.<span class="property">onPress</span> === next.<span class="property">onPress</span> &amp;&amp;</span><br><span class="line">    prev.<span class="property">theme</span> === next.<span class="property">theme</span> &amp;&amp;            <span class="comment">// 引用比较：靠上面的快照保证稳定</span></span><br><span class="line">    <span class="title function_">symbolQuoteVisualEqual</span>(prev.<span class="property">res</span>, next.<span class="property">res</span>)</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CFDLayout</span> = <span class="title function_">memo</span>(<span class="function">(<span class="params">&#123; item, res, theme, onPress &#125;: <span class="title class_">LayoutProps</span></span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// ...渲染一个股票行情单元格：品种名 + 买卖价 + 涨跌幅 badge</span></span><br><span class="line">&#125;, layoutPropsAreEqual)</span><br></pre></td></tr></table></figure>
+
+<p><strong>要点四：<code>Fabric</code> 下关掉原生裁剪 + 压扁视图层级。</strong> 在 <code>mount transaction</code> 频率高的场景，让 <code>RN</code> 跳过”全树 <code>clip</code> 扫描”反而更快。配合把单元格视图嵌套从 <code>8</code> 层压到 <code>5</code> 层以内：</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line">&lt;<span class="title class_">FlashList</span></span><br><span class="line">  data=&#123;finalList&#125;</span><br><span class="line">  renderItem=&#123;renderItem&#125;</span><br><span class="line">  keyExtractor=&#123;keyExtractor&#125;</span><br><span class="line">  estimatedItemSize=&#123;estimatedItemSize&#125;</span><br><span class="line">  drawDistance=&#123;<span class="variable constant_">QUOTE_DRAW_DISTANCE</span>&#125;</span><br><span class="line">  onViewableItemsChanged=&#123;onViewableItemsChanged&#125;</span><br><span class="line">  viewabilityConfig=&#123;&#123; <span class="attr">itemVisiblePercentThreshold</span>: <span class="number">30</span>, <span class="attr">minimumViewTime</span>: <span class="number">0</span> &#125;&#125;</span><br><span class="line">  <span class="comment">// 可见域已由&quot;可视区 ± 5 buffer&quot;控制在 16-18 条，FlashList 自己做复用，</span></span><br><span class="line">  <span class="comment">// 关掉原生 clipped subviews 不会暴涨内存，却能砍掉 updateClippedSubviewsWithClipRect</span></span><br><span class="line">  <span class="comment">// 占用的主线程时间（trace 实测占主线程约 30%）。</span></span><br><span class="line">  removeClippedSubviews=&#123;<span class="literal">false</span>&#125;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>还有个排序闪烁的坑顺带提一句：<code>FlashList</code> 在 <code>data</code> 重排时会用单元格复用 + 位移动画保留”原本可见那一项”，结果部分 item 会”闪一下”飘到顶部。单靠 <code>scrollToOffset(0)</code> 修不掉，因为复用过渡帧已经在原生层画了。叠加一个 <code>key=&#123;排序状态&#125;</code> 让列表在排序切换时整体重挂载，没有任何复用过渡就没有闪烁，代价只在点击瞬间产生一次，可接受。</p>
+</blockquote>
+<h2 id="六、第四刀心跳降频边沿侦测与AppState启停"><a href="#六、第四刀心跳降频边沿侦测与AppState启停" class="headerlink" title="六、第四刀心跳降频边沿侦测与AppState启停"></a>六、第四刀心跳降频边沿侦测与AppState启停</h2><p>最后回头收拾黑洞一那个永不停的全局心跳。它不能直接删——价格新鲜度的”由 <code>stale</code> 升级到 <code>frozen</code>“判定需要时间流逝信号，<code>socket</code> 断了也得让单元格自然过渡到 <code>frozen</code> 灰态。所以是”改”不是”删”，三个动作：</p>
+<p><strong>动作一：降频。</strong> <code>80ms</code>（<code>12.5Hz</code>）改成 <code>250ms</code>（<code>4Hz</code>）。<code>stale</code> 阈值通常 <code>≥ 1s</code>，<code>4Hz</code> 完全够用，频率直接降到原来的三分之一。</p>
+<p><strong>动作二：按需启停。</strong> <code>setInterval</code> 改成”有监听者才启、最后一个监听者注销就停”，并监听 <code>AppState</code>，进后台 &#x2F; 锁屏主动停、回前台按当前监听者数决定是否重启：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">AppState</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-native&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">QUOTE_HEARTBEAT_MS</span> = <span class="number">250</span></span><br><span class="line"><span class="keyword">let</span> <span class="attr">heartbeatTimer</span>: <span class="title class_">ReturnType</span>&lt;<span class="keyword">typeof</span> <span class="built_in">setInterval</span>&gt; | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line"><span class="keyword">const</span> tickListeners = <span class="keyword">new</span> <span class="title class_">Set</span>&lt;<span class="function">() =&gt;</span> <span class="built_in">void</span>&gt;()</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">startHeartbeat</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (heartbeatTimer) <span class="keyword">return</span></span><br><span class="line">  heartbeatTimer = <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    quoteHeartbeat.<span class="property">value</span> = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line">  &#125;, <span class="variable constant_">QUOTE_HEARTBEAT_MS</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> <span class="title function_">stopHeartbeat</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (heartbeatTimer) &#123; <span class="built_in">clearInterval</span>(heartbeatTimer); heartbeatTimer = <span class="literal">null</span> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 唯一启停闸门：有监听者才启，0 监听者就停。 */</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">subscribeQuoteTick</span>(<span class="params"><span class="attr">cb</span>: () =&gt; <span class="built_in">void</span></span>): <span class="function">() =&gt;</span> <span class="built_in">void</span> &#123;</span><br><span class="line">  tickListeners.<span class="title function_">add</span>(cb)</span><br><span class="line">  <span class="keyword">if</span> (tickListeners.<span class="property">size</span> &gt; <span class="number">0</span>) <span class="title function_">startHeartbeat</span>()</span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    tickListeners.<span class="title function_">delete</span>(cb)</span><br><span class="line">    <span class="keyword">if</span> (tickListeners.<span class="property">size</span> === <span class="number">0</span>) <span class="title function_">stopHeartbeat</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 进后台主动停，回前台按监听者数决定是否重启</span></span><br><span class="line"><span class="title class_">AppState</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;change&#x27;</span>, <span class="function">(<span class="params">state</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (state === <span class="string">&#x27;active&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (tickListeners.<span class="property">size</span> &gt; <span class="number">0</span>) <span class="title function_">startHeartbeat</span>()</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">stopHeartbeat</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>动作三：边沿侦测，中间帧不写原生属性。</strong> 这是降 <code>mount transaction</code> 的核心。原来的实现是把新鲜度三态接到 <code>useAnimatedStyle</code> 的 <code>color</code>，每次心跳写 <code>SharedValue</code> 就触发原生 <code>View</code> 的 <code>color</code> prop 更新 → <code>Fabric mount transaction</code> → 全树 <code>clipping</code>。但新鲜度其实只在<strong>阈值跨越那一帧</strong>需要切换颜色，中间帧完全不用动原生属性。改成内层 <code>worklet</code> 算离散态（<code>0/1/2</code>），外层只在<strong>离散态真正变化</strong>时通过一次 <code>runOnJS(setState)</code> 触发渲染：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useDerivedValue, runOnJS &#125; <span class="keyword">from</span> <span class="string">&#x27;react-native-reanimated&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; useState &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> <span class="title class_">Freshness</span> = <span class="string">&#x27;live&#x27;</span> | <span class="string">&#x27;stale&#x27;</span> | <span class="string">&#x27;frozen&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">useFreshness</span>(<span class="params"><span class="attr">lastTick</span>: <span class="title class_">SharedValue</span>&lt;<span class="built_in">number</span>&gt;, <span class="attr">heartbeat</span>: <span class="title class_">SharedValue</span>&lt;<span class="built_in">number</span>&gt;</span>): <span class="title class_">Freshness</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> [state, setState] = useState&lt;<span class="title class_">Freshness</span>&gt;(<span class="string">&#x27;live&#x27;</span>)</span><br><span class="line">  <span class="title function_">useDerivedValue</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> age = heartbeat.<span class="property">value</span> - lastTick.<span class="property">value</span></span><br><span class="line">    <span class="comment">// 内层：UI 线程算离散态</span></span><br><span class="line">    <span class="keyword">const</span> <span class="attr">next</span>: <span class="title class_">Freshness</span> = age &lt; <span class="number">1000</span> ? <span class="string">&#x27;live&#x27;</span> : age &lt; <span class="number">5000</span> ? <span class="string">&#x27;stale&#x27;</span> : <span class="string">&#x27;frozen&#x27;</span></span><br><span class="line">    <span class="comment">// 外层：仅在离散态切换那一帧才 runOnJS 触发一次 React 渲染，中间帧不写原生 prop</span></span><br><span class="line">    <span class="title function_">runOnJS</span>(setState)(next)</span><br><span class="line">  &#125;, [])</span><br><span class="line">  <span class="keyword">return</span> state</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>颜色应用走 <code>React state → style</code>，不再走 <code>useAnimatedStyle</code>。改完 <code>mount transaction</code> 从 <code>66/s</code> 降到接近 <code>1/s</code>（只在新鲜度真切换时）。这一刀是杠杆最大的一刀，主线程占用直接释放二十多个百分点。</p>
+<h2 id="七、给-App-内置实时行情监控面板"><a href="#七、给-App-内置实时行情监控面板" class="headerlink" title="七、给 App 内置实时行情监控面板"></a>七、给 App 内置实时行情监控面板</h2><p>优化要可观测才能验证。我在测试包里内置了一个”网络检测”面板，实时读 <code>WebSocket</code> 的入站帧率、字节率、断连原因分桶、保活状态——这些数字是判断”行情卡顿到底是渲染问题还是网络问题”的直接证据。采样器只在面板打开时跑：</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useEffect, useState &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; getWsDiagnostics, getKeepAliveStatus &#125; <span class="keyword">from</span> <span class="string">&#x27;@/lib/ws&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">NetCheckTab</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [rate, setRate] = <span class="title function_">useState</span>(&#123; <span class="attr">framesPerSec</span>: <span class="number">0</span>, <span class="attr">bytesPerSec</span>: <span class="number">0</span> &#125;)</span><br><span class="line">  <span class="keyword">const</span> [rateHistory, setRateHistory] = useState&lt;<span class="built_in">number</span>[]&gt;([])</span><br><span class="line"></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> prev = <span class="title function_">getWsDiagnostics</span>()</span><br><span class="line">    <span class="keyword">let</span> prevAt = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line">    <span class="keyword">const</span> <span class="title function_">refresh</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">const</span> diag = <span class="title function_">getWsDiagnostics</span>()</span><br><span class="line">      <span class="keyword">const</span> now = <span class="title class_">Date</span>.<span class="title function_">now</span>()</span><br><span class="line">      <span class="keyword">const</span> dtSec = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0.001</span>, (now - prevAt) / <span class="number">1000</span>)</span><br><span class="line">      <span class="comment">// 用相邻采样的 cumulative 增量推瞬时速率</span></span><br><span class="line">      <span class="keyword">const</span> framesPerSec = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, diag.<span class="property">inboundFrames</span> - prev.<span class="property">inboundFrames</span>) / dtSec</span><br><span class="line">      <span class="keyword">const</span> bytesPerSec = <span class="title class_">Math</span>.<span class="title function_">max</span>(<span class="number">0</span>, diag.<span class="property">inboundBytes</span> - prev.<span class="property">inboundBytes</span>) / dtSec</span><br><span class="line">      prev = diag; prevAt = now</span><br><span class="line">      <span class="title function_">setRate</span>(&#123; framesPerSec, bytesPerSec &#125;)</span><br><span class="line">      <span class="title function_">setRateHistory</span>(<span class="function">(<span class="params">h</span>) =&gt;</span> [...h, framesPerSec].<span class="title function_">slice</span>(-<span class="number">60</span>))</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">refresh</span>()</span><br><span class="line">    <span class="keyword">const</span> id = <span class="built_in">setInterval</span>(refresh, <span class="number">1000</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="built_in">clearInterval</span>(id) <span class="comment">// 切走即停，面板未打开零开销</span></span><br><span class="line">  &#125;, [])</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 入站帧率着色（启发式）：静止首页约 10 品种应 &lt; 40/s；&gt; 120/s 高度疑似 JSON.parse churn 源</span></span><br><span class="line">  <span class="keyword">const</span> framesColor = rate.<span class="property">framesPerSec</span> &gt; <span class="number">120</span> ? <span class="string">&#x27;#F6465D&#x27;</span> : rate.<span class="property">framesPerSec</span> &gt; <span class="number">40</span> ? <span class="string">&#x27;#f5a623&#x27;</span> : <span class="string">&#x27;#fff&#x27;</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">ScrollView</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">StatRow</span> <span class="attr">label</span>=<span class="string">&quot;每秒条数（每秒收到多少条行情）&quot;</span> <span class="attr">value</span>=<span class="string">&#123;rate.framesPerSec.toFixed(1)&#125;</span> <span class="attr">color</span>=<span class="string">&#123;framesColor&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">StatRow</span> <span class="attr">label</span>=<span class="string">&quot;每秒流量（下行数据量）&quot;</span> <span class="attr">value</span>=<span class="string">&#123;</span>`$&#123;(<span class="attr">rate.bytesPerSec</span> / <span class="attr">1024</span>)<span class="attr">.toFixed</span>(<span class="attr">1</span>)&#125; <span class="attr">KB</span>`&#125; <span class="attr">color</span>=<span class="string">&#123;framesColor&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123;/* RateSparkline：纯 View 画的迷你柱状走势图，无第三方依赖 */&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">ScrollView</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>面板里还有一块是连接诊断，把 <code>close</code> 事件按原因分桶——这是把”行情老断”这种模糊抱怨拆成可定位根因的关键。判定一定要用”真实 <code>open</code>&#x2F;<code>close</code> 计数”，而不是扫日志里的订阅字符串（每 <code>60s</code> 的周期重订也会打那条日志，会被误判成”每 <code>60s</code> 重连一次”）：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">interface</span> <span class="title class_">WsCloseReasons</span> &#123;</span><br><span class="line">  <span class="attr">handshakeTimeout</span>: <span class="built_in">number</span>  <span class="comment">// 握手超时：连不上的典型信号</span></span><br><span class="line">  <span class="attr">abnormal1006</span>: <span class="built_in">number</span>      <span class="comment">// code=1006 wasClean=false：跨境链路/代理粗暴掐断 TCP</span></span><br><span class="line">  <span class="attr">serverClose</span>: <span class="built_in">number</span>       <span class="comment">// code=1000/1001：服务端正常关闭</span></span><br><span class="line">  <span class="attr">manualClose</span>: <span class="built_in">number</span>       <span class="comment">// 业务侧主动关（清僵尸连接/重连前清理），稳态恒为 0</span></span><br><span class="line">  <span class="attr">other</span>: <span class="built_in">number</span>             <span class="comment">// 其他业务码</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 面板上：handshakeTimeout / abnormal1006 &gt; 0，就是行情卡顿、断流、频繁重连的直接证据。</span></span><br><span class="line"><span class="comment">// 而&quot;每 60 秒一次&quot;是保活刷新，不是重连——这个区分能省掉一大半误报排查。</span></span><br></pre></td></tr></table></figure>
+
+<p>把”连接成功次数””断开次数””重连尝试次数””断开原因分桶””距上次收到服务端消息多久”这些都实时摊在面板上，测试同学不用懂 <code>WebSocket</code> 协议，看一眼颜色就知道”现在是网络问题还是 <code>App</code> 问题”。配合上一篇讲的内存 + <code>GC</code> 面板，发热掉帧的现场证据就齐了。</p>
+<h2 id="八、量化验收优化到底有没有生效"><a href="#八、量化验收优化到底有没有生效" class="headerlink" title="八、量化验收优化到底有没有生效"></a>八、量化验收优化到底有没有生效</h2><p>老规矩，优化必须用同一台真机、同一套操作脚本、<code>Release</code> 包前后对比，不能凭感觉。这是那次行情页四刀下来的真实验收阈值：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>优化前</th>
+<th>目标</th>
+<th>关键字 &#x2F; 来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主线程 CPU %</td>
+<td>51%</td>
+<td>≤ 30%</td>
+<td>Instruments 主线程占比</td>
+</tr>
+<tr>
+<td>JS 线程 CPU %</td>
+<td>36%</td>
+<td>≤ 25%</td>
+<td>Instruments JS 线程占比</td>
+</tr>
+<tr>
+<td><code>updateClippedSubviewsWithClipRect</code></td>
+<td>76s</td>
+<td>≤ 25s</td>
+<td>Instruments 关键字 inclusive</td>
+</tr>
+<tr>
+<td><code>mountingTransaction</code></td>
+<td>92s &#x2F; 5930 次</td>
+<td>≤ 30s &#x2F; 2000 次</td>
+<td>Instruments 关键字 inclusive</td>
+</tr>
+<tr>
+<td><code>reanimated</code>+<code>worklet</code></td>
+<td>207s &#x2F; 46k 次</td>
+<td>≤ 80s &#x2F; 16k 次</td>
+<td>Instruments 关键字 inclusive</td>
+</tr>
+<tr>
+<td>Yoga <code>roundLayoutResultsToPixelGrid</code></td>
+<td>1700 次（91&#x2F;s）</td>
+<td>≤ 600 次（32&#x2F;s）</td>
+<td>Instruments 关键字 occur</td>
+</tr>
+<tr>
+<td>Core Animation FPS（稳态期）</td>
+<td>0~60 周期震荡</td>
+<td>≥ 55 持续</td>
+<td>Instruments FPS 表</td>
+</tr>
+<tr>
+<td>CPU usage mean %（静置 60s）</td>
+<td>100.5%</td>
+<td>≤ 30%</td>
+<td>pymobiledevice3</td>
+</tr>
+<tr>
+<td>入站帧率（静止首页）</td>
+<td>失控</td>
+<td>&lt; 40&#x2F;s</td>
+<td>App 监控面板</td>
+</tr>
+<tr>
+<td>Thermal State</td>
+<td>Nominal（但发烫）</td>
+<td>Nominal 不退化</td>
+<td>系统状态</td>
+</tr>
+</tbody></table>
+<p>把 <code>mountingTransaction</code>、<code>worklet</code>、<code>clipping</code> 这三个关键字的 <code>inclusive</code> 时间当作核心 KPI，每改一刀就重采一次 <code>trace</code> 核对它们有没有真的掉下来。四刀全部落地后，主线程和 <code>JS</code> 线程从双饱和回到 <code>30%</code> 以下，稳态 <code>FPS</code> 稳稳压住 <code>55+</code>，手机不再发烫，内存也回落到平稳波动——三个症状一起消失，正好印证了它们本就是同一个根因。</p>
+<h2 id="九、四刀的落地顺序与逐刀验证"><a href="#九、四刀的落地顺序与逐刀验证" class="headerlink" title="九、四刀的落地顺序与逐刀验证"></a>九、四刀的落地顺序与逐刀验证</h2><p>四刀不是随便挑一刀做就行，落地是有顺序的，而且每一刀都要单独验证生效再做下一刀——这正是性能优化最容易翻车的地方：一口气全改完，最后分不清谁帮了忙、谁帮了倒忙。给一条可直接照搬的落地流程。</p>
+<p><strong>第 0 步 · 先让现场可观测。</strong> 别急着改代码，先把第七节那个监控面板接进测试包。没有”入站帧率 &#x2F; <code>GC</code> 次数 &#x2F; 断连原因”的实时读数，你根本不知道四刀里哪一刀对你的项目最值钱。装好面板，真机 <code>Release</code> 包停在行情页两分钟，记下基线：帧率多少、<code>GC</code> 每分钟多少次、主线程占用多少。</p>
+<p><strong>第 1 步 · 先开第一刀（按需订阅），因为它 <code>ROI</code> 最高且最安全。</strong> 把”全量订阅”改成”可视区 ± 缓冲订阅”，几乎不碰渲染逻辑，风险最低，却能把接收量和 <code>parse</code> 量直接砍一个数量级。改完盯监控面板：入站帧率应该从失控掉到 <code>&lt; 40/s</code>。这一刀没生效，后面三刀都白搭。</p>
+<p><strong>第 2 步 · 再开第二刀（精准订阅），它和第一刀是乘法关系。</strong> 第一刀管”收多少帧”，第二刀管”每帧唤醒多少单元格”。重点就一句：把订阅源从大杂烩 <code>store</code> 切到 per-symbol，<strong>并且确认时间戳没混进比较字段</strong>。改完用 <code>Instruments</code> 录一段，看 <code>mountingTransaction</code> 的 <code>occur</code> 次数有没有断崖式下降——这是第二刀生效的硬证据。</p>
+<p><strong>第 3 步 · 第三刀（渲染稳定）配合第二刀一起验。</strong> <code>renderItem</code> 引用稳定、主题快照、<code>memo</code> 自定义相等、关原生裁剪，这几个要点一起上，单独验意义不大。验收看滑动时的 <code>JS FPS</code> 和 <code>updateClippedSubviewsWithClipRect</code> 占主线程的比例。</p>
+<p><strong>第 4 步 · 最后开第四刀（心跳治理），收尾后台空转。</strong> 前三刀解决”前台干活时别浪费”，第四刀解决”后台和稳态别空转”。降频 + 按需启停 + 边沿侦测三个动作一起做，验收看 <code>App</code> 切后台后 <code>CPU</code> 是否真的归零、稳态期 <code>mountingTransaction</code> 是否降到接近 <code>1/s</code>。</p>
+<p><strong>第 5 步 · 整体复测 + 钉死阈值表。</strong> 四刀全落地后，用和第 0 步完全相同的操作脚本再测一次，对照下一节的阈值表逐项核对。把前后数据写进 <code>PR</code>，并把命令行采集的 <code>diff</code> 退出码接进 <code>CI</code>，让后人改回任何一刀都会被红灯挡住。</p>
+<p>这套顺序的核心逻辑是<strong>按 <code>ROI</code> 和风险排序、逐刀留下可验证的证据</strong>。慢一点，但每一刀都站得住脚，不会出现”改了一堆、烫还是烫、却不知道问题在哪”的尴尬。</p>
+<h2 id="十、最佳实践清单"><a href="#十、最佳实践清单" class="headerlink" title="十、最佳实践清单"></a>十、最佳实践清单</h2><p>把四刀和踩过的坑浓缩成可执行规则：</p>
+<ul>
+<li><strong>只为可视区品种建立订阅</strong>，可视区 ± 缓冲，<code>debounce</code> 合并滚动回调，退订加冷却避免协议抖动。</li>
+<li><strong>单元格只做 per-symbol 精准订阅</strong>，用 <code>useShallow</code> 浅比较，<strong>绝不把单调递增的时间戳放进比较字段</strong>。</li>
+<li><strong><code>renderItem</code> 引用稳定</strong>，布局模式作为 prop 进单元格内部条件渲染，别在外面切组件类型。</li>
+<li><strong>主题传快照不传整对象</strong>，单元格 <code>memo</code> 用”只比视觉字段”的自定义相等函数。</li>
+<li><strong>高频 <code>mount transaction</code> 场景关掉原生裁剪 + 压扁视图层级</strong>，圆角和深嵌套是隐性成本放大器。</li>
+<li><strong>永不停的定时器要么降频、要么按需启停、要么边沿侦测</strong>，后台一定要停。</li>
+<li><strong>状态变化用边沿侦测</strong>，只在离散态真切换那一帧写原生属性，中间帧一律不动。</li>
+<li><strong>给 <code>App</code> 内置可观测面板</strong>，把入站帧率、断连原因、<code>GC</code> 实时摊开，让验证有据可依。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>高频行情渲染的发热、掉帧、内存暴涨从来不是三个独立问题，而是同一个”<code>CPU</code> 被持续无意义地烧”的三种表象。解题思路也只有一句：<strong>让 <code>CPU</code> 只在”真有价格变化、且用户真看得到”时才干活。</strong> 围绕这句话的四刀——按需订阅砍掉接收量、per-symbol 精准订阅砍掉无关重渲、<code>FlashList</code> 稳定性保住复用链、心跳边沿侦测杀掉后台空转——彼此叠加，缺一不可。</p>
+<p>这套方法不止适用于行情，任何”高频数据流 + 长列表”的场景（弹幕、<code>IM</code>、实时监控大屏）都能照搬。核心方法论就两条：先用真机 <code>Release</code> <code>trace</code> 把热点关键字钉死，再用内置监控面板让每一刀的效果可观测、可量化、可回归。性能优化最怕自我感动，把它变成一张能进 <code>CI</code> 的阈值表，才算真正把”用户说手机烫”这件事闭环了。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://reactnative.dev/docs/optimizing-flatlist-configuration">React Native Optimizing FlatList Configuration</a></li>
+<li><a href="https://shopify.github.io/flash-list/">Shopify FlashList 官方文档</a></li>
+<li><a href="https://zustand.docs.pmnd.rs/hooks/use-shallow">Zustand useShallow 官方文档</a></li>
+<li><a href="https://docs.swmansion.com/react-native-reanimated/">React Native Reanimated 官方文档</a></li>
+<li><a href="https://react.dev/reference/react/memo">React.memo 官方文档</a></li>
+<li><a href="https://hermesengine.dev/">Hermes Engine 官方文档</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/05/30/react-native-ios-android-device-performance-profiling/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
