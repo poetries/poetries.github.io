@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>Charles 抓包 iOS 真机 HTTPS 全流程实战从代理到证书信任一次讲透 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Charles,iOS,抓包,HTTPS,网络调试,调试技巧," />
+  
+
+  <meta name="description" content="一份 Charles + iOS 真机 HTTPS 抓包的完整踩坑实录。从关闭 VPN、Charles 代理端口配置、Help 里的安装移动端证书入口，到 iPhone 设置 Wi-Fi 代理、chls.pro&#x2F;ssl 下载证书、安装描述文件、关于本机开启证书信任设置，一步一图讲清每个环节，并附常见连不上、证书灰、看不到明文的排查清单。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Charles 抓包 iOS 真机 HTTPS 全流程实战从代理到证书信任一次讲透">
+<meta property="og:url" content="http://blog.poetries.top/2026/07/07/charles-ios-real-device-https-capture/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一份 Charles + iOS 真机 HTTPS 抓包的完整踩坑实录。从关闭 VPN、Charles 代理端口配置、Help 里的安装移动端证书入口，到 iPhone 设置 Wi-Fi 代理、chls.pro&#x2F;ssl 下载证书、安装描述文件、关于本机开启证书信任设置，一步一图讲清每个环节，并附常见连不上、证书灰、看不到明文的排查清单。">
+<meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/1127b2a9fda862b0.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/1261e5acf2233e3f.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/a5502020cb99297f.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/61f8b6dda1518b10.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/ce946066c7db463b.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/b39abf96141b6512.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/2ecc061f78c86d0e.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/be9901fc17d7b3b3.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/8d3a0764bf842155.jpg">
+<meta property="article:published_time" content="2026-07-07T13:55:12.000Z">
+<meta property="article:modified_time" content="2026-07-07T14:29:20.184Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Charles">
+<meta property="article:tag" content="iOS">
+<meta property="article:tag" content="抓包">
+<meta property="article:tag" content="HTTPS">
+<meta property="article:tag" content="网络调试">
+<meta property="article:tag" content="调试技巧">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/07/1127b2a9fda862b0.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%8A%A8%E6%89%8B%E5%89%8D%E7%9A%84%E4%B8%89%E4%B8%AA%E5%89%8D%E6%8F%90"><span class="toc-text">一、动手前的三个前提</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Charles-%E7%AB%AF%E7%A1%AE%E8%AE%A4%E4%BB%A3%E7%90%86%E7%AB%AF%E5%8F%A3"><span class="toc-text">二、Charles 端确认代理端口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BB%8E-Help-%E8%8F%9C%E5%8D%95%E6%8B%BF%E5%88%B0%E7%A7%BB%E5%8A%A8%E7%AB%AF%E5%AE%89%E8%A3%85%E5%85%A5%E5%8F%A3"><span class="toc-text">三、从 Help 菜单拿到移动端安装入口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81iPhone-%E7%AB%AF%E6%8A%8A-Wi-Fi-%E4%BB%A3%E7%90%86%E6%8C%87%E5%90%91-Mac"><span class="toc-text">四、iPhone 端把 Wi-Fi 代理指向 Mac</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%94%A8-chls-pro-ssl-%E4%B8%8B%E8%BD%BD%E8%AF%81%E4%B9%A6"><span class="toc-text">五、用 chls.pro&#x2F;ssl 下载证书</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%9C%A8%E8%AE%BE%E7%BD%AE%E9%87%8C%E5%AE%89%E8%A3%85%E6%8F%8F%E8%BF%B0%E6%96%87%E4%BB%B6"><span class="toc-text">六、在设置里安装描述文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%85%B3%E4%BA%8E%E6%9C%AC%E6%9C%BA%E9%87%8C%E5%BC%80%E5%90%AF%E8%AF%81%E4%B9%A6%E4%BF%A1%E4%BB%BB%EF%BC%88%E6%9C%80%E5%AE%B9%E6%98%93%E6%BC%8F%E7%9A%84%E4%B8%80%E6%AD%A5%EF%BC%89"><span class="toc-text">七、关于本机里开启证书信任（最容易漏的一步）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%9B%9E%E5%88%B0-Charles-%E7%9C%8B%E6%98%8E%E6%96%87%E4%B8%8E-SSL-Proxying-%E7%99%BD%E5%90%8D%E5%8D%95"><span class="toc-text">八、回到 Charles 看明文与 SSL Proxying 白名单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-text">九、常见问题排查清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">十、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-charles-ios-real-device-https-capture" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">Charles 抓包 iOS 真机 HTTPS 全流程实战从代理到证书信任一次讲透</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.07.07</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.5k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 12分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>做移动端开发或者接口联调，迟早会遇到这么一类问题：<code>App</code> 里某个请求返回不对，后端说「我这边没问题」，前端说「我参数传对了」，两边互相甩锅。这时候最有力的证据就是<strong>把真机上那条请求的完整报文（<code>URL</code>、<code>Header</code>、<code>Body</code>、<code>Response</code>）原原本本抓出来</strong>。<code>Charles</code> 就是干这个的老牌工具，但真正卡住大多数人的从来不是抓 <code>HTTP</code>，而是 <strong>iOS 真机 + HTTPS 明文</strong> 这一段——代理连不上、证书装了却是灰的、抓下来全是乱码。</p>
+<p>我最近在 <code>Mac</code> 上用 <code>Charles 5.1</code> 抓一台 iPhone 真机的 <code>HTTPS</code> 流量（演示里抓的是 <code>chatgpt.com</code> 的 <code>backend-api</code>），把整条链路从头到尾又踩了一遍，顺手把每一步都截了图。这篇文章就以这套截图为线索，把 <strong>Charles 端配置 + iPhone 端配置 + 证书信任</strong> 三段拆开讲清楚，让你照着做一次就能通，而不是对着一堆「装了证书还是抓不到」的帖子干瞪眼。</p>
+<p>在本篇文章中，我们将从浅入深，一起把下面这些环节走通：</p>
+<ul>
+<li>为什么抓包<strong>第一件事是关掉 VPN</strong>，不然全流程都白搭</li>
+<li><code>Charles</code> 端怎么确认代理端口、打开 <code>HTTP/2</code> 与透明代理</li>
+<li><code>Help → SSL Proxying</code> 里那个「安装到移动设备」入口到底给了你什么信息</li>
+<li>iPhone 怎么把 <code>Wi-Fi</code> 代理指向 <code>Mac</code>，再用 <code>chls.pro/ssl</code> 下载证书</li>
+<li>描述文件安装 + <strong>关于本机里的「证书信任设置」</strong> 这一步为什么最容易被漏</li>
+<li>抓到明文后 <code>SSL Proxying</code> 白名单怎么配，以及连不上&#x2F;证书灰&#x2F;乱码的排查清单</li>
+</ul>
+<h2 id="一、动手前的三个前提"><a href="#一、动手前的三个前提" class="headerlink" title="一、动手前的三个前提"></a>一、动手前的三个前提</h2><p>真机抓包本质上是「让手机的所有流量先绕道到你电脑上的 <code>Charles</code>，再由 <code>Charles</code> 转发出去」。要让这条路走通，开工前先确认三件事，否则后面每一步都可能莫名其妙失败：</p>
+<ul>
+<li><strong>手机和电脑连的是同一个 <code>Wi-Fi</code></strong>（同一网段），这是代理能互通的物理前提。</li>
+<li><strong>关闭手机上的 VPN &#x2F; 加速器 &#x2F; 科学上网工具</strong>。这是最高频的坑：<code>VPN</code> 会把流量从另一条隧道送出去，直接绕过你设置的 <code>HTTP</code> 代理，结果就是 <code>Charles</code> 里一条请求都不出现。记住一句话——<strong>抓包必须关闭 VPN</strong>。</li>
+<li><strong>电脑防火墙放行 <code>Charles</code></strong>。<code>macOS</code> 首次运行会弹窗询问是否允许接入网络连接，选允许即可。</li>
+</ul>
+<p>这三点看着简单，但「明明配好了却抓不到包」的案例里，八成以上都栽在 <code>VPN</code> 没关或者不在同一 <code>Wi-Fi</code> 上。</p>
+<h2 id="二、Charles-端确认代理端口"><a href="#二、Charles-端确认代理端口" class="headerlink" title="二、Charles 端确认代理端口"></a>二、Charles 端确认代理端口</h2><p>先看 <code>Charles</code> 这一侧。打开 <code>Charles</code>，进入 <code>Proxy → Proxy Settings</code>，核对 <code>HTTP Proxy</code> 的监听端口——默认是 <code>8888</code>，这个端口号待会要原样填到 iPhone 的 <code>Wi-Fi</code> 代理里，两边必须一致。</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/1127b2a9fda862b0.jpg" alt="Charles 的 Proxy Settings 面板，HTTP Proxy 端口为 8888，勾选了 Support HTTP&#x2F;2 和 Enable transparent HTTP proxying"></p>
+<p>这里有两个勾选项值得留意：</p>
+<ul>
+<li><strong><code>Support HTTP/2</code></strong>：现在绝大多数线上接口都走 <code>HTTP/2</code>（甚至 <code>HTTP/3</code>），不勾这个，很多请求会抓不全或被降级，务必打开。</li>
+<li><strong><code>Enable transparent HTTP proxying</code></strong>：透明代理，配合真机抓包更稳，建议保持勾选。</li>
+</ul>
+<p><code>SOCKS Proxy</code> 这一栏真机抓包用不到，保持默认不启用即可。端口确认完点 <code>Done</code>，<code>Charles</code> 端的「入口」就算开好了。</p>
+<h2 id="三、从-Help-菜单拿到移动端安装入口"><a href="#三、从-Help-菜单拿到移动端安装入口" class="headerlink" title="三、从 Help 菜单拿到移动端安装入口"></a>三、从 Help 菜单拿到移动端安装入口</h2><p>端口有了，接下来要解决 <code>HTTPS</code> 明文的核心——<strong>证书</strong>。<code>HTTPS</code> 是加密的，<code>Charles</code> 想看到明文，本质是做一次「中间人」：它用自己的根证书重新签发目标站点的证书，手机得先信任这张 <code>Charles</code> 根证书，加密流量才能被解开。</p>
+<p><code>Charles</code> 很贴心地把移动端的安装指引集中在了一个入口：顶部菜单 <code>Help → SSL Proxying → Install Charles Root Certificate on a Mobile Device or Remote Browser</code>。</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/1261e5acf2233e3f.jpg" alt="Charles 的 Help - SSL Proxying 菜单展开，红框标注 Install Charles Root Certificate on a Mobile Device or Remote Browser，弹窗提示把设备代理配置为 192.168.5.136:8888 后浏览 chls.pro&#x2F;ssl 下载证书"></p>
+<p>点进去弹出的提示框，把接下来两步要用的关键信息一次性告诉了你：</p>
+<blockquote>
+<p>Configure your device to use Charles as its HTTP proxy on <strong>192.168.5.136:8888</strong>, then browse to <strong>chls.pro&#x2F;ssl</strong> to download and install the certificate.</p>
+</blockquote>
+<p>翻译成人话就是：</p>
+<ol>
+<li>把手机的 <code>HTTP</code> 代理设成 <code>Charles</code> 所在电脑的局域网 IP 加端口（这里是 <code>192.168.5.136:8888</code>，你的 IP 换成自己 <code>Mac</code> 的即可，可在 <code>Help → Local IP Addresses</code> 查到）。</li>
+<li>代理配好之后，用手机浏览器打开 <code>chls.pro/ssl</code> 这个特殊域名下载证书。</li>
+</ol>
+<p>弹窗还特意提醒了一句：<code>iOS 10</code> 及以后，装完证书<strong>还要</strong>去 <code>设置 → 通用 → 关于本机 → 证书信任设置</code> 里手动把 <code>Charles</code> 证书<strong>启用为受信任</strong>——这正是第七节要讲、也是最多人漏掉的一步。</p>
+<h2 id="四、iPhone-端把-Wi-Fi-代理指向-Mac"><a href="#四、iPhone-端把-Wi-Fi-代理指向-Mac" class="headerlink" title="四、iPhone 端把 Wi-Fi 代理指向 Mac"></a>四、iPhone 端把 Wi-Fi 代理指向 Mac</h2><p>回到 iPhone。进入 <code>设置 → 无线局域网</code>，点你当前连接的这个 <code>Wi-Fi</code> 名字右侧的 <code>ⓘ</code>，进入这个网络的详情页，一直往下滑，最底部 <code>HTTP 代理</code> 分组里有一项 <code>配置代理</code>，默认是 <code>关闭</code>。</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/a5502020cb99297f.jpg" alt="iPhone Wi-Fi 详情页，包含 IPv4 地址、IPv6 地址、DNS 配置，最底部 HTTP 代理分组里配置代理显示为关闭"></p>
+<p>顺便说一句：这个详情页往上还能看到 <code>IPv4 地址</code>、<code>子网掩码</code>、<code>路由器</code>、<code>DNS</code> 这些信息——真机抓包要求「手机和电脑在同一网段」，如果你不确定，就是在这里核对手机的 <code>IP</code> 和 <code>Mac</code> 的 <code>IP</code> 是不是同一个网段（一般前三段一致）。确认无误后点最底部的 <code>配置代理</code>，把它从 <code>关闭</code> 改成 <code>手动</code>：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/61f8b6dda1518b10.jpg" alt="iPhone 配置代理页面，选中手动，服务器填 192.168.3.51，端口填 8888，认证保持关闭，右上角是保存按钮"></p>
+<p>在 <code>手动</code> 模式下填两个值，然后点右上角 <code>保存</code>：</p>
+<ul>
+<li><strong>服务器</strong>：<code>Charles</code> 所在电脑的局域网 IP。上图填的是 <code>192.168.3.51</code>，<strong>这只是示例</strong>，你要换成自己 <code>Mac</code> 的实际 IP（就是第三节 <code>Charles</code> 弹窗里、或 <code>Help → Local IP Addresses</code> 里看到的那个，不同网络环境下这个 IP 会变）。</li>
+<li><strong>端口</strong>：<code>8888</code>（和第二节 <code>Proxy Settings</code> 里的端口一致）。</li>
+<li><strong>认证</strong>：保持 <code>关闭</code>，<code>Charles</code> 默认不需要代理认证。</li>
+</ul>
+<p>保存后，手机的全部 <code>HTTP/HTTPS</code> 流量就会先流经 <code>Charles</code>。此时 <code>Charles</code> 通常会弹一个 <code>Allow / Deny</code> 的确认框，问是否允许这台设备接入，点 <code>Allow</code> 放行。放行后你在 <code>Charles</code> 左侧就能陆续看到这台手机发出的请求了——不过 <code>HTTPS</code> 现在还是加密的，得先把证书装好。</p>
+<h2 id="五、用-chls-pro-ssl-下载证书"><a href="#五、用-chls-pro-ssl-下载证书" class="headerlink" title="五、用 chls.pro&#x2F;ssl 下载证书"></a>五、用 chls.pro&#x2F;ssl 下载证书</h2><p>代理生效后，用 iPhone 的 <strong><code>Safari</code></strong>（这里建议用 <code>Safari</code>，第三方浏览器对描述文件下载支持不一）打开 <code>chls.pro/ssl</code>。这个域名是 <code>Charles</code> 内部拦截处理的，只有在代理指向 <code>Charles</code> 时才能正常返回证书文件。</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/ce946066c7db463b.jpg" alt="iPhone Safari 打开 chls.pro 显示 Charles SSL CA Certificate installation 页面，底部提示 charles-proxy-ssl 证书下载完毕"></p>
+<p>页面标题是 <code>Charles SSL CA Certificate installation</code>，正文提示浏览器马上会下载并引导安装 <code>Charles SSL CA</code> 证书；如果没反应，它会提醒你「检查系统或浏览器是否已把 <code>Charles</code> 配成代理」——这句话其实就是在帮你反向确认第四步的代理有没有配对。底部出现 <code>charles-proxy-ssl-…-certificate.pem</code> <strong>下载完毕</strong> 就说明证书文件已经到手机上了。</p>
+<p>这里要有个心理预期：<strong>在新版 iOS 上，<code>Safari</code> 下载完证书并不会自动弹出安装界面</strong>，只是把描述文件下载到了本地，需要你手动去「设置」里走安装流程，也就是下一节。</p>
+<h2 id="六、在设置里安装描述文件"><a href="#六、在设置里安装描述文件" class="headerlink" title="六、在设置里安装描述文件"></a>六、在设置里安装描述文件</h2><p>下载完证书后，回到 iPhone 的 <code>设置</code>。新版 iOS 会在设置顶部（或 <code>设置 → 通用 → VPN 与设备管理</code>）出现一个待安装的描述文件入口。</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/b39abf96141b6512.jpg" alt="iPhone 设置的 VPN 与设备管理页面，已下载的描述文件里出现 Charles Proxy CA，VPN 显示未连接"></p>
+<p>进到 <code>VPN 与设备管理</code>，能看到 <code>已下载的描述文件</code> 分组里躺着一个 <code>Charles Proxy CA</code>。顺便留意这张图左上角——<code>VPN</code> 一栏显示 <strong>未连接</strong>，这正好印证了第一节强调的「抓包前先关 VPN」，是个可以顺手确认的状态点。点开这个 <code>Charles Proxy CA</code>：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/2ecc061f78c86d0e.jpg" alt="iPhone 安装描述文件界面，显示 Charles Proxy CA 描述文件，签名者尚未验证，右上角有蓝色安装按钮"></p>
+<p>进入 <code>安装描述文件</code> 界面，能看到描述文件名 <code>Charles Proxy CA (9 May 2026, Mac)</code>，签名者下面标着红色的 <strong>尚未验证</strong>（这是自签名根证书的正常状态，不用慌），<code>包含</code> 一项写着 <code>证书</code>。点右上角蓝色的 <strong>安装</strong>，按提示输入锁屏密码，一路确认，把这张根证书装进系统。</p>
+<p>装完之后<strong>别急着高兴</strong>——到这一步证书只是「装上了」，但系统还<strong>没有信任</strong>它。如果这时候直接去抓 <code>HTTPS</code>，你会发现 <code>Charles</code> 里那些 <code>HTTPS</code> 请求要么报错要么还是密文。真正的开关在下一节。</p>
+<h2 id="七、关于本机里开启证书信任（最容易漏的一步）"><a href="#七、关于本机里开启证书信任（最容易漏的一步）" class="headerlink" title="七、关于本机里开启证书信任（最容易漏的一步）"></a>七、关于本机里开启证书信任（最容易漏的一步）</h2><p>这是整个流程里<strong>最反直觉、也最容易被忽略</strong>的一步，<code>Charles</code> 的弹窗专门提醒过：装完证书还要单独去「证书信任设置」里打开完全信任的开关。</p>
+<p>路径是 <code>设置 → 通用 → 关于本机</code>，一直往下滑到最底部，会看到一个 <code>证书信任设置</code> 入口。</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/be9901fc17d7b3b3.jpg" alt="iPhone 设置的关于本机页面，底部有证书信任设置入口"></p>
+<p>很多人卡在这里就是因为——<code>证书信任设置</code> 藏在 <code>关于本机</code> 页面的<strong>最底下</strong>，不往下滑根本发现不了，装完描述文件就以为大功告成了。点进 <code>证书信任设置</code>：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/8d3a0764bf842155.jpg" alt="iPhone 证书信任设置页面，针对根证书启用完全信任下的 Charles Proxy CA 开关已打开，弹出根证书警告提示为网站启用此证书将允许第三方查看发送给网站的任何私人数据"></p>
+<p>在 <code>针对根证书启用完全信任</code> 分组里找到 <code>Charles Proxy CA (9 May 2026, Mac)</code>，把它右侧的开关<strong>打开</strong>。系统会弹出一个 <code>根证书</code> 警告：「为网站启用此证书将允许第三方查看发送给网站的任何私人数据」，点 <strong>继续</strong>。</p>
+<p>这个警告不是吓唬你——它说的是<strong>大实话</strong>：一旦信任了这张根证书，<code>Charles</code>（乃至任何持有对应私钥的一方）就真的能解开你手机发出去的 <code>HTTPS</code> 明文。所以这里给一条<strong>安全红线</strong>：</p>
+<ul>
+<li>只在<strong>自己的测试机</strong>上装、且<strong>只在抓包期间</strong>开启信任；</li>
+<li>抓完包记得<strong>关掉代理、关掉信任开关，乃至移除描述文件</strong>；</li>
+<li>绝不要在别人的手机、或存有敏感账号的主力机上长期开着这个信任。</li>
+</ul>
+<p>开关打开、<code>继续</code> 点完，证书信任才算真正生效，<code>Charles</code> 这才具备解密你手机 <code>HTTPS</code> 流量的能力。</p>
+<h2 id="八、回到-Charles-看明文与-SSL-Proxying-白名单"><a href="#八、回到-Charles-看明文与-SSL-Proxying-白名单" class="headerlink" title="八、回到 Charles 看明文与 SSL Proxying 白名单"></a>八、回到 Charles 看明文与 SSL Proxying 白名单</h2><p>三段都配好后，回到 <code>Charles</code>，用手机随便刷一个走 <code>HTTPS</code> 的接口，你就能在 <code>Contents</code> 里看到解密后的明文了——请求行、<code>authorization</code>、<code>cookie</code>、<code>host</code>，以及格式化好的 <code>JSON</code> 响应体，一览无余。</p>
+<p>事实上第三节那张 Charles 主界面的截图背景里，已经能看到一条 <code>GET https://chatgpt.com/backend-api/codex/models?client_version=0.142.5 → 200 OK</code> 被完整解密：右侧 <code>Contents</code> 面板里 <code>authorization</code> 的 <code>Bearer</code> token、<code>user-agent</code>、<code>host</code> 全是明文，下方 <code>JSON</code> 里 <code>&quot;models&quot;</code>、<code>&quot;slug&quot;: &quot;gpt-5.5&quot;</code> 这些字段也清清楚楚——这就是抓包成功的样子。</p>
+<p>如果你发现 <code>HTTPS</code> 请求在 <code>Charles</code> 里显示为 <code>Unknown</code> 或还是密文，多半是 <strong><code>SSL Proxying</code> 白名单没配</strong>。<code>Charles</code> 出于性能和隐私考虑，默认不解密所有 <code>HTTPS</code>，你需要告诉它「解哪些域名」：</p>
+<ul>
+<li>菜单 <code>Proxy → SSL Proxying Settings → SSL Proxying</code> 标签页，勾上 <code>Enable SSL Proxying</code>；</li>
+<li>在 <code>Include</code> 列表里点 <code>Add</code>，<code>Host</code> 填目标域名（省事的话可以填 <code>*</code>、端口填 <code>443</code> 先全解，调完再收窄）；</li>
+<li>或者更快的方式：在左侧请求上<strong>右键 → <code>Enable SSL Proxying</code></strong>，<code>Charles</code> 会自动把该域名加进白名单。</li>
+</ul>
+<p>配好白名单再刷一次，明文就出来了。</p>
+<h2 id="九、常见问题排查清单"><a href="#九、常见问题排查清单" class="headerlink" title="九、常见问题排查清单"></a>九、常见问题排查清单</h2><p>把上面每一步可能翻车的点集中列一下，抓不到包时对着挨个排查：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>最可能的原因</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Charles</code> 里一条手机请求都没有</td>
+<td>开着 <code>VPN</code>，或手机电脑不在同一 <code>Wi-Fi</code></td>
+<td>关 <code>VPN</code>，确认同网段，代理 IP 填对</td>
+</tr>
+<tr>
+<td>手机上不了网 &#x2F; 一直转圈</td>
+<td>代理 IP、端口填错，或 <code>Charles</code> 没开</td>
+<td>核对 IP 与 <code>8888</code>，确认 <code>Charles</code> 在运行并点了 <code>Allow</code></td>
+</tr>
+<tr>
+<td><code>chls.pro/ssl</code> 打不开 &#x2F; 不下载</td>
+<td>代理没真正生效</td>
+<td>回到第四步重配 <code>Wi-Fi</code> 代理，确认走的是 <code>Charles</code></td>
+</tr>
+<tr>
+<td>描述文件装了，<code>HTTPS</code> 还是报错</td>
+<td><code>证书信任设置</code> 里没开完全信任</td>
+<td>走第七节，<code>关于本机 → 证书信任设置</code> 打开开关</td>
+</tr>
+<tr>
+<td><code>HTTPS</code> 请求显示 <code>Unknown</code>&#x2F;密文</td>
+<td><code>SSL Proxying</code> 白名单没配</td>
+<td>第八节，加域名或右键 <code>Enable SSL Proxying</code></td>
+</tr>
+<tr>
+<td>抓完之后手机网络怪怪的</td>
+<td>代理没关</td>
+<td>抓完把 <code>Wi-Fi</code> 代理改回 <code>关闭</code>&#x2F;自动</td>
+</tr>
+</tbody></table>
+<h2 id="十、总结"><a href="#十、总结" class="headerlink" title="十、总结"></a>十、总结</h2><p><code>Charles</code> 抓 iOS 真机 <code>HTTPS</code>，难点从来不在「点哪个按钮」，而在于理解<strong>这条链路由三段拼成</strong>，任何一段断了都抓不到：</p>
+<ol>
+<li><strong>网络前提</strong>：同一 <code>Wi-Fi</code>、<strong>关掉 VPN</strong>、防火墙放行——这是最容易被忽视、却最常导致「一条包都没有」的一段。</li>
+<li><strong>代理打通</strong>：<code>Charles</code> 端确认 <code>8888</code> 端口、开 <code>HTTP/2</code> 与透明代理；iPhone 端把 <code>Wi-Fi</code> 代理指向 <code>Mac</code> 的局域网 IP，让流量绕道过来。</li>
+<li><strong>证书信任</strong>：<code>chls.pro/ssl</code> 下载证书 → 设置里安装描述文件 → <strong>关于本机 → 证书信任设置开启完全信任</strong>，这三步缺一不可，尤其最后那个藏在页面底部的信任开关。</li>
+</ol>
+<p>三段全通，再按需在 <code>SSL Proxying</code> 白名单里指定要解密的域名，你就能拿到真机上任意一条 <code>HTTPS</code> 请求的完整明文。最后再强调一遍安全底线：<strong>中间人抓包等于放弃了这段流量的加密保护，只在自己的测试机、抓包期间临时开，用完立刻关代理、关信任、清描述文件</strong>，别把测试用的证书信任长期留在主力机上。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>Charles 官方文档：SSL Proxying —— <a href="https://www.charlesproxy.com/documentation/proxying/ssl-proxying/">https://www.charlesproxy.com/documentation/proxying/ssl-proxying/</a></li>
+<li>Charles 官方文档：Install Charles Root Certificate on an iOS Device —— <a href="https://www.charlesproxy.com/documentation/faqs/ssl-connection-errors/">https://www.charlesproxy.com/documentation/faqs/ssl-connection-errors/</a></li>
+<li>Apple 支持：在 iPhone、iPad 上信任手动安装的证书 —— <a href="https://support.apple.com/zh-cn/102390">https://support.apple.com/zh-cn/102390</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/05/31/webview-real-device-debugging-ios-safari-android-chrome/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
