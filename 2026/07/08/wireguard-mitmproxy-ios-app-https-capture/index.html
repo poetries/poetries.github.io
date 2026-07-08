@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>WireGuard + mitmproxy 全局抓 iOS App HTTPS 明文实战从隧道到证书一次打通 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="iOS,抓包,HTTPS,网络调试,WireGuard,mitmproxy," />
+  
+
+  <meta name="description" content="一份不改手机 Wi-Fi 代理、直接用 WireGuard 隧道把 iPhone 全流量引到 Mac 上的 mitmproxy 透明代理抓 HTTPS 明文的完整实战。覆盖 Mac 装 wireguard-tools 与 mitmproxy、生成双端密钥、qrencode 扫码导入手机、pf 做 NAT 与 80&#x2F;443 重定向、透明模式为何必须 sudo、iOS 装 mitmproxy CA 并">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WireGuard + mitmproxy 全局抓 iOS App HTTPS 明文实战从隧道到证书一次打通">
+<meta property="og:url" content="http://blog.poetries.top/2026/07/08/wireguard-mitmproxy-ios-app-https-capture/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="一份不改手机 Wi-Fi 代理、直接用 WireGuard 隧道把 iPhone 全流量引到 Mac 上的 mitmproxy 透明代理抓 HTTPS 明文的完整实战。覆盖 Mac 装 wireguard-tools 与 mitmproxy、生成双端密钥、qrencode 扫码导入手机、pf 做 NAT 与 80&#x2F;443 重定向、透明模式为何必须 sudo、iOS 装 mitmproxy CA 并">
+<meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/e82c678bc6623b66.png">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/af18472bfabe9b44.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/29b2393635dd2e41.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/e7ffaf37b7092714.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/07/50b139194e95f1df.jpg">
+<meta property="article:published_time" content="2026-07-08T11:05:20.000Z">
+<meta property="article:modified_time" content="2026-07-08T12:54:46.400Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="iOS">
+<meta property="article:tag" content="抓包">
+<meta property="article:tag" content="HTTPS">
+<meta property="article:tag" content="网络调试">
+<meta property="article:tag" content="WireGuard">
+<meta property="article:tag" content="mitmproxy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/07/e82c678bc6623b66.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-text">一、整体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%8110-%E5%88%86%E9%92%9F%E8%B7%91%E9%80%9A%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E7%89%88%E6%9C%AC"><span class="toc-text">二、10 分钟跑通最小可用版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1%EF%BC%9AMac-%E8%A3%85-wireguard-tools-%E5%92%8C-mitmproxy"><span class="toc-text">Step 1：Mac 装 wireguard-tools 和 mitmproxy</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2%EF%BC%9A%E7%94%9F%E6%88%90%E5%8F%8C%E7%AB%AF%E5%AF%86%E9%92%A5-%E5%86%99%E4%B8%A4%E4%BB%BD%E9%85%8D%E7%BD%AE"><span class="toc-text">Step 2：生成双端密钥 + 写两份配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3%EF%BC%9A%E6%89%AB%E7%A0%81%E6%8A%8A%E9%85%8D%E7%BD%AE%E5%AF%BC%E5%85%A5%E6%89%8B%E6%9C%BA-WireGuard"><span class="toc-text">Step 3：扫码把配置导入手机 WireGuard</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-4%EF%BC%9A%E8%B5%B7%E9%9A%A7%E9%81%93-pf-%E9%87%8D%E5%AE%9A%E5%90%91%EF%BC%88%E4%B8%80%E4%B8%AA%E8%84%9A%E6%9C%AC%E6%90%9E%E5%AE%9A%EF%BC%89"><span class="toc-text">Step 4：起隧道 + pf 重定向（一个脚本搞定）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-5%EF%BC%9Asudo-%E8%B5%B7-mitmweb-%E9%80%8F%E6%98%8E%E4%BB%A3%E7%90%86"><span class="toc-text">Step 5：sudo 起 mitmweb 透明代理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81iOS-%E8%A3%85-mitmproxy-%E8%AF%81%E4%B9%A6%E5%B9%B6%E5%BC%80%E5%90%AF%E5%AE%8C%E5%85%A8%E4%BF%A1%E4%BB%BB"><span class="toc-text">三、iOS 装 mitmproxy 证书并开启完全信任</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8F%AF%E5%A4%8D%E7%94%A8%E7%9A%84%E6%94%B6%E6%91%8A%E8%84%9A%E6%9C%AC"><span class="toc-text">四、可复用的收摊脚本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%8A%93%E4%B8%8D%E5%88%B0%E6%9F%90%E4%B8%AA-App-%E6%98%8E%E6%96%87%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-text">五、抓不到某个 App 明文怎么办</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%8A%8A%E6%8A%93%E5%8C%85%E4%BA%A4%E7%BB%99-AI-%E8%87%AA%E5%8A%A8%E8%B7%91%EF%BC%88Claude-Code-SKILL%EF%BC%89"><span class="toc-text">六、把抓包交给 AI 自动跑（Claude Code SKILL）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%B8%BA%E6%8A%93%E5%8C%85%E5%86%99%E4%B8%80%E4%B8%AA-SKILL"><span class="toc-text">为什么要为抓包写一个 SKILL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A9-AI-%E8%83%BD%E3%80%8C%E8%AF%BB%E3%80%8D%E5%88%B0%E6%8E%A5%E5%8F%A3%EF%BC%9A%E4%B8%80%E4%B8%AA-mitmproxy-addon"><span class="toc-text">让 AI 能「读」到接口：一个 mitmproxy addon</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AI-%E6%8F%90%E5%8F%96%E6%8E%A5%E5%8F%A3%E7%9A%84%E6%A0%B8%E5%BF%83%E9%80%BB%E8%BE%91"><span class="toc-text">AI 提取接口的核心逻辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sudo-%E8%BF%99%E9%81%93%E5%9D%8E%E6%80%8E%E4%B9%88%E8%BF%87"><span class="toc-text">sudo 这道坎怎么过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E6%AC%A1%E7%9C%9F%E5%AE%9E%E7%9A%84-AI-%E6%8A%93%E5%8C%85%E5%AF%B9%E8%AF%9D%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-text">一次真实的 AI 抓包对话长什么样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%90%BD%E5%9C%B0%E8%BF%99%E5%A5%97-AI-%E5%8C%96%E7%9A%84%E6%88%90%E6%9C%AC"><span class="toc-text">落地这套 AI 化的成本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%8A%E7%94%9F%E4%BA%A7%EF%BC%88%E9%95%BF%E6%9C%9F%E5%A4%8D%E7%94%A8%EF%BC%89%E5%89%8D%E7%9A%84-checklist"><span class="toc-text">七、上生产（长期复用）前的 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">八、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+  </div> 
+</div>
+
+<article id="post-wireguard-mitmproxy-ios-app-https-capture" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">WireGuard + mitmproxy 全局抓 iOS App HTTPS 明文实战从隧道到证书一次打通</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.07.08</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 4.9k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 20分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>文章首发于: <a href="https://feinterview.poetries.top/blog/wireguard-mitmproxy-ios-app-https-capture">https://feinterview.poetries.top/blog/wireguard-mitmproxy-ios-app-https-capture</a></p>
+</blockquote>
+<p>做移动端联调，抓包是绕不过去的基本功。<code>Charles</code> &#x2F; <code>Proxyman</code> 这类工具走的是「手机设 <code>Wi-Fi</code> 代理指向电脑」的老路子，够用，但有两个死穴：一是<strong>很多 App 的流量不吃系统 <code>HTTP</code> 代理</strong>（尤其是自己管理连接、走 <code>QUIC</code>&#x2F;<code>WebSocket</code>、或用了非标准端口的），你设了代理它照样绕过去；二是<strong>代理一开，手机所有 App 都受影响</strong>，还容易和科学上网工具打架。这篇文章换一条更「底层」的路：用 <code>WireGuard</code> 建一条手机到 <code>Mac</code> 的隧道，把手机<strong>全部流量</strong>（不管走不走系统代理）都逼进这条隧道，再在 <code>Mac</code> 上用 <code>pf</code> 防火墙把 <code>80/443</code> 透明重定向到 <code>mitmproxy</code>，最后靠 <code>mitmproxy</code> 的中间人证书解出 <code>HTTPS</code> 明文。</p>
+<p>我最近就是用这套方案抓一台 iPhone 上某交易类 App（<code>Binance</code> 港版）的真机接口，从 <code>Mac</code> 装工具、生成密钥、扫码导入、<code>pf</code> 规则、到手机装证书信任，整条链路又踩了一遍，顺手把每步都记了下来。这篇就以这套实操为线索，把 <strong>Mac 端隧道 + 透明代理</strong> 和 <strong>iOS 端隧道 + 证书信任</strong> 两段拆开讲透，让你照着做一次就能通。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>WireGuard</code> 隧道抓包相比传统 <code>Wi-Fi</code> 代理抓包<strong>强在哪、适合什么场景</strong></li>
+<li>整条链路的数据流长什么样：手机 → 隧道 → <code>pf</code> 重定向 → <code>mitmproxy</code> → 出网</li>
+<li><code>Mac</code> 上怎么装 <code>wireguard-tools</code> 和 <code>mitmproxy</code>（含 <code>brew cask</code> 装不出 CLI 的坑）</li>
+<li>怎么用 <code>wg genkey</code> 生成双端密钥、写 <code>wg0.conf</code> &#x2F; <code>phone.conf</code>、<code>qrencode</code> 扫码导入手机</li>
+<li><code>pf</code> 规则怎么写才能同时做 <code>NAT</code> 出网 + <code>80/443</code> 重定向到 <code>mitmproxy</code></li>
+<li>为什么透明模式的 <code>mitmweb</code> <strong>必须用 <code>sudo</code> 跑</strong>，不然一直报 <code>Insufficient privileges</code></li>
+<li>iOS 怎么装 <code>mitmproxy</code> 的 <code>CA</code> 证书，并在「关于本机」里开启<strong>完全信任</strong>这一步</li>
+<li>抓不到某个 App 明文时，怎么判断是不是撞上了 <code>SSL Pinning</code>，以及能怎么办</li>
+<li>怎么把整套抓包沉淀成 <code>Claude Code</code> 的 <code>SKILL</code>，让 AI <strong>自己起服务、过滤域名、提取接口</strong></li>
+</ul>
+<h2 id="一、整体架构"><a href="#一、整体架构" class="headerlink" title="一、整体架构"></a>一、整体架构</h2><p>先把整条链路画清楚，你就知道每个组件在干嘛、凭证从哪来：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">┌─────────────┐   WireGuard 加密隧道    ┌──────────────────────────────────────┐</span><br><span class="line">│   iPhone    │  10.9.0.2  ─────────▶   │              Mac (10.9.0.1)          │</span><br><span class="line">│             │   (全流量进隧道          │                                      │</span><br><span class="line">│  WireGuard  │    AllowedIPs=0.0.0.0/0)│   utun (wg 接口)                     │</span><br><span class="line">│  已装CA并信任 │                         │      │                               │</span><br><span class="line">└─────────────┘                         │      ▼  pf rdr 80/443                │</span><br><span class="line">                                        │   mitmproxy 透明代理 :8080           │</span><br><span class="line">                                        │      │  (用自己的CA重签，解出明文)     │</span><br><span class="line">                                        │      ▼  pf nat 出 en0                 │</span><br><span class="line">                                        │   物理网卡 en0  ───────▶ 互联网       │</span><br><span class="line">                                        │                                      │</span><br><span class="line">                                        │   mitmweb 界面 :9091 (看/改报文)      │</span><br><span class="line">                                        └──────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>三个关键点，理解了就不会瞎调：</p>
+<ul>
+<li><strong>为什么用隧道而不是 <code>Wi-Fi</code> 代理</strong>：<code>WireGuard</code> 客户端配 <code>AllowedIPs = 0.0.0.0/0</code>，意味着手机把<strong>所有</strong> <code>IP</code> 流量都塞进隧道，App 想绕都绕不开（这是隧道相对系统代理最大的优势）。</li>
+<li><strong>明文是怎么来的</strong>：<code>HTTPS</code> 是加密的，<code>mitmproxy</code> 做「中间人」——用自己的根证书 <code>CA</code> 重新签发目标站点证书。手机必须先信任这张 <code>CA</code>，加密流量才能被解开，否则你只能看到一堆 <code>CONNECT</code> 和加密字节。</li>
+<li><strong>谁来把 <code>80/443</code> 交给 <code>mitmproxy</code></strong>：靠 <code>Mac</code> 的 <code>pf</code> 防火墙做重定向（<code>rdr</code>），其余端口（<code>DNS</code>、<code>WebSocket</code>、直连等）走 <code>NAT</code> 正常出网。</li>
+</ul>
+<h2 id="二、10-分钟跑通最小可用版本"><a href="#二、10-分钟跑通最小可用版本" class="headerlink" title="二、10 分钟跑通最小可用版本"></a>二、10 分钟跑通最小可用版本</h2><p>下面是「复制即可跑」的最小闭环。全部操作在 <code>Mac</code>（<code>Apple Silicon</code>，<code>Homebrew</code> 装在 <code>/opt/homebrew</code>）+ 一台 iPhone 上完成，手机和电脑连<strong>同一个 <code>Wi-Fi</code></strong>。</p>
+<h3 id="Step-1：Mac-装-wireguard-tools-和-mitmproxy"><a href="#Step-1：Mac-装-wireguard-tools-和-mitmproxy" class="headerlink" title="Step 1：Mac 装 wireguard-tools 和 mitmproxy"></a>Step 1：Mac 装 wireguard-tools 和 mitmproxy</h3><p><code>wireguard-tools</code> 直接 <code>brew</code> 装；国内网络慢可以挂 <code>USTC</code> 镜像：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># wireguard 命令行工具（wg / wg-quick）+ 生成二维码用的 qrencode</span></span><br><span class="line">HOMEBREW_BOTTLE_DOMAIN=https://mirrors.ustc.edu.cn/homebrew-bottles \</span><br><span class="line">HOMEBREW_NO_AUTO_UPDATE=1 \</span><br><span class="line">brew install wireguard-tools qrencode</span><br></pre></td></tr></table></figure>
+
+<p><code>mitmproxy</code> 这里有个<strong>大坑</strong>：<code>brew</code> 的 <code>mitmproxy</code> 现在是 <code>cask</code>，装出来只有一个 <code>mitmproxy.app</code> 的 <code>GUI</code>，<strong>没有 <code>mitmweb</code> &#x2F; <code>mitmdump</code> 命令行二进制</strong>，透明代理根本起不来。正确做法是用 <code>Python venv</code> + <code>pip</code> 装：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/wg-capture &amp;&amp; <span class="built_in">cd</span> ~/wg-capture</span><br><span class="line">python3 -m venv venv</span><br><span class="line"><span class="comment"># 国内用清华源；若卡在某个包的 hash 上，换官方 PyPI + 代理即可</span></span><br><span class="line">~/wg-capture/venv/bin/pip install mitmproxy -i https://pypi.tuna.tsinghua.edu.cn/simple</span><br><span class="line"><span class="comment"># 验证：能打印版本就对了</span></span><br><span class="line">~/wg-capture/venv/bin/mitmweb --version</span><br></pre></td></tr></table></figure>
+
+<p>装完先别急着跑，<code>mitmproxy</code> 第一次跑会在 <code>~/.mitmproxy</code> 生成 <code>CA</code>，我们后面手机装的就是这张证书——所以后续所有命令都要用同一个 <code>confdir</code>，否则手机装的证书对不上。</p>
+<h3 id="Step-2：生成双端密钥-写两份配置"><a href="#Step-2：生成双端密钥-写两份配置" class="headerlink" title="Step 2：生成双端密钥 + 写两份配置"></a>Step 2：生成双端密钥 + 写两份配置</h3><p><code>WireGuard</code> 是公私钥体系，服务端（<code>Mac</code>）和客户端（手机）各一对。<code>umask 077</code> 保证私钥不被别的用户读到：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/wg-capture &amp;&amp; <span class="built_in">umask</span> 077</span><br><span class="line">wg genkey | <span class="built_in">tee</span> server.key | wg pubkey &gt; server.pub   <span class="comment"># Mac 端</span></span><br><span class="line">wg genkey | <span class="built_in">tee</span> phone.key  | wg pubkey &gt; phone.pub    <span class="comment"># 手机端</span></span><br></pre></td></tr></table></figure>
+
+<p><code>Mac</code> 端配置 <code>wg0.conf</code>——<code>Address</code> 用一个私有网段，<code>ListenPort</code> 固定 <code>51820</code>，<code>Peer</code> 填手机的公钥：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.9</span>.<span class="number">0.1</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">ListenPort</span> = <span class="number">51820</span></span><br><span class="line"><span class="attr">PrivateKey</span> = &lt;server.key 的内容&gt;</span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="comment"># phone</span></span><br><span class="line"><span class="attr">PublicKey</span> = &lt;phone.pub 的内容&gt;</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.9</span>.<span class="number">0.2</span>/<span class="number">32</span></span><br></pre></td></tr></table></figure>
+
+<p>手机端配置 <code>phone.conf</code>——重点是 <code>AllowedIPs = 0.0.0.0/0</code>（全流量进隧道），<code>Endpoint</code> 填 <strong>Mac 的 Wi-Fi 局域网 IP</strong>（用 <code>ipconfig getifaddr en0</code> 查，比如 <code>192.168.5.136</code>）：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">PrivateKey</span> = &lt;phone.key 的内容&gt;</span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.9</span>.<span class="number">0.2</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">DNS</span> = <span class="number">8.8</span>.<span class="number">8.8</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = &lt;server.pub 的内容&gt;</span><br><span class="line"><span class="attr">Endpoint</span> = <span class="number">192.168</span>.<span class="number">5.136</span>:<span class="number">51820</span></span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">0.0</span>.<span class="number">0.0</span>/<span class="number">0</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-3：扫码把配置导入手机-WireGuard"><a href="#Step-3：扫码把配置导入手机-WireGuard" class="headerlink" title="Step 3：扫码把配置导入手机 WireGuard"></a>Step 3：扫码把配置导入手机 WireGuard</h3><p>iOS 上装 <code>WireGuard</code> App（若在国区商店搜不到，用<strong>港区或美区 Apple ID</strong> 下载即可）。然后在 <code>Mac</code> 上把 <code>phone.conf</code> 转成二维码，手机 App 里点右上角 <code>+</code> → 「从二维码创建」扫一下就导入了：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/wg-capture</span><br><span class="line">qrencode -o phone-qr.png -s 12 -m 4 &lt; phone.conf &amp;&amp; open phone-qr.png</span><br></pre></td></tr></table></figure>
+
+<p>导入后<strong>先别急着开隧道</strong>，等 <code>Mac</code> 侧的重定向和 <code>mitmproxy</code> 都起来再连，否则手机会短暂断网。下图是手机 <code>WireGuard</code> App 里导入好的隧道（我这条起名叫「抓包」）：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/e82c678bc6623b66.png" alt="iOS WireGuard App 里导入好的名为「抓包」的隧道配置，开关已打开"></p>
+<h3 id="Step-4：起隧道-pf-重定向（一个脚本搞定）"><a href="#Step-4：起隧道-pf-重定向（一个脚本搞定）" class="headerlink" title="Step 4：起隧道 + pf 重定向（一个脚本搞定）"></a>Step 4：起隧道 + pf 重定向（一个脚本搞定）</h3><p>把下面存成 <code>~/wg-capture/up.sh</code>。它做三件事：起 <code>WireGuard</code> 隧道、打开 <code>IP</code> 转发、加载 <code>pf</code> 规则（<code>NAT</code> 出网 + <code>80/443</code> 重定向到 <code>mitmproxy</code>）：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -e</span><br><span class="line">DIR=<span class="string">&quot;<span class="subst">$(cd <span class="string">&quot;<span class="subst">$(dirname <span class="string">&quot;<span class="variable">$0</span>&quot;</span>)</span>&quot;</span> &amp;&amp; pwd)</span>&quot;</span></span><br><span class="line">CONF=<span class="string">&quot;<span class="variable">$DIR</span>/wg0.conf&quot;</span></span><br><span class="line">UPLINK=<span class="string">&quot;<span class="variable">$&#123;UPLINK:-en0&#125;</span>&quot;</span>        <span class="comment"># 出网物理网卡，Wi-Fi 一般是 en0</span></span><br><span class="line">MITM_PORT=<span class="string">&quot;<span class="variable">$&#123;MITM_PORT:-8080&#125;</span>&quot;</span> <span class="comment"># mitmproxy 透明代理端口</span></span><br><span class="line"></span><br><span class="line">wg-quick up <span class="string">&quot;<span class="variable">$CONF</span>&quot;</span></span><br><span class="line">WG_IF=<span class="string">&quot;<span class="subst">$(wg show interfaces)</span>&quot;</span>  <span class="comment"># wg-quick 在 macOS 上会映射到某个 utunN</span></span><br><span class="line">sysctl -w net.inet.ip.forwarding=1</span><br><span class="line"></span><br><span class="line">pfctl -f - -e &lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">nat on $UPLINK from 10.9.0.0/24 to any -&gt; ($UPLINK)</span></span><br><span class="line"><span class="string">rdr pass on $WG_IF inet proto tcp from 10.9.0.0/24 to any port &#123; 80, 443 &#125; -&gt; 127.0.0.1 port $MITM_PORT</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;✅ 隧道 + NAT + 重定向就绪 (WG_IF=<span class="variable">$WG_IF</span>, UPLINK=<span class="variable">$UPLINK</span>)&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>跑它（要 <code>sudo</code>，因为动 <code>pf</code> 和路由）：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ~/wg-capture/up.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Step-5：sudo-起-mitmweb-透明代理"><a href="#Step-5：sudo-起-mitmweb-透明代理" class="headerlink" title="Step 5：sudo 起 mitmweb 透明代理"></a>Step 5：sudo 起 mitmweb 透明代理</h3><p><strong>这一步最容易翻车</strong>：透明模式下 <code>mitmproxy</code> 需要读 <code>/dev/pf</code> 还原每个连接的真实目标地址，<strong>必须用 <code>sudo</code></strong>，否则一直报 <code>Insufficient privileges to access pfctl</code>、解不了密。同时用 <code>--set confdir</code> 锁定到 <code>~/.mitmproxy</code>，保证复用 <code>Step 1</code> 生成的那张 <code>CA</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ~/wg-capture/venv/bin/mitmweb \</span><br><span class="line">  --mode transparent --showhost \</span><br><span class="line">  --<span class="built_in">set</span> block_global=<span class="literal">false</span> \</span><br><span class="line">  --<span class="built_in">set</span> confdir=/Users/你的用户名/.mitmproxy \</span><br><span class="line">  --web-host 127.0.0.1 --web-port 9091</span><br></pre></td></tr></table></figure>
+
+<p>起来后终端会打印一行带 <code>token</code> 的地址，浏览器打开它就是抓包界面：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Web server listening at http://127.0.0.1:9091/?token=xxxxxxxx</span><br></pre></td></tr></table></figure>
+
+<p>这个窗口会常驻刷屏，<strong>别关它</strong>。现在手机把 <code>WireGuard</code> 隧道打开，<code>Mac</code> 上 <code>sudo wg show</code> 能看到 <code>latest handshake</code> 和双向流量，就说明隧道通了。</p>
+<p>至此链路已经全通，唯一还差的就是——手机还没信任 <code>mitmproxy</code> 的证书，所以 <code>HTTPS</code> 现在还是加密的。下一节解决它。</p>
+<h2 id="三、iOS-装-mitmproxy-证书并开启完全信任"><a href="#三、iOS-装-mitmproxy-证书并开启完全信任" class="headerlink" title="三、iOS 装 mitmproxy 证书并开启完全信任"></a>三、iOS 装 mitmproxy 证书并开启完全信任</h2><p>手机连上隧道后，用 <code>Safari</code> 打开 <code>mitmproxy</code> 官方的证书分发页：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://mitm.it</span><br></pre></td></tr></table></figure>
+
+<p>⚠️ 注意必须是手机<strong>已连上隧道</strong>的状态访问，<code>mitm.it</code> 才能识别到走的是 <code>mitmproxy</code>、给出下载入口。页面会按平台列出证书，<strong>iOS 要选 iOS 那一栏</strong>（不要点成 macOS）：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/af18472bfabe9b44.jpg" alt="mitm.it 证书安装页，按平台列出 Windows&#x2F;Linux&#x2F;macOS&#x2F;iOS&#x2F;Android，红框标注 iOS 那一栏的 Get mitmproxy-ca-cert.pem"></p>
+<p>点 iOS 的 <code>Get mitmproxy-ca-cert.pem</code> 会提示「已下载描述文件」。这时候证书<strong>还没生效</strong>，要分两步在系统设置里手动开：</p>
+<p>第一步，去 <code>设置 → 通用 → VPN 与设备管理</code>，能看到刚下载的 <code>mitmproxy</code> 描述文件，点进去「安装」：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/29b2393635dd2e41.jpg" alt="iOS 设置里的 VPN 与设备管理页，VPN 显示已连接，配置描述文件列表里有 mitmproxy 和 Charles Proxy CA"></p>
+<p>第二步——<strong>这一步最容易被漏</strong>——去 <code>设置 → 通用 → 关于本机 → 证书信任设置</code>，把 <code>mitmproxy</code> 那个开关<strong>手动打开</strong>（针对根证书启用完全信任）。装了描述文件但没开这个开关，<code>HTTPS</code> 照样解不出明文：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/e7ffaf37b7092714.jpg" alt="iOS 证书信任设置页，针对根证书启用完全信任列表里 mitmproxy 开关已打开为绿色"></p>
+<p>两步都做完，回到 <code>mitmweb</code> 界面刷新，<code>HTTPS</code> 请求就是明文了。下图是我抓到的 <code>Binance</code> 港版 App 的真实接口——<code>native.binance.com/bapi/...</code> 的业务接口、<code>fstream.binance.com/market/stream</code> 的 <code>WebSocket</code> 行情推送，<code>Response</code> 里的 <code>JSON</code> 已经完全解密可读：</p>
+<p><img src="https://s.poetries.top/uploads/2026/07/50b139194e95f1df.jpg" alt="mitmweb 抓包界面，左侧 Flow List 是 native.binance.com 的一系列 bapi 接口和 fstream WebSocket，右侧 Response 面板显示 HTTP&#x2F;2 200 的 JSON 明文"></p>
+<h2 id="四、可复用的收摊脚本"><a href="#四、可复用的收摊脚本" class="headerlink" title="四、可复用的收摊脚本"></a>四、可复用的收摊脚本</h2><p>抓完包记得恢复网络，否则 <code>pf</code> 规则和 <code>IP</code> 转发会一直挂着影响正常上网。把下面存成 <code>~/wg-capture/down.sh</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line">DIR=<span class="string">&quot;<span class="subst">$(cd <span class="string">&quot;<span class="subst">$(dirname <span class="string">&quot;<span class="variable">$0</span>&quot;</span>)</span>&quot;</span> &amp;&amp; pwd)</span>&quot;</span></span><br><span class="line">wg-quick down <span class="string">&quot;<span class="variable">$DIR</span>/wg0.conf&quot;</span> 2&gt;/dev/null || <span class="literal">true</span></span><br><span class="line">pfctl -F all 2&gt;/dev/null || <span class="literal">true</span>   <span class="comment"># 清空所有 pf 规则</span></span><br><span class="line">pfctl -d 2&gt;/dev/null || <span class="literal">true</span>       <span class="comment"># 停用 pf</span></span><br><span class="line">sysctl -w net.inet.ip.forwarding=0 <span class="comment"># 关掉 IP 转发</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;✅ 已恢复。mitmweb 窗口去 Ctrl-C 停掉即可。&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>用 <code>sudo ~/wg-capture/down.sh</code> 收摊，再去 <code>mitmweb</code> 那个窗口 <code>Ctrl-C</code>。手机端把 <code>WireGuard</code> 开关关掉就行，证书可以留着下次复用。</p>
+<h2 id="五、抓不到某个-App-明文怎么办"><a href="#五、抓不到某个-App-明文怎么办" class="headerlink" title="五、抓不到某个 App 明文怎么办"></a>五、抓不到某个 App 明文怎么办</h2><p>链路全通、证书也信任了，但某个 App 就是抓不到明文、或者干脆连不上网——大概率是撞上了 <strong><code>SSL Pinning</code>（证书绑定）</strong>。App 把服务端证书的指纹硬编码在代码里，发现当前证书是 <code>mitmproxy</code> 重签的、指纹对不上，就直接掐断连接。这不是你配错了，是 App 主动防抓包。判断和应对：</p>
+<ul>
+<li><strong>先确认是不是 <code>Pinning</code></strong>：浏览器和不设防的 App 能抓到明文，唯独目标 App 抓不到 &#x2F; 一直转圈 &#x2F; 报网络错，基本就是 <code>Pinning</code>。<code>mitmweb</code> 里通常能看到该域名的连接建立后立刻 <code>client disconnect</code>。</li>
+<li><strong>越狱设备</strong>：用 <code>Frida</code> + <code>objection</code> 的 <code>ios sslpinning disable</code>，或 <code>SSL Kill Switch 2</code>，在运行时把校验函数 <code>hook</code> 掉。这是最通用的解法，但需要越狱。</li>
+<li><strong>非越狱设备</strong>：可以砸壳后用 <code>Frida gadget</code> 重签名注入，或者拿到脱壳 <code>ipa</code> 静态改；成本高，视目标价值决定。</li>
+<li><strong>换目标</strong>：很多时候你要的接口在 Web 端 &#x2F; 小程序端 &#x2F; 或 App 的某些非核心模块也有，那些往往没做 <code>Pinning</code>，绕开正面硬刚。</li>
+</ul>
+<p>另外有几个<strong>不是 <code>Pinning</code> 但同样抓不到</strong>的常见原因，先排除掉再怀疑 <code>Pinning</code>：</p>
+<ul>
+<li><code>mitmweb</code> 没用 <code>sudo</code> 起 → 报 <code>Insufficient privileges</code>，全部 <code>HTTPS</code> 都解不了（不只是某个 App）。</li>
+<li>手机装了证书但<strong>没开「证书信任设置」的完全信任开关</strong> → 同样全站解不了。</li>
+<li>App 走的是 <code>QUIC</code>（<code>HTTP/3</code>，<code>UDP 443</code>）→ <code>mitmproxy</code> 默认不解 <code>QUIC</code>，表现为该域名没有 <code>443</code> 的 <code>TCP</code> 流。可以在 <code>pf</code> 里把 <code>UDP 443</code> 也 <code>block</code> 掉，逼 App 回落到 <code>TCP</code> 的 <code>HTTP/2</code>。</li>
+</ul>
+<h2 id="六、把抓包交给-AI-自动跑（Claude-Code-SKILL）"><a href="#六、把抓包交给-AI-自动跑（Claude-Code-SKILL）" class="headerlink" title="六、把抓包交给 AI 自动跑（Claude Code SKILL）"></a>六、把抓包交给 AI 自动跑（Claude Code SKILL）</h2><p>上面这套流程手动跑一遍不难，但每次都要「<code>sudo up.sh</code> → 单开窗口 <code>sudo mitm.sh</code> → 手机开隧道 → 盯着 <code>mitmweb</code> 界面从几百条 <code>flow</code> 里翻目标域名」，重复且枯燥。既然我平时用 <code>Claude Code</code> 干活，索性把整套操作沉淀成一个 <strong>SKILL</strong>，让 AI 在我说「<strong>抓一下 XX App 的接口</strong>」时<strong>自己起服务、引导我连手机、再把目标接口过滤好丢给我</strong>。这一节讲怎么把抓包这件事「喂」给 AI。</p>
+<h3 id="为什么要为抓包写一个-SKILL"><a href="#为什么要为抓包写一个-SKILL" class="headerlink" title="为什么要为抓包写一个 SKILL"></a>为什么要为抓包写一个 SKILL</h3><p><code>Claude Code</code> 的 <code>SKILL</code> 本质是一份「触发条件 + 标准作业流程（SOP）」的说明书：命中触发词后，AI 会按里面写好的步骤执行，而不是每次现场瞎摸。抓包这件事天然适合 SKILL 化——步骤固定、坑固定、判断路径固定（比如「抓不到就先排除没 <code>sudo</code> &#x2F; 没开信任 &#x2F; <code>QUIC</code>，再怀疑 <code>Pinning</code>」），把这些经验写进 SKILL，AI 下次就能少走弯路。</p>
+<p>SKILL 放在 <code>~/.claude/skills/packet-capture-wireguard/SKILL.md</code>，<code>frontmatter</code> 里最关键的是 <code>description</code>——它决定 AI 在什么时候「想起」这个 SKILL：</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">packet-capture-wireguard</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">&gt;</span></span><br><span class="line"><span class="string">  用 WireGuard 隧道 + mitmproxy 透明代理抓 iOS/Android 真机 App 的 HTTPS 明文接口。</span></span><br><span class="line"><span class="string">  当用户说&quot;抓一下 XX App 的包 / 抓 XX 的接口 / 看看 XX App 请求了什么 / 帮我抓包&quot;时触发。</span></span><br><span class="line"><span class="string">  命中后由助手自己启动/复用抓包服务，引导手机连隧道，再从落盘的 flow 里过滤目标 App</span></span><br><span class="line"><span class="string">  的域名、提取接口清单（method/url/status/请求体/响应体）给用户。环境固定在 ~/wg-capture/。</span></span><br><span class="line"><span class="string"></span><span class="meta">---</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="让-AI-能「读」到接口：一个-mitmproxy-addon"><a href="#让-AI-能「读」到接口：一个-mitmproxy-addon" class="headerlink" title="让 AI 能「读」到接口：一个 mitmproxy addon"></a>让 AI 能「读」到接口：一个 mitmproxy addon</h3><p>这是整套 AI 化的<strong>技术关键</strong>。<code>mitmweb</code> 的界面是给人看的，AI 读不了；要让 AI 拿到结构化数据，得让 <code>mitmproxy</code> 把每条 <code>flow</code> 落成机器可读的 <code>jsonl</code>。<code>mitmproxy</code> 支持加载 <code>addon</code> 脚本，我写了个 <code>~/wg-capture/dump_flows.py</code>，在每条响应完成时把关键字段追加写文件：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> json, os, time</span><br><span class="line">FLOW_DIR = os.path.expanduser(<span class="string">&quot;~/wg-capture/flows&quot;</span>)</span><br><span class="line">os.makedirs(FLOW_DIR, exist_ok=<span class="literal">True</span>)</span><br><span class="line">OUT = os.path.join(FLOW_DIR, <span class="string">f&quot;session-<span class="subst">&#123;os.getpid()&#125;</span>.jsonl&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">response</span>(<span class="params">flow</span>):  <span class="comment"># mitmproxy 在每条响应完成时回调</span></span><br><span class="line">    req, resp = flow.request, flow.response</span><br><span class="line">    rec = &#123;</span><br><span class="line">        <span class="string">&quot;method&quot;</span>: req.method, <span class="string">&quot;host&quot;</span>: req.host, <span class="string">&quot;path&quot;</span>: req.path,</span><br><span class="line">        <span class="string">&quot;url&quot;</span>: req.pretty_url, <span class="string">&quot;status&quot;</span>: resp.status_code <span class="keyword">if</span> resp <span class="keyword">else</span> <span class="literal">None</span>,</span><br><span class="line">        <span class="string">&quot;req_body&quot;</span>: req.get_text()[:<span class="number">4096</span>], <span class="string">&quot;resp_body&quot;</span>: resp.get_text()[:<span class="number">4096</span>],</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(OUT, <span class="string">&quot;a&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        f.write(json.dumps(rec, ensure_ascii=<span class="literal">False</span>) + <span class="string">&quot;\n&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>启动 <code>mitmweb</code> 时用 <code>-s</code> 挂上它，抓到的每条请求就会实时落到 <code>~/wg-capture/flows/session-&lt;pid&gt;.jsonl</code>（<code>body</code> 只截前 <code>4KB</code> 防止超大响应撑爆文件）：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ~/wg-capture/venv/bin/mitmweb \</span><br><span class="line">  --mode transparent --showhost --<span class="built_in">set</span> block_global=<span class="literal">false</span> \</span><br><span class="line">  --<span class="built_in">set</span> confdir=/Users/你的用户名/.mitmproxy \</span><br><span class="line">  -s ~/wg-capture/dump_flows.py \</span><br><span class="line">  --web-host 127.0.0.1 --web-port 9091</span><br></pre></td></tr></table></figure>
+
+<p>有了这个 <code>jsonl</code>，AI 就能用几行 <code>python</code> 按域名过滤、按 <code>path</code> 提取请求体响应体，而不用去解析给人看的 web 界面。</p>
+<h3 id="AI-提取接口的核心逻辑"><a href="#AI-提取接口的核心逻辑" class="headerlink" title="AI 提取接口的核心逻辑"></a>AI 提取接口的核心逻辑</h3><p>SKILL 里给了 AI 两段可复制的处理脚本。第一段是<strong>域名发现</strong>——抓完一顿操作后往往有几十上百个 <code>host</code>（各种 <code>SDK</code>、埋点、<code>CDN</code> 混在一起），先按出现频次列出来，帮我认出目标 App 到底用哪个域名：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">F=$(<span class="built_in">ls</span> -t ~/wg-capture/flows/*.jsonl | <span class="built_in">head</span> -1)</span><br><span class="line">python3 -c <span class="string">&quot;</span></span><br><span class="line"><span class="string">import json, collections</span></span><br><span class="line"><span class="string">c = collections.Counter()</span></span><br><span class="line"><span class="string">for l in open(&#x27;<span class="variable">$F</span>&#x27;):</span></span><br><span class="line"><span class="string">    c[json.loads(l)[&#x27;host&#x27;]] += 1</span></span><br><span class="line"><span class="string">for h, n in c.most_common(30): print(f&#x27;&#123;n:5d&#125;  &#123;h&#125;&#x27;)</span></span><br><span class="line"><span class="string">&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>第二段是<strong>按域名提取接口清单</strong>，把 <code>KEY</code> 换成目标域名关键字（如 <code>binance</code>），输出 <code>method + status + url</code>，AI 再据此整理成表格、猜每个接口的用途、需要时展开某个接口的完整请求响应明文：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">F=$(<span class="built_in">ls</span> -t ~/wg-capture/flows/*.jsonl | <span class="built_in">head</span> -1)</span><br><span class="line">python3 -c <span class="string">&quot;</span></span><br><span class="line"><span class="string">import json</span></span><br><span class="line"><span class="string">for l in open(&#x27;<span class="variable">$F</span>&#x27;):</span></span><br><span class="line"><span class="string">    r = json.loads(l)</span></span><br><span class="line"><span class="string">    if &#x27;binance&#x27; in r[&#x27;host&#x27;]:</span></span><br><span class="line"><span class="string">        print(f\&quot;&#123;r[&#x27;method&#x27;]:5s&#125; &#123;r[&#x27;status&#x27;]&#125; &#123;r[&#x27;url&#x27;][:120]&#125;\&quot;)</span></span><br><span class="line"><span class="string">&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="sudo-这道坎怎么过"><a href="#sudo-这道坎怎么过" class="headerlink" title="sudo 这道坎怎么过"></a>sudo 这道坎怎么过</h3><p>有一个绕不开的现实约束：<code>Claude Code</code> 的 <code>Bash</code> <strong>不能交互式输入密码</strong>，而起服务的 <code>up.sh</code> &#x2F; <code>mitm.sh</code> 全要 <code>sudo</code>。SKILL 里写死了处理策略，让 AI 不至于卡死：</p>
+<ul>
+<li>先探测免密：<code>sudo -n true</code>。返回成功说明有 <code>sudo</code> 缓存或配了 <code>NOPASSWD</code>，AI 可以直接跑。</li>
+<li>不免密时<strong>绝不硬跑</strong>（会卡在等密码），改为让我在会话输入框用 <code>!</code> 前缀执行，输出会回到对话里给 AI 看：<code>! sudo ~/wg-capture/up.sh</code>。</li>
+<li><code>mitmweb</code> 是常驻前台进程，让它单开一个窗口跑、别关。</li>
+</ul>
+<h3 id="一次真实的-AI-抓包对话长什么样"><a href="#一次真实的-AI-抓包对话长什么样" class="headerlink" title="一次真实的 AI 抓包对话长什么样"></a>一次真实的 AI 抓包对话长什么样</h3><p>把上面这些串起来，实际用起来就是一句话触发、AI 自动往下推：</p>
+<ul>
+<li>我：「帮我抓一下 <code>Binance</code> App 的行情接口」</li>
+<li>AI：自检 → 发现隧道和 <code>mitmweb</code> 已在跑（复用，不重启）→ 让我确认手机隧道开关已开、证书已信任</li>
+<li>AI：「现在去 App 里进行你要抓的操作，做完告诉我」</li>
+<li>我：在 App 里刷了一遍行情、下了个单，回来说「好了」</li>
+<li>AI：读最新 <code>jsonl</code> → 先列高频域名认出 <code>native.binance.com</code> &#x2F; <code>fstream.binance.com</code> → 过滤出这两个域名下的接口 → 整理成「接口总览表（<code>method</code> &#x2F; <code>path</code> &#x2F; <code>status</code> &#x2F; 用途猜测）」→ 针对我关心的下单接口展开完整请求响应，并<strong>把 <code>token</code> &#x2F; <code>cookie</code> 自动脱敏</strong>再贴出来</li>
+</ul>
+<p>原本要盯着界面翻半天的活，变成了「说一句话 + 在 App 上操作一下」。AI 不只是执行命令，还顺手做了域名归类、接口用途推断、敏感字段脱敏这些人工干起来很烦的事。</p>
+<h3 id="落地这套-AI-化的成本"><a href="#落地这套-AI-化的成本" class="headerlink" title="落地这套 AI 化的成本"></a>落地这套 AI 化的成本</h3><p>除了前面搭好的抓包环境，AI 化只多两个文件：<code>~/wg-capture/dump_flows.py</code>（<code>addon</code>，约 60 行）和 <code>~/.claude/skills/packet-capture-wireguard/SKILL.md</code>（把本文的流程 + 坑 + 判断路径写成 SOP）。写一次，之后每次抓包都省下翻界面的功夫。这也是 SKILL 的价值所在——<strong>把一次性摸索出来的经验，固化成 AI 可复用的作业流程</strong>。</p>
+<h2 id="七、上生产（长期复用）前的-checklist"><a href="#七、上生产（长期复用）前的-checklist" class="headerlink" title="七、上生产（长期复用）前的 checklist"></a>七、上生产（长期复用）前的 checklist</h2><p>这套环境搭一次可以反复用，但每次抓完 &#x2F; 长期保留前，建议逐项确认：</p>
+<ul>
+<li><input disabled="" type="checkbox"> 抓完立刻跑 <code>down.sh</code> 恢复 <code>pf</code> 与 <code>IP</code> 转发，别让 <code>Mac</code> 长期处于「路由器 + 中间人」状态</li>
+<li><input disabled="" type="checkbox"> <code>wg-capture</code> 目录里的 <code>*.key</code> 私钥权限是 <code>600</code>（<code>umask 077</code> 已保证），不要提交到任何仓库</li>
+<li><input disabled="" type="checkbox"> <code>mitmproxy</code> 的 <code>CA</code>（<code>~/.mitmproxy</code>）等同于「能解你手机所有 <code>HTTPS</code>」的钥匙，别拷给别人、别进云盘</li>
+<li><input disabled="" type="checkbox"> 手机上抓包用的证书信任开关，<strong>不抓包时手动关掉</strong>，避免长期暴露在被中间人风险下</li>
+<li><input disabled="" type="checkbox"> 只抓<strong>你有权抓的流量</strong>（自己的 App、自己账号、授权测试对象），抓第三方 App 的接口注意合规边界</li>
+<li><input disabled="" type="checkbox"> <code>Endpoint</code> 里的 <code>Mac IP</code> 是局域网 <code>IP</code>，换了 <code>Wi-Fi</code> 网段要同步改 <code>phone.conf</code> 重新扫码</li>
+<li><input disabled="" type="checkbox"> 日志 &#x2F; 导出的 <code>flow</code> 里可能含 <code>token</code> &#x2F; <code>cookie</code> &#x2F; 手机号，分享前务必脱敏</li>
+</ul>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p><code>WireGuard + mitmproxy</code> 这套方案，本质是把 <code>Mac</code> 临时变成一台「会解密的路由器」：<code>WireGuard</code> 负责把手机全流量无差别引过来（解决系统代理抓不全的问题），<code>pf</code> 负责把 <code>80/443</code> 精准喂给 <code>mitmproxy</code>（解决透明重定向），<code>mitmproxy</code> 的 <code>CA</code> 负责解出明文（解决 <code>HTTPS</code> 加密）。相比 <code>Charles</code> 设 <code>Wi-Fi</code> 代理，它更全（不吃系统代理的流量也能抓）、更干净（不改手机代理设置），代价是首次搭建步骤多一点。</p>
+<p>时间预估：<strong>最小可用版本 10 分钟</strong>（装工具 + 密钥 + 扫码 + 起隧道），<strong>证书信任 5 分钟</strong>，把 <code>up.sh</code> &#x2F; <code>mitm.sh</code> &#x2F; <code>down.sh</code> 固化成脚本半小时；之后每次抓包只要 <code>sudo up.sh</code> → <code>sudo mitmweb</code> → 手机开隧道，三条命令就能开工。真正的难点从来不在搭建，而在遇到 <code>SSL Pinning</code> 时的判断和取舍——先按第五节的清单排除环境问题，确认是 <code>Pinning</code> 再决定要不要上越狱 &#x2F; <code>Frida</code> 那一套重武器。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><code>mitmproxy</code> 官方文档 - Transparent Proxying：<a href="https://docs.mitmproxy.org/stable/howto-transparent/">https://docs.mitmproxy.org/stable/howto-transparent/</a></li>
+<li><code>WireGuard</code> 官方 Quick Start：<a href="https://www.wireguard.com/quickstart/">https://www.wireguard.com/quickstart/</a></li>
+<li><code>mitmproxy</code> 证书安装说明：<a href="https://docs.mitmproxy.org/stable/concepts-certificates/">https://docs.mitmproxy.org/stable/concepts-certificates/</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/07/07/charles-ios-real-device-https-capture/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
