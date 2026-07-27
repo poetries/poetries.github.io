@@ -10,7 +10,25 @@
   <rights>All rights reserved 2026, Poetry</rights>
   <subtitle>全网同号，分享编程经验和技术干货。更多干货只在公众号「前端进阶之旅」内分享！</subtitle>
   <title>前端进阶之旅</title>
-  <updated>2026-07-08T12:54:46.400Z</updated>
+  <updated>2026-07-27T01:52:49.692Z</updated>
+  <entry>
+    <author>
+      <name>Poetry</name>
+    </author>
+    <category term="Front-End" scheme="http://blog.poetries.top/categories/Front-End/"/>
+    <category term="React" scheme="http://blog.poetries.top/tags/React/"/>
+    <category term="性能优化" scheme="http://blog.poetries.top/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
+    <category term="Next.js" scheme="http://blog.poetries.top/tags/Next-js/"/>
+    <content>
+      <![CDATA[<blockquote><p>文章首发于: <a href="https://feinterview.poetries.top/blog/vercel-react-best-practices">https://feinterview.poetries.top/blog/vercel-react-best-practices</a></p></blockquote><p>你是否也有这样的经历：页面卡了，第一反应是打开组件加一圈 <code>useMemo</code>、<code>useCallback</code>、<code>memo()</code>，加完用 Profiler 一测，首屏该慢还是慢。问题出在哪？出在优化的优先级排反了。</p><p><code>Vercel</code> 工程团队在 2026 年初开源了一份 <strong>React Best Practices</strong>（vercel-react-best-practices），把内部沉淀的 70 条 <code>React</code> &#x2F; <code>Next.js</code> 性能规则整理成机器可读的 skill，喂给 <code>AI</code> 编码工具做代码生成和 review 的依据，人读同样受益。这份清单最值钱的不是某条具体技巧，而是它给所有优化手段<strong>按影响力排了序</strong>：消灭请求瀑布流和砍包体积是 CRITICAL，大家最爱写的 re-render 优化只排在 MEDIUM，<code>useMemo</code> 的部分用法甚至被列为反模式。</p><p>我把整份规则读完，这篇文章按 <code>ROI</code> 从高到低精讲其中最有实战价值的部分，附原版代码对比和使用边界。</p><p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p><ul><li>这份清单的 8 大类规则与优先级全景</li><li>CRITICAL 级第一名：消灭请求瀑布流的 6 种手法</li><li>CRITICAL 级第二名：包体积优化，barrel import 一条就能省 200-800ms</li><li>HIGH 级：服务端性能，<code>RSC</code> 时代最容易踩的并发与序列化坑</li><li>MEDIUM 级：re-render 优化的正确姿势，以及哪些 <code>useMemo</code> 应该删掉</li><li>低优先级但常考的 <code>JavaScript</code> 微优化速查表</li><li>怎么把这份规则接入你的 <code>AI</code> 编码工作流</li></ul><h2 id="一、先看全景-70-条规则怎么分层"><a href="#一、先看全景-70-条规则怎么分层" class="headerlink" title="一、先看全景 70 条规则怎么分层"></a>一、先看全景 70 条规则怎么分层</h2><p>清单按影响力分 8 类，优先级从上到下递减：</p><table><thead><tr><th>优先级</th><th>类别</th><th>影响力</th><th>规则前缀</th></tr></thead><tbody><tr><td>1</td><td>消灭瀑布流</td><td>CRITICAL</td><td><code>async-</code></td></tr><tr><td>2</td><td>包体积优化</td><td>CRITICAL</td><td><code>bundle-</code></td></tr><tr><td>3</td><td>服务端性能</td><td>HIGH</td><td><code>server-</code></td></tr><tr><td>4</td><td>客户端数据获取</td><td>MEDIUM-HIGH</td><td><code>client-</code></td></tr><tr><td>5</td><td>re-render 优化</td><td>MEDIUM</td><td><code>rerender-</code></td></tr><tr><td>6</td><td>渲染性能</td><td>MEDIUM</td><td><code>rendering-</code></td></tr><tr><td>7</td><td>JavaScript 微优化</td><td>LOW-MEDIUM</td><td><code>js-</code></td></tr><tr><td>8</td><td>高级模式</td><td>LOW</td><td><code>advanced-</code></td></tr></tbody></table><p>这个排序背后的逻辑很硬：<strong>一次串行的网络往返是几十到几百毫秒，一次多余的 re-render 通常不到一毫秒</strong>。瀑布流每多一层就多付一次完整网络延迟，而你精心 memo 掉的那次渲染，用户根本感知不到。所以官方原话是「Waterfalls are the #1 performance killer」——先治网络和包体积，再谈渲染。</p><p><img src="https://s.poetries.top/uploads/2026/07/ad56841cd49356f5.jpg" alt="React 性能优化 70 条军规优先级金字塔：消灭瀑布流和包体积是 CRITICAL 级，越往上收益越大，先治网络和包体积再谈渲染"></p><p>下面按这个顺序逐层拆。</p><h2 id="二、消灭瀑布流-每一个多余的await都在烧钱"><a href="#二、消灭瀑布流-每一个多余的await都在烧钱" class="headerlink" title="二、消灭瀑布流 每一个多余的await都在烧钱"></a>二、消灭瀑布流 每一个多余的await都在烧钱</h2><h3 id="2-1-Promise-all-是及格线"><a href="#2-1-Promise-all-是及格线" class="headerlink" title="2.1 Promise.all 是及格线"></a>2.1 Promise.all 是及格线</h3><p>最基础的一条：没有依赖关系的异步操作绝不串行。</p><p>这段是反面示例，三个请求串成三次往返：</p><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> user = <span class="keyword">await</span> <span class="title function_">fetchUser</span>()</span><br><span class="line"><span class="keyword">const</span> posts = <span class="keyword">await</span> <span class="title function_">fetchPosts</span>()</span><br><span class="line"><span class="keyword">const</span> comments = <span class="keyword">await</span> <span class="title function_">fetchComments</span>()</span><br></pre></td></tr></table></figure><p>改成并行后只付一次往返的时间，官方给的量化收益是 <strong>2-10 倍</strong>：</p><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [user, posts, comments] = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>([</span><br><span class="line">  <span class="title function_">fetchUser</span>(),</span><br><span class="line">  <span class="title function_">fetchPosts</span>(),</span><br><span class="line">  <span class="title function_">fetchComments</span>()</span><br><span class="line">])</span><br></pre></td></tr></table></figure><p><img src="https://s.poetries.top/uploads/2026/07/2783872ec9b3b86d.jpg" alt="串行瀑布流三次往返 vs Promise.all 并行一次往返的时间线对比，官方量化收益 2-10 倍提速"></p><h3 id="2-2-部分依赖场景-先启动再await"><a href="#2-2-部分依赖场景-先启动再await" class="headerlink" title="2.2 部分依赖场景 先启动再await"></a>2.2 部分依赖场景 先启动再await</h3><p>真正拉开差距的是「半依赖」场景：<code>profile</code> 依赖 <code>user</code>，但 <code>config</code> 谁都不依赖。多数人会写成两段 <code>Promise.all</code>，结果 <code>profile</code> 白白等了 <code>config</code>。正确做法是<strong>先创建所有 promise，最后统一 await</strong>：</p><figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> userPromise = <span class="title function_">fetchUser</span>()</span><br><span class="line"><span class="keyword">const</span> profilePromise = userPromise.<span class="title function_">then</span>(<span class="function"><span class="params">user</span> =&gt;</span> <span class="title function_">fetchProfile</span>(user.<span class="property">id</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> [user, config, profile] = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>([</span><br><span class="line">  userPromise,</span><br><span class="line">  <span class="title function_">fetchConfig</span>(),</span><br><span class="line">  profilePromise</span><br><span class="line">])</span><br></pre></td></tr></table></figure><p>这样 <code>config</code> 和整条 <code>user → profile</code> 链是并行的，每个任务都在依赖就绪的第一时间启动。同样的思路用在 <code>API</code> 路由里：<code>auth()</code> 和 <code>fetchConfig()</code> 互不依赖，就先把两个 promise 都启动，再按需 await，不要让 <code>config</code> 排在 <code>auth</code> 后面白等一轮。</p><h3 id="2-3-defer-await-把等待推进真正用到的分支"><a href="#2-3-defer-await-把等待推进真正用到的分支" class="headerlink" title="2.3 defer await 把等待推进真正用到的分支"></a>2.3 defer await 把等待推进真正用到的分支</h3><p>另一条容易忽视的规则：<code>await</code> 应该出现在<strong>用到结果的分支里</strong>，而不是函数开头。比如权限校验，如果 <code>resource</code> 不存在就直接返回 404，那 <code>fetchPermissions</code> 这次请求就完全不该发生。把 await 后移，走「资源不存在」快路径的请求一次网络开销都不用付。同理，<code>flag &amp;&amp; cheapCondition</code> 这种组合条件，先判本地的 <code>cheapCondition</code>，为 false 就压根不去 await 远端的 flag。</p><h3 id="2-4-Suspense-让骨架先上屏"><a href="#2-4-Suspense-让骨架先上屏" class="headerlink" title="2.4 Suspense 让骨架先上屏"></a>2.4 Suspense 让骨架先上屏</h3><p>页面级组件里 <code>await</code> 一把梭，整个布局都会被这次取数拖住。官方建议把取数下沉到子组件、外层包 <code>Suspense</code>：</p><figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Page</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Sidebar</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Suspense</span> <span class="attr">fallback</span>=<span class="string">&#123;</span>&lt;<span class="attr">Skeleton</span> /&gt;</span>&#125;&gt;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">DataDisplay</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">Suspense</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Footer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">DataDisplay</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> data = <span class="keyword">await</span> <span class="title function_">fetchData</span>() <span class="comment">// 只阻塞这一块</span></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;data.content&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><code>Sidebar</code> 和 <code>Footer</code> 立即上屏，数据流式补进中间区域。注意清单里也写明了不适用场景：影响布局定位的关键数据、首屏 <code>SEO</code> 内容、以及快到不值得付出布局抖动代价的小请求。关于 <code>Suspense</code> 与并发渲染的底层机制，可以搭配我之前写的 <a href="https://blog.poetries.top/react-18-concurrency/">React 18 并发机制详解</a> 一起看。</p><h2 id="三、包体积-一行import偷走你200-800ms"><a href="#三、包体积-一行import偷走你200-800ms" class="headerlink" title="三、包体积 一行import偷走你200-800ms"></a>三、包体积 一行import偷走你200-800ms</h2><p><code>bundle-</code> 类里最触目惊心的是 <strong>barrel import</strong> 这条。所谓 barrel 文件就是库入口那个 <code>export * from ...</code> 的 <code>index.js</code>，流行的图标库、组件库入口动辄上万个 re-export：</p><figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Check</span>, X, <span class="title class_">Menu</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;lucide-react&#x27;</span></span><br><span class="line"><span class="comment">// 实际加载 1583 个模块，dev 慢 ~2.8s，冷启动多付 200-800ms</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Button</span>, <span class="title class_">TextField</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@mui/material&#x27;</span></span><br><span class="line"><span class="comment">// 实际加载 2225 个模块</span></span><br></pre></td></tr></table></figure><p>你以为 tree-shaking 会救你，但清单里点破了：库被标为 external 时打包器根本不做优化；要 tree-shake 就得全量分析模块图，build 时间又爆了。解法有两个：<code>Next.js 13.5+</code> 直接靠内置的 <code>optimizePackageImports</code>，代码不用改；其他项目走子路径直连 <code>import Button from &#39;@mui/material/Button&#39;</code>。官方给的收益是 dev 启动快 15-70%、构建快 28%、冷启动快 40%。受影响的常见库包括 <code>lucide-react</code>、<code>react-icons</code>、<code>lodash</code>、<code>date-fns</code>、<code>rxjs</code> 等——检查一下你的项目，大概率中招。</p><p><img src="https://s.poetries.top/uploads/2026/07/dc067536d01636d1.jpg" alt="barrel import 一行拖进 1583 个模块浪费 200-800ms，直连导入只加载所需、更快冷启动"></p><p>这一类还有三条高价值规则，逻辑一以贯之——<strong>首包只留首屏必需的东西</strong>：</p><ul><li><strong>重组件动态加载</strong>：<code>Monaco</code>、图表库这种 300KB 起步的大件用 <code>next/dynamic</code> 按需拉，直接改善 <code>TTI</code> 和 <code>LCP</code></li><li><strong>第三方库延后</strong>：analytics、错误上报不阻塞交互，<code>ssr: false</code> 等 hydration 完了再加载</li><li><strong>按用户意图预加载</strong>：按钮 <code>onMouseEnter</code> &#x2F; <code>onFocus</code> 时 <code>void import(&#39;./monaco-editor&#39;)</code>，等用户真点开时模块已经在缓存里，体感零延迟</li></ul><p>另外注意动态导入要保持<strong>路径静态可分析</strong>：<code>import(SOME_MAP[key])</code> 这种写法打包器猜不出范围，只能把可能的文件全打进来；改成显式的 <code>&#123; home: () =&gt; import(&#39;./pages/home&#39;) &#125;</code> 映射表，产物立刻收窄。</p><h2 id="四、服务端性能-RSC时代的新坑"><a href="#四、服务端性能-RSC时代的新坑" class="headerlink" title="四、服务端性能 RSC时代的新坑"></a>四、服务端性能 RSC时代的新坑</h2><p><code>server-</code> 类 10 条规则里有三条是 <code>Next.js App Router</code> 项目几乎必踩的坑。</p><p><strong>第一坑：Server Action 忘了鉴权。</strong> <code>&quot;use server&quot;</code> 函数会被编译成公开 endpoint，middleware 和页面级守卫拦不住直接调用。所以每个 action 内部都必须自带 <code>verifySession()</code> + 权限校验，这条被标为 CRITICAL——它不是性能问题，是安全事故。</p><p><strong>第二坑：模块级变量存请求数据。</strong> 服务端并发渲染时模块作用域是进程共享的，<code>let currentUser = null</code> 这种写法会让 A 用户的数据串到 B 用户的响应里。请求级数据一律走 props 或 <code>React.cache()</code>，模块级只放不可变的静态资源。</p><p><strong>第三坑：RSC 边界序列化超载。</strong> Server&#x2F;Client 边界上所有 props 都会被序列化进 <code>HTML</code>，50 个字段的 <code>user</code> 对象只用一个 <code>name</code> 也全量传输。清单的建议是只传用到的字段，并且<strong>不要在服务端做 <code>.filter()</code> &#x2F; <code>.toSorted()</code> 再和原数组一起传</strong>——序列化按引用去重，新引用意味着同一份数据传两遍。</p><p>取数方面还有两条组合拳值得记住。<code>React.cache()</code> 做请求内去重（数据库查询、鉴权这类非 fetch 的异步操作收益最大，<code>fetch</code> 本身 <code>Next.js</code> 已自动去重）；跨请求就上 <code>LRU</code> 缓存。嵌套取数则要把依赖链塞进每个 item 自己的 promise 里：</p><figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 反例：一个慢 chat 卡住全部 author 请求</span></span><br><span class="line"><span class="keyword">const</span> chats = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(chatIds.<span class="title function_">map</span>(<span class="function"><span class="params">id</span> =&gt;</span> <span class="title function_">getChat</span>(id)))</span><br><span class="line"><span class="keyword">const</span> authors = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(chats.<span class="title function_">map</span>(<span class="function"><span class="params">c</span> =&gt;</span> <span class="title function_">getUser</span>(c.<span class="property">author</span>)))</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正解：每个 item 独立成链，互不阻塞</span></span><br><span class="line"><span class="keyword">const</span> authors = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(</span><br><span class="line">  chatIds.<span class="title function_">map</span>(<span class="function"><span class="params">id</span> =&gt;</span> <span class="title function_">getChat</span>(id).<span class="title function_">then</span>(<span class="function"><span class="params">chat</span> =&gt;</span> <span class="title function_">getUser</span>(chat.<span class="property">author</span>)))</span><br><span class="line">)</span><br></pre></td></tr></table></figure><p>最后是 <code>after()</code>：日志、埋点、通知这类副作用放进 <code>after(() =&gt; ...)</code>，响应先发出去，副作用在后台跑。这些能力在 <code>Next.js 15</code> 之后已经稳定，相关背景我在 <a href="https://blog.poetries.top/nextjs-15-performance-react-apps/">Next.js 15 如何让 React 应用更快</a> 里写过。</p><h2 id="五、re-render优化-一半的useMemo本该删掉"><a href="#五、re-render优化-一半的useMemo本该删掉" class="headerlink" title="五、re-render优化 一半的useMemo本该删掉"></a>五、re-render优化 一半的useMemo本该删掉</h2><p>到了大家最熟的领域，清单反而在泼冷水。15 条 <code>rerender-</code> 规则里，我认为最值得内化的是这四条。</p><p><strong>第一条：能推导就别存状态。</strong> <code>fullName</code> 能从 <code>firstName + lastName</code> 算出来，就直接在 render 里算，不要 <code>useState</code> + <code>useEffect</code> 同步——那会多一轮渲染还容易状态漂移。这条对应 <code>React</code> 官方文档著名的《You Might Not Need an Effect》。</p><p><strong>第二条：简单表达式别包 useMemo。</strong> 这是清单里少见的「反 memo」规则：</p><figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 反例：hook 调用 + 依赖比较的开销超过表达式本身</span></span><br><span class="line"><span class="keyword">const</span> isLoading = <span class="title function_">useMemo</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> user.<span class="property">isLoading</span> || notifications.<span class="property">isLoading</span></span><br><span class="line">&#125;, [user.<span class="property">isLoading</span>, notifications.<span class="property">isLoading</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正解：直接算</span></span><br><span class="line"><span class="keyword">const</span> isLoading = user.<span class="property">isLoading</span> || notifications.<span class="property">isLoading</span></span><br></pre></td></tr></table></figure><p><code>useMemo</code> 本身有依赖数组比较的成本，包一个布尔运算纯属倒贴。<strong>memo 的对象应该是真正昂贵的计算，而不是所有计算。</strong></p><p><strong>第三条：绝不在组件内定义组件。</strong> 每次父组件 render 都会产生一个新的组件类型，<code>React</code> 视为不同组件直接<strong>整棵重挂载</strong>——输入框失焦、动画重放、<code>useEffect</code> 反复执行，全是它的症状。想少传 props 不是理由，老老实实把子组件提到模块顶层。</p><p><strong>第四条：functional setState 换稳定回调。</strong> <code>setItems([...items, newItem])</code> 迫使 <code>useCallback</code> 依赖 <code>items</code>，回调随状态一起重建；写成 <code>setItems(curr =&gt; [...curr, newItem])</code> 后依赖数组清空，回调终身稳定，还顺手消灭了 stale closure。</p><p>其余规则可以归成一句话：<strong>高频瞬时值用 <code>useRef</code>（鼠标坐标、interval 句柄），非紧急更新用 <code>startTransition</code> &#x2F; <code>useDeferredValue</code>，交互逻辑放事件处理器而不是 effect。</strong> 值得注意的是清单在多处标注：如果项目开了 <code>React Compiler</code>，手动 <code>memo</code> &#x2F; <code>useMemo</code> 大部分可以不写了——这也是 <a href="https://blog.poetries.top/react-19-new-features/">React 19 新特性</a> 之后官方一直在推的方向。</p><h2 id="六、渲染与JS微优化-速查表"><a href="#六、渲染与JS微优化-速查表" class="headerlink" title="六、渲染与JS微优化 速查表"></a>六、渲染与JS微优化 速查表</h2><p><code>rendering-</code> 和 <code>js-</code> 两类偏「知道就能用」，我整理成速查表：</p><table><thead><tr><th>规则</th><th>一句话要点</th></tr></thead><tbody><tr><td><code>content-visibility</code></td><td>长列表项加 <code>content-visibility: auto</code>，千条消息跳过 990 条的布局绘制</td></tr><tr><td>条件渲染用三元</td><td><code>&#123;count &amp;&amp; &lt;Badge /&gt;&#125;</code> 在 count&#x3D;0 时会渲染出字符 <code>0</code>，用 <code>count &gt; 0 ? ... : null</code></td></tr><tr><td>脚本加 defer&#x2F;async</td><td><code>Next.js</code> 里用 <code>next/script</code> 的 <code>strategy</code>，别裸写阻塞渲染的 script 标签</td></tr><tr><td>资源提示 API</td><td><code>preconnect</code> &#x2F; <code>preload</code> &#x2F; <code>preinit</code> 在 <code>RSC</code> 里提前建连、拉字体</td></tr><tr><td>主题防闪烁</td><td>依赖 localStorage 的 UI 用内联同步脚本在 hydration 前改 DOM，既不炸 SSR 也不闪默认值</td></tr><tr><td>动画包一层 div</td><td>很多浏览器对 <code>SVG</code> 元素的 CSS 动画不走硬件加速，动外层 div</td></tr><tr><td>布局抖动</td><td>读写分离：批量写样式再统一读 <code>getBoundingClientRect</code>，避免强制同步回流</td></tr><tr><td>重复查找上 Map</td><td>双千级数组的 <code>.find()</code> 嵌套是百万次操作，先建 <code>Map</code> 降到两千次</td></tr><tr><td><code>toSorted()</code> 代替 <code>sort()</code></td><td><code>sort()</code> 原地修改会污染 props&#x2F;state，<code>React</code> 下是隐性 bug 源</td></tr><tr><td>min&#x2F;max 别排序</td><td>单次遍历 O(n) 就够，<code>sort</code> 是 O(n log n) 纯浪费</td></tr><tr><td>非关键任务闲时跑</td><td>埋点、预取塞进 <code>requestIdleCallback</code>，别挤占交互主线程</td></tr></tbody></table><p>这一类单条收益不大，但它们经常出现在 code review 和面试里，属于「便宜的好习惯」。</p><h2 id="七、把这份清单接进AI编码工作流"><a href="#七、把这份清单接进AI编码工作流" class="headerlink" title="七、把这份清单接进AI编码工作流"></a>七、把这份清单接进AI编码工作流</h2><p>这份规则从第一天起就是给 <code>AI</code> 用的——官方在文档开头写明「mainly for agents and LLMs」。落地方式很简单：</p><ol><li><strong>装成 skill</strong>：<code>Claude Code</code> &#x2F; <code>Codex</code> 等工具把 <code>vercel-react-best-practices</code> 装进 skills 目录，写 <code>React</code> 代码时自动按规则生成，review 时按规则挑错</li><li><strong>人读薄版</strong>：<code>SKILL.md</code> 是 70 条规则的一句话索引，通读只要十分钟；<code>AGENTS.md</code> 是带完整代码对比的全量版，适合按需精读</li><li><strong>按优先级还债</strong>：存量项目先查瀑布流（搜索连续 <code>await</code>）、再跑 bundle analyzer 查 barrel import 和大依赖，最后才轮到组件层的 memo 整治</li></ol><p>我的实际体验是：把 skill 装上之后，<code>AI</code> 生成的取数代码默认就是「先启动 promise 再统一 await」的形态，比事后人肉 review 省力得多。</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Vercel 这份 React 性能优化清单最大的贡献是把「优化什么」变成了一个有明确优先级的工程问题：</p><ul><li><strong>CRITICAL</strong>：消灭请求瀑布流（<code>Promise.all</code>、defer await、<code>Suspense</code> 流式）、砍首包体积（barrel import、动态加载），这两类动辄 2-10 倍收益</li><li><strong>HIGH</strong>：服务端注意 Server Action 鉴权、模块状态隔离、<code>RSC</code> 序列化最小化，<code>React.cache</code> + <code>LRU</code> 做两级去重</li><li><strong>MEDIUM</strong>：re-render 优化讲究姿势——派生值直接算、简单表达式不 memo、组件不嵌套定义、setState 用函数式</li><li><strong>LOW</strong>：<code>JS</code> 微优化当习惯养，别当主战场</li></ul><p>如果你只有半小时，读完本文第二、三节并检查自己项目里的串行 <code>await</code> 和 barrel import，就能拿走这份清单 80% 的收益；全量精读 <code>AGENTS.md</code> 大约需要两小时。</p><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul><li><a href="https://github.com/vercel/react-best-practices">vercel&#x2F;react-best-practices - GitHub</a></li><li><a href="https://vercel.com/blog/how-we-optimized-package-imports-in-next-js">How we optimized package imports in Next.js - Vercel Blog</a></li><li><a href="https://vercel.com/blog/how-we-made-the-vercel-dashboard-twice-as-fast">How we made the Vercel Dashboard twice as fast - Vercel Blog</a></li><li><a href="https://react.dev/learn/you-might-not-need-an-effect">You Might Not Need an Effect - React 官方文档</a></li><li><a href="https://react.dev/reference/react/cache">React.cache - React 官方文档</a></li><li><a href="https://react.dev/reference/react/useDeferredValue">useDeferredValue - React 官方文档</a></li><li><a href="https://nextjs.org/docs/app/api-reference/functions/after">after - Next.js 官方文档</a></li></ul>]]>
+    </content>
+    <id>http://blog.poetries.top/2026/07/26/vercel-react-best-practices/</id>
+    <link href="http://blog.poetries.top/2026/07/26/vercel-react-best-practices/"/>
+    <published>2026-07-26T07:42:18.000Z</published>
+    <summary>Vercel工程团队开源了一份写给AI与工程师的React/Next.js性能优化清单，70条规则按影响力排序。本文按ROI精讲最值钱的部分——消灭请求瀑布流、砍包体积、服务端并行取数，并解释为什么useMemo只排在中游。综述+代码解读。</summary>
+    <title>useMemo救不了你的React性能-精读Vercel官方性能优化70条军规</title>
+    <updated>2026-07-27T01:52:49.692Z</updated>
+  </entry>
   <entry>
     <author>
       <name>Poetry</name>
@@ -30,7 +48,7 @@
     <published>2026-07-08T11:05:20.000Z</published>
     <summary>一份不改手机 Wi-Fi 代理、直接用 WireGuard 隧道把 iPhone 全流量引到 Mac 上的 mitmproxy 透明代理抓 HTTPS 明文的完整实战。覆盖 Mac 装 wireguard-tools 与 mitmproxy、生成双端密钥、qrencode 扫码导入手机、pf 做 NAT 与 80/443 重定向、透明模式为何必须 sudo、iOS 装 mitmproxy CA 并在关于本机开启完全信任，以及 App 抓不到明文时的 SSL Pinning 排查清单。</summary>
     <title>WireGuard + mitmproxy 全局抓 iOS App HTTPS 明文实战从隧道到证书一次打通</title>
-    <updated>2026-07-08T12:54:46.400Z</updated>
+    <updated>2026-07-27T01:52:49.698Z</updated>
   </entry>
   <entry>
     <author>
@@ -51,7 +69,7 @@
     <published>2026-07-07T13:55:12.000Z</published>
     <summary>一份 Charles + iOS 真机 HTTPS 抓包的完整踩坑实录。从关闭 VPN、Charles 代理端口配置、Help 里的安装移动端证书入口，到 iPhone 设置 Wi-Fi 代理、chls.pro/ssl 下载证书、安装描述文件、关于本机开启证书信任设置，一步一图讲清每个环节，并附常见连不上、证书灰、看不到明文的排查清单。</summary>
     <title>Charles 抓包 iOS 真机 HTTPS 全流程实战从代理到证书信任一次讲透</title>
-    <updated>2026-07-08T12:54:46.363Z</updated>
+    <updated>2026-07-27T01:52:49.654Z</updated>
   </entry>
   <entry>
     <author>
@@ -73,7 +91,7 @@
     <published>2026-05-31T02:32:40.000Z</published>
     <summary>一份 iOS + Android 真机 WebView 调试的踩坑实录。iOS 侧讲透 16.4 起 WKWebView isInspectable 默认关闭、react-native-webview 的 webviewDebuggingEnabled 与 __DEV__ 陷阱、设备端网页检查器开关、Safari 开发菜单；Android 侧用 chrome://inspect 完整走一遍真机连接、设备列表、inspect 进 DevTools 的全流程，附两端差异对照、Release 包临时开调安全红线，以及 TradingView 这类 file:// 本地内容的调试技巧。</summary>
     <title>真机调试 WebView 看不到 iOS Safari 与 Android Chrome 远程调试完整指南</title>
-    <updated>2026-07-08T12:54:46.400Z</updated>
+    <updated>2026-07-27T01:52:49.698Z</updated>
   </entry>
   <entry>
     <author>
@@ -91,7 +109,7 @@
     <published>2026-05-30T08:20:36.000Z</published>
     <summary>一份React Native高频行情列表的性能实战。从主线程51%与JS线程36%双饱和的真机trace出发，拆解四个永不停的CPU黑洞，给出按需订阅、per-symbol精准订阅、FlashList渲染稳定性、心跳边沿侦测四刀解法的完整脱敏代码，配实时入站帧率与GC监控面板。</summary>
     <title>WebSocket高频行情渲染不卡顿-React Native解决手机发热掉帧与内存暴涨</title>
-    <updated>2026-07-08T12:54:46.389Z</updated>
+    <updated>2026-07-27T01:52:49.684Z</updated>
   </entry>
   <entry>
     <author>
@@ -109,7 +127,7 @@
     <published>2026-05-30T07:10:24.000Z</published>
     <summary>一份可落地的React Native真机性能定位手册。覆盖Xcode Instruments打Release包Profile、Hermes火焰图、pymobiledevice3命令行长稳采集、Android adb gfxinfo/meminfo/thermal一键脚本，以及App内置内存与GC监控面板的完整脱敏代码，配前后对比验收阈值。</summary>
     <title>React Native真机性能调优实战-iOS与安卓从打Release包到定位卡顿发热</title>
-    <updated>2026-07-08T12:54:46.389Z</updated>
+    <updated>2026-07-27T01:52:49.684Z</updated>
   </entry>
   <entry>
     <author>
@@ -129,7 +147,7 @@
     <published>2026-05-23T08:30:12.000Z</published>
     <summary>基于 NativeWind v4 在 React Native 客户端中实现暗色主题切换的完整工程化方案，覆盖 CSS 变量管道、JS Theme 对象、零闪烁启动与 AsyncStorage 持久化，含可直接复用的源码。</summary>
     <title>NativeWind v4 主题切换实战 双通道架构告别闪烁与延迟</title>
-    <updated>2026-07-08T12:54:46.384Z</updated>
+    <updated>2026-07-27T01:52:49.678Z</updated>
   </entry>
   <entry>
     <author>
@@ -149,7 +167,7 @@
     <published>2026-05-18T03:00:00.000Z</published>
     <summary>一篇文章讲透 Claude Code 配 OpenSpec 的 SDD 工作流，proposal/design/tasks 怎么写、何时必走、和 superpowers/gstack 怎么分工，配套从零到 archive 的完整实战。</summary>
     <title>Claude Code 加 OpenSpec 让 AI 编程从临场发挥进化到工程化交付</title>
-    <updated>2026-07-08T12:54:46.363Z</updated>
+    <updated>2026-07-27T01:52:49.654Z</updated>
   </entry>
   <entry>
     <author>
@@ -169,7 +187,7 @@
     <published>2026-05-18T01:30:00.000Z</published>
     <summary>深度解构 Claude Code 的核心架构与治理机制，覆盖 SubAgent、Skills、Hooks、Permission、MCP、CLAUDE.md 等模块，给出从个人到团队的工程化落地路线图。</summary>
     <title>重新认识 Claude Code 架构治理与团队工程化实战全景</title>
-    <updated>2026-07-08T12:54:46.363Z</updated>
+    <updated>2026-07-27T01:52:49.654Z</updated>
   </entry>
   <entry>
     <author>
@@ -189,7 +207,7 @@
     <published>2026-05-17T06:30:00.000Z</published>
     <summary>用一份自建 MCP Server 把禅道 bug 流程接入 Claude / Cursor / Codex，含从 0 到 1 的分步实施、最小可用代码、Token 缓存与多形态 bug 列表回退、截图落档及本地归档 SKILL。</summary>
     <title>AI Agent 直连禅道 bug 平台的完整链路实战</title>
-    <updated>2026-07-08T12:54:46.362Z</updated>
+    <updated>2026-07-27T01:52:49.652Z</updated>
   </entry>
   <entry>
     <author>
@@ -207,7 +225,7 @@
     <published>2026-03-08T01:00:00.000Z</published>
     <summary>很多人装了满满一堆Skills，却觉得OpenClaw还是&quot;傻白甜&quot;。其实决定AI智商的，不是插件有多少，而是这几个藏在系统底层的配置文件。</summary>
     <title>搞懂这7个配置文件让你的OpenClaw变智能助手</title>
-    <updated>2026-07-08T12:54:46.386Z</updated>
+    <updated>2026-07-27T01:52:49.681Z</updated>
   </entry>
   <entry>
     <author>
@@ -225,7 +243,7 @@
     <published>2026-03-07T07:40:10.000Z</published>
     <summary>从Skills安装到自定义开发，手把手教你为前端开发场景构建AI助手技能矩阵，包含React/Vue/UI设计/性能优化等实用Skills及来源地址</summary>
     <title>OpenClaw Skills 进阶实战：前端开发者的AI技能库搭建指南</title>
-    <updated>2026-07-08T12:54:46.387Z</updated>
+    <updated>2026-07-27T01:52:49.681Z</updated>
   </entry>
   <entry>
     <author>
@@ -247,7 +265,7 @@
     <published>2026-03-04T08:30:00.000Z</published>
     <summary>详细讲解如何在本地和云服务器上搭建OpenClaw AI助手平台，集成MiniMax M2.1模型，并配置飞书、Telegram、Discord多渠道接入，实现24小时帮你干活的虚拟AI团队。</summary>
     <title>OpenClaw搭建24小时帮你干活的AI员工,支持本地/云服务并打通飞书/Telegram/Discord</title>
-    <updated>2026-07-08T12:54:46.386Z</updated>
+    <updated>2026-07-27T01:52:49.681Z</updated>
   </entry>
   <entry>
     <author>
@@ -269,7 +287,7 @@
     <published>2026-03-02T13:20:00.000Z</published>
     <summary>详解如何使用Claude Code配合MinMax大模型和Figma MCP实现设计稿到代码的高精度自动还原，大幅提升前端开发效率</summary>
     <title>基于Claude Code + MinMax + Figma MCP高精度还原设计稿</title>
-    <updated>2026-07-08T12:54:46.363Z</updated>
+    <updated>2026-07-27T01:52:49.654Z</updated>
   </entry>
   <entry>
     <author>
@@ -289,7 +307,7 @@
     <published>2026-02-23T12:20:00.000Z</published>
     <summary>深入解析 Claude Skills 的核心原理、渐进披露架构和最佳实践，手把手教你创建自定义技能，实现从临时提示词到可复用资产的升级。</summary>
     <title>Claude Skills 如何将提示词升级为可复用技能</title>
-    <updated>2026-07-08T12:54:46.363Z</updated>
+    <updated>2026-07-27T01:52:49.654Z</updated>
   </entry>
   <entry>
     <author>
@@ -308,7 +326,7 @@
     <published>2026-02-10T06:40:12.000Z</published>
     <summary>总结 React Native 中加载本地 Web 静态资源的完整方案，包括 Next.js 打包配置、RN 集成步骤、通信机制实现等核心内容。</summary>
     <title>React Native + Web 本地文件加载方案与踩坑总结</title>
-    <updated>2026-07-08T12:54:46.389Z</updated>
+    <updated>2026-07-27T01:52:49.684Z</updated>
   </entry>
   <entry>
     <author>
@@ -328,7 +346,7 @@
     <published>2026-02-09T09:30:00.000Z</published>
     <summary>详细讲解如何在Next.js项目中接入TradingView Charts，包括环境配置、数据馈送实现、自定义指标、主题定制、性能优化等完整流程。</summary>
     <title>在Next.js中接入TradingView图表实践总结</title>
-    <updated>2026-07-08T12:54:46.385Z</updated>
+    <updated>2026-07-27T01:52:49.679Z</updated>
   </entry>
   <entry>
     <author>
@@ -348,7 +366,7 @@
     <published>2026-01-15T06:40:12.000Z</published>
     <summary>详解如何使用GitHub Actions自动化构建Docker镜像并推送到腾讯云私有仓库，从零开始搭建CI/CD流水线，实现代码提交自动部署。</summary>
     <title>把手把手带你基于Github Actions构建docker镜像部署到腾讯云私有仓库</title>
-    <updated>2026-07-08T12:54:46.368Z</updated>
+    <updated>2026-07-27T01:52:49.661Z</updated>
   </entry>
   <entry>
     <author>
@@ -367,7 +385,7 @@
       <![CDATA[<p>最近在公司接手了一个React Native项目，打开代码的那一刻我整个人都不好了。上千行的StyleSheet，命名从<code>container1</code>到<code>container27</code>，找个样式比找对象还难。更要命的是，改个颜色要翻三个文件，]]>
     </summary>
     <title>告别样式混乱-用Tailwind CSS重塑React Native开发效率</title>
-    <updated>2026-07-08T12:54:46.394Z</updated>
+    <updated>2026-07-27T01:52:49.690Z</updated>
   </entry>
   <entry>
     <author>
@@ -383,22 +401,6 @@
     <published>2025-12-05T01:10:51.000Z</published>
     <summary>Bun 被 Anthropic 收购，深化 AI 编码工具链性能。Bun 作为高性能 JavaScript 运行时，助力 Claude Code 等 AI 编码场景提速，保持 MIT 开源协议，推动 Node.js 兼容、极速包管理和构建体验。分析收购原因、团队愿景及对 JS 生态的积极影响，为前端开发与 AI 工具演进提供新范式。</summary>
     <title>Bun 被 Anthropic 收购,AI 编码时代的 JS 运行时新故事</title>
-    <updated>2026-07-08T12:54:46.363Z</updated>
-  </entry>
-  <entry>
-    <author>
-      <name>Poetry</name>
-    </author>
-    <category term="Front-End" scheme="http://blog.poetries.top/categories/Front-End/"/>
-    <category term="Nextjs" scheme="http://blog.poetries.top/tags/Nextjs/"/>
-    <content>
-      <![CDATA[<h1 id="Next-js-1516-用户必看-官方发布严重安全漏洞修复-务必立即升级"><a href="#Next-js-1516-用户必看-官方发布严重安全漏洞修复-务必立即升级" class="headerlink" title="Next.js 1516 用户必看:官方发布严重安全漏洞修复,务必立即升级"></a>Next.js 1516 用户必看:官方发布严重安全漏洞修复,务必立即升级</h1><p><strong>漏洞编号</strong>: CVE-2025-66478 (Next.js) | CVE-2025-55182 (React)<strong>严重级别</strong>: CVSS 最高风险等级 10.0<strong>影响范围</strong>: Next.js 15.x、16.x 及部分 14.x canary 版本</p><p>React 官方与 Next.js 团队刚刚发布紧急安全通告:React Server Components (RSC) 协议存在严重漏洞,允许未经认证的攻击者通过构造恶意请求在服务器端执行任意代码。使用 App Router 的 Next.js 应用受到直接影响。官方已发布修复版本,<strong>建议所有受影响用户尽快升级</strong>。</p><hr><h2 id="一、哪些项目受影响"><a href="#一、哪些项目受影响" class="headerlink" title="一、哪些项目受影响?"></a>一、哪些项目受影响?</h2><h3 id="✅-受影响范围"><a href="#✅-受影响范围" class="headerlink" title="✅ 受影响范围"></a>✅ 受影响范围</h3><p>如果你的项目同时满足以下条件,<strong>建议尽快升级</strong>:</p><p>使用 Next.js 的 <strong>App Router</strong>(不是 Pages Router),且版本在 15.0.0 ~ 15.0.4、15.1.0 ~ 15.1.8、15.2.0 ~ 15.2.5、15.3.0 ~ 15.3.5、15.4.0 ~ 15.4.7、15.5.0 ~ 15.5.6、16.0.0 ~ 16.0.6,或 14.3.0-canary.77 及以上 canary 版本。</p><h3 id="❌-不受影响"><a href="#❌-不受影响" class="headerlink" title="❌ 不受影响"></a>❌ 不受影响</h3><p>以下情况不受此漏洞影响:</p><p>Next.js 13.x 版本、14.x 稳定版,或使用 Pages Router 的项目,以及运行在 Edge Runtime 的应用。</p><hr><h2 id="二、漏洞有多严重"><a href="#二、漏洞有多严重" class="headerlink" title="二、漏洞有多严重?"></a>二、漏洞有多严重?</h2><p>这个漏洞被评为 <strong>CVSS 最高风险等级 10.0</strong>。攻击者无需任何认证,仅通过网络就能向你的服务器发送特殊构造的 HTTP 请求,触发 React Server Components 在反序列化过程中的缺陷,从而在服务器上执行任意代码。</p><p><strong>具体风险</strong>:</p><p>攻击者可以在你的服务器上运行任意代码,读取环境变量、配置文件、数据库凭证等敏感信息。更严重的情况下,还可能接管整个服务器资源。</p><p>即使你的应用没有明确定义 Server Function 端点,启用了 RSC 支持就可能受到攻击。官方暂未公开更详细的技术细节,以保护未升级用户。</p><hr><h2 id="三、如何修复"><a href="#三、如何修复" class="headerlink" title="三、如何修复?"></a>三、如何修复?</h2><h3 id="方案一-升级到修复版本-推荐"><a href="#方案一-升级到修复版本-推荐" class="headerlink" title="方案一:升级到修复版本(推荐)"></a>方案一:升级到修复版本(推荐)</h3><p>根据你当前使用的 Next.js 版本,执行对应的升级命令:</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Next.js 15.0.x 用户</span><br><span class="line">npm install next@15.0.5</span><br><span class="line"></span><br><span class="line"># Next.js 15.1.x 用户</span><br><span class="line">npm install next@15.1.9</span><br><span class="line"></span><br><span class="line"># Next.js 15.2.x 用户</span><br><span class="line">npm install next@15.2.6</span><br><span class="line"></span><br><span class="line"># Next.js 15.3.x 用户</span><br><span class="line">npm install next@15.3.6</span><br><span class="line"></span><br><span class="line"># Next.js 15.4.x 用户</span><br><span class="line">npm install next@15.4.8</span><br><span class="line"></span><br><span class="line"># Next.js 15.5.x 用户</span><br><span class="line">npm install next@15.5.7</span><br><span class="line"></span><br><span class="line"># Next.js 16.0.x 用户</span><br><span class="line">npm install next@16.0.7</span><br></pre></td></tr></table></figure><h3 id="方案二-14-3-canary-用户降级"><a href="#方案二-14-3-canary-用户降级" class="headerlink" title="方案二:14.3 canary 用户降级"></a>方案二:14.3 canary 用户降级</h3><p>如果你在使用 <strong>14.3.0-canary.77 或更高的 canary 版本</strong>,请降级到最新的 14.x 稳定版:</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install next@14</span><br></pre></td></tr></table></figure><h3 id="升级后验证"><a href="#升级后验证" class="headerlink" title="升级后验证"></a>升级后验证</h3><p>升级完成后,建议执行以下检查:</p><p><strong>确认版本</strong>: 运行 <code>npm ls next</code> 或查看 <code>package.json</code>;<strong>运行测试</strong>: 确保应用功能正常;<strong>检查 CI&#x2F;CD</strong>: 更新锁文件 (<code>package-lock.json</code> &#x2F; <code>yarn.lock</code> &#x2F; <code>pnpm-lock.yaml</code>);<strong>清理缓存</strong>: 删除 <code>.next</code> 目录并重新构建。</p><hr><h2 id="四、生产环境自查清单"><a href="#四、生产环境自查清单" class="headerlink" title="四、生产环境自查清单"></a>四、生产环境自查清单</h2><p>如果你负责多个项目或团队基础设施,可以按照以下清单逐一排查:</p><p>确认所有生产项目的 Next.js 版本 → 识别使用 App Router 的项目(Pages Router 不受影响)→ 执行升级并更新依赖锁文件 → 在预发布环境测试修复版本 → 部署到生产环境 → 检查监控和日志,确认无异常请求。</p><p><strong>特别提示</strong>: 即使托管服务商(如 Vercel)已经部署临时 WAF 规则来缓解攻击,官方仍强烈建议升级,不要依赖临时防护措施。</p><hr><h2 id="五、关于上游漏洞-React"><a href="#五、关于上游漏洞-React" class="headerlink" title="五、关于上游漏洞 (React)"></a>五、关于上游漏洞 (React)</h2><p>此漏洞源于 React Server Components 的底层实现(CVE-2025-55182)。如果你直接使用 React 19 并启用了 RSC,也需要升级对应的 React 包:</p><p><strong>React 修复版本</strong>: 19.0.1、19.1.2、19.2.1</p><p>受影响的包括 <code>react-server-dom-webpack</code>、<code>react-server-dom-parcel</code> 和 <code>react-server-dom-turbopack</code>。</p><p>其他集成 RSC 的框架(如 React Router、Waku、Redwood SDK)也可能受影响,请查阅各自社区的安全通告。</p><hr><h2 id="六、致谢与参考"><a href="#六、致谢与参考" class="headerlink" title="六、致谢与参考"></a>六、致谢与参考</h2><p>感谢安全研究员 <strong>Lachlan Davidson</strong> 发现并负责任地披露了这个漏洞。</p><p><strong>官方公告</strong>:</p><p><a href="https://github.com/vercel/next.js/security/advisories">Next.js 安全通告 - CVE-2025-66478</a><a href="https://react.dev/blog/2025/12/03/critical-security-vulnerability-react-server-components-20251203">React 安全通告 - CVE-2025-55182</a></p><p><strong>时间线</strong>:</p><p>2025年12月3日,官方发布安全通告与修复版本;12月4日,国内社区开始传播升级提醒。</p><hr><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这是一个影响广泛的漏洞。如果你的生产环境正在使用 Next.js 15&#x2F;16 的 App Router,建议尽快完成升级。漏洞可被未认证攻击者远程利用,拖延升级会让服务器暴露在风险之下。</p><p>升级过程通常只需几分钟,但能避免可能的重大安全风险。</p><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul><li><a href="https://nextjs.org/blog/CVE-2025-66478">原文出处</a></li></ul>]]>
-    </content>
-    <id>http://blog.poetries.top/2025/12/04/nextjs-CVE-2025-66478/</id>
-    <link href="http://blog.poetries.top/2025/12/04/nextjs-CVE-2025-66478/"/>
-    <published>2025-12-04T01:10:51.000Z</published>
-    <summary>Next.js 存在严重 RSC 远程代码执行高危漏洞 (CVE-2025-66478)，官方已紧急发布修复，建议 Next.js 15/16 及部分 14.x canary 用户立即升级；漏洞威胁服务器安全，影响所有开启 App Router 的项目。</summary>
-    <title>Next.js 15/16 用户必看 官方发布严重安全漏洞修复,务必立即升级</title>
-    <updated>2026-07-08T12:54:46.385Z</updated>
+    <updated>2026-07-27T01:52:49.653Z</updated>
   </entry>
 </feed>
