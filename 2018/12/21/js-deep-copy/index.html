@@ -7,29 +7,30 @@
 <head>
   <meta charset="utf-8">
   
-  <title>JavaScript深浅拷贝 | 前端进阶之旅</title>
+  <title>JavaScript深浅拷贝原理与手写实现 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,深浅拷贝," />
+    <meta name="keywords" content="JavaScript,深浅拷贝,structuredClone," />
   
 
-  <meta name="description" content="一、前言 在js中，变量的类型可以大致分成两种：基本数据类型和引用数据类型，其中基本数据类型指的是简单的数据段，包括：   undefined Null Boolean Number String(字符串在一些其他语言中是被当做对象使用的，属于引用类型，但在js里是基本类型)   而引用类型的值指的是可能包含多个值的对象。本质上，是因为基本数据类型保存在栈内存,而引用类型保存在堆内存中。为什么要分">
+  <meta name="description" content="从栈内存与堆内存的差别讲起，理清赋值、浅拷贝、深拷贝三者的界线，梳理常见浅拷贝 API 的边界，手写深拷贝怎么处理循环引用与 Date&#x2F;RegExp&#x2F;Map&#x2F;Set，以及 structuredClone 该怎么选。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JavaScript深浅拷贝">
+<meta property="og:title" content="JavaScript深浅拷贝原理与手写实现">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/21/js-deep-copy/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、前言 在js中，变量的类型可以大致分成两种：基本数据类型和引用数据类型，其中基本数据类型指的是简单的数据段，包括：   undefined Null Boolean Number String(字符串在一些其他语言中是被当做对象使用的，属于引用类型，但在js里是基本类型)   而引用类型的值指的是可能包含多个值的对象。本质上，是因为基本数据类型保存在栈内存,而引用类型保存在堆内存中。为什么要分">
+<meta property="og:description" content="从栈内存与堆内存的差别讲起，理清赋值、浅拷贝、深拷贝三者的界线，梳理常见浅拷贝 API 的边界，手写深拷贝怎么处理循环引用与 Date&#x2F;RegExp&#x2F;Map&#x2F;Set，以及 structuredClone 该怎么选。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/314.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/314.png">
 <meta property="article:published_time" content="2018-12-21T10:08:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.674Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.942Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="深浅拷贝">
+<meta property="article:tag" content="structuredClone">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/314.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/314.png">
 
   
 
@@ -207,7 +208,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-text">一、前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B5%85%E6%8B%B7%E8%B4%9D"><span class="toc-text">二、浅拷贝</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B7%B1%E6%8B%B7%E8%B4%9D"><span class="toc-text">三、深拷贝</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8A%8A%E6%A0%88%E5%92%8C%E5%A0%86%E5%88%86%E6%B8%85%E6%A5%9A"><span class="toc-text">一、先把栈和堆分清楚</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%B5%8B%E5%80%BC%E6%A0%B9%E6%9C%AC%E4%B8%8D%E6%98%AF%E6%8B%B7%E8%B4%9D"><span class="toc-text">二、赋值根本不是拷贝</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B5%85%E6%8B%B7%E8%B4%9D%E5%8F%AA%E7%AE%A1%E7%AC%AC%E4%B8%80%E5%B1%82"><span class="toc-text">三、浅拷贝只管第一层</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%89%8B%E5%86%99%E4%B8%80%E4%B8%AA"><span class="toc-text">3.1 手写一个</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Object-assign"><span class="toc-text">3.2 Object.assign</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-lodash-%E7%9A%84-clone"><span class="toc-text">3.3 lodash 的 clone</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%95%B0%E7%BB%84%E7%9A%84-concat-%E5%92%8C-slice"><span class="toc-text">3.4 数组的 concat 和 slice</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-ES6-%E5%B1%95%E5%BC%80%E8%BF%90%E7%AE%97%E7%AC%A6"><span class="toc-text">3.5 ES6 展开运算符</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%B7%B1%E6%8B%B7%E8%B4%9D%E7%9A%84%E5%87%A0%E7%A7%8D%E7%8E%B0%E6%88%90%E6%96%B9%E6%A1%88"><span class="toc-text">四、深拷贝的几种现成方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-JSON-parse-JSON-stringify-obj"><span class="toc-text">4.1 JSON.parse(JSON.stringify(obj))</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-lodash-%E7%9A%84-cloneDeep"><span class="toc-text">4.2 lodash 的 cloneDeep</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-jQuery-%E7%9A%84-clone-%E5%92%8C-extend"><span class="toc-text">4.3 jQuery 的 clone 和 extend</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%89%8B%E5%86%99%E4%B8%80%E4%B8%AA%E6%B7%B1%E6%8B%B7%E8%B4%9D"><span class="toc-text">五、手写一个深拷贝</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%BE%AA%E7%8E%AF%E5%BC%95%E7%94%A8%E4%BC%9A%E6%8A%8A%E6%A0%88%E6%92%91%E7%88%86"><span class="toc-text">5.1 循环引用会把栈撑爆</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%89%B9%E6%AE%8A%E7%B1%BB%E5%9E%8B%E8%A6%81%E5%8D%95%E7%8B%AC%E5%A4%84%E7%90%86"><span class="toc-text">5.2 特殊类型要单独处理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81structuredClone-%E5%B7%B2%E7%BB%8F%E6%98%AF%E5%86%85%E7%BD%AE%E7%9A%84%E4%BA%86"><span class="toc-text">六、structuredClone 已经是内置的了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%AE%9E%E9%99%85%E9%A1%B9%E7%9B%AE%E9%87%8C%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-text">七、实际项目里怎么选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -230,13 +231,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-js-deep-copy" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">JavaScript深浅拷贝</h1>
+    <h1 class="post-title">JavaScript深浅拷贝原理与手写实现</h1>
 
     <div class="article-meta">
       <span>
@@ -272,12 +273,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 728字</span>
+            <span>字数统计 3.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -291,67 +292,169 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><blockquote>
-<p>在<code>js</code>中，变量的类型可以大致分成两种：基本数据类型和引用数据类型，其中基本数据类型指的是简单的数据段，包括：</p>
-</blockquote>
+        <p>改一个表单的时候踩过这么一次。表单初始值存了一份 <code>initialForm</code>，用户编辑的是 <code>form</code>，点重置的时候把 <code>initialForm</code> 赋回去。结果测试提了个 bug，说重置按钮第二次点就没用了。排查了一下午才发现，<code>form = initialForm</code> 这行根本没复制任何东西，两个变量指的是同一个对象，用户一改 <code>form</code>，<code>initialForm</code> 跟着一起改了。</p>
+<p>这类问题的根子在于，JS 里的赋值、浅拷贝、深拷贝是三件不同的事，但写起来长得很像。这篇把三者的界线画清楚，再把手写深拷贝里最容易漏掉的循环引用和特殊类型补上。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>undefined</code></li>
-<li><code>Null</code></li>
-<li><code>Boolean</code></li>
-<li><code>Number</code></li>
-<li><code>String</code>(字符串在一些其他语言中是被当做对象使用的，属于引用类型，但在<code>js</code>里是基本类型)</li>
+<li>基本类型和引用类型在内存里的存放差别</li>
+<li>赋值为什么不算拷贝</li>
+<li>浅拷贝的四种常见写法，以及它们各自的边界</li>
+<li><code>JSON.parse(JSON.stringify())</code> 到底丢了什么</li>
+<li>手写深拷贝的完整版，含循环引用处理</li>
+<li><code>Date</code>、<code>RegExp</code>、<code>Map</code>、<code>Set</code>、<code>Symbol</code> 这些特殊类型怎么办</li>
+<li>浏览器和 Node 内置的 <code>structuredClone</code></li>
+<li>实际项目里该怎么选</li>
 </ul>
-<blockquote>
-<p>而引用类型的值指的是可能包含多个值的对象。本质上，是因为基本数据类型保存在栈内存,而引用类型保存在堆内存中。为什么要分两种保存方式呢？ 根本原因在于保存在栈内存的必须是大小固定的数据，引用类型的大小不固定，只能保存在堆内存中，但是我们可以把它的地址写在占内存中以供我们访问</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a = <span class="number">1</span>;<span class="comment">//定义了一个number类型</span></span><br><span class="line"><span class="keyword">var</span> obj1 = &#123;<span class="comment">//定义了一个objr类型</span></span><br><span class="line">    <span class="attr">name</span>:<span class="string">&#x27;obj&#x27;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="一、先把栈和堆分清楚"><a href="#一、先把栈和堆分清楚" class="headerlink" title="一、先把栈和堆分清楚"></a>一、先把栈和堆分清楚</h2><p>在 JS 里变量的类型可以大致分成两种，基本数据类型和引用数据类型。基本数据类型指的是简单的数据段，包括 <code>undefined</code>、<code>Null</code>、<code>Boolean</code>、<code>Number</code>、<code>String</code>。字符串在一些其他语言里是被当做对象使用的，属于引用类型，但在 JS 里它是基本类型。</p>
+<p>而引用类型的值指的是可能包含多个值的对象。这两类值的差别，是因为基本数据类型保存在栈内存，引用类型保存在堆内存中。</p>
+<p>为什么要分两种保存方式呢？根本原因在于，保存在栈内存里的必须是大小固定的数据。引用类型的大小不固定，一个对象可以随时加属性、一个数组可以随时 push，只能放到堆里，然后把它在堆里的地址写在栈内存中以供访问。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a = <span class="number">1</span>;<span class="comment">//定义了一个number类型</span></span><br><span class="line"><span class="keyword">var</span> obj1 = &#123;<span class="comment">//定义了一个object类型</span></span><br><span class="line">    <span class="attr">name</span>:<span class="string">&#x27;obj&#x27;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在执行这段代码后，内存空间里是这样的</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/314.png"></p>
-<blockquote>
-<p>因为这种保存方式的存在，所以我们在操作变量的时候，如果是基本数据类型，则按值访问，操作的就是变量保存的值；如果是引用类型的值，我们只是通过保存在变量中的引用类型的地址类操作实际对象。从而也引出了所谓的深浅复制问题</p>
-</blockquote>
-<h2 id="二、浅拷贝"><a href="#二、浅拷贝" class="headerlink" title="二、浅拷贝"></a>二、浅拷贝</h2><p><strong>方法一</strong></p>
+<p>执行这段代码之后，内存空间里大概是这样的。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/314.png" alt="栈内存保存基本类型的值和引用类型的地址，堆内存保存对象实体"></p>
+<p>因为这种保存方式的存在，我们在操作变量的时候，如果是基本数据类型，就是按值访问，操作的就是变量保存的值。如果是引用类型的值，我们只是通过保存在变量中的地址去操作实际对象。</p>
+<p>所谓的深浅拷贝问题，全部是从这张图里长出来的。</p>
+<h2 id="二、赋值根本不是拷贝"><a href="#二、赋值根本不是拷贝" class="headerlink" title="二、赋值根本不是拷贝"></a>二、赋值根本不是拷贝</h2><p>回到开头那个表单的例子。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> initialForm = &#123; <span class="attr">name</span>: <span class="string">&#x27;poetry&#x27;</span>, <span class="attr">tags</span>: [<span class="string">&#x27;前端&#x27;</span>] &#125;;</span><br><span class="line"><span class="keyword">const</span> form = initialForm;</span><br><span class="line"></span><br><span class="line">form.<span class="property">name</span> = <span class="string">&#x27;changed&#x27;</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(initialForm.<span class="property">name</span>); <span class="comment">// &#x27;changed&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>form = initialForm</code> 这行做的事情，是把栈里那个地址复制了一份。堆里的对象只有一个，两个变量指着同一个门牌号。所以改哪个都一样。</p>
+<p>基本类型就不会有这个问题：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">let</span> b = a;</span><br><span class="line">b = <span class="number">2</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(a); <span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
+
+<p>因为栈里存的就是值本身，复制的是值，两份互不相干。</p>
+<p>分清这一点之后再看拷贝就简单了。拷贝要解决的问题是「我想要一个新的堆对象，内容和原来一样，但改它不影响原来那个」。按「复制多深」分成两档，只复制第一层的叫浅拷贝，一路递归下去的叫深拷贝。</p>
+<h2 id="三、浅拷贝只管第一层"><a href="#三、浅拷贝只管第一层" class="headerlink" title="三、浅拷贝只管第一层"></a>三、浅拷贝只管第一层</h2><h3 id="3-1-手写一个"><a href="#3-1-手写一个" class="headerlink" title="3.1 手写一个"></a>3.1 手写一个</h3><p>先看最原始的写法，理解浅拷贝到底做了什么。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 假设有两个对象</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> objA = &#123;</span><br><span class="line">  <span class="attr">a</span>: <span class="string">&#x27;aa&#x27;</span>,</span><br><span class="line">  <span class="attr">b</span>: <span class="string">&#x27;bb&#x27;</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">var</span> objB = &#123;&#125;;</span><br></pre></td></tr></table></figure>
 
+<p>现在想把对象 A 的值复制给 B。由于对象 A 的两个值都是原始类型，用浅拷贝就够了。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 现在想把对象A的值复制给B，由于对象A的两个值都是原始类型，用浅复制即可</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">copy</span>(<span class="params">sub, sup</span>) &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> key <span class="keyword">in</span> sup) &#123;</span><br><span class="line">    sub[key] = sup[key];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">copy</span>(objB, objA);</span><br></pre></td></tr></table></figure>
 
-<p><strong>方法二</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Object.assign() (兼容性不好)</span><br></pre></td></tr></table></figure>
+<p>这里有个坑要注意，<code>for...in</code> 会连原型链上可枚举的属性一起遍历出来。如果你给 <code>Object.prototype</code> 挂过东西（或者用了某些老库），拷出来的对象会多出你没预料到的键。稳妥一点的写法是加一道 <code>hasOwnProperty</code> 过滤。</p>
+<p>关于属性的可枚举性到底由什么控制，可以看 <code>Object.defineProperty</code> 里的 <code>enumerable</code> 描述符，那篇讲得更细。</p>
+<h3 id="3-2-Object-assign"><a href="#3-2-Object-assign" class="headerlink" title="3.2 Object.assign"></a>3.2 Object.assign</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Object.assign() (兼容性不好)</span><br></pre></td></tr></table></figure>
 
-<p><strong>方法三</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_.clone()</span><br></pre></td></tr></table></figure>
+<p>原文这里写「兼容性不好」，那是 2018 年的判断，当时还要照顾 IE。现在主流浏览器和 Node 都支持它，直接用就行。</p>
+<p>它有两个容易忽略的行为。一是它会触发目标对象的 setter，也会读取源对象的 getter（拿到的是 getter 的返回值，不是 getter 本身）。二是它只拷贝自身的可枚举属性，包括 <code>Symbol</code> 键，但不拷贝原型链。</p>
+<h3 id="3-3-lodash-的-clone"><a href="#3-3-lodash-的-clone" class="headerlink" title="3.3 lodash 的 clone"></a>3.3 lodash 的 clone</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">_.clone()</span><br></pre></td></tr></table></figure>
 
-<p><strong>方法四</strong></p>
-<blockquote>
-<p>数组中<code>concat</code>和<code>slice</code>方法</p>
-</blockquote>
-<p><strong>方法五</strong></p>
-<blockquote>
-<p>ES6展开运算</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [&#123;<span class="attr">name</span>:<span class="string">&#x27;poetries&#x27;</span>,<span class="attr">age</span>:<span class="number">22</span>&#125;]</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> target = [...arr]</span><br></pre></td></tr></table></figure>
+<p><code>_.clone()</code> 是浅拷贝，<code>_.cloneDeep()</code> 才是深拷贝，别记混了。</p>
+<h3 id="3-4-数组的-concat-和-slice"><a href="#3-4-数组的-concat-和-slice" class="headerlink" title="3.4 数组的 concat 和 slice"></a>3.4 数组的 concat 和 slice</h3><p>数组中 <code>concat</code> 和 <code>slice</code> 方法都返回新数组，也都是浅拷贝。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> arr = [&#123; <span class="attr">name</span>: <span class="string">&#x27;poetries&#x27;</span> &#125;];</span><br><span class="line"><span class="keyword">const</span> copy1 = arr.<span class="title function_">concat</span>();</span><br><span class="line"><span class="keyword">const</span> copy2 = arr.<span class="title function_">slice</span>();</span><br><span class="line"></span><br><span class="line">copy1[<span class="number">0</span>].<span class="property">name</span> = <span class="string">&#x27;changed&#x27;</span>;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(arr[<span class="number">0</span>].<span class="property">name</span>); <span class="comment">// &#x27;changed&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="三、深拷贝"><a href="#三、深拷贝" class="headerlink" title="三、深拷贝"></a>三、深拷贝</h2><blockquote>
-<p>简单来说深复制就是当遇到值是对象类型的时候就再运行一遍复制</p>
-</blockquote>
-<p><strong>方法一 JSON.parse(JSON.stringify(obj))</strong></p>
-<blockquote>
-<p>简单粗暴又有点<code>dirty</code>，但是能满足日常需求，只能处理<code>json</code>能理解的数据格式，当然不包括函数了，性能也没有特别好</p>
-</blockquote>
-<p><strong>方法二 lodash —— _.cloneDeep()</strong></p>
-<blockquote>
-<p>很好地兼容了ES6的新引用类型，而且处理了环型对象的情况</p>
-</blockquote>
-<p><strong>方法三 jQuery —— $.clone() &#x2F; $.extend()</strong></p>
-<blockquote>
-<p>源码适合初学者学习，比较好理解</p>
-</blockquote>
-<p><strong>方法四 自己实现一个</strong></p>
+<p>新数组是新的，但里面装的对象还是原来那几个。这一点在处理接口返回的列表数据时最容易翻车，你以为 <code>slice()</code> 了一份就安全了，改一改发现源数据也变了。</p>
+<h3 id="3-5-ES6-展开运算符"><a href="#3-5-ES6-展开运算符" class="headerlink" title="3.5 ES6 展开运算符"></a>3.5 ES6 展开运算符</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> arr = [&#123;<span class="attr">name</span>:<span class="string">&#x27;poetries&#x27;</span>,<span class="attr">age</span>:<span class="number">22</span>&#125;]</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> target = [...arr]</span><br></pre></td></tr></table></figure>
+
+<p>展开运算符和 <code>Object.assign</code> 的行为接近，也是浅的。有一处差别，展开运算符是直接定义新属性，不会触发目标对象上已有的 setter；<code>Object.assign</code> 会。大部分场景下感知不到，但如果你在往一个带 setter 的响应式对象上合并数据，这个差别就是 bug 的来源。</p>
+<h2 id="四、深拷贝的几种现成方案"><a href="#四、深拷贝的几种现成方案" class="headerlink" title="四、深拷贝的几种现成方案"></a>四、深拷贝的几种现成方案</h2><p>简单来说，深复制就是当遇到值是对象类型的时候，就再运行一遍复制。</p>
+<h3 id="4-1-JSON-parse-JSON-stringify-obj"><a href="#4-1-JSON-parse-JSON-stringify-obj" class="headerlink" title="4.1 JSON.parse(JSON.stringify(obj))"></a>4.1 JSON.parse(JSON.stringify(obj))</h3><p>简单粗暴又有点 dirty，但是能满足日常需求。它只能处理 JSON 能理解的数据格式，性能也没有特别好。</p>
+<p>具体丢了什么，值得单独列一下，因为这几条几乎是面试必问：</p>
+<table>
+<thead>
+<tr>
+<th>原值</th>
+<th>序列化后</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>undefined</code></td>
+<td>对象属性被整个丢掉，数组元素变 <code>null</code></td>
+</tr>
+<tr>
+<td>函数</td>
+<td>同上，被丢掉</td>
+</tr>
+<tr>
+<td><code>Symbol</code> 值 &#x2F; <code>Symbol</code> 键</td>
+<td>被丢掉</td>
+</tr>
+<tr>
+<td><code>Date</code></td>
+<td>变成 ISO 字符串，不再是 Date 对象</td>
+</tr>
+<tr>
+<td><code>RegExp</code></td>
+<td>变成空对象 <code>&#123;&#125;</code></td>
+</tr>
+<tr>
+<td><code>Map</code> &#x2F; <code>Set</code></td>
+<td>变成空对象 <code>&#123;&#125;</code></td>
+</tr>
+<tr>
+<td><code>NaN</code> &#x2F; <code>Infinity</code></td>
+<td>变成 <code>null</code></td>
+</tr>
+<tr>
+<td>循环引用</td>
+<td>直接抛 <code>TypeError</code></td>
+</tr>
+<tr>
+<td><code>BigInt</code></td>
+<td>直接抛 <code>TypeError</code></td>
+</tr>
+</tbody></table>
+<p>还有一条更隐蔽的，如果对象上定义了 <code>toJSON</code> 方法，<code>JSON.stringify</code> 会用它的返回值。<code>Date</code> 变成字符串正是因为这个。</p>
+<p>我自己的感受是，这个方案适合拷贝纯数据的接口响应，不适合拷贝任何带行为的对象。</p>
+<h3 id="4-2-lodash-的-cloneDeep"><a href="#4-2-lodash-的-cloneDeep" class="headerlink" title="4.2 lodash 的 cloneDeep"></a>4.2 lodash 的 cloneDeep</h3><p><code>_.cloneDeep()</code> 很好地兼容了 ES6 的新引用类型，而且处理了环型对象（循环引用）的情况。项目里已经装了 lodash 的话，这是最省事的选择。</p>
+<h3 id="4-3-jQuery-的-clone-和-extend"><a href="#4-3-jQuery-的-clone-和-extend" class="headerlink" title="4.3 jQuery 的 clone 和 extend"></a>4.3 jQuery 的 clone 和 extend</h3><p><code>$.clone()</code> &#x2F; <code>$.extend(true, &#123;&#125;, obj)</code> 这套源码适合初学者学习，比较好理解。放在今天新项目里当然不会为了拷贝对象去引 jQuery，但它的实现思路值得读一遍。</p>
+<h2 id="五、手写一个深拷贝"><a href="#五、手写一个深拷贝" class="headerlink" title="五、手写一个深拷贝"></a>五、手写一个深拷贝</h2><p>面试里真正要考的是这一段。先看原文给的版本：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">deepCopy</span> (<span class="params">obj</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> result;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//引用类型分数组和对象分别递归</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">toString</span>.<span class="title function_">call</span>(obj) == <span class="string">&#x27;[object Array]&#x27;</span>) &#123;</span><br><span class="line">      result = []</span><br><span class="line">      <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; obj.<span class="property">length</span>; i++) &#123;</span><br><span class="line">        result[i] = <span class="title function_">deepCopy</span>(obj[i])</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">toString</span>.<span class="title function_">call</span>(obj) == <span class="string">&#x27;[object Object]&#x27;</span>) &#123;</span><br><span class="line">      result = &#123;&#125;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">var</span> attr <span class="keyword">in</span> obj) &#123;</span><br><span class="line">        result[attr] = <span class="title function_">deepCopy</span>(obj[attr])</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//值类型直接返回</span></span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> obj</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>思路是对的，用 <code>Object.prototype.toString.call</code> 判断类型比 <code>typeof</code> 精确，数组和对象分别递归，基本类型直接返回。</p>
+<p>不过这版有几个问题。<code>for (i = 0; ...)</code> 里的 <code>i</code> 少写了 <code>var</code>，非严格模式下会变成隐式全局变量，递归的时候还会互相覆盖，这是原文的一处笔误，实际用的时候要补上。这类隐式全局变量也是内存泄漏的典型来源，可以看看 <a href="https://feinterview.poetries.top/blog/js-memory-leak">JS内存泄漏与垃圾回收机制完全梳理</a>。</p>
+<p>更要命的是它处理不了循环引用。</p>
+<h3 id="5-1-循环引用会把栈撑爆"><a href="#5-1-循环引用会把栈撑爆" class="headerlink" title="5.1 循环引用会把栈撑爆"></a>5.1 循环引用会把栈撑爆</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> a = &#123; <span class="attr">name</span>: <span class="string">&#x27;a&#x27;</span> &#125;;</span><br><span class="line">a.<span class="property">self</span> = a;</span><br><span class="line"></span><br><span class="line"><span class="title function_">deepCopy</span>(a); <span class="comment">// RangeError: Maximum call stack size exceeded</span></span><br></pre></td></tr></table></figure>
+
+<p><code>a.self</code> 指回 <code>a</code> 自己，递归永远到不了底。解决办法是拿一张表记住「这个对象我已经拷过了，拷出来的是哪一个」，再遇到就直接返回记录里的那份。</p>
+<p>用 <code>WeakMap</code> 存这张表最合适，它的键是弱引用，拷贝函数跑完之后表里的对象不会因为被这张表引用着而无法回收。关于弱引用集合的具体行为，<a href="https://feinterview.poetries.top/blog/es6-set-weakSet-map-weakMap">Set WeakSet Map WeakMap 梳理</a> 里有更完整的说明。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">deepClone</span>(<span class="params">source, cache = <span class="keyword">new</span> <span class="built_in">WeakMap</span>()</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (source === <span class="literal">null</span> || <span class="keyword">typeof</span> source !== <span class="string">&#x27;object&#x27;</span>) <span class="keyword">return</span> source;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 命中缓存说明这个对象在本次拷贝中已经出现过，直接返回上次的结果</span></span><br><span class="line">  <span class="keyword">if</span> (cache.<span class="title function_">has</span>(source)) <span class="keyword">return</span> cache.<span class="title function_">get</span>(source);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> target = <span class="title class_">Array</span>.<span class="title function_">isArray</span>(source) ? [] : &#123;&#125;;</span><br><span class="line">  cache.<span class="title function_">set</span>(source, target);</span><br><span class="line"></span><br><span class="line">  <span class="title class_">Object</span>.<span class="title function_">keys</span>(source).<span class="title function_">forEach</span>(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;</span><br><span class="line">    target[key] = <span class="title function_">deepClone</span>(source[key], cache);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> target;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关键在于 <code>cache.set(source, target)</code> 这行的位置，它必须写在递归之前。先登记再递归，环绕回来的时候才能命中缓存。写在后面就等于没写。</p>
+<h3 id="5-2-特殊类型要单独处理"><a href="#5-2-特殊类型要单独处理" class="headerlink" title="5.2 特殊类型要单独处理"></a>5.2 特殊类型要单独处理</h3><p>上面那版还是只认对象和数组。真实数据里经常混着 <code>Date</code>、<code>RegExp</code>、<code>Map</code>、<code>Set</code>，一律当普通对象遍历的话，拷出来的是一个属性全空的壳。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">cloneSpecial</span>(<span class="params">source</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> tag = <span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">toString</span>.<span class="title function_">call</span>(source);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (tag === <span class="string">&#x27;[object Date]&#x27;</span>) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Date</span>(source.<span class="title function_">getTime</span>());</span><br><span class="line">  <span class="keyword">if</span> (tag === <span class="string">&#x27;[object RegExp]&#x27;</span>) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RegExp</span>(source.<span class="property">source</span>, source.<span class="property">flags</span>);</span><br><span class="line">  <span class="keyword">if</span> (tag === <span class="string">&#x27;[object Error]&#x27;</span>) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Error</span>(source.<span class="property">message</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span>; <span class="comment">// 交给通用逻辑</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Map</code> 和 <code>Set</code> 要连里面的键值一起递归：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (source <span class="keyword">instanceof</span> <span class="title class_">Map</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> target = <span class="keyword">new</span> <span class="title class_">Map</span>();</span><br><span class="line">  cache.<span class="title function_">set</span>(source, target);</span><br><span class="line">  source.<span class="title function_">forEach</span>(<span class="function">(<span class="params">v, k</span>) =&gt;</span> target.<span class="title function_">set</span>(k, <span class="title function_">deepClone</span>(v, cache)));</span><br><span class="line">  <span class="keyword">return</span> target;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (source <span class="keyword">instanceof</span> <span class="title class_">Set</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> target = <span class="keyword">new</span> <span class="title class_">Set</span>();</span><br><span class="line">  cache.<span class="title function_">set</span>(source, target);</span><br><span class="line">  source.<span class="title function_">forEach</span>(<span class="function">(<span class="params">v</span>) =&gt;</span> target.<span class="title function_">add</span>(<span class="title function_">deepClone</span>(v, cache)));</span><br><span class="line">  <span class="keyword">return</span> target;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有两块常被漏掉。一是 <code>Symbol</code> 作为键的属性，<code>Object.keys</code> 拿不到，得用 <code>Reflect.ownKeys(source)</code> 才能连 <code>Symbol</code> 键一起遍历。二是原型，如果你想让拷贝出来的对象还是原来那个 class 的实例，得用 <code>Object.create(Object.getPrototypeOf(source))</code> 建目标对象，而不是直接写 <code>&#123;&#125;</code>。</p>
+<p>至于函数，一般不拷贝，直接返回原引用就行。函数是无状态的，共享一份没什么问题，真要「拷贝」也拷不出等价的闭包。</p>
+<p>说实话我自己写的深拷贝也很少做到面面俱到，项目里遇到复杂结构还是直接上 <code>_.cloneDeep</code>。手写这套的意义更多在于知道边界在哪，出问题的时候知道往哪儿看。</p>
+<h2 id="六、structuredClone-已经是内置的了"><a href="#六、structuredClone-已经是内置的了" class="headerlink" title="六、structuredClone 已经是内置的了"></a>六、structuredClone 已经是内置的了</h2><p>原文写于 2018 年，那时候只能自己写或者引库。现在浏览器和 Node 都内置了结构化克隆算法的入口 <code>structuredClone</code>，Node 从 17 开始也在全局暴露了它。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> source = &#123; <span class="attr">d</span>: <span class="keyword">new</span> <span class="title class_">Date</span>(), <span class="attr">m</span>: <span class="keyword">new</span> <span class="title class_">Map</span>([[<span class="string">&#x27;k&#x27;</span>, <span class="number">1</span>]]), <span class="attr">arr</span>: [<span class="number">1</span>, <span class="number">2</span>] &#125;;</span><br><span class="line">source.<span class="property">self</span> = source; <span class="comment">// 循环引用</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> copy = <span class="title function_">structuredClone</span>(source);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(copy.<span class="property">d</span> <span class="keyword">instanceof</span> <span class="title class_">Date</span>); <span class="comment">// true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(copy.<span class="property">self</span> === copy); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>一行搞定循环引用、<code>Date</code>、<code>RegExp</code>、<code>Map</code>、<code>Set</code>、<code>ArrayBuffer</code>、<code>Blob</code>、<code>File</code>，这个设计是真的舒服。</p>
+<p>但它也有明确的边界，用之前要知道：</p>
+<ul>
+<li>函数拷不了，遇到会抛 <code>DataCloneError</code></li>
+<li><code>Symbol</code> 拷不了，同样抛错</li>
+<li>DOM 节点拷不了</li>
+<li>不保留原型链，class 实例拷完变成普通对象</li>
+<li>不保留属性描述符，getter&#x2F;setter 会被求值成普通数据属性</li>
+</ul>
+<p>所以它替代不了 <code>_.cloneDeep</code>，两者覆盖的场景不完全重合。我的判断是，如果你拷的是纯数据结构（包括 <code>Map</code>、<code>Set</code>、二进制），优先用 <code>structuredClone</code>，零依赖且是引擎原生实现。如果结构里有 class 实例或者需要保留 getter，还是老老实实上 lodash。</p>
+<h2 id="七、实际项目里怎么选"><a href="#七、实际项目里怎么选" class="headerlink" title="七、实际项目里怎么选"></a>七、实际项目里怎么选</h2><p>先说结论，绝大多数场景根本不需要深拷贝。</p>
+<p>React 和 Vue 这类框架推的是不可变更新，你要改的往往只是对象里的一两层，用展开运算符构造一个新对象就够了：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">setForm</span>(<span class="function">(<span class="params">prev</span>) =&gt;</span> (&#123; ...prev, <span class="attr">profile</span>: &#123; ...prev.<span class="property">profile</span>, <span class="attr">name</span>: <span class="string">&#x27;poetry&#x27;</span> &#125; &#125;));</span><br></pre></td></tr></table></figure>
+
+<p>这样只有被改的路径上的对象是新的，其他分支还是原来那些引用。深拷贝会把整棵树都换成新对象，反而让框架的引用比较全部失效，该跳过的重渲染也跳不过去了。</p>
+<p>真的需要整份拷贝的场景，我自己的顺序是这样：</p>
+<ol>
+<li>纯 JSON 数据、不在意 <code>Date</code> 精度，<code>JSON.parse(JSON.stringify())</code> 一行了事</li>
+<li>有 <code>Date</code>&#x2F;<code>Map</code>&#x2F;<code>Set</code>&#x2F;循环引用，用 <code>structuredClone</code></li>
+<li>有 class 实例、getter、<code>Symbol</code> 键，用 <code>_.cloneDeep</code></li>
+<li>上面都不满足，才自己写，并且一定要带 <code>WeakMap</code> 缓存</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>深浅拷贝这题看着简单，考的其实是你脑子里有没有那张栈和堆的图。赋值复制的是栈里的地址，浅拷贝复制的是第一层的值（对象属性还是地址），深拷贝才是把堆里的结构整个复刻一份。</p>
+<p>浅拷贝的几个 API 差别很小但不是没有，<code>Object.assign</code> 会触发 setter、展开运算符不会，这类细节在响应式框架里会放大成真问题。</p>
+<p>手写深拷贝的两个必答点是循环引用和特殊类型。循环引用靠 <code>WeakMap</code> 缓存，缓存的登记动作必须写在递归之前；特殊类型要按 <code>Object.prototype.toString</code> 的 tag 分开处理，<code>Map</code>&#x2F;<code>Set</code> 还得递归内部的键值。</p>
+<p><code>structuredClone</code> 现在是浏览器和 Node 都有的内置能力，能覆盖循环引用和大部分内置类型，但它拷不了函数、<code>Symbol</code> 和原型链。知道这条边界，比记住十种深拷贝写法有用得多。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Workers_API/Structured_clone_algorithm">MDN 结构化克隆算法</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/structuredClone">MDN structuredClone</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/assign">MDN Object.assign</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify">MDN JSON.stringify</a></li>
+<li><a href="https://lodash.com/docs/#cloneDeep">lodash cloneDeep</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

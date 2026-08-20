@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>React之Hooks | 前端进阶之旅</title>
+  <title>React Hooks 详解，useState useEffect useContext 与 useReducer | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="React,Hooks," />
+    <meta name="keywords" content="React,Hooks,useEffect,函数组件," />
   
 
-  <meta name="description" content="一、组件类的缺点 React 的核心是组件。v16.8版本之前，组件的标准写法是类（class）。下面是一个简单的组件类  import React, &#123; Component &#125; from &quot;react&quot;;export default class Button extends Component &#123;  constructor() &#123;">
+  <meta name="description" content="从组件类的痛点讲起，逐个拆解 useState、useContext、useReducer、useEffect 四个核心 Hook 的用法、依赖数组语义、清理函数和竞态处理，并对照今天 React 19 上的实际情况。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="React之Hooks">
+<meta property="og:title" content="React Hooks 详解，useState useEffect useContext 与 useReducer">
 <meta property="og:url" content="http://blog.poetries.top/2019/09/01/react-hooks/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、组件类的缺点 React 的核心是组件。v16.8版本之前，组件的标准写法是类（class）。下面是一个简单的组件类  import React, &#123; Component &#125; from &quot;react&quot;;export default class Button extends Component &#123;  constructor() &#123;">
+<meta property="og:description" content="从组件类的痛点讲起，逐个拆解 useState、useContext、useReducer、useEffect 四个核心 Hook 的用法、依赖数组语义、清理函数和竞态处理，并对照今天 React 19 上的实际情况。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-09-01T08:30:40.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.684Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.949Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="React">
 <meta property="article:tag" content="Hooks">
+<meta property="article:tag" content="useEffect">
+<meta property="article:tag" content="函数组件">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%BB%84%E4%BB%B6%E7%B1%BB%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-text">一、组件类的缺点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Hook-%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-text">二、Hook 的含义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81useState-%EF%BC%9A%E7%8A%B6%E6%80%81%E9%92%A9%E5%AD%90"><span class="toc-text">三、useState()：状态钩子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81useContext-%EF%BC%9A%E5%85%B1%E4%BA%AB%E7%8A%B6%E6%80%81%E9%92%A9%E5%AD%90"><span class="toc-text">四、useContext()：共享状态钩子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81useReducer-%EF%BC%9Aaction-%E9%92%A9%E5%AD%90"><span class="toc-text">五、useReducer()：action 钩子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81useEffect-%EF%BC%9A%E5%89%AF%E4%BD%9C%E7%94%A8%E9%92%A9%E5%AD%90"><span class="toc-text">六、useEffect()：副作用钩子</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%BB%84%E4%BB%B6%E7%B1%BB%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-text">一、组件类的缺点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Hook-%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-text">二、Hook 的含义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81useState-%EF%BC%9A%E7%8A%B6%E6%80%81%E9%92%A9%E5%AD%90"><span class="toc-text">三、useState()：状态钩子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%89%E4%B8%AA%E5%BD%93%E5%B9%B4%E6%B2%A1%E8%AE%B2%E6%B8%85%E6%A5%9A%E7%9A%84%E7%82%B9"><span class="toc-text">3.1 三个当年没讲清楚的点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81useContext-%EF%BC%9A%E5%85%B1%E4%BA%AB%E7%8A%B6%E6%80%81%E9%92%A9%E5%AD%90"><span class="toc-text">四、useContext()：共享状态钩子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81useReducer-%EF%BC%9Aaction-%E9%92%A9%E5%AD%90"><span class="toc-text">五、useReducer()：action 钩子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E4%BB%8E-useState-%E6%8D%A2%E6%88%90-useReducer"><span class="toc-text">5.1 什么时候该从 useState 换成 useReducer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81useEffect-%EF%BC%9A%E5%89%AF%E4%BD%9C%E7%94%A8%E9%92%A9%E5%AD%90"><span class="toc-text">六、useEffect()：副作用钩子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E8%AF%B7%E6%B1%82%E7%AB%9E%E6%80%81"><span class="toc-text">6.1 请求竞态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%8F%AA%E8%AE%A2%E9%98%85%E4%B8%8D%E6%B8%85%E7%90%86"><span class="toc-text">6.2 只订阅不清理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81Hooks-%E7%9A%84%E4%B8%A4%E6%9D%A1%E8%A7%84%E5%88%99"><span class="toc-text">七、Hooks 的两条规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%812019-%E5%88%B0%E7%8E%B0%E5%9C%A8%EF%BC%8C%E8%BF%99%E5%A5%97-API-%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">八、2019 到现在，这套 API 变了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-hooks" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">React之Hooks</h1>
+    <h1 class="post-title">React Hooks 详解，useState useEffect useContext 与 useReducer</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.5k字</span>
+            <span>字数统计 4.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 18分</span>
           </span>
       
       
@@ -289,92 +291,160 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、组件类的缺点"><a href="#一、组件类的缺点" class="headerlink" title="一、组件类的缺点"></a>一、组件类的缺点</h2><blockquote>
-<p><code>React</code> 的核心是组件。<code>v16.8</code>版本之前，组件的标准写法是类（class）。下面是一个简单的组件类</p>
-</blockquote>
+        <p>一个只有「点我」两个字的按钮，用 class 写要多少行？构造函数、<code>super()</code>、初始化 state、绑定 this、定义方法、render 返回，一共六段，实际有效逻辑只有一行。这还只是一个按钮，真实项目里一个页面组件动辄七八个生命周期方法，同一件事的逻辑被拆在 <code>componentDidMount</code> 和 <code>componentWillUnmount</code> 两头。</p>
+<p>Hooks 就是来把这套东西拆掉的。这篇按原文的顺序过一遍四个核心 Hook，每个都补上当年没讲的边界条件，最后单开一节说明 2019 到今天 React 19 之间这套 API 发生了什么变化。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>组件类到底重在哪，Hooks 想解决的是什么问题</li>
+<li><code>useState</code> 的函数式更新、惰性初始化，以及它和 class 里 <code>setState</code> 不合并这个差异</li>
+<li><code>useContext</code> 共享状态的写法，和它带来的重渲染代价</li>
+<li><code>useReducer</code> 什么时候比 <code>useState</code> 划算，它和 Redux 的界限在哪</li>
+<li><code>useEffect</code> 的依赖数组语义、清理函数、以及请求竞态怎么处理</li>
+<li>Hooks 的两条硬规则，以及 React 18&#x2F;19 上的新变化</li>
+</ul>
+<h2 id="一、组件类的缺点"><a href="#一、组件类的缺点" class="headerlink" title="一、组件类的缺点"></a>一、组件类的缺点</h2><p><code>React</code> 的核心是组件。<code>v16.8</code> 版本之前，组件的标准写法是类（class）。下面是一个简单的组件类：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> <span class="title class_">Button</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">super</span>();</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">state</span> = &#123; <span class="attr">buttonText</span>: <span class="string">&quot;Click me, please&quot;</span> &#125;;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">handleClick</span> = <span class="variable language_">this</span>.<span class="property">handleClick</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">handleClick</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123; <span class="attr">buttonText</span>: <span class="string">&quot;Thanks, been clicked!&quot;</span> &#125;;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; buttonText &#125; = <span class="variable language_">this</span>.<span class="property">state</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleClick&#125;</span>&gt;</span>&#123;buttonText&#125;<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这个组件类仅仅是一个按钮，但可以看到，它的代码已经很”重”了。真实的 React App 由多个类按照层级，一层层构成，复杂度成倍增长。再加入 Redux，就变得更复杂</p>
+<p>这个组件类仅仅是一个按钮，但可以看到，它的代码已经很「重」了。真实的 React App 由多个类按照层级一层层构成，复杂度成倍增长。再加入 Redux，就变得更复杂。</p>
+<p>代码量只是表面。真正难受的是两件事。</p>
+<p>一是 <code>this</code> 的指向问题。<code>handleClick</code> 必须在构造函数里 bind，或者写成 class 属性配合箭头函数，忘了就是运行时报 <code>Cannot read property &#39;setState&#39; of undefined</code>。二是逻辑复用没有好办法，高阶组件和 render props 都能做，但代价是组件树里多出一堆没有实际渲染意义的包装层，React DevTools 里翻五层才找到自己的组件。</p>
+<p>还有一个更隐蔽的问题。同一件事的代码会被生命周期强行拆开：订阅写在 <code>componentDidMount</code>，退订写在 <code>componentWillUnmount</code>，中间隔着几百行；而不相干的事情反而被塞在同一个方法里。逻辑按「时机」组织，而不是按「关注点」组织。</p>
 <h2 id="二、Hook-的含义"><a href="#二、Hook-的含义" class="headerlink" title="二、Hook 的含义"></a>二、Hook 的含义</h2><ul>
-<li><code>React Hooks</code> 的意思是，组件尽量写成纯函数，如果需要外部功能和副作用，就用钩子把外部代码”钩”进来。 <code>React Hooks</code> 就是那些钩子。</li>
-<li>你需要什么功能，就使用什么钩子。<code>React</code> 默认提供了一些常用钩子，你也可以封装自己的钩子。</li>
-<li>所有的钩子都是为函数引入外部功能，所以 <code>React</code> 约定，钩子一律使用use前缀命名，便于识别。你要使用 <code>xxx</code> 功能，钩子就命名为 <code>usexxx</code></li>
+<li><code>React Hooks</code> 的意思是，组件尽量写成纯函数，如果需要外部功能和副作用，就用钩子把外部代码「钩」进来。<code>React Hooks</code> 就是那些钩子</li>
+<li>你需要什么功能，就使用什么钩子。<code>React</code> 默认提供了一些常用钩子，你也可以封装自己的钩子</li>
+<li>所有的钩子都是为函数引入外部功能，所以 <code>React</code> 约定，钩子一律使用 use 前缀命名，便于识别。你要使用 <code>xxx</code> 功能，钩子就命名为 <code>usexxx</code></li>
 </ul>
-<p><strong>React 默认提供的四个最常用的钩子</strong></p>
+<p>React 默认提供的四个最常用的钩子：</p>
 <ul>
 <li><code>useState()</code></li>
 <li><code>useContext()</code></li>
 <li><code>useReducer()</code></li>
 <li><code>useEffect()</code></li>
 </ul>
-<h2 id="三、useState-：状态钩子"><a href="#三、useState-：状态钩子" class="headerlink" title="三、useState()：状态钩子"></a>三、useState()：状态钩子</h2><blockquote>
-<p><code>useState()</code>用于为函数组件引入状态（<code>state</code>）。纯函数不能有状态，所以把状态放在钩子里面。</p>
-</blockquote>
-<p>用户点击按钮，会导致按钮的文字改变，文字取决于用户是否点击，这就是状态。使用<code>useState()</code>重写如下</p>
+<p><code>use</code> 前缀不只是命名习惯，它是 ESLint 规则赖以工作的信号。<code>eslint-plugin-react-hooks</code> 靠函数名是不是 <code>use</code> 开头来判断这是不是一个 Hook，进而检查调用位置合不合法。名字写成 <code>getUserState</code> 而不是 <code>useUserState</code>，规则就管不到它了。</p>
+<h2 id="三、useState-：状态钩子"><a href="#三、useState-：状态钩子" class="headerlink" title="三、useState()：状态钩子"></a>三、useState()：状态钩子</h2><p><code>useState()</code> 用于为函数组件引入状态（<code>state</code>）。纯函数不能有状态，所以把状态放在钩子里面。</p>
+<p>用户点击按钮会导致按钮的文字改变，文字取决于用户是否点击，这就是状态。使用 <code>useState()</code> 重写如下：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; useState &#125; <span class="keyword">from</span> <span class="string">&quot;react&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span>  <span class="title function_">Button</span>(<span class="params"></span>)  &#123;</span><br><span class="line">  <span class="keyword">const</span>  [buttonText, setButtonText] =  <span class="title function_">useState</span>(<span class="string">&quot;Click me,   please&quot;</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">function</span> <span class="title function_">handleClick</span>(<span class="params"></span>)  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">setButtonText</span>(<span class="string">&quot;Thanks, been clicked!&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span>  <span class="language-xml"><span class="tag">&lt;<span class="name">button</span>  <span class="attr">onClick</span>=<span class="string">&#123;handleClick&#125;</span>&gt;</span>&#123;buttonText&#125;<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>上面代码中，Button 组件是一个函数，内部使用useState()钩子引入状态。</p>
-<blockquote>
-<p><code>useState()</code>这个函数接受状态的初始值，作为参数，上例的初始值为按钮的文字。该函数返回一个数组，数组的第一个成员是一个变量（上例是<code>buttonText</code>），指向状态的当前值。第二个成员是一个函数，用来更新状态，约定是set前缀加上状态的变量名（上例是<code>setButtonText</code>）</p>
-</blockquote>
-<h2 id="四、useContext-：共享状态钩子"><a href="#四、useContext-：共享状态钩子" class="headerlink" title="四、useContext()：共享状态钩子"></a>四、useContext()：共享状态钩子</h2><ul>
-<li>如果需要在组件之间共享状态，可以使用·useContext()·。</li>
-<li>现在有两个组件 ·Navbar ·和 ·Messages·，我们希望它们之间共享状态</li>
-</ul>
+<p>对比一下上面的 class 版本，构造函数没了，bind 没了，<code>this</code> 没了，六段变成了三行。</p>
+<p><code>useState()</code> 这个函数接受状态的初始值作为参数，上例的初始值为按钮的文字。该函数返回一个数组，第一个成员是一个变量（上例是 <code>buttonText</code>），指向状态的当前值。第二个成员是一个函数，用来更新状态，约定是 set 前缀加上状态的变量名（上例是 <code>setButtonText</code>）。</p>
+<h3 id="3-1-三个当年没讲清楚的点"><a href="#3-1-三个当年没讲清楚的点" class="headerlink" title="3.1 三个当年没讲清楚的点"></a>3.1 三个当年没讲清楚的点</h3><p>第一个是<strong>状态不合并</strong>。class 里的 <code>this.setState(&#123; a: 1 &#125;)</code> 会和已有 state 做浅合并，<code>b</code> 字段还在。<code>useState</code> 的 setter 是整体替换，你写 <code>setUser(&#123; name: &#39;x&#39; &#125;)</code>，原来的 <code>age</code> 就没了。想保留得自己展开：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">setUser</span>(<span class="function"><span class="params">prev</span> =&gt;</span> (&#123; ...prev, <span class="attr">name</span>: <span class="string">&#x27;x&#x27;</span> &#125;))</span><br></pre></td></tr></table></figure>
+
+<p>第二个是<strong>函数式更新</strong>。setter 接受一个函数，参数是上一次的状态值。连续更新同一个状态时必须用这个形式：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 这样写只会加 1，两次拿到的 count 是同一个快照</span></span><br><span class="line"><span class="title function_">setCount</span>(count + <span class="number">1</span>)</span><br><span class="line"><span class="title function_">setCount</span>(count + <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这样写才是加 2</span></span><br><span class="line"><span class="title function_">setCount</span>(<span class="function"><span class="params">c</span> =&gt;</span> c + <span class="number">1</span>)</span><br><span class="line"><span class="title function_">setCount</span>(<span class="function"><span class="params">c</span> =&gt;</span> c + <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>原因是 <code>count</code> 是这次渲染闭包里的一个常量，在这次渲染的整个生命周期内它都不会变。这就是所谓的闭包陷阱，在 <code>setTimeout</code>、事件监听、异步回调里表现得最明显，因为它们捕获的可能是好几次渲染之前的值。</p>
+<p>第三个是<strong>惰性初始化</strong>。<code>useState(expensiveCalc())</code> 里的 <code>expensiveCalc()</code> 每次渲染都会被执行，只是返回值从第二次起被丢掉了。要避免这个浪费，把它包成函数传进去：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [data, setData] = <span class="title function_">useState</span>(<span class="function">() =&gt;</span> <span class="title function_">expensiveCalc</span>())</span><br></pre></td></tr></table></figure>
+
+<p>这三条里，第二条踩的人最多。</p>
+<h2 id="四、useContext-：共享状态钩子"><a href="#四、useContext-：共享状态钩子" class="headerlink" title="四、useContext()：共享状态钩子"></a>四、useContext()：共享状态钩子</h2><p>如果需要在组件之间共享状态，可以使用 <code>useContext()</code>。现在有两个组件 <code>Navbar</code> 和 <code>Messages</code>，我们希望它们之间共享状态：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;App&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Navbar</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Messages</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>第一步就是使用 <code>React Context API</code>，在组件外部建立一个 <code>Context</code>。</p>
-</blockquote>
+<p>第一步是使用 <code>React Context API</code>，在组件外部建立一个 <code>Context</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">AppContext</span> = <span class="title class_">React</span>.<span class="title function_">createContext</span>(&#123;&#125;);</span><br></pre></td></tr></table></figure>
 
-<p>组件封装代码如下。</p>
+<p>组件封装代码如下：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">AppContext.Provider</span> <span class="attr">value</span>=<span class="string">&#123;&#123;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">username:</span> &#x27;<span class="attr">superawesome</span>&#x27;</span></span><br><span class="line"><span class="tag">&#125;&#125;&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;App&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Navbar</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Messages</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">AppContext.Provider</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面代码中，<code>AppContext.Provider</code>提供了一个 <code>Context</code> 对象，这个对象可以被子组件共享。</p>
-</blockquote>
-<p>Navbar 组件的代码如下。</p>
+<p><code>AppContext.Provider</code> 提供了一个 <code>Context</code> 对象，这个对象可以被子组件共享。</p>
+<p>Navbar 组件的代码如下：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">Navbar</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; username &#125; = <span class="title function_">useContext</span>(<span class="title class_">AppContext</span>);</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;navbar&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>AwesomeSite<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;username&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面代码中，<code>useContext()</code>钩子函数用来引入<code> Context</code> 对象，从中获取<code>username</code>属性。</p>
-</blockquote>
-<p>Message 组件的代码也类似。</p>
+<p><code>useContext()</code> 钩子函数用来引入 <code>Context</code> 对象，从中获取 <code>username</code> 属性。</p>
+<p>Message 组件的代码也类似：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">Messages</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; username &#125; = <span class="title function_">useContext</span>(<span class="title class_">AppContext</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;messages&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Messages<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>1 message for &#123;username&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span> <span class="attr">className</span>=<span class="string">&quot;message&quot;</span>&gt;</span>useContext is awesome!<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>上面这段代码有个隐患，<code>value</code> 写的是对象字面量。Provider 所在的组件每次重渲染，这个对象都是新引用，所有消费这个 Context 的组件都会跟着重渲染，哪怕 <code>username</code> 一个字都没变。</p>
+<p>正确的做法是把 value 用 <code>useMemo</code> 稳住：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> value = <span class="title function_">useMemo</span>(<span class="function">() =&gt;</span> (&#123; username &#125;), [username])</span><br></pre></td></tr></table></figure>
+
+<p>还有一个绕不过去的限制。Context 的更新粒度是整个 value 对象，你没法做到「只订阅 value 里的某个字段」。一个大 Context 里塞了用户信息、主题、语言三样东西，改语言会让读用户信息的组件也重渲染。所以实践中的做法是<strong>按变更频率拆分多个 Context</strong>，而不是塞进一个大对象。</p>
+<p>这也是 Zustand、Jotai 这类库存在的理由之一，它们在订阅粒度上比 Context 细得多。</p>
 <h2 id="五、useReducer-：action-钩子"><a href="#五、useReducer-：action-钩子" class="headerlink" title="五、useReducer()：action 钩子"></a>五、useReducer()：action 钩子</h2><ul>
-<li>React 本身不提供状态管理功能，通常需要使用外部库。这方面最常用的库是 Redux。</li>
-<li>Redux 的核心概念是，组件发出 <code>action</code> 与状态管理器通信。状态管理器收到 <code>action </code>以后，使用 <code>Reducer</code> 函数算出新的状态，<code>Reducer</code> 函数的形式是<code>(state, action) =&gt; newState</code>。</li>
-<li><code>useReducers()</code>钩子用来引入 <code>Reducer</code> 功能。</li>
+<li>React 本身不提供状态管理功能，通常需要使用外部库。这方面最常用的库是 Redux</li>
+<li>Redux 的核心概念是，组件发出 <code>action</code> 与状态管理器通信。状态管理器收到 <code>action</code> 以后，使用 <code>Reducer</code> 函数算出新的状态，<code>Reducer</code> 函数的形式是 <code>(state, action) =&gt; newState</code></li>
+<li><code>useReducer()</code> 钩子用来引入 <code>Reducer</code> 功能</li>
 </ul>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> [state, dispatch] = <span class="title function_">useReducer</span>(reducer, initialState);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面是<code>useReducer()</code>的基本用法，它接受<code> Reducer</code> 函数和状态的初始值作为参数，返回一个数组。数组的第一个成员是状态的当前值，第二个成员是发送 <code>action</code> 的<code>dispatch</code>函数。</p>
-</blockquote>
-<p>下面是一个计数器的例子。用于计算状态的 Reducer 函数如下。</p>
+<p>上面是 <code>useReducer()</code> 的基本用法，它接受 <code>Reducer</code> 函数和状态的初始值作为参数，返回一个数组。数组的第一个成员是状态的当前值，第二个成员是发送 <code>action</code> 的 <code>dispatch</code> 函数。</p>
+<p>下面是一个计数器的例子。用于计算状态的 Reducer 函数如下：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">myReducer</span> = (<span class="params">state, action</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">switch</span>(action.<span class="property">type</span>)  &#123;</span><br><span class="line">    <span class="keyword">case</span>(<span class="string">&#x27;countUp&#x27;</span>):</span><br><span class="line">      <span class="keyword">return</span>  &#123;</span><br><span class="line">        ...state,</span><br><span class="line">        <span class="attr">count</span>: state.<span class="property">count</span> + <span class="number">1</span></span><br><span class="line">      &#125;</span><br><span class="line">    <span class="attr">default</span>:</span><br><span class="line">      <span class="keyword">return</span>  state;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">App</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [state, dispatch] = <span class="title function_">useReducer</span>(myReducer, &#123; <span class="attr">count</span>:   <span class="number">0</span> &#125;);</span><br><span class="line">  <span class="keyword">return</span>  (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;App&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> dispatch(&#123; type: &#x27;countUp&#x27; &#125;)&#125;&gt;</span></span><br><span class="line"><span class="language-xml">        +1</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>Count: &#123;state.count&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>由于 Hooks 可以提供共享状态和 Reducer 函数，所以它在这些方面可以取代 Redux。但是，它没法提供中间件（middleware）和时间旅行（time travel），如果你需要这两个功能，还是要用 Redux</p>
-</blockquote>
-<h2 id="六、useEffect-：副作用钩子"><a href="#六、useEffect-：副作用钩子" class="headerlink" title="六、useEffect()：副作用钩子"></a>六、useEffect()：副作用钩子</h2><blockquote>
-<p><code>useEffect()</code>用来引入具有副作用的操作，最常见的就是向服务器请求数据。以前，放在<code>componentDidMount</code>里面的代码，现在可以放在<code>useEffect()</code>。</p>
-</blockquote>
-<p><code>useEffect()</code>的用法如下。</p>
+<p>由于 Hooks 可以提供共享状态和 Reducer 函数，所以它在这些方面可以取代 Redux。但是它没法提供中间件（middleware）和时间旅行（time travel），如果你需要这两个功能，还是要用 Redux。</p>
+<h3 id="5-1-什么时候该从-useState-换成-useReducer"><a href="#5-1-什么时候该从-useState-换成-useReducer" class="headerlink" title="5.1 什么时候该从 useState 换成 useReducer"></a>5.1 什么时候该从 useState 换成 useReducer</h3><p>这个判断我自己有三条经验。</p>
+<p>一是多个状态字段之间有联动关系。比如一个请求组件有 <code>loading</code>、<code>data</code>、<code>error</code> 三个 state，它们的合法组合其实只有三种，用三个 <code>useState</code> 很容易写出「loading 是 true 但 error 也有值」这种不可能状态。reducer 把状态迁移集中在一处，就堵住了这类问题。</p>
+<p>二是更新逻辑本身复杂，同一个动作要改好几个字段。散在各个事件处理函数里改三次 setState，不如发一个 action 让 reducer 一次算完。</p>
+<p>三是需要把更新逻辑单独测试。reducer 是纯函数，输入 state 和 action，输出新 state，不依赖 React，写单测最省事。</p>
+<p>还有一个实际好处，<code>dispatch</code> 的引用是稳定的，跨渲染不变。把它传给深层子组件不会破坏子组件的 memo，也不用套 <code>useCallback</code>。</p>
+<p>原文那句「可以取代 Redux」要加个限定。<code>useReducer</code> 是组件级的，状态还是活在这个组件里，跨组件共享仍然要靠 Context 往下传，而 Context 传状态就会遇到上一节说的重渲染问题。所以 <code>useReducer</code> + Context 这套组合适合中小规模的局部状态，全局状态到了一定复杂度还是得上专门的库。</p>
+<h2 id="六、useEffect-：副作用钩子"><a href="#六、useEffect-：副作用钩子" class="headerlink" title="六、useEffect()：副作用钩子"></a>六、useEffect()：副作用钩子</h2><p><code>useEffect()</code> 用来引入具有副作用的操作，最常见的就是向服务器请求数据。以前放在 <code>componentDidMount</code> 里面的代码，现在可以放在 <code>useEffect()</code>。</p>
+<p><code>useEffect()</code> 的用法如下：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">useEffect</span>(<span class="function">()  =&gt;</span>  &#123;</span><br><span class="line">  <span class="comment">// Async Action</span></span><br><span class="line">&#125;, [dependencies])</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面用法中，<code>useEffect()</code>接受两个参数。第一个参数是一个函数，异步操作的代码放在里面。第二个参数是一个数组，用于给出 Effect 的依赖项，只要这个数组发生变化，<code>useEffect()</code>就会执行。第二个参数可以省略，这时每次组件渲染时，就会执行<code>useEffect()</code>。</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">Person</span> = (<span class="params">&#123; personId &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [loading, setLoading] = <span class="title function_">useState</span>(<span class="literal">true</span>);</span><br><span class="line">  <span class="keyword">const</span> [person, setPerson] = <span class="title function_">useState</span>(&#123;&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">setLoading</span>(<span class="literal">true</span>); </span><br><span class="line">    <span class="title function_">fetch</span>(<span class="string">`https://swapi.co/api/people/<span class="subst">$&#123;personId&#125;</span>/`</span>)</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function"><span class="params">response</span> =&gt;</span> response.<span class="title function_">json</span>())</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="title function_">setPerson</span>(data);</span><br><span class="line">        <span class="title function_">setLoading</span>(<span class="literal">false</span>);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;, [personId])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (loading === <span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>Loading ...<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>You&#x27;re viewing: &#123;person.name&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Height: &#123;person.height&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Mass: &#123;person.mass&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>useEffect()</code> 接受两个参数。第一个参数是一个函数，异步操作的代码放在里面。第二个参数是一个数组，用于给出 Effect 的依赖项，只要这个数组发生变化，<code>useEffect()</code> 就会执行。第二个参数可以省略，这时每次组件渲染时，就会执行 <code>useEffect()</code>。</p>
+<p>这里要把「发生变化」说准确一点：React 会用 <code>Object.is</code> 逐项比较这次渲染和上次渲染的依赖数组，只要有任意一项不同就重新执行。所以依赖里放对象字面量或者内联函数，等于每次都变，effect 每次都跑。</p>
+<p>三种写法的区别值得单独记一下：</p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>执行时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>useEffect(fn)</code></td>
+<td>每次渲染后都执行</td>
+</tr>
+<tr>
+<td><code>useEffect(fn, [])</code></td>
+<td>只在挂载后执行一次</td>
+</tr>
+<tr>
+<td><code>useEffect(fn, [a, b])</code></td>
+<td>挂载后执行，之后 a 或 b 变化时执行</td>
+</tr>
+</tbody></table>
+<p>原文给的取数示例是这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">Person</span> = (<span class="params">&#123; personId &#125;</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> [loading, setLoading] = <span class="title function_">useState</span>(<span class="literal">true</span>);</span><br><span class="line">  <span class="keyword">const</span> [person, setPerson] = <span class="title function_">useState</span>(&#123;&#125;);</span><br><span class="line"></span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">setLoading</span>(<span class="literal">true</span>);</span><br><span class="line">    <span class="title function_">fetch</span>(<span class="string">`https://swapi.co/api/people/<span class="subst">$&#123;personId&#125;</span>/`</span>)</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function"><span class="params">response</span> =&gt;</span> response.<span class="title function_">json</span>())</span><br><span class="line">      .<span class="title function_">then</span>(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="title function_">setPerson</span>(data);</span><br><span class="line">        <span class="title function_">setLoading</span>(<span class="literal">false</span>);</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;, [personId])</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (loading === <span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>Loading ...<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>You&#x27;re viewing: &#123;person.name&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Height: &#123;person.height&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Mass: &#123;person.mass&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面代码中，每当组件参数<code>personId</code>发生变化，<code>useEffect()</code>就会执行。组件第一次渲染时，<code>useEffect()</code>也会执行</p>
-</blockquote>
+<p>每当组件参数 <code>personId</code> 发生变化，<code>useEffect()</code> 就会执行，组件第一次渲染时也会执行。这段代码演示 <code>useEffect</code> 的用法是够的，但直接抄到项目里会有两个真实问题。</p>
+<h3 id="6-1-请求竞态"><a href="#6-1-请求竞态" class="headerlink" title="6.1 请求竞态"></a>6.1 请求竞态</h3><p>用户快速把 <code>personId</code> 从 1 切到 2，会发出两个请求。如果 1 的响应比 2 慢，最后 <code>setPerson</code> 的是 1 的数据，界面显示的却是 2 的 id。这个 bug 在本地开发时几乎复现不出来，因为接口太快了，上线之后弱网用户才会遇到。</p>
+<p>清理函数就是为这个准备的。effect 返回的函数会在下一次 effect 执行前、以及组件卸载时被调用：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> ignore = <span class="literal">false</span></span><br><span class="line">  <span class="title function_">setLoading</span>(<span class="literal">true</span>)</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">`/api/people/<span class="subst">$&#123;personId&#125;</span>/`</span>)</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function"><span class="params">res</span> =&gt;</span> res.<span class="title function_">json</span>())</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (ignore) <span class="keyword">return</span></span><br><span class="line">      <span class="title function_">setPerson</span>(data)</span><br><span class="line">      <span class="title function_">setLoading</span>(<span class="literal">false</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> &#123; ignore = <span class="literal">true</span> &#125;</span><br><span class="line">&#125;, [personId])</span><br></pre></td></tr></table></figure>
+
+<p>更彻底的做法是用 <code>AbortController</code> 把请求也真正取消掉，省下无用的网络开销：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> controller = <span class="keyword">new</span> <span class="title class_">AbortController</span>()</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">`/api/people/<span class="subst">$&#123;personId&#125;</span>/`</span>, &#123; <span class="attr">signal</span>: controller.<span class="property">signal</span> &#125;)</span><br><span class="line">    .<span class="title function_">then</span>(<span class="function"><span class="params">res</span> =&gt;</span> res.<span class="title function_">json</span>())</span><br><span class="line">    .<span class="title function_">then</span>(setPerson)</span><br><span class="line">    .<span class="title function_">catch</span>(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (err.<span class="property">name</span> !== <span class="string">&#x27;AbortError&#x27;</span>) <span class="keyword">throw</span> err</span><br><span class="line">    &#125;)</span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> controller.<span class="title function_">abort</span>()</span><br><span class="line">&#125;, [personId])</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-只订阅不清理"><a href="#6-2-只订阅不清理" class="headerlink" title="6.2 只订阅不清理"></a>6.2 只订阅不清理</h3><p>同类问题还有一批：<code>addEventListener</code> 不 <code>removeEventListener</code>、<code>setInterval</code> 不 <code>clearInterval</code>、WebSocket 连了不关。这些在开发时看不出来，但组件反复挂载卸载之后，监听器会一个个堆上去，最终表现为页面越用越卡。我把常见的几种泄漏场景和排查手段整理在 <a href="https://feinterview.poetries.top/blog/js-memory-leak">JavaScript 内存泄漏排查</a> 那篇里。</p>
+<p>判断标准很简单：effect 里做了任何「会持续存在」的事，就必须在返回的清理函数里撤销它。</p>
+<h2 id="七、Hooks-的两条规则"><a href="#七、Hooks-的两条规则" class="headerlink" title="七、Hooks 的两条规则"></a>七、Hooks 的两条规则</h2><p>这两条不是建议，是硬性的。</p>
+<p><strong>只能在函数组件或自定义 Hook 的顶层调用 Hook</strong>，不能放在 <code>if</code>、<code>for</code>、嵌套函数里。因为 React 内部是靠调用顺序把 Hook 和状态对应起来的，某次渲染少调了一个，后面所有 Hook 的状态全部错位。</p>
+<p><strong>只能在 React 函数里调用 Hook</strong>，普通的工具函数、class 方法里都不行。</p>
+<p>装一个 <code>eslint-plugin-react-hooks</code> 就能把这两条自动管住，同时它的 <code>exhaustive-deps</code> 规则还会检查依赖数组漏没漏项。我的建议是别去关这条规则，它报出来的绝大多数都是真问题，实在需要例外就单行加注释禁用并写清原因。</p>
+<h2 id="八、2019-到现在，这套-API-变了什么"><a href="#八、2019-到现在，这套-API-变了什么" class="headerlink" title="八、2019 到现在，这套 API 变了什么"></a>八、2019 到现在，这套 API 变了什么</h2><p>这篇写于 Hooks 刚发布不久的 2019 年，React 那时是 16.8。到今天已经是 19，上面的写法一条都没被废弃，但周围多了不少东西，简单对照一下。</p>
+<p><strong>严格模式会让 effect 执行两次。</strong> React 18 起，开发环境的 <code>StrictMode</code> 会给每个组件模拟一轮卸载重挂，effect 的执行顺序变成「执行 -&gt; 清理 -&gt; 再执行」。很多人升级后第一反应是接口请求发了两次，然后去关 <code>StrictMode</code>。这个行为炸出来的基本都是真问题，也就是上面 6.1 和 6.2 讲的那两类，正确做法是把清理函数补齐。这部分我在 <a href="https://feinterview.poetries.top/blog/react-18-new-features">React 18 新特性与升级指南</a> 里详细写过。</p>
+<p><strong>多了几个专门用途的 Hook。</strong> <code>useSyncExternalStore</code> 给状态库作者订阅外部数据源用，解决并发渲染下的数据撕裂；<code>useId</code> 生成服务端客户端一致的 ID，专治表单关联属性的 hydration 不匹配；<code>useTransition</code> 和 <code>useDeferredValue</code> 用来把不紧急的更新降级，避免输入框卡顿。这三个业务代码里 <code>useId</code> 和 <code>useTransition</code> 用得上，<code>useSyncExternalStore</code> 基本只有写库才会碰。</p>
+<p><strong>React 19 又加了一批。</strong> <code>use</code> 可以在渲染中直接读 Promise 和 Context，而且它是唯一允许写在条件分支里的；<code>useOptimistic</code> 做乐观更新；<code>useActionState</code> 配合 Actions 处理表单提交的 pending 和 error 状态。同时 <code>forwardRef</code> 不再必要，<code>ref</code> 可以当普通 prop 传。这些我单独写在 <a href="https://feinterview.poetries.top/blog/react-19-new-features">React 19 新特性</a>。</p>
+<p><strong>React Compiler 在推进中。</strong> 它的目标是自动完成 <code>useMemo</code> &#x2F; <code>useCallback</code> &#x2F; <code>memo</code> 这类记忆化，让业务代码不用再手写。这块我只在 demo 里试过，没在生产项目上跑，具体的适用范围和限制建议直接看官方文档，别听二手结论。</p>
+<p>原文里的写法全部还有效，上面这些是补充，不是替代。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Hooks 解决的不是「代码少几行」，是「同一件事的逻辑能写在一起」。class 时代订阅和退订被生命周期强行分在两处，Hooks 让它们变成一个 effect 加一个返回的清理函数，中间隔零行。</p>
+<p>四个核心 Hook 各有各的坑。<code>useState</code> 的 setter 不做浅合并，连续更新同一状态必须用函数式写法，昂贵的初始值要传函数进去；<code>useContext</code> 的 value 是对象字面量时每次渲染都是新引用，要用 <code>useMemo</code> 稳住，而且订阅粒度是整个 value，按变更频率拆多个 Context 比塞一个大对象强；<code>useReducer</code> 适合状态字段有联动、更新逻辑复杂、需要单独测试这三种情况，<code>dispatch</code> 引用稳定这点顺带解决了子组件 memo 失效的问题；<code>useEffect</code> 最容易出事的是没写清理函数，请求竞态和监听器泄漏这两类问题在本地几乎复现不出来，上线才暴露。</p>
+<p>依赖数组是用 <code>Object.is</code> 逐项比的，别往里塞对象字面量和内联函数。<code>eslint-plugin-react-hooks</code> 能自动兜住调用位置和依赖遗漏这两类错误，别关它。</p>
+<p>原文写于 2019 年，六年过去这些写法一条都没被废弃。变化的是周围：严格模式会让开发环境的 effect 执行两次，逼你把清理函数写全；React 18 和 19 又补了 <code>useSyncExternalStore</code>、<code>useId</code>、<code>useTransition</code>、<code>use</code>、<code>useOptimistic</code> 这一批各有专门用途的 Hook。基础的四个还是这四个。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://react.dev/reference/react/hooks">Hooks 索引 - React 官方文档</a></li>
+<li><a href="https://react.dev/learn/synchronizing-with-effects">Synchronizing with Effects - React 官方文档</a></li>
+<li><a href="https://react.dev/learn/you-might-not-need-an-effect">You Might Not Need an Effect - React 官方文档</a></li>
+<li><a href="https://react.dev/reference/rules/rules-of-hooks">Rules of Hooks - React 官方文档</a></li>
+<li><a href="https://react.dev/reference/react/useReducer">useReducer - React 官方文档</a></li>
+<li><a href="https://react.dev/blog/2024/12/05/react-19">React v19 发布公告</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

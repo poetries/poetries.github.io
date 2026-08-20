@@ -7,36 +7,39 @@
 <head>
   <meta charset="utf-8">
   
-  <title>React性能优化总结 | 前端进阶之旅</title>
+  <title>React性能优化总结，从render机制到memo的落地实践 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="React,性能优化," />
+    <meta name="keywords" content="React,性能优化,虚拟DOM,shouldComponentUpdate,React Profiler," />
   
 
-  <meta name="description" content="一、重新认识render react的组件渲染分为初始化渲染和更新渲染   在初始化渲染的时候会调用根组件下的所有组件的render方法进行渲染，如下图（绿色表示已渲染，这一层是没有问题的）   但是当我们要更新某个子组件的时候，如下图的绿色组件（从根组件传递下来应用在绿色组件上的数据发生改变）  我们的理想状态是只调用关键路径上组件的render  但是react的默认做法是调用所有组件的ren">
+  <meta name="description" content="React 性能优化的完整思路，讲清 render 与虚拟 DOM 对比的真实开销、shouldComponentUpdate 的判断边界、拖慢 diff 的常见写法，以及从 Perf 到 DevTools Profiler 的检测方法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="React性能优化总结">
+<meta property="og:title" content="React性能优化总结，从render机制到memo的落地实践">
 <meta property="og:url" content="http://blog.poetries.top/2018/11/18/react-performance-optimization/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、重新认识render react的组件渲染分为初始化渲染和更新渲染   在初始化渲染的时候会调用根组件下的所有组件的render方法进行渲染，如下图（绿色表示已渲染，这一层是没有问题的）   但是当我们要更新某个子组件的时候，如下图的绿色组件（从根组件传递下来应用在绿色组件上的数据发生改变）  我们的理想状态是只调用关键路径上组件的render  但是react的默认做法是调用所有组件的ren">
+<meta property="og:description" content="React 性能优化的完整思路，讲清 render 与虚拟 DOM 对比的真实开销、shouldComponentUpdate 的判断边界、拖慢 diff 的常见写法，以及从 Perf 到 DevTools Profiler 的检测方法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/420.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/421.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/422.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/423.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/424.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/425.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/426.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/427.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/420.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/421.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/422.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/423.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/424.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/425.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/426.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/427.png">
 <meta property="article:published_time" content="2018-11-18T12:31:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.684Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.950Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="React">
 <meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="虚拟DOM">
+<meta property="article:tag" content="shouldComponentUpdate">
+<meta property="article:tag" content="React Profiler">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/420.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/420.png">
 
   
 
@@ -214,7 +217,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%87%8D%E6%96%B0%E8%AE%A4%E8%AF%86render"><span class="toc-text">一、重新认识render</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%9B%B4%E6%96%B0%E9%98%B6%E6%AE%B5%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-text">二、更新阶段的生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81shouldComponentUpdate"><span class="toc-text">三、shouldComponentUpdate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%A7%E8%83%BD%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7"><span class="toc-text">四、性能检测工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8F%82%E8%80%83%E6%96%87%E7%AB%A0"><span class="toc-text">五、参考文章</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%87%8D%E6%96%B0%E8%AE%A4%E8%AF%86-render"><span class="toc-text">一、重新认识 render</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%9B%B4%E6%96%B0%E9%98%B6%E6%AE%B5%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-text">二、更新阶段的生命周期</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81shouldComponentUpdate"><span class="toc-text">三、shouldComponentUpdate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%A7%E8%83%BD%E6%A3%80%E6%B5%8B%E5%B7%A5%E5%85%B7"><span class="toc-text">四、性能检测工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%87%BD%E6%95%B0%E7%BB%84%E4%BB%B6%E6%97%B6%E4%BB%A3%EF%BC%8C%E8%BF%99%E5%A5%97%E7%BB%93%E8%AE%BA%E8%BF%98%E6%88%90%E7%AB%8B%E5%90%97"><span class="toc-text">五、函数组件时代，这套结论还成立吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -237,13 +240,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-performance-optimization" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">React性能优化总结</h1>
+    <h1 class="post-title">React性能优化总结，从render机制到memo的落地实践</h1>
 
     <div class="article-meta">
       <span>
@@ -279,12 +282,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 961字</span>
+            <span>字数统计 3.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 3分</span>
+            <span>阅读时长 12分</span>
           </span>
       
       
@@ -298,73 +301,107 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、重新认识render"><a href="#一、重新认识render" class="headerlink" title="一、重新认识render"></a>一、重新认识render</h2><blockquote>
-<p><code>react</code>的组件渲染分为初始化渲染和更新渲染</p>
-</blockquote>
+        <p>一个后台列表页，点一下筛选条件，整页卡半秒。打开 DevTools 一看，JS 执行占了大头，而页面上真正变的只有表格那一块。这种情况我见过不止一次，原因几乎都一样：React 默认把根节点往下的所有组件的 <code>render</code> 都跑了一遍，只是最后 diff 发现大部分没变，白跑。</p>
+<p>这篇把 React 性能优化的链路拆开讲。先弄明白 render 在做什么、浪费产生在哪一步，再讲 <code>shouldComponentUpdate</code> 这个闸门怎么开合，顺带把那些悄悄加重 diff 负担的写法列一遍，最后是检测工具。读完你至少能定位到「是哪个组件在白跑」，而不是凭感觉四处加优化。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>在初始化渲染的时候会调用根组件下的所有组件的<code>render</code>方法进行渲染，如下图（绿色表示已渲染，这一层是没有问题的）</li>
+<li>初始化渲染和更新渲染的区别，浪费到底浪费在哪</li>
+<li>更新阶段的生命周期各自能做什么</li>
+<li><code>shouldComponentUpdate</code> 的职责边界和浅比较的坑</li>
+<li>哪些写法会让 diff 变慢</li>
+<li>从 <code>React.addons.Perf</code> 到 DevTools Profiler 的检测方法</li>
+<li>函数组件时代的 <code>memo</code> &#x2F; <code>useMemo</code> &#x2F; <code>useCallback</code></li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/420.png"></p>
-<p>但是当我们要更新某个子组件的时候，如下图的绿色组件（从根组件传递下来应用在绿色组件上的数据发生改变）</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/421.png"></p>
-<p>我们的理想状态是只调用关键路径上组件的render</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/422.png"></p>
-<p>但是<code>react</code>的默认做法是调用所有组件的<code>render</code>，再对生成的虚拟<code>DOM</code>进行对比，如不变则不进行更新。这样的<code>render</code>和虚拟<code>DOM</code>的 对比 明显是在浪费，如下图（黄色表示浪费的<code>render</code>和虚拟<code>DOM</code>对比）</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/423.png"></p>
+<h2 id="一、重新认识-render"><a href="#一、重新认识-render" class="headerlink" title="一、重新认识 render"></a>一、重新认识 render</h2><p><code>react</code> 的组件渲染分为初始化渲染和更新渲染，这两种情况下 render 的行为不一样，优化空间也完全不同。</p>
+<p>先看初始化。在初始化渲染的时候会调用根组件下的所有组件的 <code>render</code> 方法进行渲染，下图里绿色表示已渲染的组件。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/420.png" alt="React 初始化渲染时整棵组件树都会执行 render"></p>
+<p>这一层是没有问题的。页面上什么都还没有，每个组件都得跑一次 render 才能产出内容，这部分开销是必需的，没有优化余地。</p>
+<p>真正的问题出在更新。假设我们要更新某个子组件，就是下图里那个绿色组件，从根组件传递下来应用在它上面的数据发生了改变。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/421.png" alt="更新时只有一个子组件的数据发生了变化"></p>
+<p>这张图要看清楚的是变化的范围：数据从根组件流下来，但只有最底下那一个组件真的用到了变化后的值。其它分支的组件，props 和 state 都没动。</p>
+<p>那我们的理想状态是什么？只调用关键路径上组件的 render。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/422.png" alt="理想状态下只有关键路径上的组件重新 render"></p>
+<p>这条「关键路径」指的是从根组件到目标组件之间的那一条链，加上目标组件自己。旁边的兄弟分支应该原地不动。</p>
+<p>但是 <code>react</code> 的默认做法是调用所有组件的 <code>render</code>，再对生成的虚拟 <code>DOM</code> 进行对比，如不变则不进行更新。这样的 <code>render</code> 和虚拟 <code>DOM</code> 的对比明显是在浪费，下图里黄色表示被浪费掉的 <code>render</code> 和虚拟 <code>DOM</code> 对比。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/423.png" alt="黄色部分是被浪费掉的 render 和虚拟 DOM 对比"></p>
+<p>黄色越多，说明白跑的组件越多。这里容易记混的一点是，黄色部分并不会产生真实 DOM 操作，React 最后 diff 出来没变化就不会碰 DOM。被浪费的是 JS 执行时间和临时对象的内存分配，不是重排重绘。所以你在 Performance 面板里看到的是一根长长的 Scripting 条，而不是 Rendering 变红。</p>
 <p><strong>Tips</strong></p>
 <ul>
 <li>拆分组件是有利于复用和组件优化的</li>
-<li>生成虚拟<code>DOM</code>并进行比对发生在<code>render()</code>后，而不是<code>render()</code>前</li>
+<li>生成虚拟 <code>DOM</code> 并进行比对发生在 <code>render()</code> 后，而不是 <code>render()</code> 前</li>
 </ul>
-<h2 id="二、更新阶段的生命周期"><a href="#二、更新阶段的生命周期" class="headerlink" title="二、更新阶段的生命周期"></a>二、更新阶段的生命周期</h2><ul>
-<li><code>componentWillReceiveProps(object nextProps)</code> ：当挂载的组件接收到新的<code>props</code>时被调用。此方法应该被用于比较<code>this.props</code> 和 <code>nextProps</code>以用于使用<code>this.setState()</code>执行状态转换。（组件内部数据有变化，使用<code>state</code>，但是在更新阶段又要在<code>props</code>改变的时候改变<code>state</code>，则在这个生命周期里面）</li>
-<li><code>shouldComponentUpdate(object nextProps, object nextState)</code> ： -<code>boolean</code> 当组件决定任何改变是否要更新到<code>DOM</code>时被调用。作为一个 优化 实现比较<code>this.props</code> 和 <code>nextProps</code> 、<code>this.state</code> 和 <code>nextState</code> ，如果<code>React</code>应该跳过更新，返回<code>false</code></li>
-<li><code>componentWillUpdate(object nextProps, object nextState</code>) ：在更新发生前被立即调用。你不能在此调用 <code>this.setState()</code></li>
-<li><code>componentDidUpdate(object prevProps, object prevState</code>) ： 在更新发生后被立即调用。（可以在<code>DOM</code>更新完之后，做一些收尾的工作）</li>
+<p>第二条我建议单独记一下，面试问得很多。顺序是：<code>shouldComponentUpdate</code> 返回 true → 执行 <code>render()</code> → 拿到新的 vnode → 和旧 vnode 做 diff → 决定要不要动真实 DOM。所以 <code>shouldComponentUpdate</code> 拦得住的是 render 和 diff 两步，它是整条链上最早的那道闸门，这也是它值钱的原因。</p>
+<h2 id="二、更新阶段的生命周期"><a href="#二、更新阶段的生命周期" class="headerlink" title="二、更新阶段的生命周期"></a>二、更新阶段的生命周期</h2><p>想在合适的时机做拦截，先得知道更新阶段一共有哪几个口子可以下手。</p>
+<ul>
+<li><code>componentWillReceiveProps(object nextProps)</code>：当挂载的组件接收到新的 <code>props</code> 时被调用。此方法应该被用于比较 <code>this.props</code> 和 <code>nextProps</code> 以用于使用 <code>this.setState()</code> 执行状态转换。组件内部数据有变化用 <code>state</code>，但是在更新阶段又要在 <code>props</code> 改变的时候改变 <code>state</code>，那就写在这个生命周期里面</li>
+<li><code>shouldComponentUpdate(object nextProps, object nextState)</code>：返回 <code>boolean</code>，当组件决定任何改变是否要更新到 <code>DOM</code> 时被调用。作为一个优化实现，比较 <code>this.props</code> 和 <code>nextProps</code>、<code>this.state</code> 和 <code>nextState</code>，如果 <code>React</code> 应该跳过更新，返回 <code>false</code></li>
+<li><code>componentWillUpdate(object nextProps, object nextState)</code>：在更新发生前被立即调用。你不能在此调用 <code>this.setState()</code></li>
+<li><code>componentDidUpdate(object prevProps, object prevState)</code>：在更新发生后被立即调用，可以在 <code>DOM</code> 更新完之后做一些收尾的工作</li>
 </ul>
 <p><strong>Tips</strong></p>
 <ul>
-<li><code>React</code>的优化是基于 <code>shouldComponentUpdate</code> 的，该生命周期默认返回<code>true</code>，所以一旦<code>prop</code>或<code>state</code>有任何变化，都会引起重新<code>render</code></li>
+<li><code>React</code> 的优化是基于 <code>shouldComponentUpdate</code> 的，该生命周期默认返回 <code>true</code>，所以一旦 <code>prop</code> 或 <code>state</code> 有任何变化，都会引起重新 <code>render</code></li>
 </ul>
-<h2 id="三、shouldComponentUpdate"><a href="#三、shouldComponentUpdate" class="headerlink" title="三、shouldComponentUpdate"></a>三、shouldComponentUpdate</h2><blockquote>
-<p><code>react</code>在每个组件生命周期更新的时候都会调用一个<code>shouldComponentUpdate(nextProps, nextState)</code>函数。它的职责就是返回<code>true</code>或<code>false</code>，true表示需要更新，<code>false</code>表示不需要，默认返回为<code>true</code>，即便你没有显示地定义 <code>shouldComponentUpdate</code> 函数。这就不难解释上面发生的资源浪费了</p>
-</blockquote>
+<p>这里补一句现在的情况。<code>componentWillReceiveProps</code> 和 <code>componentWillUpdate</code> 在 React 16.3 之后被标记为不安全，官方加了 <code>UNSAFE_</code> 前缀，原因是并发渲染下这几个「will」钩子可能被调用多次或者调用了却没有真的提交，写在里面的副作用会重复执行。替代方案是用静态方法 <code>getDerivedStateFromProps</code> 做 props 到 state 的派生，用 <code>getSnapshotBeforeUpdate</code> 在 DOM 变更前抓快照（比如记住滚动位置）。</p>
+<p><code>shouldComponentUpdate</code> 和 <code>componentDidUpdate</code> 这两个没有被废弃，今天照样能用。所以上面这套优化思路本身没过时，只是承载它的 API 换了两个。</p>
+<h2 id="三、shouldComponentUpdate"><a href="#三、shouldComponentUpdate" class="headerlink" title="三、shouldComponentUpdate"></a>三、shouldComponentUpdate</h2><p><code>react</code> 在每个组件生命周期更新的时候都会调用一个 <code>shouldComponentUpdate(nextProps, nextState)</code> 函数。它的职责就是返回 <code>true</code> 或 <code>false</code>，<code>true</code> 表示需要更新，<code>false</code> 表示不需要，默认返回为 <code>true</code>，即便你没有显式地定义 <code>shouldComponentUpdate</code> 函数。上面那些黄色的浪费，根源就在这个默认值上。</p>
+<p>那直接给每个组件都加上一个浅比较的 <code>shouldComponentUpdate</code> 不就行了？</p>
+<p>我一开始也是这么想的，后来发现这么干经常不生效，甚至会更慢。原因有两个。一是比较本身也要钱，如果你的 props 是个层级很深的大对象，做深比较的成本可能比重新 render 一次还高。二是浅比较对引用类型完全无效，父组件每次 render 都新建一个对象或者数组传下来，浅比较看到的永远是两个不同的引用，闸门等于没装。</p>
+<p><code>React.PureComponent</code> 就是官方版本的浅比较 <code>shouldComponentUpdate</code>，同样吃这个亏。它只帮你比一层，剩下的要靠你自己在数据结构上配合。</p>
 <p><strong>带坑的写法</strong></p>
 <ul>
-<li><code>&#123;...this.props&#125;</code> (不要滥用，请只传递<code>component</code>需要的<code>props</code>，传得太多，或者层次传得太深，都会加重<code>shouldComponentUpdate</code>里面的数据比较负担，因此，也请慎用<code>spread attributes（&lt;Component &#123;...props&#125; /&gt;）)</code></li>
-<li><code>::this.handleChange()。(请将方法的bind一律置于constructor)</code></li>
+<li><code>&#123;...this.props&#125;</code>。不要滥用，请只传递 <code>component</code> 需要的 <code>props</code>，传得太多，或者层次传得太深，都会加重 <code>shouldComponentUpdate</code> 里面的数据比较负担，因此也请慎用 spread attributes（<code>&lt;Component &#123;...props&#125; /&gt;</code>）</li>
+<li><code>::this.handleChange()</code>。请将方法的 <code>bind</code> 一律置于 <code>constructor</code></li>
 <li>复杂的页面不要在一个组件里面写完</li>
-<li>请尽量使用<code>const element</code></li>
-<li><code>map</code>里面添加<code>key</code>，并且<code>key</code>不要使用<code>index</code>（可变的)</li>
-<li>尽量少用<code>setTimeOut</code>或不可控的<code>refs</code>、<code>DOM</code>操作</li>
+<li>请尽量使用 <code>const element</code></li>
+<li><code>map</code> 里面添加 <code>key</code>，并且 <code>key</code> 不要使用 <code>index</code>（可变的）</li>
+<li>尽量少用 <code>setTimeout</code> 或不可控的 <code>refs</code>、<code>DOM</code> 操作</li>
 <li>数据尽可能简单明了，扁平化</li>
 </ul>
+<p>这几条挨个说一下为什么。</p>
+<p>spread attributes 的问题在于它把父组件所有的 props 一股脑摊给了子组件，子组件做浅比较时要遍历的键就变多了，而且父组件任何一个不相干的字段变了都会连累子组件更新。传参数就老老实实一个个写出来，多敲几个字换来的是可预测的更新范围。</p>
+<p><code>bind</code> 这条是引用相等的经典案例。写成 <code>onClick=&#123;this.handleChange.bind(this)&#125;</code> 或者 <code>onClick=&#123;() =&gt; this.handleChange()&#125;</code>，每次 render 都会生成一个新函数，传给子组件后浅比较必挂。把 <code>this.handleChange = this.handleChange.bind(this)</code> 放进 <code>constructor</code>，整个组件生命周期内这个引用就是稳定的。函数组件里对应的做法是 <code>useCallback</code>。</p>
+<p><code>key</code> 用 <code>index</code> 的坑是在列表中间插入或删除时暴露的。index 会随着位置变化而变化，React 按 key 匹配新旧节点，结果是把「插入一项」误判成「后面每一项的内容都变了」，diff 出一堆本不该有的更新，如果列表项里有输入框，光标和已输入内容还会串位。用数据自身的稳定 id 做 key 才对。</p>
+<p>扁平化这条是给浅比较服务的。数据嵌套越浅，浅比较的判断就越准，也越不容易出现「明明改了却没重渲染」的诡异情况。</p>
 <h2 id="四、性能检测工具"><a href="#四、性能检测工具" class="headerlink" title="四、性能检测工具"></a>四、性能检测工具</h2><p><strong>React.addons.Perf</strong></p>
-<blockquote>
-<p><code>react</code>官方提供一个插件 <code>React.addons.Perf</code> 可以帮助我们分析组件的性能，以确定是否需要优化</p>
-</blockquote>
-<p><code>react16</code>以前需要在项目中配置，<code>react16</code>以后请看这篇文章，直接打开控制台的<code>perf</code>选项测试 <a href="https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-chrome-performance-tab">https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-chrome-performance-tab</a></p>
-<p><strong>react16之前配置</strong></p>
-<ul>
-<li>安装 <code>react</code> 性能检测工具 <code>npm i react-addons-perf --save</code>，然后在<code>./app/index.js</code>中</li>
-</ul>
+<p><code>react</code> 官方提供一个插件 <code>React.addons.Perf</code> 可以帮助我们分析组件的性能，以确定是否需要优化。</p>
+<p><code>react16</code> 以前需要在项目中配置，<code>react16</code> 以后请看这篇文章，直接打开控制台的 <code>perf</code> 选项测试 <a href="https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-chrome-performance-tab">https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-chrome-performance-tab</a></p>
+<p><strong>react16 之前配置</strong></p>
+<p>安装 <code>react</code> 性能检测工具 <code>npm i react-addons-perf --save</code>，然后在 <code>./app/index.js</code> 中：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 性能测试</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Perf</span> <span class="keyword">from</span> <span class="string">&#x27;react-addons-perf&#x27;</span></span><br><span class="line"><span class="keyword">if</span> (__DEV__) &#123;</span><br><span class="line">    <span class="variable language_">window</span>.<span class="property">Perf</span> = <span class="title class_">Perf</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>打开<code>console</code>面板，先输入 <code>Perf.start()</code> 执行一些组件操作，引起数据变动，组件更新，然后输入 <code>Perf.stop()</code> 。（建议一次只执行一个操作，好进行分析）</li>
-<li>再输入 <code>Perf.printInclusive</code> 查看所有涉及到的组件<code>render</code>，如下图（官方图片）</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/424.png"></p>
-<blockquote>
-<p>或者输入<code>Perf.printWasted()</code>查看下不需要的的浪费组件<code>render</code></p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/425.png"></p>
-<p>优化前</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/426.png"></p>
-<p>优化后</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/427.png"></p>
-<h2 id="五、参考文章"><a href="#五、参考文章" class="headerlink" title="五、参考文章"></a>五、参考文章</h2><ul>
-<li><a href="https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-chrome-performance-tab">react官方的性能优化optimizing-performance</a></li>
+<p>这段代码做的事很简单，把 Perf 挂到 <code>window</code> 上，方便你在控制台直接调，同时用 <code>__DEV__</code> 兜住，保证不会打进生产包。</p>
+<p>打开 <code>console</code> 面板，先输入 <code>Perf.start()</code> 执行一些组件操作，引起数据变动、组件更新，然后输入 <code>Perf.stop()</code>。建议一次只执行一个操作，好进行分析。</p>
+<p>再输入 <code>Perf.printInclusive</code> 查看所有涉及到的组件 <code>render</code>，如下图（官方图片）。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/424.png" alt="Perf.printInclusive 列出本次操作中所有执行过 render 的组件"></p>
+<p>这张表看的是「谁跑了、跑了多久」，Inclusive 意思是包含子组件的耗时，所以越靠近根节点的组件数字越大，别被它吓到，要看的是同层之间的横向对比。</p>
+<p>或者输入 <code>Perf.printWasted()</code> 查看下不需要的的浪费组件 <code>render</code>。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/425.png" alt="Perf.printWasted 直接列出白跑的组件"></p>
+<p><code>printWasted</code> 才是这套工具最值钱的地方，它直接告诉你哪些组件 render 完 diff 结果毫无变化，也就是第一节图里的那些黄色块。优化就从这张表最上面几行开始动手。</p>
+<p>优化前：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/426.png" alt="优化前 Perf 统计出大量浪费的 render"></p>
+<p>优化后：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/427.png" alt="加上 shouldComponentUpdate 之后浪费的 render 明显减少"></p>
+<p>两张图对着看，重点不是总耗时那个数字，是浪费清单变短了。这说明闸门装对了地方。</p>
+<p><code>react-addons-perf</code> 在 React 16 里已经被移除，今天要做同样的事，装 React DevTools 用它的 Profiler 面板。录一段交互之后，火焰图会按 commit 展示每个组件这次渲染花了多久，灰色的表示本次没有渲染。它还有一个「Highlight updates when components render」的开关，打开之后页面上每次重渲染的组件会闪一圈边框，用来肉眼抓「不该动却动了」的区域特别快，比看数字直观。</p>
+<p>浏览器侧的火焰图和渲染链路怎么读，我在 <a href="https://feinterview.poetries.top/blog/fe-youhua">前端页面性能优化实战</a> 里单独讲过，两边配着看能把「JS 慢」和「渲染慢」分清楚。</p>
+<h2 id="五、函数组件时代，这套结论还成立吗"><a href="#五、函数组件时代，这套结论还成立吗" class="headerlink" title="五、函数组件时代，这套结论还成立吗"></a>五、函数组件时代，这套结论还成立吗</h2><p>上面所有内容都是围绕 class 组件写的，现在项目基本都是函数组件加 Hooks，对应关系需要换一下。</p>
+<p><code>shouldComponentUpdate</code> 在函数组件里没有直接等价物，替代品是 <code>React.memo</code>。把组件包一层 <code>memo</code>，React 会对 props 做浅比较，props 没变就跳过这次渲染，行为跟 <code>PureComponent</code> 一致，也可以传第二个参数自定义比较函数。</p>
+<p>配套的两个 Hook 解决的是「引用每次都变」这个老问题。<code>useCallback</code> 缓存函数引用，对应上面那条把 <code>bind</code> 放进 <code>constructor</code>；<code>useMemo</code> 缓存计算结果或者对象引用，对应「不要每次 render 都新建对象往下传」。这两个本身也有开销，给一个渲染很轻的组件套一堆 memo，收益可能是负的。</p>
+<p>我自己的判断标准是：先用 Profiler 找出真的在白跑而且耗时明显的组件，再针对性地包，不做无差别覆盖。</p>
+<p>再往后，React 19 这一代官方在推 React Compiler，思路是在编译期自动分析依赖并插入记忆化，理论上能省掉大部分手写的 <code>memo</code> &#x2F; <code>useMemo</code> &#x2F; <code>useCallback</code>。这块我只在小 demo 里试过，还没在真实项目里长期跑，具体行为和适配范围以官方文档为准。React 19 的整体变化可以看 <a href="https://feinterview.poetries.top/blog/react-19-new-features">React 19 新特性</a>。</p>
+<p>需要强调的是，工具再自动，第一节讲的那个原理也不会变：React 的更新是自上而下重跑 render 再 diff，优化的核心永远是让不该跑的组件不跑。理解这一点，换什么 API 都能自己推出来该怎么做。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>React 性能优化的落点其实只有一个，减少无意义的 render 和 diff。初始化渲染跑满整棵树是应该的，更新渲染跑满整棵树就是浪费，那些白跑的组件不会产生 DOM 操作，但会实实在在吃掉 JS 执行时间。</p>
+<p>拦截点是 <code>shouldComponentUpdate</code>，它在 <code>render</code> 之前，能同时省掉 render 和 diff 两步。<code>PureComponent</code> 和 <code>React.memo</code> 是它的浅比较版本，好不好使取决于你传下去的 props 引用稳不稳定，所以 <code>bind</code> 放 constructor、别滥用 spread、数据结构扁平化这些写法不是洁癖，是让浅比较真的生效的前提。</p>
+<p><code>key</code> 别用 index 这条要单独记，它带来的不只是性能问题，还会让受控输入框串内容。</p>
+<p>检测工具从 <code>React.addons.Perf</code> 换成了 React DevTools Profiler，<code>printWasted</code> 那个思路依然适用，先找白跑最多的组件，再决定包不包 memo。至于 React Compiler，方向是让编译器接管这件事，但原理该懂还得懂。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-chrome-performance-tab">React 官方文档 - Optimizing Performance</a></li>
+<li><a href="https://react.dev/reference/react/Component#shouldcomponentupdate">React 官方文档 - shouldComponentUpdate</a></li>
+<li><a href="https://react.dev/reference/react/memo">React 官方文档 - memo</a></li>
+<li><a href="https://react.dev/reference/react/useCallback">React 官方文档 - useCallback</a></li>
+<li><a href="https://legacy.reactjs.org/blog/2018/03/27/update-on-async-rendering.html">React 官方博客 - Update on Async Rendering</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

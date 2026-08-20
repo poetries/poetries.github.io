@@ -7,28 +7,29 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Vue之项目整合与优化 | 前端进阶之旅</title>
+  <title>Vue之项目整合与优化 alias 入口收敛与 Gzip 压缩 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="性能优化,工程化,Vue,webpack," />
   
 
-  <meta name="description" content="一、使用 alias 简化路径 使用 webpack 构建过 Vue 项目的同学应该知道 alias 的作用，我们可以使用它将复杂的文件路径定义成一个变量来访问。在不使用 alias 的项目中，我们引入文件的时候通常会去计算被引入文件对于引入它的文件的相对路径，比如像这样  import HelloWorld from &#x27;..&#x2F;..&#x2F;..&#x2F;..&#x2F;HelloWorld.vue&#x27;">
+  <meta name="description" content="用 alias 干掉一长串相对路径，把多个入口文件里重复的初始化配置抽成一个函数，再开启 Gzip 压缩减小传输体积，三件在 Vue 项目里性价比很高的整理工作。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vue之项目整合与优化">
+<meta property="og:title" content="Vue之项目整合与优化 alias 入口收敛与 Gzip 压缩">
 <meta property="og:url" content="http://blog.poetries.top/2019/06/01/vue-opz/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、使用 alias 简化路径 使用 webpack 构建过 Vue 项目的同学应该知道 alias 的作用，我们可以使用它将复杂的文件路径定义成一个变量来访问。在不使用 alias 的项目中，我们引入文件的时候通常会去计算被引入文件对于引入它的文件的相对路径，比如像这样  import HelloWorld from &#x27;..&#x2F;..&#x2F;..&#x2F;..&#x2F;HelloWorld.vue&#x27;">
+<meta property="og:description" content="用 alias 干掉一长串相对路径，把多个入口文件里重复的初始化配置抽成一个函数，再开启 Gzip 压缩减小传输体积，三件在 Vue 项目里性价比很高的整理工作。">
 <meta property="og:locale">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/8/19/1654de7a38472ab8">
 <meta property="article:published_time" content="2019-06-01T16:20:32.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.694Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.959Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="工程化">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="webpack">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/8/19/1654de7a38472ab8">
 
   
 
@@ -206,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BD%BF%E7%94%A8-alias-%E7%AE%80%E5%8C%96%E8%B7%AF%E5%BE%84"><span class="toc-text">一、使用 alias 简化路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B4%E5%90%88%E5%8A%9F%E8%83%BD%E6%A8%A1%E5%9D%97"><span class="toc-text">二、整合功能模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%BC%80%E5%90%AF-Gzip-%E5%8E%8B%E7%BC%A9"><span class="toc-text">三、开启 Gzip 压缩</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BD%BF%E7%94%A8-alias-%E7%AE%80%E5%8C%96%E8%B7%AF%E5%BE%84"><span class="toc-text">一、使用 alias 简化路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%87%BA%E5%9C%A8%E5%93%AA"><span class="toc-text">问题出在哪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CLI-3-%E9%87%8C%E6%80%8E%E4%B9%88%E6%94%B9"><span class="toc-text">CLI 3 里怎么改</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B7%E5%BC%8F%E9%87%8C%E8%A6%81%E5%8A%A0%E6%B3%A2%E6%B5%AA%E7%BA%BF"><span class="toc-text">样式里要加波浪线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B4%E5%90%88%E5%8A%9F%E8%83%BD%E6%A8%A1%E5%9D%97"><span class="toc-text">二、整合功能模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%BC%80%E5%90%AF-Gzip-%E5%8E%8B%E7%BC%A9"><span class="toc-text">三、开启 Gzip 压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%89%E7%94%9F%E6%88%90%E6%96%87%E4%BB%B6%E6%98%AF%E4%B8%8D%E5%A4%9F%E7%9A%84"><span class="toc-text">光生成文件是不够的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%B0%E5%9C%A8%E8%BF%98%E8%BF%99%E4%B9%88%E5%81%9A%E5%90%97"><span class="toc-text">现在还这么做吗</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -229,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-opz" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Vue之项目整合与优化</h1>
+    <h1 class="post-title">Vue之项目整合与优化 alias 入口收敛与 Gzip 压缩</h1>
 
     <div class="article-meta">
       <span>
@@ -271,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.3k字</span>
+            <span>字数统计 3.8k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 5分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -290,43 +291,96 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、使用-alias-简化路径"><a href="#一、使用-alias-简化路径" class="headerlink" title="一、使用 alias 简化路径"></a>一、使用 alias 简化路径</h2><blockquote>
-<p>使用 <code>webpack</code> 构建过 <code>Vue</code> 项目的同学应该知道 <code>alias</code> 的作用，我们可以使用它将复杂的文件路径定义成一个变量来访问。在不使用 <code>alias</code> 的项目中，我们引入文件的时候通常会去计算被引入文件对于引入它的文件的相对路径，比如像这样</p>
-</blockquote>
+        <p>项目跑到第三个月，代码里开始出现 <code>import HelloWorld from &#39;../../../../HelloWorld.vue&#39;</code> 这种东西；多页应用的三个入口文件长得几乎一模一样，加一行埋点要改三处；打包出来的 <code>app.js</code> 五百多 KB，弱网下白屏时间长得能泡杯茶。这三件事都不算大问题，但堆在一起就是每天在消耗你。这篇讲三个投入产出比很高的整理动作，路径别名、入口配置收敛、Gzip 压缩，每个都是改一次以后一直受益。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>用 <code>alias</code> 把相对路径换成语义化前缀，以及 CLI 3 里为什么要走 <code>chainWebpack</code></li>
+<li>样式和 html 模板里引用别名为什么必须加 <code>~</code></li>
+<li>多入口文件的重复初始化代码怎么抽成一个函数，一处修改多处生效</li>
+<li><code>CompressionWebpackPlugin</code> 的四个关键参数，<code>threshold</code> 和 <code>minRatio</code> 各自在挡什么</li>
+<li>Gzip 生成的 <code>.gz</code> 文件要服务器配合才有意义，nginx 那边该开什么</li>
+<li>这三件事在 Vite 时代对应的做法</li>
+</ul>
+<h2 id="一、使用-alias-简化路径"><a href="#一、使用-alias-简化路径" class="headerlink" title="一、使用 alias 简化路径"></a>一、使用 alias 简化路径</h2><h3 id="问题出在哪"><a href="#问题出在哪" class="headerlink" title="问题出在哪"></a>问题出在哪</h3><p>使用 webpack 构建过 Vue 项目的同学应该知道 <code>alias</code> 的作用，我们可以使用它将复杂的文件路径定义成一个变量来访问。在不使用 <code>alias</code> 的项目中，我们引入文件的时候通常会去计算被引入文件对于引入它的文件的相对路径，比如像这样：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import HelloWorld from &#x27;../../../../HelloWorld.vue&#x27;</span><br></pre></td></tr></table></figure>
 
-<p>一旦相对层次结构较深，我们就很难去定位所引入文件的具体位置，其实这并不是我们应该操心的地方，完全可以交给 webpack 来进行处理。在原生的 webpack 配置中我们可以定义 alias 来解决这一问题：</p>
+<p>一旦相对层次结构较深，我们就很难去定位所引入文件的具体位置。其实这并不是我们应该操心的地方，完全可以交给 webpack 来进行处理。</p>
+<p>相对路径真正的代价不在写的时候，在移动文件的时候。你把一个组件从 <code>views/user/</code> 挪到 <code>views/account/</code>，里面所有的 <code>../../</code> 全部作废，而且编辑器不一定能全帮你改对，改漏一个就是运行时报错。</p>
+<p>在原生的 webpack 配置中我们可以定义 <code>alias</code> 来解决这一问题：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">resolve</span> = dir =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> path.<span class="title function_">join</span>(__dirname, dir)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">resolve</span>: &#123;</span><br><span class="line">        <span class="attr">alias</span>: &#123;</span><br><span class="line">            <span class="string">&#x27;@&#x27;</span>: <span class="title function_">resolve</span>(<span class="string">&#x27;src&#x27;</span>), <span class="comment">// 定义 src 目录变量</span></span><br><span class="line">            <span class="attr">_lib</span>: <span class="title function_">resolve</span>(<span class="string">&#x27;src/common&#x27;</span>), <span class="comment">// 定义 common 目录变量,</span></span><br><span class="line">            <span class="attr">_com</span>: <span class="title function_">resolve</span>(<span class="string">&#x27;src/components&#x27;</span>), <span class="comment">// 定义 components 目录变量,</span></span><br><span class="line">            <span class="attr">_img</span>: <span class="title function_">resolve</span>(<span class="string">&#x27;src/images&#x27;</span>), <span class="comment">// 定义 images 目录变量,</span></span><br><span class="line">            <span class="attr">_ser</span>: <span class="title function_">resolve</span>(<span class="string">&#x27;src/services&#x27;</span>), <span class="comment">// 定义 services 目录变量,</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上方我们在 <code>webpack resolve</code>（解析）对象下配置 <code>alias</code> 的值，将常用的一些路径赋值给了我们自定义的变量，这样我们便可以将第一个例子简化为：</p>
-</blockquote>
+<p>上方我们在 webpack <code>resolve</code>（解析）对象下配置 <code>alias</code> 的值，将常用的一些路径赋值给了我们自定义的变量，这样我们便可以将第一个例子简化为：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">HelloWorld</span> <span class="keyword">from</span> <span class="string">&#x27;_com/HelloWorld.vue&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>而在 <code>CLI 3.x</code> 中我们无法直接操作 <code>webpack</code> 的配置文件，我们需要通过 <code>chainWebpack</code> 来进行间接修改，代码如下</p>
-</blockquote>
+<p>不管这个文件在哪一层，写法都一样。文件移动之后引用不用动，这才是别名的主要价值，少敲几个点号只是顺带的。</p>
+<p>这里的命名用了 <code>_lib</code>、<code>_com</code> 这种下划线开头的短前缀，是为了和 npm 包名区分开。webpack 解析模块的时候，先在 <code>alias</code> 表里查，没命中才去 <code>node_modules</code> 找。前缀太普通的话，比如你定义了一个叫 <code>utils</code> 的别名，正好又装了一个叫 <code>utils</code> 的包，就会打架。<code>@</code> 是 Vue CLI 默认就配好的 <code>src</code> 别名，可以直接用。</p>
+<h3 id="CLI-3-里怎么改"><a href="#CLI-3-里怎么改" class="headerlink" title="CLI 3 里怎么改"></a>CLI 3 里怎么改</h3><p>而在 CLI 3.x 中我们无法直接操作 webpack 的配置文件，我们需要通过 <code>chainWebpack</code> 来进行间接修改，代码如下：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* vue.config.js */</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">chainWebpack</span>: <span class="function"><span class="params">config</span> =&gt;</span> &#123;</span><br><span class="line">        config.<span class="property">resolve</span>.<span class="property">alias</span></span><br><span class="line">            .<span class="title function_">set</span>(<span class="string">&#x27;@&#x27;</span>, <span class="title function_">resolve</span>(<span class="string">&#x27;src&#x27;</span>))</span><br><span class="line">            .<span class="title function_">set</span>(<span class="string">&#x27;_lib&#x27;</span>, <span class="title function_">resolve</span>(<span class="string">&#x27;src/common&#x27;</span>))</span><br><span class="line">            .<span class="title function_">set</span>(<span class="string">&#x27;_com&#x27;</span>, <span class="title function_">resolve</span>(<span class="string">&#x27;src/components&#x27;</span>))</span><br><span class="line">            .<span class="title function_">set</span>(<span class="string">&#x27;_img&#x27;</span>, <span class="title function_">resolve</span>(<span class="string">&#x27;src/images&#x27;</span>))</span><br><span class="line">            .<span class="title function_">set</span>(<span class="string">&#x27;_ser&#x27;</span>, <span class="title function_">resolve</span>(<span class="string">&#x27;src/services&#x27;</span>))</span><br><span class="line">    &#125;,</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这样我们修改 <code>webpack alias</code> 来简化路径的优化就实现了。但是需要注意的是对于在样式及 <code>html</code> 模板中引用路径的简写时，前面需要加上 <code>～</code> 符，否则路径解析会失败，如：</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.img &#123;</span><br><span class="line">    background: (~_img/home.png);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>chainWebpack</code> 和 <code>configureWebpack</code> 的分工值得说一句：后者是整块合并，适合加插件、改 <code>entry</code> 这类整体性的改动；前者基于 <code>webpack-chain</code>，能精确定位到某一条已有的 loader 规则去改它的某个参数，适合做外科手术。改 <code>alias</code> 用哪个都行，改「已有的 url-loader 的 limit 值」这种就只能用 <code>chainWebpack</code>。这两个口子的区别在多页配置里更明显，我在 <a href="https://feinterview.poetries.top/blog/vue-muti-page-config">Vue CLI3之pages 构建多页应用</a> 里写过 <code>configureWebpack</code> 返回对象和原地修改的坑。</p>
+<h3 id="样式里要加波浪线"><a href="#样式里要加波浪线" class="headerlink" title="样式里要加波浪线"></a>样式里要加波浪线</h3><p>这样我们修改 webpack <code>alias</code> 来简化路径的优化就实现了。但是需要注意的是对于在样式及 html 模板中引用路径的简写时，前面需要加上 <code>~</code> 符，否则路径解析会失败，如：</p>
+<figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.img</span> &#123;</span><br><span class="line">    <span class="attribute">background</span>: <span class="built_in">url</span>(<span class="string">~_img/home.png</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、整合功能模块"><a href="#二、整合功能模块" class="headerlink" title="二、整合功能模块"></a>二、整合功能模块</h2><p>在多页应用的构建中，由于存在多个入口文件，因此会出现重复书写相同入口配置的情况，这样对于后期的修改和维护都不是特别友好，需要修改所有入口文件的相同配置，比如在 <code>index</code> 单页的入口中我们引用了 VConsole 及 performance 的配置，同时在 Vue 实例上还添加了 <code>$openRouter</code> 方法：</p>
+<p>原文这里写的是 <code>background: (~_img/home.png)</code>，少了 <code>url()</code>，这样写 CSS 是不生效的，我补上了。</p>
+<p>那为什么在 CSS 里非要加个 <code>~</code> 呢？</p>
+<p>因为 <code>css-loader</code> 处理 <code>url()</code> 的时候要先判断这是一个相对路径还是一个模块请求。看到 <code>./img/a.png</code> 它当相对路径处理，看到 <code>~foo/a.png</code> 它把 <code>~</code> 剥掉，剩下的部分交给 webpack 的模块解析流程，这时候 <code>alias</code> 才会生效。不加 <code>~</code>，<code>_img/home.png</code> 会被当成当前文件旁边的一个叫 <code>_img</code> 的目录，自然找不到。</p>
+<p>html 模板里通过 <code>&lt;img src=&quot;~_img/xxx.png&quot;&gt;</code> 引用是同样的道理，走的是 <code>vue-loader</code> 对模板资源路径的转换。</p>
+<h2 id="二、整合功能模块"><a href="#二、整合功能模块" class="headerlink" title="二、整合功能模块"></a>二、整合功能模块</h2><p>在多页应用的构建中，由于存在多个入口文件，因此会出现重复书写相同入口配置的情况，这样对于后期的修改和维护都不是特别友好，需要修改所有入口文件的相同配置。</p>
+<p>比如在 <code>index</code> 单页的入口中我们引用了 VConsole 及 performance 的配置，同时在 Vue 实例上还添加了 <code>$openRouter</code> 方法：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">App</span> <span class="keyword">from</span> <span class="string">&#x27;./index.vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span></span><br><span class="line"><span class="keyword">import</span> store <span class="keyword">from</span> <span class="string">&#x27;@/store/&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Navigator</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;../../common&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 如果是非线上环境，不加载 VConsole</span></span><br><span class="line"><span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> <span class="title class_">VConsole</span> = <span class="built_in">require</span>(<span class="string">&#x27;vconsole/dist/vconsole.min.js&#x27;</span>);</span><br><span class="line">    <span class="keyword">var</span> vConsole = <span class="keyword">new</span> <span class="title class_">VConsole</span>();</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Vue</span>.<span class="property">config</span>.<span class="property">performance</span> = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="property">$openRouter</span> = <span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$openRouter</span> = <span class="title class_">Navigator</span>.<span class="property">openRouter</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  router,</span><br><span class="line">  store,</span><br><span class="line">  <span class="attr">render</span>: <span class="function"><span class="params">h</span> =&gt;</span> <span class="title function_">h</span>(<span class="title class_">App</span>)</span><br><span class="line">&#125;).$mount(<span class="string">&#x27;#app&#x27;</span>)</span><br></pre></td></tr></table></figure>
 
-<p>而在 <code>page1</code> 和 <code>page2</code> 的入口文件中也同样进行了上述配置，那我们该如何整合这些重复代码，使其能够实现一次修改多处生效的功能呢？最简单的方法便是封装成一个共用方法来进行调用，这里我们可以在 <code>common</code> 文件夹下新建 <code>entryConfig</code> 文件夹用于放置入口文件中公共配置的封装，封装代码如下</p>
+<p>这段代码里有两处细节。<code>require</code> 写在 <code>if</code> 里面而不是文件顶部，是为了让 VConsole 只在非生产环境被打进包里；如果写成顶部的 <code>import</code>，静态分析阶段就会把它作为依赖引入，生产包里也会带上这个几十 KB 的调试工具。<code>Vue.config.performance = true</code> 打开的是组件级别的性能追踪，开发时能在浏览器 Performance 面板里看到每个组件 init、compile、render、patch 各花了多少时间。这个开关在生产环境要关掉，它本身有开销。</p>
+<p><code>$openRouter</code> 是多页应用里跨单页跳转的封装，具体实现和为什么需要它，我在 <a href="https://feinterview.poetries.top/blog/vue-router-and-template-analyse">Vue多页路由与模板解析</a> 里写过。</p>
+<p>而在 <code>page1</code> 和 <code>page2</code> 的入口文件中也同样进行了上述配置。那我们该如何整合这些重复代码，使其能够实现一次修改多处生效的功能呢？</p>
+<p>最简单的方法便是封装成一个共用方法来进行调用。这里我们可以在 <code>common</code> 文件夹下新建 <code>entryConfig</code> 文件夹用于放置入口文件中公共配置的封装，封装代码如下：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Navigator</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;../index&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="title function_">default</span> (<span class="title class_">Vue</span>) =&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果是非线上环境，不加载 VConsole</span></span><br><span class="line">    <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> <span class="title class_">VConsole</span> = <span class="built_in">require</span>(<span class="string">&#x27;vconsole/dist/vconsole.min.js&#x27;</span>);</span><br><span class="line">        <span class="keyword">var</span> vConsole = <span class="keyword">new</span> <span class="title class_">VConsole</span>();</span><br><span class="line"></span><br><span class="line">        <span class="title class_">Vue</span>.<span class="property">config</span>.<span class="property">performance</span> = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Vue</span>.<span class="property">$openRouter</span> = <span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$openRouter</span> = <span class="title class_">Navigator</span>.<span class="property">openRouter</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>上述代码我们向外暴露了一个函数，在调用它的入口文件中传入 Vue 实例作为参数即可实现内部功能的共用，我们可以将原本的入口文件简化为:</p>
+<p>上述代码我们向外暴露了一个函数，在调用它的入口文件中传入 Vue 实例作为参数即可实现内部功能的共用。</p>
+<p>注意这里是把 <code>Vue</code> 当参数传进来的，而不是在这个文件里自己 <code>import Vue</code>。这个选择挺重要：模块拿到的是入口文件里的那个 Vue 引用，挂在原型链上的东西一定作用在同一个 Vue 上。如果这个文件自己 import 一次，在某些构建配置下（比如 Vue 被配成了 external，或者存在多份 Vue 副本）就可能挂到另一个 Vue 上去，表现为「明明写了 <code>$openRouter</code> 却是 undefined」。这类问题查起来非常费劲。</p>
+<p>我们可以将原本的入口文件简化为：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">App</span> <span class="keyword">from</span> <span class="string">&#x27;./index.vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span></span><br><span class="line"><span class="keyword">import</span> store <span class="keyword">from</span> <span class="string">&#x27;@/store/&#x27;</span></span><br><span class="line"><span class="keyword">import</span> entryConfig <span class="keyword">from</span> <span class="string">&#x27;_lib/entryConfig/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用公共方法加载配置</span></span><br><span class="line"><span class="title function_">entryConfig</span>(<span class="title class_">Vue</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  router,</span><br><span class="line">  store,</span><br><span class="line">  <span class="attr">render</span>: <span class="function"><span class="params">h</span> =&gt;</span> <span class="title function_">h</span>(<span class="title class_">App</span>)</span><br><span class="line">&#125;).$mount(<span class="string">&#x27;#app&#x27;</span>)</span><br></pre></td></tr></table></figure>
 
-<h2 id="三、开启-Gzip-压缩"><a href="#三、开启-Gzip-压缩" class="headerlink" title="三、开启 Gzip 压缩"></a>三、开启 Gzip 压缩</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* vue.config.js */</span></span><br><span class="line"><span class="keyword">const</span> isPro = process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">configureWebpack</span>: <span class="function"><span class="params">config</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (isPro) &#123;</span><br><span class="line">            <span class="keyword">return</span> &#123;</span><br><span class="line">                <span class="attr">plugins</span>: [</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">CompressionWebpackPlugin</span>(&#123;</span><br><span class="line">                         <span class="comment">// 目标文件名称。[path] 被替换为原始文件的路径和 [query] 查询</span></span><br><span class="line">                        <span class="attr">asset</span>: <span class="string">&#x27;[path].gz[query]&#x27;</span>,</span><br><span class="line">                        <span class="comment">// 使用 gzip 压缩</span></span><br><span class="line">                        <span class="attr">algorithm</span>: <span class="string">&#x27;gzip&#x27;</span>, </span><br><span class="line">                        <span class="comment">// 处理与此正则相匹配的所有文件</span></span><br><span class="line">                        <span class="attr">test</span>: <span class="keyword">new</span> <span class="title class_">RegExp</span>(</span><br><span class="line">                            <span class="string">&#x27;\\.(js|css)$&#x27;</span></span><br><span class="line">                        ),</span><br><span class="line">                        <span class="comment">// 只处理大于此大小的文件</span></span><br><span class="line">                        <span class="attr">threshold</span>: <span class="number">10240</span>,</span><br><span class="line">                        <span class="comment">// 最小压缩比达到 0.8 时才会被压缩</span></span><br><span class="line">                        <span class="attr">minRatio</span>: <span class="number">0.8</span>，</span><br><span class="line">                    &#125;)</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>入口文件瘦下来了，而且瘦下来之后它读起来是有结构的：引依赖、装公共配置、创建实例挂载。以后要加全局指令、全局过滤器、错误上报，都往 <code>entryConfig</code> 里塞，三个入口文件一个字都不用动。</p>
+<p>这个模式在单页项目里同样成立，只是收益没那么直观。单页只有一个 <code>main.js</code>，把配置抽出去主要是为了让入口保持干净，顺便让这部分逻辑可测试。</p>
+<h2 id="三、开启-Gzip-压缩"><a href="#三、开启-Gzip-压缩" class="headerlink" title="三、开启 Gzip 压缩"></a>三、开启 Gzip 压缩</h2><p>前面两件事是为了改代码的人，这件事是为了用户。</p>
+<p>JS 和 CSS 是纯文本，重复度很高，Gzip 对这类内容的压缩效果非常好。做法是在构建时预先生成一份 <code>.gz</code> 文件，服务器直接把压好的文件发出去，省掉每次请求实时压缩的 CPU 开销。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* vue.config.js */</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CompressionWebpackPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;compression-webpack-plugin&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> isPro = process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">configureWebpack</span>: <span class="function"><span class="params">config</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (isPro) &#123;</span><br><span class="line">            <span class="keyword">return</span> &#123;</span><br><span class="line">                <span class="attr">plugins</span>: [</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">CompressionWebpackPlugin</span>(&#123;</span><br><span class="line">                         <span class="comment">// 目标文件名称。[path] 被替换为原始文件的路径和 [query] 查询</span></span><br><span class="line">                        <span class="attr">asset</span>: <span class="string">&#x27;[path].gz[query]&#x27;</span>,</span><br><span class="line">                        <span class="comment">// 使用 gzip 压缩</span></span><br><span class="line">                        <span class="attr">algorithm</span>: <span class="string">&#x27;gzip&#x27;</span>, </span><br><span class="line">                        <span class="comment">// 处理与此正则相匹配的所有文件</span></span><br><span class="line">                        <span class="attr">test</span>: <span class="keyword">new</span> <span class="title class_">RegExp</span>(</span><br><span class="line">                            <span class="string">&#x27;\\.(js|css)$&#x27;</span></span><br><span class="line">                        ),</span><br><span class="line">                        <span class="comment">// 只处理大于此大小的文件</span></span><br><span class="line">                        <span class="attr">threshold</span>: <span class="number">10240</span>,</span><br><span class="line">                        <span class="comment">// 最小压缩比达到 0.8 时才会被压缩</span></span><br><span class="line">                        <span class="attr">minRatio</span>: <span class="number">0.8</span>,</span><br><span class="line">                    &#125;)</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>上方我们通过在生产环境中增加 Gzip 压缩配置实现了打包后输出增加对应的 .gz 为后缀的文件，而由于我们配置项中配置的是只压缩大小超过 10240B（10kB）的 JS 及 CSS，因此不满足条件的文件不会进行 Gzip 压缩。</p>
-<p>Gzip 压缩能在普通压缩的基础上再进行 50% 以上 的压缩，我们可以直接来看下控制台的输出对比图</p>
-<p><img src="https://user-gold-cdn.xitu.io/2018/8/19/1654de7a38472ab8"></p>
+<p>原文这段有两个问题，我改掉了：<code>minRatio: 0.8</code> 后面跟的是一个中文全角逗号，直接跑会是语法错误；另外少了 <code>CompressionWebpackPlugin</code> 的 <code>require</code> 语句，我补在了开头。</p>
+<p>四个参数挨个说。</p>
+<p><code>test</code> 决定压哪些文件。这里只匹配 <code>.js</code> 和 <code>.css</code>，因为图片、字体这类二进制文件本身已经是压缩格式，再 Gzip 一遍基本没收益，还白白多一份产物。</p>
+<p><code>threshold: 10240</code> 是 10KB，小于这个体积的文件不处理。原因是 Gzip 有固定的头部开销，小文件压完可能还变大，而且多一次文件读取的成本不划算。</p>
+<p><code>minRatio: 0.8</code> 是压缩比的门槛。压完的体积除以原体积大于 0.8，说明这个文件几乎压不动，那就别生成 <code>.gz</code> 了。这两个参数配合起来，挡掉的是所有「压了也没用」的情况。</p>
+<p><code>asset</code> 是产物文件名模板，<code>[path].gz[query]</code> 表示在原路径后面加 <code>.gz</code> 后缀。这个字段在插件后续版本里改名成了 <code>filename</code>，升级版本的时候记得对一下当前版本的文档，参数名对不上插件会直接报错。</p>
+<p>上方我们通过在生产环境中增加 Gzip 压缩配置实现了打包后输出增加对应的 <code>.gz</code> 为后缀的文件。而由于我们配置项中配置的是只压缩大小超过 10240B（10kB）的 JS 及 CSS，因此不满足条件的文件不会进行 Gzip 压缩。构建完成后去 <code>dist</code> 目录看一眼，你会看到 <code>app.xxxx.js</code> 旁边多了一个 <code>app.xxxx.js.gz</code>，对比两者的体积就能直观看到压缩效果，文本类资源压到原体积的三分之一以下是很常见的。</p>
+<h3 id="光生成文件是不够的"><a href="#光生成文件是不够的" class="headerlink" title="光生成文件是不够的"></a>光生成文件是不够的</h3><p>这一步最容易被忽略：<code>.gz</code> 文件生成出来，服务器不认的话它就只是静静躺在那儿占磁盘。</p>
+<p>浏览器请求 <code>app.js</code> 的时候会带上 <code>Accept-Encoding: gzip</code> 这个请求头，表示我能解 gzip。服务器需要识别这个头，把 <code>app.js.gz</code> 的内容发回来，并带上响应头 <code>Content-Encoding: gzip</code>。nginx 上对应的配置是 <code>gzip_static on;</code>，它的行为就是优先找同名的 <code>.gz</code> 文件直接发送，找不到才回退。</p>
+<p>如果服务器只开了 <code>gzip on;</code>（动态压缩）而没开 <code>gzip_static</code>，那你构建时生成的 <code>.gz</code> 完全没被用上，nginx 每次请求都在实时压一遍。功能上没错，但白干了一件事。</p>
+<p>验证方法很简单，打开 Chrome DevTools 的 Network 面板，看目标文件的响应头有没有 <code>Content-Encoding: gzip</code>，再对比 Size 和 Content 两列的数值差异。</p>
+<h3 id="现在还这么做吗"><a href="#现在还这么做吗" class="headerlink" title="现在还这么做吗"></a>现在还这么做吗</h3><p>Gzip 这件事本身没过时，但工具链变了。</p>
+<p>如果你用的是 Vite，社区常用的是 <code>vite-plugin-compression</code> 这类插件，配置项的思路和上面基本一致。另一个变化是 Brotli，压缩率比 Gzip 更高一些，主流浏览器都支持了，nginx 上有对应的 <code>ngx_brotli</code> 模块。做法是同时生成 <code>.gz</code> 和 <code>.br</code> 两份，让服务器按浏览器的 <code>Accept-Encoding</code> 自己选。</p>
+<p>还有一种更省事的路子是把静态资源托管到 CDN 或者对象存储上，压缩这件事由服务商在边缘节点处理，你的构建流程里一行配置都不用加。我现在的小项目基本都走这条路，构建产物越简单越好维护。</p>
+<p>至于 <code>alias</code> 和入口收敛这两件事，Vite 里对应的是 <code>resolve.alias</code> 配置和 <code>main.js</code> 里的插件注册，写法不同，做的事情是同一件。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把这一圈过下来，几个能直接带走的结论：</p>
+<ul>
+<li><code>alias</code> 的核心价值是让引用路径和文件位置解耦，移动文件不用改引用，少打点号只是附带</li>
+<li>别名前缀要跟 npm 包名区分开，<code>_com</code> 这种写法比 <code>utils</code> 安全</li>
+<li>CLI 3 改 webpack 配置分两个口子，整体合并用 <code>configureWebpack</code>，改已有规则的细节用 <code>chainWebpack</code></li>
+<li>CSS 和模板里引用别名必须加 <code>~</code>，否则 <code>css-loader</code> 会当成相对路径去找</li>
+<li>多入口的公共初始化抽成一个接收 Vue 的函数，别在里面自己 import Vue，避免多份 Vue 副本的坑</li>
+<li>Gzip 的 <code>threshold</code> 和 <code>minRatio</code> 是用来挡掉「压了也没收益」的文件，别把它们调没</li>
+<li>构建时生成 <code>.gz</code> 只完成了一半，服务器要开 <code>gzip_static</code> 才会真正用上</li>
+<li>原文那段 Gzip 配置里 <code>minRatio: 0.8</code> 后面是个全角逗号，照抄会直接报语法错误</li>
+</ul>
+<p>这三件事都属于「不做也能上线，做了之后每天都舒服一点」的类型。我的建议是趁项目还小的时候一次性配好，等文件多到几百个再来整理，光是改引用路径就够折腾一天。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://cli.vuejs.org/zh/guide/webpack.html">Vue CLI - webpack 相关配置</a></li>
+<li><a href="https://webpack.docschina.org/configuration/resolve/#resolvealias">webpack - resolve.alias</a></li>
+<li><a href="https://github.com/webpack-contrib/compression-webpack-plugin">compression-webpack-plugin - GitHub</a></li>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_gzip_static_module.html">nginx - ngx_http_gzip_static_module</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Encoding">MDN - Content-Encoding</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

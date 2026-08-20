@@ -7,20 +7,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>异步编程入门之RxJs（一） | 前端进阶之旅</title>
+  <title>异步编程入门之RxJs 从宝石图到常用操作符 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,RxJs," />
+    <meta name="keywords" content="JavaScript,异步编程,RxJs," />
   
 
-  <meta name="description" content="一、前言1.1 Promise缺点 Promise 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的 以电商为例，如果某商户的订单不允许取消，你还会去买吗？ 如果你发起了一个 Ajax 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去 使用 Promise，你做不到，不是因为">
+  <meta name="description" content="从 Promise 无法取消、只能承载一个值这两个痛点切入，讲清 Observable 与宝石图的读法，梳理 of&#x2F;from&#x2F;defer&#x2F;timer 等创建器、merge&#x2F;concat&#x2F;zip 三种合并方式，以及 retry、debounceTime、switchMap 等高频操作符。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="异步编程入门之RxJs（一）">
+<meta property="og:title" content="异步编程入门之RxJs 从宝石图到常用操作符">
 <meta property="og:url" content="http://blog.poetries.top/2021/02/08/rxjs-summary/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、前言1.1 Promise缺点 Promise 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的 以电商为例，如果某商户的订单不允许取消，你还会去买吗？ 如果你发起了一个 Ajax 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去 使用 Promise，你做不到，不是因为">
+<meta property="og:description" content="从 Promise 无法取消、只能承载一个值这两个痛点切入，讲清 Observable 与宝石图的读法，梳理 of&#x2F;from&#x2F;defer&#x2F;timer 等创建器、merge&#x2F;concat&#x2F;zip 三种合并方式，以及 retry、debounceTime、switchMap 等高频操作符。">
 <meta property="og:locale">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204624236.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204644634.png">
@@ -39,9 +39,10 @@
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204912979.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208204929447.png">
 <meta property="article:published_time" content="2021-02-08T12:10:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.688Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.954Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="异步编程">
 <meta property="article:tag" content="RxJs">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog.poetries.top/img/static/images/image-20210208204624236.png">
@@ -222,7 +223,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-text">一、前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-Promise%E7%BC%BA%E7%82%B9"><span class="toc-text">1.1 Promise缺点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Observable"><span class="toc-text">1.2 Observable</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-ReactiveX%E5%AE%9D%E7%9F%B3%E5%9B%BE"><span class="toc-text">1.3 ReactiveX宝石图</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Rxjs%E4%BB%8B%E7%BB%8D"><span class="toc-text">二、Rxjs介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E4%BB%8B%E7%BB%8D"><span class="toc-text">2.1 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Promise%E5%92%8CRxJS%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E5%AF%B9%E6%AF%94"><span class="toc-text">2.2 Promise和RxJS处理异步对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Rxjs%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-text">2.3 Rxjs基本概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-Rxjs%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">2.4 Rxjs使用场景</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8"><span class="toc-text">三、基础入门</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-%E5%85%B8%E5%9E%8B%E7%9A%84%E5%86%99%E6%B3%95"><span class="toc-text">3.1 典型的写法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E7%AE%80%E5%8D%95%E5%88%9B%E5%BB%BA%E5%99%A8"><span class="toc-text">3.2 简单创建器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-of-%E2%80%93-%E5%8D%95%E4%B8%80%E5%80%BC%E8%BD%AC%E4%B8%BA%E6%B5%81"><span class="toc-text">3.2.1  of – 单一值转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-from-%E2%80%93-%E6%95%B0%E7%BB%84%E8%BD%AC%E4%B8%BA%E6%B5%81"><span class="toc-text">3.2.2 from – 数组转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-3-range-%E2%80%93-%E8%8C%83%E5%9B%B4%E8%BD%AC%E4%B8%BA%E6%B5%81"><span class="toc-text">3.2.3 range – 范围转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-4-fromPromise-%E2%80%93-Promise-%E8%BD%AC%E4%B8%BA%E6%B5%81"><span class="toc-text">3.2.4 fromPromise – Promise 转为流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-5-defer-%E2%80%93-%E6%83%B0%E6%80%A7%E5%88%9B%E5%BB%BA%E6%B5%81"><span class="toc-text">3.2.5 defer – 惰性创建流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-6-timer-%E2%80%93-%E5%AE%9A%E6%97%B6%E5%99%A8%E6%B5%81"><span class="toc-text">3.2.6 timer – 定时器流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-7-interval-%E2%80%93-%E5%AE%9A%E6%97%B6%E5%99%A8%E6%B5%81"><span class="toc-text">3.2.7 interval – 定时器流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Subject-%E2%80%93-%E4%B8%BB%E4%BD%93%E5%AF%B9%E8%B1%A1"><span class="toc-text">3.3 Subject – 主体对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-%E5%90%88%E5%B9%B6%E5%88%9B%E5%BB%BA%E5%99%A8"><span class="toc-text">3.4 合并创建器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-1-merge-%E2%80%93-%E5%B9%B6%E8%81%94"><span class="toc-text">3.4.1 merge – 并联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-2-concat-%E2%80%93-%E4%B8%B2%E8%81%94"><span class="toc-text">3.4.2 concat – 串联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-3-zip-%E2%80%93-%E6%8B%89%E9%93%BE"><span class="toc-text">3.4.3 zip – 拉链</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-%E6%93%8D%E4%BD%9C%E7%AC%A6"><span class="toc-text">3.5 操作符</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-1-retry-%E2%80%93-%E5%A4%B1%E8%B4%A5%E6%97%B6%E9%87%8D%E8%AF%95"><span class="toc-text">3.5.1 retry – 失败时重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-2-repeat-%E2%80%93-%E6%88%90%E5%8A%9F%E6%97%B6%E9%87%8D%E8%AF%95"><span class="toc-text">3.5.2 repeat – 成功时重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-3-delay-%E2%80%93-%E5%BB%B6%E8%BF%9F"><span class="toc-text">3.5.3 delay – 延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-4-toArray-%E2%80%93-%E6%94%B6%E9%9B%86%E4%B8%BA%E6%95%B0%E7%BB%84"><span class="toc-text">3.5.4 toArray – 收集为数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-5-debounceTime-%E2%80%93-%E9%98%B2%E6%8A%96"><span class="toc-text">3.5.5 debounceTime – 防抖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-6-switchMap-%E2%80%93-%E5%88%87%E6%8D%A2%E6%88%90%E5%8F%A6%E4%B8%80%E4%B8%AA%E6%B5%81"><span class="toc-text">3.5.6 switchMap – 切换成另一个流</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BD%BF%E7%94%A8"><span class="toc-text">四、进一步使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-Rxjs-unsubscribe-%E5%8F%96%E6%B6%88%E8%AE%A2%E9%98%85"><span class="toc-text">4.1 Rxjs unsubscribe 取消订阅</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-Rxjs-%E8%AE%A2%E9%98%85%E5%90%8E%E5%A4%9A%E6%AC%A1%E6%89%A7%E8%A1%8C"><span class="toc-text">4.2 Rxjs 订阅后多次执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81RXJS-%E5%AE%9E%E4%BE%8B%E6%93%8D%E4%BD%9C%E7%AC%A6%E5%B0%8F%E7%BB%93"><span class="toc-text">五、RXJS 实例操作符小结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9B%B4%E5%A4%9A%E5%8F%82%E8%80%83"><span class="toc-text">六、更多参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E8%AF%B4%E8%AF%B4-Promise-%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-text">一、先说说 Promise 差在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Observable-%E4%B8%8E%E5%AE%9D%E7%9F%B3%E5%9B%BE"><span class="toc-text">二、Observable 与宝石图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Observable-%E5%B0%B1%E6%98%AF%E5%8F%AF%E8%A7%82%E5%AF%9F%E5%AF%B9%E8%B1%A1"><span class="toc-text">Observable 就是可观察对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ReactiveX-%E5%AE%9D%E7%9F%B3%E5%9B%BE%E6%80%8E%E4%B9%88%E8%AF%BB"><span class="toc-text">ReactiveX 宝石图怎么读</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81RxJS-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%80%BC%E5%BE%97%E7%94%A8"><span class="toc-text">三、RxJS 是什么，什么时候值得用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%8F%A5%E8%AF%9D%E4%BB%8B%E7%BB%8D"><span class="toc-text">一句话介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%92%8C-Promise-%E6%91%86%E5%9C%A8%E4%B8%80%E8%B5%B7%E7%9C%8B"><span class="toc-text">和 Promise 摆在一起看</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%AD%E4%B8%AA%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-text">六个基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E6%89%8D%E5%80%BC%E5%BE%97%E4%B8%8A-RxJS"><span class="toc-text">什么场景才值得上 RxJS</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%88%9B%E5%BB%BA%E5%99%A8%EF%BC%8C%E6%B5%81%E4%BB%8E%E5%93%AA%E6%9D%A5"><span class="toc-text">四、创建器，流从哪来</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%85%B8%E5%9E%8B%E7%9A%84%E5%86%99%E6%B3%95"><span class="toc-text">一个典型的写法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%80%E5%8D%95%E5%88%9B%E5%BB%BA%E5%99%A8"><span class="toc-text">简单创建器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Subject%EF%BC%8C%E6%89%8B%E5%8A%A8%E5%BE%80%E6%B5%81%E9%87%8C%E5%A1%9E%E6%95%B0%E6%8D%AE"><span class="toc-text">Subject，手动往流里塞数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%90%88%E5%B9%B6%E5%88%9B%E5%BB%BA%E5%99%A8%EF%BC%8C%E6%8A%8A%E5%A4%9A%E6%9D%A1%E6%B5%81%E6%8B%BC%E8%B5%B7%E6%9D%A5"><span class="toc-text">五、合并创建器，把多条流拼起来</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#merge-%E5%B9%B6%E8%81%94"><span class="toc-text">merge 并联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#concat-%E4%B8%B2%E8%81%94"><span class="toc-text">concat 串联</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#zip-%E6%8B%89%E9%93%BE"><span class="toc-text">zip 拉链</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E7%AC%A6"><span class="toc-text">六、常用操作符</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#retry-%E5%A4%B1%E8%B4%A5%E6%97%B6%E9%87%8D%E8%AF%95"><span class="toc-text">retry 失败时重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#repeat-%E6%88%90%E5%8A%9F%E6%97%B6%E9%87%8D%E8%AF%95"><span class="toc-text">repeat 成功时重试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#delay-%E5%BB%B6%E8%BF%9F"><span class="toc-text">delay 延迟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#toArray-%E6%94%B6%E9%9B%86%E4%B8%BA%E6%95%B0%E7%BB%84"><span class="toc-text">toArray 收集为数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#debounceTime-%E9%98%B2%E6%8A%96"><span class="toc-text">debounceTime 防抖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#switchMap-%E5%88%87%E6%8D%A2%E6%88%90%E5%8F%A6%E4%B8%80%E4%B8%AA%E6%B5%81"><span class="toc-text">switchMap 切换成另一个流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%8F%96%E6%B6%88%E8%AE%A2%E9%98%85%E4%B8%8E%E5%A4%9A%E6%AC%A1%E5%8F%91%E5%B0%84"><span class="toc-text">七、取消订阅与多次发射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#unsubscribe-%E5%8F%96%E6%B6%88%E8%AE%A2%E9%98%85"><span class="toc-text">unsubscribe 取消订阅</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A2%E9%98%85%E5%90%8E%E5%8F%AF%E4%BB%A5%E5%A4%9A%E6%AC%A1%E6%89%A7%E8%A1%8C"><span class="toc-text">订阅后可以多次执行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%AE%9E%E4%BE%8B%E6%93%8D%E4%BD%9C%E7%AC%A6%E9%80%9F%E6%9F%A5"><span class="toc-text">八、实例操作符速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -245,13 +246,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-rxjs-summary" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">异步编程入门之RxJs（一）</h1>
+    <h1 class="post-title">异步编程入门之RxJs 从宝石图到常用操作符</h1>
 
     <div class="article-meta">
       <span>
@@ -287,12 +288,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 5.2k字</span>
+            <span>字数统计 7.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 18分</span>
+            <span>阅读时长 27分</span>
           </span>
       
       
@@ -306,210 +307,276 @@
   <div class="article-content">
     
       <div id="container">
-        <h1 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h1><h2 id="1-1-Promise缺点"><a href="#1-1-Promise缺点" class="headerlink" title="1.1 Promise缺点"></a>1.1 Promise缺点</h2><ul>
-<li><code>Promise</code> 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，并且你没有机会取消这次执行。显然，在某些情况下这么做是浪费的甚至错误的</li>
-<li>以电商为例，如果某商户的订单不允许取消，你还会去买吗？</li>
-<li>如果你发起了一个 <code>Ajax</code> 请求，然后用户导航到了另一个路由，显然，你这个请求如果还没有完成就应该被取消，而不应该发出去</li>
-<li>使用 <code>Promise</code>，你做不到，不是因为实现方面的原因，而是因为它在概念层（接口定义上）就无法支持取消</li>
-<li>由于 <code>Promise</code> 只会承载一个值，因此当我们要处理的是一个集合的时候就比较困难了。比如对于一个随机数列（总数未知），如果我们要借助 <code>Web API</code> 检查每个数字的有效性，然后对前一百个有效数字进行求和，那么用 <code>Promise</code> 写就比较麻烦了</li>
-</ul>
-<h2 id="1-2-Observable"><a href="#1-2-Observable" class="headerlink" title="1.2 Observable"></a>1.2 Observable</h2><ul>
-<li>它就是可观察对象，<code>Observable</code> 顾名思义就是可以被别人观察的对象，当它变化时，观察者就可以得到通知。换句话说，它负责生产数据，别人可以消费它生产的数据</li>
-<li><code>Observable</code> 就像个传送带。这个传送带不断运行，围绕这个传送带建立了一条生产线，包括一系列工序，不同的工序承担单一而确定的职责。每个工位上有一个工人</li>
-<li>整个传送带的起点是原料箱，原料箱中的原料不断被放到传送带上。工人只需要待在自己的工位上，对面前的原料进行加工，然后放回传送带上或放到另一条传送带上即可，简单、高效、无意外</li>
-</ul>
-<h2 id="1-3-ReactiveX宝石图"><a href="#1-3-ReactiveX宝石图" class="headerlink" title="1.3 ReactiveX宝石图"></a>1.3 ReactiveX宝石图</h2><p><img src="https://blog.poetries.top/img/static/images/image-20210208204624236.png" alt="image-20210208204624236"></p>
+        <p>写业务的时候大概率你也遇到过这种需求：搜索框输入要防抖，请求发出去之后用户又改了关键词，前一个请求的结果回来了还得丢掉，中间任何一步失败还要自动重试两次。用 Promise 加几个 <code>setTimeout</code> 和一堆标志位也能拼出来，但那段代码半年后没人敢改。RxJS 就是冲着这类问题来的，它把所有异步来源都抽象成「流」，再用操作符去拼装。这篇是我梳理 RxJS 入门时的笔记，重点不是把几百个操作符背下来，而是先看懂宝石图，然后记住十来个真正高频的，剩下的用到再查。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>中间的带箭头的线就像传送带，用来表示数据序列，这个数据序列被称为“流”。上方的流叫做输入流，下方的流叫做输出流。输入流可能有多个，但是输出流只会有一个（不过，流中的每个数据项也可以是别的流）</li>
-<li>数据序列上的每个圆圈表示一个数据项，圆圈的位置表示数据出现的先后顺序，但是一般不会表示精确的时间比例，比如在一毫秒内接连出现的两个数据之间仍然会有较大的距离。只有少数涉及到时间的操作，其宝石图才会表现出精确的时间比例</li>
-<li>圆圈的最后，通常会有一条竖线或者一个叉号。竖线表示这个流正常终止了，也就是说不会再有更多的数据提供出来了。而叉号表示这个流抛出错误导致异常中止了。还有一种流，既没有竖线也没有叉号，这种叫做无尽流，比如一个由所有自然数组成的流就不会主动终止。但是要注意，无尽流仍然是可以处理的，因为需要多少项是由消费者决定的。你可以把这个“智能”传送带理解为由下一个工位“叫号”的，没“叫号”下一项数据就不会过来</li>
-<li>中间的大方框表示一个操作，也就是 operator —— 一个函数，比如这个图中的操作就是把输入流中的条目乘以十后放入输出流中。</li>
-<li>看懂了宝石图，就能很形象的理解各种操作符了</li>
+<li>Promise 的两个硬伤，无法取消和只能承载一个值</li>
+<li>Observable 是什么，为什么把它比作传送带</li>
+<li>ReactiveX 宝石图怎么读，竖线、叉号、无尽流分别代表什么</li>
+<li>常用创建器 of &#x2F; from &#x2F; range &#x2F; defer &#x2F; timer &#x2F; interval 各自的适用场景</li>
+<li>Subject 和创建器的区别，什么时候需要手动往流里塞数据</li>
+<li>三种合并方式 merge 并联、concat 串联、zip 拉链</li>
+<li>高频操作符 retry、repeat、delay、toArray、debounceTime、switchMap</li>
+<li>unsubscribe 怎么取消订阅，Observable 为什么能发射多个值</li>
 </ul>
-<h1 id="二、Rxjs介绍"><a href="#二、Rxjs介绍" class="headerlink" title="二、Rxjs介绍"></a>二、Rxjs介绍</h1><h2 id="2-1-介绍"><a href="#2-1-介绍" class="headerlink" title="2.1 介绍"></a>2.1 介绍</h2><blockquote>
-<ul>
-<li><code>RxJS</code> 是 <code>ReactiveX</code> 编程理念的 <code>JavaScript</code> 版本。<code>ReactiveX</code> 来自微软，它是一种针对异步数据 流的编程。简单来说，它将一切数据，包括 <code>HTTP</code> 请求，<code>DOM</code> 事件或者普通数据等包装成流的形式，然后用强大丰富的操作符对流进行处理，使你能以同步编程的方式处理异步数据，并组合不同的操作符来轻松优雅的实现你所需要的功能</li>
-<li><code>RxJS</code> 是一种针对异步数据流编程工具，或者叫响应式扩展编程;可不管如何解释 <code>RxJS</code> 其目 标就是异步编程，<code>Angular</code> 引入 <code>RxJS</code> 为了就是让异步可控、更简单。</li>
-</ul>
-</blockquote>
-<p><strong>目前常见的异步编程的几种方法:</strong></p>
+<h2 id="一、先说说-Promise-差在哪"><a href="#一、先说说-Promise-差在哪" class="headerlink" title="一、先说说 Promise 差在哪"></a>一、先说说 Promise 差在哪</h2><p>用 Promise 不是不行，只是它有两个绕不过去的边界。</p>
+<p>第一个是<strong>无法取消</strong>。Promise 的特点是无论有没有人关心它的执行结果，它都会立即开始执行，而且你没有机会撤回这次执行。某些场景下这么做是浪费的，甚至是错误的。以电商为例，如果某个商户的订单一旦下单就不允许取消，你还会放心去买吗？</p>
+<p>具体到代码里：你发起了一个 Ajax 请求，然后用户导航到了另一个路由。这个请求如果还没完成，理应被取消掉，而不是继续占着连接、回来之后还往一个已经卸载的组件上塞数据。</p>
+<p>用 Promise 你做不到。不是实现层面偷懒，是它在概念层（接口定义上）就不支持取消。<code>then</code> 和 <code>catch</code> 里没有任何一个环节能反向通知生产者「别做了」。</p>
+<p>第二个是<strong>只能承载一个值</strong>。Promise 要么 resolve 一个值，要么 reject 一个原因，都只发生一次。当我们要处理的是一个集合，麻烦就来了。比如有一个总数未知的随机数列，要借助 Web API 逐个检查有效性，然后对前一百个有效数字求和，用 Promise 写就很别扭，你得自己维护计数、自己决定什么时候停、自己把结果攒起来。</p>
+<p>这两点合在一起，就是 RxJS 存在的理由。</p>
+<h2 id="二、Observable-与宝石图"><a href="#二、Observable-与宝石图" class="headerlink" title="二、Observable 与宝石图"></a>二、Observable 与宝石图</h2><h3 id="Observable-就是可观察对象"><a href="#Observable-就是可观察对象" class="headerlink" title="Observable 就是可观察对象"></a>Observable 就是可观察对象</h3><p><code>Observable</code> 顾名思义就是可以被别人观察的对象，当它变化时，观察者就能得到通知。它负责生产数据，别人负责消费它生产的数据。</p>
+<p>我觉得最贴切的比喻是传送带。这条传送带不断运行，围绕它建立了一整条生产线，包括一系列工序，每道工序承担单一而确定的职责，每个工位上站一个工人。</p>
+<p>传送带的起点是原料箱，原料不断被放到传送带上。工人只需要待在自己的工位上，对面前的原料进行加工，然后放回传送带或者放到另一条传送带上，简单、高效、没有意外。</p>
+<p>这个比喻里有个关键点容易被忽略：工人不需要知道原料是从哪来的，也不需要知道下一道工序是谁。每个操作符都只管自己那一段，这是 RxJS 能把复杂逻辑拆开的根本原因。</p>
+<h3 id="ReactiveX-宝石图怎么读"><a href="#ReactiveX-宝石图怎么读" class="headerlink" title="ReactiveX 宝石图怎么读"></a>ReactiveX 宝石图怎么读</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204624236.png" alt="ReactiveX 宝石图示例，上方输入流经过中间操作符处理后产生下方输出流"></p>
+<p>宝石图（marble diagram）是 ReactiveX 的通用图示语言，看懂它，后面所有操作符的文档都能自己读了。</p>
+<p>中间那条带箭头的线就是传送带，表示数据序列，这个数据序列被称为「流」。上方的流叫输入流，下方的流叫输出流。输入流可能有多个，但输出流只会有一个（不过流中的每个数据项本身也可以是另一个流）。</p>
+<p>线上的每个圆圈表示一个数据项。圆圈的位置表示数据出现的先后顺序，但一般不表示精确的时间比例。在一毫秒内接连出现的两个数据，画在图上仍然可能隔得很开。只有少数和时间强相关的操作，宝石图才会画出精确的时间比例。</p>
+<p>流的末尾通常有一条竖线或者一个叉号。竖线表示这个流正常终止了，不会再有更多数据；叉号表示这个流抛出错误异常中止了。</p>
+<p>还有一种流既没有竖线也没有叉号，叫无尽流，比如一个由所有自然数组成的流就不会主动终止。这类流照样能处理，因为需要多少项是由消费者决定的。你可以把这条「智能」传送带理解成由下一个工位「叫号」的，没叫号，下一项数据就不会过来。</p>
+<p>中间那个大方框表示一个操作，也就是 operator，说到底就是一个函数。上图里的操作是把输入流中的每一项乘以十再放进输出流。</p>
+<p>看懂宝石图之后，各种操作符就都能靠图理解了，不用死记语义。</p>
+<h2 id="三、RxJS-是什么，什么时候值得用"><a href="#三、RxJS-是什么，什么时候值得用" class="headerlink" title="三、RxJS 是什么，什么时候值得用"></a>三、RxJS 是什么，什么时候值得用</h2><h3 id="一句话介绍"><a href="#一句话介绍" class="headerlink" title="一句话介绍"></a>一句话介绍</h3><p>RxJS 是 ReactiveX 编程理念的 JavaScript 版本。ReactiveX 最早来自微软，是一种针对异步数据流的编程范式。它把一切数据来源，包括 HTTP 请求、DOM 事件、定时器、普通数据，统统包装成流，然后用一套丰富的操作符对流进行处理，让你能以近似同步的写法处理异步数据，并通过组合不同操作符实现复杂逻辑。</p>
+<p>叫它「响应式扩展编程」也行，名字不重要，目标就一个：让异步可控。Angular 把 RxJS 内置进框架，图的也是这个。</p>
+<p>目前常见的异步编程方法有这么几种：</p>
 <ul>
 <li>回调函数</li>
-<li>事件监听&#x2F;发布订阅</li>
-<li><code>Promise</code></li>
-<li><code>Rxjs</code></li>
+<li>事件监听 &#x2F; 发布订阅</li>
+<li>Promise</li>
+<li>RxJS</li>
 </ul>
-<h2 id="2-2-Promise和RxJS处理异步对比"><a href="#2-2-Promise和RxJS处理异步对比" class="headerlink" title="2.2 Promise和RxJS处理异步对比"></a>2.2 Promise和RxJS处理异步对比</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// promise异步处理</span></span><br><span class="line"><span class="comment">// Promise 处理异步</span></span><br><span class="line">  <span class="title function_">getPromiseData</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(resolve = &gt;&#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(() = &gt;&#123;</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="string">&#x27;---promise timeout---&#x27;</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">  &#125;);</span><br><span class="line">  </span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"></span><br><span class="line"><span class="title function_">getPromiseData</span>().<span class="title function_">then</span>(<span class="function"><span class="params">d</span>=&gt;</span><span class="variable language_">console</span>.<span class="title function_">log</span>(d))</span><br></pre></td></tr></table></figure>
+<p>前三种你都熟，RxJS 是唯一一个把「时间维度」当一等公民来处理的。</p>
+<h3 id="和-Promise-摆在一起看"><a href="#和-Promise-摆在一起看" class="headerlink" title="和 Promise 摆在一起看"></a>和 Promise 摆在一起看</h3><p>先看 Promise 的写法：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Promise 处理异步</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getPromiseData</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="title function_">resolve</span>(<span class="string">&#x27;---promise timeout---&#x27;</span>)</span><br><span class="line">    &#125;, <span class="number">2000</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="title function_">getPromiseData</span>().<span class="title function_">then</span>(<span class="function"><span class="params">d</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(d))</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RxJS 处理异步:</span></span><br><span class="line"><span class="title function_">getRxjsData</span>(<span class="params"></span>) &#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Observable</span>(observer = &gt;&#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(() = &gt;&#123;</span><br><span class="line">        observer.<span class="title function_">next</span>(<span class="string">&#x27;observable timeout&#x27;</span>);</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="number">2000</span>);</span><br><span class="line">  &#125;); </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="title function_">getRxjsData</span>().<span class="title function_">subscribe</span>(<span class="function"><span class="params">d</span>=&gt;</span><span class="variable language_">console</span>.<span class="title function_">log</span>(d))</span><br></pre></td></tr></table></figure>
+<p>再看 RxJS 的写法：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RxJS 处理异步</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">getRxjsData</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Observable</span>(<span class="function"><span class="params">observer</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      observer.<span class="title function_">next</span>(<span class="string">&#x27;observable timeout&#x27;</span>)</span><br><span class="line">    &#125;, <span class="number">2000</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用</span></span><br><span class="line"><span class="title function_">getRxjsData</span>().<span class="title function_">subscribe</span>(<span class="function"><span class="params">d</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(d))</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>从上面列子可以看到 <code>RxJS</code> 和 <code>Promise</code>的基本用法非常类似，除了一些关键词不同。<code>Promise</code> 里面用的是 <code>then()</code> 和 <code>resolve()</code>，而 <code>RxJS</code>里面用的是 <code>next()</code> 和 <code>subscribe()</code><br><code>Rxjs</code>相比<code>Promise</code>要强大很多。 比如 <code>Rxjs</code> 中可以中途撤回、<code>Rxjs</code> 可以发射多个值、<code>Rxjs</code> 提供了多种工具函数等等</p>
-</blockquote>
-<h2 id="2-3-Rxjs基本概念"><a href="#2-3-Rxjs基本概念" class="headerlink" title="2.3 Rxjs基本概念"></a>2.3 Rxjs基本概念</h2><ul>
-<li><code>Observable</code> (可观察对象): 表示一个概念，这个概念是一个可调用的未来值或事件的集合。</li>
-<li><code>Observer</code> (观察者): 一个回调函数的集合，它知道如何去监听由 <code>Observable</code> 提供的值。</li>
-<li><code>Subscription</code> (订阅): 表示 <code>Observable</code> 的执行，主要用于取消 <code>Observable</code> 的执行。</li>
-<li><code>Operators</code> (操作符): 采用函数式编程风格的纯函数 (<code>pure function</code>)，使用像 <code>map</code>、<code>filter</code>、<code>concat</code>、<code>flatMap</code> 等这样的操作符来处理集合。<br><code>Subject</code> (主体): 相当于 <code>EventEmitter</code>，并且是将值或事件多路推送给多个 <code>Observer</code> 的唯一方式。</li>
-<li><code>Schedulers</code> (调度器):用来控制并发并且是中央集权的调度员，允许我们在发生计算时进行协调，例如 <code>setTimeout</code> 或 <code>requestAnimationFrame</code> 或其他</li>
-</ul>
-<h2 id="2-4-Rxjs使用场景"><a href="#2-4-Rxjs使用场景" class="headerlink" title="2.4 Rxjs使用场景"></a>2.4 Rxjs使用场景</h2><ul>
-<li>涉及复杂的时序操作：在游戏的某一关卡中，连续按下上上下下左右左右baba，每次点按间隔不超过0.4ms，就发送信息到服务器<code>A</code></li>
-<li>涉及复杂的条件处理：用户输入时，每输入一个字符，发送信息给服务器<code>A</code>，如果服务器<code>A</code>返回的数据有问题，则请求服务器<code>B</code>，如果用户输入’fuck’则停止上述操作并请求服务器<code>c</code></li>
-<li>涉及复杂的状态管理：早上的时候每隔<code>10</code>秒检查一次用户信息，晚上的时候每隔5秒检查一次用户信息，检测到变更后响应式更新所有视图</li>
-<li>真要用<code>Rx</code>建议还是<code>Angular</code>环境下</li>
-</ul>
-<h1 id="三、基础入门"><a href="#三、基础入门" class="headerlink" title="三、基础入门"></a>三、基础入门</h1><h2 id="3-1-典型的写法"><a href="#3-1-典型的写法" class="headerlink" title="3.1 典型的写法"></a>3.1 典型的写法</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">of</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>).<span class="title function_">pipe</span>(</span><br><span class="line">  <span class="title function_">filter</span>(<span class="function"><span class="params">item</span>=&gt;</span>item % <span class="number">2</span> === <span class="number">1</span>),</span><br><span class="line">  <span class="title function_">map</span>(<span class="function"><span class="params">item</span>=&gt;</span>item * <span class="number">3</span>),</span><br><span class="line">).<span class="title function_">subscribe</span>(<span class="function"><span class="params">item</span>=&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(item))</span><br></pre></td></tr></table></figure>
+<p>基本用法几乎一模一样，只是关键词换了。Promise 里用的是 <code>then()</code> 和 <code>resolve()</code>，RxJS 里用的是 <code>subscribe()</code> 和 <code>next()</code>。</p>
+<p>但能力差得远。RxJS 可以中途撤回、可以发射多个值、还提供了大量现成的工具函数。上面这段代码顺手就能补上取消逻辑，Promise 版本补不了。</p>
+<p>顺带一提，原文这两段代码里的 <code>= &gt;</code> 是当年排版被拆散的箭头函数，我这里改回了正常的 <code>=&gt;</code>，Promise 那段还缺了一个右括号，一起补上了。</p>
+<h3 id="六个基本概念"><a href="#六个基本概念" class="headerlink" title="六个基本概念"></a>六个基本概念</h3><p>RxJS 的名词不多，认全这六个就够入门：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>中文</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Observable</code></td>
+<td>可观察对象</td>
+<td>表示一个可调用的未来值或事件的集合</td>
+</tr>
+<tr>
+<td><code>Observer</code></td>
+<td>观察者</td>
+<td>一组回调函数，知道怎么消费 Observable 提供的值</td>
+</tr>
+<tr>
+<td><code>Subscription</code></td>
+<td>订阅</td>
+<td>表示 Observable 的一次执行，主要用来取消这次执行</td>
+</tr>
+<tr>
+<td><code>Operators</code></td>
+<td>操作符</td>
+<td>函数式风格的纯函数，像 <code>map</code>、<code>filter</code>、<code>concat</code> 这样处理集合</td>
+</tr>
+<tr>
+<td><code>Subject</code></td>
+<td>主体</td>
+<td>相当于 EventEmitter，把值或事件多路推送给多个 Observer 的唯一方式</td>
+</tr>
+<tr>
+<td><code>Schedulers</code></td>
+<td>调度器</td>
+<td>控制并发的中央调度员，协调计算发生的时机，比如切到 <code>setTimeout</code> 或 <code>requestAnimationFrame</code></td>
+</tr>
+</tbody></table>
+<p><code>Schedulers</code> 我用得很少，日常业务基本碰不到，先知道有这么个东西就行。</p>
+<h3 id="什么场景才值得上-RxJS"><a href="#什么场景才值得上-RxJS" class="headerlink" title="什么场景才值得上 RxJS"></a>什么场景才值得上 RxJS</h3><p>我自己的感受是，简单的一次性请求用 Promise 就够了，硬上 RxJS 只是徒增心理负担。真正值得的是这三类：</p>
+<p><strong>涉及复杂的时序操作。</strong> 比如游戏的某个关卡里，连续按下上上下下左右左右 BA BA，每次点按间隔不超过 400 毫秒，才发送信息到服务器 A。这种「一串事件按特定节奏出现」的判定，用 RxJS 组合几个操作符就写完了，手写状态机会很痛苦。</p>
+<p><strong>涉及复杂的条件处理。</strong> 用户每输入一个字符就发给服务器 A，如果 A 返回的数据有问题就转而请求服务器 B，如果用户输入了某个屏蔽词就停掉上述所有操作并请求服务器 C。这类分支加切换加取消，正是 <code>switchMap</code> 加 <code>catchError</code> 的主场。</p>
+<p><strong>涉及复杂的状态管理。</strong> 早上每隔 10 秒检查一次用户信息，晚上每隔 5 秒检查一次，检测到变更后响应式更新所有视图。</p>
+<p>最后给个实在的建议，真要在生产项目里用 Rx，Angular 环境下是最顺的，因为框架本身的 HttpClient、路由、表单全都返回 Observable，生态是自洽的。React 或 Vue 项目里单独引一个 RxJS 进来，收益能不能覆盖团队的学习成本，得掂量掂量。</p>
+<h2 id="四、创建器，流从哪来"><a href="#四、创建器，流从哪来" class="headerlink" title="四、创建器，流从哪来"></a>四、创建器，流从哪来</h2><h3 id="一个典型的写法"><a href="#一个典型的写法" class="headerlink" title="一个典型的写法"></a>一个典型的写法</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">of</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>).<span class="title function_">pipe</span>(</span><br><span class="line">  <span class="title function_">filter</span>(<span class="function"><span class="params">item</span>=&gt;</span>item % <span class="number">2</span> === <span class="number">1</span>),</span><br><span class="line">  <span class="title function_">map</span>(<span class="function"><span class="params">item</span>=&gt;</span>item * <span class="number">3</span>),</span><br><span class="line">).<span class="title function_">subscribe</span>(<span class="function"><span class="params">item</span>=&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(item))</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><code>of</code> 称为创建器，用来创建流，它返回一个 <code>Observable</code> 类型的对象，<code>filter</code> 和 map 称为操作符（<code>operator</code>），用来对条目进行处理。这些操作符被当作 <code>Observable</code> 对象的 <code>pipe</code> 方法的参数传进去</li>
-<li><code>Observable</code> 对象的 <code>subscribe</code> 方法表示消费者要订阅这个流，当流中出现数据时，传给 <code>subscribe</code> 方法的回调函数就会被调用，并且把这个数据传进去。这个回调函数可能被调用很多次，取决于这个流中有多少条数据</li>
-<li>注意，<code>Observable</code> 必须被 <code>subscribe</code> 之后才会开始生产数据。如果没人 <code>subscribe</code> 它，那就什么都不会做</li>
-</ul>
-<h2 id="3-2-简单创建器"><a href="#3-2-简单创建器" class="headerlink" title="3.2 简单创建器"></a>3.2 简单创建器</h2><ul>
-<li>广义上，创建器也是操作符的一种，不过这里我们把它单独拿出来讲。要启动生产线，我们得先提供原料。本质上，这个提供者就是一组函数，当流水线需要拿新的原料时，就会调用它</li>
-<li>你当然可以自己实现这个提供者，但通常是不用的。<code>RxJS</code> 提供了很多预定义的创建器，而且将来可能还会增加新的。不过，那些眼花缭乱的创建器完全没必要全记住，只要记住少数几个就够了，其它的有时间慢慢看。</li>
-</ul>
-<h3 id="3-2-1-of-–-单一值转为流"><a href="#3-2-1-of-–-单一值转为流" class="headerlink" title="3.2.1  of – 单一值转为流"></a>3.2.1  of – 单一值转为流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204644634.png" alt="image-20210208204644634"></p>
-<blockquote>
-<p>它接收任意多个参数，参数可以是任意类型，然后它会把这些参数逐个放入流中</p>
-</blockquote>
-<h3 id="3-2-2-from-–-数组转为流"><a href="#3-2-2-from-–-数组转为流" class="headerlink" title="3.2.2 from – 数组转为流"></a>3.2.2 from – 数组转为流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204656811.png" alt="image-20210208204656811"></p>
-<blockquote>
-<p>它接受一个数组型参数，数组中可以有任意数据，然后把数组的每个元素逐个放入流中</p>
-</blockquote>
-<h3 id="3-2-3-range-–-范围转为流"><a href="#3-2-3-range-–-范围转为流" class="headerlink" title="3.2.3 range – 范围转为流"></a>3.2.3 range – 范围转为流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204705194.png" alt="image-20210208204705194"></p>
-<blockquote>
-<p>它接受两个数字型参数，一个起点，一个终点，然后按 <code>1</code> 递增，把中间的每个数字（含边界值）放入流中</p>
-</blockquote>
-<h3 id="3-2-4-fromPromise-–-Promise-转为流"><a href="#3-2-4-fromPromise-–-Promise-转为流" class="headerlink" title="3.2.4 fromPromise – Promise 转为流"></a>3.2.4 fromPromise – Promise 转为流</h3><ul>
-<li>接受一个 <code>Promise</code>，当这个 <code>Promise</code> 有了输出时，就把这个输出放入流中。</li>
-<li>要注意的是，当 <code>Promise</code> 作为参数传给 <code>fromPromise</code> 时，这个 <code>Promise</code> 就开始执行了，你没有机会防止它被执行。</li>
-<li>如果你需要这个 <code>Promise</code> 被消费时才执行，那就要改用接下来要讲的 <code>defer</code> 创建器</li>
-</ul>
-<h3 id="3-2-5-defer-–-惰性创建流"><a href="#3-2-5-defer-–-惰性创建流" class="headerlink" title="3.2.5 defer – 惰性创建流"></a>3.2.5 defer – 惰性创建流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204715704.png" alt="image-20210208204715704"></p>
-<ul>
-<li>它的参数是一个用来生产流的工厂函数。也就是说，当消费方需要流（注意不是需要流中的值）的时候，就会调用这个函数，创建一个流，并从这个流中进行消费（取数据）</li>
-<li>因此，当我们定义 <code>defer</code>的时候，实际上还不存在一个真正的流，只是给出了创建这个流的方法，所以叫惰性创建流</li>
-</ul>
-<h3 id="3-2-6-timer-–-定时器流"><a href="#3-2-6-timer-–-定时器流" class="headerlink" title="3.2.6 timer – 定时器流"></a>3.2.6 timer – 定时器流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204727266.png" alt="image-20210208204727266"></p>
-<ul>
-<li>它有两个数字型的参数，第一个是首次等待时间，第二个是重复间隔时间。从图上可以看出，它实际上是个无尽流 —— 没有终止线。因此它会按照预定的规则往流中不断重复发出数据。</li>
-<li>要注意，虽然名字有相关性，但它不是 <code>setTimeout</code>的等价物，事实上它的行为更像是 <code>setInterval</code></li>
-</ul>
-<h3 id="3-2-7-interval-–-定时器流"><a href="#3-2-7-interval-–-定时器流" class="headerlink" title="3.2.7 interval – 定时器流"></a>3.2.7 interval – 定时器流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204736607.png" alt="image-20210208204736607"></p>
-<ul>
-<li>它和 <code>timer</code> 唯一的差别是它只接受一个参数。事实上，它就是一个语法糖，相当于 <code>timer(1000, 1000)</code>，也就是说初始等待时间和间隔时间是一样的。</li>
-<li>如果需求确实是 <code>interval</code> 的语义，那么就优先使用这个语法糖，毕竟，从行为上它和 <code>setInterval</code> 几乎是一样的</li>
-</ul>
-<h2 id="3-3-Subject-–-主体对象"><a href="#3-3-Subject-–-主体对象" class="headerlink" title="3.3 Subject – 主体对象"></a>3.3 Subject – 主体对象</h2><blockquote>
-<p>它和创建器不同，创建器是供直接调用的函数，而 <code>Subject</code> 则是一个实现了 <code>observable</code> 接口的类。也就是说，你要先把它 <code>new</code> 出来（假设实例叫 <code>subject</code>），然后你就可以通过程序控制的方式往流里手动放数据了。它的典型用法是用来管理事件，比如当用户点击了某个按钮时，你希望发出一个事件，那么就可以调用 <code>subject.next(someValue)</code> 来把事件内容放进流中</p>
-</blockquote>
-<ul>
-<li>当你希望手动控制往这个流中放数据的时机时，这种特性非常有用。</li>
-<li>当然，<code>Subject</code> 其实并没有这么简单，用法也很多</li>
-</ul>
-<h2 id="3-4-合并创建器"><a href="#3-4-合并创建器" class="headerlink" title="3.4 合并创建器"></a>3.4 合并创建器</h2><blockquote>
-<p>我们不但可以直接创建流，还可以对多个现有的流进行不同形式的合并，创建一个新的流。常见的合并方式有三种：并联、串联、拉链</p>
-</blockquote>
-<h3 id="3-4-1-merge-–-并联"><a href="#3-4-1-merge-–-并联" class="headerlink" title="3.4.1 merge – 并联"></a>3.4.1 merge – 并联</h3><p><img src="https://blog.poetries.top/img/static/images/1240.png" alt="img"></p>
-<ul>
-<li>从图上我们可以看到两个流中的内容被合并到了一个流中。只要任何一个流中出现了值就会立刻被输出，哪怕其中一个流是完全空的也不影响结果 —— 等同于原始流。</li>
-<li>这种工作方式非常像电路中的并联行为，因此我称其为并联创建器。</li>
-<li>并联在什么情况下起作用呢？举个例子吧：有一个列表需要每隔 <code>5</code> 秒钟定时刷新一次，但是一旦用户按了搜索按钮，就必须立即刷新，而不能等待 <code>5</code> 秒间隔。这时候就可以用一个定时器流和一个自定义的用户操作流（<code>subject</code>）<code>merge</code> 在一起。这样，无论哪个流中出现了数据，都会进行刷新</li>
-</ul>
-<h3 id="3-4-2-concat-–-串联"><a href="#3-4-2-concat-–-串联" class="headerlink" title="3.4.2 concat – 串联"></a>3.4.2 concat – 串联</h3><p><img src="https://blog.poetries.top/img/static/images/1240-20210208204820976.png" alt="img"></p>
-<ul>
-<li>从图中我们可以看到两个流中的内容被按照顺序放进了输出流中。前面的流尚未结束时（注意竖线），后面的流就会一直等待</li>
-<li>这种工作方式非常像电路中的串联行为，因此我称其为串联创建器。</li>
-<li>串联的适用场景就很容易想象了，比如我们需要先通过 <code>Web API</code> 进行登录，然后取学生名册。这两个操作就是异步且串联工作的</li>
-</ul>
-<h3 id="3-4-3-zip-–-拉链"><a href="#3-4-3-zip-–-拉链" class="headerlink" title="3.4.3 zip – 拉链"></a>3.4.3 zip – 拉链</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204828426.png" alt="image-20210208204828426"></p>
-<ul>
-<li><code>zip</code> 的直译就是拉链，事实上，有些压缩软件的图标就是一个带拉链的钥匙包。拉链的特点是两边各有一个“齿”，两者会啮合在一起。这里的 <code>zip</code> 操作也是如此。</li>
-</ul>
-<blockquote>
-<p>从图上我们可以看到，两个输入流中分别出现了一些数据，当仅仅输入流 <code>A</code> 中出现了数据时，输出流中什么都没有，因为它还在等另一个“齿”。当输出流 <code>B</code> 中出现了数据时，两个“齿”都凑齐了，于是对这两个齿执行中间定义的运算（取 <code>A</code> 的形状，<code>B</code> 的颜色，并合成为输出数据）</p>
-</blockquote>
-<ul>
-<li>可以看到，当任何一个流先行结束之后，整个输出流也就结束了。</li>
-<li>拉链创建器适用的场景要少一些，通常用于合并两个数据有对应关系的数据源。比如一个流中是姓名，另一个流中是成绩，还有一个流中是年龄，如果这三个流中的每个条目都有精确的对应关系，那么就可以通过 <code>zip</code> 把它们合并成一个由表示学生成绩的对象组成的流。</li>
-</ul>
-<h2 id="3-5-操作符"><a href="#3-5-操作符" class="headerlink" title="3.5 操作符"></a>3.5 操作符</h2><blockquote>
-<p><code>RxJS</code> 有很多操作符，事实上比创建器还要多一些，但是我们并不需要一一讲解，因为它们中的很大一部分都是函数式编程中的标配，比如 <code>map</code>、<code>reduce</code>、<code>filter</code> 等</p>
-</blockquote>
-<h3 id="3-5-1-retry-–-失败时重试"><a href="#3-5-1-retry-–-失败时重试" class="headerlink" title="3.5.1 retry – 失败时重试"></a>3.5.1 retry – 失败时重试</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204837805.png" alt="image-20210208204837805"></p>
-<ul>
-<li>有些错误是可以通过重试进行恢复的，比如临时性的网络丢包。甚至一些流程的设计还会故意借助重试机制，比如当你发起请求时，如果后端发现你没有登录过，就会给你一个 <code>401</code> 错误，然后你可以完成登录并重新开始整个流程。</li>
-<li><code>retry</code> 操作符就是负责在失败时自动发起重试的，它可以接受一个参数，用来指定最大重试次数。</li>
-</ul>
-<p>这里我为什么一直在强调失败时重试呢？因为还有一个操作符负责成功时重试</p>
-<h3 id="3-5-2-repeat-–-成功时重试"><a href="#3-5-2-repeat-–-成功时重试" class="headerlink" title="3.5.2 repeat – 成功时重试"></a>3.5.2 repeat – 成功时重试</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204846757.png" alt="image-20210208204846757"></p>
-<ul>
-<li>除了重复的条件之外，<code>repeat</code> 的行为几乎和 <code>retry</code> 一模一样。</li>
-<li><code>repeat</code> 很少会单独用，一般会组合上 <code>delay</code> 操作，以提供暂停时间，否则就容易 DoS 了服务器</li>
-</ul>
-<h3 id="3-5-3-delay-–-延迟"><a href="#3-5-3-delay-–-延迟" class="headerlink" title="3.5.3 delay – 延迟"></a>3.5.3 delay – 延迟</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204856423.png" alt="image-20210208204856423"></p>
-<ul>
-<li>这才是真正的 <code>setTimeout</code> 的等价操作。它接受一个毫秒数（图中是 <code>20</code> 毫秒），每当它从输入流中读取一个数据之后，会先等待 <code>20</code> 毫秒，然后再放到输出流中。</li>
-<li>可以看到，输入流和输出流内容是完全一样的，只是时机上，输出流中的每个条目都恰好比输入流晚 <code>20</code> 毫秒出现</li>
-</ul>
-<h3 id="3-5-4-toArray-–-收集为数组"><a href="#3-5-4-toArray-–-收集为数组" class="headerlink" title="3.5.4 toArray – 收集为数组"></a>3.5.4 toArray – 收集为数组</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204905368.png" alt="image-20210208204905368"></p>
-<ul>
-<li>事实上，你几乎可以把它看做是 <code>from</code> 的逆运算。 <code>from</code> 把数组打散了逐个放进流中，而 <code>toArray</code> 恰好相反，把流中的内容收集到一个数组中 —— 直到这个流结束。</li>
-<li>这个操作符几乎总是放在最后一步，因为 <code>RxJS</code> 的各种 <code>operator</code> 本身就可以对流中的数据进行很多类似数组的操作，比如查找最小值、最大值、过滤等。所以通常会先使用各种 operator 对数据流进行处理，等到要脱离 <code>RxJS</code> 的体系时，再转换成数组传出去</li>
-</ul>
-<h3 id="3-5-5-debounceTime-–-防抖"><a href="#3-5-5-debounceTime-–-防抖" class="headerlink" title="3.5.5 debounceTime – 防抖"></a>3.5.5 debounceTime – 防抖</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204912979.png" alt="image-20210208204912979"></p>
-<ul>
-<li>在 <code>underscore/lodash</code> 中这是常用函数。 所谓防抖其实就是“等它平静下来”。比如预输入（type ahead）功能，当用户正在快速打字的时候，你没必要立刻去查服务器，否则可能直接让服务器挂了，而应该等用户稍作停顿（平静下来）时再发起查询。</li>
-<li><code>debounceTime</code> 就是这样，你传入一个最小平静时间，在这个时间窗口内连续过来的数据一概被忽略，一旦平静时间超过它，就会往把接收到的下一条数据放到流中。这样消费者就只能看到平静时间超时之后发来的最后一条数据</li>
-</ul>
-<h3 id="3-5-6-switchMap-–-切换成另一个流"><a href="#3-5-6-switchMap-–-切换成另一个流" class="headerlink" title="3.5.6 switchMap – 切换成另一个流"></a>3.5.6 switchMap – 切换成另一个流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204929447.png" alt="image-20210208204929447"></p>
-<ul>
-<li>有时候，我们会希望根据一个立即数发起一个远程查询，并且把这个异步取回的结果放进流中。比如，流中是一些学生的 <code>id</code>，每过来一个 <code>id</code>，你要发起一个 <code>Ajax</code> 请求来根据这个 <code>id</code> 获取这个学生的详情，并且把详情放进输出流中。</li>
-<li>注意，这是一个异步操作，所以你没法用普通的 <code>map</code> 来实现，否则映射出来的结果就会是一个个 <code>Observable</code> 对象。</li>
-<li><code>switchMap</code> 就是用来解决这个问题的。它在回调函数中接受从输入流中传来的数据，并转换成一个新的 <code>Observable</code> 对象（新的流，每个流中包括三个值，每个值都等于输入值的十倍），<code>switchMap</code> 会订阅这个 <code>Observable</code> 对象，并把它的值放入输出流中。注意图中竖线的位置 —— 只有当所有新的流都结束时，输出流才会结束</li>
-</ul>
-<h1 id="四、进一步使用"><a href="#四、进一步使用" class="headerlink" title="四、进一步使用"></a>四、进一步使用</h1><h2 id="4-1-Rxjs-unsubscribe-取消订阅"><a href="#4-1-Rxjs-unsubscribe-取消订阅" class="headerlink" title="4.1 Rxjs unsubscribe 取消订阅"></a>4.1 Rxjs unsubscribe 取消订阅</h2><blockquote>
-<p><code>Promise</code> 的创建之后，动作是无法撤回的。<code>Observable</code> 不一样，动作可以通过 <code>unsbscribe()</code> 方法中途撤回，而且 <code>Observable</code> 在内部做了智能的处理.</p>
-</blockquote>
-<p><strong>Promise 创建之后动作无法撤回</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> promise = <span class="keyword">new</span> <span class="title class_">Promise</span>(resolve = &gt;&#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(() = &gt;&#123;</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="string">&#x27;---promise timeout---&#x27;</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">&#125;);</span><br><span class="line">promise.<span class="title function_">then</span>(value = &gt;<span class="variable language_">console</span>.<span class="title function_">log</span>(value));</span><br></pre></td></tr></table></figure>
+<p>这四行里有三个角色。<code>of</code> 是创建器，用来造流，返回一个 Observable 对象。<code>filter</code> 和 <code>map</code> 是操作符（operator），用来加工流里的条目，它们被当作 <code>pipe</code> 方法的参数传进去，从上到下依次串成一条流水线。</p>
+<p><code>subscribe</code> 表示消费者要订阅这个流。流中每出现一条数据，传给 <code>subscribe</code> 的回调就会被调用一次并拿到这条数据。所以这个回调被调用多少次，取决于流里有多少条数据，这一点和 <code>then</code> 完全不同。</p>
+<p>这里有个坑要注意：<strong>Observable 必须被 subscribe 之后才会开始生产数据</strong>。没人订阅它，它就什么都不做。刚上手最容易犯的错就是把 <code>pipe</code> 写完就以为请求发出去了，结果调半天发现网络面板里干干净净。这个特性叫「冷流」，也正是 Promise 做不到取消的原因所在，Promise 是造出来就跑，Observable 是有人要才跑。</p>
+<h3 id="简单创建器"><a href="#简单创建器" class="headerlink" title="简单创建器"></a>简单创建器</h3><p>广义上创建器也算操作符的一种，不过单独拎出来讲更清楚。要启动生产线得先提供原料，提供者其实就是一组函数，当流水线需要新原料时就调用它。</p>
+<p>你当然可以自己实现这个提供者，但通常不用。RxJS 预定义了一大堆创建器，而且还在增加。那些眼花缭乱的名字完全没必要全背，记住下面这几个就够开工了，其它的用到再查。</p>
+<p><strong>of，把单个值变成流</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208204644634.png" alt="of 操作符的宝石图，把传入的多个参数依次放入输出流"></p>
+<p>它接收任意多个参数，参数可以是任意类型，然后把这些参数逐个放入流中。注意它不会展开数组，<code>of([1, 2, 3])</code> 发出的是一个数组，不是三个数字。</p>
+<p><strong>from，把数组变成流</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208204656811.png" alt="from 操作符的宝石图，把数组中的每个元素逐个放入输出流"></p>
+<p>它接受一个数组型参数，数组中可以有任意数据，然后把数组的每个元素逐个放入流中。和 <code>of</code> 的差别就在这儿。实际上 <code>from</code> 能吃的不止数组，任何可迭代对象都行。</p>
+<p><strong>range，把范围变成流</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208204705194.png" alt="range 操作符的宝石图，按 1 递增把区间内的数字放入输出流"></p>
+<p>它接受两个数字型参数，一个起点，一个数量，然后按 1 递增把中间的每个数字放进流里。</p>
+<p><strong>fromPromise，把 Promise 变成流</strong></p>
+<p>接受一个 Promise，当这个 Promise 有了输出时，就把这个输出放入流中。</p>
+<p>要注意的是，当 Promise 作为参数传给 <code>fromPromise</code> 时，这个 Promise 已经在执行了，你没有机会阻止它。这不是 RxJS 的锅，是 Promise 本身的特性，前面第一节说过了。如果你需要它被消费时才执行，那就得用下面的 <code>defer</code>。</p>
+<p>这里补一句时效性的说明。<code>fromPromise</code> 是 RxJS 5 时代的名字，从 RxJS 6 开始它被合并进了通用的 <code>from</code>，直接 <code>from(somePromise)</code> 就行。语义没变，名字变了，具体以官方文档为准。</p>
+<p><strong>defer，惰性创建流</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208204715704.png" alt="defer 操作符的宝石图，订阅发生时才调用工厂函数创建真正的流"></p>
+<p>它的参数是一个用来生产流的工厂函数。当消费方需要流（注意，是需要流本身，不是需要流中的值）的时候，才会调用这个函数创建一个流，然后从这个流里取数据。</p>
+<p>所以定义 <code>defer</code> 的那一刻，真正的流还不存在，存在的只是「怎么创建这个流」的方法，这就是惰性的含义。把 Promise 包在 <code>defer</code> 的工厂函数里，就能让它推迟到订阅时才真正发起。</p>
+<p><strong>timer，定时器流</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208204727266.png" alt="timer 操作符的宝石图，首次等待之后按固定间隔持续发出数据"></p>
+<p>它有两个数字型参数，第一个是首次等待时间，第二个是重复间隔时间。从图上能看出来它是个无尽流，末尾没有终止线，所以会按预定规则不断往流里发数据。</p>
+<p>名字容易误导人，<code>timer</code> 不是 <code>setTimeout</code> 的等价物，行为上更接近 <code>setInterval</code>。只传第一个参数时才是一次性的。</p>
+<p><strong>interval，更简单的定时器流</strong></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208204736607.png" alt="interval 操作符的宝石图，按固定间隔持续发出递增的序号"></p>
+<p>它和 <code>timer</code> 唯一的差别是只接受一个参数，可以理解成语法糖，<code>interval(1000)</code> 相当于 <code>timer(1000, 1000)</code>，初始等待时间和间隔时间一样。</p>
+<p>如果需求确实是 interval 的语义，优先用这个语法糖，行为上它和 <code>setInterval</code> 几乎一致。</p>
+<h3 id="Subject，手动往流里塞数据"><a href="#Subject，手动往流里塞数据" class="headerlink" title="Subject，手动往流里塞数据"></a>Subject，手动往流里塞数据</h3><p>它和创建器不一样。创建器是给你直接调用的函数，<code>Subject</code> 则是一个实现了 Observable 接口的类。你得先把它 <code>new</code> 出来（假设实例叫 <code>subject</code>），然后就能用程序控制的方式往流里手动放数据了。</p>
+<p>典型用法是管理事件。用户点了某个按钮，你想发出一个事件，调 <code>subject.next(someValue)</code> 把事件内容放进流里就行。</p>
+<p>需要手动控制「什么时候往流里放数据」的时候，这个能力非常有用。当然 Subject 远没这么简单，它还有 <code>BehaviorSubject</code>、<code>ReplaySubject</code>、<code>AsyncSubject</code> 几个变体，各自的缓存策略不同，这块我只在 demo 里试过，就不展开了。</p>
+<h2 id="五、合并创建器，把多条流拼起来"><a href="#五、合并创建器，把多条流拼起来" class="headerlink" title="五、合并创建器，把多条流拼起来"></a>五、合并创建器，把多条流拼起来</h2><p>我们不但可以直接创建流，还可以把多个现有的流按不同形式合并成一个新流。常见的合并方式有三种：并联、串联、拉链。</p>
+<h3 id="merge-并联"><a href="#merge-并联" class="headerlink" title="merge 并联"></a>merge 并联</h3><p><img src="https://blog.poetries.top/img/static/images/1240.png" alt="merge 操作符的宝石图，两条输入流的数据按出现时间混合进同一条输出流"></p>
+<p>从图上能看到两个流的内容被合并进了一个流。只要任何一个流里出现值就立刻被输出，哪怕其中一个流是完全空的也不影响结果，输出就等于另一个原始流。</p>
+<p>这种工作方式很像电路里的并联，所以叫它并联创建器。</p>
+<p>并联什么时候起作用？举个具体的例子。有一个列表需要每隔 5 秒定时刷新一次，但用户一按搜索按钮就必须立即刷新，不能等那 5 秒。这时候用一个定时器流加一个自定义的用户操作流（<code>subject</code>），<code>merge</code> 在一起，无论哪个流里出现数据都会触发刷新。</p>
+<p>这个设计是真的舒服，你不用在定时器回调里塞一堆「是不是被手动触发过」的判断，两个来源各自独立，合并逻辑交给 merge。</p>
+<h3 id="concat-串联"><a href="#concat-串联" class="headerlink" title="concat 串联"></a>concat 串联</h3><p><img src="https://blog.poetries.top/img/static/images/1240-20210208204820976.png" alt="concat 操作符的宝石图，第一条流结束之后第二条流的数据才进入输出流"></p>
+<p>从图中能看到两个流的内容被按顺序放进了输出流。前面的流没结束（注意那条竖线），后面的流就一直等着。</p>
+<p>这很像电路里的串联，所以叫串联创建器。</p>
+<p>适用场景很好想象，比如先通过 Web API 登录，再取学生名册，这两个操作就是异步且必须串行的。这里有个坑，如果第一条流是无尽流，后面的流永远轮不到，<code>concat</code> 会一直卡着。</p>
+<h3 id="zip-拉链"><a href="#zip-拉链" class="headerlink" title="zip 拉链"></a>zip 拉链</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204828426.png" alt="zip 操作符的宝石图，两条流的数据按位置一一配对后合成输出"></p>
+<p>zip 直译就是拉链，有些压缩软件的图标就是个带拉链的钥匙包。拉链的特点是两边各有一个「齿」，两者啮合在一起。这里的 zip 也是这么回事。</p>
+<p>从图上看，两个输入流分别出现了一些数据。只有输入流 A 出现数据时，输出流什么都没有，因为它还在等另一个「齿」。等输入流 B 也出现数据了，两个齿凑齐，于是对这一对执行中间定义的运算（取 A 的形状、B 的颜色，合成为输出数据）。</p>
+<p>还能看到，任何一个流先结束，整个输出流也就结束了。</p>
+<p>拉链的适用场景要少一些，通常用于合并数据有对应关系的数据源。比如一个流里是姓名，一个流里是成绩，一个流里是年龄，三个流的每个条目都有精确的对应关系，就能用 zip 把它们合成一个学生对象的流。反过来说，如果两条流的速率差别很大，慢的那条会拖住整体，快的那条数据会一直在内部排队，这是用 zip 之前得先确认的事。</p>
+<h2 id="六、常用操作符"><a href="#六、常用操作符" class="headerlink" title="六、常用操作符"></a>六、常用操作符</h2><p>RxJS 的操作符比创建器还多，但不需要一一讲解，因为其中很大一部分是函数式编程里的标配，比如 <code>map</code>、<code>reduce</code>、<code>filter</code>，你在数组上怎么用，在流上就怎么用。下面挑几个流特有的、日常用得最多的说。</p>
+<h3 id="retry-失败时重试"><a href="#retry-失败时重试" class="headerlink" title="retry 失败时重试"></a>retry 失败时重试</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204837805.png" alt="retry 操作符的宝石图，输入流出错后重新订阅并重发数据"></p>
+<p>有些错误是可以通过重试恢复的，比如临时性的网络丢包。甚至有些流程的设计会故意借助重试机制：你发起请求，后端发现你没登录过，返回一个 401，你完成登录之后重新开始整个流程。</p>
+<p><code>retry</code> 就是负责在失败时自动重试的，它接受一个参数指定最大重试次数。这里说的重试是<strong>重新订阅上游</strong>，也就是从头再走一遍，不是从出错的地方接着走。</p>
+<p>我为什么一直在强调「失败时」重试？因为还有一个操作符负责成功时重试。</p>
+<h3 id="repeat-成功时重试"><a href="#repeat-成功时重试" class="headerlink" title="repeat 成功时重试"></a>repeat 成功时重试</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204846757.png" alt="repeat 操作符的宝石图，输入流正常结束后重新订阅并重发数据"></p>
+<p>除了触发条件不同，<code>repeat</code> 的行为几乎和 <code>retry</code> 一模一样，一个盯着 error，一个盯着 complete。</p>
+<p><code>repeat</code> 很少单独用，一般会组合 <code>delay</code> 提供暂停时间，否则一个正常结束的请求流会被立刻重发，等于自己 DoS 自己的服务器。</p>
+<h3 id="delay-延迟"><a href="#delay-延迟" class="headerlink" title="delay 延迟"></a>delay 延迟</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204856423.png" alt="delay 操作符的宝石图，输出流中每个条目都比输入流晚固定时长出现"></p>
+<p>这才是真正对应 <code>setTimeout</code> 的操作。它接受一个毫秒数（图里是 20 毫秒），每当从输入流读到一个数据，先等 20 毫秒再放进输出流。</p>
+<p>可以看到输入流和输出流的内容完全一样，只是时机上输出流的每个条目都恰好比输入晚 20 毫秒。注意它延迟的是每一项，不是整条流延迟一次。</p>
+<h3 id="toArray-收集为数组"><a href="#toArray-收集为数组" class="headerlink" title="toArray 收集为数组"></a>toArray 收集为数组</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204905368.png" alt="toArray 操作符的宝石图，流结束时把所有数据合并成一个数组发出"></p>
+<p>你几乎可以把它看成 <code>from</code> 的逆运算。<code>from</code> 把数组打散逐个放进流里，<code>toArray</code> 反过来把流里的内容收集进一个数组，一直收到这个流结束为止。</p>
+<p>有个前提得记牢：<strong>流不结束，toArray 永远不会发出任何东西</strong>。拿它接一个 <code>interval</code> 就等于什么都收不到。</p>
+<p>这个操作符几乎总是放在最后一步。因为 RxJS 的各种操作符本身就能对流里的数据做很多类似数组的处理，查最小值、最大值、过滤都有现成的。通常的做法是先在流的世界里处理完，等要脱离 RxJS 体系交给别的代码时，再转成数组传出去。</p>
+<h3 id="debounceTime-防抖"><a href="#debounceTime-防抖" class="headerlink" title="debounceTime 防抖"></a>debounceTime 防抖</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204912979.png" alt="debounceTime 操作符的宝石图，只有静默时间超过阈值的那条数据才进入输出流"></p>
+<p>在 underscore 和 lodash 里这是常用函数。所谓防抖其实就是「等它平静下来」。比如预输入（type ahead）功能，用户正在快速打字的时候没必要每敲一个字符就查一次服务器，那样服务器扛不住，应该等用户稍作停顿再发起查询。</p>
+<p><code>debounceTime</code> 就是这个语义。你传入一个最小平静时间，在这个时间窗口内连续过来的数据一概被丢弃，一旦静默时长超过阈值，就把最近收到的那条数据放进流里。所以消费者看到的永远是「安静下来之前的最后一条」。</p>
+<p>顺带说一下它和 <code>throttleTime</code> 的区别，防抖是等静默，节流是按固定频率放行。搜索框用防抖，滚动监听用节流，用反了体验会很怪。</p>
+<h3 id="switchMap-切换成另一个流"><a href="#switchMap-切换成另一个流" class="headerlink" title="switchMap 切换成另一个流"></a>switchMap 切换成另一个流</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208204929447.png" alt="switchMap 操作符的宝石图，每个输入值映射成新流，新值到来时取消上一条内部流"></p>
+<p>有时候我们希望根据一个立即数发起远程查询，把异步取回的结果放进流里。比如流中是一些学生 id，每过来一个 id，就发一个 Ajax 请求获取这个学生的详情，再把详情放进输出流。</p>
+<p>这是个异步操作，所以没法用普通的 <code>map</code> 实现，否则映射出来的每一项都是一个 Observable 对象，你拿到的是一堆流而不是数据。</p>
+<p><code>switchMap</code> 解决的就是这个问题。它在回调里接收上游传来的数据，把它转换成一个新的 Observable（图里每个新流包含三个值，每个值都是输入值的十倍），然后订阅这个新流，把它发出的值放进输出流。</p>
+<p><strong>switch 这个词才是重点。</strong> 当上游来了新值，而上一个内部流还没结束时，<code>switchMap</code> 会直接退订上一个内部流，只保留最新的那个。搜索框的场景正是靠这个特性解决竞态：用户改了关键词，旧关键词的请求结果就算回来了也不会污染界面。原文这里说「只有当所有新的流都结束时输出流才会结束」，那描述其实是 <code>mergeMap</code> 的行为，<code>switchMap</code> 会取消前一条，我在这版里改过来了。</p>
+<p>这一族一共四个，记法很简单：</p>
+<table>
+<thead>
+<tr>
+<th>操作符</th>
+<th>新值到来时的策略</th>
+<th>典型场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switchMap</code></td>
+<td>取消上一个内部流，只要最新的</td>
+<td>搜索联想、路由参数变化后取数据</td>
+</tr>
+<tr>
+<td><code>mergeMap</code></td>
+<td>并发跑，谁先回来谁先输出</td>
+<td>互不相干的批量请求</td>
+</tr>
+<tr>
+<td><code>concatMap</code></td>
+<td>排队，等上一个结束再开始</td>
+<td>必须保序的写操作</td>
+</tr>
+<tr>
+<td><code>exhaustMap</code></td>
+<td>上一个没结束就忽略新值</td>
+<td>防重复提交的按钮</td>
+</tr>
+</tbody></table>
+<p>选错这一个，出来的 bug 通常表现为「偶发的数据错乱」，很难查。我一开始也是无脑用 <code>mergeMap</code>，后来被竞态坑过才认真去分辨。</p>
+<h2 id="七、取消订阅与多次发射"><a href="#七、取消订阅与多次发射" class="headerlink" title="七、取消订阅与多次发射"></a>七、取消订阅与多次发射</h2><h3 id="unsubscribe-取消订阅"><a href="#unsubscribe-取消订阅" class="headerlink" title="unsubscribe 取消订阅"></a>unsubscribe 取消订阅</h3><p>Promise 一旦创建，动作就无法撤回了。Observable 不一样，可以通过 <code>unsubscribe()</code> 中途撤回，而且它内部会顺带把清理工作做掉。</p>
+<p>先看 Promise 这边，创建之后你只能等：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> promise = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="string">&#x27;---promise timeout---&#x27;</span>)</span><br><span class="line">  &#125;, <span class="number">2000</span>)</span><br><span class="line">&#125;)</span><br><span class="line">promise.<span class="title function_">then</span>(<span class="function"><span class="params">value</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(value))</span><br></pre></td></tr></table></figure>
 
-<p><strong>Rxjs 可以通过 unsubscribe() 可以撤回 subscribe 的动作</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> stream = <span class="keyword">new</span> <span class="title class_">Observable</span>(observer = &gt;&#123;</span><br><span class="line">    <span class="keyword">let</span> timeout = <span class="built_in">setTimeout</span>(() = &gt;&#123;</span><br><span class="line">        <span class="built_in">clearTimeout</span>(timeout);</span><br><span class="line">        observer.<span class="title function_">next</span>(<span class="string">&#x27;observable timeout&#x27;</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">let</span> disposable = stream.<span class="title function_">subscribe</span>(value = &gt;<span class="variable language_">console</span>.<span class="title function_">log</span>(value));</span><br><span class="line"><span class="built_in">setTimeout</span>(() = &gt;&#123;</span><br><span class="line">    <span class="comment">//取消执行 disposable.unsubscribe();</span></span><br><span class="line">&#125;,</span><br><span class="line"><span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+<p>再看 RxJS 这边，<code>subscribe()</code> 返回一个 Subscription 对象，调它的 <code>unsubscribe()</code> 就能撤回：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> stream = <span class="keyword">new</span> <span class="title class_">Observable</span>(<span class="function"><span class="params">observer</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> timer = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    observer.<span class="title function_">next</span>(<span class="string">&#x27;observable timeout&#x27;</span>)</span><br><span class="line">  &#125;, <span class="number">2000</span>)</span><br><span class="line">  <span class="comment">// 退订时会执行这个清理函数</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> <span class="built_in">clearTimeout</span>(timer)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> disposable = stream.<span class="title function_">subscribe</span>(<span class="function"><span class="params">value</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(value))</span><br><span class="line"></span><br><span class="line"><span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 1 秒后取消，上面那条 2 秒的定时器就不会输出了</span></span><br><span class="line">  disposable.<span class="title function_">unsubscribe</span>()</span><br><span class="line">&#125;, <span class="number">1000</span>)</span><br></pre></td></tr></table></figure>
 
-<h2 id="4-2-Rxjs-订阅后多次执行"><a href="#4-2-Rxjs-订阅后多次执行" class="headerlink" title="4.2 Rxjs 订阅后多次执行"></a>4.2 Rxjs 订阅后多次执行</h2><blockquote>
-<p>如果我们想让异步里面的方法多次执行，比如下面代码。<br>这一点 <code>Promise</code>是做不到的，对于 <code>Promise</code>来说，最终结果要么 <code>resolve</code>(兑现)、要么 <code>reject</code> (拒绝)，而且都只能触发一次。如果在同一个 <code>Promise</code> 对象上多次调用 <code>resolve</code> 方法， 则会抛异常。而 <code>Observable</code>不一样，它可以不断地触发下一个值，就像 <code>next()</code>这个方法的 名字所暗示的那样。</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// promise</span></span><br><span class="line"><span class="keyword">let</span> promise = <span class="keyword">new</span> <span class="title class_">Promise</span>(resolve = &gt;&#123;</span><br><span class="line">    <span class="built_in">setInterval</span>(() = &gt;&#123;</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="string">&#x27;---promise setInterval---&#x27;</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">2000</span>);</span><br><span class="line">&#125;);</span><br><span class="line">promise.<span class="title function_">then</span>(value = &gt;<span class="variable language_">console</span>.<span class="title function_">log</span>(value));</span><br></pre></td></tr></table></figure>
+<p>原文这段代码有两个问题，我改了。一是取消那行整行被注释掉了（<code>//取消执行 disposable.unsubscribe();</code>），实际根本不会执行，演示不出效果。二是 <code>clearTimeout</code> 被写在了定时器回调内部，那个位置清理没有任何意义。正确的做法是在 Observable 的工厂函数里 <code>return</code> 一个清理函数，退订时 RxJS 会调用它。</p>
+<p>这个清理函数才是「可取消」真正落地的地方。它对应到业务里就是 <code>xhr.abort()</code>、<code>controller.abort()</code>、<code>clearInterval()</code> 这些收尾动作。Promise 的接口里压根没有能放这段代码的位置，这就是前面说的「概念层不支持取消」。</p>
+<h3 id="订阅后可以多次执行"><a href="#订阅后可以多次执行" class="headerlink" title="订阅后可以多次执行"></a>订阅后可以多次执行</h3><p>如果想让异步里的逻辑多次触发，Promise 是做不到的。对 Promise 来说最终结果要么 resolve 要么 reject，而且只生效一次。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// promise，只会打印一次</span></span><br><span class="line"><span class="keyword">let</span> promise = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="string">&#x27;---promise setInterval---&#x27;</span>)</span><br><span class="line">  &#125;, <span class="number">2000</span>)</span><br><span class="line">&#125;)</span><br><span class="line">promise.<span class="title function_">then</span>(<span class="function"><span class="params">value</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(value))</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Rxjs</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> stream = <span class="keyword">new</span> <span class="title class_">Observable</span> &lt; number &gt; (observer = &gt;&#123;</span><br><span class="line">    <span class="keyword">let</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">setInterval</span>(() = &gt;&#123;</span><br><span class="line">        observer.<span class="title function_">next</span>(count++);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="number">1000</span>);</span><br><span class="line">&#125;);</span><br><span class="line">stream.<span class="title function_">subscribe</span>(value = &gt;<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Observable&gt;&quot;</span> + value));</span><br></pre></td></tr></table></figure>
+<p>这里要纠正原文一处说法。原文写「如果在同一个 Promise 对象上多次调用 resolve 方法，则会抛异常」，这是不对的。Promise 的状态一旦从 pending 变成 fulfilled 就锁死了，后续的 <code>resolve</code> 调用会被<strong>静默忽略</strong>，不会报错也不会有任何提示。这一点其实更坑，因为它连个错误都不给你，你只能靠观察「怎么只打印了一次」去猜。</p>
+<p>Observable 就没有这个限制，它可以不断触发下一个值，就像 <code>next()</code> 这个名字暗示的那样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// RxJS，每秒打印一次，递增</span></span><br><span class="line"><span class="keyword">let</span> stream = <span class="keyword">new</span> <span class="title class_">Observable</span>&lt;number&gt;(<span class="function"><span class="params">observer</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> count = <span class="number">0</span></span><br><span class="line">  <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    observer.<span class="title function_">next</span>(count++)</span><br><span class="line">  &#125;, <span class="number">1000</span>)</span><br><span class="line">&#125;)</span><br><span class="line">stream.<span class="title function_">subscribe</span>(<span class="function"><span class="params">value</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Observable&gt;&#x27;</span> + value))</span><br></pre></td></tr></table></figure>
 
-<h2 id="五、RXJS-实例操作符小结"><a href="#五、RXJS-实例操作符小结" class="headerlink" title="五、RXJS 实例操作符小结"></a>五、RXJS 实例操作符小结</h2><p><strong>常用的实例方法</strong></p>
+<p>原文这段的泛型写法 <code>new Observable &lt; number &gt; (...)</code> 被排版拆散了，正确写法是 <code>new Observable&lt;number&gt;(...)</code>，这是 TypeScript 语法，纯 JS 环境下把泛型去掉即可。另外这段的清理函数也没写，实际项目里记得补 <code>return () =&gt; clearInterval(timer)</code>，否则退订之后定时器还在跑，就是一个内存泄漏。</p>
+<h2 id="八、实例操作符速查"><a href="#八、实例操作符速查" class="headerlink" title="八、实例操作符速查"></a>八、实例操作符速查</h2><p>下面这份清单是我平时用得上的，按用途归了个类，方便回头查。</p>
+<p><strong>取值和变形</strong></p>
 <ul>
-<li><code>pip</code> ：功能类似于 <code>let</code> 操作符</li>
-<li><code>map</code> ：转换输出的数据</li>
-<li><code>pluck</code> ：提取属性值并输出</li>
-<li><code>do</code> ：不做数据格式化，可用于调试</li>
-<li><code>filter</code> ：用于过滤一些<code>Observable</code></li>
-<li><code>take</code>：表示取几条数据</li>
-<li><code>takeWhile</code> ：满足什么条件时开始取数据</li>
-<li><code>skip</code> ：表示跳过多少条数据后开始取</li>
-<li><code>distinctUntilChanged</code> ：比较输入的<code>Observable</code>计算得出的值当前与后最后的值是否相等使用<code>===</code>判断</li>
-<li><code>scan</code> ：功能有点类似于<code>reduce</code>这个方法，可用于累加数据同时可以使用<code>startWith</code>的数据用途<code>scan</code>的初始值，最后返回累加的数据</li>
-<li><code>delay</code> ：表示<code>Observable</code>延时多久开始处理订阅数据</li>
-<li><code>toArray</code> ：把输出值格式化成数据形式</li>
-<li><code>toMap</code> ：给当前的输出取个名字或标签</li>
-<li><code>expand</code> ：实现递归</li>
-<li><code>forkJoin</code> ：类似于<code>Promise.all</code>，只有数据全部返回且状态为<code>complete</code>时，表示成功处理了请求，否则失败</li>
-<li><code>let</code> ：这个操作符可以获取完整的输入<code>Observable</code>对象，做相应的处理后返回新的<code>Observable</code>对象</li>
-<li><code>catch</code> ：用于<code>Observable</code>处理数据异常的处理</li>
-<li><code>combineLatest</code> ：用于组且各个输入的<code>Observable</code>，并获取和返回各个<code>Observable</code>最新的数据</li>
-<li><code>merge</code> ：用于把两个<code>Observable</code>合成一个处理</li>
+<li><code>pipe</code>：把多个操作符串成流水线，RxJS 6 之后所有操作符都走它</li>
+<li><code>map</code>：转换每一项输出的数据</li>
+<li><code>pluck</code>：从对象里提取指定属性值并输出，相当于简化版的 <code>map</code></li>
+<li><code>scan</code>：类似数组的 <code>reduce</code>，可以累加数据，配合 <code>startWith</code> 提供初始值，每一步的中间结果都会发出来</li>
 </ul>
-<h1 id="六、更多参考"><a href="#六、更多参考" class="headerlink" title="六、更多参考"></a>六、更多参考</h1><ul>
-<li><a href="https://cn.rx.js.org/">Rxjs中文文档</a></li>
+<p><strong>筛选和限流</strong></p>
+<ul>
+<li><code>filter</code>：过滤掉不满足条件的数据项</li>
+<li><code>take</code>：只取前几条数据，取够就结束</li>
+<li><code>takeWhile</code>：条件为真时持续取值，一旦条件为假就结束整条流（原文写的是「满足什么条件时开始取数据」，语义反了，这里改过来）</li>
+<li><code>skip</code>：跳过前面若干条数据再开始取</li>
+<li><code>distinctUntilChanged</code>：和上一个发出的值比较，相同就丢弃，默认用 <code>===</code> 判断。注意它只和「紧邻的上一个」比，不是全局去重</li>
+<li><code>delay</code>：延迟每一项数据进入输出流的时机</li>
+</ul>
+<p><strong>收尾和组合</strong></p>
+<ul>
+<li><code>toArray</code>：把流中的所有数据收集成一个数组，流结束时发出</li>
+<li><code>mapTo</code>：把每一项都替换成给定的固定值，常用来给流打标签（原文这里写的是 <code>toMap</code>，RxJS 里没有这个操作符，按描述判断指的应该是 <code>mapTo</code>）</li>
+<li><code>expand</code>：递归地把每个输出再喂回去处理，可以用来做分页拉取</li>
+<li><code>forkJoin</code>：类似 <code>Promise.all</code>，所有输入流都正常结束之后，把各自的最后一个值组合起来发出</li>
+<li><code>combineLatest</code>：任何一条输入流发出新值时，把各条流「最新的值」组合起来发出</li>
+<li><code>merge</code>：把多条流合并成一条</li>
+</ul>
+<p><strong>调试和异常</strong></p>
+<ul>
+<li><code>tap</code>：不改变数据，只做副作用，调试时打日志用它（RxJS 5 里叫 <code>do</code>）</li>
+<li><code>catchError</code>：捕获流中的异常并返回一个替代的流（RxJS 5 里叫 <code>catch</code>）</li>
+</ul>
+<p>这里有个时效性的提醒。上面标了旧名的三个（<code>do</code>、<code>catch</code>、<code>let</code>）是 RxJS 5 时代的实例方法写法，从 RxJS 6 开始整体改成了管道化操作符，<code>do</code> 变 <code>tap</code>，<code>catch</code> 变 <code>catchError</code>，<code>let</code> 的职责被 <code>pipe</code> 接管了。原文成文于 2021 年初，那时候项目里两种写法混着的情况还很常见。如果你现在从零开始，直接按管道化写法学就行，具体以官方文档为准。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把这一圈过下来，几个能直接带走的结论：</p>
+<ul>
+<li>Promise 的两个硬伤是无法取消和只能承载一个值，这不是实现问题，是接口定义层面就不支持</li>
+<li>Observable 是冷的，没人 <code>subscribe</code> 就什么都不做。这既是它能取消的前提，也是新手最容易踩的坑</li>
+<li>宝石图是 ReactiveX 的通用语言，竖线是正常结束，叉号是异常中止，什么都没有就是无尽流</li>
+<li>创建器里 <code>of</code> 不展开数组、<code>from</code> 展开可迭代对象、<code>defer</code> 把创建时机推迟到订阅那一刻，这三个的差别要分清</li>
+<li>合并方式记三种就够：merge 并联谁快谁先出、concat 串联必须排队、zip 拉链一一配对</li>
+<li><code>retry</code> 盯 error，<code>repeat</code> 盯 complete，两者都是重新订阅上游而不是断点续传</li>
+<li><code>toArray</code> 依赖流结束，接无尽流等于永远没有输出</li>
+<li>switchMap &#x2F; mergeMap &#x2F; concatMap &#x2F; exhaustMap 的差别在「新值来了怎么处理旧的内部流」，选错会产生很难查的竞态 bug</li>
+<li><code>unsubscribe</code> 真正干活的是 Observable 工厂函数里 <code>return</code> 的那个清理函数，业务里对应 abort 和 clearInterval</li>
+</ul>
+<p>说实话我自己在 React 项目里没有把 RxJS 用起来，一是团队里熟的人少，二是大部分场景用 <code>AbortController</code> 加一个自定义 hook 也能解决。但那三类复杂时序需求一旦出现，你会明显感觉到手写状态机的痛苦，那时候再回头看 RxJS 就顺眼多了。这块我还在摸索，后面有新体会会回来补。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://rxjs.dev/">RxJS 官方文档</a></li>
+<li><a href="https://cn.rx.js.org/">RxJS 中文文档</a></li>
+<li><a href="https://reactivex.io/">ReactiveX 官网</a></li>
+<li><a href="https://rxjs.dev/operator-decision-tree">RxJS 操作符决策树</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise">MDN - Promise</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/AbortController">MDN - AbortController</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

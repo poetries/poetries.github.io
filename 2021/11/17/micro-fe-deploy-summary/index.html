@@ -7,20 +7,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Jenkins部署微前端方案实践总结 | 前端进阶之旅</title>
+  <title>Jenkins 部署微前端实践总结，从构建到上线全链路 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="微前端," />
+    <meta name="keywords" content="部署,CI/CD,Jenkins,微前端,持续集成,阿里云OSS," />
   
 
-  <meta name="description" content="持续集成集成工具 jenkins 的基本介绍和自动化部署微前端项目的几个简单方案 一、Jenkins 基础介绍Jenkins 是国际上流行的免费开源软件项目,是基于 Java 开发持续集成工具,用于监控持续重复的工作,旨在提供一个开放的易用的软件平台,使软件的持续集成自动化,大大节约人力和时效。 Jenkins 功能包括：  持续的软件版本发布&#x2F;测试项目。 监控外部调用执行的工作。  1">
+  <meta name="description" content="微前端主子应用怎么在一条 Jenkins 流水线上按需构建、分目录部署。含参数化构建配置、构建与构建后 shell 全文、阿里云 OSS + CDN 方案，以及一份上线前 checklist。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Jenkins部署微前端方案实践总结">
+<meta property="og:title" content="Jenkins 部署微前端实践总结，从构建到上线全链路">
 <meta property="og:url" content="http://blog.poetries.top/2021/11/17/micro-fe-deploy-summary/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="持续集成集成工具 jenkins 的基本介绍和自动化部署微前端项目的几个简单方案 一、Jenkins 基础介绍Jenkins 是国际上流行的免费开源软件项目,是基于 Java 开发持续集成工具,用于监控持续重复的工作,旨在提供一个开放的易用的软件平台,使软件的持续集成自动化,大大节约人力和时效。 Jenkins 功能包括：  持续的软件版本发布&#x2F;测试项目。 监控外部调用执行的工作。  1">
+<meta property="og:description" content="微前端主子应用怎么在一条 Jenkins 流水线上按需构建、分目录部署。含参数化构建配置、构建与构建后 shell 全文、阿里云 OSS + CDN 方案，以及一份上线前 checklist。">
 <meta property="og:locale">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117095347.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117095208.png">
@@ -33,12 +33,17 @@
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117091930.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117092045.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117092331.png">
-<meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117102935.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117112123.png">
+<meta property="og:image" content="https://blog.poetries.top/img/static/images/20211117102935.png">
 <meta property="article:published_time" content="2021-11-17T02:35:08.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.677Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.945Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="部署">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Jenkins">
 <meta property="article:tag" content="微前端">
+<meta property="article:tag" content="持续集成">
+<meta property="article:tag" content="阿里云OSS">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog.poetries.top/img/static/images/20211117095347.png">
 
@@ -218,7 +223,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8C%81%E7%BB%AD%E9%9B%86%E6%88%90"><span class="toc-text">持续集成</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Jenkins-%E5%9F%BA%E7%A1%80%E4%BB%8B%E7%BB%8D"><span class="toc-text">一、Jenkins 基础介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86"><span class="toc-text">1. 系统管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%96%B0%E5%BB%BA%E8%A7%86%E5%9B%BE"><span class="toc-text">2. 新建视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%BB%E5%8A%A1"><span class="toc-text">3. 任务</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%BB%E5%8A%A1%E9%85%8D%E7%BD%AE"><span class="toc-text">二、任务配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-General"><span class="toc-text">1. General</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%BA%90%E7%A0%81%E7%AE%A1%E7%90%86"><span class="toc-text">2. 源码管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%9E%84%E5%BB%BA"><span class="toc-text">3. 构建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%9E%84%E5%BB%BA%E5%90%8E%E6%93%8D%E4%BD%9C"><span class="toc-text">4. 构建后操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%9E%84%E5%BB%BA"><span class="toc-text">三、构建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9E%84%E5%BB%BA%E5%89%8D"><span class="toc-text">1. 构建前</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%9E%84%E5%BB%BA%E5%90%8E"><span class="toc-text">2. 构建后</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81-Jenkins%E9%83%A8%E7%BD%B2%E5%BE%AE%E5%89%8D%E7%AB%AF%E5%A4%9A%E4%B8%AA%E5%8C%85%E5%AE%8C%E6%95%B4%E9%85%8D%E7%BD%AE"><span class="toc-text">四、 Jenkins部署微前端多个包完整配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9C%80%E8%A6%81%E5%AE%89%E8%A3%85%E7%9A%84%E6%8F%92%E4%BB%B6"><span class="toc-text">需要安装的插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Jenkins%E5%AE%8C%E6%95%B4%E9%85%8D%E7%BD%AE%E6%90%AD%E5%BB%BA"><span class="toc-text">Jenkins完整配置搭建</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91OSS%E9%83%A8%E7%BD%B2%E5%BE%AE%E5%89%8D%E7%AB%AF%E9%A1%B9%E7%9B%AE"><span class="toc-text">五、使用阿里云OSS部署微前端项目</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%88%9B%E5%BB%BA-Bucket-%E5%AD%98%E5%82%A8%E6%A1%B6"><span class="toc-text">一、创建 Bucket 存储桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%BF%9B%E5%85%A5%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8-OSS-%E6%9C%8D%E5%8A%A1"><span class="toc-text">1. 进入对象存储 OSS 服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%9B%E5%BB%BA-Bucket-%E5%AD%98%E5%82%A8%E6%A1%B6"><span class="toc-text">2. 创建 Bucket 存储桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B7%BB%E5%8A%A0-CDN-%E5%9F%9F%E5%90%8D"><span class="toc-text">二、添加 CDN 域名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%BF%9B%E5%85%A5-CDN-%E6%9C%8D%E5%8A%A1"><span class="toc-text">1. 进入 CDN 服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B7%BB%E5%8A%A0-CDN-%E5%9F%9F%E5%90%8D"><span class="toc-text">2. 添加 CDN 域名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-HTTPS-%E9%85%8D%E7%BD%AE"><span class="toc-text">3. HTTPS 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%BE%97%E5%88%B0-CNAME-%E5%9F%9F%E5%90%8D"><span class="toc-text">4. 得到 CNAME 域名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B7%BB%E5%8A%A0-CNAME-%E8%AE%B0%E5%BD%95"><span class="toc-text">三、添加 CNAME 记录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%BF%9B%E5%85%A5%E4%BA%91%E8%A7%A3%E6%9E%90-DNS-%E6%9C%8D%E5%8A%A1"><span class="toc-text">1. 进入云解析 DNS 服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B7%BB%E5%8A%A0-CNAME-%E8%AE%B0%E5%BD%95"><span class="toc-text">2. 添加 CNAME 记录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%AE%BE%E7%BD%AE%E5%AD%98%E5%82%A8%E6%A1%B6"><span class="toc-text">四、设置存储桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%BC%93%E5%AD%98%E8%AE%BE%E7%BD%AE"><span class="toc-text">1. 缓存设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%AE%BE%E7%BD%AE%E9%9D%99%E6%80%81%E9%A1%B5%E9%9D%A2"><span class="toc-text">2. 设置静态页面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%9F%9F%E5%90%8D%E7%AE%A1%E7%90%86"><span class="toc-text">1. 域名管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%B8%8A%E4%BC%A0%E4%BB%A3%E7%A0%81%E8%87%B3%E5%AD%98%E5%82%A8%E6%A1%B6"><span class="toc-text">五、上传代码至存储桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%B8%8B%E8%BD%BD-oss-browser-%E5%B7%A5%E5%85%B7"><span class="toc-text">1. 下载 oss browser 工具</span></a></li></ol></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8A%8A%E6%95%B4%E6%9D%A1%E9%93%BE%E8%B7%AF%E7%94%BB%E5%87%BA%E6%9D%A5"><span class="toc-text">一、先把整条链路画出来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Jenkins-%E7%9A%84%E5%87%A0%E4%B8%AA%E6%A6%82%E5%BF%B5%E5%85%88%E5%AF%B9%E9%BD%90"><span class="toc-text">二、Jenkins 的几个概念先对齐</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86"><span class="toc-text">2.1 系统管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%A7%86%E5%9B%BE%E5%92%8C%E4%BB%BB%E5%8A%A1"><span class="toc-text">2.2 视图和任务</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BB%BB%E5%8A%A1%E9%85%8D%E7%BD%AE%E5%88%86%E5%9B%9B%E6%AD%A5%E8%B5%B0"><span class="toc-text">三、任务配置分四步走</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1-General"><span class="toc-text">Step 1. General</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2-%E6%BA%90%E7%A0%81%E7%AE%A1%E7%90%86"><span class="toc-text">Step 2. 源码管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3-%E6%9E%84%E5%BB%BA"><span class="toc-text">Step 3. 构建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-4-%E6%9E%84%E5%BB%BA%E5%90%8E%E6%93%8D%E4%BD%9C"><span class="toc-text">Step 4. 构建后操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%B7%91%E4%B8%80%E6%AC%A1%E6%9E%84%E5%BB%BA%E7%9C%8B%E7%9C%8B%E7%BB%93%E6%9E%9C"><span class="toc-text">四、跑一次构建看看结果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%9E%84%E5%BB%BA%E5%89%8D"><span class="toc-text">4.1 构建前</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%9E%84%E5%BB%BA%E5%90%8E"><span class="toc-text">4.2 构建后</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%8C%E6%95%B4%E9%85%8D%E7%BD%AE%E8%B5%B0%E4%B8%80%E9%81%8D"><span class="toc-text">五、完整配置走一遍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%9C%80%E8%A6%81%E8%A3%85%E7%9A%84%E4%B8%89%E4%B8%AA%E6%8F%92%E4%BB%B6"><span class="toc-text">5.1 需要装的三个插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%85%8D%E5%A5%BD%E4%B9%8B%E5%90%8E%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-text">5.2 配好之后长什么样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E9%85%8D%E7%BD%AE%E6%B5%81%E7%A8%8B%E6%88%AA%E5%9B%BE"><span class="toc-text">5.3 配置流程截图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%9E%84%E5%BB%BA%E7%9A%84-shell-%E4%BB%A3%E7%A0%81"><span class="toc-text">5.4 构建的 shell 代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E6%9E%84%E5%BB%BA%E5%90%8E%E6%93%8D%E4%BD%9C%E7%9A%84-shell-%E4%BB%A3%E7%A0%81"><span class="toc-text">5.5 构建后操作的 shell 代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%8D%A2%E4%B8%80%E6%9D%A1%E8%B7%AF%EF%BC%8C%E9%98%BF%E9%87%8C%E4%BA%91-OSS-%E5%8A%A0-CDN"><span class="toc-text">六、换一条路，阿里云 OSS 加 CDN</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%88%9B%E5%BB%BA-Bucket-%E5%AD%98%E5%82%A8%E6%A1%B6"><span class="toc-text">6.1 创建 Bucket 存储桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%B7%BB%E5%8A%A0-CDN-%E5%9F%9F%E5%90%8D"><span class="toc-text">6.2 添加 CDN 域名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%B7%BB%E5%8A%A0-CNAME-%E8%AE%B0%E5%BD%95"><span class="toc-text">6.3 添加 CNAME 记录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%AE%BE%E7%BD%AE%E5%AD%98%E5%82%A8%E6%A1%B6"><span class="toc-text">6.4 设置存储桶</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E4%B8%8A%E4%BC%A0%E4%BB%A3%E7%A0%81"><span class="toc-text">6.5 上传代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%8A%E7%BA%BF%E5%89%8D-checklist"><span class="toc-text">七、上线前 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -241,13 +246,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-micro-fe-deploy-summary" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Jenkins部署微前端方案实践总结</h1>
+    <h1 class="post-title">Jenkins 部署微前端实践总结，从构建到上线全链路</h1>
 
     <div class="article-meta">
       <span>
@@ -283,12 +288,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 4.2k字</span>
+            <span>字数统计 6.9k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 16分</span>
+            <span>阅读时长 25分</span>
           </span>
       
       
@@ -302,215 +307,149 @@
   <div class="article-content">
     
       <div id="container">
-        <h1 id="持续集成"><a href="#持续集成" class="headerlink" title="持续集成"></a>持续集成</h1><p>集成工具 jenkins 的基本介绍和自动化部署微前端项目的几个简单方案</p>
-<h2 id="一、Jenkins-基础介绍"><a href="#一、Jenkins-基础介绍" class="headerlink" title="一、Jenkins 基础介绍"></a>一、Jenkins 基础介绍</h2><p>Jenkins 是国际上流行的免费开源软件项目,是基于 Java 开发持续集成工具,用于监控持续重复的工作,旨在提供一个开放的易用的软件平台,使软件的持续集成自动化,大大节约人力和时效。</p>
-<p>Jenkins 功能包括：</p>
+        <p>微前端把一个仓库拆成一个主应用加七八个子应用之后，本地开发是舒服了，发布这件事却变得很尴尬。全量构建一次要十几分钟，可这次上线明明只改了一个子应用。手动打包再 <code>scp</code> 上去也不是办法，子应用要放进主应用目录下的固定子目录，主应用发布时还不能把这些子目录删掉。</p>
+<p>这篇把我用 Jenkins 跑微前端流水线的整套配置写下来，包括按需构建哪几个包、构建产物怎么归拢、构建后 shell 怎么在部署机上做「主应用覆盖但保留子目录」这个动作，最后再补一条阿里云 OSS 加 CDN 的路子和一份上线前 checklist。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>持续的软件版本发布&#x2F;测试项目。</li>
-<li>监控外部调用执行的工作。</li>
+<li>微前端从提交代码到用户看到页面，整条链路都发生了什么</li>
+<li>Jenkins 的系统管理、凭据、插件、视图、任务这几个概念怎么对上</li>
+<li>参数化构建怎么配，才能做到「只构建勾选的那几个包」</li>
+<li>构建 shell 和构建后 shell 的完整代码，以及每一段在防什么坑</li>
+<li>主应用发布时怎么不误删子应用目录</li>
+<li>换成阿里云 OSS 加 CDN 部署要配哪几步，<code>index.html</code> 的缓存怎么设</li>
+<li>一份可以直接抄的上线前 checklist</li>
 </ul>
-<h3 id="1-系统管理"><a href="#1-系统管理" class="headerlink" title="1. 系统管理"></a>1. 系统管理</h3><p>安装好的 jenkins 可以在系统管理进行配置系统信息等</p>
+<h2 id="一、先把整条链路画出来"><a href="#一、先把整条链路画出来" class="headerlink" title="一、先把整条链路画出来"></a>一、先把整条链路画出来</h2><p>配置界面点来点去很容易迷路，动手之前先把链路捋一遍，后面每一个配置项落在哪一步就清楚了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">   开发提交代码</span><br><span class="line">        │</span><br><span class="line">        ▼</span><br><span class="line">┌───────────────────────────────────────────┐</span><br><span class="line">│  Jenkins 构建机                            │</span><br><span class="line">│                                           │</span><br><span class="line">│  ① General                                │</span><br><span class="line">│     参数化：mutiParams（勾哪几个包）       │</span><br><span class="line">│              isRunInstall（要不要装依赖）  │</span><br><span class="line">│  ② 源码管理  Git plugin 拉代码             │</span><br><span class="line">│     → /var/lib/jenkins/workspace/&#123;任务名&#125;  │</span><br><span class="line">│  ③ 构建  执行 shell                        │</span><br><span class="line">│     for 勾选的包: npm install → npm build  │</span><br><span class="line">│     产物统一搬到 publish/&#123;子目录&#125;          │</span><br><span class="line">└──────────────────┬────────────────────────┘</span><br><span class="line">                   │ ④ Send build artifacts over SSH</span><br><span class="line">                   │    publish/** → 部署机</span><br><span class="line">                   ▼</span><br><span class="line">┌───────────────────────────────────────────┐</span><br><span class="line">│  部署机                                    │</span><br><span class="line">│  ⑤ Exec command（构建后 shell）            │</span><br><span class="line">│     main  → 铺到部署根目录（保留子目录）    │</span><br><span class="line">│     subs/* → 各自覆盖到同名子目录          │</span><br><span class="line">│     最后删掉 publish 临时目录              │</span><br><span class="line">└──────────────────┬────────────────────────┘</span><br><span class="line">                   │</span><br><span class="line">                   ▼</span><br><span class="line">        Nginx 指向部署根目录 / 或 OSS + CDN</span><br><span class="line">                   │</span><br><span class="line">                   ▼</span><br><span class="line">              用户访问页面</span><br></pre></td></tr></table></figure>
+
+<p>整条链路的难点只有一处，就是第 ⑤ 步。主应用的产物要铺在部署根目录下，子应用的产物在同一个根目录下各占一个子目录，那主应用重新发布时，怎么在清掉旧文件的同时不把子应用目录一起删了。后面第四节的 shell 就是在解决这件事。</p>
+<p>如果你还不清楚主应用和子应用在运行时是怎么互相找到的，可以先看 <a href="https://feinterview.poetries.top/blog/micro-fe-summary">微前端实战总结，从 single-spa 到 qiankun 的原理拆解</a>，那边讲的是原理，这篇只讲上线。还没定下来用哪套框架的话，<a href="https://feinterview.poetries.top/blog/micro-frontend-comparison">微前端落地方案对比，qiankun 无界 Module Federation 怎么选</a> 里有一条可以照着走的选型路径。</p>
+<p>顺便说一句，下面这套流水线其实和你用哪个微前端框架关系不大。不管是 qiankun 还是 icestark，产物都是一堆静态文件，差别只在目录怎么摆。</p>
+<h2 id="二、Jenkins-的几个概念先对齐"><a href="#二、Jenkins-的几个概念先对齐" class="headerlink" title="二、Jenkins 的几个概念先对齐"></a>二、Jenkins 的几个概念先对齐</h2><p>Jenkins 是基于 Java 开发的持续集成工具，免费开源，用于监控持续重复的工作，目标是把软件的持续集成自动化。功能上主要是两块，持续的软件版本发布和测试，以及监控外部调用执行的工作。</p>
+<p>它的界面概念不多，但名字起得有点绕，先花几分钟对齐一下。</p>
+<h3 id="2-1-系统管理"><a href="#2-1-系统管理" class="headerlink" title="2.1 系统管理"></a>2.1 系统管理</h3><p><strong>执行者数量</strong>是系统可同时并发执行任务的数量，默认 2 个。这个值原则上不要超过服务器 CPU 核数，否则容易出现 CPU 过载把服务拖挂。微前端项目一次构建可能同时跑好几个 <code>npm run build</code>，本来就吃 CPU，这里我一般不往上调。</p>
+<p><strong>Jenkins URL</strong> 是 Jenkins 的访问地址，改这里的端口号和改服务器配置文件的端口号效果一致。</p>
+<p><strong>凭据</strong>用来存储需要密文保护的东西，数据库密码、GitLab 密码、Docker 私有仓库密码都放这儿，Jenkins 靠它和第三方应用交互。要安装 Credentials Binding 插件用户才能管理凭据。凭据管理包含凭据本身和凭据所在域的管理，系统默认会创建全局域，你也可以自己添加域再在域下加凭据。为了最大程度提高安全性，在 Jenkins 中配置的凭据以加密形式存储在主实例上，由 Jenkins 实例 ID 加密，使用时靠配置的唯一标识 ID 引用。</p>
+<p>可以添加的凭据有五种：用户名和密码、SSH 密钥（SSH 公私钥对）、加密文件、令牌（例如 API 令牌、GitHub 个人访问令牌）、证书。添加时要填种类、范围（全局或系统）、凭据内容、ID、描述。</p>
+<p>这里有个坑要注意，ID 字段是可选的，不填 Jenkins 会分配一个全局唯一的 GUID。但一旦设置了凭证 ID，之后就无法再更改。所以如果你打算在 Pipeline 脚本里按 ID 引用凭据，第一次就把名字起对。</p>
+<p><strong>插件管理</strong>有两条路。一条是在管理平台界面里用插件管理器，路径是「系统管理」→「插件管理」，在「可选插件」标签下搜索需要的插件，勾选后点左下角的下载并重启后安装，等下载完成服务自动重启，重新进入系统即安装成功。另一条是用 Jenkins CLI 的 <code>install-plugin</code> 命令，适合用脚本或者配置管理代码来装插件的场景，不需要在 Web UI 里做人工交互。</p>
+<p><strong>用户管理</strong>默认使用自带数据库模式存储用户，Jenkins 默认创建 admin 账号，初始密码在 <code>/var/lib/jenkins/secrets/initialAdminPassword</code>，登录之后可以在管理用户里改掉。第一次装完记得改，这个文件路径是公开的常识。</p>
+<h3 id="2-2-视图和任务"><a href="#2-2-视图和任务" class="headerlink" title="2.2 视图和任务"></a>2.2 视图和任务</h3><p>视图主要用来管理不同项目之间的任务，一般是每个项目建一个视图，在视图下管理整个项目的模块。常用的是列表视图（显示简单列表，新建或编辑视图时可以把已有任务加进来，也可以在该视图下新建任务）和我的视图（自动显示当前用户有权限访问的任务）。</p>
+<p>新建任务时要填任务名称，选任务模板。新装的 Jenkins 一般只有一个「构建一个自由风格的软件项目」模板，其他模板要下对应的插件，不同模板的构建流程也不一样。还有个复制选项，输入已有任务名可以复制一份新任务，但选了复制就不能再自定义模板了，会以被复制项目的模板为准。</p>
+<p>任务详情页里几个常用入口：状态、修改记录（每次构建获取的代码变更记录，也就是这次构建的 git 提交记录）、工作空间（任务的项目文件目录）、立即构建、配置（配置整个构建和部署过程要干什么）、删除工程、重命名。</p>
+<p>概念就这些。下面进入正题，一步步配任务。</p>
+<h2 id="三、任务配置分四步走"><a href="#三、任务配置分四步走" class="headerlink" title="三、任务配置分四步走"></a>三、任务配置分四步走</h2><p>任务配置就是把「从拉代码到部署成功」这个过程拆成几段分别配置。</p>
+<h3 id="Step-1-General"><a href="#Step-1-General" class="headerlink" title="Step 1. General"></a>Step 1. General</h3><p>这一步是执行构建前对 Jenkins 本身做的一些设置。</p>
+<p><strong>丢弃旧的构建</strong>默认策略是 Log Rotation，可以设保持构建的天数（保存此天数内的构建记录，为空则全保留）和保持构建的最大个数（保存最近这么多次构建，为空则全保留）。这两个建议一定要设，构建产物加上工作空间很吃磁盘，我见过因为没配这个把构建机磁盘塞满的。</p>
+<p><strong>参数化构建过程</strong>是微前端场景下最关键的一项，它就是「只构建我勾选的那几个包」的实现方式。</p>
+<p>要装 <code>Extended Choice Parameter</code> 插件，它提供多选框类型的参数：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117095347.png" alt="Extended Choice Parameter 插件安装界面"></p>
+<p>配置项逐条对应关系是这样：</p>
 <ul>
-<li><p>系统设置</p>
-<ul>
-<li>执行者数量：系统可同时并发执行任务的数量，系统默认 2 个，原则上不超过服务器 CPU 核数，否则容易出现 CPU 利用率过载导致服务挂掉。</li>
-<li>Jenkins URL：Jenkins 访问地址，可以修改地址的端口号，和修改服务器配置文件的端口号效果一致</li>
-</ul>
-</li>
-<li><p>凭据配置</p>
-<ul>
-<li>凭据可以用来存储需要密文保护的数据库密码、Gitlab 密码信息、Docker 私有仓库密码等，以便 Jenkins 可以和这些第三方的应用进行交互，需要安装 Credentials Binding 插件，用户才可管理凭据</li>
-</ul>
-</li>
-<li><p>凭据管理</p>
-<ul>
-<li>凭据管理包含凭据的管理和凭据所在域的管理，系统默认会创建全局域，用户可以在两个管理表格的存储下添加域，在用户选择的域下添加凭据或者进入域详情添加凭据。为了最大程度地提高安全性，在 Jenkins 中配置的凭据以加密形式存储在主 Jenkins 实例上（由 Jenkins 实例 ID 加密），用户需要使用配置的唯一标识 ID 进行处理。</li>
-<li>可以添加的凭证有 5 种：<ol>
-<li>用户名和密码</li>
-<li>SSH 密钥（SSH 公私钥对）</li>
-<li>加密文件</li>
-<li>令牌（例如 API 令牌、GitHub 个人访问令牌）</li>
-<li>证书</li>
-</ol>
-</li>
-<li>添加凭据：<ol>
-<li>种类</li>
-<li>范围 （全局、系统）</li>
-<li>凭据</li>
-<li>ID (此字段是可选的。如果未指定其值，Jenkins 将为凭证 ID 分配一个全局唯一 ID（GUID）值。请记住，一旦设置了凭证 ID，就无法再更改它)</li>
-<li>凭证描述。</li>
-</ol>
-</li>
-</ul>
-</li>
-<li><p>插件管理</p>
-<p>Jenkins 提供了两种不同的方法来在主服务器上安装插件：</p>
-<ul>
-<li><p>在管理平台界面中使用插件管理器</p>
-<p>通过“系统管理” &gt;“插件管理”视图，Jenkins 环境的管理员可以使用该视图。在“ 可选插件 ”选项卡下，可以搜索用户需要的插件，搜索到需要的插件后勾选插件列表的选中框，之后点击左下角的下载并且重启后安装，等待插件下载完成后服务自动重启，重新进入系统即安装成功。</p>
-</li>
-<li><p>使用 Jenkins CLI install-plugin 命令</p>
-<p>管理员还可以使用 Jenkins CLI，它提供了安装插件的命令。用于管理 Jenkins 环境的脚本或配置管理代码可能需要安装插件，而无需在 Web UI 中直接进行用户交互。Jenkins CLI 允许命令行用户或自动化工具下载插件及其依赖项</p>
-</li>
-</ul>
-</li>
-<li><p>管理用户</p>
-<p>Jenkins 默认使用自带数据库模式存储用户，jenkins 默认创建 admin 账号，默认密码位于 <code>/var/lib/jenkins/secrets/initialAdminPassword</code>，登录之后可在管理用户修改用户默认密码</p>
-</li>
-</ul>
-<h3 id="2-新建视图"><a href="#2-新建视图" class="headerlink" title="2. 新建视图"></a>2. 新建视图</h3><p>视图功能主要用于管理不同项目之间的任务，每个项目创建一个视图并在视图下管理整个项目的模块。</p>
-<ul>
-<li>列表视图（显示简单列表。新建或编辑视图的时候可以选择将当前已有的任务添加到该视图，也可以在该视图下新建任务）</li>
-<li>我的视图（该视图自动显示当前用户有权限访问的任务）</li>
-</ul>
-<h3 id="3-任务"><a href="#3-任务" class="headerlink" title="3. 任务"></a>3. 任务</h3><ul>
-<li>新建任务<ul>
-<li>任务名称</li>
-<li>任务模板：jenkins 提供的任务模板，一般新安装的 jenkins 只会有一个“构建一个自由风格的软件项目”模板，而如果需要其他的任务模板需要用户下载对应的插件，不同的任务模板会有不同的构建流程</li>
-<li>复制：可选项，用户可以输入已有的任务名称选择其中之一复制一个新的任务，选择了复制的任务后就无法自定义任务模板，以复制的项目的任务模板为主</li>
-</ul>
-</li>
-<li>任务详情<ul>
-<li>状态</li>
-<li>修改记录：每次构建获取的代码变更记录，即记录每次构建的 git 仓库提交记录</li>
-<li>工作空间：任务的工作空间的项目文件目录</li>
-<li>立即构建：执行构建部署任务，使用不同的插件执行构建过程会有差异</li>
-<li>配置：配置整个任务构建和部署过程的需要干什么</li>
-<li>删除工程</li>
-<li>重命名</li>
-</ul>
-</li>
-</ul>
-<h2 id="二、任务配置"><a href="#二、任务配置" class="headerlink" title="二、任务配置"></a>二、任务配置</h2><p>任务配置主要将自动化构建部署从项目的获取到部署成功的一个过程需要做的工作做分解配置。</p>
-<h3 id="1-General"><a href="#1-General" class="headerlink" title="1. General"></a>1. General</h3><p>这一步主要是在执行构建前对 jenkins 配置进行了简单的设置</p>
-<ul>
-<li><p>描述</p>
-</li>
-<li><p>丢弃旧的构建</p>
-<ul>
-<li>策略：默认 Log Rotation<ul>
-<li>保持构建的天数：将保存此天数的构建记录，为空保存所有</li>
-<li>保持构建的最大个数：保存最近该个数的构建，为空保存所有</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>参数化构建过程</p>
-<p>Extended Choice Parameter 插件，该插件可以使用多选框，利用该插件可以指定需要打包的应用，而不需要打包所有项目，减少打包时间</p>
-<ul>
-<li>Name：构建过程使用的参数名</li>
+<li>Name：构建过程使用的参数名，后面 shell 里靠这个名字取值</li>
 <li>Description：参数描述</li>
-<li>Basic Parameter Types<ul>
-<li>Parameter Type：<code>Check Boxes</code> （值使用的类型）</li>
-<li>Number of Visible Items：<code>8</code> checkbox 参数值个数（项目子包和主包个数）</li>
-<li>Delimiter：<code>,</code> 各个值的分割符号</li>
-<li>Choose Source for Value：<code>main,subs/appletuser,subs/college,subs/follow,subs/project,subs/questions,subs/statistics,subs/system</code> 参数值（主包和子包相对项目路径</li>
-<li>Choose Source for Default Value：<code>main,subs/appletuser,subs/college,subs/follow,subs/project,subs/questions,subs/statistics,subs/system</code> 参数默认选中的值（主包和子包相对项目路径</li>
+<li>Parameter Type：<code>Check Boxes</code>，也就是多选框</li>
+<li>Number of Visible Items：<code>8</code>，checkbox 参数值个数，等于项目子包和主包的总数</li>
+<li>Delimiter：<code>,</code>，各个值的分割符号</li>
+<li>Choose Source for Value：<code>main,subs/appletuser,subs/college,subs/follow,subs/project,subs/questions,subs/statistics,subs/system</code>，填的是主包和子包相对项目根目录的路径</li>
+<li>Choose Source for Default Value：同上，表示默认全选</li>
 </ul>
-</li>
-</ul>
-<p>布尔值参数，true&#x2F;false 值的参数，当前应用于构建过程中判断是否需要构建 npm install</p>
+<p>这里的取值一定要写成相对项目根目录的路径，因为构建 shell 里会直接 <code>cd</code> 进去。写成应用名而不是路径的话，shell 里还得再做一次映射，没必要。</p>
+<p>另外再加一个布尔值参数，用来判断这次构建要不要跑 <code>npm install</code>：</p>
 <ul>
-<li>名称：构建过程使用的参数名</li>
+<li>名称：<code>isRunInstall</code></li>
 <li>默认值：默认是否勾选</li>
 <li>描述：参数描述</li>
 </ul>
-</li>
-</ul>
-<h3 id="2-源码管理"><a href="#2-源码管理" class="headerlink" title="2. 源码管理"></a>2. 源码管理</h3><ul>
-<li><p>Git plugin</p>
-<p>GIT 仓库管理插件，用于同步 git 库，通过该插件 jenkins 任务可以在构建过程中获取配置好的 git 远程仓库代码，任务执行时代码会被拉取到<code>/var/lib/jenkins/workspace/&#123;任务名称&#125;</code>目录下</p>
+<p>依赖没变的日常发版把它关掉，能省下好几分钟。这个开关是全局的，勾选的所有应用会按同一个规则执行。</p>
+<h3 id="Step-2-源码管理"><a href="#Step-2-源码管理" class="headerlink" title="Step 2. 源码管理"></a>Step 2. 源码管理</h3><p>用 Git plugin 同步代码仓库。任务执行时代码会被拉到 <code>/var/lib/jenkins/workspace/&#123;任务名称&#125;</code> 目录下，后面 shell 里的 <code>$WORKSPACE</code> 环境变量就是这个路径。</p>
+<p>要填的东西不多：</p>
 <ul>
-<li>Repository URL 代码仓库地址</li>
-<li>Credentials 服务器连接代码仓库的凭据，可在系统管理添加后选择，也可以在右边的添加按钮新增凭据，新增方式和系统管理的凭据新增一样</li>
-<li>Branches to build 指定任务需要拉取的分支，允许配置多个分支</li>
-<li>源码库浏览器 指定 git 仓库类型，默认自动</li>
+<li>Repository URL：代码仓库地址</li>
+<li>Credentials：服务器连接代码仓库的凭据，可以在系统管理里加好后在这选，也可以点右边的添加按钮现加，新增方式和系统管理里一样</li>
+<li>Branches to build：指定任务需要拉取的分支，允许配多个</li>
+<li>源码库浏览器：指定 git 仓库类型，默认自动</li>
 </ul>
-</li>
-</ul>
-<h3 id="3-构建"><a href="#3-构建" class="headerlink" title="3. 构建"></a>3. 构建</h3><ul>
-<li><p>执行 shell</p>
-<p>开始执行构建任务之前源码管理插件已经将代码从远程库中获取，执行 shell 任务主要通过获取参数化构建时设置的参数去对整个项目中的各个应用进行打包并将打包完成的部署文件统一放在根目录的发布文件夹<code>publish</code>，执行详细代码如下：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">项目根目录地址（相对于工作空间）</span></span><br><span class="line">project_path=&quot;&quot;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将用户选择需要打包的应用拆分成数组</span></span><br><span class="line">OLD_IFS=&quot;$IFS&quot;</span><br><span class="line">IFS=&quot;,&quot;</span><br><span class="line">arr=($mutiParams)</span><br><span class="line">IFS=&quot;$OLD_IFS&quot;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">清空上次打包的部署文件</span></span><br><span class="line">rm -rf $WORKSPACE$project_path/publish</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">for i in $&#123;arr[@]&#125;</span><br><span class="line">do</span><br><span class="line">    # 进入对应的应用中执行打包过程，$WORKSPACE为系统环境变量，值为工作空间地址</span><br><span class="line">    cd $WORKSPACE$project_path/$i</span><br><span class="line">    rm -rf dist</span><br><span class="line">    # 判断是否需要执行环境安装，当前设置为全局设置，所有需要打包的应用会执行相同的判断</span><br><span class="line">    if [[ $isRunInstall == &quot;true&quot; ]]</span><br><span class="line">    then</span><br><span class="line">      npm install</span><br><span class="line">    fi</span><br><span class="line">    npm run build</span><br><span class="line">    # 将子应用和主应用放在同一级，便于后续部署，因为很多微前端项目子应用都会放置在同一个文件夹下</span><br><span class="line">    [[ $i == &quot;main&quot; ]] &amp;&amp; subdir=$i || subdir=$&#123;i##*/&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    mkdir -p $WORKSPACE$project_path/publish/$subdir</span><br><span class="line">    mv dist/* $WORKSPACE$project_path/publish/$subdir</span><br><span class="line">done</span><br></pre></td></tr></table></figure></li>
-</ul>
-<h3 id="4-构建后操作"><a href="#4-构建后操作" class="headerlink" title="4. 构建后操作"></a>4. 构建后操作</h3><ul>
-<li><p>Send build artifacts over SSH，使用该插件需要在<code>系统管理-&gt;插件管理</code>中安装，该插件主要功能为将构建好的部署包按照一定规则发送到部署服务器，并且在这之后可在部署服务器执行一定的 shell 操作。安装插件后还需要在<code>系统管理-&gt;系统配置-&gt;Publish over SSH</code>添加 SSH Services。</p>
-<ul>
-<li><p>Name：选择部署服务器，所选服务器就是系统配置中所添加，构建时就会连接该服务器</p>
-</li>
-<li><p>Transfers</p>
-<ul>
-<li>Source files：构建服务器中部署文件的相对地址<code>publish/**</code></li>
-<li>Remove prefix：文件发送后在部署服务器的路径和 Source files 一致，可以根据需求删除该地址前面某一段，当前为空</li>
-<li>Remote directory：部署服务器的部署目录<code>/home/jenkinsC</code></li>
-<li>Exec command：文件发送完成之后在这里可以对部署服务器进行操作，这里的 shell 操作作用于部署服务器，由于微前端的部署特殊性，所以这里需要对发送过来的文件进行转移操作，具体如下：</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 此处的packages后面多了个publish是打包之后的部署文件名，为了防止在部署主应用的时候被删掉</span></span><br><span class="line">packages=<span class="string">&quot;main,subs/appletuser,subs/college,subs/follow,subs/project,subs/questions,subs/statistics,subs/system,publish&quot;</span></span><br><span class="line"><span class="comment"># 部署目录</span></span><br><span class="line">PUBLISH_PATH=/home/jenkinsC</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 依次循环部署构建好的应用</span></span><br><span class="line"><span class="keyword">for</span> package <span class="keyword">in</span> `<span class="built_in">ls</span> <span class="variable">$PUBLISH_PATH</span>/publish`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="comment"># 判断当前是否为主应用，因为主包需要把主应用的所有文件直接部署在部署目录下，所以需要在过滤掉子应用和publish文件夹的情况下删除所有旧的主应用文件再进行部署</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="variable">$package</span> == <span class="string">&quot;main&quot;</span> ]]</span><br><span class="line">    <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">for</span> element <span class="keyword">in</span> `<span class="built_in">ls</span> <span class="variable">$PUBLISH_PATH</span>`</span><br><span class="line">        <span class="keyword">do</span></span><br><span class="line">          [[ <span class="variable">$packages</span> =~ <span class="variable">$element</span> ]] || <span class="built_in">rm</span> -rf <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$element</span></span><br><span class="line">        <span class="keyword">done</span></span><br><span class="line">        <span class="built_in">mv</span> <span class="variable">$PUBLISH_PATH</span>/publish/<span class="variable">$package</span>/* <span class="variable">$PUBLISH_PATH</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment"># 子应用部署方式直接先删除原有文件后部署</span></span><br><span class="line">        <span class="built_in">rm</span> -rf <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$package</span></span><br><span class="line">        <span class="built_in">mkdir</span> -p <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$package</span></span><br><span class="line">        <span class="built_in">mv</span> <span class="variable">$PUBLISH_PATH</span>/publish/<span class="variable">$package</span>/* <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$package</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment"># 部署完成后需要删除部署文件，否则下次部署如果没有删掉会再次部署旧的文件</span></span><br><span class="line"><span class="built_in">rm</span> -rf <span class="variable">$PUBLISH_PATH</span>/publish</span><br></pre></td></tr></table></figure></li>
-</ul>
-</li>
-</ul>
-<h2 id="三、构建"><a href="#三、构建" class="headerlink" title="三、构建"></a>三、构建</h2><p>按照上一步的配置规则执行自动化构建和部署</p>
-<h3 id="1-构建前"><a href="#1-构建前" class="headerlink" title="1. 构建前"></a>1. 构建前</h3><p>路径：工程-&gt;Build With Parameters-&gt;开始构建</p>
-<p>点击开始构建前需要配置构建所需的参数，构建过程中在左下角的构建历史可以查看构建进度条。</p>
-<ul>
-<li>mutiParams：选中对应的应用，构建过程中就会只构建有勾选的应用</li>
-<li>isRunInstall：应用是否需要执行 npm install，当前构建被选中的应用都会按照这个规则执行，为了减少构建过程所消耗的时间</li>
-</ul>
-<h3 id="2-构建后"><a href="#2-构建后" class="headerlink" title="2. 构建后"></a>2. 构建后</h3><p>在左侧的构建历史可以查看构建记录的状态，并且每个构建记录还能通过构建编号左侧的小球颜色判断状态，一般有三个状态分别分为 SUCCESS（蓝色）、UNSTABLE（黄色）、FAILURE（红色），点击对应构建记录可查看详细信息</p>
-<p>状态描述：</p>
-<ul>
-<li>SUCCESS：构建部署成功</li>
-<li>UNSTABLE：构建成功，但是部署过程出错</li>
-<li>FAILURE：构建过程就已经出错</li>
-</ul>
-<p>构建记录：</p>
-<ul>
-<li>状态集：执行构建用户、当前构建记录的 git 分支以及提交记录</li>
-<li>变更记录：当前构建记录 git 提交记录详细信息</li>
-<li>控制台输出：构建部署执行过程命令执行的记录（可以在这里查看构建失败原因以及调试构建过程的问题）</li>
-<li>编辑编译信息：设置当前构建记录的名称和备注</li>
-<li>删除构建</li>
-<li>参数：显示构建部署过程中自定义参数</li>
-</ul>
-<h2 id="四、-Jenkins部署微前端多个包完整配置"><a href="#四、-Jenkins部署微前端多个包完整配置" class="headerlink" title="四、 Jenkins部署微前端多个包完整配置"></a>四、 Jenkins部署微前端多个包完整配置</h2><h3 id="需要安装的插件"><a href="#需要安装的插件" class="headerlink" title="需要安装的插件"></a>需要安装的插件</h3><ul>
-<li><p><code>Extended Choice Parameter</code> 插件，该插件可以使用多选框 <img src="https://blog.poetries.top/img/static/images/20211117095347.png"></p>
-</li>
-<li><p>Git plugin </p>
-<ul>
-<li>GIT 仓库管理插件，用于同步 git 库，通过该插件 jenkins 任务可以在构建过程中获取配置好的 git 远程仓库代码，任务执行时代码会被拉取到<code>/var/lib/jenkins/workspace/&#123;任务名称&#125;</code>目录下</li>
-</ul>
-</li>
-<li><p>Send build artifacts over SSH，使用该插件需要在<code>系统管理-&gt;插件管理</code>中安装，该插件主要功能为将构建好的部署包按照一定规则发送到部署服务器，并且在这之后可在部署服务器执行一定的 shell 操作。安装插件后还需要在<code>系统管理-&gt;系统配置-&gt;Publish over SSH</code>添加 SSH Services。</p>
-<p><img src="https://blog.poetries.top/img/static/images/20211117095208.png"></p>
-<p>在<code>系统管理-&gt;系统配置-&gt;Publish over SSH</code>添加<img src="https://blog.poetries.top/img/static/images/20211117095542.png"></p>
-<h3 id="Jenkins完整配置搭建"><a href="#Jenkins完整配置搭建" class="headerlink" title="Jenkins完整配置搭建"></a>Jenkins完整配置搭建</h3><p><strong>效果演示</strong></p>
-<p><img src="https://blog.poetries.top/img/static/images/20211117092944.png"><br><img src="https://blog.poetries.top/img/static/images/20211117093241.png"></p>
-<p><strong>配置流程</strong></p>
-<p><img src="https://blog.poetries.top/img/static/images/20211117085757.png"></p>
-<p><img src="https://blog.poetries.top/img/static/images/20211117090018.png"><br><img src="https://blog.poetries.top/img/static/images/20211117091728.png"><br><img src="https://blog.poetries.top/img/static/images/20211117091930.png"><br><img src="https://blog.poetries.top/img/static/images/20211117092045.png"></p>
-<p>构建的shell代码</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash -ilex</span></span><br><span class="line"></span><br><span class="line">echo $PATH</span><br><span class="line"></span><br><span class="line">packages=&quot;main,subs/system,subs/teaLifeManage,subs/wechatManage&quot;</span><br><span class="line">project_path=&quot;&quot;</span><br><span class="line"></span><br><span class="line">OLD_IFS=&quot;$IFS&quot;</span><br><span class="line">IFS=&quot;,&quot;</span><br><span class="line">arr=($mutiParams)</span><br><span class="line">IFS=&quot;$OLD_IFS&quot;</span><br><span class="line"></span><br><span class="line">rm -rf $WORKSPACE$project_path/publish</span><br><span class="line"></span><br><span class="line">for i in $&#123;arr[@]&#125;</span><br><span class="line">do</span><br><span class="line">	echo &#x27;打印i：&#x27; + $i </span><br><span class="line">    cd $WORKSPACE$project_path/$i</span><br><span class="line">    rm -rf dist</span><br><span class="line">    if [[ $isRunInstall == &quot;true&quot; ]]</span><br><span class="line">    then</span><br><span class="line">       npm install</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    if [[ $i == &quot;main&quot; ]]</span><br><span class="line">    then</span><br><span class="line">      if [[ $nodeDev == &quot;development&quot; ]]</span><br><span class="line">      theninsta</span><br><span class="line">      	npm run test</span><br><span class="line">      else</span><br><span class="line">      	npm run build $nodeDev</span><br><span class="line">      fi</span><br><span class="line">    else</span><br><span class="line">      npm run build $nodeDev</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    if [[ $i == &quot;main&quot; ]]</span><br><span class="line">    then</span><br><span class="line">    	newsubdir=$i</span><br><span class="line">    else</span><br><span class="line">    	subdir=$&#123;i%Manage*&#125;</span><br><span class="line">        newsubdir=$&#123;subdir##*/&#125;</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    mkdir -p $WORKSPACE$project_path/publish/$&#123;newsubdir,,&#125;</span><br><span class="line">    mv dist/* $WORKSPACE$project_path/publish/$&#123;newsubdir,,&#125;</span><br><span class="line">    </span><br><span class="line">    echo &#x27;打印WORKSPACE：&#x27; + $WORKSPACE</span><br><span class="line">    echo &#x27;打印newsubdir：&#x27; + $newsubdir</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+<h3 id="Step-3-构建"><a href="#Step-3-构建" class="headerlink" title="Step 3. 构建"></a>Step 3. 构建</h3><p>执行 shell 这一步，源码管理插件已经把代码拉下来了。这段 shell 要做的是按参数化构建时勾选的应用逐个打包，再把产物统一放到项目根目录的 <code>publish</code> 文件夹里。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">项目根目录地址（相对于工作空间）</span></span><br><span class="line">project_path=&quot;&quot;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将用户选择需要打包的应用拆分成数组</span></span><br><span class="line">OLD_IFS=&quot;$IFS&quot;</span><br><span class="line">IFS=&quot;,&quot;</span><br><span class="line">arr=($mutiParams)</span><br><span class="line">IFS=&quot;$OLD_IFS&quot;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">清空上次打包的部署文件</span></span><br><span class="line">rm -rf $WORKSPACE$project_path/publish</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">for i in $&#123;arr[@]&#125;</span><br><span class="line">do</span><br><span class="line">    # 进入对应的应用中执行打包过程，$WORKSPACE为系统环境变量，值为工作空间地址</span><br><span class="line">    cd $WORKSPACE$project_path/$i</span><br><span class="line">    rm -rf dist</span><br><span class="line">    # 判断是否需要执行环境安装，当前设置为全局设置，所有需要打包的应用会执行相同的判断</span><br><span class="line">    if [[ $isRunInstall == &quot;true&quot; ]]</span><br><span class="line">    then</span><br><span class="line">      npm install</span><br><span class="line">    fi</span><br><span class="line">    npm run build</span><br><span class="line">    # 将子应用和主应用放在同一级，便于后续部署，因为很多微前端项目子应用都会放置在同一个文件夹下</span><br><span class="line">    [[ $i == &quot;main&quot; ]] &amp;&amp; subdir=$i || subdir=$&#123;i##*/&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    mkdir -p $WORKSPACE$project_path/publish/$subdir</span><br><span class="line">    mv dist/* $WORKSPACE$project_path/publish/$subdir</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://blog.poetries.top/img/static/images/20211117092331.png"></p>
-<p>构建后操作shell代码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#!/bin/bash -ilex</span><br><span class="line">packages=&quot;main,subs/system,subs/teaLifeManage,subs/wechatManage,publish&quot;</span><br><span class="line">PUBLISH_PATH=/home/docker/nginx/html/web-test</span><br><span class="line"></span><br><span class="line">for package in `ls $PUBLISH_PATH/publish`</span><br><span class="line">do</span><br><span class="line">    if [[ $package == &quot;main&quot; ]]</span><br><span class="line">    then</span><br><span class="line">        for element in `ls $PUBLISH_PATH`</span><br><span class="line">        do</span><br><span class="line">    	    [[ $&#123;packages,,&#125; =~ $element ]] || rm -rf $PUBLISH_PATH/$element</span><br><span class="line">        done</span><br><span class="line">        mv $PUBLISH_PATH/publish/$package/* $PUBLISH_PATH</span><br><span class="line">    else</span><br><span class="line">        rm -rf $PUBLISH_PATH/$package</span><br><span class="line">        mkdir -p $PUBLISH_PATH/$package</span><br><span class="line">        mv $PUBLISH_PATH/publish/$package/* $PUBLISH_PATH/$package</span><br><span class="line">    fi</span><br><span class="line">done</span><br><span class="line">rm -rf $PUBLISH_PATH/publish</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>最后配置一下Nginx指向<code>/home/docker/nginx/html/web-test</code>部署目录即可访问</p>
-</blockquote>
-</li>
+<p>拆开看几处关键的。</p>
+<p><code>OLD_IFS</code> 那三行是在临时改 shell 的分隔符。<code>mutiParams</code> 传进来是 <code>main,subs/college,subs/system</code> 这样一个逗号串，把 <code>IFS</code> 改成逗号再 <code>arr=($mutiParams)</code> 才能正确切成数组，切完立刻改回来，不然后面所有按空格分词的地方都会出问题。</p>
+<p>开头的 <code>rm -rf publish</code> 是防上一次构建的残留。如果不清，这次只勾了两个包，上次那六个包的旧产物还留在 <code>publish</code> 里，会一起被推到部署机去覆盖线上，等于把老版本发上去了。这个坑很隐蔽，因为构建日志一切正常。</p>
+<p><code>$&#123;i##*/&#125;</code> 是取路径最后一段，<code>subs/college</code> 会变成 <code>college</code>。主应用不走这个逻辑，直接保留 <code>main</code> 这个名字，因为它在部署机上的处理方式和子应用完全不同。</p>
+<h3 id="Step-4-构建后操作"><a href="#Step-4-构建后操作" class="headerlink" title="Step 4. 构建后操作"></a>Step 4. 构建后操作</h3><p>用 Send build artifacts over SSH 插件，它把构建好的产物按规则发到部署服务器，发完还能在部署机上执行一段 shell。这个插件要在「系统管理」→「插件管理」里装，装完还要在「系统管理」→「系统配置」→「Publish over SSH」里添加 SSH Server。</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117095208.png" alt="Publish over SSH 插件"></p>
+<p>在「系统管理」→「系统配置」→「Publish over SSH」里添加部署机信息：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117095542.png" alt="在系统配置中添加 SSH Server"></p>
+<p>回到任务配置里，Transfers 这几项的含义是：</p>
+<ul>
+<li>Name：选择部署服务器，就是刚才在系统配置里加的那台，构建时会连它</li>
+<li>Source files：构建服务器中部署文件的相对地址，填 <code>publish/**</code></li>
+<li>Remove prefix：文件发送后在部署机上的路径默认和 Source files 一致，可以按需删掉前面某一段，这里留空</li>
+<li>Remote directory：部署服务器的部署目录，例如 <code>/home/jenkinsC</code></li>
+<li>Exec command：文件发送完成之后在部署机上执行的 shell</li>
 </ul>
-<h2 id="五、使用阿里云OSS部署微前端项目"><a href="#五、使用阿里云OSS部署微前端项目" class="headerlink" title="五、使用阿里云OSS部署微前端项目"></a>五、使用阿里云OSS部署微前端项目</h2><p>  介绍阿里云对象存储部署步骤。</p>
-<h3 id="一、创建-Bucket-存储桶"><a href="#一、创建-Bucket-存储桶" class="headerlink" title="一、创建 Bucket 存储桶"></a>一、创建 Bucket 存储桶</h3><h3 id="1-进入对象存储-OSS-服务"><a href="#1-进入对象存储-OSS-服务" class="headerlink" title="1. 进入对象存储 OSS 服务"></a>1. 进入对象存储 OSS 服务</h3><p>  <a href="https://oss.console.aliyun.com/">https://oss.console.aliyun.com/</a></p>
-<h3 id="2-创建-Bucket-存储桶"><a href="#2-创建-Bucket-存储桶" class="headerlink" title="2. 创建 Bucket 存储桶"></a>2. 创建 Bucket 存储桶</h3><ul>
+<p>Exec command 这段是整篇最核心的一块，它解决的就是第一节说的那个问题，主应用要覆盖根目录但不能删掉子应用目录：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 此处的packages后面多了个publish是打包之后的部署文件名，为了防止在部署主应用的时候被删掉</span></span><br><span class="line">packages=<span class="string">&quot;main,subs/appletuser,subs/college,subs/follow,subs/project,subs/questions,subs/statistics,subs/system,publish&quot;</span></span><br><span class="line"><span class="comment"># 部署目录</span></span><br><span class="line">PUBLISH_PATH=/home/jenkinsC</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 依次循环部署构建好的应用</span></span><br><span class="line"><span class="keyword">for</span> package <span class="keyword">in</span> `<span class="built_in">ls</span> <span class="variable">$PUBLISH_PATH</span>/publish`</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">    <span class="comment"># 判断当前是否为主应用，因为主包需要把主应用的所有文件直接部署在部署目录下，所以需要在过滤掉子应用和publish文件夹的情况下删除所有旧的主应用文件再进行部署</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="variable">$package</span> == <span class="string">&quot;main&quot;</span> ]]</span><br><span class="line">    <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">for</span> element <span class="keyword">in</span> `<span class="built_in">ls</span> <span class="variable">$PUBLISH_PATH</span>`</span><br><span class="line">        <span class="keyword">do</span></span><br><span class="line">          [[ <span class="variable">$packages</span> =~ <span class="variable">$element</span> ]] || <span class="built_in">rm</span> -rf <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$element</span></span><br><span class="line">        <span class="keyword">done</span></span><br><span class="line">        <span class="built_in">mv</span> <span class="variable">$PUBLISH_PATH</span>/publish/<span class="variable">$package</span>/* <span class="variable">$PUBLISH_PATH</span></span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment"># 子应用部署方式直接先删除原有文件后部署</span></span><br><span class="line">        <span class="built_in">rm</span> -rf <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$package</span></span><br><span class="line">        <span class="built_in">mkdir</span> -p <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$package</span></span><br><span class="line">        <span class="built_in">mv</span> <span class="variable">$PUBLISH_PATH</span>/publish/<span class="variable">$package</span>/* <span class="variable">$PUBLISH_PATH</span>/<span class="variable">$package</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="comment"># 部署完成后需要删除部署文件，否则下次部署如果没有删掉会再次部署旧的文件</span></span><br><span class="line"><span class="built_in">rm</span> -rf <span class="variable">$PUBLISH_PATH</span>/publish</span><br></pre></td></tr></table></figure>
+
+<p>主应用那个分支的逻辑是这样：先遍历部署目录下的所有条目，凡是不在 <code>packages</code> 白名单里的一律删掉，然后把主应用产物铺进来。<code>packages</code> 里之所以要带上 <code>publish</code>，是因为这个临时目录此刻就躺在部署目录下，不加白名单的话循环第一轮就把它自己删了，后面全乱套。</p>
+<p><code>[[ $packages =~ $element ]]</code> 用的是正则匹配而不是精确匹配，这里有个隐患。如果部署目录下存在一个叫 <code>mainx</code> 的目录，<code>main</code> 能在 <code>packages</code> 里匹配上，<code>mainx</code> 也一样能匹配上（因为它包含 <code>main</code> 这个子串反过来说不成立，但如果白名单里有 <code>college</code>，那 <code>colleg</code> 这种名字就会被误判）。目录名规划得干净点就不会遇到，但心里要有数。</p>
+<p>子应用那个分支简单得多，先删同名目录再重建，直接整体覆盖。</p>
+<p>最后一行删掉 <code>publish</code> 也不能省。留着的话，下次部署时主应用分支那个白名单循环还得靠它，而遗留的旧文件会被再发布一次。</p>
+<h2 id="四、跑一次构建看看结果"><a href="#四、跑一次构建看看结果" class="headerlink" title="四、跑一次构建看看结果"></a>四、跑一次构建看看结果</h2><p>配置完成之后就可以按规则执行自动化构建和部署了。</p>
+<h3 id="4-1-构建前"><a href="#4-1-构建前" class="headerlink" title="4.1 构建前"></a>4.1 构建前</h3><p>路径是「工程」→「Build With Parameters」→「开始构建」。</p>
+<p>点开始构建前要先配这次构建的参数，构建过程中在左下角的构建历史可以看到进度条：</p>
+<ul>
+<li><code>mutiParams</code>：勾选这次要构建的应用，没勾的不会构建</li>
+<li><code>isRunInstall</code>：要不要执行 <code>npm install</code>，勾选的所有应用都按这个规则走，日常发版关掉能省不少时间</li>
+</ul>
+<h3 id="4-2-构建后"><a href="#4-2-构建后" class="headerlink" title="4.2 构建后"></a>4.2 构建后</h3><p>左侧构建历史里可以看每次构建的状态，每条记录前的小球颜色就是状态标识，一般三种：</p>
+<ul>
+<li>SUCCESS（蓝色）：构建部署成功</li>
+<li>UNSTABLE（黄色）：构建成功，但是部署过程出错</li>
+<li>FAILURE（红色）：构建过程就已经出错</li>
+</ul>
+<p>黄色这个状态最容易被忽略。它意味着包打出来了但没送到部署机上，页面还是老版本，测试同学过来问「你发了吗」的时候你还以为发好了。所以构建历史别只看有没有红色。</p>
+<p>点开对应构建记录能看到详细信息：状态集（执行构建的用户、这次构建的 git 分支和提交记录）、变更记录（git 提交记录详情）、控制台输出、编辑编译信息、删除构建、参数（这次构建的自定义参数取值）。</p>
+<p>控制台输出是排查问题的第一入口。构建失败的原因、shell 每一步的实际执行情况，都在里面。</p>
+<h2 id="五、完整配置走一遍"><a href="#五、完整配置走一遍" class="headerlink" title="五、完整配置走一遍"></a>五、完整配置走一遍</h2><p>上面是分步骤讲，这一节按实际操作顺序把整套配置串起来。</p>
+<h3 id="5-1-需要装的三个插件"><a href="#5-1-需要装的三个插件" class="headerlink" title="5.1 需要装的三个插件"></a>5.1 需要装的三个插件</h3><ul>
+<li><code>Extended Choice Parameter</code>：提供多选框参数，实现按需构建</li>
+<li><code>Git plugin</code>：GIT 仓库管理插件，用于同步 git 库，任务执行时把代码拉到 <code>/var/lib/jenkins/workspace/&#123;任务名称&#125;</code> 下</li>
+<li><code>Send build artifacts over SSH</code>：把构建产物按规则发到部署机并在其上执行 shell，装完记得去「系统管理」→「系统配置」→「Publish over SSH」加 SSH Server</li>
+</ul>
+<h3 id="5-2-配好之后长什么样"><a href="#5-2-配好之后长什么样" class="headerlink" title="5.2 配好之后长什么样"></a>5.2 配好之后长什么样</h3><p>构建入口页面，勾选要构建的包再点开始：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117092944.png" alt="参数化构建的勾选界面"></p>
+<p>构建历史和状态：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117093241.png" alt="构建历史与状态列表"></p>
+<h3 id="5-3-配置流程截图"><a href="#5-3-配置流程截图" class="headerlink" title="5.3 配置流程截图"></a>5.3 配置流程截图</h3><p>任务的 General 配置：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117085757.png" alt="任务 General 配置"></p>
+<p>参数化构建过程的几项具体填法：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117090018.png" alt="Extended Choice Parameter 参数配置"><br><img src="https://blog.poetries.top/img/static/images/20211117091728.png" alt="布尔值参数配置"><br><img src="https://blog.poetries.top/img/static/images/20211117091930.png" alt="源码管理 Git 配置"><br><img src="https://blog.poetries.top/img/static/images/20211117092045.png" alt="构建步骤执行 shell 配置"></p>
+<h3 id="5-4-构建的-shell-代码"><a href="#5-4-构建的-shell-代码" class="headerlink" title="5.4 构建的 shell 代码"></a>5.4 构建的 shell 代码</h3><p>这是我实际在用的版本，比第三节那份多了两件事，一是支持多环境（<code>nodeDev</code> 参数决定跑 test 还是 build），二是子应用目录名做了统一处理：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash -ilex</span></span><br><span class="line"></span><br><span class="line">echo $PATH</span><br><span class="line"></span><br><span class="line">packages=&quot;main,subs/system,subs/teaLifeManage,subs/wechatManage&quot;</span><br><span class="line">project_path=&quot;&quot;</span><br><span class="line"></span><br><span class="line">OLD_IFS=&quot;$IFS&quot;</span><br><span class="line">IFS=&quot;,&quot;</span><br><span class="line">arr=($mutiParams)</span><br><span class="line">IFS=&quot;$OLD_IFS&quot;</span><br><span class="line"></span><br><span class="line">rm -rf $WORKSPACE$project_path/publish</span><br><span class="line"></span><br><span class="line">for i in $&#123;arr[@]&#125;</span><br><span class="line">do</span><br><span class="line">	echo &#x27;打印i：&#x27; + $i </span><br><span class="line">    cd $WORKSPACE$project_path/$i</span><br><span class="line">    rm -rf dist</span><br><span class="line">    if [[ $isRunInstall == &quot;true&quot; ]]</span><br><span class="line">    then</span><br><span class="line">       npm install</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    if [[ $i == &quot;main&quot; ]]</span><br><span class="line">    then</span><br><span class="line">      if [[ $nodeDev == &quot;development&quot; ]]</span><br><span class="line">      then</span><br><span class="line">      	npm run test</span><br><span class="line">      else</span><br><span class="line">      	npm run build $nodeDev</span><br><span class="line">      fi</span><br><span class="line">    else</span><br><span class="line">      npm run build $nodeDev</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    if [[ $i == &quot;main&quot; ]]</span><br><span class="line">    then</span><br><span class="line">    	newsubdir=$i</span><br><span class="line">    else</span><br><span class="line">    	subdir=$&#123;i%Manage*&#125;</span><br><span class="line">        newsubdir=$&#123;subdir##*/&#125;</span><br><span class="line">    fi</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    mkdir -p $WORKSPACE$project_path/publish/$&#123;newsubdir,,&#125;</span><br><span class="line">    mv dist/* $WORKSPACE$project_path/publish/$&#123;newsubdir,,&#125;</span><br><span class="line">    </span><br><span class="line">    echo &#x27;打印WORKSPACE：&#x27; + $WORKSPACE</span><br><span class="line">    echo &#x27;打印newsubdir：&#x27; + $newsubdir</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
+
+<p>第一行的 <code>#!/bin/bash -ilex</code> 值得单独说一下。<code>-i</code> 是交互模式，会加载 <code>.bashrc</code>，这样才能拿到 nvm 装的 node；<code>-l</code> 加载 login shell 配置；<code>-e</code> 遇错立即退出；<code>-x</code> 打印每条执行的命令。<code>-x</code> 在排查构建问题时很有用，控制台里能看到每条命令的实际取值。<code>-e</code> 则保证某个子应用打包失败时整个构建直接红掉，而不是继续往下跑最后发一个残缺产物上去。</p>
+<p><code>$&#123;i%Manage*&#125;</code> 是把路径里的 <code>Manage</code> 后缀砍掉，<code>subs/teaLifeManage</code> 变成 <code>subs/teaLife</code>，再用 <code>$&#123;subdir##*/&#125;</code> 取最后一段得到 <code>teaLife</code>。<code>$&#123;newsubdir,,&#125;</code> 是 bash 4 的语法，把变量转成全小写，最后落到 <code>publish/tealife</code>。这一串处理是为了让部署目录名统一小写，因为服务器路径大小写敏感，前端路由里写的是小写就得配上。</p>
+<p>这里顺带提醒一句，往 Jenkins 的 shell 输入框里粘贴代码时很容易带进多余字符，比如把 <code>then</code> 粘成 <code>theninsta</code> 这种。表现是构建一开始就报语法错误，日志里那行看着又特别像正常的 <code>then</code>，很费眼睛。上面这份是核对过的版本。</p>
+<p>配置界面里对应的位置：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117092331.png" alt="构建后操作 Exec command 配置"></p>
+<h3 id="5-5-构建后操作的-shell-代码"><a href="#5-5-构建后操作的-shell-代码" class="headerlink" title="5.5 构建后操作的 shell 代码"></a>5.5 构建后操作的 shell 代码</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#!/bin/bash -ilex</span><br><span class="line">packages=&quot;main,subs/system,subs/teaLifeManage,subs/wechatManage,publish&quot;</span><br><span class="line">PUBLISH_PATH=/home/docker/nginx/html/web-test</span><br><span class="line"></span><br><span class="line">for package in `ls $PUBLISH_PATH/publish`</span><br><span class="line">do</span><br><span class="line">    if [[ $package == &quot;main&quot; ]]</span><br><span class="line">    then</span><br><span class="line">        for element in `ls $PUBLISH_PATH`</span><br><span class="line">        do</span><br><span class="line">    	    [[ $&#123;packages,,&#125; =~ $element ]] || rm -rf $PUBLISH_PATH/$element</span><br><span class="line">        done</span><br><span class="line">        mv $PUBLISH_PATH/publish/$package/* $PUBLISH_PATH</span><br><span class="line">    else</span><br><span class="line">        rm -rf $PUBLISH_PATH/$package</span><br><span class="line">        mkdir -p $PUBLISH_PATH/$package</span><br><span class="line">        mv $PUBLISH_PATH/publish/$package/* $PUBLISH_PATH/$package</span><br><span class="line">    fi</span><br><span class="line">done</span><br><span class="line">rm -rf $PUBLISH_PATH/publish</span><br></pre></td></tr></table></figure>
+
+<p>和第三节那版逻辑一致，区别是白名单比较时用了 <code>$&#123;packages,,&#125;</code> 转小写，和构建 shell 里的 <code>$&#123;newsubdir,,&#125;</code> 对上。两边的大小写处理必须一致，只改一边的话主应用发布时会把子应用目录当成不在白名单里的东西删掉，线上直接 404。</p>
+<p>最后配一下 Nginx 指向 <code>/home/docker/nginx/html/web-test</code> 这个部署目录就能访问了。整套跑通之后，从勾选包到页面更新是这么一条线：</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117112123.png" alt="Jenkins 微前端部署流程全貌"></p>
+<h2 id="六、换一条路，阿里云-OSS-加-CDN"><a href="#六、换一条路，阿里云-OSS-加-CDN" class="headerlink" title="六、换一条路，阿里云 OSS 加 CDN"></a>六、换一条路，阿里云 OSS 加 CDN</h2><p>如果不想自己维护部署机和 Nginx，把静态资源丢到对象存储上是更省事的做法。下面是完整步骤。</p>
+<h3 id="6-1-创建-Bucket-存储桶"><a href="#6-1-创建-Bucket-存储桶" class="headerlink" title="6.1 创建 Bucket 存储桶"></a>6.1 创建 Bucket 存储桶</h3><p>进入对象存储 OSS 服务 <code>https://oss.console.aliyun.com/</code>，创建 Bucket：</p>
+<ul>
 <li>Bucket 名称：xxx</li>
 <li>地域：华南 1（深圳）</li>
 <li>版本控制：不开通</li>
 <li>读写权限：公共读</li>
 <li>其他保持默认</li>
 </ul>
-<h3 id="二、添加-CDN-域名"><a href="#二、添加-CDN-域名" class="headerlink" title="二、添加 CDN 域名"></a>二、添加 CDN 域名</h3><h3 id="1-进入-CDN-服务"><a href="#1-进入-CDN-服务" class="headerlink" title="1. 进入 CDN 服务"></a>1. 进入 CDN 服务</h3><p>  <a href="https://cdn.console.aliyun.com/">https://cdn.console.aliyun.com/</a></p>
-<h3 id="2-添加-CDN-域名"><a href="#2-添加-CDN-域名" class="headerlink" title="2. 添加 CDN 域名"></a>2. 添加 CDN 域名</h3><p>  路径：CDN &gt; 域名管理 &gt; 添加域名</p>
+<p>读写权限选公共读，不要选公共读写。公共读写意味着任何人都能往你的桶里写文件，这个坑网上翻车案例不少。</p>
+<h3 id="6-2-添加-CDN-域名"><a href="#6-2-添加-CDN-域名" class="headerlink" title="6.2 添加 CDN 域名"></a>6.2 添加 CDN 域名</h3><p>进入 CDN 服务 <code>https://cdn.console.aliyun.com/</code>，路径是「CDN」→「域名管理」→「添加域名」：</p>
 <ul>
 <li>加速域名：xxx.test.com</li>
 <li>资源分组：会员商城</li>
@@ -520,52 +459,81 @@
 <li>其他保持默认</li>
 </ul>
 </li>
-<li>其他保持默认</li>
 </ul>
-<h3 id="3-HTTPS-配置"><a href="#3-HTTPS-配置" class="headerlink" title="3. HTTPS 配置"></a>3. HTTPS 配置</h3><p>  路径：CDN &gt; 域名管理 &gt; 找到域名</p>
-<p>  路径：CDN &gt; 域名管理 &gt; 域名名称 &gt; HTTPS 配置 &gt; HTTPS 证书 &gt; 修改配置</p>
+<p>然后配 HTTPS，路径是「CDN」→「域名管理」→「域名名称」→「HTTPS 配置」→「HTTPS 证书」→「修改配置」：</p>
 <ul>
 <li>HTTPS 安全加速：开启</li>
 <li>证书来源：云盾（SSL）证书中心</li>
 <li>证书名称：test.com</li>
 <li>其他保持默认</li>
 </ul>
-<h3 id="4-得到-CNAME-域名"><a href="#4-得到-CNAME-域名" class="headerlink" title="4. 得到 CNAME 域名"></a>4. 得到 CNAME 域名</h3><p>  路径：CDN &gt; 域名管理 &gt; 找到域名</p>
-<ul>
-<li>CNAME：xxx.test.com.w.kunlunpi.com</li>
-</ul>
-<h3 id="三、添加-CNAME-记录"><a href="#三、添加-CNAME-记录" class="headerlink" title="三、添加 CNAME 记录"></a>三、添加 CNAME 记录</h3><h3 id="1-进入云解析-DNS-服务"><a href="#1-进入云解析-DNS-服务" class="headerlink" title="1. 进入云解析 DNS 服务"></a>1. 进入云解析 DNS 服务</h3><p>  <a href="https://dns.console.aliyun.com/">https://dns.console.aliyun.com/</a></p>
-<h3 id="2-添加-CNAME-记录"><a href="#2-添加-CNAME-记录" class="headerlink" title="2. 添加 CNAME 记录"></a>2. 添加 CNAME 记录</h3><p>  路径：云解析 DNS &gt; 域名解析 &gt; 找到域名</p>
-<p>  路径：云解析 DNS &gt; 域名解析 &gt; 解析设置 &gt; 添加记录</p>
+<p>配完在「CDN」→「域名管理」里能拿到 CNAME 域名，形如 <code>xxx.test.com.w.kunlunpi.com</code>。</p>
+<h3 id="6-3-添加-CNAME-记录"><a href="#6-3-添加-CNAME-记录" class="headerlink" title="6.3 添加 CNAME 记录"></a>6.3 添加 CNAME 记录</h3><p>进入云解析 DNS 服务 <code>https://dns.console.aliyun.com/</code>，路径是「云解析 DNS」→「域名解析」→「解析设置」→「添加记录」：</p>
 <ul>
 <li>记录类型：CNAME</li>
 <li>主机记录：xxx.test.com</li>
 <li>记录值：xxx.test.com.w.kunlunpi.com</li>
 <li>其他保持默认</li>
 </ul>
-<h3 id="四、设置存储桶"><a href="#四、设置存储桶" class="headerlink" title="四、设置存储桶"></a>四、设置存储桶</h3><h3 id="1-缓存设置"><a href="#1-缓存设置" class="headerlink" title="1. 缓存设置"></a>1. 缓存设置</h3><p>  路径：对象存储 &gt; Bucket 列表 &gt; 找到存储桶</p>
-<p>  路径：对象存储 &gt; 存储桶名称 &gt; 文件管理 &gt; 找到 index.html 文件 &gt; 更多 &gt; 设置 HTTP 头</p>
+<h3 id="6-4-设置存储桶"><a href="#6-4-设置存储桶" class="headerlink" title="6.4 设置存储桶"></a>6.4 设置存储桶</h3><p>这一步是整个 OSS 方案里最容易出事的地方，缓存配错了用户会一直看到老版本。</p>
+<p>路径是「对象存储」→「Bucket 列表」→「找到存储桶」→「文件管理」→「找到 index.html 文件」→「更多」→「设置 HTTP 头」：</p>
 <ul>
-<li>Cache-Control：no-cache（Object 允许被缓存在客户端或代理服务器的浏览器中，但每次访问时需要向 OSS 验证缓存是否可用。缓存可用时直接访问缓存，缓存不可用时重新向 OSS 请求。）</li>
-<li>Cache-Control：no-store（不允许缓存 Object）</li>
+<li>Cache-Control：<code>no-cache</code>，表示 Object 允许被缓存在客户端或代理服务器的浏览器中，但每次访问时需要向 OSS 验证缓存是否可用，可用时直接用缓存，不可用时重新请求</li>
 <li>Expires：-1</li>
-<li>其他保持默认</li>
 </ul>
-<h3 id="2-设置静态页面"><a href="#2-设置静态页面" class="headerlink" title="2. 设置静态页面"></a>2. 设置静态页面</h3><p>  路径：对象存储 &gt; 基础设置 &gt; 静态页面</p>
+<p>如果你希望更保守一点，也可以用 <code>no-store</code>，它表示完全不允许缓存这个 Object。两者选一个就行，<code>no-cache</code> 走协商缓存能省流量，<code>no-store</code> 更彻底但每次都要完整下载。</p>
+<p>要强调的是这个头只该给 <code>index.html</code> 设。带 hash 的 JS 和 CSS 产物应该走长缓存，<code>Cache-Control: max-age=31536000</code>，改了内容文件名就变了，不存在缓存不更新的问题。入口 HTML 不带 hash，所以只有它需要禁缓存。</p>
+<p>接着设静态页面，路径是「对象存储」→「基础设置」→「静态页面」：</p>
 <ul>
 <li>默认首页：index.html</li>
 <li>子目录首页：未开通</li>
 <li>默认 404 页：index.html</li>
 </ul>
-<h3 id="1-域名管理"><a href="#1-域名管理" class="headerlink" title="1. 域名管理"></a>1. 域名管理</h3><p>  路径：对象存储 &gt; 传输管理 &gt; 域名管理 &gt; 绑定域名</p>
+<p>404 页填 <code>index.html</code> 是给前端 history 路由兜底的，用户直接访问 <code>/vue/detail/1</code> 这种深层路径时，OSS 找不到对应文件会返回这个页面，前端路由再接管渲染。</p>
+<p>最后绑定域名，路径是「对象存储」→「传输管理」→「域名管理」→「绑定域名」，填 <code>xxx.test.com</code>，其他保持默认。</p>
+<h3 id="6-5-上传代码"><a href="#6-5-上传代码" class="headerlink" title="6.5 上传代码"></a>6.5 上传代码</h3><p>下载 oss browser 工具，官方地址 <code>https://help.aliyun.com/document_detail/209974.html</code>，用它把 <code>publish</code> 目录下的产物按同样的目录结构传上去即可。</p>
+<p><img src="https://blog.poetries.top/img/static/images/20211117102935.png" alt="oss browser 上传界面"></p>
+<p>手动上传适合验证阶段。稳定之后建议换成 <code>ossutil</code> 命令行，直接接到 Jenkins 的构建后步骤里，把第五节那段 SSH 传输换成 <code>ossutil cp -r publish/xxx oss://bucket/xxx --update</code> 就行，整条流水线一样跑得通。</p>
+<h2 id="七、上线前-checklist"><a href="#七、上线前-checklist" class="headerlink" title="七、上线前 checklist"></a>七、上线前 checklist</h2><p>这份是我自己每次发版前会过一遍的，微前端多包部署的坑基本都在里面。</p>
+<p><strong>构建阶段</strong></p>
 <ul>
-<li>域名：xxx.test.com</li>
-<li>其他保持默认</li>
+<li><input disabled="" type="checkbox"> <code>mutiParams</code> 勾选的包和这次改动的包对得上，没有漏勾也没有多勾</li>
+<li><input disabled="" type="checkbox"> 依赖有变动时 <code>isRunInstall</code> 记得打开，没变动时关掉省时间</li>
+<li><input disabled="" type="checkbox"> 构建 shell 开头的 <code>rm -rf publish</code> 还在，避免上次的残留产物被一起发上去</li>
+<li><input disabled="" type="checkbox"> 子应用的 publicPath 是生产地址，不是 <code>localhost</code></li>
+<li><input disabled="" type="checkbox"> 主应用注册子应用的 <code>entry</code> 或 url 清单指向生产域名</li>
 </ul>
-<h3 id="五、上传代码至存储桶"><a href="#五、上传代码至存储桶" class="headerlink" title="五、上传代码至存储桶"></a>五、上传代码至存储桶</h3><h3 id="1-下载-oss-browser-工具"><a href="#1-下载-oss-browser-工具" class="headerlink" title="1. 下载 oss browser 工具"></a>1. 下载 oss browser 工具</h3><p>  <a href="https://help.aliyun.com/document_detail/209974.html">https://help.aliyun.com/document_detail/209974.html</a></p>
-<p><img src="https://blog.poetries.top/img/static/images/20211117102935.png"></p>
-<hr>
-<p><img src="https://blog.poetries.top/img/static/images/20211117112123.png"></p>
+<p><strong>部署阶段</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> 构建后 shell 的 <code>packages</code> 白名单包含所有子应用目录，并且带上 <code>publish</code></li>
+<li><input disabled="" type="checkbox"> 构建 shell 和构建后 shell 的大小写处理一致（都用 <code>,,</code> 或都不用）</li>
+<li><input disabled="" type="checkbox"> <code>PUBLISH_PATH</code> 和 Nginx 的 root 指向同一个目录</li>
+<li><input disabled="" type="checkbox"> 部署完 <code>publish</code> 临时目录被清掉了</li>
+</ul>
+<p><strong>验证阶段</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> 构建历史的小球是蓝色，不是黄色（黄色代表包打出来了但没送到部署机）</li>
+<li><input disabled="" type="checkbox"> 控制台输出里每个勾选的应用都有对应的 build 日志</li>
+<li><input disabled="" type="checkbox"> 主应用发布后，子应用目录还在，随便点一个子应用能正常加载</li>
+<li><input disabled="" type="checkbox"> 深层路由直接刷新不会 404（Nginx 的 <code>try_files</code> 或 OSS 的 404 页配好了）</li>
+<li><input disabled="" type="checkbox"> <code>index.html</code> 是 <code>no-cache</code>，带 hash 的静态资源是长缓存</li>
+<li><input disabled="" type="checkbox"> 用无痕窗口打开一次，确认不是本地缓存骗了你</li>
+</ul>
+<p>最后一条看着很土，但真的救过我。改完一个子应用发上去，自己刷新看还是老页面，折腾半天最后发现是浏览器缓存。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>微前端的部署难点不在 Jenkins 本身，而在多包产物的归拢和覆盖策略。构建阶段用 <code>Extended Choice Parameter</code> 做参数化，把「构建哪几个包」交给发版的人决定，配上 <code>isRunInstall</code> 开关，日常发版能从十几分钟压到几分钟。产物统一搬到 <code>publish</code> 目录下，用 <code>$&#123;i##*/&#125;</code> 取子应用目录名，主应用单独保留 <code>main</code> 这个名字。</p>
+<p>部署阶段的核心是那段构建后 shell。主应用要铺到部署根目录，就得先按白名单删掉旧文件，白名单里必须带上 <code>publish</code> 自己，否则循环第一轮就把临时目录删了。子应用直接删同名目录再整体覆盖。两段 shell 的大小写处理必须一致，只改一边线上就 404。</p>
+<p>跑构建时注意黄色的 UNSTABLE 状态，那是包打出来了但没送到部署机，最容易误判成发布成功。<code>#!/bin/bash -ilex</code> 里的 <code>-e</code> 保证失败即中断，<code>-x</code> 让控制台能看到每条命令的实际取值，排查问题全靠它。</p>
+<p>换 OSS 加 CDN 的话，重点是 <code>index.html</code> 设 <code>no-cache</code>、带 hash 的资源走长缓存、404 页指回 <code>index.html</code> 给前端路由兜底。验证阶段一定要开无痕窗口，别被自己的浏览器缓存骗了。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.jenkins.io/doc/">Jenkins 官方文档</a></li>
+<li><a href="https://www.jenkins.io/doc/book/managing/plugins/">Jenkins 插件管理</a></li>
+<li><a href="https://plugins.jenkins.io/extended-choice-parameter/">Extended Choice Parameter 插件</a></li>
+<li><a href="https://plugins.jenkins.io/publish-over-ssh/">Publish Over SSH 插件</a></li>
+<li><a href="https://help.aliyun.com/zh/oss/user-guide/static-website-hosting">阿里云 OSS 静态网站托管</a></li>
+<li><a href="https://help.aliyun.com/document_detail/209974.html">阿里云 ossbrowser 工具</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Cache-Control">MDN - Cache-Control</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

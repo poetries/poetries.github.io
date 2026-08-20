@@ -7,33 +7,34 @@
 <head>
   <meta charset="utf-8">
   
-  <title>vue响应式原理 | 前端进阶之旅</title>
+  <title>Vue响应式原理从defineProperty到Proxy | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="vue,响应式原理," />
+    <meta name="keywords" content="响应式原理,Proxy,vue," />
   
 
-  <meta name="description" content="Vue 的响应式原理是核心是通过 ES5 的保护对象的 Object.defindeProperty 中的访问器属性中的 get 和 set 方法，data 中声明的属性都被添加了访问器属性，当读取 data 中的数据时自动调用 get 方法，当修改 data 中的数据时，自动调用 set 方法，检测到数据的变化，会通知观察者 Wacher，观察者 Wacher自动触发重新render 当前组件">
+  <meta name="description" content="梳理 Vue 响应式原理的完整链路，讲透 Object.defineProperty 的依赖收集、数组为什么监听不到、$set 与变异方法的适用边界，以及 Vue 3 用 Proxy 补上了哪些洞。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="vue响应式原理">
+<meta property="og:title" content="Vue响应式原理从defineProperty到Proxy">
 <meta property="og:url" content="http://blog.poetries.top/2021/01/16/vue-reative/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="Vue 的响应式原理是核心是通过 ES5 的保护对象的 Object.defindeProperty 中的访问器属性中的 get 和 set 方法，data 中声明的属性都被添加了访问器属性，当读取 data 中的数据时自动调用 get 方法，当修改 data 中的数据时，自动调用 set 方法，检测到数据的变化，会通知观察者 Wacher，观察者 Wacher自动触发重新render 当前组件">
+<meta property="og:description" content="梳理 Vue 响应式原理的完整链路，讲透 Object.defineProperty 的依赖收集、数组为什么监听不到、$set 与变异方法的适用边界，以及 Vue 3 用 Proxy 补上了哪些洞。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/15.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/16.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/17.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/18.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/19.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/15.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/16.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/17.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/18.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/19.png">
 <meta property="article:published_time" content="2021-01-16T09:20:22.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.695Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.959Z">
 <meta property="article:author" content="Poetry">
-<meta property="article:tag" content="vue">
 <meta property="article:tag" content="响应式原理">
+<meta property="article:tag" content="Proxy">
+<meta property="article:tag" content="vue">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2021/01/15.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2021/01/15.png">
 
   
 
@@ -209,6 +210,12 @@
 </div>
 
 
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%93%8D%E5%BA%94%E5%BC%8F%E7%9A%84%E6%95%B4%E6%9D%A1%E9%93%BE%E8%B7%AF"><span class="toc-text">一、响应式的整条链路</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81getter-%E5%92%8C-setter-%E5%88%86%E5%88%AB%E5%9C%A8%E5%B9%B2%E4%BB%80%E4%B9%88"><span class="toc-text">二、getter 和 setter 分别在干什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%95%B0%E7%BB%84%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%91%E5%90%AC%E4%B8%8D%E5%88%B0"><span class="toc-text">三、数组为什么监听不到</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%89%E7%A7%8D%E4%BF%AE%E6%94%B9%E5%9C%BA%E6%99%AF%E8%AF%A5%E6%80%8E%E4%B9%88%E5%86%99"><span class="toc-text">四、三种修改场景该怎么写</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%BF%AE%E6%94%B9%E5%B7%B2%E6%9C%89%E5%B1%9E%E6%80%A7%EF%BC%8C%E7%9B%B4%E6%8E%A5%E6%94%B9%E5%B0%B1%E8%A1%8C"><span class="toc-text">4.1 修改已有属性，直接改就行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%96%B0%E5%A2%9E%E5%B1%9E%E6%80%A7%EF%BC%8C%E7%94%A8-set-%E6%88%96%E5%8F%98%E5%BC%82%E6%96%B9%E6%B3%95"><span class="toc-text">4.2 新增属性，用 $set 或变异方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%95%B4%E4%BD%93%E6%9B%BF%E6%8D%A2"><span class="toc-text">4.3 整体替换</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81-forceUpdate-%E8%83%BD%E6%95%91%E5%9C%BA%EF%BC%8C%E4%BD%86%E5%AE%83%E4%B8%8D%E6%98%AF%E5%93%8D%E5%BA%94%E5%BC%8F"><span class="toc-text">五、$forceUpdate 能救场，但它不是响应式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88-Vue-3-%E6%8D%A2%E6%88%90%E4%BA%86-Proxy"><span class="toc-text">六、为什么 Vue 3 换成了 Proxy</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%8A%A8%E6%89%8B%E5%86%99%E4%B8%80%E4%B8%AA%E6%9C%80%E5%B0%8F%E7%9A%84%E5%8F%8C%E5%90%91%E7%BB%91%E5%AE%9A"><span class="toc-text">七、动手写一个最小的双向绑定</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
 
 
 
@@ -228,13 +235,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-reative" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">vue响应式原理</h1>
+    <h1 class="post-title">Vue响应式原理从defineProperty到Proxy</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +277,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.3k字</span>
+            <span>字数统计 4k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 4分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -289,47 +296,149 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>Vue 的响应式原理是核心是通过 ES5 的保护对象的 <code>Object.defindeProperty</code> 中的访问器属性中的 <code>get</code> 和 set 方法，data 中声明的属性都被添加了访问器属性，当读取 data 中的数据时自动调用 <code>get</code> 方法，当修改 <code>data</code> 中的数据时，自动调用 set 方法，检测到数据的变化，会通知观察者 <code>Wacher</code>，观察者 <code>Wacher</code>自动触发重新render 当前组件（子组件不会重新渲染）,生成新的虚拟 <code>DOM</code> 树，Vue 框架会遍历并对比新虚拟 DOM 树和旧虚拟 DOM 树中每个节点的差别，并记录下来，最后，加载操作，将所有记录的不同点，局部修改到真实 <code>DOM</code>树上。</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/15.png"></p>
-<blockquote>
-<p>虚拟DOM (Virtaul DOM): 用 js 对象模拟的，保存当前视图内所有 DOM 节点对象基本描述属性和节点间关系的树结构。用 js 对象，描述每个节点，及其父子关系，形成虚拟 DOM 对象树结构。</p>
-</blockquote>
-<blockquote>
-<p>因为只要在 <code>data</code> 中声明的基本数据类型的数据，基本不存在数据不响应问题，所以重点介绍数组和对象在<code>vue</code>中的数据响应问题，vue可以检测对象属性的修改，但无法监听数组的所有变动及对象的新增和删除，只能使用数组变异方法及<code>$set</code>方法。</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/16.png"></p>
-<blockquote>
-<p>可以看到，<code>arrayMethods</code> 首先继承了 <code>Array</code>，然后对数组中所有能改变数组自身的方法，如 <code>push</code>、<code>pop</code> 等这些方法进行重写。重写后的方法会先执行它们本身原有的逻辑，并对能增加数组长度的 3 个方法 <code>push</code>、<code>unshift</code>、<code>splice</code> 方法做了判断，获取到插入的值，然后把新添加的值变成一个响应式对象，并且再调用 <code>ob.dep.notify()</code> 手动触发依赖通知，这就很好地解释了用 <code>vm.items.splice</code>(<code>newLength</code>) 方法可以检测到变化</p>
-</blockquote>
-<p><strong>向响应式的数组或者对象中修改已有的属性的方法</strong></p>
-<blockquote>
-<p>当想要修改对象或者属性，并非新增属性时，一个已经在 <code>data</code> 中声明过的响应式数据，可以直接操作改变，数据改变会经过上图的步骤，触发视图改变。直接<code>obj.xxx = xxx</code> 即可，数组除外，但是后台传过来的 json 数组，数组中嵌套的对象也可以直接修改数组中的对象，因为 <code>Object.defindeProperty</code> 的缺陷导致无法监听数组的变动，但始终会深度遍历data中数据，给数组中嵌套的对象添加上 get 和 set 方法，完成对对象的监听。所以数组中嵌套的对象的情况是可以直接修改数组中的对象，并且保持响应式</p>
-</blockquote>
-<p><strong>向响应式的数组或者对象中新增一个响应式的属性的方法this.$set()或者数组变异方法</strong></p>
-<blockquote>
-<p>  即使是一个后台传过来的 <code>json</code> 数组，也可以使用<code>this.$set</code>向数组中的其中一个对象中添加一个响应式的属性，例如 <code>this.$set(arr[0], &#39;xxx&#39;, xxx)</code> 。或者使用数组变异方法例如<code>splice</code>，更多数组变异方法可以参考vue文档</p>
-</blockquote>
-<p><strong>data中声明过的数组或者对象，整体替换数组或者对象保持响应式</strong></p>
-<blockquote>
-<p>向响应式的数组和对象替换为新的响应式数据，可直接复制，因为<code>data</code>中声明的数据已经添加了访问器属性<code>setter</code>，当重新赋值一个新的堆内存地址时，该数组或者对象也会被循环遍历添加访问器属性，所以也是有响应式的。</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/17.png"></p>
-<p><strong>vue无法监听对象的新增和删除，直接通过obj.xxx &#x3D; xxx新增一个没有的属性，同时修改当前组件的一个响应式的数据，会重新触发当前组件重新render，可以让非响应式数据也保持更新状态（并非响应式）</strong></p>
-<blockquote>
-<p>给一个数据添加一个非响应式的数据，例如一个已经在<code>data</code>中声明过的数据obj，<code>obj.xxx=xxx</code>,新增一个原本没有的数据，同时修改组件中一个其他的响应式数据，该<code>obj</code>也会同步更新到最新的数据，另一种情况，当你向一个对象或者数组中同时增加一个响应式和非响应式数据，非响应式数据也会同步更新到页面</p>
-</blockquote>
-<blockquote>
-<p>总结：只要触发当前组件重新<code>render</code>,就可以让数据保持更新的状态，例如<code>this.$forceUpdate()</code></p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/18.png"></p>
-<p><strong>为什么vue不能监听数组的变化</strong></p>
-<blockquote>
-<p><code>Object.defindProperty</code>虽然能够实现双向绑定了，但是还是有缺点，只能对对象的属性进行数据劫持，所以会深度遍历整个对象，不管层级有多深，只要数组中嵌套有对象，就能监听到对象的数据变化无法监听到数组的变化，Proxy就没有这个问题，可以监听整个对象的数据变化，所以用vue3.0会用<code>Proxy</code>代替definedProperty。</p>
-</blockquote>
-<p><strong>最后实现一个数据双向绑定原理</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/19.png"></p>
+        <p>写 Vue 2 的项目，大概率你撞过这么一次：<code>this.list[0] = newItem</code> 执行完了，Vue DevTools 里数据确实变了，页面纹丝不动。换成 <code>this.$set(this.list, 0, newItem)</code> 立刻就好。当时可能就记住了「数组要用 $set」这个结论，但没想明白为什么。</p>
+<p>这背后是 Vue 2 响应式实现方式带来的一整套边界条件。搞清楚 <code>Object.defineProperty</code> 在这条链路上具体做了什么，那些「什么时候能直接改、什么时候必须用 $set」的规则就不需要死记了，能自己推出来。</p>
+<p>这篇从数据变化到视图更新的完整链路讲起，把依赖收集、数组拦截、新增属性、整体替换这几个场景逐个拆开，最后看看 Vue 3 换成 Proxy 之后补上了哪些洞。文章偏原理侧，更偏实践总结的版本可以看 <a href="https://feinterview.poetries.top/blog/vue-reative-summary">Vue 响应式原理总结</a>。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>从数据修改到 DOM 更新，中间到底经过了几道工序</li>
+<li><code>Object.defineProperty</code> 的 getter 和 setter 各自负责什么</li>
+<li>依赖收集里的 Dep 和 Watcher 是怎么配对的</li>
+<li>数组为什么监听不到，以及「defineProperty 做不到」这个说法哪里不准确</li>
+<li>数组变异方法的原型拦截是怎么实现的</li>
+<li>修改已有属性、新增属性、整体替换三种场景的正确写法</li>
+<li><code>$forceUpdate</code> 能让页面更新，但它和响应式不是一回事</li>
+<li>Vue 3 换成 Proxy 之后哪些限制消失了，又引入了什么新约束</li>
+</ul>
+<h2 id="一、响应式的整条链路"><a href="#一、响应式的整条链路" class="headerlink" title="一、响应式的整条链路"></a>一、响应式的整条链路</h2><p>先把全貌摆出来。</p>
+<p>Vue 的响应式原理核心是通过 ES5 用于保护对象的 <code>Object.defineProperty</code> 中的访问器属性，也就是 <code>get</code> 和 <code>set</code> 方法。<code>data</code> 中声明的属性都被添加了访问器属性，当读取 <code>data</code> 中的数据时自动调用 <code>get</code> 方法，当修改 <code>data</code> 中的数据时自动调用 <code>set</code> 方法。检测到数据变化后会通知观察者 <code>Watcher</code>，<code>Watcher</code> 自动触发当前组件重新 render（子组件不会重新渲染），生成新的虚拟 DOM 树。Vue 框架会遍历并对比新旧两棵虚拟 DOM 树中每个节点的差别并记录下来，最后把所有记录的不同点局部修改到真实 DOM 树上。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/15.png" alt="Vue 响应式从数据变更到 DOM 更新的完整流程示意"></p>
+<p>这条链路可以拆成四道工序，每一道出问题的表现都不一样：</p>
+<ul>
+<li><strong>劫持</strong>：初始化时递归遍历 <code>data</code>，给每个属性装上 getter&#x2F;setter</li>
+<li><strong>依赖收集</strong>：渲染过程中读取属性，getter 把当前正在渲染的 Watcher 记下来</li>
+<li><strong>派发更新</strong>：属性被赋值，setter 通知所有记下来的 Watcher</li>
+<li><strong>打补丁</strong>：Watcher 触发重新 render，diff 新旧虚拟 DOM，把差异打到真实 DOM 上</li>
+</ul>
+<p>虚拟 DOM（Virtual DOM）是用 JS 对象模拟的，保存当前视图内所有 DOM 节点对象的基本描述属性和节点间关系的树结构。用 JS 对象描述每个节点及其父子关系，形成虚拟 DOM 对象树。</p>
+<p>大部分「数据变了页面不动」的问题，卡的都是前两道工序。要么属性压根没被劫持，要么劫持了但依赖没收集上。</p>
+<h2 id="二、getter-和-setter-分别在干什么"><a href="#二、getter-和-setter-分别在干什么" class="headerlink" title="二、getter 和 setter 分别在干什么"></a>二、getter 和 setter 分别在干什么</h2><p>很多人对 <code>defineProperty</code> 的理解停留在「拦截读写」，但读和写这两件事的分工是完全不对等的。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">defineReactive</span>(<span class="params">obj, key, val</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> dep = <span class="keyword">new</span> <span class="title class_">Dep</span>(); <span class="comment">// 每个属性一个依赖收集器</span></span><br><span class="line"></span><br><span class="line">  <span class="title class_">Object</span>.<span class="title function_">defineProperty</span>(obj, key, &#123;</span><br><span class="line">    <span class="attr">enumerable</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">configurable</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="title function_">get</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 谁在读我，就把谁记下来</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="title class_">Dep</span>.<span class="property">target</span>) &#123;</span><br><span class="line">        dep.<span class="title function_">depend</span>();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> val;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">set</span>(<span class="params">newVal</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (newVal === val) <span class="keyword">return</span>;</span><br><span class="line">      val = newVal;</span><br><span class="line">      <span class="comment">// 我变了，通知所有记下来的人</span></span><br><span class="line">      dep.<span class="title function_">notify</span>();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getter 干的是收集的活。<code>Dep.target</code> 是一个全局变量，指向当前正在执行的 Watcher。组件渲染的时候，Vue 先把这个组件的渲染 Watcher 挂到 <code>Dep.target</code> 上，再执行 render 函数。render 过程中读到哪个属性，哪个属性的 <code>dep</code> 就把这个 Watcher 收进去。</p>
+<p>setter 干的是通知的活。属性被赋值时，遍历自己的 <code>dep</code> 里存的所有 Watcher，挨个通知它们该更新了。</p>
+<p>所以有个推论很关键：<strong>没有在模板里被读到的属性，它的 dep 是空的，改了也不会触发任何更新</strong>。</p>
+<p>这解释了一个常见的困惑。你在 <code>data</code> 里声明了一个属性但模板里没用，改它页面当然没反应，这不是 bug，是依赖收集根本没发生。关于 <code>Object.defineProperty</code> 本身的更多用法，可以看 <a href="https://feinterview.poetries.top/blog/Object.defineProperty">Object.defineProperty 详解</a>。</p>
+<h2 id="三、数组为什么监听不到"><a href="#三、数组为什么监听不到" class="headerlink" title="三、数组为什么监听不到"></a>三、数组为什么监听不到</h2><p>因为只要在 <code>data</code> 中声明的基本数据类型的数据基本不存在数据不响应的问题，所以重点是数组和对象在 Vue 中的数据响应问题。Vue 可以检测对象属性的修改，但无法监听数组的所有变动以及对象的新增和删除，只能使用数组变异方法及 <code>$set</code> 方法。</p>
+<p>这里要澄清一个流传很广的说法。很多文章会写「<code>Object.defineProperty</code> 监听不到数组」，这句话其实不太准确。</p>
+<p>数组的下标本身也是对象的属性，技术上完全可以对 <code>arr[0]</code>、<code>arr[1]</code> 逐个 <code>defineProperty</code>。Vue 2 没这么做，是主动权衡的结果。数组的长度可能是几万甚至几十万，初始化时逐个装 getter&#x2F;setter 的开销扛不住，而且 <code>push</code> 之后新增的下标还得重新处理一遍。尤雨溪在多个场合都解释过这是性能取舍，不是能力缺失。</p>
+<p>所以 Vue 2 换了个思路，不拦截下标，改成拦截方法。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/16.png" alt="Vue 2 中 arrayMethods 对数组变异方法的重写实现"></p>
+<p>可以看到，<code>arrayMethods</code> 首先继承了 <code>Array.prototype</code>，然后对数组中所有能改变数组自身的方法进行重写。重写后的方法会先执行它们本身原有的逻辑，并对能增加数组长度的三个方法 <code>push</code>、<code>unshift</code>、<code>splice</code> 做了判断，获取到插入的值，然后把新添加的值变成响应式对象，最后调用 <code>ob.dep.notify()</code> 手动触发依赖通知。这就很好地解释了为什么 <code>vm.items.splice(newLength)</code> 能被检测到变化。</p>
+<p>被重写的一共是七个方法：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>会改变原数组</th>
+<th>需要额外 observe 新元素</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>push</code></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>unshift</code></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>splice</code></td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>pop</code></td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>shift</code></td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>sort</code></td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td><code>reverse</code></td>
+<td>是</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<p>反过来看，<code>filter</code>、<code>map</code>、<code>concat</code>、<code>slice</code> 这些方法不在列表里，因为它们返回新数组，不改变原数组。用它们的时候把结果整体赋值回去就能触发响应，走的是对象属性 setter 那条路。</p>
+<p>至于两个经典的失效场景，现在就能自己解释了：</p>
+<ul>
+<li><code>this.list[0] = x</code> 直接改下标，没走任何被重写的方法，<code>dep.notify()</code> 不会被调用</li>
+<li><code>this.list.length = 0</code> 改长度同理，<code>length</code> 属性上没有 setter</li>
+</ul>
+<h2 id="四、三种修改场景该怎么写"><a href="#四、三种修改场景该怎么写" class="headerlink" title="四、三种修改场景该怎么写"></a>四、三种修改场景该怎么写</h2><h3 id="4-1-修改已有属性，直接改就行"><a href="#4-1-修改已有属性，直接改就行" class="headerlink" title="4.1 修改已有属性，直接改就行"></a>4.1 修改已有属性，直接改就行</h3><p>当想要修改对象已有的属性而非新增属性时，一个已经在 <code>data</code> 中声明过的响应式数据可以直接操作改变，数据改变会经过上图的步骤触发视图更新，直接 <code>obj.xxx = xxx</code> 即可。</p>
+<p>数组除外，但后台传过来的 JSON 数组，数组中嵌套的对象也可以直接修改。因为 <code>Object.defineProperty</code> 的限制导致无法监听数组的变动，但 Vue 始终会深度遍历 <code>data</code> 中的数据，给数组中嵌套的对象添加上 get 和 set 方法，完成对对象的监听。所以数组中嵌套对象的情况是可以直接修改数组中的对象，并且保持响应式。</p>
+<p>这一条特别实用。<code>this.list[0].name = &#39;new&#39;</code> 是能触发更新的，因为 <code>list[0]</code> 这个对象本身被 observe 过，它的 <code>name</code> 属性有 setter。但 <code>this.list[0] = &#123;...&#125;</code> 不行，因为这一步操作的是下标。</p>
+<p>一字之差，行为完全不同。</p>
+<h3 id="4-2-新增属性，用-set-或变异方法"><a href="#4-2-新增属性，用-set-或变异方法" class="headerlink" title="4.2 新增属性，用 $set 或变异方法"></a>4.2 新增属性，用 $set 或变异方法</h3><p>即使是一个后台传过来的 JSON 数组，也可以使用 <code>this.$set</code> 向数组中的某个对象添加一个响应式的属性，例如 <code>this.$set(arr[0], &#39;xxx&#39;, xxx)</code>。或者使用数组变异方法例如 <code>splice</code>。</p>
+<p><code>$set</code> 内部做的事情其实就三步。判断目标是数组还是对象，是数组就调重写过的 <code>splice</code> 塞进去；是对象就先检查这个 key 是不是已经存在，存在就直接赋值，不存在才走 <code>defineReactive</code> 给它补上 getter&#x2F;setter，最后手动 <code>ob.dep.notify()</code> 通知一次。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 给对象新增响应式属性</span></span><br><span class="line"><span class="variable language_">this</span>.$set(<span class="variable language_">this</span>.<span class="property">form</span>, <span class="string">&#x27;phone&#x27;</span>, <span class="string">&#x27;13800000000&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 给数组指定位置替换元素</span></span><br><span class="line"><span class="variable language_">this</span>.$set(<span class="variable language_">this</span>.<span class="property">list</span>, <span class="number">0</span>, newItem);</span><br><span class="line"><span class="comment">// 等价写法</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">list</span>.<span class="title function_">splice</span>(<span class="number">0</span>, <span class="number">1</span>, newItem);</span><br></pre></td></tr></table></figure>
+
+<p>这里有个坑要注意，<code>$set</code> 不能作用在 Vue 实例本身或者根级 <code>data</code> 对象上。也就是说 <code>this.$set(this, &#39;newProp&#39;, 1)</code> 会在开发环境报警告。根级属性必须在 <code>data</code> 里预先声明，哪怕先给个 <code>null</code> 占位。</p>
+<h3 id="4-3-整体替换"><a href="#4-3-整体替换" class="headerlink" title="4.3 整体替换"></a>4.3 整体替换</h3><p>向响应式的数组和对象替换为新的数据时，可以直接赋值。因为 <code>data</code> 中声明的数据已经添加了访问器属性 setter，当重新赋值一个新的堆内存地址时，该数组或对象也会被循环遍历添加访问器属性，所以依然是有响应式的。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/17.png" alt="整体替换数组或对象后依然保持响应式的示意"></p>
+<p>这是处理列表数据最省心的写法。与其纠结怎么往数组里精确插入，不如构造一个新数组整体赋值：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 与其这样</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">list</span>[index] = newItem;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不如这样，走的是 list 属性的 setter，一定触发更新</span></span><br><span class="line"><span class="variable language_">this</span>.<span class="property">list</span> = <span class="variable language_">this</span>.<span class="property">list</span>.<span class="title function_">map</span>(<span class="function">(<span class="params">item, i</span>) =&gt;</span> (i === index ? newItem : item));</span><br></pre></td></tr></table></figure>
+
+<p>整体替换的代价是这个数组会被重新完整地 observe 一遍，数据量很大时有性能开销。列表上万条的场景要斟酌，几十上百条完全不用考虑。</p>
+<h2 id="五、-forceUpdate-能救场，但它不是响应式"><a href="#五、-forceUpdate-能救场，但它不是响应式" class="headerlink" title="五、$forceUpdate 能救场，但它不是响应式"></a>五、$forceUpdate 能救场，但它不是响应式</h2><p>Vue 无法监听对象的新增和删除。直接通过 <code>obj.xxx = xxx</code> 新增一个原本没有的属性，同时修改当前组件的另一个响应式数据，会重新触发当前组件 render，可以让非响应式数据也保持更新状态，但它并不是响应式的。</p>
+<p>具体来说，给一个已经在 <code>data</code> 中声明过的对象 <code>obj</code> 新增一个原本没有的属性，同时修改组件中其他某个响应式数据，该 <code>obj</code> 也会同步更新到最新的数据。另一种情况是，当你向一个对象或数组中同时增加一个响应式和一个非响应式数据，非响应式数据也会同步更新到页面上。</p>
+<p>只要触发当前组件重新 render，就可以让数据显示为最新状态，例如 <code>this.$forceUpdate()</code>。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/18.png" alt="通过强制重新渲染让非响应式数据同步到页面的示意"></p>
+<p>我一开始也觉得这算是个可用的技巧，后来发现它坑很深。</p>
+<p><code>$forceUpdate</code> 做的只是「这一次把最新值渲染出来」，属性上依然没有 setter。下一次这个属性再变，页面不会有任何反应，除非你再调一次。更麻烦的是它只强制当前组件重新渲染，不影响子组件，所以你会遇到父组件更新了、子组件还是老数据这种极难排查的现象。</p>
+<p>线上代码里出现 <code>$forceUpdate</code>，九成是某处该用 <code>$set</code> 却没用。</p>
+<h2 id="六、为什么-Vue-3-换成了-Proxy"><a href="#六、为什么-Vue-3-换成了-Proxy" class="headerlink" title="六、为什么 Vue 3 换成了 Proxy"></a>六、为什么 Vue 3 换成了 Proxy</h2><p><code>Object.defineProperty</code> 虽然能实现双向绑定，但缺点很明确，它只能对对象的已有属性做数据劫持，所以初始化时要深度遍历整个对象，不管层级有多深。只要数组中嵌套有对象就能监听到对象的数据变化，但监听不到数组本身的变化。<code>Proxy</code> 没有这个问题，可以代理整个对象的操作，所以 Vue 3 用 <code>Proxy</code> 代替了 <code>defineProperty</code>。</p>
+<p>Proxy 补上的洞主要有这几个：</p>
+<ul>
+<li>直接改数组下标 <code>arr[0] = x</code> 能被拦截</li>
+<li>修改 <code>arr.length</code> 能被拦截</li>
+<li>新增属性 <code>obj.newKey = x</code> 能被拦截，不再需要 <code>$set</code></li>
+<li>删除属性 <code>delete obj.key</code> 能被拦截，不再需要 <code>$delete</code></li>
+<li>代理是惰性的，只有真正访问到某一层才会递归代理下去，初始化开销显著降低</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Vue 3 的最简响应式模型</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">reactive</span>(<span class="params">target</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Proxy</span>(target, &#123;</span><br><span class="line">    <span class="title function_">get</span>(<span class="params">obj, key, receiver</span>) &#123;</span><br><span class="line">      <span class="title function_">track</span>(obj, key); <span class="comment">// 依赖收集</span></span><br><span class="line">      <span class="keyword">const</span> res = <span class="title class_">Reflect</span>.<span class="title function_">get</span>(obj, key, receiver);</span><br><span class="line">      <span class="comment">// 惰性递归，访问到才代理</span></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">typeof</span> res === <span class="string">&#x27;object&#x27;</span> &amp;&amp; res !== <span class="literal">null</span> ? <span class="title function_">reactive</span>(res) : res;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">set</span>(<span class="params">obj, key, value, receiver</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> oldValue = obj[key];</span><br><span class="line">      <span class="keyword">const</span> result = <span class="title class_">Reflect</span>.<span class="title function_">set</span>(obj, key, value, receiver);</span><br><span class="line">      <span class="keyword">if</span> (oldValue !== value) <span class="title function_">trigger</span>(obj, key); <span class="comment">// 派发更新</span></span><br><span class="line">      <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但 Proxy 也不是没有代价。它代理的是对象，没法代理原始值，所以 Vue 3 才额外引入了 <code>ref</code> 用一个对象把原始值包一层。另外 <code>Proxy</code> 没有办法被 polyfill，这是 Vue 3 直接放弃 IE11 的根本原因。</p>
+<p><code>Map</code>、<code>Set</code>、<code>WeakMap</code> 这些集合类型也需要单独写一套 handler，因为它们的操作走的是方法调用而不是属性读写，普通的 <code>get</code>&#x2F;<code>set</code> 拦截不到。</p>
+<h2 id="七、动手写一个最小的双向绑定"><a href="#七、动手写一个最小的双向绑定" class="headerlink" title="七、动手写一个最小的双向绑定"></a>七、动手写一个最小的双向绑定</h2><p>把前面的东西串起来，一个最小可用的双向绑定其实就是 Observer 加 Dep 加 Watcher 加 Compiler 四个部分。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/19.png" alt="数据双向绑定的整体实现结构示意"></p>
+<p>Observer 负责递归遍历数据对象，给每个属性装上 getter&#x2F;setter。Dep 是每个属性各自持有的订阅者列表。Watcher 代表一个具体的更新任务，它在被创建时把自己挂到 <code>Dep.target</code> 上，然后主动读一次数据来完成依赖收集。Compiler 负责扫描模板，遇到指令和插值就创建对应的 Watcher。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Watcher</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">vm, key, updateFn</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">vm</span> = vm;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">key</span> = key;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">updateFn</span> = updateFn;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 关键的两行：挂上去，读一次，触发 getter 完成收集，再摘下来</span></span><br><span class="line">    <span class="title class_">Dep</span>.<span class="property">target</span> = <span class="variable language_">this</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">vm</span>[<span class="variable language_">this</span>.<span class="property">key</span>];</span><br><span class="line">    <span class="title class_">Dep</span>.<span class="property">target</span> = <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">update</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">updateFn</span>.<span class="title function_">call</span>(<span class="variable language_">this</span>.<span class="property">vm</span>, <span class="variable language_">this</span>.<span class="property">vm</span>[<span class="variable language_">this</span>.<span class="property">key</span>]);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这十几行代码就是整个依赖收集机制的核心。理解了「挂上全局变量、主动读一次、摘掉」这三步，Vue 2 源码里 <code>mountComponent</code> 那块逻辑就不难看懂了。</p>
+<p>至于后半段的 diff 和 patch，属于另一个话题，可以看 <a href="https://feinterview.poetries.top/blog/virtual-dom-analysis">虚拟 DOM 原理分析</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Vue 2 的响应式建立在 <code>Object.defineProperty</code> 之上，getter 负责在渲染时收集依赖，setter 负责在赋值时派发更新。所有的行为边界都是从这个机制推导出来的，不需要单独记。</p>
+<p>数组的问题不是 <code>defineProperty</code> 做不到，是 Vue 2 出于性能考虑主动放弃了对下标的逐个劫持，改成重写 <code>push</code>、<code>pop</code>、<code>shift</code>、<code>unshift</code>、<code>splice</code>、<code>sort</code>、<code>reverse</code> 这七个变异方法。绕开这七个方法去改数组，更新就不会触发。</p>
+<p>三种修改场景的规则也就清楚了。改对象已有属性直接赋值；新增属性和改数组下标用 <code>$set</code>；改一大片就整体替换，让它走属性本身的 setter。<code>$forceUpdate</code> 只是把当前这一帧渲染出来，属性依然没有响应式，看到它出现基本可以判定某处漏了 <code>$set</code>。</p>
+<p>Vue 3 换成 <code>Proxy</code> 之后，新增属性、删除属性、数组下标、<code>length</code> 修改全部能被拦截，初始化也从深度遍历变成了惰性递归。代价是原始值需要 <code>ref</code> 包一层，以及彻底告别 IE11。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://v2.cn.vuejs.org/v2/guide/reactivity.html">Vue 2 官方文档 深入响应式原理</a></li>
+<li><a href="https://cn.vuejs.org/guide/extras/reactivity-in-depth.html">Vue 3 官方文档 深入响应式系统</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty">MDN Object.defineProperty</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Proxy">MDN Proxy</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

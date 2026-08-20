@@ -7,32 +7,33 @@
 <head>
   <meta charset="utf-8">
   
-  <title>React之setState原理分析 | 前端进阶之旅</title>
+  <title>React setState 原理分析，批量更新与状态队列的完整链路 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="React,Javascript," />
+    <meta name="keywords" content="React,Javascript,setState,批量更新," />
   
 
-  <meta name="description" content="一、setState异步更新 我们都知道，React通过this.state来访问state，通过this.setState()方法来更新state。当this.setState()方法被调用的时候，React会重新调用render方法来重新渲染UI 首先如果直接在setState后面获取state的值是获取不到的。在React内部机制能检测到的地方， setState就是异步的；在React检测">
+  <meta name="description" content="从 setState 为什么读不到最新值讲到状态队列合并、isBatchingUpdates 开关和事务机制，并补上 React 18 自动批处理带来的行为变化，把批量更新这条链路一次讲透。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="React之setState原理分析">
+<meta property="og:title" content="React setState 原理分析，批量更新与状态队列的完整链路">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/20/react-setState/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、setState异步更新 我们都知道，React通过this.state来访问state，通过this.setState()方法来更新state。当this.setState()方法被调用的时候，React会重新调用render方法来重新渲染UI 首先如果直接在setState后面获取state的值是获取不到的。在React内部机制能检测到的地方， setState就是异步的；在React检测">
+<meta property="og:description" content="从 setState 为什么读不到最新值讲到状态队列合并、isBatchingUpdates 开关和事务机制，并补上 React 18 自动批处理带来的行为变化，把批量更新这条链路一次讲透。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/431.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/432.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/433.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/434.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/431.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/432.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/434.png">
 <meta property="article:published_time" content="2018-12-20T16:00:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.685Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.950Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="React">
 <meta property="article:tag" content="Javascript">
+<meta property="article:tag" content="setState">
+<meta property="article:tag" content="批量更新">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/431.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/431.png">
 
   
 
@@ -210,7 +211,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81setState%E5%BC%82%E6%AD%A5%E6%9B%B4%E6%96%B0"><span class="toc-text">一、setState异步更新</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-setState%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">1.1 setState批量更新的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%B4%E6%8E%A5%E4%BF%AE%E6%94%B9this-state%E6%97%A0%E6%95%88"><span class="toc-text">1.2 为什么直接修改this.state无效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BB%80%E4%B9%88%E6%98%AF%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0-Batch-Update"><span class="toc-text">1.3 什么是批量更新 Batch Update</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-setState%E4%B9%8B%E5%90%8E%E5%8F%91%E7%94%9F%E7%9A%84%E4%BA%8B%E6%83%85"><span class="toc-text">1.4 setState之后发生的事情</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93state%E5%B7%B2%E7%BB%8F%E8%A2%AB%E6%9B%B4%E6%96%B0"><span class="toc-text">1.5 如何知道state已经被更新</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81setState%E5%BE%AA%E7%8E%AF%E8%B0%83%E7%94%A8%E9%A3%8E%E9%99%A9"><span class="toc-text">二、setState循环调用风险</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BA%8B%E5%8A%A1"><span class="toc-text">三、事务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">四、总结</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81setState-%E7%9A%84%E3%80%8C%E5%BC%82%E6%AD%A5%E3%80%8D%E5%88%B0%E5%BA%95%E6%8C%87%E4%BB%80%E4%B9%88"><span class="toc-text">一、setState 的「异步」到底指什么</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-setState-%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">1.1 setState 批量更新的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%B4%E6%8E%A5%E4%BF%AE%E6%94%B9-this-state-%E6%97%A0%E6%95%88"><span class="toc-text">1.2 为什么直接修改 this.state 无效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BB%80%E4%B9%88%E6%98%AF%E6%89%B9%E9%87%8F%E6%9B%B4%E6%96%B0-Batch-Update"><span class="toc-text">1.3 什么是批量更新 Batch Update</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-setState-%E4%B9%8B%E5%90%8E%E5%8F%91%E7%94%9F%E7%9A%84%E4%BA%8B%E6%83%85"><span class="toc-text">1.4 setState 之后发生的事情</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93-state-%E5%B7%B2%E7%BB%8F%E8%A2%AB%E6%9B%B4%E6%96%B0"><span class="toc-text">1.5 如何知道 state 已经被更新</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81setState-%E7%9A%84%E5%BE%AA%E7%8E%AF%E8%B0%83%E7%94%A8%E9%A3%8E%E9%99%A9"><span class="toc-text">二、setState 的循环调用风险</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BA%8B%E5%8A%A1%E6%9C%BA%E5%88%B6"><span class="toc-text">三、事务机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81React-18-%E4%B9%8B%E5%90%8E%E8%BF%99%E5%A5%97%E8%A7%84%E5%88%99%E5%8F%98%E4%BA%86"><span class="toc-text">四、React 18 之后这套规则变了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -233,13 +234,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-setState" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">React之setState原理分析</h1>
+    <h1 class="post-title">React setState 原理分析，批量更新与状态队列的完整链路</h1>
 
     <div class="article-meta">
       <span>
@@ -275,12 +276,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.5k字</span>
+            <span>字数统计 3.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 5分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -294,69 +295,83 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、setState异步更新"><a href="#一、setState异步更新" class="headerlink" title="一、setState异步更新"></a>一、setState异步更新</h2><ul>
-<li>我们都知道，<code>React</code>通过<code>this.state</code>来访问<code>state</code>，通过<code>this.setState()</code>方法来更新<code>state</code>。当<code>this.setState()</code>方法被调用的时候，<code>React</code>会重新调用<code>render</code>方法来重新渲染<code>UI</code></li>
-<li>首先如果直接在<code>setState</code>后面获取<code>state</code>的值是获取不到的。在<code>React</code>内部机制能检测到的地方， <code>setState</code>就是异步的；<code>在React</code>检测不到的地方，例如<code>setInterval</code>,<code>setTimeout</code>，<code>setState</code>就是同步更新的</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/431.png"></p>
-<blockquote>
-<p>因为<code>setState</code>是可以接受两个参数的，一个<code>state</code>，一个回调函数。因此我们可以在回调函数里面获取值</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/432.png"></p>
+        <p><code>this.setState(&#123; count: 1 &#125;)</code> 写完，下一行 <code>console.log(this.state.count)</code> 打出来还是 0。这大概是每个人学 React 都会撞一次的墙。更让人迷糊的是，把同样两行代码挪进 <code>setTimeout</code> 里，它又「正常」了，打出来就是 1。</p>
+<p>同一个 API，位置一换行为就变，这背后不是玄学，是一个叫批量更新的机制在起作用，而开关的开合时机跟 React 能不能感知到当前的执行栈直接相关。这篇把这条链路从头捋一遍：状态队列是怎么合并的、<code>isBatchingUpdates</code> 这个开关谁来开谁来关、事务机制在里面扮演什么角色。文末还要补一条很重要的时效性说明，因为这套规则在 React 18 之后变了。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>setState</code>方法通过一个队列机制实现<code>state</code>更新，当执行<code>setState</code>的时候，会将需要更新的<code>state</code>合并之后放入状态队列，而不会立即更新<code>this.state</code></li>
-<li>如果我们不使用<code>setState</code>而是使用<code>this.state.key</code>来修改，将不会触发组件的<code>re-render</code>。</li>
-<li>如果将<code>this.state</code>赋值给一个新的对象引用，那么其他不在对象上的<code>state</code>将不会被放入状态队列中，当下次调用<code>setState</code>并对状态队列进行合并时，直接造成了<code>state</code>丢失</li>
+<li>setState 为什么读不到最新值，「异步」这个说法准确在哪不准确在哪</li>
+<li>状态队列的合并规则，以及直接改 <code>this.state</code> 为什么会丢状态</li>
+<li><code>isBatchingUpdates</code> 开关由谁打开、由谁关闭</li>
+<li>事务（Transaction）机制和 setState 表现差异的对应关系</li>
+<li>在 <code>shouldComponentUpdate</code> 里调 setState 为什么会把浏览器打崩</li>
+<li>React 18 自动批处理之后，这套规则改了哪一半、留了哪一半</li>
 </ul>
-<h3 id="1-1-setState批量更新的过程"><a href="#1-1-setState批量更新的过程" class="headerlink" title="1.1 setState批量更新的过程"></a>1.1 setState批量更新的过程</h3><blockquote>
-<p>在<code>react</code>生命周期和合成事件执行前后都有相应的钩子，分别是<code>pre</code>钩子和<code>post</code>钩子，<code>pre</code>钩子会调用<code>batchedUpdate</code>方法将<code>isBatchingUpdates</code>变量置为<code>true</code>，开启批量更新，而<code>post</code>钩子会将<code>isBatchingUpdates</code>置为<code>false</code></p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/433.png"></p>
-<ul>
-<li><code>isBatchingUpdates</code>变量置为<code>true</code>，则会走批量更新分支，<code>setState</code>的更新会被存入队列中，待同步代码执行完后，再执行队列中的<code>state</code>更新。 <code>isBatchingUpdates </code>为 <code>true</code>，则把当前组件（即调用了 <code>setState </code>的组件）放入 <code>dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新</li>
-<li>而在原生事件和异步操作中，不会执行<code>pre</code>钩子，或者生命周期的中的异步操作之前执行了<code>pre</code>钩子，但是<code>pos</code>钩子也在异步操作之前执行完了，<code>isBatchingUpdates</code>必定为<code>false</code>，也就不会进行批量更新</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/434.png"></p>
-<blockquote>
-<p><code>enqueueUpdate</code>包含了<code>React</code>避免重复<code>render</code>的逻辑。<code>mountComponent</code>和<code>updateComponent</code>方法在执行的最开始，会调用到<code>batchedUpdates</code>进行批处理更新，此时会将<code>isBatchingUpdates</code>设置为<code>true</code>，也就是将状态标记为现在正处于更新阶段了。 <code>isBatchingUpdates </code>为 <code>true</code>，则把当前组件（即调用了 <code>setState</code> 的组件）放入<code> dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新</p>
-</blockquote>
-<h3 id="1-2-为什么直接修改this-state无效"><a href="#1-2-为什么直接修改this-state无效" class="headerlink" title="1.2 为什么直接修改this.state无效"></a>1.2 为什么直接修改this.state无效</h3><ul>
-<li>要知道<code>setState</code>本质是通过一个队列机制实现<code>state</code>更新的。 执行<code>setState</code>时，会将需要更新的state合并后放入状态队列，而不会立刻更新<code>state</code>，队列机制可以批量更新<code>state</code>。</li>
-<li>如果不通过<code>setState</code>而直接修改<code>this.state</code>，那么这个<code>state</code>不会放入状态队列中，下次调用<code>setState</code>时对状态队列进行合并时，会忽略之前直接被修改的<code>state</code>，这样我们就无法合并了，而且实际也没有把你想要的<code>state</code>更新上去</li>
-</ul>
-<h3 id="1-3-什么是批量更新-Batch-Update"><a href="#1-3-什么是批量更新-Batch-Update" class="headerlink" title="1.3 什么是批量更新 Batch Update"></a>1.3 什么是批量更新 Batch Update</h3><blockquote>
-<p>在一些<code>mv*</code>框架中，，就是将一段时间内对<code>model</code>的修改批量更新到<code>view</code>的机制。比如那前端比较火的<code>React</code>、<code>vue</code>（<code>nextTick</code>机制,视图的更新以及实现）</p>
-</blockquote>
-<h3 id="1-4-setState之后发生的事情"><a href="#1-4-setState之后发生的事情" class="headerlink" title="1.4 setState之后发生的事情"></a>1.4 setState之后发生的事情</h3><ul>
-<li><code>setState</code>操作并不保证是同步的，也可以认为是异步的</li>
-<li><code>React</code>在<code>setState</code>之后，会经对<code>state</code>进行<code>diff</code>，判断是否有改变，然后去<code>diff dom</code>决定是否要更新<code>UI</code>。如果这一系列过程立刻发生在每一个<code>setState</code>之后，就可能会有性能问题</li>
-<li>在短时间内频繁<code>setState</code>。<code>React</code>会将<code>state</code>的改变压入栈中，在合适的时机，批量更新<code>state</code>和视图，达到提高性能的效果</li>
-</ul>
-<h3 id="1-5-如何知道state已经被更新"><a href="#1-5-如何知道state已经被更新" class="headerlink" title="1.5 如何知道state已经被更新"></a>1.5 如何知道state已经被更新</h3><blockquote>
-<p>传入回调函数</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">setState</span>(&#123;</span><br><span class="line">    <span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">&#125;&#125;, <span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">index</span>);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h2 id="一、setState-的「异步」到底指什么"><a href="#一、setState-的「异步」到底指什么" class="headerlink" title="一、setState 的「异步」到底指什么"></a>一、setState 的「异步」到底指什么</h2><p>我们都知道，React 通过 <code>this.state</code> 来访问 state，通过 <code>this.setState()</code> 方法来更新 state。当 <code>this.setState()</code> 方法被调用的时候，React 会重新调用 <code>render</code> 方法来重新渲染 UI。</p>
+<p>首先，如果直接在 <code>setState</code> 后面获取 state 的值是获取不到的。在 React 内部机制能检测到的地方，<code>setState</code> 就是异步的；在 React 检测不到的地方，例如 <code>setInterval</code>、<code>setTimeout</code>，<code>setState</code> 就是同步更新的。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/431.png" alt="setState 调用后立即读取 state 拿到的仍是旧值"></p>
+<p>这里的「异步」其实是个有点误导的词。<code>setState</code> 内部没有用到任何异步 API，没有 Promise，没有定时器，它自始至终都是同步执行的函数调用。真正发生的事情是：<code>setState</code> 只把这次要改的内容塞进一个队列，然后就返回了，真正的合并和渲染被推迟到当前这一批同步代码跑完之后。</p>
+<p>所以更准确的说法是「延迟合并」，而不是「异步」。</p>
+<p>因为 <code>setState</code> 是可以接受两个参数的，一个 state，一个回调函数，所以我们可以在回调函数里面拿到更新后的值。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/432.png" alt="在 setState 的第二个参数回调里读取到更新后的 state"></p>
+<p>把这个机制展开说：<code>setState</code> 方法通过一个队列机制实现 state 更新，当执行 <code>setState</code> 的时候，会将需要更新的 state 合并之后放入状态队列，而不会立即更新 <code>this.state</code>。</p>
+<p>由此还能推出两条实用结论。</p>
+<p>如果我们不使用 <code>setState</code> 而是使用 <code>this.state.key</code> 来直接修改，将不会触发组件的 re-render。</p>
+<p>如果将 <code>this.state</code> 赋值给一个新的对象引用，那么其他不在这个对象上的 state 将不会被放入状态队列中，当下次调用 <code>setState</code> 并对状态队列进行合并时，直接造成了 state 丢失。</p>
+<p>第二条我踩过。当时想「批量重置一堆字段」，图省事写了个 <code>this.state = &#123; ...defaults &#125;</code>，结果表现是有几个字段时好时坏，排查了一下午才发现是这行。</p>
+<h3 id="1-1-setState-批量更新的过程"><a href="#1-1-setState-批量更新的过程" class="headerlink" title="1.1 setState 批量更新的过程"></a>1.1 setState 批量更新的过程</h3><p>在 React 生命周期和合成事件执行前后都有相应的钩子，分别是 <code>pre</code> 钩子和 <code>post</code> 钩子。<code>pre</code> 钩子会调用 <code>batchedUpdate</code> 方法将 <code>isBatchingUpdates</code> 变量置为 <code>true</code>，开启批量更新；而 <code>post</code> 钩子会将 <code>isBatchingUpdates</code> 置为 <code>false</code>。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/434.png" alt="isBatchingUpdates 开关控制 setState 走批量分支还是立即更新分支"></p>
+<p>链路是这样跑的。<code>isBatchingUpdates</code> 变量置为 <code>true</code>，则会走批量更新分支，<code>setState</code> 的更新会被存入队列中，待同步代码执行完后，再执行队列中的 state 更新。<code>isBatchingUpdates</code> 为 <code>true</code>，则把当前组件（即调用了 <code>setState</code> 的组件）放入 <code>dirtyComponents</code> 数组中；否则 <code>batchUpdate</code> 所有队列中的更新。</p>
+<p>而在原生事件和异步操作中，不会执行 <code>pre</code> 钩子；或者生命周期中的异步操作之前执行了 <code>pre</code> 钩子，但是 <code>post</code> 钩子也在异步操作之前执行完了，<code>isBatchingUpdates</code> 必定为 <code>false</code>，也就不会进行批量更新。</p>
+<p><code>enqueueUpdate</code> 包含了 React 避免重复 render 的逻辑。<code>mountComponent</code> 和 <code>updateComponent</code> 方法在执行的最开始，会调用到 <code>batchedUpdates</code> 进行批处理更新，此时会将 <code>isBatchingUpdates</code> 设置为 <code>true</code>，也就是将状态标记为现在正处于更新阶段了。</p>
+<p>把这段话翻译成一句人话：React 只有在「知道自己正在执行」的时候才会攒批。</p>
+<p>合成事件的回调是 React 自己调起来的，它在调用前后加了钩子，所以它知道；生命周期钩子也是 React 自己调的，它也知道。但 <code>setTimeout</code> 的回调是浏览器直接调起来的，<code>addEventListener</code> 绑的原生事件回调也是浏览器直接调起来的，这两种情况 React 完全在状态之外，<code>isBatchingUpdates</code> 停在 <code>false</code> 上，每次 <code>setState</code> 就只能立刻走一遍更新流程。</p>
+<h3 id="1-2-为什么直接修改-this-state-无效"><a href="#1-2-为什么直接修改-this-state-无效" class="headerlink" title="1.2 为什么直接修改 this.state 无效"></a>1.2 为什么直接修改 this.state 无效</h3><p>要知道 <code>setState</code> 是通过一个队列机制实现 state 更新的。执行 <code>setState</code> 时，会将需要更新的 state 合并后放入状态队列，而不会立刻更新 state，队列机制可以批量更新 state。</p>
+<p>如果不通过 <code>setState</code> 而直接修改 <code>this.state</code>，那么这个 state 不会放入状态队列中。下次调用 <code>setState</code> 对状态队列进行合并时，会忽略之前直接被修改的 state，这样我们就无法合并了，而且实际也没有把你想要的 state 更新上去。</p>
+<p>这里再补一个更隐蔽的坑。直接改 <code>this.state</code> 不只是「不触发渲染」这么简单，它还会让 <code>shouldComponentUpdate</code> 里的新旧对比失效。因为你改的就是那个对象本身，<code>nextState</code> 和 <code>this.state</code> 指向同一个引用，你写的 <code>nextState.list !== this.state.list</code> 永远是 <code>false</code>，组件从此再也不更新。</p>
+<p>把 state 当成不可变数据，这条纪律不是洁癖，是这套机制的前提条件。</p>
+<h3 id="1-3-什么是批量更新-Batch-Update"><a href="#1-3-什么是批量更新-Batch-Update" class="headerlink" title="1.3 什么是批量更新 Batch Update"></a>1.3 什么是批量更新 Batch Update</h3><p>在一些 mv* 框架中，批量更新就是将一段时间内对 model 的修改批量更新到 view 的机制，比如前端比较火的 React、Vue（<code>nextTick</code> 机制，视图的更新以及实现）。</p>
+<p>Vue 的 <code>nextTick</code> 是靠微任务实现的，把这一轮同步代码里所有的数据变更攒到微任务里一次性 flush；React 16 这套是靠事务的 <code>pre</code>&#x2F;<code>post</code> 钩子划出一段执行区间，区间内攒批、区间结束 flush。手段不同，要解决的问题是一模一样的：不要让一次交互引发 N 次渲染。</p>
+<h3 id="1-4-setState-之后发生的事情"><a href="#1-4-setState-之后发生的事情" class="headerlink" title="1.4 setState 之后发生的事情"></a>1.4 setState 之后发生的事情</h3><p><code>setState</code> 操作并不保证是同步的，也可以认为是异步的。</p>
+<p>React 在 <code>setState</code> 之后，会对 state 进行 diff 判断是否有改变，然后去 diff DOM 决定是否要更新 UI。如果这一系列过程立刻发生在每一个 <code>setState</code> 之后，就可能会有性能问题。</p>
+<p>在短时间内频繁 <code>setState</code> 时，React 会将 state 的改变压入队列中，在合适的时机批量更新 state 和视图，达到提高性能的效果。</p>
+<p>举个具体的场景就懂了。一次点击里你连着改了 loading、list、total 三个 state，如果不攒批，就是三次完整的 render 加三次 DOM diff；攒批之后是一次。这个收益在列表页上非常直观。</p>
+<h3 id="1-5-如何知道-state-已经被更新"><a href="#1-5-如何知道-state-已经被更新" class="headerlink" title="1.5 如何知道 state 已经被更新"></a>1.5 如何知道 state 已经被更新</h3><p>传入回调函数：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">    <span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">&#125;, <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">index</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在钩子函数中体现</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">componentDidUpdate</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">index</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>或者在钩子函数中体现：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">componentDidUpdate</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">index</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、setState循环调用风险"><a href="#二、setState循环调用风险" class="headerlink" title="二、setState循环调用风险"></a>二、setState循环调用风险</h2><ul>
-<li>当调用<code>setState</code>时，实际上会执行<code>enqueueSetState</code>方法，并对<code>partialState</code>以及<code>_pending-StateQueue</code>更新队列进行合并操作，最终通过<code>enqueueUpdate</code>执行<code>state</code>更新 </li>
-<li>而<code>performUpdateIfNecessary</code>方法会获<code>取_pendingElement</code>,<code>_pendingStateQueue</code>，<code>_pending-ForceUpdate</code>，并调用<code>receiveComponent</code>和<code>updateComponent</code>方法进行组件更新 </li>
-<li>如果在<code>shouldComponentUpdate</code>或者<code>componentWillUpdate</code>方法中调用<code>setState</code>，此时<code>this._pending-StateQueue != null</code>，就会造成循环调用，使得浏览器内存占满后崩溃</li>
-</ul>
-<h2 id="三、事务"><a href="#三、事务" class="headerlink" title="三、事务"></a>三、事务</h2><ul>
-<li>事务就是将需要执行的方法使用<code>wrapper</code>封装起来，再通过事务提供的<code>perform</code>方法执行，先执行<code>wrapper</code>中的<code>initialize</code>方法，执行完<code>perform</code>之后，在执行所有的<code>close</code>方法，一组<code>initialize</code>及<code>close</code>方法称为一个<code>wrapper</code>。 </li>
-<li>那么事务和<code>setState</code>方法的不同表现有什么关系，首先我们把<code>4</code>次<code>setStat</code>e简单归类，前两次属于一类，因为它们在同一调用栈中执行，<code>setTimeout</code>中的两次<code>setState</code>属于另一类</li>
-<li>在<code>setState</code>调用之前，已经处在<code>batchedUpdates</code>执行的事务中了。那么这次<code>batchedUpdates</code>方法是谁调用的呢，原来是<code>ReactMount.js</code>中的<code>_renderNewRootComponent</code>方法。也就是说，整个将<code>React</code>组件渲染到<code>DOM</code>中的过程就是处于一个大的事务中。而在<code>componentDidMount</code>中调用<code>setState</code>时，<code>batchingStrategy</code>的<code>isBatchingUpdates</code>已经被设为了<code>true</code>，所以两次<code>setState</code>的结果没有立即生效</li>
-<li>再反观<code>setTimeout</code>中的两次<code>setState</code>，因为没有前置的<code>batchedUpdates</code>调用，所以导致了新的<code>state</code>马上生效</li>
-</ul>
-<h2 id="四、总结"><a href="#四、总结" class="headerlink" title="四、总结"></a>四、总结</h2><ul>
-<li>通过<code>setState</code>去更新<code>this.state</code>，不要直接操作<code>this.state</code>，请把它当成不可变的</li>
-<li>调用<code>setState</code>更新<code>this.state</code>不是马上生效的，它是异步的，所以不要天真以为执行完<code>setState</code>后<code>this.state</code>就是最新的值了</li>
-<li>多个顺序执行的<code>setState</code>不是同步地一个一个执行滴，会一个一个加入队列，然后最后一起执行，即批处理</li>
+<p>两者的区别在于触发时机和触发范围。<code>setState</code> 的第二个参数只在这一次 <code>setState</code> 完成后调一次，适合做「这次改完之后要干的事」；<code>componentDidUpdate</code> 是这个组件任何一次更新后都会调，包括父组件重传 props 引起的更新，所以在里面直接 <code>setState</code> 一定要加条件判断，不然就是死循环。</p>
+<h2 id="二、setState-的循环调用风险"><a href="#二、setState-的循环调用风险" class="headerlink" title="二、setState 的循环调用风险"></a>二、setState 的循环调用风险</h2><p>当调用 <code>setState</code> 时，实际上会执行 <code>enqueueSetState</code> 方法，并对 <code>partialState</code> 以及 <code>_pendingStateQueue</code> 更新队列进行合并操作，最终通过 <code>enqueueUpdate</code> 执行 state 更新。</p>
+<p>而 <code>performUpdateIfNecessary</code> 方法会获取 <code>_pendingElement</code>、<code>_pendingStateQueue</code>、<code>_pendingForceUpdate</code>，并调用 <code>receiveComponent</code> 和 <code>updateComponent</code> 方法进行组件更新。</p>
+<p>如果在 <code>shouldComponentUpdate</code> 或者 <code>componentWillUpdate</code> 方法中调用 <code>setState</code>，此时 <code>this._pendingStateQueue != null</code>，就会造成循环调用，使得浏览器内存占满后崩溃。</p>
+<p>这个死循环长什么样，顺着推一遍就清楚了：<code>setState</code> 触发更新流程，更新流程走到 <code>shouldComponentUpdate</code>，你在里面又 <code>setState</code>，队列又变成非空，更新流程再走一遍，再进 <code>shouldComponentUpdate</code>。中间没有任何一个环节能让它停下来，浏览器 Tab 直接白屏。</p>
+<p>所以有条纪律要记牢：<code>render</code> 之前的钩子里一律不要写 <code>setState</code>。</p>
+<p><code>componentDidUpdate</code> 里可以写，但必须带条件，比如 <code>if (prevProps.id !== this.props.id)</code>。这个条件保证了它最终会收敛。这条纪律和 Fiber 架构对 render 阶段「必须是纯函数」的要求其实是同一件事的两种说法，具体推导可以看 <a href="https://feinterview.poetries.top/blog/react-fiber">React Fiber 架构原理</a>。</p>
+<h2 id="三、事务机制"><a href="#三、事务机制" class="headerlink" title="三、事务机制"></a>三、事务机制</h2><p>事务就是将需要执行的方法使用 wrapper 封装起来，再通过事务提供的 <code>perform</code> 方法执行。先执行 wrapper 中的 <code>initialize</code> 方法，执行完 <code>perform</code> 之后，再执行所有的 <code>close</code> 方法，一组 <code>initialize</code> 及 <code>close</code> 方法称为一个 wrapper。</p>
+<p>那么事务和 <code>setState</code> 方法的不同表现有什么关系？</p>
+<p>首先我们把四次 <code>setState</code> 简单归类，前两次属于一类，因为它们在同一调用栈中执行；<code>setTimeout</code> 中的两次 <code>setState</code> 属于另一类。</p>
+<p>在 <code>componentDidMount</code> 里的 <code>setState</code> 调用之前，代码已经处在 <code>batchedUpdates</code> 执行的事务中了。那么这次 <code>batchedUpdates</code> 方法是谁调用的呢？原来是 <code>ReactMount.js</code> 中的 <code>_renderNewRootComponent</code> 方法。也就是说，整个将 React 组件渲染到 DOM 中的过程就是处于一个大的事务中。而在 <code>componentDidMount</code> 中调用 <code>setState</code> 时，<code>batchingStrategy</code> 的 <code>isBatchingUpdates</code> 已经被设为了 <code>true</code>，所以两次 <code>setState</code> 的结果没有立即生效。</p>
+<p>再反观 <code>setTimeout</code> 中的两次 <code>setState</code>，因为没有前置的 <code>batchedUpdates</code> 调用，所以导致了新的 state 马上生效。</p>
+<p>事务这个抽象在 React 15、16 的源码里用得非常多，除了批量更新，还有 DOM 操作前后的选区恢复、事件系统的状态保存，都是靠它。你可以把它理解成 AOP 里的环绕通知：在一段代码前后各插一段固定的动作，而中间那段代码本身不需要知道自己被包起来了。</p>
+<p><code>setState</code> 表现的差异，说到底就是「你的代码有没有落在这个 wrapper 里面」。落在里面就攒批，落在外面就立刻执行。</p>
+<h2 id="四、React-18-之后这套规则变了"><a href="#四、React-18-之后这套规则变了" class="headerlink" title="四、React 18 之后这套规则变了"></a>四、React 18 之后这套规则变了</h2><p>上面讲的全部是 React 16 时代的行为，这篇写于 2018 年，那时候这么理解没问题。但这套规则从 React 18 开始改了一半，如果你现在还按老规则去答面试题，是会答错的。</p>
+<p>React 18 引入了自动批处理（Automatic Batching）。只要你用 <code>ReactDOM.createRoot</code> 创建应用，那么无论 <code>setState</code> 是写在 React 合成事件里、原生事件监听里、<code>setTimeout</code> 里，还是 <code>fetch().then()</code> 里，多次更新都会被合并成一次渲染。</p>
+<p>所以原文里那句「在 <code>setInterval</code>、<code>setTimeout</code> 里 <code>setState</code> 就是同步更新的」，在 React 18 的 <code>createRoot</code> 模式下已经不成立了。</p>
+<p>需要说清楚的是，改的是「哪些场景会攒批」，没改的是「攒批之后你还是读不到最新的 <code>this.state</code>」。后面这条永远成立，因为它是延迟合并这个设计本身决定的，跟批处理的覆盖范围无关。</p>
+<p>那反过来，如果我就是需要某一次更新立刻同步刷到 DOM 上怎么办？React 提供了 <code>flushSync</code>，把 <code>setState</code> 包进去就能强制退出批处理。这个 API 的典型用途是「改完 state 立刻要读 DOM 的真实尺寸」，比如改完列表内容马上要算滚动位置。用它的代价是这次更新拿不到批处理的性能收益，别当常规写法用。</p>
+<p>还有一层变化是写法本身。类组件的 <code>this.setState</code> 在函数组件里对应的是 <code>useState</code> 的 setter，它同样遵守上面所有批处理规则，同样读不到最新值，而且它没有第二个回调参数，想在更新后做事得靠 <code>useEffect</code>。这套对照关系我在 <a href="https://feinterview.poetries.top/blog/react-hooks">React Hooks 详解</a> 里写过。至于 React 18 这批变化的全貌，包括 <code>createRoot</code> 迁移和严格模式的二次挂载，可以看 <a href="https://feinterview.poetries.top/blog/react-18-new-features">React 18 新特性与升级指南</a>。</p>
+<p>有一点我得如实说：<code>flushSync</code> 在嵌套调用和 <code>Suspense</code> 边界内的具体行为，我只在 demo 里试过几种情况，没在复杂生产场景验证过，边界情况以官方文档为准。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过 <code>setState</code> 去更新 <code>this.state</code>，不要直接操作 <code>this.state</code>，请把它当成不可变的。这不只是风格问题，直接改会让状态队列合并时丢数据，也会让 <code>shouldComponentUpdate</code> 的引用对比彻底失效。</p>
+<p>调用 <code>setState</code> 更新 <code>this.state</code> 不是马上生效的，所以不要以为执行完 <code>setState</code> 后 <code>this.state</code> 就是最新的值了。要拿更新后的值，用第二个回调参数，或者去 <code>componentDidUpdate</code> 里读。</p>
+<p>多个顺序执行的 <code>setState</code> 不是一个一个同步执行的，它们会一个一个加入队列，最后一起执行，也就是批处理。这个机制的开关是 <code>isBatchingUpdates</code>，由事务的 <code>pre</code>&#x2F;<code>post</code> 钩子控制，React 只在自己能感知到执行栈的区间里开着它。</p>
+<p>最后把时效性这条再强调一遍：React 16 的规律是「合成事件和生命周期里攒批，原生事件和定时器里不攒批」；React 18 用 <code>createRoot</code> 之后，所有场景都攒批。「读不到最新值」这条两个版本都成立，别把它和批处理范围混为一谈。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/reactwg/react-18/discussions/21">Automatic batching for fewer renders in React 18</a></li>
+<li><a href="https://react.dev/blog/2022/03/29/react-v18">React v18.0 发布公告</a></li>
+<li><a href="https://react.dev/reference/react-dom/flushSync">flushSync - React 官方文档</a></li>
+<li><a href="https://react.dev/learn/queueing-a-series-of-state-updates">Queueing a Series of State Updates - React 官方文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

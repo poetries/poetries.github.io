@@ -7,28 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Vue API 盲点解析 | 前端进阶之旅</title>
+  <title>Vue API 盲点解析 performance errorHandler nextTick 与 watch | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="Vue,前端性能,Vue API," />
   
 
-  <meta name="description" content="使用 performance 开启性能追踪 performance API 是 Vue 全局配置 API 中的一个，我们可以使用它来进行网页性能的追踪，我们可以在入口文件中添加  if (process.env.NODE_ENV !&#x3D;&#x3D; &#x27;production&#x27;) &#123;    Vue.config.performance &#x3D; true;&#125;   来开启这一功能，">
+  <meta name="description" content="拆解四个容易被忽略的 Vue API，config.performance 做组件耗时追踪、errorHandler 兜住框架吞掉的异常、nextTick 等的到底是什么、watch 的 deep 与 immediate 各自的代价，并附 Vue 3 对应写法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vue API 盲点解析">
+<meta property="og:title" content="Vue API 盲点解析 performance errorHandler nextTick 与 watch">
 <meta property="og:url" content="http://blog.poetries.top/2019/06/01/vue-api-analyse/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="使用 performance 开启性能追踪 performance API 是 Vue 全局配置 API 中的一个，我们可以使用它来进行网页性能的追踪，我们可以在入口文件中添加  if (process.env.NODE_ENV !&#x3D;&#x3D; &#x27;production&#x27;) &#123;    Vue.config.performance &#x3D; true;&#125;   来开启这一功能，">
+<meta property="og:description" content="拆解四个容易被忽略的 Vue API，config.performance 做组件耗时追踪、errorHandler 兜住框架吞掉的异常、nextTick 等的到底是什么、watch 的 deep 与 immediate 各自的代价，并附 Vue 3 对应写法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/8/7/165100a377b1bac9">
 <meta property="article:published_time" content="2019-06-01T16:40:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.693Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.958Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="前端性能">
+<meta property="article:tag" content="Vue API">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/8/7/165100a377b1bac9">
 
   
 
@@ -206,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-performance-%E5%BC%80%E5%90%AF%E6%80%A7%E8%83%BD%E8%BF%BD%E8%B8%AA"><span class="toc-text">使用 performance 开启性能追踪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-errorHandler-%E6%9D%A5%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8"><span class="toc-text">使用 errorHandler 来捕获异常</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-nextTick-%E5%B0%86%E5%9B%9E%E8%B0%83%E5%BB%B6%E8%BF%9F%E5%88%B0%E4%B8%8B%E6%AC%A1-DOM-%E6%9B%B4%E6%96%B0%E5%BE%AA%E7%8E%AF%E4%B9%8B%E5%90%8E%E6%89%A7%E8%A1%8C"><span class="toc-text">使用 nextTick 将回调延迟到下次 DOM 更新循环之后执行</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-watch-%E7%9A%84%E6%B7%B1%E5%BA%A6%E9%81%8D%E5%8E%86%E5%92%8C%E7%AB%8B%E5%8D%B3%E8%B0%83%E7%94%A8%E5%8A%9F%E8%83%BD"><span class="toc-text">使用 watch 的深度遍历和立即调用功能</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%94%A8-performance-%E5%BC%80%E5%90%AF%E6%80%A7%E8%83%BD%E8%BF%BD%E8%B8%AA"><span class="toc-text">一、用 performance 开启性能追踪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%94%A8-errorHandler-%E5%85%9C%E4%BD%8F%E6%A1%86%E6%9E%B6%E5%90%9E%E6%8E%89%E7%9A%84%E5%BC%82%E5%B8%B8"><span class="toc-text">二、用 errorHandler 兜住框架吞掉的异常</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81nextTick-%E5%88%B0%E5%BA%95%E5%9C%A8%E7%AD%89%E4%BB%80%E4%B9%88"><span class="toc-text">三、nextTick 到底在等什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81watch-%E7%9A%84-deep-%E5%92%8C-immediate"><span class="toc-text">四、watch 的 deep 和 immediate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -229,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-api-analyse" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Vue API 盲点解析</h1>
+    <h1 class="post-title">Vue API 盲点解析 performance errorHandler nextTick 与 watch</h1>
 
     <div class="article-meta">
       <span>
@@ -271,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.6k字</span>
+            <span>字数统计 3.8k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -290,75 +290,96 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="使用-performance-开启性能追踪"><a href="#使用-performance-开启性能追踪" class="headerlink" title="使用 performance 开启性能追踪"></a>使用 performance 开启性能追踪</h2><blockquote>
-<p><code>performance API</code> 是 <code>Vue </code>全局配置 <code>API</code> 中的一个，我们可以使用它来进行网页性能的追踪，我们可以在入口文件中添加</p>
-</blockquote>
+        <p>接手一个跑了两年的 Vue 项目，最常遇到的两件事：一是页面进去要等一秒多，但不知道慢在哪个组件；二是某个操作偶尔白屏，控制台干干净净，<code>window.onerror</code> 里什么都没有。这两个问题都不是写业务代码能解决的，得靠 Vue 全局配置上那几个平时没人翻的 API。这篇把 <code>config.performance</code>、<code>config.errorHandler</code>、<code>nextTick</code>、<code>watch</code> 的 <code>deep</code> 和 <code>immediate</code> 这四个盲点逐个讲透，讲用法，也讲它们背后是怎么实现的、什么时候会失效。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>用 <code>config.performance</code> 把每个组件的渲染耗时打到浏览器时间线上</li>
+<li>为什么 <code>window.onerror</code> 抓不到 Vue 里的报错，<code>errorHandler</code> 又能覆盖到哪一层</li>
+<li><code>nextTick</code> 到底在等什么，它的降级实现链和 <code>MutationObserver</code> 的关系</li>
+<li><code>watch</code> 的 <code>deep</code> 和 <code>immediate</code> 怎么用，以及它们各自的代价</li>
+<li>这四个 API 在 Vue 3 里对应的写法</li>
+</ul>
+<h2 id="一、用-performance-开启性能追踪"><a href="#一、用-performance-开启性能追踪" class="headerlink" title="一、用 performance 开启性能追踪"></a>一、用 performance 开启性能追踪</h2><p><code>performance</code> 是 Vue 全局配置里的一项，用来做组件级别的渲染耗时追踪。在入口文件里加上这段就开了：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">    <span class="title class_">Vue</span>.<span class="property">config</span>.<span class="property">performance</span> = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>来开启这一功能，该 API（2.2.0 新增）功能只适用于开发模式和支持 performance.mark API 的浏览器上，开启后我们可以下载 Vue Performance Devtool 这一 chrome 插件来看查看各个组件的加载情况，如图</p>
-</blockquote>
-<p><img src="https://user-gold-cdn.xitu.io/2018/8/7/165100a377b1bac9"></p>
+<p>这个 API 是 2.2.0 新增的，只在开发模式并且浏览器支持 <code>performance.mark</code> 时生效。生产包里它是被直接编译掉的，所以不用担心线上开销，也别指望在生产环境靠它测数据。</p>
+<p>开起来之后，浏览器时间线上就能看到每个组件在 init、compile、render、patch 各阶段花了多少毫秒。哪个组件的 <code>patch</code> 特别长，优化的靶子就有了。</p>
+<p>原文这里推荐的是 Vue Performance Devtool 这个 Chrome 插件。它现在已经很久没更新了，我自己更习惯直接开 Chrome DevTools 的 Performance 面板录一段，Vue 打的这些标记会落在 Timings（有的版本叫 User Timing）轨道上，一目了然，也不用额外装东西。这条我只在 Chrome 上试过，Firefox 的面板叫法不太一样。</p>
+<p>那 Vue 是怎么做到的？它用的就是浏览器原生的 <code>window.performance</code>，核心是两个方法：</p>
 <ul>
-<li>从中我们可以清晰的看到页面组件在每个阶段的耗时情况，而针对耗时比较久的组件，我们便可以对其进行相应优化</li>
-</ul>
-<blockquote>
-<p>而其在 Vue 源码中主要使用了 <code>window.performance</code> 来获取网页性能数据，其中包含了 <code>performance.mark</code> 和 <code>performance.measure</code></p>
-</blockquote>
-<ul>
-<li><code>performance.mark</code> 主要用于创建标记</li>
-<li><code>performance.measure</code> 主要用于记录两个标记的时间间隔</li>
+<li><code>performance.mark</code> 用于创建标记</li>
+<li><code>performance.measure</code> 用于记录两个标记之间的时间间隔</li>
 </ul>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">performance.<span class="title function_">mark</span>(<span class="string">&#x27;start&#x27;</span>); <span class="comment">// 创建 start 标记</span></span><br><span class="line">performance.<span class="title function_">mark</span>(<span class="string">&#x27;end&#x27;</span>); <span class="comment">// 创建 end 标记</span></span><br><span class="line"></span><br><span class="line">performance.<span class="title function_">measure</span>(<span class="string">&#x27;output&#x27;</span>, <span class="string">&#x27;start&#x27;</span>, <span class="string">&#x27;end&#x27;</span>); <span class="comment">// 计算两者时间间隔</span></span><br><span class="line"></span><br><span class="line">performance.<span class="title function_">getEntriesByName</span>(<span class="string">&#x27;output&#x27;</span>); <span class="comment">// 获取标记，返回值是一个数组，包含了间隔时间数据</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>熟练的使用 <code>performance</code> 我们可以查看并分析网页的很多数据，为我们项目优化提供保障。除了上述介绍的两个方法，我们还可以使用 <code>performance.timing</code> 来计算页面各个阶段的加载情况</p>
-</blockquote>
-<h2 id="使用-errorHandler-来捕获异常"><a href="#使用-errorHandler-来捕获异常" class="headerlink" title="使用 errorHandler 来捕获异常"></a>使用 errorHandler 来捕获异常</h2><blockquote>
-<p>在浏览器异常捕获的方法上，我们熟知的一般有：<code>try ... catch</code> 和 <code>window.onerror</code>，这也是原生 JavaScript 提供给我们处理异常的方式。但是在 Vue 2.x 中如果你一如既往的想使用 <code>window.onerror</code> 来捕获异常，那么其实你是捕获不到的，因为异常信息被框架自身的异常机制捕获了，你可以使用 <code>errorHandler</code> 来进行异常信息的获取</p>
-</blockquote>
+<p>Vue 干的事情就是在每个组件的关键节点上按这个套路打点，标记名带上组件名，所以你在时间线上看到的是 <code>&lt;UserList&gt; render</code> 这种可读的条目，而不是一堆数字。</p>
+<p>知道原理之后，这套打点你自己也能用。接口请求前后、一段复杂计算的首尾、一个大列表渲染完成的时刻，全都可以 mark 一下再 measure。比 <code>console.time</code> 强的地方在于，这些数据会进浏览器的性能时间线，能和网络、脚本执行、绘制放在同一张图上对齐着看。</p>
+<p>除了上面这两个方法，原文还提到可以用 <code>performance.timing</code> 计算页面各个阶段的加载情况。这条现在要打个补丁：<code>performance.timing</code> 在规范里已经被标记为废弃，虽然浏览器还留着，但新代码建议改用 <code>performance.getEntriesByType(&#39;navigation&#39;)[0]</code> 拿到的 <code>PerformanceNavigationTiming</code> 对象，字段名基本能对上，而且时间基准更干净。</p>
+<p>Vue 3 里这个开关搬到了应用实例上，写成 <code>app.config.performance = true</code>，语义和生效条件没变，还是只在开发模式起作用。</p>
+<h2 id="二、用-errorHandler-兜住框架吞掉的异常"><a href="#二、用-errorHandler-兜住框架吞掉的异常" class="headerlink" title="二、用 errorHandler 兜住框架吞掉的异常"></a>二、用 errorHandler 兜住框架吞掉的异常</h2><p>浏览器里捕获异常，大家最熟的是 <code>try...catch</code> 和 <code>window.onerror</code>，这是原生 JavaScript 给的两条路。但在 Vue 2 项目里，你照着老经验挂一个 <code>window.onerror</code>，会发现组件里的报错一条都收不到。</p>
+<p>原因是 Vue 自己在渲染和生命周期调用的外面包了一层 <code>try...catch</code>。它把错误接住了，走自己的错误处理流程，所以异常根本没冒泡到 window 上。想拿到这些信息，得用 <code>errorHandler</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Vue</span>.<span class="property">config</span>.<span class="property">errorHandler</span> = <span class="keyword">function</span> (<span class="params">err, vm, info</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> &#123; </span><br><span class="line">        message, <span class="comment">// 异常信息</span></span><br><span class="line">        name, <span class="comment">// 异常名称</span></span><br><span class="line">        stack  <span class="comment">// 异常堆栈信息</span></span><br><span class="line">    &#125; = err;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// vm 为抛出异常的 Vue 实例</span></span><br><span class="line">    <span class="comment">// info 为 Vue 特定的错误信息，比如错误所在的生命周期钩子</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在入口文件中加入上述代码后，我们便可以捕获到 <code>Vue</code> 项目中的一些异常信息了，但是需要注意的是 <code>Vue 2.4.0</code> 起的版本才支持捕获 <code>Vue</code> 自定义事件处理函数内部的错误，比如</p>
-</blockquote>
+<p>三个参数里最有价值的其实是 <code>info</code>。它会告诉你错误发生在哪个钩子，比如 <code>mounted hook</code> 或者 <code>render</code>。做异常上报的时候把它一起带上，定位效率完全不一样。</p>
+<p><code>errorHandler</code> 的覆盖范围是随版本一点点扩的，这块很多人没注意到：2.2.0 起它开始捕获组件生命周期钩子里的错误，2.4.0 起支持捕获自定义事件处理函数内部的错误，2.6.0 起 <code>v-on</code> DOM 监听器里抛出的错误也会走到这里。所以你要是在一个 2.3 的老项目上验证「为什么自定义事件里的报错收不到」，别怀疑自己写错了，是版本不够。</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">my-component</span> @<span class="attr">eventFn</span>=<span class="string">&quot;doSomething&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">my-component</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="language-javascript">    <span class="attr">methods</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">doSomething</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(a); <span class="comment">// a is not defined</span></span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript">&#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="使用-nextTick-将回调延迟到下次-DOM-更新循环之后执行"><a href="#使用-nextTick-将回调延迟到下次-DOM-更新循环之后执行" class="headerlink" title="使用 nextTick 将回调延迟到下次 DOM 更新循环之后执行"></a>使用 nextTick 将回调延迟到下次 DOM 更新循环之后执行</h2><p>在某些情况下，我们改变页面中绑定的数据后需要对新视图进行一些操作，而这时候新视图其实还未生成，需要等待 <code>DOM</code> 的更新后才能获取的到，在这种场景下我们便可以使用 <code>nextTick</code> 来延迟回调的执行。比如未使用 <code>nextTick</code> 时的代码</p>
+<p>上面这段就是 2.4.0 之后才能被 <code>errorHandler</code> 接住的典型场景。</p>
+<p>这里有个坑要注意：<code>errorHandler</code> 管不到异步回调。<code>setTimeout</code> 里抛的错、<code>Promise</code> 链上没接 <code>catch</code> 的 reject，都跑到了 Vue 的调用栈之外，它接不到。真要做全量的前端异常监控，<code>errorHandler</code> 只是其中一块，还得配上 <code>window.onerror</code> 和 <code>window.addEventListener(&#39;unhandledrejection&#39;)</code>，三者各管一片。</p>
+<p>另一个我自己踩过的问题是，<code>errorHandler</code> 里如果自己又抛了错，会形成套娃。上报函数里做了个 <code>JSON.stringify</code> 循环引用的对象，直接把这个兜底逻辑本身炸了，然后就是满屏刷不完的报错。所以这个函数体内部最好整个包一层 <code>try...catch</code>，并且保留一句 <code>console.error(err)</code>，不然开发环境下所有错误都被你静悄悄吃掉了，调试体验会变得非常差。</p>
+<p>组件级别的兜底还有 <code>errorCaptured</code> 这个钩子（2.5.0 新增），写在组件上，能拦住后代组件抛上来的错误，返回 <code>false</code> 可以阻止它继续往上冒。做局部降级 UI 的时候很好用，某个卡片崩了就渲染一个「加载失败」占位，不至于整页白屏。</p>
+<p>Vue 3 里对应的是 <code>app.config.errorHandler(err, instance, info)</code> 和组合式 API 的 <code>onErrorCaptured</code>，思路一模一样，只是第二个参数从 <code>vm</code> 换成了组件实例，<code>info</code> 的字符串格式也做了调整。</p>
+<h2 id="三、nextTick-到底在等什么"><a href="#三、nextTick-到底在等什么" class="headerlink" title="三、nextTick 到底在等什么"></a>三、nextTick 到底在等什么</h2><p>先看一段一定会报错的代码：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span> <span class="attr">ref</span>=<span class="string">&quot;box&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">v-for</span>=<span class="string">&quot;(item, index) in arr&quot;</span> <span class="attr">:key</span>=<span class="string">&quot;index&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">data</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">arr</span>: []</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;,</span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">mounted</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">    	<span class="variable language_">this</span>.<span class="title function_">getData</span>();</span></span><br><span class="line"><span class="language-javascript">    &#125;,</span></span><br><span class="line"><span class="language-javascript">    <span class="attr">methods</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">getData</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">this</span>.<span class="property">arr</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">this</span>.<span class="property">$refs</span>.<span class="property">box</span>.<span class="title function_">getElementsByTagName</span>(<span class="string">&#x27;li&#x27;</span>)[<span class="number">0</span>].<span class="property">innerHTML</span> = <span class="string">&#x27;hello&#x27;</span>;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript">&#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p>上方代码我们在实际运行的时候肯定会报错，因为我们获取 <code>DOM</code> 元素 <code>li</code> 的时候其还未被渲染，我们将方法放入 <code>nextTick</code> 回调中即可解决该问题</p>
+<p>赋值完立刻去取 <code>li</code>，取到的是 <code>undefined</code>，再往上读 <code>innerHTML</code> 就抛错。第一直觉的解释是「数据还没赋上」，但你打个断点会发现 <code>this.arr</code> 明明已经是 <code>[1, 2, 3]</code> 了。</p>
+<p>真正的原因是 Vue 的 DOM 更新是异步的。数据变了之后，Vue 不会立刻去改 DOM，而是把这个 watcher 推进一个队列，去重，然后在当前同步代码跑完之后统一 flush。这么设计是为了合并同一轮里的多次修改，你连着改十个字段，DOM 只重排一次。响应式这套依赖收集和队列调度的完整链路，我在 <a href="https://feinterview.poetries.top/blog/vue-reative-summary">Vue响应式原理总结</a> 里单独梳理过。</p>
+<p>回到这块。既然更新排在队列后面，那我们把读 DOM 的操作也排到队列后面就行了，这就是 <code>nextTick</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">this</span>.$nextTick(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">$refs</span>.<span class="property">box</span>.<span class="title function_">getElementsByTagName</span>(<span class="string">&#x27;li&#x27;</span>)[<span class="number">0</span>].<span class="property">innerHTML</span> = <span class="string">&#x27;hello&#x27;</span>;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>当然你也可以使用 ES6 的 <code>async/await</code> 语法来改写上述方法</p>
-</blockquote>
+<p><code>$nextTick</code> 不传回调时会返回一个 Promise，所以也可以用 <code>async/await</code> 写平：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="attr">methods</span>: &#123;</span><br><span class="line">    <span class="keyword">async</span> <span class="title function_">getData</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">arr</span> = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>];</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">await</span> <span class="variable language_">this</span>.$nextTick();</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">$refs</span>.<span class="property">box</span>.<span class="title function_">getElementsByTagName</span>(<span class="string">&#x27;li&#x27;</span>)[<span class="number">0</span>].<span class="property">innerHTML</span> = <span class="string">&#x27;hello&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>那么接下来我们来分析下 Vue 是如何做到的，其源码中使用了 3 种方式：</p>
+<p>那 Vue 是靠什么实现这个「下一个 tick」的？源码里它并不是写死一种，而是按环境支持度做能力探测，依次降级：</p>
 <ul>
-<li><code>promise.then</code> 延迟调用</li>
-<li><code>setTimeout(func, 0)</code> 延迟功能</li>
-<li><code>MutationObserver </code>监听变化</li>
+<li><code>Promise.then</code> 微任务</li>
+<li><code>MutationObserver</code> 监听 DOM 变化触发回调</li>
+<li><code>setImmediate</code>（只有 IE 和 Node 有）</li>
+<li><code>setTimeout(fn, 0)</code> 宏任务兜底</li>
 </ul>
-<blockquote>
-<p>前两种方式相信大家都比较熟悉，其都具备延迟执行的功能，我们也可以直接替换 <code>nextTick</code> 为这两种方式中的一种，同样可以解决问题。这里主要介绍下 <code>MutationObserver</code> 这一 <code>HTML5 </code>新特性，那么什么是 <code>MutationObserver</code> 呢？用一句话介绍就是：我们可以使用它创建一个观察者对象，其会监听某个 DOM 元素，并在它的 DOM 树发生变化时执行我们提供的回调函数。实例化代码及配置如下</p>
-</blockquote>
+<p>前后两种大家都熟，都能把回调推到当前同步代码之后。中间那个 <code>MutationObserver</code> 是 HTML5 的特性，用一句话讲就是：创建一个观察者对象盯住某个 DOM 节点，它的 DOM 树一发生变化就执行你给的回调。Vue 用它的时候其实是取巧，创建一个游离的文本节点，改一下它的内容来触发回调，借的是这个回调跑在微任务队列里这一点。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 传入回调函数进行实例化</span></span><br><span class="line"><span class="keyword">var</span> observer = <span class="keyword">new</span> <span class="title class_">MutationObserver</span>(<span class="function"><span class="params">mutations</span> =&gt;</span> &#123;</span><br><span class="line">    mutations.<span class="title function_">forEach</span>(<span class="function"><span class="params">mutation</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(mutation.<span class="property">type</span>);</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 选择目标节点</span></span><br><span class="line"><span class="keyword">var</span> target = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&#x27;#box&#x27;</span>);</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 配置观察选项</span></span><br><span class="line"><span class="keyword">var</span> config = &#123; </span><br><span class="line">    <span class="attr">attributes</span>: <span class="literal">true</span>, <span class="comment">// 是否观察属性的变动</span></span><br><span class="line">    <span class="attr">childList</span>: <span class="literal">true</span>, <span class="comment">// 是否观察子节点的变动（指新增，删除或者更改）</span></span><br><span class="line">    <span class="attr">characterData</span>: <span class="literal">true</span> <span class="comment">// 是否观察节点内容或节点文本的变动</span></span><br><span class="line">&#125;;</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 传入目标节点和观察选项</span></span><br><span class="line">observer.<span class="title function_">observe</span>(target, config);</span><br><span class="line"> </span><br><span class="line"><span class="comment">// 停止观察</span></span><br><span class="line">observer.<span class="title function_">disconnect</span>();</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这样我们便可以观察 id 为 box 下的 DOM 树变化，一旦发生变化就会触发相应的回调方法，实现延迟调用的功能</p>
-</blockquote>
-<h2 id="使用-watch-的深度遍历和立即调用功能"><a href="#使用-watch-的深度遍历和立即调用功能" class="headerlink" title="使用 watch 的深度遍历和立即调用功能"></a>使用 watch 的深度遍历和立即调用功能</h2><p>相信很多同学使用 watch 来监听数据变化的时候通常只使用过其中的 handler 回调，其实其还有两个参数，便是</p>
+<p>这段代码本身也很有用，跟 Vue 无关的场景里，比如你要监听第三方脚本往页面里插了什么节点，<code>MutationObserver</code> 是唯一靠谱的手段。记得用完调 <code>disconnect()</code>，不然节点被移除了观察者还挂着。</p>
+<p><code>nextTick</code> 有个边界很容易误解：它保证的只是 Vue 自己这一轮的 DOM 更新做完了，不保证别的。图片没加载完、<code>transition</code> 动画没跑完、子组件里还有一个 <code>setTimeout</code> 在等着渲染，这些它都管不着。我遇到过一次父组件在 <code>nextTick</code> 里取子组件 <code>$refs</code> 还是拿不到，排查了一下午，最后发现是子组件外面套了 <code>v-if</code> 且条件由一个异步接口决定，那压根就不是同一轮更新。这种情况老老实实用事件或者 <code>watch</code> 去等状态，别指望 <code>nextTick</code>。</p>
+<p>Vue 3 里 <code>nextTick</code> 变成了可以从 <code>vue</code> 里按需导入的独立函数，<code>import &#123; nextTick &#125; from &#39;vue&#39;</code>，选项式 API 下 <code>this.$nextTick</code> 也还在。调度器实现细节改了不少，但对使用者来说语义没变。</p>
+<h2 id="四、watch-的-deep-和-immediate"><a href="#四、watch-的-deep-和-immediate" class="headerlink" title="四、watch 的 deep 和 immediate"></a>四、watch 的 deep 和 immediate</h2><p>大部分人用 <code>watch</code> 只写一个 <code>handler</code> 函数就完事了，其实它还有两个配置项：</p>
 <ul>
-<li><code>deep</code> 设置为 <code>true</code> 用于监听对象内部值的变化</li>
-<li><code>immediate</code> 设置为 <code>true</code> 将立即以表达式的当前值触发回调</li>
+<li><code>deep</code> 设为 <code>true</code> 用于监听对象内部值的变化</li>
+<li><code>immediate</code> 设为 <code>true</code> 会立即以表达式的当前值触发一次回调</li>
 </ul>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;obj.a = 2&quot;</span>&gt;</span>修改<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="language-javascript">    <span class="title function_">data</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">obj</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">a</span>: <span class="number">1</span>,</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;,</span></span><br><span class="line"><span class="language-javascript">    <span class="attr">watch</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">obj</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">handler</span>: <span class="keyword">function</span>(<span class="params">newVal, oldVal</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">console</span>.<span class="title function_">log</span>(newVal); </span></span><br><span class="line"><span class="language-javascript">            &#125;,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">deep</span>: <span class="literal">true</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">immediate</span>: <span class="literal">true</span></span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript">&#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>以上代码我们修改了 obj 对象中 a 属性的值，我们可以触发其 <code>watch</code> 中的 <code>handler </code>回调输出新的对象，而如果不加 <code>deep: true</code>，我们只能监听 obj 的改变，并不会触发回调。同时我们也添加了 <code>immediate: true</code> 配置，其会立即以 obj 的当前值触发回调。</p>
-</blockquote>
+<p>不加 <code>deep: true</code> 的话，改 <code>obj.a</code> 是不会触发回调的，因为默认只监听 <code>obj</code> 这个引用本身有没有被换掉。加上 <code>immediate: true</code> 之后，组件初始化时会立刻拿当前的 <code>obj</code> 跑一遍 handler，省掉了在 <code>created</code> 里再手动调一次的重复代码。</p>
+<p><code>deep</code> 好用，但它不是免费的。它的实现是把整个对象递归遍历一遍，把每个嵌套属性的 getter 都触发一次以完成依赖收集。对象层级深、字段多的时候这个开销是实打实的，一个几百项的列表数据挂个 <code>deep</code> 监听，每次变更都要重新遍历。</p>
+<p>能精确到具体字段就别偷懒用 <code>deep</code>。</p>
+<p>Vue 支持字符串路径的写法，直接写 <code>&#39;obj.a&#39;</code> 当键名就能只监听那一个属性，比 <code>deep</code> 精确得多，也快得多。</p>
+<p><code>deep</code> 还有个坑：回调里的 <code>newVal</code> 和 <code>oldVal</code> 是同一个对象引用。因为改的是对象内部的属性，引用没变，Vue 也没做深拷贝，所以你想在回调里对比「改之前是什么」是拿不到的。真需要对比就自己在监听之前存一份快照，或者干脆把要比较的字段单独拎出来监听。</p>
+<p>至于 <code>immediate</code>，它最常见的用途是「初始化和后续变更共用一套逻辑」，比如根据路由参数拉数据。不过这种场景下我一般会先问一句：是不是用 <code>computed</code> 更合适？只要这个 watch 的最终目的是根据别的数据算出一个新值赋给某个字段，那它就该是 <code>computed</code>。<code>watch</code> 该留给那些真正的副作用，发请求、操作 DOM、写缓存这类。</p>
+<p>Vue 3 的 <code>watch</code> 在这两个选项之外还多了 <code>flush</code>，用来控制回调是在组件更新前还是更新后执行。默认是 <code>&#39;pre&#39;</code>（更新前），想在回调里读到最新的 DOM 就设成 <code>&#39;post&#39;</code>，这个比 Vue 2 里在 handler 内部再套一层 <code>$nextTick</code> 干净多了。组合式 API 下 <code>watch</code> 和 <code>watchEffect</code> 的区别、依赖收集的时机，我在 <a href="https://feinterview.poetries.top/blog/vue3-composition-api">Vue3之Composition API详解</a> 里展开讲过，这里不重复。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回到开头那两个问题。页面慢不知道慢在哪，开 <code>Vue.config.performance</code> 然后用 Chrome 的 Performance 面板看 Timings 轨道，组件级耗时直接可见；偶发白屏控制台没输出，是因为异常被框架接走了，挂上 <code>Vue.config.errorHandler</code> 才能拿到，并且要记得它管不到异步回调，得和 <code>window.onerror</code>、<code>unhandledrejection</code> 组合使用。</p>
+<p><code>nextTick</code> 的关键认知是 Vue 的 DOM 更新本来就是异步批处理的，它只是让你的代码排到这一轮更新之后，仅此而已，别指望它等图片、等动画、等另一个异步分支。<code>watch</code> 的 <code>deep</code> 是递归遍历换来的便利，能用字符串路径精确监听就别开它；<code>immediate</code> 好用，但先想想该不该是 <code>computed</code>。</p>
+<p>这四个 API 在 Vue 3 里都还在，位置和签名有微调：<code>performance</code> 和 <code>errorHandler</code> 挂到了 <code>app.config</code> 上，<code>nextTick</code> 可以单独导入，<code>watch</code> 多了 <code>flush</code> 选项。原文写于 Vue 2 时代，Vue 2 官方维护已经停止，新项目直接按 Vue 3 文档来，老项目上面这些结论仍然成立。具体参数以你所用版本的官方文档为准。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://v2.cn.vuejs.org/v2/api/#%E5%85%A8%E5%B1%80%E9%85%8D%E7%BD%AE">Vue 2 官方文档 - 全局配置</a></li>
+<li><a href="https://cn.vuejs.org/api/application.html">Vue 3 官方文档 - 应用配置 app.config</a></li>
+<li><a href="https://cn.vuejs.org/api/general.html#nexttick">Vue 3 官方文档 - nextTick</a></li>
+<li><a href="https://cn.vuejs.org/api/reactivity-core.html#watch">Vue 3 官方文档 - watch</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/MutationObserver">MDN - MutationObserver</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Performance/mark">MDN - Performance.mark</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/PerformanceNavigationTiming">MDN - PerformanceNavigationTiming</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

@@ -7,29 +7,30 @@
 <head>
   <meta charset="utf-8">
   
-  <title>nodejs系列之Koa2 | 前端进阶之旅</title>
+  <title>nodejs系列之Koa2 洋葱模型与中间件实战 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Node,Koa2," />
+    <meta name="keywords" content="Node,中间件,Koa2," />
   
 
-  <meta name="description" content="来源互联网  一、基本用法 Koa 就是一种简单好用的 Web 框架。它的特点是优雅、简洁、表达力强、自由度高  1.1 架设 HTTP 服务  只要三行代码，就可以用 Koa 架设一个 HTTP 服务。  const Koa &#x3D; require(&#x27;koa&#x27;);const app &#x3D; new Koa();app.listen(3000);   打开浏览器，访问 http:&#x2F;&#x2F;">
+  <meta name="description" content="从三行代码起服务讲到 Koa2 的 Context、路由、洋葱模型中间件、错误兜底与表单文件上传，逐段解释每个 API 在解决什么问题，并补上这些写法在今天的替代方案。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="nodejs系列之Koa2">
+<meta property="og:title" content="nodejs系列之Koa2 洋葱模型与中间件实战">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/23/koa2/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="来源互联网  一、基本用法 Koa 就是一种简单好用的 Web 框架。它的特点是优雅、简洁、表达力强、自由度高  1.1 架设 HTTP 服务  只要三行代码，就可以用 Koa 架设一个 HTTP 服务。  const Koa &#x3D; require(&#x27;koa&#x27;);const app &#x3D; new Koa();app.listen(3000);   打开浏览器，访问 http:&#x2F;&#x2F;">
+<meta property="og:description" content="从三行代码起服务讲到 Koa2 的 Context、路由、洋葱模型中间件、错误兜底与表单文件上传，逐段解释每个 API 在解决什么问题，并补上这些写法在今天的替代方案。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/346.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/346.png">
 <meta property="article:published_time" content="2018-12-23T11:10:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.676Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.944Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Node">
+<meta property="article:tag" content="中间件">
 <meta property="article:tag" content="Koa2">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/346.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/346.png">
 
   
 
@@ -207,7 +208,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95"><span class="toc-text">一、基本用法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">二、路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">三、中间件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="toc-text">四、错误处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Web-App-%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="toc-text">五、Web App 的功能</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%89%E8%A1%8C%E4%BB%A3%E7%A0%81%E8%B5%B7%E4%B8%80%E4%B8%AA-HTTP-%E6%9C%8D%E5%8A%A1"><span class="toc-text">一、三行代码起一个 HTTP 服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Context-%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%B8%80%E6%AC%A1%E5%AF%B9%E8%AF%9D%E7%9A%84%E5%85%A8%E9%83%A8%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-text">二、Context 对象，一次对话的全部上下文</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E8%BF%94%E5%9B%9E%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%8D%8F%E5%95%86"><span class="toc-text">2.1 返回类型的协商</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%BD%91%E9%A1%B5%E6%A8%A1%E6%9D%BF%E7%94%A8%E6%B5%81%E7%9A%84%E6%96%B9%E5%BC%8F%E8%BF%94%E5%9B%9E"><span class="toc-text">2.2 网页模板用流的方式返回</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%B7%AF%E7%94%B1%E6%80%8E%E4%B9%88%E5%86%99"><span class="toc-text">三、路由怎么写</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-koa-route-%E6%A8%A1%E5%9D%97"><span class="toc-text">3.1 koa-route 模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90"><span class="toc-text">3.2 静态资源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-text">3.3 重定向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%B8%AD%E9%97%B4%E4%BB%B6%E4%B8%8E%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B"><span class="toc-text">四、中间件与洋葱模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%92%8C-Express-%E7%9A%84%E5%88%86%E5%B7%A5%EF%BC%8C%E5%B7%AE%E5%88%AB%E5%88%B0%E5%BA%95%E5%9C%A8%E5%93%AA"><span class="toc-text">4.1 和 Express 的分工，差别到底在哪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%BC%82%E6%AD%A5%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%BF%85%E9%A1%BB%E5%86%99%E6%88%90-async-%E5%87%BD%E6%95%B0"><span class="toc-text">4.2 异步中间件必须写成 async 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%9A%84%E5%90%88%E6%88%90"><span class="toc-text">4.3 中间件的合成</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86"><span class="toc-text">五、错误处理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-ctx-throw-%E4%B8%8E%E7%8A%B6%E6%80%81%E7%A0%81"><span class="toc-text">5.1 ctx.throw 与状态码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%94%A8%E6%9C%80%E5%A4%96%E5%B1%82%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%BB%9F%E4%B8%80%E5%85%9C%E5%BA%95"><span class="toc-text">5.2 用最外层中间件统一兜底</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%9B%91%E5%90%AC-error-%E4%BA%8B%E4%BB%B6%E6%94%B6%E5%BA%95"><span class="toc-text">5.3 监听 error 事件收底</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Web-App-%E7%9A%84%E5%B8%B8%E7%94%A8%E8%83%BD%E5%8A%9B"><span class="toc-text">六、Web App 的常用能力</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Cookies"><span class="toc-text">6.1 Cookies</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E8%A1%A8%E5%8D%95"><span class="toc-text">6.2 表单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0"><span class="toc-text">6.3 文件上传</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%BF%99%E4%BA%9B%E5%86%99%E6%B3%95%E5%9C%A8%E4%BB%8A%E5%A4%A9%E8%BF%98%E6%88%90%E7%AB%8B%E5%90%97"><span class="toc-text">七、这些写法在今天还成立吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -230,13 +231,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-koa2" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">nodejs系列之Koa2</h1>
+    <h1 class="post-title">nodejs系列之Koa2 洋葱模型与中间件实战</h1>
 
     <div class="article-meta">
       <span>
@@ -272,12 +273,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.6k字</span>
+            <span>字数统计 6.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 12分</span>
+            <span>阅读时长 25分</span>
           </span>
       
       
@@ -291,192 +292,165 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>来源互联网</p>
-</blockquote>
-<h2 id="一、基本用法"><a href="#一、基本用法" class="headerlink" title="一、基本用法"></a>一、基本用法</h2><blockquote>
-<p>Koa 就是一种简单好用的 Web 框架。它的特点是优雅、简洁、表达力强、自由度高</p>
-</blockquote>
-<p><strong>1.1 架设 HTTP 服务</strong></p>
-<blockquote>
-<p>只要三行代码，就可以用 <code>Koa</code> 架设一个 <code>HTTP</code> 服务。</p>
-</blockquote>
+        <p>第一次从 Express 切到 Koa 的时候，我卡在了一个很蠢的地方：中间件里写了 <code>next()</code>，后面的代码却在响应发出去之后才执行，日志里的耗时统计全是 0 毫秒。排查了一下午才反应过来，Koa 的 <code>next()</code> 返回的是 Promise，得 <code>await</code> 它，否则你拿到的只是「我把执行权交出去了」这一瞬间，而不是「下游全部跑完了」。</p>
+<p>这篇把 Koa2 从起服务到中间件、错误处理、表单文件上传整条线过一遍。重点放在洋葱模型上，因为那是 Koa 和 Express 真正分道扬镳的地方，也是面试里最爱问的一块。每段代码前后都会说清楚它在解决什么问题，而不是只贴一个能跑的片段。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>用三行代码起一个 Koa 服务，以及脚手架 <code>koa-generator</code> 怎么用</li>
+<li><code>Context</code> 到底包了什么，<code>ctx.request</code> 和 <code>ctx.response</code> 的分工</li>
+<li>返回类型怎么协商，网页模板怎么用流的方式吐出去</li>
+<li>原生路由的写法，以及 <code>koa-route</code> &#x2F; <code>koa-static</code> &#x2F; 重定向</li>
+<li>洋葱模型的执行顺序，为什么 <code>next()</code> 前面是「进」后面是「出」</li>
+<li>异步中间件必须 <code>async</code> 的原因，漏了 <code>await</code> 会发生什么</li>
+<li>用最外层中间件做统一错误兜底，配合 <code>app.on(&#39;error&#39;)</code> 收底</li>
+<li>Cookie、表单、文件上传这些 Web App 的常规能力</li>
+<li>这些 2018 年的写法在今天该换成什么</li>
+</ul>
+<h2 id="一、三行代码起一个-HTTP-服务"><a href="#一、三行代码起一个-HTTP-服务" class="headerlink" title="一、三行代码起一个 HTTP 服务"></a>一、三行代码起一个 HTTP 服务</h2><p>Koa 是 Express 原班团队做的第二代 Web 框架，特点是核心极小。Express 把路由、静态资源、模板全塞进了框架本体，Koa 把这些全砍了，只留下一个中间件引擎和一个上下文对象，剩下的自己按需装。</p>
+<p>起服务确实只要三行。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>打开浏览器，访问<code> http://127.0.0.1:3000</code> 。你会看到页面显示”Not Found”，表示没有发现任何内容。这是因为我们并没有告诉 <code>Koa</code> 应该显示什么内容</p>
-</blockquote>
-<p><strong>通过脚手架构建服务</strong></p>
+<p>跑起来之后打开浏览器访问 <code>http://127.0.0.1:3000</code>，页面上是 <code>Not Found</code>。这不是报错，是因为我们一个中间件都没注册，Koa 找不到任何人给这次请求写响应体，就按默认逻辑返回了 404。</p>
+<p>这个默认行为其实挺说明问题的：Koa 本身什么都不做，所有能力都来自你注册进去的中间件。</p>
+<p>真要开一个新项目，手写目录结构挺费劲，官方有脚手架。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install koa-generator -g</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>创建一个项目 <code>koa2 -e hello-koa2</code> <code>-e</code>表示<code>ejs</code>语法，不写则是<code>jade</code>语法</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/346.png"></p>
-<blockquote>
-<p>打开浏览器，访问<code> http://127.0.0.1:3000</code> </p>
-</blockquote>
-<p><strong>1.2 Context 对象</strong></p>
-<blockquote>
-<p><code>Koa</code> 提供一个 <code>Context</code> 对象，表示一次对话的上下文（包括 <code>HTTP</code> 请求和 <code>HTTP</code> 回复）。通过加工这个对象，就可以控制返回给用户的内容</p>
-</blockquote>
-<ul>
-<li><code>Context.response.body</code>属性就是发送给用户的内容</li>
-</ul>
+<p>装完之后创建项目，<code>koa2 -e hello-koa2</code>，其中 <code>-e</code> 表示用 <code>ejs</code> 模板语法，不写这个参数默认是 <code>jade</code>（也就是后来改名的 pug）。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/346.png" alt="koa-generator 脚手架创建项目后的目录结构"></p>
+<p>生成出来的骨架里已经把 <code>koa-router</code>、<code>koa-static</code>、模板引擎、日志中间件都装好接上了，<code>npm start</code> 之后同样访问 <code>http://127.0.0.1:3000</code> 就能看到欢迎页。拿它当学习用的沙盒很合适，真做项目的话我一般还是自己从空目录搭，因为脚手架带的依赖版本往往落后好几个大版本。</p>
+<h2 id="二、Context-对象，一次对话的全部上下文"><a href="#二、Context-对象，一次对话的全部上下文" class="headerlink" title="二、Context 对象，一次对话的全部上下文"></a>二、Context 对象，一次对话的全部上下文</h2><p>Koa 给每次请求都造一个 <code>Context</code> 对象，习惯上叫 <code>ctx</code>。它把这一次 HTTP 请求和这一次 HTTP 响应打包在一起，你改它，用户就能看到变化。</p>
+<p>最常用的就是 <code>ctx.response.body</code>，它是发送给用户的内容。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="function"><span class="params">ctx</span> =&gt;</span> &#123; <span class="comment">//处理请求的中间件</span></span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&quot;hello world&quot;</span>;</span><br><span class="line">&#125;).<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面代码中，<code>main</code>函数用来设置<code>ctx.response.body</code>。然后，使用<code>app.use</code>方法加载<code>main</code>函数</p>
-</blockquote>
-<ul>
-<li><code>ctx.response</code>代表 <code>HTTP Response</code>。同样地，<code>ctx.request</code>代表 <code>HTTP Request</code></li>
-</ul>
-<p><strong>1.3 HTTP Response 的类型</strong></p>
-<blockquote>
-<p><code>Koa</code> 默认的返回类型是<code>text/plain</code>，如果想返回其他类型的内容，可以先用<code>ctx.request.accepts</code>判断一下，客户端希望接受什么数据（根据 <code>HTTP Request</code> 的Accept字段），然后使用<code>ctx.response.type</code>指定返回类型</p>
-</blockquote>
+<p><code>app.use</code> 用来注册中间件，传进去的这个函数就是中间件本体。这里它做的事只有一件，给 <code>ctx.response.body</code> 赋值。</p>
+<p><code>ctx.response</code> 代表 HTTP Response，<code>ctx.request</code> 代表 HTTP Request，这两个是 Koa 自己封装的对象，不是 Node 原生的那两个。原生的挂在 <code>ctx.req</code> 和 <code>ctx.res</code> 上，需要直接操作底层流的时候才用得着。这个命名区别很多人第一次都会搞混，短的是原生，长的是 Koa 封装的。</p>
+<p>另外 Koa 在 <code>ctx</code> 上做了一堆代理，<code>ctx.body</code> 等价于 <code>ctx.response.body</code>，<code>ctx.status</code> 等价于 <code>ctx.response.status</code>，<code>ctx.path</code> 等价于 <code>ctx.request.path</code>。写业务的时候用短的，读别人代码时知道它们是一回事就行。</p>
+<h3 id="2-1-返回类型的协商"><a href="#2-1-返回类型的协商" class="headerlink" title="2.1 返回类型的协商"></a>2.1 返回类型的协商</h3><p>Koa 默认的返回类型是 <code>text/plain</code>。想返回别的，可以先用 <code>ctx.request.accepts</code> 看看客户端能接受什么（依据是请求头里的 <code>Accept</code> 字段），再用 <code>ctx.response.type</code> 指定。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (ctx.<span class="property">request</span>.<span class="title function_">accepts</span>(<span class="string">&#x27;xml&#x27;</span>)) &#123;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;xml&#x27;</span>;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;&lt;data&gt;Hello World&lt;/data&gt;&#x27;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ctx.<span class="property">request</span>.<span class="title function_">accepts</span>(<span class="string">&#x27;json&#x27;</span>)) &#123;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;json&#x27;</span>;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">body</span> = &#123; <span class="attr">data</span>: <span class="string">&#x27;Hello World&#x27;</span> &#125;;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ctx.<span class="property">request</span>.<span class="title function_">accepts</span>(<span class="string">&#x27;html&#x27;</span>)) &#123;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;html&#x27;</span>;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;&lt;p&gt;Hello World&lt;/p&gt;&#x27;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;text&#x27;</span>;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Hello World&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>1.4 网页模板</strong></p>
-<blockquote>
-<p>实际开发中，返回给用户的网页往往都写成模板文件。我们可以让 Koa 先读取模板文件，然后将这个模板返回给用户</p>
-</blockquote>
+<p>这里有个坑要注意：<code>accepts</code> 的判断顺序是你写的 <code>if</code> 顺序，不是客户端偏好的权重顺序。浏览器发过来的 <code>Accept</code> 一般长这样 <code>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</code>，因为末尾有 <code>*/*</code>，上面这段代码里第一个分支 <code>xml</code> 就会命中，浏览器直接收到一坨 XML。真要按权重挑，得写成 <code>ctx.accepts(&#39;html&#39;, &#39;json&#39;, &#39;xml&#39;)</code>，把候选一次性传进去让 Koa 自己算。</p>
+<p>顺带说一句，如果 <code>body</code> 赋的是一个普通对象，Koa 会自动把 <code>type</code> 设成 <code>application/json</code> 并序列化，上面那个 <code>ctx.response.type = &#39;json&#39;</code> 其实可以省。</p>
+<h3 id="2-2-网页模板用流的方式返回"><a href="#2-2-网页模板用流的方式返回" class="headerlink" title="2.2 网页模板用流的方式返回"></a>2.2 网页模板用流的方式返回</h3><p>实际项目里返回给用户的页面通常是模板文件。可以让 Koa 读文件再吐出去。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;html&#x27;</span>;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = fs.<span class="title function_">createReadStream</span>(<span class="string">&#x27;./demos/template.html&#x27;</span>);</span><br><span class="line">&#125;).<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、路由"><a href="#二、路由" class="headerlink" title="二、路由"></a>二、路由</h2><blockquote>
-<p>网站一般都有多个页面。通过<code>ctx.request.path</code>可以获取用户请求的路径，由此实现简单的路由</p>
-</blockquote>
+<p>注意这里 <code>body</code> 赋的是一个可读流，不是字符串。Koa 支持给 <code>body</code> 赋字符串、Buffer、Stream、对象和 <code>null</code> 这几种类型，赋流的好处是不用把整个文件读进内存，大文件下载场景基本都这么写。</p>
+<p>代价是流的错误处理要额外操心。文件不存在时，<code>createReadStream</code> 不会立刻抛错，错误是在流开始读的时候异步冒出来的，这时候响应头可能已经发出去了，你没法再改状态码。生产环境更稳的做法是先 <code>fs.promises.access</code> 判断一下，或者干脆交给 <code>koa-static</code> 这类成熟中间件。</p>
+<h2 id="三、路由怎么写"><a href="#三、路由怎么写" class="headerlink" title="三、路由怎么写"></a>三、路由怎么写</h2><p>网站总不止一个页面。最土的办法是自己判断 <code>ctx.request.path</code>。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (ctx.<span class="property">request</span>.<span class="property">path</span> !== <span class="string">&#x27;/&#x27;</span>) &#123;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;html&#x27;</span>;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;&lt;a href=&quot;/&quot;&gt;Index Page1&lt;/a&gt;&#x27;</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Hello World&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>2.2 koa-route 模块</strong></p>
-<blockquote>
-<p>原生路由用起来不太方便，我们可以使用封装好的<code>koa-route</code>模块</p>
-</blockquote>
+<p>这段能跑，但路由一多就变成一长串 <code>if...else</code>，而且没法处理 <code>/user/:id</code> 这种带参数的路径，也区分不了 GET 和 POST。</p>
+<h3 id="3-1-koa-route-模块"><a href="#3-1-koa-route-模块" class="headerlink" title="3.1 koa-route 模块"></a>3.1 koa-route 模块</h3><p>把路由这件事交给专门的模块。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> route = <span class="built_in">require</span>(<span class="string">&#x27;koa-route&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> main = route.<span class="title function_">get</span>(<span class="string">&quot;/&quot;</span>, <span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;html&#x27;</span>;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;&lt;a href=&quot;/&quot;&gt;Index Page1&lt;/a&gt;&#x27;</span>;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">const</span> about = route.<span class="title function_">get</span>(<span class="string">&quot;/about&quot;</span>, <span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Hello World&#x27;</span>;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">use</span>(about);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-
-<p><strong>2.3 静态资源</strong></p>
-<blockquote>
-<p>如果网站提供静态资源（图片、字体、样式表、脚本……），为它们一个个写路由就很麻烦，也没必要。<code>koa-static</code>模块封装了这部分的请求</p>
-</blockquote>
+<p><code>route.get(path, fn)</code> 返回的还是一个普通中间件，路径不匹配时它就调 <code>next()</code> 放行，匹配时才执行你的处理函数。理解了这一点你就明白，Koa 里根本没有「路由系统」这个概念，路由只是一种特殊的中间件。</p>
+<p><code>koa-route</code> 现在基本没人维护了，实际项目里用的是 <code>@koa/router</code>，它支持路由前缀、嵌套路由、<code>router.param</code> 这些能力，写法是先 <code>new Router()</code> 再 <code>app.use(router.routes())</code>。功能多了不少，但底层原理和上面这段是一样的。</p>
+<h3 id="3-2-静态资源"><a href="#3-2-静态资源" class="headerlink" title="3.2 静态资源"></a>3.2 静态资源</h3><p>图片、字体、样式表一个个写路由不现实，<code>koa-static</code> 把这部分包了。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 访问 http://localhost:3000/test.json</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> serve = <span class="built_in">require</span>(<span class="string">&#x27;koa-static&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> main = <span class="title function_">serve</span>(path.<span class="title function_">join</span>(__dirname, <span class="string">&quot;../public/&quot;</span>));</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>2.4 重定向</strong></p>
-<blockquote>
-<p>有些场合，服务器需要重定向（<code>redirect</code>）访问请求。比如，用户登陆以后，将他重定向到登陆前的页面。<code>ctx.response.redirect()</code>方法可以发出一个<code>302</code>跳转，将用户导向另一个路由</p>
-</blockquote>
+<p>它做的事是拿请求路径去指定目录下找文件，找到就返回并带上 <code>Content-Type</code> 和缓存头，找不到就 <code>next()</code> 交给后面的中间件。所以静态资源中间件通常放在整个中间件链的靠前位置，让静态文件请求尽早短路，不用往下走一堆业务逻辑。</p>
+<p>生产环境我一般不让 Node 扛静态资源，交给 Nginx 更划算，Node 进程省下来的这部分 CPU 可以多处理点业务请求。</p>
+<h3 id="3-3-重定向"><a href="#3-3-重定向" class="headerlink" title="3.3 重定向"></a>3.3 重定向</h3><p>用户登录之后跳回登录前的页面，这类场景用 <code>ctx.response.redirect()</code>，它发的是 302。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&quot;koa&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"><span class="keyword">const</span> route = <span class="built_in">require</span>(<span class="string">&quot;koa-route&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> redirect = route.<span class="title function_">get</span>(<span class="string">&quot;/redirect&quot;</span>, <span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="title function_">redirect</span>(<span class="string">&#x27;/&#x27;</span>);</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;&lt;a href=&quot;/&quot;&gt;Index Page&lt;/a&gt;&#x27;</span>;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">const</span> main = route.<span class="title function_">get</span>(<span class="string">&quot;/&quot;</span>, <span class="function"><span class="params">ctx</span> =&gt;</span> &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&quot;hello world&quot;</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">use</span>(redirect);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<h2 id="三、中间件"><a href="#三、中间件" class="headerlink" title="三、中间件"></a>三、中间件</h2><p><strong>3.1 Logger 功能</strong></p>
-<blockquote>
-<p>Koa 的最大特色，也是最重要的一个设计，就是中间件（middleware）。为了理解中间件，我们先看一下 Logger （打印日志）功能的实现</p>
-</blockquote>
-<p><strong>3.2 中间件的概念</strong></p>
-<blockquote>
-<p>“中间件”（middleware），它处在 HTTP Request 和 HTTP Response 中间，用来实现某种中间功能。app.use()用来加载中间件</p>
-</blockquote>
+<p><code>redirect</code> 之后那行 <code>body</code> 赋值不是多余的，它是给不支持自动跳转的客户端准备的兜底内容。想改成 301 永久重定向的话，在 <code>redirect</code> 之后补一句 <code>ctx.status = 301</code> 就行，Koa 允许你覆盖它默认设的状态码。</p>
+<h2 id="四、中间件与洋葱模型"><a href="#四、中间件与洋葱模型" class="headerlink" title="四、中间件与洋葱模型"></a>四、中间件与洋葱模型</h2><p>前面铺垫了这么多，现在到 Koa 最核心的设计。</p>
+<p>中间件处在 HTTP Request 和 HTTP Response 中间，用来实现某种中间功能，<code>app.use()</code> 用来加载它。Koa 的所有功能都是通过中间件实现的，前面例子里的 <code>main</code> 也是中间件。每个中间件默认接受两个参数，第一个是 <code>Context</code>，第二个是 <code>next</code> 函数，只要调用 <code>next</code>，就把执行权转交给下一个中间件。</p>
+<p>多个中间件会形成一个栈结构（middle stack），以「先进后出」（first-in-last-out）的顺序执行：</p>
 <ul>
-<li>基本上，Koa 所有的功能都是通过中间件实现的，前面例子里面的main也是中间件</li>
-<li>每个中间件默认接受两个参数，第一个参数是 Context 对象，第二个参数是next函数。只要调用next函数，就可以把执行权转交给下一个中间件</li>
+<li>最外层的中间件首先执行</li>
+<li>调用 <code>next</code> 函数，把执行权交给下一个中间件</li>
+<li>最内层的中间件最后执行</li>
+<li>执行结束后，把执行权交回上一层的中间件</li>
+<li>最外层的中间件收回执行权之后，执行 <code>next</code> 函数后面的代码</li>
 </ul>
-<p><strong>3.3 中间件栈</strong></p>
-<blockquote>
-<p>多个中间件会形成一个栈结构（<code>middle stack</code>），以”先进后出”（<code>first-in-last-out</code>）的顺序执行</p>
-</blockquote>
-<ul>
-<li>最外层的中间件首先执行。</li>
-<li>调用next函数，把执行权交给下一个中间件。</li>
-<li>…</li>
-<li>最内层的中间件最后执行。</li>
-<li>执行结束后，把执行权交回上一层的中间件。</li>
-<li>…</li>
-<li>最外层的中间件收回执行权之后，执行next函数后面的代码</li>
-</ul>
+<p>写成代码看得更清楚。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">one</span> = (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;&gt;&gt; one&#x27;</span>);</span><br><span class="line">  <span class="title function_">next</span>();</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;&lt;&lt; one&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">two</span> = (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;&gt;&gt; two&#x27;</span>);</span><br><span class="line">  <span class="title function_">next</span>();</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;&lt;&lt; two&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">three</span> = (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;&gt;&gt; three&#x27;</span>);</span><br><span class="line">  <span class="title function_">next</span>();</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;&lt;&lt; three&#x27;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(one);</span><br><span class="line">app.<span class="title function_">use</span>(two);</span><br><span class="line">app.<span class="title function_">use</span>(three);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
+<p>输出是这样：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&gt;&gt; one</span><br><span class="line">&gt;&gt; two</span><br><span class="line">&gt;&gt; three</span><br><span class="line">&lt;&lt; three</span><br><span class="line">&lt;&lt; two</span><br><span class="line">&lt;&lt; one</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>如果中间件内部没有调用<code>next</code>函数，那么执行权就不会传递下去</p>
-</blockquote>
-<p><strong>3.4 异步中间件</strong></p>
-<blockquote>
-<p>如果有异步操作（比如读取数据库），中间件就必须写成 <code>async</code> 函数</p>
-</blockquote>
+<p>一进一出，像一层层剥洋葱，所以叫洋葱模型。如果中间件内部没有调用 <code>next</code> 函数，执行权就不会往下传，后面的中间件全部不执行，这个特性常被用来做权限拦截。</p>
+<h3 id="4-1-和-Express-的分工，差别到底在哪"><a href="#4-1-和-Express-的分工，差别到底在哪" class="headerlink" title="4.1 和 Express 的分工，差别到底在哪"></a>4.1 和 Express 的分工，差别到底在哪</h3><p>Express 也有中间件，也有 <code>next()</code>，为什么大家说洋葱模型是 Koa 的特色？</p>
+<p>Express 的 <code>next()</code> 是纯粹的「调用下一个」，它不返回任何有意义的值。你在 <code>next()</code> 后面写的代码会在下游的同步部分跑完后立刻执行，但下游只要有异步操作，你就等不到它。想做「请求前记时间、响应后算耗时」这种事，Express 里得去 hook <code>res.on(&#39;finish&#39;)</code> 事件，绕一圈。</p>
+<p>Koa 的 <code>next()</code> 返回的是一个 Promise，代表「下游所有中间件全部执行完毕」。所以 <code>await next()</code> 之后的代码，是真的在整条链路走完之后才跑的。耗时统计写起来就是这么直白的六行：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">app.<span class="title function_">use</span>(<span class="title function_">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> start = <span class="title class_">Date</span>.<span class="title function_">now</span>();</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">next</span>();</span><br><span class="line">  <span class="keyword">const</span> ms = <span class="title class_">Date</span>.<span class="title function_">now</span>() - start;</span><br><span class="line">  ctx.<span class="title function_">set</span>(<span class="string">&#x27;X-Response-Time&#x27;</span>, <span class="string">`<span class="subst">$&#123;ms&#125;</span>ms`</span>);</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`<span class="subst">$&#123;ctx.method&#125;</span> <span class="subst">$&#123;ctx.url&#125;</span> - <span class="subst">$&#123;ms&#125;</span>ms`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>这个设计是真的舒服。回到开头我踩的那个坑，如果这里把 <code>await</code> 漏了，<code>next()</code> 立刻返回一个 pending 的 Promise，<code>Date.now() - start</code> 算出来就是 0，日志里全是 <code>0ms</code>，看着像是服务快得离谱。</p>
+<p>Express 的路由和中间件写法我在 <a href="https://feinterview.poetries.top/blog/express">nodejs系列之Express</a> 那篇里单独写过，两篇可以对着看，Express 那边的重点是路由分层和中间件的错误参数约定，这边的重点是洋葱模型和 async 中间件。想再往下挖一层，看 <code>koa-compose</code> 是怎么用递归把中间件数组串成一条 Promise 链的，可以看 <a href="https://feinterview.poetries.top/blog/relearn-koa">重新认识Koa</a> 那篇的源码部分，这里就不重复了。</p>
+<h3 id="4-2-异步中间件必须写成-async-函数"><a href="#4-2-异步中间件必须写成-async-函数" class="headerlink" title="4.2 异步中间件必须写成 async 函数"></a>4.2 异步中间件必须写成 async 函数</h3><p>有异步操作（比如读数据库、读文件）的时候，中间件必须写成 <code>async</code> 函数。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs.promised&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> main = <span class="keyword">async</span> <span class="keyword">function</span> (<span class="params">ctx, next</span>) &#123;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">type</span> = <span class="string">&#x27;html&#x27;</span>;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="keyword">await</span> fs.<span class="title function_">readFile</span>(<span class="string">&#x27;./demos/template.html&#x27;</span>, <span class="string">&#x27;utf8&#x27;</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面代码中，<code>fs.readFile</code>是一个异步操作，必须写成<code>await fs.readFile()</code>，然后中间件必须写成 <code>async</code>函数。</p>
-</blockquote>
-<p><strong>3.5 中间件的合成</strong></p>
-<blockquote>
-<p><code>koa-compose</code>模块可以将多个中间件合成为一个</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> compose = <span class="built_in">require</span>(<span class="string">&#x27;koa-compose&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">logger</span> = (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`<span class="subst">$&#123;<span class="built_in">Date</span>.now()&#125;</span> <span class="subst">$&#123;ctx.request.method&#125;</span> <span class="subst">$&#123;ctx.request.url&#125;</span>`</span>);</span><br><span class="line">  <span class="title function_">next</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Hello World&#x27;</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> middlewares = <span class="title function_">compose</span>([logger, main]);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(middlewares);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>fs.readFile</code> 是异步操作，必须写成 <code>await fs.readFile()</code>，外层函数也就必须是 <code>async</code>。原因不复杂：Koa 在你的中间件返回之后就认为这一环结束了，可以往回收了。如果你不 <code>await</code>，函数早早返回一个 undefined，Koa 就开始往上回溯并把当前的 <code>ctx.body</code>（此时还是空的）发出去，等你的文件读完，响应早就发完了。</p>
+<p>代码里的 <code>fs.promised</code> 是个第三方包，2018 年那会儿 Node 原生还没有 Promise 版的 fs。现在直接用内置的就行：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs/promises&#x27;</span>);</span><br><span class="line"><span class="comment">// 或者 const &#123; readFile &#125; = require(&#x27;node:fs/promises&#x27;);</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="四、错误处理"><a href="#四、错误处理" class="headerlink" title="四、错误处理"></a>四、错误处理</h2><p><strong>4.1 500 错误</strong></p>
-<blockquote>
-<p>如果代码运行过程中发生错误，我们需要把错误信息返回给用户。HTTP 协定约定这时要返回500状态码</p>
-</blockquote>
-<ul>
-<li><code>Koa </code>提供了<code>ctx.throw()</code>方法，用来抛出错误，<code>ctx.throw(500)</code>就是抛出<code>500</code>错误</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="keyword">throw</span>(<span class="number">500</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>原始写法保留在上面是为了让你看老项目代码时不至于懵，但新代码没有理由再装那个包。</p>
+<h3 id="4-3-中间件的合成"><a href="#4-3-中间件的合成" class="headerlink" title="4.3 中间件的合成"></a>4.3 中间件的合成</h3><p><code>koa-compose</code> 模块可以把多个中间件合成一个。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> compose = <span class="built_in">require</span>(<span class="string">&#x27;koa-compose&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">logger</span> = (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`<span class="subst">$&#123;<span class="built_in">Date</span>.now()&#125;</span> <span class="subst">$&#123;ctx.request.method&#125;</span> <span class="subst">$&#123;ctx.request.url&#125;</span>`</span>);</span><br><span class="line">  <span class="title function_">next</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Hello World&#x27;</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> middlewares = <span class="title function_">compose</span>([logger, main]);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(middlewares);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>4.2 404错误</strong></p>
-<blockquote>
-<p>如果将<code>ctx.response.status</code>设置成<code>404</code>，就相当于<code>ctx.throw(404)</code>，返回<code>404</code>错误</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">status</span> = <span class="number">404</span>;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Page Not Found&#x27;</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>compose</code> 不是什么额外功能，Koa 内部本来就是用它把 <code>app.use</code> 注册的中间件数组串起来的。手动调用它的场景，一般是你要发布一个由好几个中间件组成的功能包，希望使用方一次 <code>app.use</code> 就装上，而不是让人家按顺序 use 四五次、还得记住顺序不能错。</p>
+<h2 id="五、错误处理"><a href="#五、错误处理" class="headerlink" title="五、错误处理"></a>五、错误处理</h2><p>代码跑出错要给用户一个交代，HTTP 约定这时返回 500。</p>
+<h3 id="5-1-ctx-throw-与状态码"><a href="#5-1-ctx-throw-与状态码" class="headerlink" title="5.1 ctx.throw 与状态码"></a>5.1 ctx.throw 与状态码</h3><p>Koa 提供了 <code>ctx.throw()</code> 方法，<code>ctx.throw(500)</code> 就是抛出 500 错误。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="keyword">throw</span>(<span class="number">500</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>4.3 处理错误的中间件</strong></p>
-<blockquote>
-<p>为了方便处理错误，最好使用<code>try...catch</code>将其捕获。但是，为每个中间件都写<code>try...catch</code>太麻烦，我们可以让最外层的中间件，负责所有中间件的错误处理</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">handler</span> = <span class="keyword">async</span> (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">next</span>();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">status</span> = err.<span class="property">statusCode</span> || err.<span class="property">status</span> || <span class="number">500</span>;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = &#123;</span><br><span class="line">      <span class="attr">message</span>: err.<span class="property">message</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="keyword">throw</span>(<span class="number">500</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(handler);</span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><code>ctx.throw</code> 抛的不是普通 Error，它内部用 <code>http-errors</code> 造了一个带 <code>status</code> 属性的错误对象，还会按状态码自动填一句标准的错误描述。第二个参数可以自己写消息，<code>ctx.throw(400, &#39;.name required&#39;)</code> 就是常见的参数校验写法。</p>
+<p>这里有个安全相关的细节：4xx 的错误消息会原样返回给客户端，5xx 的消息则会被 Koa 换成通用的 <code>Internal Server Error</code>，防止把内部堆栈信息泄露出去。所以你在 500 错误里写的详细描述用户是看不到的，得去日志里找。</p>
+<p>如果只是想改状态码而不抛异常，直接设 <code>ctx.response.status</code> 就行。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">status</span> = <span class="number">404</span>;</span><br><span class="line">  ctx.<span class="property">response</span>.<span class="property">body</span> = <span class="string">&#x27;Page Not Found&#x27;</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>4.4 error 事件的监听</strong></p>
-<blockquote>
-<p>运行过程中一旦出错，Koa 会触发一个error事件。监听这个事件，也可以处理错误</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="keyword">throw</span>(<span class="number">500</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">on</span>(<span class="string">&#x27;error&#x27;</span>, <span class="function">(<span class="params">err, ctx</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;server error&#x27;</span>, err);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>设成 404 的效果和 <code>ctx.throw(404)</code> 相当，区别是这种写法不会中断当前函数的后续执行。</p>
+<h3 id="5-2-用最外层中间件统一兜底"><a href="#5-2-用最外层中间件统一兜底" class="headerlink" title="5.2 用最外层中间件统一兜底"></a>5.2 用最外层中间件统一兜底</h3><p>为每个中间件都写 <code>try...catch</code> 太麻烦。洋葱模型在这里派上了用场，让最外层的中间件负责所有中间件的错误处理。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">handler</span> = <span class="keyword">async</span> (<span class="params">ctx, next</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">next</span>();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">status</span> = err.<span class="property">statusCode</span> || err.<span class="property">status</span> || <span class="number">500</span>;</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = &#123;</span><br><span class="line">      <span class="attr">message</span>: err.<span class="property">message</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="keyword">throw</span>(<span class="number">500</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(handler);</span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>访问 <a href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a> ，你会在命令行窗口看到”server error xxx”。</p>
-</blockquote>
-<h2 id="五、Web-App-的功能"><a href="#五、Web-App-的功能" class="headerlink" title="五、Web App 的功能"></a>五、Web App 的功能</h2><p><strong>5.1 Cookies</strong></p>
-<blockquote>
-<p>ctx.cookies用来读写 Cookie</p>
-</blockquote>
-<blockquote>
-<p>访问 <a href="http://127.0.0.1:3000/">http://127.0.0.1:3000</a> ，你会看到1 views。刷新一次页面，就变成了2 views。再刷新，每次都会计数增加1</p>
-</blockquote>
+<p>这段代码能成立，全靠 <code>await next()</code>。因为 <code>next()</code> 返回的 Promise 会把下游任意深度、任意异步位置抛出的错误一路冒泡上来，一个 <code>try...catch</code> 就能全接住。Express 里做不到这一点，异步回调里抛的错根本进不了 <code>try...catch</code>，得手动 <code>next(err)</code> 传出去。</p>
+<p><code>handler</code> 必须是第一个 <code>app.use</code> 的中间件。注册顺序就是洋葱的层次，它在最外层，才能包住里面所有人。这个顺序写错了，兜底就只对它后面注册的中间件生效。</p>
+<h3 id="5-3-监听-error-事件收底"><a href="#5-3-监听-error-事件收底" class="headerlink" title="5.3 监听 error 事件收底"></a>5.3 监听 error 事件收底</h3><p>运行过程中一旦出错，Koa 会触发一个 <code>error</code> 事件，监听它也能处理错误。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">main</span> = ctx =&gt; &#123;</span><br><span class="line">  ctx.<span class="keyword">throw</span>(<span class="number">500</span>);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">on</span>(<span class="string">&#x27;error&#x27;</span>, <span class="function">(<span class="params">err, ctx</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;server error&#x27;</span>, err);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
+
+<p>访问 <code>http://127.0.0.1:3000</code>，命令行窗口里会看到 <code>server error xxx</code>。</p>
+<p>它和 5.2 的 <code>try...catch</code> 不是二选一，而是配合用。<code>try...catch</code> 负责给用户返回一个体面的响应，<code>app.on(&#39;error&#39;)</code> 负责把错误记到日志、发到监控平台。有一点要留意，如果你在 <code>handler</code> 里 catch 住了错误并且没有重新抛出，<code>error</code> 事件就不会触发了，想两边都要的话，在 catch 块里手动调一下 <code>ctx.app.emit(&#39;error&#39;, err, ctx)</code>。</p>
+<h2 id="六、Web-App-的常用能力"><a href="#六、Web-App-的常用能力" class="headerlink" title="六、Web App 的常用能力"></a>六、Web App 的常用能力</h2><h3 id="6-1-Cookies"><a href="#6-1-Cookies" class="headerlink" title="6.1 Cookies"></a>6.1 Cookies</h3><p><code>ctx.cookies</code> 用来读写 Cookie。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> main = <span class="keyword">function</span>(<span class="params">ctx</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> n = <span class="title class_">Number</span>(ctx.<span class="property">cookies</span>.<span class="title function_">get</span>(<span class="string">&#x27;view&#x27;</span>) || <span class="number">0</span>) + <span class="number">1</span>;</span><br><span class="line">    ctx.<span class="property">cookies</span>.<span class="title function_">set</span>(<span class="string">&#x27;view&#x27;</span>, n);</span><br><span class="line">    ctx.<span class="property">response</span>.<span class="property">body</span> = n + <span class="string">&#x27; views&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><strong>5.2 表单</strong></p>
-<blockquote>
-<p><code>Web </code>应用离不开处理表单。本质上，表单就是<code> POST</code> 方法发送到服务器的键值对。<code>koa-body</code>模块可以用来从 <code>POST</code> 请求的数据体里面提取键值对</p>
-</blockquote>
+<p>访问 <code>http://127.0.0.1:3000</code> 会看到 <code>1 views</code>，刷新一次变成 <code>2 views</code>，每刷新一次计数加一。</p>
+<p><code>cookies.set</code> 的第三个参数可以传选项，<code>httpOnly</code> 默认是 <code>true</code>（JS 读不到，防 XSS 窃取），生产环境记得再加上 <code>secure: true</code> 和 <code>sameSite: &#39;lax&#39;</code>。另外 Koa 的签名 Cookie 需要先给 <code>app.keys</code> 赋值，不设 keys 直接用 <code>signed: true</code> 会直接报错。</p>
+<h3 id="6-2-表单"><a href="#6-2-表单" class="headerlink" title="6.2 表单"></a>6.2 表单</h3><p>表单就是 POST 方法发送到服务器的键值对。<code>koa-body</code> 模块可以从 POST 请求的数据体里提取键值对。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> koaBody = <span class="built_in">require</span>(<span class="string">&#x27;koa-body&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> main = <span class="keyword">async</span> <span class="keyword">function</span>(<span class="params">ctx</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> body = ctx.<span class="property">request</span>.<span class="property">body</span>;</span><br><span class="line">  <span class="keyword">if</span> (!body.<span class="property">name</span>) ctx.<span class="keyword">throw</span>(<span class="number">400</span>, <span class="string">&#x27;.name required&#x27;</span>);</span><br><span class="line">  ctx.<span class="property">body</span> = &#123; <span class="attr">name</span>: body.<span class="property">name</span> &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">koaBody</span>());</span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
-<ul>
-<li>打开另一个命令行窗口，运行下面的命令</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">$ curl -X <span class="variable constant_">POST</span> --data <span class="string">&quot;name=Jack&quot;</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">3000</span></span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line">$ curl -X <span class="variable constant_">POST</span> --data <span class="string">&quot;name&quot;</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">3000</span></span><br><span class="line">name required</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>上面代码使用 POST 方法向服务器发送一个键值对，会被正确解析。如果发送的数据不正确，就会收到错误提示。</p>
-</blockquote>
-<p><strong>2.3 文件上传</strong></p>
-<blockquote>
-<p>koa-body模块还可以用来处理文件上传</p>
-</blockquote>
-<ul>
-<li>打开另一个命令行窗口，运行下面的命令，上传一个文件。注意，<code>/path/to/file</code>要更换为真实的文件路径</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">$ curl --form upload=@/path/to/file <span class="attr">http</span>:<span class="comment">//127.0.0.1:3000</span></span><br><span class="line">[<span class="string">&quot;/tmp/file&quot;</span>]</span><br></pre></td></tr></table></figure>
 
+<p>打开另一个命令行窗口验证一下。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ curl -X POST --data <span class="string">&quot;name=Jack&quot;</span> 127.0.0.1:3000</span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;Jack&quot;</span>&#125;</span><br><span class="line"></span><br><span class="line">$ curl -X POST --data <span class="string">&quot;name&quot;</span> 127.0.0.1:3000</span><br><span class="line">.name required</span><br></pre></td></tr></table></figure>
 
+<p>发送合法键值对时会被正确解析，数据不对就收到错误提示。</p>
+<p><code>koa-body</code> 的注册顺序同样重要，它必须在读 <code>ctx.request.body</code> 的中间件之前 use，因为解析请求体是个异步动作，得先让它把流读完并挂到 <code>ctx.request.body</code> 上。Koa 本体不解析请求体，<code>ctx.request.body</code> 这个属性完全是这个中间件加上去的，没装它的话你拿到的永远是 <code>undefined</code>。</p>
+<h3 id="6-3-文件上传"><a href="#6-3-文件上传" class="headerlink" title="6.3 文件上传"></a>6.3 文件上传</h3><p><code>koa-body</code> 还能处理文件上传，把 <code>multipart</code> 打开就行。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> os = <span class="built_in">require</span>(<span class="string">&#x27;os&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> koaBody = <span class="built_in">require</span>(<span class="string">&#x27;koa-body&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> main = <span class="keyword">async</span> <span class="keyword">function</span>(<span class="params">ctx</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> tmpdir = os.<span class="title function_">tmpdir</span>();</span><br><span class="line">  <span class="keyword">const</span> filePaths = [];</span><br><span class="line">  <span class="keyword">const</span> files = ctx.<span class="property">request</span>.<span class="property">body</span>.<span class="property">files</span> || &#123;&#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> key <span class="keyword">in</span> files) &#123;</span><br><span class="line">    <span class="keyword">const</span> file = files[key];</span><br><span class="line">    <span class="keyword">const</span> filePath = path.<span class="title function_">join</span>(tmpdir, file.<span class="property">name</span>);</span><br><span class="line">    <span class="keyword">const</span> reader = fs.<span class="title function_">createReadStream</span>(file.<span class="property">path</span>);</span><br><span class="line">    <span class="keyword">const</span> writer = fs.<span class="title function_">createWriteStream</span>(filePath);</span><br><span class="line">    reader.<span class="title function_">pipe</span>(writer);</span><br><span class="line">    filePaths.<span class="title function_">push</span>(filePath);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ctx.<span class="property">body</span> = filePaths;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">koaBody</span>(&#123; <span class="attr">multipart</span>: <span class="literal">true</span> &#125;));</span><br><span class="line">app.<span class="title function_">use</span>(main);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
 
+<p>打开另一个命令行窗口上传一个文件，注意 <code>/path/to/file</code> 要换成真实路径。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ curl --form upload=@/path/to/file http://127.0.0.1:3000</span><br><span class="line">[<span class="string">&quot;/tmp/file&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>这段代码有两个地方值得多说一句。</p>
+<p>一是文件的落点。<code>koa-body</code> 拿到上传的文件后会先写到系统临时目录，<code>file.path</code> 指的就是那个临时文件，上面的代码再把它复制到 <code>os.tmpdir()</code> 下。真做业务的话这一步应该是移到你的存储目录或者直接传对象存储，临时目录随时可能被系统清理。</p>
+<p>二是 <code>reader.pipe(writer)</code> 是异步的，代码没有等它完成就把 <code>filePaths</code> 返回了。响应发出去的那一刻文件可能还没写完，做后续处理（比如立刻读这个文件算 MD5）就会踩空。要么用 <code>stream/promises</code> 里的 <code>pipeline</code> 配 <code>await</code>，要么直接 <code>fs.promises.rename</code>。</p>
+<p>还有一点：<code>koa-body</code> 后来的版本把文件挪到了 <code>ctx.request.files</code>，不再放在 <code>ctx.request.body.files</code> 里，你照抄上面这段可能拿到空对象。具体在哪个版本改的、当前版本的字段名叫什么，以官方文档为准，装完先 <code>console.log(ctx.request)</code> 打一眼最保险。</p>
+<h2 id="七、这些写法在今天还成立吗"><a href="#七、这些写法在今天还成立吗" class="headerlink" title="七、这些写法在今天还成立吗"></a>七、这些写法在今天还成立吗</h2><p>这篇写于 2018 年，核心概念（Context、洋葱模型、async 中间件、错误兜底）到今天一个字都没变，可以放心用。变的是周边生态和一些默认值，挑几条影响比较大的说一下。</p>
+<p><code>koa-route</code> 已经很久没动静了，新项目直接上 <code>@koa/router</code>。<code>koa-body</code> 也有过 API 调整，最明显的就是上面提到的文件字段位置。<code>fs.promised</code> 这个包彻底不需要了，Node 内置的 <code>fs/promises</code> 就是它的替代品。</p>
+<p>Koa 本身后来发过新的大版本，主要变化在于对 Node 版本的最低要求提高了，以及把一些早就打了废弃标记的 API 真正删掉。具体删了哪些、最低支持到哪个 Node 版本，以官方仓库的 README 和 CHANGELOG 为准，我没有在生产项目上完整验证过新大版本，不敢在这里写死。</p>
+<p>生态上更大的变化是选型层面的。做纯 API 服务的话现在有 Fastify、NestJS 这些更完整的方案，Koa 那种「什么都得自己装」的自由度在小项目里是优点，在多人协作的中大型项目里反而容易变成每个人一套写法。不是说 Koa 不行，而是它更适合你明确知道自己要什么的场景，比如写一个网关、一个 BFF 层，或者就是想把中间件机制彻底搞懂。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Koa 值得记住的东西不多，但每一条都要吃透。</p>
+<p><code>ctx</code> 是一次请求的全部上下文，长写法（<code>ctx.request</code> &#x2F; <code>ctx.response</code>）是 Koa 的封装，短写法（<code>ctx.body</code> &#x2F; <code>ctx.status</code>）是代理，<code>ctx.req</code> &#x2F; <code>ctx.res</code> 才是 Node 原生对象。</p>
+<p>洋葱模型的关键不是「先进后出」这四个字，而是 <code>next()</code> 返回 Promise 这个设计。正因为它返回 Promise，<code>await next()</code> 之后的代码才能拿到下游完整执行完的时刻，耗时统计、统一错误捕获、响应体二次加工这几件事才能用一个中间件搞定。漏写 <code>await</code> 是新手最常见的 bug，症状是耗时永远为 0、错误捕获不到、响应提前发出。</p>
+<p>错误处理用两层：最外层中间件 <code>try &#123; await next() &#125; catch</code> 负责给用户返回体面的响应，<code>app.on(&#39;error&#39;)</code> 负责落日志和上报，catch 之后想让两边都生效就手动 <code>emit</code> 一次。</p>
+<p>至于路由、静态资源、请求体解析这些，Koa 一概不管，全靠中间件。这既是它轻的原因，也是你选型时要提前想清楚的成本。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://koajs.com/">Koa 官方文档</a></li>
+<li><a href="https://koa.bootcss.com/">Koa 中文文档</a></li>
+<li><a href="https://github.com/koajs/compose">koa-compose 源码仓库</a></li>
+<li><a href="https://github.com/koajs/router">@koa&#x2F;router 仓库</a></li>
+<li><a href="https://github.com/koajs/koa-body">koa-body 仓库</a></li>
+<li><a href="http://www.ruanyifeng.com/blog/2017/08/koa.html">阮一峰 Koa 框架教程</a></li>
+<li><a href="https://nodejs.org/api/fs.html#promises-api">Node.js fs&#x2F;promises 官方文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

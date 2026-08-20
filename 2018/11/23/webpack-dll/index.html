@@ -7,33 +7,35 @@
 <head>
   <meta charset="utf-8">
   
-  <title>dll预编译提高webpack打包速度 | 前端进阶之旅</title>
+  <title>dll 预编译提高 webpack 打包速度，以及它现在的替代方案 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="webpack,dll," />
+    <meta name="keywords" content="webpack,dll,构建优化,打包速度," />
   
 
-  <meta name="description" content="博客链接 http:&#x2F;&#x2F;blog.poetries.top&#x2F;2018&#x2F;11&#x2F;23&#x2F;webpack-dll  一、webpack的dll功能 基于webpack3构建  1.1 dll介绍 我们构建前端项目的时候，往往希望第三方库（vendors）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此Webpack的文档建议用CommonsChunkPlugin来单独打包第三方库">
+  <meta name="description" content="讲清 DllPlugin 的原理和三步接入方法，为什么改一行业务代码 vendor 的 hash 也会变，配合 happypack 多线程打包，并给出 webpack 5 用持久化缓存替代 dll 的迁移写法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="dll预编译提高webpack打包速度">
+<meta property="og:title" content="dll 预编译提高 webpack 打包速度，以及它现在的替代方案">
 <meta property="og:url" content="http://blog.poetries.top/2018/11/23/webpack-dll/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="博客链接 http:&#x2F;&#x2F;blog.poetries.top&#x2F;2018&#x2F;11&#x2F;23&#x2F;webpack-dll  一、webpack的dll功能 基于webpack3构建  1.1 dll介绍 我们构建前端项目的时候，往往希望第三方库（vendors）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此Webpack的文档建议用CommonsChunkPlugin来单独打包第三方库">
+<meta property="og:description" content="讲清 DllPlugin 的原理和三步接入方法，为什么改一行业务代码 vendor 的 hash 也会变，配合 happypack 多线程打包，并给出 webpack 5 用持久化缓存替代 dll 的迁移写法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/639.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/640.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/641.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/642.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/643.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/639.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/640.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/641.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/642.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/643.png">
 <meta property="article:published_time" content="2018-11-23T03:10:21.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.697Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.961Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="webpack">
 <meta property="article:tag" content="dll">
+<meta property="article:tag" content="构建优化">
+<meta property="article:tag" content="打包速度">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/639.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/639.png">
 
   
 
@@ -211,7 +213,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81webpack%E7%9A%84dll%E5%8A%9F%E8%83%BD"><span class="toc-text">一、webpack的dll功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-dll%E4%BB%8B%E7%BB%8D"><span class="toc-text">1.1 dll介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-dll%E4%BD%BF%E7%94%A8"><span class="toc-text">1.2 dll使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81happypack-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%93%E5%8C%85"><span class="toc-text">二、happypack 多线程打包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%9B%B4%E5%A4%9A%E5%8F%82%E8%80%83"><span class="toc-text">三、更多参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81webpack-%E7%9A%84-dll-%E5%8A%9F%E8%83%BD"><span class="toc-text">一、webpack 的 dll 功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-dll-%E4%BB%8B%E7%BB%8D"><span class="toc-text">1.1 dll 介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-dll-%E4%BD%BF%E7%94%A8"><span class="toc-text">1.2 dll 使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81happypack-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%93%E5%8C%85"><span class="toc-text">二、happypack 多线程打包</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81webpack-5-%E4%B9%8B%E5%90%8E%EF%BC%8Cdll-%E8%AF%A5%E6%8D%A2%E6%88%90%E4%BB%80%E4%B9%88"><span class="toc-text">三、webpack 5 之后，dll 该换成什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -234,13 +236,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-webpack-dll" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">dll预编译提高webpack打包速度</h1>
+    <h1 class="post-title">dll 预编译提高 webpack 打包速度，以及它现在的替代方案</h1>
 
     <div class="article-meta">
       <span>
@@ -276,12 +278,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.4k字</span>
+            <span>字数统计 3.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -295,91 +297,106 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>博客链接 <a href="http://blog.poetries.top/2018/11/23/webpack-dll">http://blog.poetries.top/2018/11/23/webpack-dll</a></p>
-</blockquote>
-<h2 id="一、webpack的dll功能"><a href="#一、webpack的dll功能" class="headerlink" title="一、webpack的dll功能"></a>一、webpack的dll功能</h2><blockquote>
-<p>基于<code>webpack3</code>构建</p>
-</blockquote>
-<h3 id="1-1-dll介绍"><a href="#1-1-dll介绍" class="headerlink" title="1.1 dll介绍"></a>1.1 dll介绍</h3><blockquote>
-<p>我们构建前端项目的时候，往往希望第三方库（<code>vendors</code>）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此<code>Webpack</code>的文档建议用<code>CommonsChunkPlugin</code>来单独打包第三方库</p>
-</blockquote>
+        <p>一个上了 antd、react 全家桶、moment、lodash 的中台项目，改一行业务代码，<code>npm run build</code> 要跑一分多钟。看构建日志会发现，绝大部分时间花在了那些一个月都不会动一次的第三方库上，每次都要重新解析、转译、压缩一遍。</p>
+<p>DllPlugin 要解决的就是这件事：把第三方库提前单独打一次包，之后的每次构建直接引用现成的产物，跳过整个编译过程。这篇把原理、三步接入、踩过的坑讲一遍，最后说清楚 webpack 5 上为什么不再推荐这套做法，以及该换成什么。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>我们这里的<code>dll.js</code> 是提前打包好了的，而不是在每次<code>build</code>的时候去打包输出的；这样才能做到依赖包一次构建，无限次使用</li>
-<li><code>webpack</code>输出的文件名都带有<code>hash</code>值； 而用<code>dll</code>构建后输出的文件名是固定的</li>
+<li>为什么 <code>CommonsChunkPlugin</code> 分了 vendor，改业务代码 vendor 的 hash 还是会变</li>
+<li>dll 的思路是从哪来的，<code>manifest.json</code> 里存的到底是什么</li>
+<li>三步接入 DllPlugin 和 DllReferencePlugin，以及每一步的坑</li>
+<li>happypack 多线程打包怎么配，什么时候是负优化</li>
+<li>webpack 5 用 <code>cache: &#123; type: &#39;filesystem&#39; &#125;</code> 替代 dll 的完整写法和迁移思路</li>
 </ul>
+<h2 id="一、webpack-的-dll-功能"><a href="#一、webpack-的-dll-功能" class="headerlink" title="一、webpack 的 dll 功能"></a>一、webpack 的 dll 功能</h2><p>下面这套配置基于 <code>webpack3</code> 构建，webpack 4 上写法基本一致，webpack 5 的情况放在最后单独讲。</p>
+<h3 id="1-1-dll-介绍"><a href="#1-1-dll-介绍" class="headerlink" title="1.1 dll 介绍"></a>1.1 dll 介绍</h3><p>我们构建前端项目的时候，往往希望第三方库（<code>vendors</code>）和自己写的代码可以分开打包，因为第三方库往往不需要经常打包更新。对此 <code>Webpack</code> 的文档建议用 <code>CommonsChunkPlugin</code> 来单独打包第三方库。</p>
+<p>这里要先分清两件事，很多人一开始会混。</p>
+<p>我们这里的 <code>dll.js</code> 是提前打包好了的，而不是在每次 <code>build</code> 的时候去打包输出的，这样才能做到依赖包一次构建、无限次使用。另外，<code>webpack</code> 输出的文件名都带有 <code>hash</code> 值，而用 <code>dll</code> 构建后输出的文件名是固定的。</p>
+<p>先看 <code>CommonsChunkPlugin</code> 那种做法长什么样：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="attr">entry</span>: &#123;</span><br><span class="line">  <span class="attr">vendor</span>: [<span class="string">&quot;jquery&quot;</span>, <span class="string">&quot;other-lib&quot;</span>],</span><br><span class="line">  <span class="attr">app</span>: <span class="string">&quot;./entry&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">CommonsChunkPlugin</span>(&#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&quot;vendor&quot;</span>,</span><br><span class="line"></span><br><span class="line">  <span class="comment">// filename: &quot;vendor.js&quot;</span></span><br><span class="line">  <span class="comment">// (Give the chunk a different name)</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">minChunks</span>: <span class="title class_">Infinity</span>,</span><br><span class="line">  <span class="comment">// (with more entries, this ensures that no other module</span></span><br><span class="line">  <span class="comment">//  goes into the vendor chunk)</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>通常为了对抗缓存，我们会给售出文件的文件名中加入<code>hash</code>的后缀——但是——我们编辑了<code>app</code>部分的代码后，重新打包，发现<code>vendor</code>的<code>hash</code>也变化了</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/639.png"></p>
-<blockquote>
-<p>这么一来，意味着每次发布版本的时候，vendor代码都要刷新，即使我并没有修改其中的代码。这样并不符合我们分开打包的初衷</p>
-</blockquote>
-<ul>
-<li><code>Dll</code>是<code>Webpack</code>最近新加的功能</li>
-<li><code>Dll</code>这个概念应该是借鉴了<code>Windows</code>系统的<code>dll</code>。一个<code>dll</code>包，就是一个纯纯的依赖库，它本身不能运行，是用来给你的<code>app</code>引用的</li>
-<li>打包<code>dll</code>的时候，<code>Webpack</code>会将所有包含的库做一个索引，写在一个<code>manifest</code>文件中，而引用<code>dll</code>的代码（<code>dll user</code>）在打包的时候，只需要读取这个<code>manifest</code>文件，就可以了。</li>
-</ul>
+<p>这份配置确实把第三方库单独拆成了一个 <code>vendor</code> chunk，看起来目的达到了。但它有个致命问题。</p>
+<p>通常为了对抗缓存，我们会给输出文件的文件名中加入 <code>hash</code> 后缀。问题就出在这里，我们编辑了 <code>app</code> 部分的代码后重新打包，会发现 <code>vendor</code> 的 <code>hash</code> 也跟着变了。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/639.png" alt="改动 app 代码后 vendor 的 hash 也跟着变化"></p>
+<p>这么一来，每次发布版本的时候 vendor 代码都要刷新，即使我并没有修改其中的代码。这样并不符合我们分开打包的初衷。</p>
+<p>那为什么改业务代码会让 vendor 改名呢？两个原因叠在一起。一是 <code>[hash]</code> 是整次构建的哈希，只要有任何文件变了，所有产物一起改名，得换成 <code>[chunkhash]</code> 才是按 chunk 内容算；二是 webpack 的运行时代码里存着模块 id 到 chunk 的映射表，业务代码一变这张表就变，而这段 runtime 默认是塞在 vendor 里的。所以就算换了 <code>[chunkhash]</code>，不把 runtime 单独提出去，vendor 照样会变。</p>
+<p>dll 走的是另一条路，它干脆让 vendor 不参与每次构建。</p>
+<p><code>Dll</code> 这个概念应该是借鉴了 <code>Windows</code> 系统的 <code>dll</code>。一个 <code>dll</code> 包，就是一个纯纯的依赖库，它本身不能运行，是用来给你的 <code>app</code> 引用的。打包 <code>dll</code> 的时候，<code>Webpack</code> 会将所有包含的库做一个索引，写在一个 <code>manifest</code> 文件中，而引用 <code>dll</code> 的代码（<code>dll user</code>）在打包的时候，只需要读取这个 <code>manifest</code> 文件就可以了。</p>
 <p><strong>优势</strong></p>
 <ul>
-<li><code>Dll</code>打包以后是独立存在的，只要其包含的库没有增减、升级，<code>hash</code>也不会变化，因此线上的<code>dll</code>代码不需要随着版本发布频繁更新</li>
-<li><code>App</code>部分代码修改后，只需要编译<code>app</code>部分的代码，<code>dll</code>部分，只要包含的库没有增减、升级，就不需要重新打包。这样也大大提高了每次编译的速度</li>
-<li>假设你有多个项目，使用了相同的一些依赖库，它们就可以共用一个<code>dll</code></li>
+<li><code>Dll</code> 打包以后是独立存在的，只要其包含的库没有增减、升级，<code>hash</code> 也不会变化，因此线上的 <code>dll</code> 代码不需要随着版本发布频繁更新</li>
+<li><code>App</code> 部分代码修改后，只需要编译 <code>app</code> 部分的代码，<code>dll</code> 部分，只要包含的库没有增减、升级，就不需要重新打包。这样也大大提高了每次编译的速度</li>
+<li>假设你有多个项目，使用了相同的一些依赖库，它们就可以共用一个 <code>dll</code></li>
 </ul>
-<h3 id="1-2-dll使用"><a href="#1-2-dll使用" class="headerlink" title="1.2 dll使用"></a>1.2 dll使用</h3><blockquote>
-<p>首先要先建立一个<code>dll</code>的配置文件，<code>entry</code>只包含第三方库</p>
-</blockquote>
-<p><strong>第一步：新建webpack.dll.conf.js</strong></p>
-<ul>
-<li><code>webpack.DllPlugin</code>的选项中，<code>path</code>是<code>manifest</code>文件的输出路径；<code>name</code>是<code>dll</code>暴露的对象名，要跟<code>output.library</code>保持一致</li>
-</ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.dll.conf.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">entry</span>: &#123;</span><br><span class="line">    <span class="comment">// 把这些资源打包成dll，提高编译速度</span></span><br><span class="line">    <span class="attr">react</span>: [<span class="string">&#x27;react&#x27;</span>,<span class="string">&#x27;react-router-dom&#x27;</span>,<span class="string">&#x27;redux&#x27;</span>,<span class="string">&#x27;redux-immutable&#x27;</span>,<span class="string">&#x27;immutable&#x27;</span>,<span class="string">&#x27;react-redux&#x27;</span>,<span class="string">&#x27;react-router&#x27;</span>,<span class="string">&#x27;redux-logger&#x27;</span>,<span class="string">&#x27;redux-thunk&#x27;</span>,<span class="string">&#x27;styled-components&#x27;</span>],</span><br><span class="line">    <span class="attr">ui</span>: [<span class="string">&#x27;antd-mobile&#x27;</span>,<span class="string">&#x27;antd&#x27;</span>],</span><br><span class="line">    <span class="attr">others</span>: [<span class="string">&#x27;react-icons&#x27;</span>,<span class="string">&#x27;axios&#x27;</span>,<span class="string">&#x27;clipboard&#x27;</span>,<span class="string">&#x27;humps&#x27;</span>,<span class="string">&#x27;lodash&#x27;</span>,<span class="string">&#x27;md5&#x27;</span>,<span class="string">&#x27;moment&#x27;</span>,<span class="string">&#x27;normalizr&#x27;</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">output</span>: &#123;</span><br><span class="line">    <span class="attr">path</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&quot;../dist/static/js&quot;</span>),</span><br><span class="line">    <span class="attr">filename</span>: <span class="string">`[name].dll.js`</span>,</span><br><span class="line">    <span class="attr">library</span>: <span class="string">&#x27;[name]_library&#x27;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line"> ...<span class="title class_">Object</span>.<span class="title function_">keys</span>([<span class="string">&#x27;react&#x27;</span>,<span class="string">&#x27;ui&#x27;</span>,<span class="string">&#x27;others&#x27;</span>]).<span class="title function_">map</span>(<span class="function"><span class="params">name</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> webpack.<span class="title class_">DllReferencePlugin</span>(&#123;</span><br><span class="line">        <span class="attr">context</span>: <span class="string">&#x27;.&#x27;</span>,</span><br><span class="line">        <span class="attr">manifest</span>: <span class="built_in">require</span>(<span class="string">`../static/<span class="subst">$&#123;name&#125;</span>.manifest.json`</span>),</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="keyword">new</span> webpack.<span class="property">optimize</span>.<span class="title class_">UglifyJsPlugin</span>()</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第三条在多项目的团队里特别香。几个中台系统用同一套技术栈，dll 打一份放 CDN，所有项目共用，用户从第二个系统开始就是直接命中缓存。</p>
+<h3 id="1-2-dll-使用"><a href="#1-2-dll-使用" class="headerlink" title="1.2 dll 使用"></a>1.2 dll 使用</h3><p>整个流程分三步，先建一个 dll 的配置文件（<code>entry</code> 只包含第三方库），再加一条构建命令，最后在业务配置里把 dll 关联进来。</p>
+<p><strong>第一步：新建 webpack.dll.conf.js</strong></p>
+<p><code>webpack.DllPlugin</code> 的选项中，<code>path</code> 是 <code>manifest</code> 文件的输出路径，<code>name</code> 是 <code>dll</code> 暴露的对象名，要跟 <code>output.library</code> 保持一致。这两个对不上的话，运行时会直接抛 undefined，而且报错信息完全看不出原因，这个坑我踩过。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.dll.conf.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">entry</span>: &#123;</span><br><span class="line">    <span class="comment">// 把这些资源打包成dll，提高编译速度</span></span><br><span class="line">    <span class="attr">react</span>: [<span class="string">&#x27;react&#x27;</span>,<span class="string">&#x27;react-router-dom&#x27;</span>,<span class="string">&#x27;redux&#x27;</span>,<span class="string">&#x27;redux-immutable&#x27;</span>,<span class="string">&#x27;immutable&#x27;</span>,<span class="string">&#x27;react-redux&#x27;</span>,<span class="string">&#x27;react-router&#x27;</span>,<span class="string">&#x27;redux-logger&#x27;</span>,<span class="string">&#x27;redux-thunk&#x27;</span>,<span class="string">&#x27;styled-components&#x27;</span>],</span><br><span class="line">    <span class="attr">ui</span>: [<span class="string">&#x27;antd-mobile&#x27;</span>,<span class="string">&#x27;antd&#x27;</span>],</span><br><span class="line">    <span class="attr">others</span>: [<span class="string">&#x27;react-icons&#x27;</span>,<span class="string">&#x27;axios&#x27;</span>,<span class="string">&#x27;clipboard&#x27;</span>,<span class="string">&#x27;humps&#x27;</span>,<span class="string">&#x27;lodash&#x27;</span>,<span class="string">&#x27;md5&#x27;</span>,<span class="string">&#x27;moment&#x27;</span>,<span class="string">&#x27;normalizr&#x27;</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">output</span>: &#123;</span><br><span class="line">    <span class="attr">path</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&quot;../dist/static/js&quot;</span>),</span><br><span class="line">    <span class="attr">filename</span>: <span class="string">&#x27;[name].dll.js&#x27;</span>,</span><br><span class="line">    <span class="attr">library</span>: <span class="string">&#x27;[name]_library&#x27;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">    <span class="keyword">new</span> webpack.<span class="title class_">DllPlugin</span>(&#123;</span><br><span class="line">      <span class="attr">path</span>: path.<span class="title function_">join</span>(__dirname, <span class="string">&#x27;../dist/static/js/[name].manifest.json&#x27;</span>),</span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;[name]_library&#x27;</span></span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="keyword">new</span> webpack.<span class="property">optimize</span>.<span class="title class_">UglifyJsPlugin</span>()</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这里说明一下，我原来的笔记在 <code>plugins</code> 里写的是 <code>DllReferencePlugin</code> 加一段 <code>Object.keys([&#39;react&#39;,&#39;ui&#39;,&#39;others&#39;]).map(...)</code>，那是错的。<code>DllReferencePlugin</code> 是给业务配置用的，dll 配置里该用 <code>DllPlugin</code>；而 <code>Object.keys</code> 作用在数组上返回的是 <code>[&#39;0&#39;,&#39;1&#39;,&#39;2&#39;]</code> 这样的下标，不是包名。上面已经改成正确写法了。</p>
+<p><code>entry</code> 按「更新频率」分组是个好习惯。React 全家桶、UI 库、工具库各一组，某个库升级时只需要重打对应那一组，不用全量重来。</p>
 <p><strong>第二步：加一个命令</strong></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// package.json</span></span><br><span class="line"><span class="string">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">  <span class="string">&quot;dll&quot;</span>: <span class="string">&quot;webpack --config config/webpack.dll.conf.js&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>执行<code>npm run dll</code></p>
-</blockquote>
-<ul>
-<li>运行<code>Webpack</code>，会输出两个文件一个是打包好的<code>vendor.js</code>，一个就是<code>manifest.json</code>，长这样</li>
-</ul>
+<p>执行 <code>npm run dll</code>。</p>
+<p>运行 <code>Webpack</code> 之后会输出两类文件，一类是打包好的 <code>[name].dll.js</code>，一类是对应的 <code>manifest.json</code>，长这样：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;name&quot;</span>: <span class="string">&quot;vendor_ac51ba426d4f259b8b18&quot;</span>,</span><br><span class="line">  <span class="string">&quot;content&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;./node_modules/antd/dist/antd.js&quot;</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/react.js&quot;</span>: <span class="number">2</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/lib/React.js&quot;</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/node_modules/object-assign/index.js&quot;</span>: <span class="number">4</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/lib/ReactChildren.js&quot;</span>: <span class="number">5</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/lib/PooledClass.js&quot;</span>: <span class="number">6</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/lib/reactProdInvariant.js&quot;</span>: <span class="number">7</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/fbjs/lib/invariant.js&quot;</span>: <span class="number">8</span>,</span><br><span class="line">    <span class="string">&quot;./node_modules/react/lib/ReactElement.js&quot;</span>: <span class="number">9</span>,</span><br><span class="line">    </span><br><span class="line">    ............</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>Webpack</code>将每个库都进行了编号索引，之后的<code>dll user</code>可以读取这个文件，直接用<code>id</code>来引用</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/640.png"></p>
-<p><strong>第三步： 在plugins中增加配置</strong></p>
+<p><code>Webpack</code> 将每个库都进行了编号索引，之后的 <code>dll user</code> 可以读取这个文件，直接用 <code>id</code> 来引用。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/640.png" alt="manifest.json 里记录的模块路径与 id 索引"></p>
+<p>理解这张表是理解 dll 的关键。业务代码构建时遇到 <code>import React from &#39;react&#39;</code>，webpack 会先去 manifest 里查这个路径在不在，在的话就不再解析这个模块，直接生成一句「去全局变量 <code>react_library</code> 里取 id 为 2 的那个模块」。整个解析、转译、压缩的过程都跳过了，省下来的就是这部分时间。</p>
+<p><strong>第三步：在 plugins 中增加配置</strong></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.prod.conf.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">   <span class="attr">plugins</span>: [</span><br><span class="line">        <span class="keyword">new</span> webpack.<span class="title class_">DllReferencePlugin</span>(&#123;</span><br><span class="line">          <span class="attr">manifest</span>: <span class="built_in">require</span>(<span class="string">&#x27;../dll/react-manifest.json&#x27;</span>)</span><br><span class="line">        &#125;),</span><br><span class="line">        <span class="keyword">new</span> webpack.<span class="title class_">DllReferencePlugin</span>(&#123;</span><br><span class="line">          <span class="attr">manifest</span>: <span class="built_in">require</span>(<span class="string">&#x27;../dll/ui-manifest.json&#x27;</span>)</span><br><span class="line">        &#125;),</span><br><span class="line">        <span class="keyword">new</span> webpack.<span class="title class_">DllReferencePlugin</span>(&#123;</span><br><span class="line">          <span class="attr">manifest</span>: <span class="built_in">require</span>(<span class="string">&#x27;../dll/others-manifest.json&#x27;</span>)</span><br><span class="line">        &#125;)</span><br><span class="line">   ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>再次执行<code>npm run build</code></p>
-</blockquote>
-<p>之前<br><img src="https://poetries1.gitee.io/img-repo/2019/10/641.png"></p>
-<p>之后<br><img src="https://poetries1.gitee.io/img-repo/2019/10/642.png"></p>
-<h2 id="二、happypack-多线程打包"><a href="#二、happypack-多线程打包" class="headerlink" title="二、happypack 多线程打包"></a>二、happypack 多线程打包</h2><blockquote>
-<p>一般情况下，js是单线程执行的，但<code>node</code>不是。利用<code>node</code>提供的多线程环境，<code>happypack </code>是可以多线程打包的。基本上打开官网看了一下readme就可以配置了，特别是我只针对js的编译进行优化，配置还是比较简单的。</p>
-</blockquote>
-<p><a href="https://www.npmjs.com/package/happypack">https://www.npmjs.com/package/happypack</a></p>
-<ul>
-<li><code>happyPack</code>把所有串行的东西并行处理,使得<code>loader</code>并行处理，较少文件处理时间</li>
-</ul>
+<p>有几个 dll 分组就 new 几个 <code>DllReferencePlugin</code>，一个都不能漏，漏了那一组就会被重新编译进业务包。</p>
+<p>还有一步文章里容易漏掉：dll 产出的 <code>[name].dll.js</code> 不会自动出现在页面上，得自己在 HTML 里用 <code>&lt;script&gt;</code> 引入，而且要排在业务脚本前面。用了 <code>html-webpack-plugin</code> 的话，可以配合 <code>add-asset-html-webpack-plugin</code> 自动注入。忘了这一步的表现是构建成功但页面一片空白，控制台报某个全局变量 undefined。</p>
+<p>再次执行 <code>npm run build</code>。</p>
+<p>之前</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/641.png" alt="接入 dll 之前的构建耗时"></p>
+<p>之后</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/642.png" alt="接入 dll 之后的构建耗时明显下降"></p>
+<p>时间降下来了，降幅取决于你的第三方依赖有多重，依赖越重收益越大。</p>
+<p>用之前有几件事要想清楚。dll 配置和业务配置的 webpack 版本、babel 配置得对齐，两边不一致会打出跑不起来的产物。依赖升级之后必须重跑 <code>npm run dll</code>，忘了的话会出现「明明装了新版本，跑的还是旧代码」这种玄学问题，我为这个排查了一下午。另外 dll 里的库不参与业务侧的 Tree shaking，你打进去多少就是多少，所以 <code>entry</code> 里不要图省事把整个 <code>package.json</code> 的依赖倒进去。</p>
+<h2 id="二、happypack-多线程打包"><a href="#二、happypack-多线程打包" class="headerlink" title="二、happypack 多线程打包"></a>二、happypack 多线程打包</h2><p>一般情况下，js 是单线程执行的，但 <code>node</code> 不是。利用 <code>node</code> 提供的多线程环境，<code>happypack</code> 是可以多线程打包的。基本上打开官网看了一下 readme 就可以配置了，特别是我只针对 js 的编译进行优化，配置还是比较简单的。</p>
+<p>包地址在 <a href="https://www.npmjs.com/package/happypack">https://www.npmjs.com/package/happypack</a> 。</p>
+<p><code>happyPack</code> 把所有串行的东西并行处理，使得 <code>loader</code> 并行处理，减少文件处理时间。</p>
+<p>它和 dll 打的是不同的位置。dll 省的是「第三方库不用再编译」，happypack 省的是「自己的代码编译得更快」，两个可以叠加用。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// build/webpack.prod.conf.js</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// @file: webpack.config.js</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">HappyPack</span> = <span class="built_in">require</span>(<span class="string">&#x27;happypack&#x27;</span>);</span><br><span class="line"> </span><br><span class="line"><span class="built_in">exports</span>.<span class="property">module</span> = &#123;</span><br><span class="line">  <span class="attr">rules</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">test</span>: <span class="regexp">/.js$/</span>,</span><br><span class="line">      <span class="comment">// 1) replace your original list of loaders with &quot;happypack/loader&quot;:</span></span><br><span class="line">      <span class="comment">// loaders: [ &#x27;babel-loader?presets[]=es2015&#x27; ],</span></span><br><span class="line">      <span class="attr">use</span>: <span class="string">&#x27;happypack/loader&#x27;</span>,</span><br><span class="line">      <span class="attr">include</span>: [ <span class="comment">/* ... */</span> ],</span><br><span class="line">      <span class="attr">exclude</span>: [ <span class="comment">/* ... */</span> ]</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">     <span class="comment">// 2) create the plugin:</span></span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">HappyPack</span>(&#123;</span><br><span class="line">        <span class="comment">// 3) re-add the loaders you replaced above in #1:</span></span><br><span class="line">        <span class="attr">loaders</span>: [ <span class="string">&#x27;babel-loader?presets[]=es2015&#x27;</span> ]</span><br><span class="line">    &#125;)</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这时的编译时间也减小了一些</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/643.png"></p>
-<blockquote>
-<p>更多详情 <a href="http://blog.poetries.top/2018/11/21/webpack-review/#6-1-%E5%88%86%E6%9E%90%E6%89%93%E5%8C%85%E7%BB%93%E6%9E%9C">http://blog.poetries.top/2018/11/21/webpack-review/#6-1-%E5%88%86%E6%9E%90%E6%89%93%E5%8C%85%E7%BB%93%E6%9E%9C</a></p>
-</blockquote>
-<h2 id="三、更多参考"><a href="#三、更多参考" class="headerlink" title="三、更多参考"></a>三、更多参考</h2><ul>
+<p>这时的编译时间也减小了一些。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/643.png" alt="接入 happypack 之后的构建耗时"></p>
+<p>用它有个前提要先想清楚，进程间通信本身是有开销的。文件数量少的小项目开了反而更慢，这类并行化手段几乎都有这个门槛。我的经验是文件数上千再考虑，几百个文件的项目提升很有限。</p>
+<p>另外 <code>happypack</code> 的作者已经不再维护它了，README 里明确建议改用 <code>thread-loader</code>。写法更简单，把它放在耗时 loader 前面就行：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">module</span>: &#123;</span><br><span class="line">    <span class="attr">rules</span>: [&#123;</span><br><span class="line">      <span class="attr">test</span>: <span class="regexp">/\.js$/</span>,</span><br><span class="line">      <span class="attr">use</span>: [<span class="string">&#x27;thread-loader&#x27;</span>, <span class="string">&#x27;babel-loader&#x27;</span>]</span><br><span class="line">    &#125;]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更多分析打包结果的方法可以看 <a href="https://feinterview.poetries.top/blog/webpack-bundleAnalyzer">webpack 打包结果依赖分析</a>，webpack 的配置项全景在 <a href="https://feinterview.poetries.top/blog/webpack-review">webpack 回顾篇</a>。</p>
+<h2 id="三、webpack-5-之后，dll-该换成什么"><a href="#三、webpack-5-之后，dll-该换成什么" class="headerlink" title="三、webpack 5 之后，dll 该换成什么"></a>三、webpack 5 之后，dll 该换成什么</h2><p>这一节是这篇现在最该看的部分。</p>
+<p>webpack 5 带来了持久化缓存，一般就不再用 DllPlugin 了。开启只需要一段配置：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">cache</span>: &#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">&#x27;filesystem&#x27;</span>,</span><br><span class="line">    <span class="comment">// 缓存落盘位置，默认在 node_modules/.cache/webpack</span></span><br><span class="line">    <span class="attr">cacheDirectory</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&#x27;.webpack-cache&#x27;</span>),</span><br><span class="line">    <span class="comment">// 这些文件变了就整个缓存作废</span></span><br><span class="line">    <span class="attr">buildDependencies</span>: &#123;</span><br><span class="line">      <span class="attr">config</span>: [__filename]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它比 dll 好在三个地方。</p>
+<p>覆盖范围更大。dll 只能加速第三方库，持久化缓存把整个构建过程的中间结果都落到磁盘，业务代码的转译结果同样能复用，二次构建整体跳过。</p>
+<p>不用手工维护清单。dll 要你自己列出哪些包进 dll，加了新依赖要记得改配置、重跑命令。持久化缓存不需要，它按文件内容哈希自动判断哪些能复用。</p>
+<p>不会打出不一致的产物。dll 那套双配置最容易出的问题就是两边 babel 配置不同步，持久化缓存没有这个问题，因为它就是同一次构建的缓存。</p>
+<p><code>buildDependencies</code> 这一项是最容易漏配的，它声明「哪些文件变了就整个缓存作废」，通常填 webpack 配置本身、<code>.babelrc</code>、<code>postcss.config.js</code> 这些。不配的话，你改了 babel 的 preset，构建却还在用旧规则的缓存产物，然后开始怀疑人生。</p>
+<p>从 dll 迁到持久化缓存的步骤也简单：删掉 <code>webpack.dll.conf.js</code> 和那条 <code>dll</code> 命令，删掉所有 <code>DllReferencePlugin</code>，删掉 HTML 里手动引入的 dll 脚本，加上上面那段 <code>cache</code> 配置，最后确认 <code>.gitignore</code> 里有缓存目录。</p>
+<p>那 dll 是不是彻底没用了？也不完全。多个项目共享同一份第三方库产物、需要把 vendor 长期挂在 CDN 上这类场景，dll 仍然有它的位置，只是这种需求现在更多会用 Module Federation 来做，那是 webpack 5 提供的另一套能力，能让多个独立构建的应用在运行时共享依赖。</p>
+<p>webpack 5 那一侧完整的构建性能配置我单独写过一篇，<a href="https://feinterview.poetries.top/blog/webpack-5-build-optimization">Webpack 5 构建性能优化实战</a>，缓存、Tree shaking、分包、并行构建都在里面。webpack 4 升级到 5 的变更点在 <a href="https://feinterview.poetries.top/blog/webpack4-update">webpack4 升级篇</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回到最开始那个问题，为什么分了 vendor 还是每次都要重新下载。答案是 <code>[hash]</code> 用错了、runtime 没提出来，dll 则是从根上绕开了这件事，让 vendor 压根不参与构建。</p>
+<p>DllPlugin 的三步很好记：dll 配置里用 <code>DllPlugin</code> 产出 <code>dll.js</code> 和 <code>manifest.json</code>，业务配置里用 <code>DllReferencePlugin</code> 读 manifest，HTML 里把 dll 脚本引进去。三步里最容易漏的是第三步，最容易出错的是 <code>output.library</code> 和 <code>DllPlugin.name</code> 对不上。</p>
+<p>happypack 和 dll 打在不同位置，可以叠加，但它对小项目是负优化，而且已经不维护了，用 <code>thread-loader</code> 替代。</p>
+<p>如果你现在开的是新项目，直接上 webpack 5 的 <code>cache: &#123; type: &#39;filesystem&#39; &#125;</code>，别再折腾 dll 了。存量项目要不要迁，看你的 webpack 版本，能升到 5 就顺手把 dll 那套删掉，配置能少一大截。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://webpack.js.org/plugins/dll-plugin/">webpack DllPlugin</a></li>
+<li><a href="https://webpack.js.org/configuration/cache/">webpack 5 持久化缓存配置</a></li>
+<li><a href="https://webpack.js.org/migrate/5/">webpack 5 迁移指南</a></li>
+<li><a href="https://webpack.js.org/loaders/thread-loader/">thread-loader</a></li>
 <li><a href="https://www.jeffjade.com/2017/08/06/124-webpack-packge-optimization-for-volume/">Webpack 打包优化之体积篇</a></li>
 <li><a href="https://www.jeffjade.com/2017/08/12/125-webpack-package-optimization-for-speed/">Webpack 打包优化之速度篇</a></li>
 <li><a href="https://segmentfault.com/a/1190000007104372">预打包Dll，实现webpack音速编译</a></li>
 <li><a href="https://juejin.im/post/5a4f031b518825733e6040c0">利用DllPlugin分割你的第三方库</a></li>
 <li><a href="https://github.com/p2227/p2227.github.io/issues/21">提高webpack的打包速度：happypack和dll打包</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

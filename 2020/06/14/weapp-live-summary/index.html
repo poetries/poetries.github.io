@@ -7,37 +7,38 @@
 <head>
   <meta charset="utf-8">
   
-  <title>小程序直播总结 | 前端进阶之旅</title>
+  <title>小程序直播总结 live-pusher与live-player接入实践 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="小程序,直播," />
+    <meta name="keywords" content="小程序,直播,音视频," />
   
 
-  <meta name="description" content="一、小程序直播功能目前有哪些实现方案 内嵌腾讯直播H5：腾讯直播已改名NOW直播，小程序接入工具文档无法找到 小程序原生实现：小程序对直播和websocket都进行了比较好的封装，通过live-pusher live-player组件和websocket API即可实现直播互动功能 接入小程序直播插件实现：小程序直播，是微信提供给小程序开发者的直播组件。  二、小程序原生实现直播功能流程 微信小程">
+  <meta name="description" content="小程序直播的三种实现方案对比，重点讲 live-pusher 和 live-player 原生接入，含类目资质、推拉流流程、腾讯云直播配置与 IM 互动。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="小程序直播总结">
+<meta property="og:title" content="小程序直播总结 live-pusher与live-player接入实践">
 <meta property="og:url" content="http://blog.poetries.top/2020/06/14/weapp-live-summary/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、小程序直播功能目前有哪些实现方案 内嵌腾讯直播H5：腾讯直播已改名NOW直播，小程序接入工具文档无法找到 小程序原生实现：小程序对直播和websocket都进行了比较好的封装，通过live-pusher live-player组件和websocket API即可实现直播互动功能 接入小程序直播插件实现：小程序直播，是微信提供给小程序开发者的直播组件。  二、小程序原生实现直播功能流程 微信小程">
+<meta property="og:description" content="小程序直播的三种实现方案对比，重点讲 live-pusher 和 live-player 原生接入，含类目资质、推拉流流程、腾讯云直播配置与 IM 互动。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/8.webp">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/9.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/7.webp">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/1.jpg">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/2.jpg">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/10.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/11.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/12.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/06/13.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/8.webp">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/9.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/7.webp">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/1.jpg">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/2.jpg">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/10.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/11.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/12.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/06/13.png">
 <meta property="article:published_time" content="2020-06-14T07:20:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.696Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.960Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="小程序">
 <meta property="article:tag" content="直播">
+<meta property="article:tag" content="音视频">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2020/06/8.webp">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2020/06/8.webp">
 
   
 
@@ -215,7 +216,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%9B%B4%E6%92%AD%E5%8A%9F%E8%83%BD%E7%9B%AE%E5%89%8D%E6%9C%89%E5%93%AA%E4%BA%9B%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="toc-text">一、小程序直播功能目前有哪些实现方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8E%9F%E7%94%9F%E5%AE%9E%E7%8E%B0%E7%9B%B4%E6%92%AD%E5%8A%9F%E8%83%BD%E6%B5%81%E7%A8%8B"><span class="toc-text">二、小程序原生实现直播功能流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%9B%B4%E6%92%AD%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="toc-text">三、小程序直播实现过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-live-player"><span class="toc-text">3.1 live-player</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-live-pusher"><span class="toc-text">3.2 live-pusher</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-text">3.3 服务端的选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E7%9B%B4%E6%92%AD%E5%9B%9E%E6%94%BE%E5%8A%9F%E8%83%BD"><span class="toc-text">3.4 直播回放功能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8D%B3%E6%97%B6%E9%80%9A%E4%BF%A1-IM"><span class="toc-text">四、即时通信 IM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="toc-text">五、完整示例</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%9B%B4%E6%92%AD%E5%8A%9F%E8%83%BD%E7%9B%AE%E5%89%8D%E6%9C%89%E5%93%AA%E4%BA%9B%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="toc-text">一、小程序直播功能目前有哪些实现方案</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8E%9F%E7%94%9F%E5%AE%9E%E7%8E%B0%E7%9B%B4%E6%92%AD%E5%8A%9F%E8%83%BD%E6%B5%81%E7%A8%8B"><span class="toc-text">二、小程序原生实现直播功能流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%85%88%E8%BF%87%E7%B1%BB%E7%9B%AE%E8%BF%99%E4%B8%80%E5%85%B3"><span class="toc-text">2.1 先过类目这一关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%95%B4%E6%9D%A1%E9%93%BE%E8%B7%AF%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-text">2.2 整条链路长什么样</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E7%9B%B4%E6%92%AD%E5%AE%9E%E7%8E%B0%E8%BF%87%E7%A8%8B"><span class="toc-text">三、小程序直播实现过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-live-player"><span class="toc-text">3.1 live-player</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-live-pusher"><span class="toc-text">3.2 live-pusher</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-text">3.3 服务端的选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E7%BB%84%E4%BB%B6-API-%E6%8E%A5%E5%85%A5"><span class="toc-text">3.4 组件 API 接入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E7%9B%B4%E6%92%AD%E5%9B%9E%E6%94%BE%E5%8A%9F%E8%83%BD"><span class="toc-text">3.5 直播回放功能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8D%B3%E6%97%B6%E9%80%9A%E4%BF%A1-IM"><span class="toc-text">四、即时通信 IM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="toc-text">五、完整示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%BF%99%E5%87%A0%E5%B9%B4%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">六、这几年变了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -238,13 +239,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-weapp-live-summary" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">小程序直播总结</h1>
+    <h1 class="post-title">小程序直播总结 live-pusher与live-player接入实践</h1>
 
     <div class="article-meta">
       <span>
@@ -280,12 +281,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2k字</span>
+            <span>字数统计 4.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 17分</span>
           </span>
       
       
@@ -299,118 +300,119 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、小程序直播功能目前有哪些实现方案"><a href="#一、小程序直播功能目前有哪些实现方案" class="headerlink" title="一、小程序直播功能目前有哪些实现方案"></a>一、小程序直播功能目前有哪些实现方案</h2><ul>
-<li>内嵌腾讯直播H5：腾讯直播已改名NOW直播，小程序接入工具文档无法找到</li>
-<li>小程序原生实现：小程序对直播和<code>websocket</code>都进行了比较好的封装，通过<code>live-pusher</code> <code>live-player</code>组件和<code>websocket API</code>即可实现直播互动功能</li>
-<li>接入小程序直播插件实现：小程序直播，是微信提供给小程序开发者的直播组件。</li>
-</ul>
-<h2 id="二、小程序原生实现直播功能流程"><a href="#二、小程序原生实现直播功能流程" class="headerlink" title="二、小程序原生实现直播功能流程"></a>二、小程序原生实现直播功能流程</h2><blockquote>
-<p>微信小程序从<code>1.7</code>开始，为开发者提供了两个新接口，<code>&lt;live-pusher&gt;</code>和<code>&lt;live-player&gt;</code>，可以在小程序上实现单向的直播功能。通过与技术的结合，比如<code>WebRTC</code>，开发者们还可以进一步在小程序直播的基础上实现连麦功能</p>
-</blockquote>
-<blockquote>
-<p>首先由于微信对小程序直播功能类目有限制，限定了特定类目的小程序使用</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/8.webp"></p>
-<p><strong>另外需要注意的两点：</strong></p>
+        <p>产品那边提了个需求，要在小程序里做直播。听上去像是加个播放器的事，真去调研才发现门槛全在代码之外：类目过不过得了、资质有没有、推流地址从哪来、服务端要不要自己搭。技术选型反而是最后才轮到的事。</p>
+<p>这篇把当时调研和接入的过程完整记一遍，三条实现路线各自的适用场景，<code>live-pusher</code> 和 <code>live-player</code> 两个组件的参数怎么配，腾讯云直播那边的域名和 CNAME 怎么弄，最后是 IM 互动和直播回放。看完你应该能判断出自己这个项目该走哪条路。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>个人号无法申请使用直播功能；</li>
-<li>社交类目开通直播功能需要相关视频许可和文网文资质许可；</li>
-<li>所以小程序开通直播的业务，要根据产品的目的和场景去申请对应的类目。</li>
+<li>小程序直播的三种实现方案，各自的成本和限制</li>
+<li>类目和资质门槛，哪些账号根本开不了直播</li>
+<li>推流和拉流的完整链路，以及两张 API 调用流程图怎么读</li>
+<li><code>live-player</code> 的 live 与 RTC 两种模式，<code>min-cache</code> 和 <code>max-cache</code> 怎么调</li>
+<li><code>live-pusher</code> 的 SD &#x2F; HD &#x2F; FHD &#x2F; RTC 四种模式怎么选</li>
+<li>云直播服务的选型，推流域名与播放域名的 CNAME 配置</li>
+<li>直播回放和 IM 弹幕互动的接入路径</li>
+<li>这几年微信和云厂商这边变了什么</li>
 </ul>
-<blockquote>
+<h2 id="一、小程序直播功能目前有哪些实现方案"><a href="#一、小程序直播功能目前有哪些实现方案" class="headerlink" title="一、小程序直播功能目前有哪些实现方案"></a>一、小程序直播功能目前有哪些实现方案</h2><p>先把路摆出来，一共三条。</p>
+<p>内嵌腾讯直播 H5。腾讯直播已改名 NOW 直播，小程序接入工具文档已经找不到了。这条路当时就走不通，列在这里是为了说明它曾经存在过。</p>
+<p>小程序原生实现。小程序对直播和 <code>websocket</code> 都做了比较好的封装，通过 <code>live-pusher</code>、<code>live-player</code> 组件和 <code>websocket API</code> 就能实现直播互动功能。这条路自由度最高，弹幕、连麦、礼物这些自定义交互都能做，代价是链路要自己搭，云直播的账单也要自己扛。</p>
+<p>接入小程序直播插件实现。小程序直播是微信提供给小程序开发者的直播组件。这条路接入最快，微信把推流端、播放端、商品挂载、回放这一整套都封装好了，代价是交互样式和业务流程基本按微信的来，改不了多少。</p>
+<p>我的判断是这样：如果你的诉求就是「电商小程序里加个直播卖货」，走插件；如果你要做的是在线教育、多人连麦、或者直播界面上有大量自定义交互，那只能走原生。这篇后面主要讲原生这条路。</p>
+<h2 id="二、小程序原生实现直播功能流程"><a href="#二、小程序原生实现直播功能流程" class="headerlink" title="二、小程序原生实现直播功能流程"></a>二、小程序原生实现直播功能流程</h2><p>微信小程序从 <code>1.7</code> 开始，为开发者提供了两个新接口，<code>live-pusher</code> 和 <code>live-player</code>，可以在小程序上实现单向的直播功能。通过和其他技术结合，比如 <code>WebRTC</code>，开发者们还可以进一步在小程序直播的基础上实现连麦功能。</p>
+<h3 id="2-1-先过类目这一关"><a href="#2-1-先过类目这一关" class="headerlink" title="2.1 先过类目这一关"></a>2.1 先过类目这一关</h3><p>由于微信对小程序直播功能的类目有限制，限定了特定类目的小程序才能使用。</p>
+<p><img src="https://s.poetries.top/gitee/2020/06/8.webp" alt="微信对小程序直播功能开放的类目限制表"></p>
+<p>另外需要注意几点：</p>
+<ul>
+<li>个人号无法申请使用直播功能</li>
+<li>社交类目开通直播功能需要相关视频许可和文网文资质许可</li>
+<li>所以小程序开通直播的业务，要根据产品的目的和场景去申请对应的类目</li>
+</ul>
+<p>这条路我建议排在所有技术工作前面。类目和资质走不通，后面代码写得再漂亮也上不了线。</p>
 <p>在小程序管理后台，「开发」-「接口设置」中自助开通对应的权限，如下图所示：</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/9.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/7.webp"></p>
-<blockquote>
-<p>微信小程序原生实现直播功能流程如上图所示，录制端小程序通过<code>[live-pusher]</code>组件对手机和麦克风的数据进行采集和编码推流到服务器，服务器端对数据进行加工处理并分发给多个客户端，播放端小程序通过<code>[live-player]</code>组件从云端拉流并进行实时无差异的解码和渲染，从而实现直播小程序完整互动功能</p>
-</blockquote>
-<p><strong>1. 推流 API 调用流程图</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/1.jpg"></p>
-<p><strong>2. 拉流 API 调用流程图</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/2.jpg"></p>
-<h2 id="三、小程序直播实现过程"><a href="#三、小程序直播实现过程" class="headerlink" title="三、小程序直播实现过程"></a>三、小程序直播实现过程</h2><blockquote>
-<p>微信小程序中的推拉流功能，需要用到微信提供的 <code>live-player</code> <code>live-pusher</code> 标签</p>
-</blockquote>
-<h3 id="3-1-live-player"><a href="#3-1-live-player" class="headerlink" title="3.1 live-player"></a>3.1 live-player</h3><blockquote>
-<p><code>live-player</code> 是微信提供的支持实时音视频播放的组件，<a href="https://developers.weixin.qq.com/miniprogram/dev/component/live-player.html">官方介绍详见组件介绍</a>。</p>
-</blockquote>
-<p>创建 live-player 的演示源码如下</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;live-player</span><br><span class="line">    autoplay</span><br><span class="line">    <span class="attr">wx</span>:<span class="keyword">if</span>=<span class="string">&quot;&#123;&#123;item.playUrl&#125;&#125;&quot;</span></span><br><span class="line">    id=<span class="string">&quot;&#123;&#123;item.streamID&#125;&#125;&quot;</span></span><br><span class="line">    mode=<span class="string">&quot;RTC&quot;</span></span><br><span class="line">    object-fit=<span class="string">&quot;fillCrop&quot;</span></span><br><span class="line">    min-cache=<span class="string">&quot;0.1&quot;</span></span><br><span class="line">    max-cache=<span class="string">&quot;0.3&quot;</span></span><br><span class="line">    src=<span class="string">&quot;&#123;&#123;item.playUrl&#125;&#125;&quot;</span></span><br><span class="line">    debug=<span class="string">&quot;&#123;&#123;pushConfig.showLog&#125;&#125;&quot;</span></span><br><span class="line">    bindstatechange=<span class="string">&quot;onPlayStateChange&quot;</span></span><br><span class="line">    bindnetstatus=<span class="string">&quot;onPlayNetStateChange&quot;</span></span><br><span class="line">    binderror=<span class="string">&quot;error&quot;</span>&gt;</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">cover-view</span> <span class="attr">class</span>=<span class="string">&#x27;character&#x27;</span> <span class="attr">style</span>=<span class="string">&#x27;padding: 0 5px;&#x27;</span>&gt;</span>&#123;&#123;item.streamID&#125;&#125;<span class="tag">&lt;/<span class="name">cover-view</span>&gt;</span></span></span><br><span class="line">&lt;/live-player&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.top/gitee/2020/06/9.png" alt="在小程序管理后台的接口设置中自助开通直播权限"></p>
+<h3 id="2-2-整条链路长什么样"><a href="#2-2-整条链路长什么样" class="headerlink" title="2.2 整条链路长什么样"></a>2.2 整条链路长什么样</h3><p><img src="https://s.poetries.top/gitee/2020/06/7.webp" alt="小程序原生实现直播功能的完整链路示意图"></p>
+<p>微信小程序原生实现直播功能的流程如上图所示。录制端小程序通过 <code>live-pusher</code> 组件对手机摄像头和麦克风的数据进行采集和编码，推流到服务器；服务器端对数据进行加工处理并分发给多个客户端；播放端小程序通过 <code>live-player</code> 组件从云端拉流并进行实时无差异的解码和渲染，从而实现直播小程序完整的互动功能。</p>
+<p>这条链路里，小程序只负责最两头的采集和渲染。中间那一大段全是云服务商的活儿。</p>
+<p>推流 API 调用流程图：</p>
+<p><img src="https://s.poetries.top/gitee/2020/06/1.jpg" alt="live-pusher 推流的 API 调用时序流程图"></p>
+<p>拉流 API 调用流程图：</p>
+<p><img src="https://s.poetries.top/gitee/2020/06/2.jpg" alt="live-player 拉流的 API 调用时序流程图"></p>
+<p>这两张图读的时候盯住两件事：状态回调和错误分支。真机上出问题的时候，你能拿到的信息全在 <code>bindstatechange</code> 和 <code>bindnetstatus</code> 这两个事件里，前者报状态码，后者报网络质量。别嫌麻烦，一开始就把这两个回调的日志打全，后面排查能省一半时间。</p>
+<h2 id="三、小程序直播实现过程"><a href="#三、小程序直播实现过程" class="headerlink" title="三、小程序直播实现过程"></a>三、小程序直播实现过程</h2><p>微信小程序中的推拉流功能，需要用到微信提供的 <code>live-player</code> 和 <code>live-pusher</code> 标签。</p>
+<h3 id="3-1-live-player"><a href="#3-1-live-player" class="headerlink" title="3.1 live-player"></a>3.1 live-player</h3><p><code>live-player</code> 是微信提供的支持实时音视频播放的组件，<a href="https://developers.weixin.qq.com/miniprogram/dev/component/live-player.html">官方介绍详见组件介绍</a>。</p>
+<p>创建 <code>live-player</code> 的演示源码如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">live-player</span></span></span><br><span class="line"><span class="tag">    <span class="attr">autoplay</span></span></span><br><span class="line"><span class="tag">    <span class="attr">wx:if</span>=<span class="string">&quot;&#123;&#123;item.playUrl&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">id</span>=<span class="string">&quot;&#123;&#123;item.streamID&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">mode</span>=<span class="string">&quot;RTC&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">object-fit</span>=<span class="string">&quot;fillCrop&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">min-cache</span>=<span class="string">&quot;0.1&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">max-cache</span>=<span class="string">&quot;0.3&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">src</span>=<span class="string">&quot;&#123;&#123;item.playUrl&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">debug</span>=<span class="string">&quot;&#123;&#123;pushConfig.showLog&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">bindstatechange</span>=<span class="string">&quot;onPlayStateChange&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">bindnetstatus</span>=<span class="string">&quot;onPlayNetStateChange&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">binderror</span>=<span class="string">&quot;error&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cover-view</span> <span class="attr">class</span>=<span class="string">&#x27;character&#x27;</span> <span class="attr">style</span>=<span class="string">&#x27;padding: 0 5px;&#x27;</span>&gt;</span>&#123;&#123;item.streamID&#125;&#125;<span class="tag">&lt;/<span class="name">cover-view</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">live-player</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>请注意</strong></p>
-<ul>
-<li><code>live</code> 模式主要用于直播类场景，比如赛事直播、在线教育、远程培训等等。该模式下，小程序内部的模块会优先保证观看体验的流畅，通过调整 <code>min-cache</code> 和 <code>max-cache</code> 属性，您可以调节观众(播放)端所感受到的时间延迟的大小，文档下面会详细介绍这两个参数</li>
-<li><code>RTC</code> 则主要用于双向视频通话或多人视频通话场景，比如金融开会、在线客服、车险定损、培训会议 等等。在此模式下，对 <code>min-cache</code> 和 <code>max-cache</code> 的设置不会起作用，因为小程序内部会自动将延迟控制在一个很低的水平(<code>500ms </code>左右)。</li>
-</ul>
-<h3 id="3-2-live-pusher"><a href="#3-2-live-pusher" class="headerlink" title="3.2 live-pusher"></a>3.2 live-pusher</h3><blockquote>
-<p>live-pusher 是微信提供的支持实时音视频录制的组件，<a href="https://developers.weixin.qq.com/miniprogram/dev/component/live-pusher.html">官方介绍详见：组件介绍</a></p>
-</blockquote>
-<blockquote>
-<p>创建 <code>live-pusher</code> 的演示源码如下</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;live-pusher</span><br><span class="line">    <span class="attr">wx</span>:<span class="keyword">if</span>=<span class="string">&quot;&#123;&#123;pushUrl&#125;&#125;&quot;</span></span><br><span class="line">    id=<span class="string">&quot;video-livePusher&quot;</span></span><br><span class="line">    mode=<span class="string">&quot;RTC&quot;</span></span><br><span class="line">    url=<span class="string">&quot;&#123;&#123;pushUrl&#125;&#125;&quot;</span></span><br><span class="line">    min-bitrate=<span class="string">&quot;&#123;&#123;pushConfig.minBitrate&#125;&#125;&quot;</span></span><br><span class="line">    max-bitrate=<span class="string">&quot;&#123;&#123;pushConfig.maxBitrate&#125;&#125;&quot;</span></span><br><span class="line">    aspect=<span class="string">&quot;&#123;&#123;pushConfig.aspect&#125;&#125;&quot;</span></span><br><span class="line">    beauty=<span class="string">&quot;&#123;&#123;pushConfig.isBeauty&#125;&#125;&quot;</span></span><br><span class="line">    muted=<span class="string">&quot;&#123;&#123;pushConfig.isMute&#125;&#125;&quot;</span></span><br><span class="line">    background-mute=<span class="string">&quot;true&quot;</span></span><br><span class="line">    debug=<span class="string">&quot;&#123;&#123;pushConfig.showLog&#125;&#125;&quot;</span></span><br><span class="line">    bindstatechange=<span class="string">&quot;onPushStateChange&quot;</span></span><br><span class="line">    bindnetstatus=<span class="string">&quot;onPushNetStateChange&quot;</span>&gt;</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">cover-view</span> <span class="attr">class</span>=<span class="string">&#x27;character&#x27;</span> <span class="attr">style</span>=<span class="string">&#x27;padding: 0 5px;&#x27;</span>&gt;</span>&#123;&#123;isPublishing ? &quot;我(&quot; + publishStreamID + &quot;)&quot;: &quot;&quot;&#125;&#125;<span class="tag">&lt;/<span class="name">cover-view</span>&gt;</span></span></span><br><span class="line">&lt;/live-pusher&gt;</span><br></pre></td></tr></table></figure>
+<p>请注意两种模式的区别。</p>
+<p><code>live</code> 模式主要用于直播类场景，比如赛事直播、在线教育、远程培训等等。该模式下，小程序内部的模块会优先保证观看体验的流畅，通过调整 <code>min-cache</code> 和 <code>max-cache</code> 属性，你可以调节观众端所感受到的时间延迟的大小。</p>
+<p><code>RTC</code> 则主要用于双向视频通话或多人视频通话场景，比如金融开会、在线客服、车险定损、培训会议等等。在此模式下，对 <code>min-cache</code> 和 <code>max-cache</code> 的设置不会起作用，因为小程序内部会自动将延迟控制在一个很低的水平，<code>500ms</code> 左右。</p>
+<p>那 <code>min-cache</code> 和 <code>max-cache</code> 到底在调什么呢？调的是播放端的缓冲区水位。播放器不会拿到一帧就渲染一帧，它会先囤一小段数据再开始播，用来抵消网络抖动。囤得多，卡顿少但延迟大；囤得少，延迟低但网络一抖就卡。</p>
+<p>所以这两个参数不是越小越好，它是延迟和流畅度之间的一个滑块。单向观看的直播，比如带货或者赛事，观众感知不到延迟，可以把水位调高换流畅；需要主播和观众实时对话的场景才值得压低。</p>
+<p>还有一个 <code>cover-view</code>。<code>live-player</code> 是原生组件，层级高于普通的 WXML 元素，想在视频上盖字或者盖按钮只能用 <code>cover-view</code> 和 <code>cover-image</code>，普通的 <code>view</code> 会被压在下面看不见。这个坑我踩过，写了半天弹幕层发现真机上什么都看不到。</p>
+<h3 id="3-2-live-pusher"><a href="#3-2-live-pusher" class="headerlink" title="3.2 live-pusher"></a>3.2 live-pusher</h3><p><code>live-pusher</code> 是微信提供的支持实时音视频录制的组件，<a href="https://developers.weixin.qq.com/miniprogram/dev/component/live-pusher.html">官方介绍详见组件介绍</a>。</p>
+<p>创建 <code>live-pusher</code> 的演示源码如下：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">live-pusher</span></span></span><br><span class="line"><span class="tag">    <span class="attr">wx:if</span>=<span class="string">&quot;&#123;&#123;pushUrl&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">id</span>=<span class="string">&quot;video-livePusher&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">mode</span>=<span class="string">&quot;RTC&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">url</span>=<span class="string">&quot;&#123;&#123;pushUrl&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">min-bitrate</span>=<span class="string">&quot;&#123;&#123;pushConfig.minBitrate&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">max-bitrate</span>=<span class="string">&quot;&#123;&#123;pushConfig.maxBitrate&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">aspect</span>=<span class="string">&quot;&#123;&#123;pushConfig.aspect&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">beauty</span>=<span class="string">&quot;&#123;&#123;pushConfig.isBeauty&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">muted</span>=<span class="string">&quot;&#123;&#123;pushConfig.isMute&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">background-mute</span>=<span class="string">&quot;true&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">debug</span>=<span class="string">&quot;&#123;&#123;pushConfig.showLog&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">bindstatechange</span>=<span class="string">&quot;onPushStateChange&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">bindnetstatus</span>=<span class="string">&quot;onPushNetStateChange&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cover-view</span> <span class="attr">class</span>=<span class="string">&#x27;character&#x27;</span> <span class="attr">style</span>=<span class="string">&#x27;padding: 0 5px;&#x27;</span>&gt;</span>&#123;&#123;isPublishing ? &quot;我(&quot; + publishStreamID + &quot;)&quot;: &quot;&quot;&#125;&#125;<span class="tag">&lt;/<span class="name">cover-view</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">live-pusher</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>请注意：</strong></p>
-<ul>
-<li>SD、HD 和 FHD 主要用于直播类场景，比如赛事直播、在线教育、远程培训等等。SD、HD 和 FHD 分别对应三种默认的清晰度。该模式下，小程序会更加注重清晰度和观看的流畅性，不会过分强调低延迟，也不会为了延迟牺牲画质和流畅性</li>
-<li>RTC 则主要用于双向视频通话或多人视频通话场景，比如金融开会、在线客服、车险定损、培训会议 等等。该模式下，小程序会更加注重降低点到点的时延，也会优先保证声音的质量，在必要的时候会对画面清晰度和画面的流畅性进行一定的缩水</li>
-</ul>
-<h3 id="3-3-服务端的选择"><a href="#3-3-服务端的选择" class="headerlink" title="3.3 服务端的选择"></a>3.3 服务端的选择</h3><blockquote>
-<p>由于自己搭<code>rtmp</code>（例如<code>Nginx rtmp</code>）成本较高，技术实现难度大，考虑云服务商提供的视频直播服务产品，生成推流地址和播放地址，目前市面上主流的云直播产品有：腾讯云、阿里云、七牛云等。</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/10.png"></p>
-<blockquote>
-<p>各平台均提供内容接入与分发和分布式实时视频处理技术，每个平台提供的功能大同小异但各有千秋，平均费用大概 20-30元&#x2F;100G，100G流量可以满足100人同时在线直播4小时</p>
-</blockquote>
-<p><strong>接下来选择腾讯云直播进行接入体验</strong></p>
-<ol>
-<li>申请腾讯云账号，开通云直播权限，它会赠送20gb流量给你 超出需要自己花钱。开通流程请参考下面的文档：<a href="https://cloud.tencent.com/document/product/454/12517">https://cloud.tencent.com/document/product/454/12517</a></li>
-<li>域名管理，在这里面会看到两个域名 一个是推流域名 一个是播放域名，域名可以用自己的 （建议配置自己的域名，2019&#x2F;2&#x2F;26上线查看时发现赠送的播放域名已失效）。具体看下面的文档 <a href="https://cloud.tencent.com/document/product/267/20381">https://cloud.tencent.com/document/product/267/20381</a></li>
-</ol>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/11.png"></p>
-<blockquote>
-<p>由于腾讯云不再赠送播放域名，所以需要租用或者使用自己的域名生成播放地址，自己的播放域名不能直接访问，需要完成CNAME配置</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/12.png"></p>
-<ol start="3">
-<li>最后，小程序直播组件API接入</li>
-</ol>
-<blockquote>
-<p>第一步：<code>&lt;live-pusher&gt;</code>推流（数据包实时上传）示例代码：</p>
-</blockquote>
-<p>使用<code>&lt;live-pusher&gt;</code>发布流，这里使用的参数 <code>min-bitrate=&quot;200&quot;</code> 最小码率 <code>max-bitrate=&quot;400&quot;</code> 最大码率 <code>mode=&quot;RTC&quot;</code> RTC模式，加入房间之后我们需要调用 <code>publish </code>返回一个 <code>rtmp</code> 推流地址</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;live-pusher</span><br><span class="line">  autopush</span><br><span class="line">  min-bitrate=<span class="string">&quot;200&quot;</span></span><br><span class="line">  max-bitrate=<span class="string">&quot;400&quot;</span></span><br><span class="line">  mode=<span class="string">&quot;RTC&quot;</span></span><br><span class="line">  url=<span class="string">&quot;&#123;&#123;publishPath&#125;&#125;&quot;</span>&gt;</span><br><span class="line">&lt;/live-pusher&gt;</span><br></pre></td></tr></table></figure>
+<p>请注意，推流端的模式比播放端多几个。</p>
+<p>SD、HD 和 FHD 主要用于直播类场景，比如赛事直播、在线教育、远程培训等等，分别对应三种默认的清晰度。该模式下，小程序会更加注重清晰度和观看的流畅性，不会过分强调低延迟，也不会为了延迟牺牲画质和流畅性。</p>
+<p>RTC 则主要用于双向视频通话或多人视频通话场景。该模式下，小程序会更加注重降低点到点的时延，也会优先保证声音的质量，在必要的时候会对画面清晰度和画面的流畅性进行一定的缩水。</p>
+<p><code>min-bitrate</code> 和 <code>max-bitrate</code> 是码率上下限，单位是 kbps。移动端网络波动大，推流端会在这个区间内动态调整。区间给窄了，网络一差就只能丢帧；给宽了，画质会在好网和差网之间明显跳变。这个值没有标准答案，得看你的内容类型，画面静态多的场景可以把上限压低。</p>
+<p><code>background-mute</code> 这个属性容易被忽略，它决定 App 切到后台时是否静音推流。主播接了个电话回来发现直播断了，多半就是后台策略没配对。</p>
+<h3 id="3-3-服务端的选择"><a href="#3-3-服务端的选择" class="headerlink" title="3.3 服务端的选择"></a>3.3 服务端的选择</h3><p>自己搭 RTMP 服务，比如 <code>Nginx rtmp</code>，成本较高，技术实现难度大。所以更现实的做法是用云服务商提供的视频直播服务产品，让它生成推流地址和播放地址。目前市面上主流的云直播产品有腾讯云、阿里云、七牛云等。</p>
+<p><img src="https://s.poetries.top/gitee/2020/06/10.png" alt="主流云直播服务商的功能与价格对比"></p>
+<p>各平台均提供内容接入与分发和分布式实时视频处理技术，每个平台提供的功能大同小异但各有千秋。按当时的价格，平均费用大概 20 到 30 元每 100G，100G 流量可以满足 100 人同时在线直播 4 小时。这个数字是 2020 年的行情，现在的定价和赠送政策早就变了，只能当个数量级参考。</p>
+<p>接下来选择腾讯云直播进行接入体验。</p>
+<p>第一步，申请腾讯云账号，开通云直播权限。当时它会赠送 20GB 流量，超出需要自己花钱。开通流程请参考文档：<a href="https://cloud.tencent.com/document/product/454/12517">https://cloud.tencent.com/document/product/454/12517</a></p>
+<p>第二步，域名管理。在这里面会看到两个域名，一个是推流域名，一个是播放域名。域名可以用自己的，建议配置自己的域名，2019 年 2 月 26 日上线查看时发现赠送的播放域名已失效。具体看文档：<a href="https://cloud.tencent.com/document/product/267/20381">https://cloud.tencent.com/document/product/267/20381</a></p>
+<p><img src="https://s.poetries.top/gitee/2020/06/11.png" alt="腾讯云直播控制台的域名管理界面"></p>
+<p>由于腾讯云不再赠送播放域名，所以需要租用或者使用自己的域名生成播放地址。自己的播放域名不能直接访问，需要完成 CNAME 配置。</p>
+<p><img src="https://s.poetries.top/gitee/2020/06/12.png" alt="播放域名的 CNAME 解析配置示意"></p>
+<p>CNAME 这一步是很多人卡住的地方。你在腾讯云控制台加了域名，它会给你一个 CNAME 目标值，你得去自己的 DNS 服务商那里把这条解析加上，流量才会真正走到腾讯云的节点。解析生效有延迟，配完先用 <code>dig</code> 或者 <code>nslookup</code> 确认一下再回来调代码，不然你会以为是自己的推流参数写错了。</p>
+<p>还有一点，推流地址通常带有过期时间和鉴权签名。这套签名的生成一定要放在自己的后端，不要把密钥打进小程序包里。小程序的代码包是能被解出来的。</p>
+<h3 id="3-4-组件-API-接入"><a href="#3-4-组件-API-接入" class="headerlink" title="3.4 组件 API 接入"></a>3.4 组件 API 接入</h3><p>第一步，<code>live-pusher</code> 推流，也就是数据包实时上传。</p>
+<p>使用 <code>live-pusher</code> 发布流，这里用到的参数是 <code>min-bitrate=&quot;200&quot;</code> 最小码率，<code>max-bitrate=&quot;400&quot;</code> 最大码率，<code>mode=&quot;RTC&quot;</code> RTC 模式。加入房间之后我们需要调用 <code>publish</code> 返回一个 <code>rtmp</code> 推流地址。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">live-pusher</span></span></span><br><span class="line"><span class="tag">  <span class="attr">autopush</span></span></span><br><span class="line"><span class="tag">  <span class="attr">min-bitrate</span>=<span class="string">&quot;200&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">max-bitrate</span>=<span class="string">&quot;400&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">mode</span>=<span class="string">&quot;RTC&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">url</span>=<span class="string">&quot;&#123;&#123;publishPath&#125;&#125;&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">live-pusher</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>先使用 <code>wx.createLivePusherContext</code> 创建 <code>LivePusherContext</code>，再使用 setData 设置好 publishPath 之后发布</p>
-</blockquote>
+<p>先使用 <code>wx.createLivePusherContext</code> 创建 <code>LivePusherContext</code>，再使用 <code>setData</code> 设置好 <code>publishPath</code> 之后发布：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// index.js</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Page</span>(&#123;</span><br><span class="line">  <span class="attr">data</span>: &#123;</span><br><span class="line">    <span class="attr">publishPath</span>: <span class="literal">undefined</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">publish</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// joinRoom 之后调用</span></span><br><span class="line">  <span class="comment">// 创建 LivePusherContext</span></span><br><span class="line">  <span class="keyword">const</span> pushContext = wx.<span class="title function_">createLivePusherContext</span>()</span><br><span class="line">  <span class="keyword">const</span> path = session.<span class="title function_">publish</span>()</span><br><span class="line">  <span class="variable language_">this</span>.<span class="title function_">setData</span>(</span><br><span class="line">    &#123; <span class="attr">publishPath</span>: path &#125;,</span><br><span class="line">    <span class="function">() =&gt;</span> &#123;</span><br><span class="line">      pushContext.<span class="title function_">start</span>(&#123;</span><br><span class="line">          <span class="attr">success</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;推流成功&#x27;</span>)</span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="attr">fail</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;推流开始失败&#x27;</span>)</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>第二步：<code>&lt;live-player&gt;</code>播放（数据包实时下载）示例代码：</p>
-</blockquote>
-<p>使用<code>&lt;live-player&gt;</code>订阅流，加入房间之后我们可以调用 <code>subscribe</code> 返回一个 <code>rtmp</code> 拉流地址。 下面我们使用了 <code>wx:for</code> 遍历 <code>data.subscribeList</code> 渲染一个订阅的列表</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;live-player</span><br><span class="line">  autoplay</span><br><span class="line">  <span class="attr">wx</span>:key=<span class="string">&quot;&#123;&#123;item.key&#125;&#125;&quot;</span></span><br><span class="line">  <span class="attr">wx</span>:<span class="keyword">for</span>=<span class="string">&quot;&#123;&#123;subscribeList&#125;&#125;&quot;</span></span><br><span class="line">  min-cache=<span class="string">&quot;0.2&quot;</span></span><br><span class="line">  max-cache=<span class="string">&quot;0.8&quot;</span></span><br><span class="line">  src=<span class="string">&quot;&#123;&#123;item.url&#125;&#125;&quot;</span></span><br><span class="line">  mode=<span class="string">&quot;RTC&quot;</span>&gt;</span><br><span class="line">&lt;/live-player&gt;</span><br></pre></td></tr></table></figure>
+<p>这段代码里有个细节值得单独说：<code>pushContext.start</code> 是放在 <code>setData</code> 的回调里调用的，不是紧跟在 <code>setData</code> 后面。因为 <code>setData</code> 是异步的，视图层要等下一次渲染才拿到 <code>publishPath</code>，此时组件的 <code>url</code> 还是空的，直接调 <code>start</code> 会失败。这类「明明地址是对的却推不上去」的问题，十有八九出在这个时序上。</p>
+<p>第二步，<code>live-player</code> 播放，也就是数据包实时下载。</p>
+<p>使用 <code>live-player</code> 订阅流，加入房间之后我们可以调用 <code>subscribe</code> 返回一个 <code>rtmp</code> 拉流地址。下面我们使用了 <code>wx:for</code> 遍历 <code>data.subscribeList</code> 渲染一个订阅的列表：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">live-player</span></span></span><br><span class="line"><span class="tag">  <span class="attr">autoplay</span></span></span><br><span class="line"><span class="tag">  <span class="attr">wx:key</span>=<span class="string">&quot;&#123;&#123;item.key&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">wx:for</span>=<span class="string">&quot;&#123;&#123;subscribeList&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">min-cache</span>=<span class="string">&quot;0.2&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">max-cache</span>=<span class="string">&quot;0.8&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">src</span>=<span class="string">&quot;&#123;&#123;item.url&#125;&#125;&quot;</span></span></span><br><span class="line"><span class="tag">  <span class="attr">mode</span>=<span class="string">&quot;RTC&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">live-player</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="3-4-直播回放功能"><a href="#3-4-直播回放功能" class="headerlink" title="3.4 直播回放功能"></a>3.4 直播回放功能</h3><blockquote>
-<p>参考 <a href="https://cloud.tencent.com/document/product/454/8681#1.-.E7.9B.B4.E6.92.AD.E5.BD.95.E5.88.B6.E7.9A.84.E5.8E.9F.E7.90.86.E6.98.AF.E4.BB.80.E4.B9.88.EF.BC.9F">腾讯云</a>接入实现，一般是后台来实现</p>
-</blockquote>
-<h2 id="四、即时通信-IM"><a href="#四、即时通信-IM" class="headerlink" title="四、即时通信 IM"></a>四、即时通信 IM</h2><blockquote>
-<p>在直播中加入Im功能，参考<a href="https://cloud.tencent.com/document/product/269">腾讯云IM</a>接入</p>
-</blockquote>
+<p>多路播放这里要注意同屏数量的限制。原生组件是有性能上限的，同一个页面上同时渲染多个 <code>live-player</code> 在中低端机上很容易发热和掉帧。多人连麦的场景，超出可见范围的流应该主动停掉而不是留着。</p>
+<h3 id="3-5-直播回放功能"><a href="#3-5-直播回放功能" class="headerlink" title="3.5 直播回放功能"></a>3.5 直播回放功能</h3><p>参考<a href="https://cloud.tencent.com/document/product/454/8681#1.-.E7.9B.B4.E6.92.AD.E5.BD.95.E5.88.B6.E7.9A.84.E5.8E.9F.E7.90.86.E6.98.AF.E4.BB.80.E4.B9.88.EF.BC.9F">腾讯云</a>的接入实现，一般是后台来做。</p>
+<p>原理是云端在分发的同时把流录制成文件，直播结束后生成一个点播地址。所以回放不是 <code>live-player</code> 的活儿，它放的是直播流；回放要用普通的 <code>video</code> 组件播点播地址。这两个组件别搞混。</p>
+<h2 id="四、即时通信-IM"><a href="#四、即时通信-IM" class="headerlink" title="四、即时通信 IM"></a>四、即时通信 IM</h2><p>直播只解决了「看得到」，弹幕、点赞、送礼这些互动得靠另一条通道。在直播中加入 IM 功能，可以参考<a href="https://cloud.tencent.com/document/product/269">腾讯云 IM</a> 接入：</p>
 <ul>
 <li><a href="https://github.com/tencentyun/TIMSDK/tree/master/WXMini">https://github.com/tencentyun/TIMSDK/tree/master/WXMini</a></li>
 <li><a href="https://cloud.tencent.com/document/product/269/37448">https://cloud.tencent.com/document/product/269/37448</a></li>
 <li><a href="https://imsdk-1252463788.file.myqcloud.com/IM_DOC/Web/SDK.html#createTextMessage">IM sdk文档</a></li>
 </ul>
-<h2 id="五、完整示例"><a href="#五、完整示例" class="headerlink" title="五、完整示例"></a>五、完整示例</h2><blockquote>
-<p>实现效果</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/06/13.png"></p>
-<blockquote>
+<p>自己用 <code>websocket</code> 撸一套当然也行，小程序的 WebSocket API 封装得不错。但真做起来你会发现麻烦的不是连接，是消息可靠性、断线重连、历史消息拉取、以及大房间里的消息限流。一个几千人的直播间，弹幕不做合并和抽样，客户端会被消息刷到卡死。这些东西 IM SDK 里都有现成的，自己造轮子的收益不高。</p>
+<p>不管走哪条路，记得把域名加到小程序后台的 socket 合法域名白名单里，这个和 request 的白名单是分开的。小程序后台的这些配置项我在<a href="https://feinterview.poetries.top/blog/wx-weapp-summary">微信小程序开发总结</a>里也整理过。</p>
+<h2 id="五、完整示例"><a href="#五、完整示例" class="headerlink" title="五、完整示例"></a>五、完整示例</h2><p>实现效果：</p>
+<p><img src="https://s.poetries.top/gitee/2020/06/13.png" alt="小程序直播功能的最终实现效果截图"></p>
 <p>部分代码参考 <a href="https://github.com/poetries/weapp-live">https://github.com/poetries/weapp-live</a></p>
-</blockquote>
+<h2 id="六、这几年变了什么"><a href="#六、这几年变了什么" class="headerlink" title="六、这几年变了什么"></a>六、这几年变了什么</h2><p>这篇是 2020 年 6 月写的，音视频这块变化不小，有几处需要说明。</p>
+<p>微信后台的菜单位置这几年调整过。文中提到的「开发」-「接口设置」这个路径，以及类目管理的入口，随着后台改版会变动，请以你打开时实际看到的后台为准。</p>
+<p>直播相关的类目和资质口径也调整过。微信这几年在直播能力上的布局有变化，视频号直播起来之后，小程序侧直播的权限口径、可申请的类目范围都动过。开工之前请以官方文档和你的后台实际能勾选的选项为准，别照着这篇 2020 年的截图去对。</p>
+<p>腾讯云的价格和赠送策略。文中那个 20GB 赠送流量、20 到 30 元每 100G 的价格，是 2020 年的行情，现在肯定不是这个数了。选型阶段直接去看各家当前的定价页。</p>
+<p>原生组件的能力也在迭代。<code>live-pusher</code> 和 <code>live-player</code> 后续加过一些属性和状态码，模式的行为描述也做过调整。参数含义这块我这篇写的是当时的理解，具体的属性列表和默认值请以组件文档为准。</p>
+<p>最后说句实在的，这套原生方案我是在一个规模不大的项目上跑通的，多人连麦和大房间的压力场景我没有完整验证过。如果你的量级更大，弱网表现和同屏路数这两块建议自己压一遍再定方案。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>小程序直播这件事，技术选型排在第二位，第一位是类目和资质。类目过不了，原生和插件两条路都堵死，所以立项时先去后台看看能不能勾选。</p>
+<p>真到选方案，判断标准就一条：交互要不要自定义。要就走 <code>live-pusher</code> 加 <code>live-player</code> 的原生方案，不要就走微信的直播插件，能省下的不只是代码，还有整条云直播链路的运维和账单。</p>
+<p>原生方案里几个容易栽的地方值得重复一遍。视频上的浮层只能用 <code>cover-view</code>，普通 <code>view</code> 会被原生组件压住。推流地址要在 <code>setData</code> 的回调里才调 <code>start</code>，直接调会因为视图层还没拿到 URL 而失败。播放端的 <code>min-cache</code> 和 <code>max-cache</code> 是延迟与流畅度的滑块，单向观看的场景没必要压到最低。鉴权签名一律放后端，别打进代码包。</p>
+<p>回放走的是点播地址和 <code>video</code> 组件，不是 <code>live-player</code>；IM 建议直接用现成 SDK，消息限流和断线重连这些自己写代价不低。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developers.weixin.qq.com/miniprogram/dev/component/live-player.html">小程序 live-player 组件文档</a></li>
+<li><a href="https://developers.weixin.qq.com/miniprogram/dev/component/live-pusher.html">小程序 live-pusher 组件文档</a></li>
+<li><a href="https://cloud.tencent.com/document/product/267">腾讯云 云直播产品文档</a></li>
+<li><a href="https://cloud.tencent.com/document/product/269">腾讯云 即时通信 IM 文档</a></li>
+<li><a href="https://github.com/poetries/weapp-live">weapp-live 示例代码</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

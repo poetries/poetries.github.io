@@ -7,33 +7,35 @@
 <head>
   <meta charset="utf-8">
   
-  <title>浏览器渲染原理 | 前端进阶之旅</title>
+  <title>浏览器渲染原理 从DOM树到合成层的五个阶段 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,浏览器渲染," />
+    <meta name="keywords" content="JavaScript,浏览器渲染,重绘回流,性能优化," />
   
 
-  <meta name="description" content="一、浏览器如何渲染网页概述：浏览器渲染一共有五步  处理 HTML 并构建 DOM 树。 处理 CSS 构建 CSSOM 树。 将 DOM 与 CSSOM 合并成一个渲染树。 根据渲染树来布局，计算每个节点的位置。 调用 GPU 绘制，合成图层，显示在屏幕上   第四步和第五步是最耗时的部分，这两步合起来，就是我们通常所说的渲染  具体如下图过程如下图所示   渲染  网页生成的时候，至少会渲染一">
+  <meta name="description" content="拆开浏览器渲染的五个阶段，DOM 与 CSSOM 怎么合成渲染树，script 为什么阻塞解析，重绘与回流分别在哪一步触发，以及合成层、will-change、content-visibility 的正确用法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浏览器渲染原理">
+<meta property="og:title" content="浏览器渲染原理 从DOM树到合成层的五个阶段">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/22/browser-render/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、浏览器如何渲染网页概述：浏览器渲染一共有五步  处理 HTML 并构建 DOM 树。 处理 CSS 构建 CSSOM 树。 将 DOM 与 CSSOM 合并成一个渲染树。 根据渲染树来布局，计算每个节点的位置。 调用 GPU 绘制，合成图层，显示在屏幕上   第四步和第五步是最耗时的部分，这两步合起来，就是我们通常所说的渲染  具体如下图过程如下图所示   渲染  网页生成的时候，至少会渲染一">
+<meta property="og:description" content="拆开浏览器渲染的五个阶段，DOM 与 CSSOM 怎么合成渲染树，script 为什么阻塞解析，重绘与回流分别在哪一步触发，以及合成层、will-change、content-visibility 的正确用法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/19.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/20.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/21.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/22.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/23.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/19.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/20.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/21.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/22.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/23.png">
 <meta property="article:published_time" content="2018-12-22T02:20:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.653Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.924Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="浏览器渲染">
+<meta property="article:tag" content="重绘回流">
+<meta property="article:tag" content="性能优化">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/19.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/19.png">
 
   
 
@@ -211,7 +213,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%B5%8F%E8%A7%88%E5%99%A8%E5%A6%82%E4%BD%95%E6%B8%B2%E6%9F%93%E7%BD%91%E9%A1%B5"><span class="toc-text">一、浏览器如何渲染网页</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B5%8F%E8%A7%88%E5%99%A8%E6%B8%B2%E6%9F%93%E4%BA%94%E4%B8%AA%E9%98%B6%E6%AE%B5"><span class="toc-text">二、浏览器渲染五个阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E8%A7%A3%E6%9E%90HTML%E6%A0%87%E7%AD%BE%EF%BC%8C%E6%9E%84%E5%BB%BADOM%E6%A0%91"><span class="toc-text">2.1 第一步：解析HTML标签，构建DOM树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E8%A7%A3%E6%9E%90CSS%E6%A0%87%E7%AD%BE%EF%BC%8C%E6%9E%84%E5%BB%BACSSOM%E6%A0%91"><span class="toc-text">2.2 第二步：解析CSS标签，构建CSSOM树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E6%8A%8ADOM%E5%92%8CCSSOM%E7%BB%84%E5%90%88%E6%88%90%E6%B8%B2%E6%9F%93%E6%A0%91%EF%BC%88render-tree%EF%BC%89"><span class="toc-text">2.3 第三步：把DOM和CSSOM组合成渲染树（render tree）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E5%9C%A8%E6%B8%B2%E6%9F%93%E6%A0%91%E7%9A%84%E5%9F%BA%E7%A1%80%E4%B8%8A%E8%BF%9B%E8%A1%8C%E5%B8%83%E5%B1%80%EF%BC%8C%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E7%9A%84%E5%87%A0%E4%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">2.4 第四步：在渲染树的基础上进行布局，计算每个节点的几何结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E8%B0%83%E7%94%A8-GPU-%E7%BB%98%E5%88%B6%EF%BC%8C%E5%90%88%E6%88%90%E5%9B%BE%E5%B1%82%EF%BC%8C%E6%98%BE%E7%A4%BA%E5%9C%A8%E5%B1%8F%E5%B9%95%E4%B8%8A"><span class="toc-text">2.5 调用 GPU 绘制，合成图层，显示在屏幕上</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B8%B2%E6%9F%93%E4%BC%98%E5%8C%96%E7%9B%B8%E5%85%B3"><span class="toc-text">三、渲染优化相关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Load-%E5%92%8C-DOMContentLoaded-%E5%8C%BA%E5%88%AB"><span class="toc-text">3.1 Load 和 DOMContentLoaded 区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%9B%BE%E5%B1%82"><span class="toc-text">3.2 图层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%87%8D%E7%BB%98%EF%BC%88Repaint%EF%BC%89%E5%92%8C%E5%9B%9E%E6%B5%81%EF%BC%88Reflow%EF%BC%89"><span class="toc-text">3.3 重绘（Repaint）和回流（Reflow）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%B8%B8%E8%A7%81%E5%BC%95%E8%B5%B7%E5%9B%9E%E6%B5%81%E5%B1%9E%E6%80%A7%E5%92%8C%E6%96%B9%E6%B3%95"><span class="toc-text">3.4 常见引起回流属性和方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%87%8F%E5%B0%91%E9%87%8D%E7%BB%98%E5%92%8C%E5%9B%9E%E6%B5%81"><span class="toc-text">3.5 减少重绘和回流</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%B5%8F%E8%A7%88%E5%99%A8%E5%A6%82%E4%BD%95%E6%B8%B2%E6%9F%93%E7%BD%91%E9%A1%B5"><span class="toc-text">一、浏览器如何渲染网页</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%B5%8F%E8%A7%88%E5%99%A8%E6%B8%B2%E6%9F%93%E4%BA%94%E4%B8%AA%E9%98%B6%E6%AE%B5"><span class="toc-text">二、浏览器渲染五个阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E8%A7%A3%E6%9E%90HTML%E6%A0%87%E7%AD%BE%EF%BC%8C%E6%9E%84%E5%BB%BADOM%E6%A0%91"><span class="toc-text">2.1 第一步：解析HTML标签，构建DOM树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E8%A7%A3%E6%9E%90CSS%E6%A0%87%E7%AD%BE%EF%BC%8C%E6%9E%84%E5%BB%BACSSOM%E6%A0%91"><span class="toc-text">2.2 第二步：解析CSS标签，构建CSSOM树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E6%8A%8ADOM%E5%92%8CCSSOM%E7%BB%84%E5%90%88%E6%88%90%E6%B8%B2%E6%9F%93%E6%A0%91%EF%BC%88render-tree%EF%BC%89"><span class="toc-text">2.3 第三步：把DOM和CSSOM组合成渲染树（render tree）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E5%9C%A8%E6%B8%B2%E6%9F%93%E6%A0%91%E7%9A%84%E5%9F%BA%E7%A1%80%E4%B8%8A%E8%BF%9B%E8%A1%8C%E5%B8%83%E5%B1%80%EF%BC%8C%E8%AE%A1%E7%AE%97%E6%AF%8F%E4%B8%AA%E8%8A%82%E7%82%B9%E7%9A%84%E5%87%A0%E4%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">2.4 第四步：在渲染树的基础上进行布局，计算每个节点的几何结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E8%B0%83%E7%94%A8-GPU-%E7%BB%98%E5%88%B6%EF%BC%8C%E5%90%88%E6%88%90%E5%9B%BE%E5%B1%82%EF%BC%8C%E6%98%BE%E7%A4%BA%E5%9C%A8%E5%B1%8F%E5%B9%95%E4%B8%8A"><span class="toc-text">2.5 调用 GPU 绘制，合成图层，显示在屏幕上</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B8%B2%E6%9F%93%E4%BC%98%E5%8C%96%E7%9B%B8%E5%85%B3"><span class="toc-text">三、渲染优化相关</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Load-%E5%92%8C-DOMContentLoaded-%E5%8C%BA%E5%88%AB"><span class="toc-text">3.1 Load 和 DOMContentLoaded 区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%9B%BE%E5%B1%82"><span class="toc-text">3.2 图层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%87%8D%E7%BB%98%EF%BC%88Repaint%EF%BC%89%E5%92%8C%E5%9B%9E%E6%B5%81%EF%BC%88Reflow%EF%BC%89"><span class="toc-text">3.3 重绘（Repaint）和回流（Reflow）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%B8%B8%E8%A7%81%E5%BC%95%E8%B5%B7%E5%9B%9E%E6%B5%81%E5%B1%9E%E6%80%A7%E5%92%8C%E6%96%B9%E6%B3%95"><span class="toc-text">3.4 常见引起回流属性和方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%87%8F%E5%B0%91%E9%87%8D%E7%BB%98%E5%92%8C%E5%9B%9E%E6%B5%81"><span class="toc-text">3.5 减少重绘和回流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -234,13 +236,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-browser-render" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">浏览器渲染原理</h1>
+    <h1 class="post-title">浏览器渲染原理 从DOM树到合成层的五个阶段</h1>
 
     <div class="article-meta">
       <span>
@@ -276,12 +278,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.3k字</span>
+            <span>字数统计 5.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 18分</span>
           </span>
       
       
@@ -295,81 +297,85 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、浏览器如何渲染网页"><a href="#一、浏览器如何渲染网页" class="headerlink" title="一、浏览器如何渲染网页"></a>一、浏览器如何渲染网页</h2><p><strong>概述：浏览器渲染一共有五步</strong></p>
+        <p>页面白屏了两秒才出内容，你把接口时间、打包体积、图片大小挨个查了一遍，发现都没问题。最后打开 Performance 面板一看，主线程在 <code>Recalculate Style</code> 和 <code>Layout</code> 上卡了很久。这种问题光看网络瀑布图是查不出来的，得知道资源下完之后浏览器还要干哪几件事。这篇把渲染这条流水线从解析 HTML 一直走到 GPU 合成，讲清每一步在做什么、哪一步会被阻塞、以及重绘和回流到底卡在哪个环节。看完你再打开 Performance 面板，那些色块就能对上号了。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>浏览器渲染的五个阶段分别在做什么，哪两步最耗时</li>
+<li>解析器碰到 <code>script</code> 标签时发生的四件事，<code>defer</code> 和 <code>async</code> 的差别</li>
+<li>CSS 明明不改结构，为什么还是会阻塞渲染</li>
+<li><code>Load</code> 和 <code>DOMContentLoaded</code> 的触发时机差在哪</li>
+<li>图层是怎么生成的，合成层的收益和代价各是什么</li>
+<li>重绘和回流的触发条件，以及它们和 Event Loop 的关系</li>
+<li>减少回流的几种具体写法，以及 <code>will-change</code>、<code>content-visibility</code> 该怎么用</li>
+</ul>
+<h2 id="一、浏览器如何渲染网页"><a href="#一、浏览器如何渲染网页" class="headerlink" title="一、浏览器如何渲染网页"></a>一、浏览器如何渲染网页</h2><p>浏览器渲染一共有五步：</p>
 <ol>
 <li>处理 <code>HTML</code> 并构建 <code>DOM</code> 树。</li>
-<li>处理 <code>CSS </code>构建 <code>CSSOM</code> 树。</li>
+<li>处理 <code>CSS</code> 构建 <code>CSSOM</code> 树。</li>
 <li>将 <code>DOM</code> 与 <code>CSSOM</code> 合并成一个渲染树。</li>
 <li>根据渲染树来布局，计算每个节点的位置。</li>
 <li>调用 <code>GPU</code> 绘制，合成图层，显示在屏幕上</li>
 </ol>
-<blockquote>
-<p>第四步和第五步是最耗时的部分，这两步合起来，就是我们通常所说的渲染</p>
-</blockquote>
-<p>具体如下图过程如下图所示</p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/19.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/20.png"></p>
-<p><strong>渲染</strong></p>
-<ul>
-<li>网页生成的时候，至少会渲染一次</li>
-<li>在用户访问的过程中，还会不断重新渲染</li>
-</ul>
-<blockquote>
-<p>重新渲染需要重复之前的第四步(重新生成布局)+第五步(重新绘制)或者只有第五个步(重新绘制)</p>
-</blockquote>
-<ul>
-<li>在构建 <code>CSSOM</code> 树时，会阻塞渲染，直至 <code>CSSOM </code>树构建完成。并且构建 <code>CSSOM</code> 树是一个十分消耗性能的过程，所以应该尽量保证层级扁平，减少过度层叠，越是具体的 <code>CSS</code> 选择器，执行速度越慢</li>
-<li>当 <code>HTML</code> 解析到 <code>script</code> 标签时，会暂停构建 <code>DOM</code>，完成后才会从暂停的地方重新开始。也就是说，如果你想首屏渲染的越快，就越不应该在首屏就加载 <code>JS</code> 文件。并且<code>CSS</code>也会影响 <code>JS</code> 的执行，只有当解析完样式表才会执行 <code>JS</code>，所以也可以认为这种情况下，<code>CSS</code> 也会暂停构建 <code>DOM</code></li>
-</ul>
-<h2 id="二、浏览器渲染五个阶段"><a href="#二、浏览器渲染五个阶段" class="headerlink" title="二、浏览器渲染五个阶段"></a>二、浏览器渲染五个阶段</h2><h3 id="2-1-第一步：解析HTML标签，构建DOM树"><a href="#2-1-第一步：解析HTML标签，构建DOM树" class="headerlink" title="2.1 第一步：解析HTML标签，构建DOM树"></a>2.1 第一步：解析HTML标签，构建DOM树</h3><blockquote>
-<p>在这个阶段，引擎开始解析<code>html</code>，解析出来的结果会成为一棵<code>dom</code>树<br><code>dom</code>的目的至少有<code>2</code>个</p>
-</blockquote>
+<p>第四步和第五步是最耗时的部分，这两步合起来，就是我们通常所说的渲染。</p>
+<p>下面这个交互演示可以配合着看，它把请求发出之后浏览器内部的流转过程按帧拆开了，比干读文字直观：</p>
+<div data-doc-demo="cross-origin-flow" data-demo-kind="rendering"></div>
+
+<p>具体过程如下图所示：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/19.png" alt="浏览器渲染流水线示意图，从 HTML 解析到最终绘制"></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/20.png" alt="DOM 树与 CSSOM 树合并生成渲染树的过程"></p>
+<p>这条流水线有个容易被忽略的前提，它不是只跑一次。</p>
+<p>网页生成的时候至少会渲染一次，在用户访问的过程中还会不断重新渲染。重新渲染需要重复之前的第四步（重新生成布局）加第五步（重新绘制），或者只有第五步（重新绘制）。所以我们后面讲的性能优化，绝大部分功夫都花在「怎么让第二次以后的渲染少走几步」上。</p>
+<p>有两条阻塞规则要先记住。</p>
+<p>在构建 <code>CSSOM</code> 树时会阻塞渲染，直至 <code>CSSOM</code> 树构建完成。并且构建 <code>CSSOM</code> 树是一个十分消耗性能的过程，所以应该尽量保证层级扁平，减少过度层叠，越是具体的 <code>CSS</code> 选择器，执行速度越慢。</p>
+<p>当 <code>HTML</code> 解析到 <code>script</code> 标签时，会暂停构建 <code>DOM</code>，完成后才会从暂停的地方重新开始。也就是说，如果你想首屏渲染得越快，就越不应该在首屏就加载 <code>JS</code> 文件。并且 <code>CSS</code> 也会影响 <code>JS</code> 的执行，只有当解析完样式表才会执行 <code>JS</code>，所以也可以认为这种情况下，<code>CSS</code> 也会暂停构建 <code>DOM</code>。</p>
+<p>最后那句话很多人第一次看会觉得别扭，CSS 怎么会挡住 JS。原因在于 JS 里随时可能出现 <code>getComputedStyle</code> 这种读样式的调用，浏览器没法预知，只能保守处理：样式表没解析完，就不让脚本跑。这条规则带来的实际后果是，一个放在 <code>&lt;head&gt;</code> 里的慢 CSS，会连带把后面的同步脚本一起拖住。</p>
+<h2 id="二、浏览器渲染五个阶段"><a href="#二、浏览器渲染五个阶段" class="headerlink" title="二、浏览器渲染五个阶段"></a>二、浏览器渲染五个阶段</h2><h3 id="2-1-第一步：解析HTML标签，构建DOM树"><a href="#2-1-第一步：解析HTML标签，构建DOM树" class="headerlink" title="2.1 第一步：解析HTML标签，构建DOM树"></a>2.1 第一步：解析HTML标签，构建DOM树</h3><p>在这个阶段，引擎开始解析 <code>html</code>，解析出来的结果会成为一棵 <code>dom</code> 树。<code>dom</code> 的目的至少有 2 个：</p>
 <ul>
 <li>作为下个阶段渲染树状图的输入</li>
-<li>成为网页和脚本的交互界面。(最常用的就是<code>getElementById</code>等等)</li>
+<li>成为网页和脚本的交互界面（最常用的就是 <code>getElementById</code> 等等）</li>
 </ul>
-<p><strong>当解析器到达script标签的时候，发生下面四件事情</strong></p>
+<p>当解析器到达 <code>script</code> 标签的时候，发生下面四件事情：</p>
 <ol>
-<li><code>html</code>解析器停止解析,</li>
+<li><code>html</code> 解析器停止解析</li>
 <li>如果是外部脚本，就从外部网络获取脚本代码</li>
-<li>将控制权交给<code>js</code>引擎，执行<code>js</code>代码</li>
-<li>恢复<code>html</code>解析器的控制权</li>
+<li>将控制权交给 <code>js</code> 引擎，执行 <code>js</code> 代码</li>
+<li>恢复 <code>html</code> 解析器的控制权</li>
 </ol>
-<blockquote>
-<p>由此可以得到第一个结论1</p>
-</blockquote>
+<p>由此可以得到第一个结论：</p>
 <ul>
-<li>由于<code>&lt;script&gt;</code>标签是阻塞解析的，将脚本放在网页尾部会加速代码渲染。</li>
-<li><code>defer</code>和<code>async</code>属性也能有助于加载外部脚本。</li>
-<li><code>defer</code>使得脚本会在<code>dom</code>完整构建之后执行；</li>
-<li><code>async</code>标签使得脚本只有在完全<code>available</code>才执行，并且是以非阻塞的方式进行的</li>
+<li>由于 <code>&lt;script&gt;</code> 标签是阻塞解析的，将脚本放在网页尾部会加速代码渲染。</li>
+<li><code>defer</code> 和 <code>async</code> 属性也能有助于加载外部脚本。</li>
+<li><code>defer</code> 使得脚本会在 <code>dom</code> 完整构建之后执行；</li>
+<li><code>async</code> 标签使得脚本只有在完全 <code>available</code> 才执行，并且是以非阻塞的方式进行的</li>
 </ul>
-<h3 id="2-2-第二步：解析CSS标签，构建CSSOM树"><a href="#2-2-第二步：解析CSS标签，构建CSSOM树" class="headerlink" title="2.2 第二步：解析CSS标签，构建CSSOM树"></a>2.2 第二步：解析CSS标签，构建CSSOM树</h3><ul>
-<li>我们已经看到<code>html</code>解析器碰到脚本后会做的事情，接下来我们看下<code>html</code>解析器碰到样式表会发生的情况</li>
-<li><code>js</code>会阻塞解析，因为它会修改文档(<code>document</code>)。<code>css</code>不会修改文档的结构，如果这样的话，似乎看起来<code>css</code>样式不会阻塞浏览器<code>html</code>解析。但是事实上 <code>css</code>样式表是阻塞的。阻塞是指当<code>cssom</code>树建立好之后才会进行下一步的解析渲染</li>
-</ul>
-<p><strong>通过以下手段可以减轻cssom带来的影响</strong></p>
+<p>这两个属性的区别我一开始也记混过，后来换了个角度就清楚了：它们的下载都是并行的，差别只在执行时机。<code>defer</code> 的脚本按文档里的书写顺序排队，等 DOM 解析完再依次执行，所以它适合有依赖关系的业务脚本；<code>async</code> 是谁先下完谁先执行，顺序完全不保证，它适合埋点、统计这类跟页面其它代码没关系的独立脚本。把有依赖的模块写成 <code>async</code>，线上会出现那种「十次里坏一次」的诡异报错，排查起来很费劲。</p>
+<p>现代项目里还多了一个 <code>type=&quot;module&quot;</code>，它默认就是 <code>defer</code> 的行为，不用再手动加属性。这块的写法比 2018 年那会儿舒服了不少。</p>
+<h3 id="2-2-第二步：解析CSS标签，构建CSSOM树"><a href="#2-2-第二步：解析CSS标签，构建CSSOM树" class="headerlink" title="2.2 第二步：解析CSS标签，构建CSSOM树"></a>2.2 第二步：解析CSS标签，构建CSSOM树</h3><p>我们已经看到 <code>html</code> 解析器碰到脚本后会做的事情，接下来看 <code>html</code> 解析器碰到样式表会发生的情况。</p>
+<p><code>js</code> 会阻塞解析，因为它会修改文档（<code>document</code>）。<code>css</code> 不会修改文档的结构，如果这样的话，似乎看起来 <code>css</code> 样式不会阻塞浏览器 <code>html</code> 解析。但是事实上 <code>css</code> 样式表是阻塞的，阻塞是指当 <code>cssom</code> 树建立好之后才会进行下一步的解析渲染。</p>
+<p>那为什么一个不改结构的东西也会挡住渲染呢？</p>
+<p>因为渲染树需要 DOM 和 CSSOM 两份输入，缺一个就拼不出来。浏览器要是在 CSSOM 没建好之前就先画一版，用户会先看到一坨没有样式的裸 HTML，样式到位之后再整个跳一下。这个现象有个名字叫 FOUC，比多等几十毫秒难受得多，所以浏览器选择了等。</p>
+<p>通过以下手段可以减轻 <code>cssom</code> 带来的影响：</p>
 <ul>
-<li>将<code>script</code>脚本放在页面底部</li>
-<li>尽可能快的加载<code>css</code>样式表</li>
-<li>将样式表按照<code>media type</code>和<code>media query</code>区分，这样有助于我们将<code>css</code>资源标记成非阻塞渲染的资源。</li>
+<li>将 <code>script</code> 脚本放在页面底部</li>
+<li>尽可能快地加载 <code>css</code> 样式表</li>
+<li>将样式表按照 <code>media type</code> 和 <code>media query</code> 区分，这样有助于我们将 <code>css</code> 资源标记成非阻塞渲染的资源。</li>
 <li>非阻塞的资源还是会被浏览器下载，只是优先级较低</li>
 </ul>
-<h3 id="2-3-第三步：把DOM和CSSOM组合成渲染树（render-tree）"><a href="#2-3-第三步：把DOM和CSSOM组合成渲染树（render-tree）" class="headerlink" title="2.3 第三步：把DOM和CSSOM组合成渲染树（render tree）"></a>2.3 第三步：把DOM和CSSOM组合成渲染树（render tree）</h3><p><img src="https://poetries1.gitee.io/img-repo/2019/10/21.png"></p>
-<h3 id="2-4-第四步：在渲染树的基础上进行布局，计算每个节点的几何结构"><a href="#2-4-第四步：在渲染树的基础上进行布局，计算每个节点的几何结构" class="headerlink" title="2.4 第四步：在渲染树的基础上进行布局，计算每个节点的几何结构"></a>2.4 第四步：在渲染树的基础上进行布局，计算每个节点的几何结构</h3><blockquote>
-<p>布局(<code>layout</code>)：定位坐标和大小，是否换行，各种<code>position</code>, <code>overflow</code>, <code>z-index</code>属性</p>
-</blockquote>
-<h3 id="2-5-调用-GPU-绘制，合成图层，显示在屏幕上"><a href="#2-5-调用-GPU-绘制，合成图层，显示在屏幕上" class="headerlink" title="2.5 调用 GPU 绘制，合成图层，显示在屏幕上"></a>2.5 调用 GPU 绘制，合成图层，显示在屏幕上</h3><blockquote>
-<p>将渲染树的各个节点绘制到屏幕上，这一步被称为绘制<code>painting</code></p>
-</blockquote>
+<p>第三条现在还很好用，写成 <code>&lt;link rel=&quot;stylesheet&quot; href=&quot;print.css&quot; media=&quot;print&quot;&gt;</code> 这样，打印样式就不会挡住首屏了。另外还有一个 2018 年时还没普及的做法，把首屏必需的那几十行样式内联进 <code>&lt;head&gt;</code>，其余的用 <code>rel=&quot;preload&quot;</code> 异步加载完再切成 <code>stylesheet</code>，能把阻塞时间压到接近零。这条思路我在 <a href="https://feinterview.poetries.top/blog/render-path-optimize">关键路径渲染优化</a> 那篇里展开写过。</p>
+<h3 id="2-3-第三步：把DOM和CSSOM组合成渲染树（render-tree）"><a href="#2-3-第三步：把DOM和CSSOM组合成渲染树（render-tree）" class="headerlink" title="2.3 第三步：把DOM和CSSOM组合成渲染树（render tree）"></a>2.3 第三步：把DOM和CSSOM组合成渲染树（render tree）</h3><p><img src="https://s.poetries.top/gitee/2019/10/21.png" alt="DOM 树与 CSSOM 树组合成渲染树的结构对照"></p>
+<p>这一步有个细节值得单独提。渲染树里只放要显示的节点，<code>display: none</code> 的元素连同它的子树压根不会进渲染树，而 <code>visibility: hidden</code> 的元素会进，只是画的时候是透明的。这个差别就是后面「用 <code>visibility</code> 替代 <code>display: none</code>」那条优化建议的根据，不是玄学。</p>
+<h3 id="2-4-第四步：在渲染树的基础上进行布局，计算每个节点的几何结构"><a href="#2-4-第四步：在渲染树的基础上进行布局，计算每个节点的几何结构" class="headerlink" title="2.4 第四步：在渲染树的基础上进行布局，计算每个节点的几何结构"></a>2.4 第四步：在渲染树的基础上进行布局，计算每个节点的几何结构</h3><p>布局（<code>layout</code>）负责定位坐标和大小，是否换行，以及各种 <code>position</code>、<code>overflow</code>、<code>z-index</code> 属性的处理。</p>
+<p>这一步的成本跟渲染树的节点数直接相关，是全文里最容易变成性能瓶颈的地方。一个长列表渲染两千个 DOM，每次布局都要把这两千个节点的几何信息重算一遍。</p>
+<h3 id="2-5-调用-GPU-绘制，合成图层，显示在屏幕上"><a href="#2-5-调用-GPU-绘制，合成图层，显示在屏幕上" class="headerlink" title="2.5 调用 GPU 绘制，合成图层，显示在屏幕上"></a>2.5 调用 GPU 绘制，合成图层，显示在屏幕上</h3><p>将渲染树的各个节点绘制到屏幕上，这一步被称为绘制（<code>painting</code>）。</p>
+<p>绘制之后还有一步合成，浏览器把不同图层的位图交给 GPU 拼在一起输出到屏幕。这一步是我们后面讲合成层优化的落脚点，因为纯粹的合成不需要主线程参与，代价极低。</p>
 <h2 id="三、渲染优化相关"><a href="#三、渲染优化相关" class="headerlink" title="三、渲染优化相关"></a>三、渲染优化相关</h2><h3 id="3-1-Load-和-DOMContentLoaded-区别"><a href="#3-1-Load-和-DOMContentLoaded-区别" class="headerlink" title="3.1 Load 和 DOMContentLoaded 区别"></a>3.1 Load 和 DOMContentLoaded 区别</h3><ul>
-<li><code>Load</code> 事件触发代表页面中的 <code>DOM</code>，<code>CSS</code>，<code>JS</code>，图片已经全部加载完毕。</li>
-<li><code>DOMContentLoaded</code> 事件触发代表初始的 <code>HTML</code> 被完全加载和解析，不需要等待 <code>CSS</code>，<code>JS</code>，图片加载</li>
+<li><code>Load</code> 事件触发代表页面中的 <code>DOM</code>、<code>CSS</code>、<code>JS</code>、图片已经全部加载完毕。</li>
+<li><code>DOMContentLoaded</code> 事件触发代表初始的 <code>HTML</code> 被完全加载和解析，不需要等待 <code>CSS</code>、<code>JS</code>、图片加载</li>
 </ul>
-<h3 id="3-2-图层"><a href="#3-2-图层" class="headerlink" title="3.2 图层"></a>3.2 图层</h3><blockquote>
-<p>一般来说，可以把普通文档流看成一个图层。特定的属性可以生成一个新的图层。不同的图层渲染互不影响，所以对于某些频繁需要渲染的建议单独生成一个新图层，提高性能。但也不能生成过多的图层，会引起反作用。</p>
-</blockquote>
-<p><strong>通过以下几个常用属性可以生成新图层</strong></p>
+<p>实际用的时候记一条就够：需要操作 DOM 的初始化逻辑挂 <code>DOMContentLoaded</code>，需要拿到图片真实尺寸的逻辑才挂 <code>Load</code>。有些页面里一张挂了的第三方图片就能把 <code>Load</code> 拖到几十秒，初始化逻辑要是绑在上面，页面就一直是死的。这个我踩过，排查了一下午最后发现是个统计像素的域名解析超时。</p>
+<p>补一句上面第二条的边界。<code>DOMContentLoaded</code> 说的是不等图片，但它其实是要等阻塞渲染的样式表的，因为前面讲过样式表会挡住后面的同步脚本执行。写成「不等待 CSS」不够准确，实际行为是不等异步样式和图片，但会等 <code>&lt;head&gt;</code> 里的阻塞样式表。</p>
+<h3 id="3-2-图层"><a href="#3-2-图层" class="headerlink" title="3.2 图层"></a>3.2 图层</h3><p>一般来说，可以把普通文档流看成一个图层。特定的属性可以生成一个新的图层。不同的图层渲染互不影响，所以对于某些频繁需要渲染的建议单独生成一个新图层，提高性能。但也不能生成过多的图层，会引起反作用。</p>
+<p>通过以下几个常用属性可以生成新图层：</p>
 <ul>
 <li><code>3D</code> 变换：<code>translate3d</code>、<code>translateZ</code></li>
 <li><code>will-change</code></li>
@@ -377,17 +383,17 @@
 <li>通过动画实现的 <code>opacity</code> 动画转换</li>
 <li><code>position: fixed</code></li>
 </ul>
-<h3 id="3-3-重绘（Repaint）和回流（Reflow）"><a href="#3-3-重绘（Repaint）和回流（Reflow）" class="headerlink" title="3.3 重绘（Repaint）和回流（Reflow）"></a>3.3 重绘（Repaint）和回流（Reflow）</h3><blockquote>
-<p>重绘和回流是渲染步骤中的一小节，但是这两个步骤对于性能影响很大</p>
-</blockquote>
+<p>「不能生成过多」这句话原文一笔带过，这里得说清代价在哪。每一个合成层都要单独存一份位图，显存是实打实占掉的，一个全屏的合成层在高分屏上就是好几 MB。层多了之后，合成阶段本身也会变慢，甚至出现「层爆炸」，某个元素被提升之后，它后面所有跟它有重叠关系的元素会被连锁提升。DevTools 的 Layers 面板能直接看到当前有多少层、每层多大，怀疑有问题的时候打开它比猜准得多。</p>
+<p><code>will-change</code> 这个属性尤其容易用错。我见过直接写 <code>* &#123; will-change: transform &#125;</code> 的，那等于告诉浏览器「所有元素都要变」，浏览器只好挨个提升，内存直接爆掉。正确的用法是精准且短命：只写在真正会动的那个元素上，只写会变的那个属性，而且最好在动画开始前用 JS 加上、动画结束后移除。如果一个元素常年挂着 <code>will-change</code>，浏览器为它准备的那份优化资源就一直闲置着。</p>
+<p><code>position: fixed</code> 那条也要补个前提。它不是无条件提升合成层的，现在的 Chrome 只在页面确实可滚动的时候才会给固定定位元素单独开层，不滚动的页面上并不会。这类实现细节各浏览器各版本有出入，我只在 Chrome 的 Layers 面板上翻过，别的内核没逐个验证。</p>
+<h3 id="3-3-重绘（Repaint）和回流（Reflow）"><a href="#3-3-重绘（Repaint）和回流（Reflow）" class="headerlink" title="3.3 重绘（Repaint）和回流（Reflow）"></a>3.3 重绘（Repaint）和回流（Reflow）</h3><p>重绘和回流是渲染步骤中的一小节，但是这两个步骤对于性能影响很大。</p>
 <ul>
-<li>重绘是当节点需要更改外观而不会影响布局的，比如改变 <code>color</code> 就叫称为重绘</li>
-<li>回流是布局或者几何属性需要改变就称为回流。</li>
+<li>重绘是当节点需要更改外观而不会影响布局的，比如改变 <code>color</code> 就称为重绘</li>
+<li>回流是布局或者几何属性需要改变就称为回流</li>
 </ul>
-<blockquote>
-<p>回流必定会发生重绘，重绘不一定会引发回流。回流所需的成本比重绘高的多，改变深层次的节点很可能导致父节点的一系列回流</p>
-</blockquote>
-<p><strong>以下几个动作可能会导致性能问题</strong></p>
+<p>回流必定会发生重绘，重绘不一定会引发回流。回流所需的成本比重绘高得多，改变深层次的节点很可能导致父节点的一系列回流。</p>
+<p>对着前面那条流水线看就清楚了。回流是从第四步重来，布局、绘制、合成一个都跑不掉；重绘是从第五步重来，跳过了布局。还有第三档更省的，只改 <code>transform</code> 和 <code>opacity</code> 这类合成属性，布局和绘制都跳过，直接进合成，这也是为什么动画一律推荐用 <code>transform</code> 而不是 <code>top</code>。</p>
+<p>以下几个动作可能会导致性能问题：</p>
 <ul>
 <li>改变 <code>window</code> 大小</li>
 <li>改变字体</li>
@@ -396,10 +402,10 @@
 <li>定位或者浮动</li>
 <li>盒模型</li>
 </ul>
-<p><strong>很多人不知道的是，重绘和回流其实和 Event loop 有关</strong></p>
+<p>很多人可能没注意到，重绘和回流其实和 Event Loop 有关：</p>
 <ul>
-<li>当 <code>Event loop</code> 执行完<code> Microtasks</code> 后，会判断 <code>document</code> 是否需要更新。因为浏览器是 <code>60Hz</code> 的刷新率，每 <code>16ms</code> 才会更新一次。</li>
-<li>然后判断是否有 <code>resize</code> 或者 <code>scroll</code> ，有的话会去触发事件，所以 <code>resize</code> 和 <code>scroll</code> 事件也是至少 <code>16ms </code>才会触发一次，并且自带节流功能。</li>
+<li>当 <code>Event loop</code> 执行完 <code>Microtasks</code> 后，会判断 <code>document</code> 是否需要更新。因为浏览器是 <code>60Hz</code> 的刷新率，每 <code>16ms</code> 才会更新一次。</li>
+<li>然后判断是否有 <code>resize</code> 或者 <code>scroll</code>，有的话会去触发事件，所以 <code>resize</code> 和 <code>scroll</code> 事件也是至少 <code>16ms</code> 才会触发一次，并且自带节流功能。</li>
 <li>判断是否触发了 <code>media query</code></li>
 <li>更新动画并且发送事件</li>
 <li>判断是否有全屏操作事件</li>
@@ -408,76 +414,82 @@
 <li>更新界面</li>
 <li>以上就是一帧中可能会做的事情。如果在一帧中有空闲时间，就会去执行 <code>requestIdleCallback</code> 回调</li>
 </ul>
-<p><strong>常见的引起重绘的属性</strong></p>
+<p>这里要更新一条。原文说 <code>IntersectionObserver</code> 兼容性不好，那是 2018 年的情况，现在它在各主流浏览器上都是可用状态，做图片懒加载和曝光埋点基本可以直接上，不必再自己监听 <code>scroll</code> 加 <code>getBoundingClientRect</code> 那一套。另外 <code>60Hz</code> 那个数字现在也不绝对了，高刷屏上一帧可能只有 8ms 甚至更短，代码里不要写死 16.7 这个常数。</p>
+<p>常见的引起重绘的属性：</p>
 <ul>
-<li><code>color	</code></li>
-<li><code>border-style</code>	</li>
-<li><code>visibility</code>	</li>
+<li><code>color</code></li>
+<li><code>border-style</code></li>
+<li><code>visibility</code></li>
 <li><code>background</code></li>
-<li><code>text-decoration</code>	</li>
-<li><code>background-image</code>	</li>
-<li><code>background-position</code>	</li>
+<li><code>text-decoration</code></li>
+<li><code>background-image</code></li>
+<li><code>background-position</code></li>
 <li><code>background-repeat</code></li>
-<li><code>outline-color</code>	</li>
-<li><code>outline</code>	</li>
-<li><code>outline-style</code>	</li>
+<li><code>outline-color</code></li>
+<li><code>outline</code></li>
+<li><code>outline-style</code></li>
 <li><code>border-radius</code></li>
-<li><code>outline-width</code>	</li>
-<li><code>box-shadow</code>	</li>
+<li><code>outline-width</code></li>
+<li><code>box-shadow</code></li>
 <li><code>background-size</code></li>
 </ul>
-<h3 id="3-4-常见引起回流属性和方法"><a href="#3-4-常见引起回流属性和方法" class="headerlink" title="3.4 常见引起回流属性和方法"></a>3.4 常见引起回流属性和方法</h3><blockquote>
-<p>任何会改变元素几何信息(元素的位置和尺寸大小)的操作，都会触发重排，下面列一些栗子</p>
-</blockquote>
+<h3 id="3-4-常见引起回流属性和方法"><a href="#3-4-常见引起回流属性和方法" class="headerlink" title="3.4 常见引起回流属性和方法"></a>3.4 常见引起回流属性和方法</h3><p>任何会改变元素几何信息（元素的位置和尺寸大小）的操作，都会触发重排，下面列一些例子：</p>
 <ul>
-<li>添加或者删除可见的<code>DOM</code>元素；</li>
-<li>元素尺寸改变——边距、填充、边框、宽度和高度</li>
-<li>内容变化，比如用户在<code>input</code>框中输入文字</li>
-<li>浏览器窗口尺寸改变——<code>resize</code>事件发生时</li>
+<li>添加或者删除可见的 <code>DOM</code> 元素</li>
+<li>元素尺寸改变，包括边距、填充、边框、宽度和高度</li>
+<li>内容变化，比如用户在 <code>input</code> 框中输入文字</li>
+<li>浏览器窗口尺寸改变，也就是 <code>resize</code> 事件发生时</li>
 <li>计算 <code>offsetWidth</code> 和 <code>offsetHeight</code> 属性</li>
 <li>设置 <code>style</code> 属性的值</li>
 </ul>
-<p><strong>回流影响的范围</strong></p>
-<blockquote>
-<p>由于浏览器渲染界面是基于流失布局模型的，所以触发重排时会对周围DOM重新排列，影响的范围有两种</p>
-</blockquote>
+<p>最后两条要连起来看才有意思。写操作会把布局标记成脏，读操作又要求立刻拿到准确值，浏览器只好当场把布局算完。一写一读交替出现，就是那个经典的强制同步布局问题，Performance 面板里会标一条紫色的警告。除了 <code>offsetWidth</code>，<code>getComputedStyle</code>、<code>getBoundingClientRect</code>、<code>scrollTop</code>、<code>clientHeight</code> 都会触发同样的行为。</p>
+<p>回流影响的范围。由于浏览器渲染界面是基于流式布局模型的，所以触发重排时会对周围 DOM 重新排列，影响的范围有两种：</p>
 <ul>
-<li>全局范围：从根节点<code>html</code>开始对整个渲染树进行重新布局。</li>
+<li>全局范围：从根节点 <code>html</code> 开始对整个渲染树进行重新布局</li>
 <li>局部范围：对渲染树的某部分或某一个渲染对象进行重新布局</li>
 </ul>
 <p><strong>全局范围回流</strong></p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;hello&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h4</span>&gt;</span>hello<span class="tag">&lt;/<span class="name">h4</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span><span class="tag">&lt;<span class="name">strong</span>&gt;</span>Name:<span class="tag">&lt;/<span class="name">strong</span>&gt;</span>BDing<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">h5</span>&gt;</span>male<span class="tag">&lt;/<span class="name">h5</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ol</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">li</span>&gt;</span>coding<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">li</span>&gt;</span>loving<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ol</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>当<code>p</code>节点上发生<code>reflow</code>时，<code>hello</code>和<code>body</code>也会重新渲染，甚至<code>h5</code>和<code>ol</code>都会收到影响</p>
-</blockquote>
+<p>当 <code>p</code> 节点上发生 <code>reflow</code> 时，<code>hello</code> 和 <code>body</code> 也会重新渲染，甚至 <code>h5</code> 和 <code>ol</code> 都会受到影响。</p>
 <p><strong>局部范围回流</strong></p>
-<blockquote>
-<p>用局部布局来解释这种现象：把一个<code>dom</code>的宽高之类的几何信息定死，然后在<code>dom</code>内部触发重排，就只会重新渲染该<code>dom</code>内部的元素，而不会影响到外界</p>
-</blockquote>
-<h3 id="3-5-减少重绘和回流"><a href="#3-5-减少重绘和回流" class="headerlink" title="3.5 减少重绘和回流"></a>3.5 减少重绘和回流</h3><blockquote>
-<p>使用 <code>translate</code> 替代 <code>top</code></p>
-</blockquote>
+<p>用局部布局来解释这种现象：把一个 <code>dom</code> 的宽高之类的几何信息定死，然后在 <code>dom</code> 内部触发重排，就只会重新渲染该 <code>dom</code> 内部的元素，而不会影响到外界。</p>
+<p>这个思路后来被标准化成了 <code>contain</code> 属性。给容器写上 <code>contain: layout</code>，就是在明确告诉浏览器「我内部的布局变化不会外溢」，浏览器可以放心地把重排锁在这个盒子里。再往后还有个 <code>content-visibility: auto</code>，屏幕外的内容直接跳过布局和绘制，长列表和长文档页面上收益很明显，代价是要配 <code>contain-intrinsic-size</code> 把占位高度给出来，不然滚动条会一跳一跳。这两个属性我只在自己的文档站上试过，业务里没大规模铺开，你要用的话建议自己压一遍。</p>
+<h3 id="3-5-减少重绘和回流"><a href="#3-5-减少重绘和回流" class="headerlink" title="3.5 减少重绘和回流"></a>3.5 减少重绘和回流</h3><p>第一条是使用 <code>translate</code> 替代 <code>top</code>：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;test&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">style</span>&gt;</span><span class="language-css"></span></span><br><span class="line"><span class="language-css">    <span class="selector-class">.test</span> &#123;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">position</span>: absolute;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">top</span>: <span class="number">10px</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">width</span>: <span class="number">100px</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">height</span>: <span class="number">100px</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">background</span>: red;</span></span><br><span class="line"><span class="language-css">    &#125;</span></span><br><span class="line"><span class="language-css"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="comment">// 引起回流</span></span></span><br><span class="line"><span class="language-javascript">        <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&#x27;.test&#x27;</span>).<span class="property">style</span>.<span class="property">top</span> = <span class="string">&#x27;100px&#x27;</span></span></span><br><span class="line"><span class="language-javascript">    &#125;, <span class="number">1000</span>)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
+<p>上面这段改 <code>top</code> 会走完整的布局、绘制、合成；换成 <code>transform: translateY(90px)</code> 就只剩合成一步，主线程几乎不参与。这是所有动画优化里性价比最高的一条。</p>
+<p>其余几条：</p>
 <ul>
-<li>使用 <code>visibility</code> 替换 <code>display: none</code> ，因为前者只会引起重绘，后者会引发回流（改变了布局）</li>
-<li>把 <code>DOM</code> 离线后修改，比如：先把 <code>DOM</code> 给 <code>display:none</code> (有一次 <code>Reflow)</code>，然后你修改<code>100</code>次，然后再把它显示出来</li>
+<li>使用 <code>visibility</code> 替换 <code>display: none</code>，因为前者只会引起重绘，后者会引发回流（改变了布局）</li>
+<li>把 <code>DOM</code> 离线后修改，比如先把 <code>DOM</code> 给 <code>display: none</code>（有一次 <code>Reflow</code>），然后你修改 100 次，然后再把它显示出来</li>
 <li>不要把 <code>DOM</code> 结点的属性值放在一个循环里当成循环里的变量</li>
 </ul>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">1000</span>; i++) &#123;</span><br><span class="line">    <span class="comment">// 获取 offsetTop 会导致回流，因为需要去获取正确的值</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&#x27;.test&#x27;</span>).<span class="property">style</span>.<span class="property">offsetTop</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这段代码原文有个小笔误要纠正一下，<code>style.offsetTop</code> 拿不到东西，<code>offsetTop</code> 挂在元素上而不是 <code>style</code> 上，应该写成 <code>document.querySelector(&#39;.test&#39;).offsetTop</code>。写成 <code>style.offsetTop</code> 会一直是 <code>undefined</code>，反而不触发回流，跟这条要演示的问题正好相反。真实的写法是把读操作提到循环外面，读一次缓存起来，或者用 <code>requestAnimationFrame</code> 把读写分批。</p>
+<p>剩下几条也都还成立：</p>
 <ul>
 <li>不要使用 <code>table</code> 布局，可能很小的一个小改动会造成整个 <code>table</code> 的重新布局</li>
 <li>动画实现的速度的选择，动画速度越快，回流次数越多，也可以选择使用 <code>requestAnimationFrame</code></li>
-<li><code>CSS </code>选择符从右往左匹配查找，避免 <code>DOM </code>深度过深</li>
-<li>将频繁运行的动画变为图层，图层能够阻止该节点回流影响别的元素。比如对于 <code>video </code>标签，浏览器会自动将该节点变为图层。</li>
+<li><code>CSS</code> 选择符从右往左匹配查找，避免 <code>DOM</code> 深度过深</li>
+<li>将频繁运行的动画变为图层，图层能够阻止该节点回流影响别的元素。比如对于 <code>video</code> 标签，浏览器会自动将该节点变为图层</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/22.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/23.png"></p>
-<blockquote>
-<p><a href="http://blog.poetries.top/2018/01/12/fed-performance-optimization/#%E5%85%AD%E3%80%81%E9%87%8D%E7%BB%98%E4%B8%8E%E5%9B%9E%E6%B5%81">重绘与回流</a></p>
-</blockquote>
+<p><img src="https://s.poetries.top/gitee/2019/10/22.png" alt="DevTools 中观察重绘区域的高亮显示"></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/23.png" alt="Performance 面板中布局与绘制阶段的耗时分布"></p>
+<p>这两张图对应的面板现在还在，位置略有调整。Rendering 抽屉里的 <code>Paint flashing</code> 勾上之后，页面上每次重绘的区域会闪绿框，滚动一下就能看出来是不是整屏在重画。Performance 面板录一段，紫色是布局和样式计算，绿色是绘制和合成，哪一块宽就查哪一块。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把这条流水线倒过来看，优化的层次感就出来了。</p>
+<p>改 <code>transform</code> 和 <code>opacity</code>，只走合成，主线程不参与，最便宜；改颜色、背景、阴影，从绘制开始重来，中等；改宽高、位置、内容，从布局开始重来，最贵，而且代价会随渲染树规模放大。所以性能优化不是背一张属性表，是想清楚你这次改动把浏览器踢回了流水线的第几步。</p>
+<p>具体到日常写代码，我自己常用的就这么几条：动画只用 <code>transform</code> 和 <code>opacity</code>；读写分离，别在循环里一边改样式一边读 <code>offsetWidth</code>；<code>will-change</code> 只在动画期间挂，用完摘掉；长列表配 <code>content-visibility</code> 或者虚拟滚动；样式表能标 <code>media</code> 的就标上，别让打印样式挡首屏。</p>
+<p>至于哪一条对你的页面最有效，别猜，Performance 面板录一段，哪一段色块最宽就先动哪里。</p>
+<p>想把渲染这块和缓存、资源加载顺序连起来看，可以接着读 <a href="https://feinterview.poetries.top/blog/browser-cache">浏览器缓存原理总结</a> 和 <a href="https://feinterview.poetries.top/blog/fed-performance-optimization">前端性能优化总结</a>。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/Performance/How_browsers_work">MDN 渲染页面 浏览器的工作原理</a></li>
+<li><a href="https://web.dev/articles/rendering-performance">web.dev 渲染性能</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/contain">MDN CSS contain 属性</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/CSS/will-change">MDN will-change</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

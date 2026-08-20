@@ -7,28 +7,30 @@
 <head>
   <meta charset="utf-8">
   
-  <title>vue实例方法（十三) | 前端进阶之旅</title>
+  <title>Vue 实例属性与实例方法完全指南（十三） | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="Vue,Vue 实例,nextTick," />
   
 
-  <meta name="description" content="一、Vue之实例属性  Vue 实例暴露了一些有用的实例属性与方法。这些属性与方法都有前缀 $，以便与代理的数据属性区分  组件树  $parent：用来访问组件实例的父实例 $root: 用来访问当前组件树的根实例 $children:用来访问当前组件实例的直接子组件实例 $refs:用来访问v-ref指令的子组件  DOM访问  $el：用来挂载当前组件实例的dom元素 $els：用来访问$e">
+  <meta name="description" content="梳理 Vue 实例上带 $ 前缀的属性与方法，$el、$refs、$data、$options、$watch、$nextTick 各自的用途和边界，标注哪些是 Vue 1.x 遗留、哪些在 Vue 3 里已经移除。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="vue实例方法（十三)">
+<meta property="og:title" content="Vue 实例属性与实例方法完全指南（十三）">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/28/vue-$vm-method-props/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、Vue之实例属性  Vue 实例暴露了一些有用的实例属性与方法。这些属性与方法都有前缀 $，以便与代理的数据属性区分  组件树  $parent：用来访问组件实例的父实例 $root: 用来访问当前组件树的根实例 $children:用来访问当前组件实例的直接子组件实例 $refs:用来访问v-ref指令的子组件  DOM访问  $el：用来挂载当前组件实例的dom元素 $els：用来访问$e">
+<meta property="og:description" content="梳理 Vue 实例上带 $ 前缀的属性与方法，$el、$refs、$data、$options、$watch、$nextTick 各自的用途和边界，标注哪些是 Vue 1.x 遗留、哪些在 Vue 3 里已经移除。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/613.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/613.png">
 <meta property="article:published_time" content="2018-08-28T08:04:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.693Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.958Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="Vue 实例">
+<meta property="article:tag" content="nextTick">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/613.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/613.png">
 
   
 
@@ -206,7 +208,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Vue%E4%B9%8B%E5%AE%9E%E4%BE%8B%E5%B1%9E%E6%80%A7"><span class="toc-text">一、Vue之实例属性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95"><span class="toc-text">二、实例方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-watch"><span class="toc-text">2.1 $.watch()</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-vm-nextTick"><span class="toc-text">2.2 vm.$nextTick</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81-%E5%89%8D%E7%BC%80%E6%98%AF%E4%B8%80%E6%9D%A1%E8%BE%B9%E7%95%8C%E7%BA%BF"><span class="toc-text">一、$ 前缀是一条边界线</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%BB%84%E4%BB%B6%E6%A0%91%E4%B8%8A%E7%9A%84%E5%9B%9B%E4%B8%AA%E5%B1%9E%E6%80%A7"><span class="toc-text">二、组件树上的四个属性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81DOM-%E8%AE%BF%E9%97%AE"><span class="toc-text">三、DOM 访问</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%95%B0%E6%8D%AE%E8%AE%BF%E9%97%AE"><span class="toc-text">四、数据访问</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81DOM-%E6%93%8D%E4%BD%9C%E6%96%B9%E6%B3%95"><span class="toc-text">五、DOM 操作方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%BA%8B%E4%BB%B6%E6%96%B9%E6%B3%95"><span class="toc-text">六、事件方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81-watch"><span class="toc-text">七、$watch</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81-nextTick-%E5%88%B0%E5%BA%95%E5%9C%A8%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-text">八、$nextTick 到底在解决什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E8%BF%99%E4%BA%9B-API-%E5%9C%A8-Vue-3-%E9%87%8C%E8%BF%98%E5%89%A9%E5%A4%9A%E5%B0%91"><span class="toc-text">九、这些 API 在 Vue 3 里还剩多少</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -229,13 +231,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-$vm-method-props" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">vue实例方法（十三)</h1>
+    <h1 class="post-title">Vue 实例属性与实例方法完全指南（十三）</h1>
 
     <div class="article-meta">
       <span>
@@ -271,12 +273,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.2k字</span>
+            <span>字数统计 4.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 5分</span>
+            <span>阅读时长 18分</span>
           </span>
       
       
@@ -290,71 +292,163 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、Vue之实例属性"><a href="#一、Vue之实例属性" class="headerlink" title="一、Vue之实例属性"></a>一、Vue之实例属性</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/613.png"></p>
-<blockquote>
-<p><code>Vue</code> 实例暴露了一些有用的实例属性与方法。这些属性与方法都有前缀 <code>$</code>，以便与代理的数据属性区分</p>
-</blockquote>
-<p><strong>组件树</strong></p>
+        <p>写 Vue 的人早晚会遇到这两个场景。一个是在 <code>created</code> 钩子里写 <code>this.$refs.chart.init()</code>，控制台直接报 <code>Cannot read property &#39;init&#39; of undefined</code>；另一个是刚把 <code>this.list</code> 赋了新值，下一行马上去读 <code>this.$el.querySelectorAll(&#39;li&#39;).length</code>，拿到的还是旧的条数。这两个问题看着不搭边，根子却是同一个，就是你不知道 Vue 实例上那一堆带 <code>$</code> 的东西各自在什么时刻才可用。这篇把实例属性和实例方法按「组件树、DOM、数据、事件」四类过一遍，说清每个的用途、可用时机和踩坑点，顺带把 2018 年那会儿文档里还留着的一批 Vue 1.x 遗留 API 挑出来单独标注。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>$parent</code>：用来访问组件实例的父实例</li>
-<li><code>$root</code>: 用来访问当前组件树的根实例</li>
-<li><code>$children</code>:用来访问当前组件实例的直接子组件实例</li>
-<li><code>$refs</code>:用来访问<code>v-ref</code>指令的子组件</li>
+<li><code>$</code> 前缀到底是干什么用的，为什么 Vue 要把它和 data 分开</li>
+<li>组件树相关的 <code>$parent</code>、<code>$root</code>、<code>$children</code>、<code>$refs</code>，以及为什么不建议用前三个</li>
+<li><code>$el</code> 和 <code>$data</code>、<code>$options</code> 分别在什么时候可用</li>
+<li>事件方法 <code>$on</code>、<code>$once</code>、<code>$emit</code>、<code>$off</code>，以及已经消失的 <code>$dispatch</code> 和 <code>$broadcast</code></li>
+<li><code>$watch</code> 的返回值和两个关键配置项</li>
+<li><code>$nextTick</code> 解决的到底是什么问题，什么时候必须用</li>
+<li>这些 API 在 Vue 3 里的存亡情况</li>
 </ul>
-<p><strong>DOM访问</strong></p>
+<h2 id="一、-前缀是一条边界线"><a href="#一、-前缀是一条边界线" class="headerlink" title="一、$ 前缀是一条边界线"></a>一、$ 前缀是一条边界线</h2><p><img src="https://s.poetries.top/gitee/2019/10/613.png" alt="Vue 实例属性总览"></p>
+<p>Vue 实例暴露了一批有用的属性和方法，它们都带 <code>$</code> 前缀，为的是和你自己写在 <code>data</code> 里的数据属性区分开。</p>
+<p>这个设计不是为了好看。Vue 2 在初始化的时候会把 <code>data</code> 里的每个 key 代理到实例上，所以你写 <code>this.message</code> 实际访问的是 <code>this._data.message</code>。如果框架自己的属性不加前缀，你在 <code>data</code> 里定义一个叫 <code>el</code> 或者 <code>options</code> 的字段，就会直接把框架的东西盖掉。加了 <code>$</code> 之后，两套命名空间互不打扰。</p>
+<p>顺着这个说一句，Vue 保留的还不止 <code>$</code>，下划线 <code>_</code> 开头的也是内部占用的，<code>_data</code>、<code>_uid</code>、<code>_watchers</code> 这些你能在实例上打印出来，但不要去动。真在 <code>data</code> 里写了 <code>_foo</code>，Vue 会拒绝代理它，你在模板里写 <code>_foo</code> 是取不到值的，得写 <code>$data._foo</code>。这一条很多人不知道，写下划线前缀的临时变量时会突然发现模板渲染不出来。</p>
+<h2 id="二、组件树上的四个属性"><a href="#二、组件树上的四个属性" class="headerlink" title="二、组件树上的四个属性"></a>二、组件树上的四个属性</h2><p>这一组用来在组件之间横向或纵向跳转。</p>
 <ul>
-<li><code>$el</code>：用来挂载当前组件实例的<code>dom</code>元素</li>
-<li><code>$els</code>：用来访问<code>$el</code>元素中使用了<code>v-el</code>指令的<code>DOM</code>元素</li>
+<li><code>$parent</code>：访问组件实例的父实例</li>
+<li><code>$root</code>：访问当前组件树的根实例</li>
+<li><code>$children</code>：访问当前组件实例的直接子组件实例</li>
+<li><code>$refs</code>：访问模板里打了 <code>ref</code> 标记的子组件或 DOM 元素</li>
 </ul>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app2&quot;</span>&gt;</span></span><br><span class="line">    &#123;&#123; message &#125;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> vm2 = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>:<span class="string">&quot;#app2&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            message : <span class="string">&quot;I am message.&quot;</span></span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">console</span>.<span class="title function_">log</span>(vm2.<span class="property">$el</span>);          <span class="comment">//vm2.$el === 原生js中document.getElementById(&quot;app2&quot;) </span></span></span><br><span class="line"><span class="language-javascript">    vm2.<span class="property">$el</span>.<span class="property">style</span>.<span class="property">color</span> = <span class="string">&quot;red&quot;</span>;   <span class="comment">//变成红色</span></span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>先说结论，这四个里面只有 <code>$refs</code> 值得日常使用，另外三个能不用就不用。</p>
+<p><code>$parent</code> 和 <code>$root</code> 的问题在于把组件和它所处的位置绑死了。一个按钮组件里写了 <code>this.$parent.submit()</code>，那这个按钮就只能放在有 <code>submit</code> 方法的那个父组件里，换个地方就崩。组件之间要通信，往下用 props、往上用 <code>$emit</code>，跨层级的走状态管理，这条边界最好不要越。</p>
+<p><code>$children</code> 更麻烦一点，它返回的数组顺序不保证和你模板里的书写顺序一致，而且不包含通过 <code>v-if</code> 暂时没渲染的那些。想按顺序拿第几个子组件，写 <code>this.$children[0]</code> 迟早会翻车。</p>
+<p><code>$refs</code> 是这里面最实用的。有一点必须记住，<code>$refs</code> 只在组件渲染完成之后才被填充，而且它不是响应式的。</p>
+<p>这就回到开头那个 <code>created</code> 里报 undefined 的问题。<code>created</code> 触发时组件的 render 函数还没跑，DOM 和子组件实例都不存在，<code>this.$refs</code> 是个空对象。要拿 ref，最早只能在 <code>mounted</code> 里。关于每个生命周期钩子分别在什么时候触发、里面能干什么，我在 <a href="https://feinterview.poetries.top/blog/vue-lifecircle">Vue 生命周期</a> 那篇里按顺序拆过一遍。</p>
+<p>顺带提一句 <code>v-ref</code>。2018 年不少中文教程还写着「用 <code>v-ref</code> 指令标记子组件」，那是 Vue 1.x 的写法，Vue 2 已经把它降级成普通的 <code>ref</code> 特性了，写 <code>ref=&quot;chart&quot;</code> 就行，不带 <code>v-</code>。</p>
+<h2 id="三、DOM-访问"><a href="#三、DOM-访问" class="headerlink" title="三、DOM 访问"></a>三、DOM 访问</h2><ul>
+<li><code>$el</code>：当前组件实例挂载的根 DOM 元素</li>
+<li><code>$els</code>：Vue 1.x 里用来访问 <code>v-el</code> 标记的 DOM 元素</li>
+</ul>
+<p><code>$el</code> 是最直观的一个，拿到它就等于拿到了这个组件在页面上的那个根节点：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app2&quot;</span>&gt;</span></span><br><span class="line">    &#123;&#123; message &#125;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> vm2 = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>: <span class="string">&quot;#app2&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">message</span>: <span class="string">&quot;I am message.&quot;</span></span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">console</span>.<span class="title function_">log</span>(vm2.<span class="property">$el</span>);          <span class="comment">// vm2.$el 就是原生 js 里的 document.getElementById(&quot;app2&quot;)</span></span></span><br><span class="line"><span class="language-javascript">    vm2.<span class="property">$el</span>.<span class="property">style</span>.<span class="property">color</span> = <span class="string">&quot;red&quot;</span>;   <span class="comment">// 变成红色</span></span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>数据访问</strong></p>
-<ul>
-<li><code>$data</code>：用来访问组件实例观察的数据对象</li>
-<li><code>$options</code>：用来访问组件实例化时的初始化选项对象</li>
+<p>这段在演示的事情很简单，用 <code>$el</code> 直接拿到根元素然后改样式。能跑通，但真要在业务里这么写，得想清楚一件事，你手动改的这些 DOM 属性，在下一次 Vue 重新渲染这个节点时是有可能被覆盖掉的。所以 <code>$el</code> 的合理用途是那些 Vue 管不到的东西，比如量一下元素宽高、给它挂个第三方图表库、调 <code>scrollIntoView</code>。改样式和改内容还是交给 <code>:style</code>、<code>:class</code> 和模板。</p>
+<p>上面列表里的 <code>$els</code> 要单独说一下。它和 <code>v-el</code> 指令一样，都是 Vue 1.x 的产物，Vue 2 里已经没有了。Vue 2 把 <code>v-el</code> 和 <code>v-ref</code> 合并成了统一的 <code>ref</code>，普通元素上的 <code>ref</code> 拿到的是 DOM 节点，组件上的 <code>ref</code> 拿到的是组件实例。原文这份清单是从早期资料抄下来的，这里保留原始条目，但要明确一句，<code>$els</code> 在 Vue 2 及之后的版本里不存在，别照着写。</p>
+<h2 id="四、数据访问"><a href="#四、数据访问" class="headerlink" title="四、数据访问"></a>四、数据访问</h2><ul>
+<li><code>$data</code>：组件实例观察的数据对象</li>
+<li><code>$options</code>：组件实例化时的初始化选项对象</li>
 </ul>
-<p><strong>DOM方法的使用</strong></p>
+<p><code>$data</code> 就是你写的那个 <code>data</code> 对象本身。用 <code>new Vue()</code> 并且传了一个外部对象进去时，<code>vm.$data === data</code> 是成立的，Vue 直接在原对象上做响应式改造，不会复制一份。这点在调试时挺有用，你在控制台改外部那个 <code>data</code> 对象，视图一样会更新。</p>
+<p><code>$options</code> 存的是初始化选项的合并结果，包括 <code>el</code>、<code>data</code>、<code>methods</code>，也包括你自己塞进去的自定义选项。有个常用小技巧是重置表单，<code>Object.assign(this.$data, this.$options.data())</code> 可以把组件数据一把还原成初始值，不用一个个字段手写。注意组件里的 <code>data</code> 是函数，所以要加括号调用；根实例上如果 <code>data</code> 传的是对象，这招就不适用。</p>
+<h2 id="五、DOM-操作方法"><a href="#五、DOM-操作方法" class="headerlink" title="五、DOM 操作方法"></a>五、DOM 操作方法</h2><p>原始资料里列了这么几个：</p>
 <ul>
-<li><code>$appendTo(elementOrSelector, callback)</code>：将<code>el</code>所指的<code>DOM</code>元素插入目标元素</li>
-<li><code>$before(elementOrSelector, callback)</code>：将<code>el</code>所指的<code>DOM</code>元素或片段插入目标元素之前</li>
-<li><code>$after(elementOrSelector, callback)</code>：将<code>el</code>所指的<code>DOM</code>元素或片段插入目标元素之后</li>
-<li><code>$remove(callback)</code>：将<code>el</code>所指的<code>DOM</code>元素或片段从<code>DOM</code>中删除</li>
-<li><code>$nextTick(callback)</code>：用来在下一次<code>DOM</code>更新循环后执行指定的回调函数</li>
+<li><code>$appendTo(elementOrSelector, callback)</code>：将 <code>el</code> 所指的 DOM 元素插入目标元素</li>
+<li><code>$before(elementOrSelector, callback)</code>：将 <code>el</code> 所指的 DOM 元素或片段插入目标元素之前</li>
+<li><code>$after(elementOrSelector, callback)</code>：将 <code>el</code> 所指的 DOM 元素或片段插入目标元素之后</li>
+<li><code>$remove(callback)</code>：将 <code>el</code> 所指的 DOM 元素或片段从 DOM 中删除</li>
+<li><code>$nextTick(callback)</code>：在下一次 DOM 更新循环后执行指定的回调函数</li>
 </ul>
-<p><strong>event方法的使用</strong></p>
-<ul>
-<li><p><strong>监听</strong></p>
+<p>这里有个坑要注意。前四个全是 Vue 1.x 的实例方法，Vue 2 重写渲染层引入虚拟 DOM 之后就把它们去掉了，只有 <code>$nextTick</code> 活了下来。原因不难理解，虚拟 DOM 的前提是「真实 DOM 的结构由 render 结果推导出来」，你在外面手动 append、remove，下一次 patch 就对不上了。</p>
+<p>Vue 2 里想达到同样效果，思路是换成声明式的。要挂到别的容器里就自己 <code>document.querySelector(&#39;#target&#39;).appendChild(vm.$el)</code> 之后调 <code>$mount()</code>；要卸载就调 <code>vm.$destroy()</code> 再手动移除 <code>vm.$el</code>。这些写法我只在弹窗、全局 toast 这类需要脱离父容器的组件里用过，普通业务组件没必要。</p>
+<h2 id="六、事件方法"><a href="#六、事件方法" class="headerlink" title="六、事件方法"></a>六、事件方法</h2><p>这一组是 Vue 2 里实例通信的基础设施。</p>
+<p><strong>监听</strong></p>
 <ul>
 <li><code>$on(event, callback)</code>：监听实例的自定义事件</li>
-<li><code>$once(event, callback)</code>：同上，但只能触发一次</li>
+<li><code>$once(event, callback)</code>：同上，但只触发一次</li>
 </ul>
-</li>
-<li><p><strong>触发</strong></p>
+<p><strong>触发</strong></p>
 <ul>
-<li><code>$dispatch(event, args)</code>：派发事件，先在当前实例触发，再沿父链一层层向上，对应的监听函数返回<code>false</code>停止</li>
-<li><code>$broadcast(event, args)</code>：广播事件，遍历当前实例的<code>$children</code>，如果对应的监听函数返回false，就停止</li>
-<li><code>$emit(event, args)</code>：触发事件</li>
+<li><code>$emit(event, args)</code>：在当前实例上触发事件</li>
+<li><code>$dispatch(event, args)</code>：派发事件，先在当前实例触发，再沿父链一层层向上，对应的监听函数返回 <code>false</code> 就停止</li>
+<li><code>$broadcast(event, args)</code>：广播事件，遍历当前实例的 <code>$children</code> 向下传播，对应的监听函数返回 <code>false</code> 就停止</li>
 </ul>
-</li>
-</ul>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;ap2&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123; num &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;increase1&quot;</span>&gt;</span> add <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;reduce2()&quot;</span>&gt;</span> reduce2 <span class="tag">&lt;/<span class="name">button</span>&gt;</span> <span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;offReduce()&quot;</span>&gt;</span> off reduce <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> ap2 = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>:<span class="string">&quot;#ap2&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">num</span>:<span class="number">5</span></span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">increase1</span>:<span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">this</span>.<span class="property">num</span> ++;</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// .$on定义事件 .$once定义只触发一次的事件</span></span></span><br><span class="line"><span class="language-javascript">    ap2.$on(<span class="string">&quot;reduce&quot;</span>,<span class="keyword">function</span> (<span class="params">diff</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        ap2.<span class="property">num</span> -= diff ;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript"> </span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// .$emit触发事件</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">function</span> <span class="title function_">reduce2</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        ap2.$emit(<span class="string">&quot;reduce&quot;</span>, <span class="number">2</span>);</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"> </span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// .$off解除事件 解除后，定义的reduce事件将不再执行</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">function</span> <span class="title function_">offReduce</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        ap2.$off(<span class="string">&quot;reduce&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>同样得先纠一处。<code>$dispatch</code> 和 <code>$broadcast</code> 也是 Vue 1.x 的东西，Vue 2 把它们移除了，官方迁移指南给的替代方案就是集中式的状态管理或者一个独立的事件中心。这两个 API 被砍掉的理由写得很直白，基于组件树的事件冒泡和广播会让数据流向变得难以追踪，组件结构一调整，事件就断了。</p>
+<p>留在 Vue 2 里能用的是 <code>$on</code>、<code>$once</code>、<code>$emit</code>、<code>$off</code> 这四个：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;ap2&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123; num &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;increase1&quot;</span>&gt;</span> add <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;reduce2()&quot;</span>&gt;</span> reduce2 <span class="tag">&lt;/<span class="name">button</span>&gt;</span> <span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;offReduce()&quot;</span>&gt;</span> off reduce <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> ap2 = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>: <span class="string">&quot;#ap2&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">num</span>: <span class="number">5</span></span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">increase1</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="variable language_">this</span>.<span class="property">num</span>++;</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// $on 定义事件，$once 定义只触发一次的事件</span></span></span><br><span class="line"><span class="language-javascript">    ap2.$on(<span class="string">&quot;reduce&quot;</span>, <span class="keyword">function</span> (<span class="params">diff</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        ap2.<span class="property">num</span> -= diff;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// $emit 触发事件</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">function</span> <span class="title function_">reduce2</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        ap2.$emit(<span class="string">&quot;reduce&quot;</span>, <span class="number">2</span>);</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// $off 解除事件，解除后定义的 reduce 事件将不再执行</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">function</span> <span class="title function_">offReduce</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        ap2.$off(<span class="string">&quot;reduce&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
+<p>这段代码在演示一件事，Vue 实例本身就是一个事件中心，你可以在外部往它身上挂监听器，再从任意地方触发。页面上两个原生 button 故意写在 <code>#ap2</code> 外面，就是为了说明触发方和 Vue 的模板没有关系。</p>
+<p>正是这个特性催生了当年最流行的跨组件通信方案，也就是事件总线。做法是 <code>var bus = new Vue()</code>，然后一个组件 <code>bus.$on</code> 订阅，另一个组件 <code>bus.$emit</code> 发布，绕开了组件树的层级限制。</p>
+<p>用它的话有一个必须记住的动作，组件销毁前要 <code>$off</code> 掉自己注册的监听。<code>$on</code> 挂上去的回调是存在 bus 实例上的，组件销毁了它不会自动清理，回调里持有的 <code>this</code> 就一直被引用着，页面来回切几次内存就上去了，而且事件会被重复触发 N 次。这个我踩过，表现是同一个弹窗连着弹了三遍，排查了一下午才想到是路由切换时监听没解绑。正确写法是在 <code>beforeDestroy</code> 里精确解绑，<code>bus.$off(&#39;eventName&#39;, handler)</code> 传上原来那个函数引用，只写事件名会把别的组件挂的监听一起干掉。</p>
+<p><code>$off</code> 的三种调用形态值得记一下。不传参数是移除所有监听器，只传事件名是移除该事件的所有监听器，事件名加回调才是精确移除一个。</p>
+<p>关于组件之间到底该用哪种通信方式，props 向下、<code>$emit</code> 向上、事件总线跨层，我在 <a href="https://feinterview.poetries.top/blog/vue-component">Vue 组件</a> 那篇里做过对比。</p>
+<h2 id="七、-watch"><a href="#七、-watch" class="headerlink" title="七、$watch"></a>七、$watch</h2><p><code>$watch</code> 是 <code>watch</code> 选项的命令式版本，用在「监听条件本身是动态的」场景。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> data = &#123; <span class="attr">a</span>: <span class="number">1</span> &#125;</span><br><span class="line"><span class="keyword">var</span> vm = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  <span class="attr">el</span>: <span class="string">&#x27;#example&#x27;</span>,</span><br><span class="line">  <span class="attr">data</span>: data</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">vm.<span class="property">$data</span> === data <span class="comment">// -&gt; true</span></span><br><span class="line">vm.<span class="property">$el</span> === <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;example&#x27;</span>) <span class="comment">// -&gt; true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// $watch 是一个实例方法</span></span><br><span class="line"><span class="keyword">var</span> unwatch = vm.$watch(<span class="string">&#x27;a&#x27;</span>, <span class="keyword">function</span> (<span class="params">newVal, oldVal</span>) &#123;</span><br><span class="line">  <span class="comment">// 这个回调将在 vm.a 改变后调用</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、实例方法"><a href="#二、实例方法" class="headerlink" title="二、实例方法"></a>二、实例方法</h2><h3 id="2-1-watch"><a href="#2-1-watch" class="headerlink" title="2.1 $.watch()"></a>2.1 $.watch()</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> data = &#123; <span class="attr">a</span>: <span class="number">1</span> &#125;</span><br><span class="line"><span class="keyword">var</span> vm = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  <span class="attr">el</span>: <span class="string">&#x27;#example&#x27;</span>,</span><br><span class="line">  <span class="attr">data</span>: data</span><br><span class="line">&#125;)</span><br><span class="line"> </span><br><span class="line">vm.<span class="property">$data</span> === data <span class="comment">// -&gt; true</span></span><br><span class="line">vm.<span class="property">$el</span> === <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;example&#x27;</span>) <span class="comment">// -&gt; true</span></span><br><span class="line"> </span><br><span class="line"><span class="comment">// $watch 是一个实例方法</span></span><br><span class="line">vm.$watch(<span class="string">&#x27;a&#x27;</span>, <span class="keyword">function</span> (<span class="params">newVal, oldVal</span>) &#123;</span><br><span class="line">    </span><br><span class="line">&#125;)</span><br><span class="line">  <span class="comment">// 这个回调将在 `vm.a`  改变后调用</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>比起写在选项里的 <code>watch</code>，实例方法版本多了两个好处。一个是可以在运行时决定监听什么，比如根据接口返回的字段名动态建监听；另一个是它有返回值，返回的是一个取消监听的函数，调一下就停止观察。选项式的 <code>watch</code> 是跟着组件生命周期走的，组件销毁才停，中途想停没有官方入口。</p>
+<p>两个配置项要知道。<code>deep: true</code> 会递归遍历对象的每一层去建立依赖，能监听到深层属性的变化，代价是对象越大开销越高，大数组上开 <code>deep</code> 是很典型的性能陷阱。<code>immediate: true</code> 让回调在建立监听时立刻执行一次，省掉「在 created 里先手动调一次、再写个 watch」的重复代码。</p>
+<p>还有一条边界，Vue 2 的响应式基于 <code>Object.defineProperty</code>，对象新增和删除属性、数组按下标赋值都监听不到，得走 <code>Vue.set</code> 和 <code>Vue.delete</code>。这不是 <code>$watch</code> 的问题，是整个响应式系统的限制，具体机制在 <a href="https://feinterview.poetries.top/blog/vue-data-bind">Vue 数据绑定</a> 里有展开。</p>
+<h2 id="八、-nextTick-到底在解决什么"><a href="#八、-nextTick-到底在解决什么" class="headerlink" title="八、$nextTick 到底在解决什么"></a>八、$nextTick 到底在解决什么</h2><p>把回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新。它跟全局方法 <code>Vue.nextTick</code> 一样，不同的是回调里的 <code>this</code> 自动绑定到调用它的实例上。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;vm.$destroy()&quot;</span>&gt;</span>销毁实例 $destroy<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;vm.$forceUpdate()&quot;</span>&gt;</span>强制重渲染 $forceUpdate<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;edit()&quot;</span>&gt;</span>更新 $nextTick(fn)<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> <span class="title class_">Header</span> = <span class="title class_">Vue</span>.<span class="title function_">extend</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">template</span>: <span class="string">`&lt;p&gt;&#123;&#123; message &#125;&#125;&lt;/p&gt;`</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">message</span>: <span class="string">&quot;I am message&quot;</span></span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">updated</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;updated 更新之后&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">destroyed</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;destroy 销毁之后&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> vm = <span class="keyword">new</span> <span class="title class_">Header</span>().$mount(<span class="string">&quot;#app&quot;</span>);</span></span><br><span class="line"><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">function</span> <span class="title function_">edit</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        vm.<span class="property">message</span> = <span class="string">&quot;new message&quot;</span>;     <span class="comment">// 更新数据</span></span></span><br><span class="line"><span class="language-javascript">        vm.$nextTick(<span class="keyword">function</span> (<span class="params"></span>) &#123;      <span class="comment">// 更新完成后调用</span></span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;更新完后，我被调用&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;)</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="2-2-vm-nextTick"><a href="#2-2-vm-nextTick" class="headerlink" title="2.2 vm.$nextTick"></a>2.2 vm.$nextTick</h3><blockquote>
-<p>将回调延迟到下次 <code>DOM</code> 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新。它跟全局方法 <code>Vue.nextTick</code> 一样，不同的是回调的 <code>this</code> 自动绑定到调用它的实例上</p>
-</blockquote>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;vm.$destroy()&quot;</span>&gt;</span>销毁实例 $destroy<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;vm.$forceUpdate()&quot;</span>&gt;</span>刷新构造器 $forceUpdate<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onclick</span>=<span class="string">&quot;edit()&quot;</span>&gt;</span>更新 $.nextTick(fn)<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> <span class="title class_">Header</span> = <span class="title class_">Vue</span>.<span class="title function_">extend</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">template</span>:<span class="string">`&lt;p&gt;&#123;&#123; message &#125;&#125;&lt;/p&gt;`</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>:<span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="attr">message</span>:<span class="string">&quot;I am message&quot;</span></span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">updated</span>:<span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;updated 更新之后&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">destroyed</span>:<span class="keyword">function</span> (<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;destroy 销毁之后&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> vm = <span class="keyword">new</span> <span class="title class_">Header</span>().$mount(<span class="string">&quot;#app&quot;</span>);</span></span><br><span class="line"><span class="language-javascript"> </span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">function</span> <span class="title function_">edit</span>(<span class="params"></span>) &#123;</span></span><br><span class="line"><span class="language-javascript">        vm.<span class="property">message</span> = <span class="string">&quot;new message&quot;</span>;     <span class="comment">//更新数据</span></span></span><br><span class="line"><span class="language-javascript">        vm.$nextTick(<span class="keyword">function</span> (<span class="params"></span>) &#123;      <span class="comment">//更新完成后调用</span></span></span><br><span class="line"><span class="language-javascript">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;更新完后，我被调用&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">        &#125;)</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>放在<code>Vue.nextTick()</code>回调函数中的执行的应该是会对<code>DOM</code>进行操作的 <code>js</code>代码</p>
-</blockquote>
-<p><strong>什么时候需要用的Vue.nextTick()</strong></p>
+<p>顺带修一处，原文这段代码块的 script 标签没有闭合，直接复制会跑不起来，上面补上了。</p>
+<p>现在说为什么需要它。Vue 更新 DOM 不是同步的。你连着改十次 <code>this.count</code>，Vue 不会渲染十次，它把这些变化推进一个队列里去重，等当前这一轮 JavaScript 执行完再统一 patch 一次。这套批量策略是性能的关键，代价就是你赋值完那一行，DOM 还停在旧状态。</p>
+<p>所以「改完数据立刻读 DOM」这件事天生是错的。</p>
+<p>放在 <code>$nextTick</code> 回调里执行的，应该是那些会读写 DOM 的代码。什么时候必须用，大致这么几类：</p>
 <ul>
-<li>你在<code>Vue</code>生命周期的<code>created()</code>钩子函数进行的<code>DOM</code>操作一定要放在<code>Vue.nextTick()</code>的回调函数中。原因是什么呢，原因是在<code>created()</code>钩子函数执行的时候<code>DOM</code> 其实并未进行任何渲染，而此时进行<code>DOM</code>操作无异于徒劳，所以此处一定要将<code>DOM</code>操作的js代码放进<code>Vue.nextTick()</code>的回调函数中。与之对应的就是<code>mounted</code>钩子函数，因为该钩子函数执行时所有的<code>DOM</code>挂载和渲染都已完成，此时在该钩子函数中进行任何<code>DOM</code>操作都不会有问题 。</li>
-<li>在数据变化后要执行的某个操作，而这个操作需要使用随数据改变而改变的<code>DOM</code>结构的时候，这个操作都应该放进<code>Vue.nextTick()</code>的回调函数中</li>
-<li>为了在数据变化之后等待 <code>Vue</code> 完成更新 <code>DOM</code> ，可以在数据变化之后立即使用 <code>Vue.nextTick(callback)</code> 。这样回调函数在 <code>DOM</code> 更新完成后就会调用</li>
+<li>在 <code>created</code> 钩子里要操作 DOM 的，一定要放进 <code>$nextTick</code> 回调。<code>created</code> 执行时 DOM 还没有渲染，这时候操作等于什么都没做。与之对应的是 <code>mounted</code>，那个钩子触发时挂载和渲染都完成了，直接操作没问题</li>
+<li>数据变化之后要做的某个操作，依赖的是「随数据改变而改变的那部分 DOM 结构」，这个操作要放进 <code>$nextTick</code> 回调。典型场景是 <code>v-if</code> 打开一个弹窗后立刻给里面的输入框调 <code>focus()</code>，或者列表加了一条之后滚到底部</li>
+<li>用了第三方库需要在 DOM 就绪后重新计算尺寸的，比如图表 resize、富文本编辑器初始化</li>
+</ul>
+<p>实现层面简单提一句。<code>nextTick</code> 内部会挑一个异步任务把回调排到当前同步代码之后，Vue 2.5 以后优先走微任务（<code>Promise.then</code>），环境不支持时才降级到宏任务，具体的降级顺序以官方源码为准。所以 <code>$nextTick</code> 的回调比 <code>setTimeout(fn, 0)</code> 更早执行，这在两者混用时会影响顺序。</p>
+<p>Vue 2.1 以后，<code>$nextTick</code> 不传回调会返回一个 Promise，可以直接 <code>await this.$nextTick()</code>，比嵌套回调好读。</p>
+<h2 id="九、这些-API-在-Vue-3-里还剩多少"><a href="#九、这些-API-在-Vue-3-里还剩多少" class="headerlink" title="九、这些 API 在 Vue 3 里还剩多少"></a>九、这些 API 在 Vue 3 里还剩多少</h2><p>Vue 2 已经在 2023 年底停止官方维护，新项目基本都在 Vue 3 上。这一节把上面提到的 API 对一遍现状，方便你迁移老代码时心里有数。</p>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Vue 3 状态</th>
+<th>替代写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>$el</code> &#x2F; <code>$refs</code></td>
+<td>保留</td>
+<td>组合式 API 里用 <code>ref()</code> 拿元素更常见</td>
+</tr>
+<tr>
+<td><code>$data</code> &#x2F; <code>$options</code></td>
+<td>保留</td>
+<td>选项式 API 下可用</td>
+</tr>
+<tr>
+<td><code>$watch</code> &#x2F; <code>$nextTick</code> &#x2F; <code>$forceUpdate</code></td>
+<td>保留</td>
+<td>也可从 <code>vue</code> 直接引入 <code>watch</code>、<code>nextTick</code></td>
+</tr>
+<tr>
+<td><code>$emit</code></td>
+<td>保留</td>
+<td>组件上建议配合 <code>emits</code> 选项声明</td>
+</tr>
+<tr>
+<td><code>$on</code> &#x2F; <code>$off</code> &#x2F; <code>$once</code></td>
+<td>已移除</td>
+<td>官方推荐外部库，例如 mitt</td>
+</tr>
+<tr>
+<td><code>$children</code></td>
+<td>已移除</td>
+<td>用 <code>ref</code> 拿具体子组件</td>
+</tr>
+<tr>
+<td><code>$destroy</code></td>
+<td>已移除</td>
+<td>根实例用 <code>app.unmount()</code></td>
+</tr>
+<tr>
+<td><code>Vue.extend</code></td>
+<td>已移除</td>
+<td>用 <code>defineComponent</code></td>
+</tr>
+</tbody></table>
+<p>变化最大的是事件总线那套。<code>$on</code>、<code>$off</code>、<code>$once</code> 在 Vue 3 里被彻底删掉了，<code>new Vue()</code> 这个用法本身也不存在了，所以「造一个空实例当 bus」在 Vue 3 里连第一步都走不通。官方迁移指南给的方案是用第三方的事件发射器库，社区用得最多的是 mitt，API 也是 <code>on</code> &#x2F; <code>off</code> &#x2F; <code>emit</code>，迁移时改个引入基本就能跑。</p>
+<p>另一个常见的迁移点是全局挂载。Vue 2 里往 <code>Vue.prototype</code> 上挂东西，比如 <code>Vue.prototype.$http = axios</code>，Vue 3 改成了 <code>app.config.globalProperties.$http = axios</code>。写法不同，效果一致，都是让所有组件实例上能直接访问。</p>
+<p><code>$refs</code> 在 Vue 3 的单文件组件里还多了一层限制。用 <code>script setup</code> 写的组件默认是封闭的，父组件通过 <code>ref</code> 拿到实例后访问不到内部的方法和数据，需要子组件用 <code>defineExpose</code> 显式暴露。这个改动我一开始也没适应，父组件调子组件方法一直报 undefined，查了半天才发现是这个原因。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回到开头那两个问题。<code>created</code> 里 <code>this.$refs</code> 是空的，因为渲染还没发生；改完数据立刻读 DOM 拿到旧值，因为 Vue 的更新是批量异步的。两个答案指向同一件事，Vue 实例上的属性和方法都有明确的可用时机，脱离生命周期去谈某个 <code>$xx</code> 能不能用没有意义。</p>
+<p>日常真正高频的其实只有四个，<code>$refs</code> 拿元素和子组件，<code>$emit</code> 往上抛事件，<code>$nextTick</code> 等渲染完成，<code>$watch</code> 做动态监听。剩下的 <code>$parent</code>、<code>$root</code>、<code>$children</code> 属于「能用但会让组件失去独立性」的那一类，遇到非用不可的场景，先想想是不是组件划分出了问题。</p>
+<p>最后是这份清单的时效性。<code>$appendTo</code>、<code>$before</code>、<code>$after</code>、<code>$remove</code>、<code>$els</code>、<code>$dispatch</code>、<code>$broadcast</code> 这七个是 Vue 1.x 遗留，Vue 2 里就已经没有了；<code>$on</code>、<code>$off</code>、<code>$once</code>、<code>$children</code>、<code>$destroy</code> 在 Vue 2 里能用，Vue 3 里被移除。照着老教程写代码之前，先确认一下版本。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://v2.cn.vuejs.org/v2/api/#%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95-%E6%95%B0%E6%8D%AE">Vue 2 官方文档 - 实例方法</a></li>
+<li><a href="https://cn.vuejs.org/api/component-instance.html">Vue 3 官方文档 - 实例方法</a></li>
+<li><a href="https://v3-migration.vuejs.org/breaking-changes/events-api.html">Vue 3 迁移指南 - 事件 API</a></li>
+<li><a href="https://v3-migration.vuejs.org/breaking-changes/global-api.html">Vue 3 迁移指南 - 全局 API</a></li>
+<li><a href="https://github.com/developit/mitt">mitt - 轻量事件发射器</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

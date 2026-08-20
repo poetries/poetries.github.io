@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Ionic之调用原生模块相机 | 前端进阶之旅</title>
+  <title>Ionic 调用原生相机与 Cordova 插件命令实战 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Ionic,Angular," />
+    <meta name="keywords" content="Ionic,Angular,Cordova,混合App," />
   
 
-  <meta name="description" content="一、Ionic Native 的使用 Ionic 在 cordova 的基础上面又进行了封装，可以让我们更方便的在 ionic 中使用 cordova 插件  使用方法:  找到对应的Api:   https:&#x2F;&#x2F;ionicframework.com&#x2F;docs&#x2F;native&#x2F;device&#x2F;   安装相关的设备插件  ionic cordova plugin add cordova-plugin-d">
+  <meta name="description" content="用 Ionic Native 封装 Cordova 插件调用手机原生能力的完整接法，从找 API、装插件、在 app.module.ts 注册到页面里调用，配一份 Cordova 平台与插件常用命令清单，并说明这套栈今天的维护现状与迁移方向。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Ionic之调用原生模块相机">
+<meta property="og:title" content="Ionic 调用原生相机与 Cordova 插件命令实战">
 <meta property="og:url" content="http://blog.poetries.top/2019/10/07/ionic-ios-camera/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、Ionic Native 的使用 Ionic 在 cordova 的基础上面又进行了封装，可以让我们更方便的在 ionic 中使用 cordova 插件  使用方法:  找到对应的Api:   https:&#x2F;&#x2F;ionicframework.com&#x2F;docs&#x2F;native&#x2F;device&#x2F;   安装相关的设备插件  ionic cordova plugin add cordova-plugin-d">
+<meta property="og:description" content="用 Ionic Native 封装 Cordova 插件调用手机原生能力的完整接法，从找 API、装插件、在 app.module.ts 注册到页面里调用，配一份 Cordova 平台与插件常用命令清单，并说明这套栈今天的维护现状与迁移方向。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-10-07T06:10:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.672Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.941Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Ionic">
 <meta property="article:tag" content="Angular">
+<meta property="article:tag" content="Cordova">
+<meta property="article:tag" content="混合App">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Ionic-Native-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">一、Ionic Native 的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Cordova-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E4%BB%A5%E5%8F%8A%E6%8F%92%E4%BB%B6%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">二、Cordova 常用命令以及插件的使用</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E8%AF%B4%E6%B8%85%E6%A5%9A%E8%BF%99%E5%A5%97%E6%A0%88%E7%8E%B0%E5%9C%A8%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-text">一、先说清楚这套栈现在的状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Ionic-Native-%E5%88%B0%E5%BA%95%E5%8C%85%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">二、Ionic Native 到底包了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%8E%A5%E5%85%A5%E4%B8%80%E4%B8%AA%E5%8E%9F%E7%94%9F%E6%8F%92%E4%BB%B6%E7%9A%84%E5%9B%BA%E5%AE%9A%E5%9B%9B%E6%AD%A5"><span class="toc-text">三、接入一个原生插件的固定四步</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%9B%B8%E6%9C%BA%E6%8F%92%E4%BB%B6%E6%80%8E%E4%B9%88%E6%8E%A5"><span class="toc-text">四、相机插件怎么接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Cordova-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4%E6%B8%85%E5%8D%95"><span class="toc-text">五、Cordova 常用命令清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B8%B8%E7%94%A8%E6%8F%92%E4%BB%B6%E6%B8%85%E5%8D%95%E4%BB%A5%E5%8F%8A%E6%8F%92%E4%BB%B6-ID-%E7%9A%84%E5%8F%98%E8%BF%81"><span class="toc-text">六、常用插件清单以及插件 ID 的变迁</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-ionic-ios-camera" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Ionic之调用原生模块相机</h1>
+    <h1 class="post-title">Ionic 调用原生相机与 Cordova 插件命令实战</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 505字</span>
+            <span>字数统计 3.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -289,61 +291,141 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、Ionic-Native-的使用"><a href="#一、Ionic-Native-的使用" class="headerlink" title="一、Ionic Native 的使用"></a>一、Ionic Native 的使用</h2><blockquote>
-<p>Ionic 在 <code>cordova</code> 的基础上面又进行了封装，可以让我们更方便的在 ionic 中使用 <code>cordova</code> 插件</p>
-</blockquote>
-<p><strong>使用方法:</strong></p>
-<ol>
-<li>找到对应的Api:</li>
-</ol>
+        <p>混合 App 做到一半，产品说要加个「拍照上传头像」。你在浏览器里调 <code>navigator.mediaDevices.getUserMedia</code> 试了一下，能开摄像头，但拿不到系统相册、拿不到原图、<code>iOS</code> 上还得走 <code>HTTPS</code>。这时候就得往下走一层，让 <code>JavaScript</code> 去喊原生。</p>
+<p>在 <code>Ionic 3</code> 这套体系里，喊原生的活是 <code>Cordova</code> 干的，<code>Ionic Native</code> 只是在它上面包了一层更好用的皮。这篇把接一个原生插件的完整四步走一遍，再把 <code>Cordova</code> 那些平台和插件命令归拢成一份能直接抄的清单。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>Ionic Native</code> 和 <code>Cordova</code> 插件到底是什么关系，为什么要装两个包</li>
+<li>接入一个原生插件的固定四步，以及每一步漏了会报什么错</li>
+<li>相机插件的接法，以及 <code>iOS</code> 上那句必须调的 <code>cleanup</code></li>
+<li><code>Cordova</code> 平台增删、<code>prepare</code>、真机运行这些命令各自在什么时候用</li>
+<li>一份常用插件清单，以及老的 <code>org.apache.cordova.*</code> 插件 ID 现在该换成什么</li>
+<li>这套技术栈今天的维护状态，以及要迁的话往哪迁</li>
+</ul>
+<h2 id="一、先说清楚这套栈现在的状态"><a href="#一、先说清楚这套栈现在的状态" class="headerlink" title="一、先说清楚这套栈现在的状态"></a>一、先说清楚这套栈现在的状态</h2><p>这篇写于 2019 年，用的是 <code>Ionic 3</code> 加 <code>Cordova</code>。你现在如果是新开项目，不建议照着这套起。</p>
+<p><code>Apache Cordova</code> 已经不再活跃维护，项目退役进了 <code>Apache Attic</code> 归档，具体状态以 <a href="https://attic.apache.org/">https://attic.apache.org/</a> 上的公告为准，我这里不猜时间点。社区这些年整体迁到了 <code>Ionic</code> 官方自己做的 <code>Capacitor</code>，它解决的是同一类问题，但原生工程是当作源码提交进仓库管理的，不像 <code>Cordova</code> 那样每次 <code>prepare</code> 重新生成。</p>
+<p><code>Ionic Native</code> 这个包名后来也改了，现在叫 <code>Awesome Cordova Plugins</code>，<code>npm</code> 上的 scope 从 <code>@ionic-native/*</code> 变成了 <code>@awesome-cordova-plugins/*</code>。下面正文里出现的都还是当年的写法，我原样保留，因为存量项目里跑的就是这些，改名之后 API 形态没变，看懂了老的自然看得懂新的。</p>
+<p>那这篇现在还有什么用？两点。一是存量的 <code>Ionic 3</code> 项目还在跑，出了问题得有地方查；二是「JS 怎么调到原生」这套思路本身没变，<code>Capacitor</code> 的插件接法和下面这四步几乎是同构的，只是包名和命令换了。</p>
+<h2 id="二、Ionic-Native-到底包了什么"><a href="#二、Ionic-Native-到底包了什么" class="headerlink" title="二、Ionic Native 到底包了什么"></a>二、Ionic Native 到底包了什么</h2><p><code>Cordova</code> 原生插件暴露给 <code>JS</code> 的接口是挂在全局对象上的，形如 <code>navigator.camera.getPicture(onSuccess, onFail, options)</code>，纯回调风格，没有类型，也不知道插件到底装没装。</p>
+<p><code>Ionic Native</code> 干的事就是把这一层重新包成 <code>Angular</code> 能吃的形式：变成可注入的服务，回调换成 <code>Promise</code> 或者 <code>Observable</code>，带上 <code>TypeScript</code> 类型定义，插件没装的时候给你一句明确的报错而不是 <code>undefined is not a function</code>。</p>
+<p>所以装插件的时候你会看到两条命令，很多人第一次接的时候会以为写重复了：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ionic cordova plugin add cordova-plugin-device</span><br><span class="line"></span><br><span class="line">npm install @ionic-native/device --save</span><br></pre></td></tr></table></figure>
+
+<p>第一条装的是真正的原生代码（<code>Objective-C</code> &#x2F; <code>Java</code> 那部分），第二条装的是给 <code>TypeScript</code> 用的那层包装。<strong>少了第一条，插件在真机上根本没有实现；少了第二条，代码编译不过</strong>。两条缺一不可。</p>
+<p>顺着这个再看一个常被忽略的点。<code>Ionic Native</code> 的包装层在浏览器里是跑不出结果的，因为底下没有原生实现。所以调这类 API 的页面，<code>ionic serve</code> 下调试你只会拿到一个 reject，必须上模拟器或者真机。这个我一开始也踩过，盯着浏览器控制台找了半天，以为是自己代码写错了。</p>
+<h2 id="三、接入一个原生插件的固定四步"><a href="#三、接入一个原生插件的固定四步" class="headerlink" title="三、接入一个原生插件的固定四步"></a>三、接入一个原生插件的固定四步</h2><p>流程是死的，接哪个插件都一样。这里拿 <code>Device</code> 插件走一遍，它读设备信息，没有权限弹窗，最适合拿来验证链路通不通。</p>
+<p><strong>Step 1，先去官方文档找到对应的 API。</strong></p>
 <blockquote>
 <p><a href="https://ionicframework.com/docs/native/device/">https://ionicframework.com/docs/native/device/</a></p>
 </blockquote>
-<ol start="2">
-<li>安装相关的设备插件</li>
-</ol>
+<p><code>Ionic Native</code> 的文档页结构很统一，上面是安装命令，中间是用法示例，最下面是这个插件在各平台的支持情况。<strong>先看最下面那个平台支持表</strong>，有些插件只支持 <code>Android</code>，你在 <code>iOS</code> 上折腾半天是白费的。</p>
+<p><strong>Step 2，装插件。</strong></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ionic cordova plugin add cordova-plugin-device </span><br><span class="line"></span><br><span class="line">npm install @ionic-native/device --save</span><br></pre></td></tr></table></figure>
 
+<p>这里两个注意点，原文写得很简，我展开一下。</p>
 <blockquote>
 <ul>
 <li>注意: 安装 <code>ionic</code> 调用原生 api 的插件的时候在模块加上 <code>--save</code> </li>
 <li>注意: <code>ios</code> 安装插件的时候命令签名加 <code>sudo</code></li>
 </ul>
 </blockquote>
-<ol start="3">
-<li>在<code>app.module.ts</code>中引入注册相应模块</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import &#123; Device &#125; from &#x27;@ionic-native/device/ngx&#x27;;</span><br></pre></td></tr></table></figure>
+<p><code>--save</code> 是为了把依赖写进 <code>package.json</code>，不然你本地跑得好好的，同事拉下来 <code>npm install</code> 之后一片红。这条在新版 <code>npm</code> 里已经是默认行为了，但当年的 <code>npm 5</code> 之前不是，老项目里养成写上的习惯不吃亏。</p>
+<p><code>sudo</code> 那条是权限问题。<code>Cordova</code> 装 <code>iOS</code> 插件时要往 <code>platforms/ios</code> 里写文件，如果那个目录是之前用 <code>sudo</code> 建出来的，属主是 root，普通用户就写不进去。真遇到了更干净的解法是把目录属主改回来，别一路 <code>sudo</code> 下去，那样只会让越来越多的文件变成 root 所有：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">chown</span> -R $(<span class="built_in">whoami</span>) ./platforms ./plugins</span><br></pre></td></tr></table></figure>
+
+<p><strong>Step 3，在 <code>app.module.ts</code> 里注册。</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Device</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ionic-native/device/ngx&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="attr">providers</span>: [</span><br><span class="line">    <span class="title class_">StatusBar</span>,</span><br><span class="line">    <span class="title class_">SplashScreen</span>,</span><br><span class="line">    <span class="title class_">Device</span>,</span><br><span class="line">    &#123; </span><br><span class="line">        <span class="attr">provide</span>: <span class="title class_">RouteReuseStrategy</span>, <span class="attr">useClass</span>: <span class="title class_">IonicRouteStrategy</span> </span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<ol start="4">
-<li>在用到的页面引入看文档使用</li>
-</ol>
+<p>这一步是 <code>Angular</code> 的依赖注入要求，不是 <code>Ionic</code> 的额外规矩。把 <code>Device</code> 放进 <code>providers</code> 数组，注入器才知道怎么造这个实例。漏了这一步的报错是 <code>No provider for Device!</code>，看到这句就回来检查这里。</p>
+<p>路径末尾那个 <code>/ngx</code> 是个历史遗留，得留意。<code>@ionic-native</code> 早期同时要兼容 <code>Ionic 3</code> 的老写法和 <code>Angular</code> 新的注入方式，就拆成了两个入口，带 <code>/ngx</code> 的是给 <code>Angular 5+</code> 用的。<strong>同一个项目里两种写法混用会出现两个不同的实例</strong>，注入进去的那个可能根本没初始化。统一都带上 <code>/ngx</code> 就好。</p>
+<p><strong>Step 4，在页面里注入并使用。</strong></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Device</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@ionic-native/device/ngx&#x27;</span>; </span><br><span class="line"></span><br><span class="line"><span class="title function_">constructor</span>(<span class="params">private device: Device</span>) &#123; &#125;</span><br><span class="line">...</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Device UUID is: &#x27;</span> + <span class="variable language_">this</span>.<span class="property">device</span>.<span class="property">uuid</span>);</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、Cordova-常用命令以及插件的使用"><a href="#二、Cordova-常用命令以及插件的使用" class="headerlink" title="二、Cordova 常用命令以及插件的使用"></a>二、Cordova 常用命令以及插件的使用</h2><p><strong>1、增加平台</strong></p>
+<p><code>Device</code> 这个插件的属性是同步的，拿到就能读。多数其他插件不是，返回的是 <code>Promise</code>，得 <code>await</code> 或者 <code>.then</code>。跑到真机上，控制台能打出一串 <code>UUID</code>，说明从 <code>TypeScript</code> 到原生这条链路整个通了，接别的插件照抄这四步即可。</p>
+<h2 id="四、相机插件怎么接"><a href="#四、相机插件怎么接" class="headerlink" title="四、相机插件怎么接"></a>四、相机插件怎么接</h2><p>相机是这类需求里最常用的，接法同样是上面那四步，但有两处额外的东西要处理。</p>
+<p>第一是权限描述。<code>iOS</code> 上只要包里出现了相机或相册的调用，<code>Info.plist</code> 里就必须写上对应的用途说明，否则不是崩溃就是被审核打回。相机对应 <code>NSCameraUsageDescription</code>，相册对应 <code>NSPhotoLibraryUsageDescription</code>，文案要说清楚拿这个权限干什么，光写「需要访问相机」是会被拒的。这块我在 <a href="https://feinterview.poetries.top/blog/Ionic-ios-build">Ionic 的 iOS 打包与上架流程</a> 那篇里列了完整的权限键名对照表，要上架的话对着补一遍。</p>
+<p>第二是 <code>iOS</code> 上的内存回收。官方文档里专门提了一句，用 <code>FILE_URI</code> 方式拿照片的话，<code>Cordova</code> 会把照片写到临时目录，拍完之后要主动调一次清理：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">navigator.<span class="property">camera</span>.<span class="title function_">cleanup</span>(onSuccess, onFail)</span><br></pre></td></tr></table></figure>
+
+<p>不调的结果是临时文件一直堆着，连续拍十几张之后 App 占用会明显上去。这条只在 <code>iOS</code> 生效，<code>Android</code> 上调了也不报错，写上就是了。</p>
+<p>插件的安装命令是这一对：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ionic cordova plugin add cordova-plugin-camera</span><br><span class="line"></span><br><span class="line">npm install @ionic-native/camera --save</span><br></pre></td></tr></table></figure>
+
+<p>具体的 <code>options</code> 参数（<code>quality</code>、<code>destinationType</code>、<code>sourceType</code>、<code>correctOrientation</code> 这些）以官方文档为准，版本之间有过调整，我就不在这里抄一份可能过期的表了。有个参数值得单独说：<code>destinationType</code> 选 <code>DATA_URL</code> 会直接给你 base64 字符串，写起来最省事，但大图很容易把 <code>WebView</code> 内存打爆，正经项目还是走 <code>FILE_URI</code> 再自己读文件。</p>
+<h2 id="五、Cordova-常用命令清单"><a href="#五、Cordova-常用命令清单" class="headerlink" title="五、Cordova 常用命令清单"></a>五、Cordova 常用命令清单</h2><p>上面都是 <code>Ionic Native</code> 那一层，往下就是 <code>Cordova</code> 自己的命令了。这些命令 <code>Ionic CLI</code> 都做了同名转发，前面加 <code>ionic</code> 就行，效果一样，区别是 <code>ionic cordova</code> 那套会顺带帮你跑一遍 <code>Ionic</code> 的构建。</p>
+<p><strong>增加平台。</strong> 一个项目要发几个端，就得先把对应平台加进来，加完会在 <code>platforms/</code> 下生成一整套原生工程。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cordova platform add android</span><br><span class="line">cordova platform add ios</span><br><span class="line"></span><br><span class="line">ionic cordova platform add android</span><br><span class="line">ionic cordova platform add ios</span><br></pre></td></tr></table></figure>
 
-<p><strong>2、移除平台</strong></p>
+<p><strong>移除平台。</strong> 原生工程被改坏了、插件装乱了、<code>Gradle</code> 怎么都不通，最快的办法就是删掉重加。<code>platforms/</code> 目录是可再生的，删了不心疼，反倒是你手动改过 <code>platforms</code> 里的文件的话，这一步会全部丢掉，那些改动应该放到 <code>hooks</code> 或者 <code>config.xml</code> 里去。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cordova platform rm android </span><br><span class="line">cordova platform rm ios</span><br><span class="line"></span><br><span class="line">ionic cordova platform rm android </span><br><span class="line">ionic cordova platform rm ios</span><br></pre></td></tr></table></figure>
 
-<p><strong>3、修改代码后让代码生效</strong></p>
+<p><strong>改完代码让代码生效。</strong> 这条是新手最容易漏的一条。你改的是 <code>src</code> 下的源码，构建产物落在 <code>www</code>，而原生工程读的是 <code>platforms/xxx/www</code>，<code>prepare</code> 干的就是把 <code>www</code> 和插件配置同步到各个平台目录里去。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cordova prepare</span><br><span class="line"></span><br><span class="line">ionic cordova prepare</span><br></pre></td></tr></table></figure>
 
-<p><strong>4、真机运行</strong></p>
+<p>漏了它的表现特别迷惑，代码明明改了，真机上跑的还是老版本，你会怀疑是缓存、是没重新编译、是手机没装上。其实只是资源没拷过去。</p>
+<p><strong>真机运行。</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cordova run android</span><br><span class="line"></span><br><span class="line">ionic cordova run android</span><br></pre></td></tr></table></figure>
 
-<p><strong>5、安装插件–建议看 ionic 官方文档</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//设备 API</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">device</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//网络(事件)</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">network</span>-information </span><br><span class="line"></span><br><span class="line"><span class="comment">//电池(事件)</span></span><br><span class="line">cordova plugin </span><br><span class="line">add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">battery</span>-status </span><br><span class="line"></span><br><span class="line"><span class="comment">//加速器</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">device</span>-motion </span><br><span class="line"></span><br><span class="line"><span class="comment">//罗盘</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">device</span>-orientation </span><br><span class="line"></span><br><span class="line"><span class="comment">//定位</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">geolocation</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//摄像头</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">camera</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//媒体文件处理</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">media</span>-capture cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">media</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//文件访问</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">file</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//文件传输</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">file</span>-transfer</span><br><span class="line"></span><br><span class="line"><span class="comment">//对话框</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">dialogs</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//震动</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">vibration</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//联系人</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">contacts</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//全球化</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">globalization</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//闪屏</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">splashscreen</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//打开新的浏览器窗口</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">inappbrowser</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//调试控制台</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">console</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>6、查看已经安装的插件</strong></p>
+<p><code>Android</code> 走这条很方便，插上线开好调试模式就能跑。<code>iOS</code> 我的建议是别用这条命令，直接用 <code>Xcode</code> 打开 <code>platforms/ios</code> 下的工程运行，签名和证书出了问题 <code>Xcode</code> 的报错信息比命令行清楚太多。</p>
+<p><strong>查看和删除插件。</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cordova plugin list</span><br></pre></td></tr></table></figure>
 
-<p><strong>7、删除插件</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cordova plugin rm org.apache.cordova.console</span><br><span class="line"></span><br><span class="line">cordova plugin rm org.apache.cordova.geolocation</span><br></pre></td></tr></table></figure>
 
+<p><code>plugin list</code> 在排查问题时很有用，尤其是接手别人的项目，先跑一遍它，能看到装了哪些插件、版本是多少。跟 <code>package.json</code> 对不上的话，多半是有人手动改过 <code>platforms</code> 目录。</p>
+<h2 id="六、常用插件清单以及插件-ID-的变迁"><a href="#六、常用插件清单以及插件-ID-的变迁" class="headerlink" title="六、常用插件清单以及插件 ID 的变迁"></a>六、常用插件清单以及插件 ID 的变迁</h2><p>下面这份是原文列的清单，我原样保留：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//设备 API</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">device</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//网络(事件)</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">network</span>-information </span><br><span class="line"></span><br><span class="line"><span class="comment">//电池(事件)</span></span><br><span class="line">cordova plugin </span><br><span class="line">add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">battery</span>-status </span><br><span class="line"></span><br><span class="line"><span class="comment">//加速器</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">device</span>-motion </span><br><span class="line"></span><br><span class="line"><span class="comment">//罗盘</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">device</span>-orientation </span><br><span class="line"></span><br><span class="line"><span class="comment">//定位</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">geolocation</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//摄像头</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">camera</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//媒体文件处理</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">media</span>-capture cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">media</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//文件访问</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">file</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//文件传输</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">file</span>-transfer</span><br><span class="line"></span><br><span class="line"><span class="comment">//对话框</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">dialogs</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//震动</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">vibration</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//联系人</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">contacts</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//全球化</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">globalization</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//闪屏</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">splashscreen</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//打开新的浏览器窗口</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">inappbrowser</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">//调试控制台</span></span><br><span class="line">cordova plugin add org.<span class="property">apache</span>.<span class="property">cordova</span>.<span class="property">console</span></span><br></pre></td></tr></table></figure>
 
+<p>这里有个坑要注意，这份清单里的 <code>org.apache.cordova.*</code> 是老的插件 ID。<code>Cordova</code> 早年有自己的插件仓库（<code>plugins.cordova.io</code>），后来整体迁到了 <code>npm</code>，包名也改成了 <code>cordova-plugin-*</code> 这种形式。所以上面这些 ID 现在多数已经装不上了，对应关系是把前缀换掉：</p>
+<table>
+<thead>
+<tr>
+<th>老 ID</th>
+<th>现在的包名</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>org.apache.cordova.device</code></td>
+<td><code>cordova-plugin-device</code></td>
+</tr>
+<tr>
+<td><code>org.apache.cordova.camera</code></td>
+<td><code>cordova-plugin-camera</code></td>
+</tr>
+<tr>
+<td><code>org.apache.cordova.geolocation</code></td>
+<td><code>cordova-plugin-geolocation</code></td>
+</tr>
+<tr>
+<td><code>org.apache.cordova.network-information</code></td>
+<td><code>cordova-plugin-network-information</code></td>
+</tr>
+<tr>
+<td><code>org.apache.cordova.file</code></td>
+<td><code>cordova-plugin-file</code></td>
+</tr>
+<tr>
+<td><code>org.apache.cordova.inappbrowser</code></td>
+<td><code>cordova-plugin-inappbrowser</code></td>
+</tr>
+</tbody></table>
+<p>规律就是 <code>org.apache.cordova.x</code> 对应 <code>cordova-plugin-x</code>，照着改基本不会错。清单里还有两个需要单独说一下。</p>
+<p><code>file-transfer</code> 这个插件很早就被官方标成不再维护了，推荐改用标准的 <code>XMLHttpRequest</code> 或者 <code>fetch</code> 直接传 <code>Blob</code>，<code>WebView</code> 这些年对大文件上传的支持已经够用了。</p>
+<p><code>console</code> 插件的作用是让 <code>console.log</code> 在原生日志里也能看到，现在主流的调试方式是直接连 <code>Safari</code> 的网页检查器或者 <code>chrome://inspect</code> 远程调试 <code>WebView</code>，比翻原生日志直观得多。这条路的具体接法可以看 <a href="https://feinterview.poetries.top/blog/webview-real-device-debugging-ios-safari-android-chrome">真机调试 WebView 的完整指南</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>Ionic</code> 调原生这件事，剥掉框架的皮之后就是一句话：<code>Cordova</code> 负责把原生能力桥接到 <code>JS</code>，<code>Ionic Native</code> 负责把这个桥包装成 <code>Angular</code> 服务。所以装插件永远是两条命令，一条装原生实现，一条装类型包装，然后在 <code>app.module.ts</code> 里注册，再到页面里注入。</p>
+<p>排查这类问题也有条固定的顺序。先看是不是漏了 <code>providers</code> 注册（报 <code>No provider for</code>），再看是不是漏了 <code>cordova prepare</code>（改了代码不生效），再看是不是在浏览器里跑（原生实现根本不存在），最后才去怀疑插件本身。这个顺序能省掉大量无效搜索。</p>
+<p>至于要不要继续用这套栈，我的判断是存量项目该修就修，别硬迁，<code>Ionic 3</code> 那套 <code>Cordova</code> 集成还是能跑的。但新项目就别开这个头了，<code>Cordova</code> 已经进入归档状态，<code>Capacitor</code> 是官方明确的接班方案，插件生态和文档都在那边。真要迁的话，上面这套「找 API、装插件、注册、注入」的思路是完全能复用的。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>Ionic Native &#x2F; Awesome Cordova Plugins 文档 <a href="https://ionicframework.com/docs/native">https://ionicframework.com/docs/native</a></li>
+<li>Apache Cordova 官方文档 <a href="https://cordova.apache.org/docs/en/latest/">https://cordova.apache.org/docs/en/latest/</a></li>
+<li>cordova-plugin-camera 仓库 <a href="https://github.com/apache/cordova-plugin-camera">https://github.com/apache/cordova-plugin-camera</a></li>
+<li>cordova-plugin-device 仓库 <a href="https://github.com/apache/cordova-plugin-device">https://github.com/apache/cordova-plugin-device</a></li>
+<li>Capacitor 官方文档 <a href="https://capacitorjs.com/docs">https://capacitorjs.com/docs</a></li>
+<li>Apache Attic <a href="https://attic.apache.org/">https://attic.apache.org/</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

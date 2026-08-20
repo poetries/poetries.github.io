@@ -7,30 +7,31 @@
 <head>
   <meta charset="utf-8">
   
-  <title>React Native之设备真机调试 | 前端进阶之旅</title>
+  <title>React Native真机调试完整流程与连不上的排查顺序 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="react,RN," />
+    <meta name="keywords" content="react,RN,真机调试," />
   
 
-  <meta name="description" content="开启 USB 调试 在默认情况下 Android 设备只能从应用市场来安装应用。你需要开启 USB 调试才能自由安装开发版本的 APP  通过 USB 数据线连接设备 下面检查你的设备是否能正确连接到 ADB（Android Debug Bridge），使用adb devices命令   运行应用现在你可以运行react-native run-android来在设备上安装并启动应用了 从设备上访问">
+  <meta name="description" content="React Native 真机调试从头到尾走一遍，覆盖 Android USB 调试开启、adb devices 确认连接、adb reverse 端口转发的原理、摇一摇开发者菜单、iOS 真机的差异，以及连不上 Metro 时该按什么顺序排查。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="React Native之设备真机调试">
+<meta property="og:title" content="React Native真机调试完整流程与连不上的排查顺序">
 <meta property="og:url" content="http://blog.poetries.top/2019/09/26/rn-device-debug/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="开启 USB 调试 在默认情况下 Android 设备只能从应用市场来安装应用。你需要开启 USB 调试才能自由安装开发版本的 APP  通过 USB 数据线连接设备 下面检查你的设备是否能正确连接到 ADB（Android Debug Bridge），使用adb devices命令   运行应用现在你可以运行react-native run-android来在设备上安装并启动应用了 从设备上访问">
+<meta property="og:description" content="React Native 真机调试从头到尾走一遍，覆盖 Android USB 调试开启、adb devices 确认连接、adb reverse 端口转发的原理、摇一摇开发者菜单、iOS 真机的差异，以及连不上 Metro 时该按什么顺序排查。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190926/1.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190926/2.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190926/1.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190926/2.png">
 <meta property="article:published_time" content="2019-09-26T01:10:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.688Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.952Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="react">
 <meta property="article:tag" content="RN">
+<meta property="article:tag" content="真机调试">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/20190926/1.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/20190926/1.png">
 
   
 
@@ -208,7 +209,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%90%AF-USB-%E8%B0%83%E8%AF%95"><span class="toc-text">开启 USB 调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%9A%E8%BF%87-USB-%E6%95%B0%E6%8D%AE%E7%BA%BF%E8%BF%9E%E6%8E%A5%E8%AE%BE%E5%A4%87"><span class="toc-text">通过 USB 数据线连接设备</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E5%BA%94%E7%94%A8"><span class="toc-text">运行应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%8E%E8%AE%BE%E5%A4%87%E4%B8%8A%E8%AE%BF%E9%97%AE%E5%BC%80%E5%8F%91%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">从设备上访问开发服务器</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9D%9E%E5%BE%97%E4%B8%8A%E7%9C%9F%E6%9C%BA"><span class="toc-text">一、为什么非得上真机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%BC%80%E5%90%AF-USB-%E8%B0%83%E8%AF%95"><span class="toc-text">二、开启 USB 调试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%94%A8-adb-devices-%E7%A1%AE%E8%AE%A4%E8%BF%9E%E6%8E%A5"><span class="toc-text">三、用 adb devices 确认连接</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8A%8A%E5%BA%94%E7%94%A8%E8%A3%85%E5%88%B0%E8%AE%BE%E5%A4%87%E4%B8%8A"><span class="toc-text">四、把应用装到设备上</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81adb-reverse-%E8%AE%A9%E7%9C%9F%E6%9C%BA%E6%89%BE%E5%88%B0%E4%BD%A0%E7%9A%84%E7%94%B5%E8%84%91"><span class="toc-text">五、adb reverse 让真机找到你的电脑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%B0%83%E5%87%BA%E5%BC%80%E5%8F%91%E8%80%85%E8%8F%9C%E5%8D%95"><span class="toc-text">六、调出开发者菜单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81iOS-%E7%9C%9F%E6%9C%BA%E8%B0%83%E8%AF%95%E7%9A%84%E4%B8%8D%E5%90%8C%E4%B9%8B%E5%A4%84"><span class="toc-text">七、iOS 真机调试的不同之处</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%9C%9F%E6%9C%BA%E5%92%8C%E6%A8%A1%E6%8B%9F%E5%99%A8%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-text">八、真机和模拟器差在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E8%BF%9E%E4%B8%8D%E4%B8%8A%E6%97%B6%E7%9A%84%E6%8E%92%E6%9F%A5%E9%A1%BA%E5%BA%8F"><span class="toc-text">九、连不上时的排查顺序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -231,13 +232,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-rn-device-debug" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">React Native之设备真机调试</h1>
+    <h1 class="post-title">React Native真机调试完整流程与连不上的排查顺序</h1>
 
     <div class="article-meta">
       <span>
@@ -273,12 +274,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 188字</span>
+            <span>字数统计 4k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 1分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -292,27 +293,99 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="开启-USB-调试"><a href="#开启-USB-调试" class="headerlink" title="开启 USB 调试"></a>开启 USB 调试</h2><blockquote>
-<p>在默认情况下 <code>Android</code> 设备只能从应用市场来安装应用。你需要开启 <code>USB</code> 调试才能自由安装开发版本的 <code>APP</code></p>
-</blockquote>
-<h2 id="通过-USB-数据线连接设备"><a href="#通过-USB-数据线连接设备" class="headerlink" title="通过 USB 数据线连接设备"></a>通过 USB 数据线连接设备</h2><blockquote>
-<p>下面检查你的设备是否能正确连接到 ADB（Android Debug Bridge），使用<code>adb devices</code>命令</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20190926/1.png"></p>
-<h2 id="运行应用"><a href="#运行应用" class="headerlink" title="运行应用"></a>运行应用</h2><p>现在你可以运行<code>react-native run-android</code>来在设备上安装并启动应用了</p>
-<h2 id="从设备上访问开发服务器"><a href="#从设备上访问开发服务器" class="headerlink" title="从设备上访问开发服务器"></a>从设备上访问开发服务器</h2><blockquote>
-<p>(Android 5.0 及以上)使用 <code>adb reverse</code> 命令</p>
-</blockquote>
-<p>** 方式一**</p>
+        <p>模拟器上跑得好好的页面，装到真机上白屏了。或者更常见的一种，<code>App</code> 起来了，但一直卡在红屏，写着 <code>Unable to load script</code>。做 <code>React Native</code> 只要涉及相机、蓝牙、定位、推送这几类原生能力，模拟器就帮不上忙了，必须上真机。而真机调试第一次配起来，卡住的往往不是代码，是设备连不上、<code>Metro</code> 找不着、开发者菜单调不出来这几件小事。</p>
+<p>这篇把 <code>Android</code> 和 <code>iOS</code> 两端的真机调试流程完整走一遍，重点讲清楚 <code>adb reverse</code> 到底在做什么、开发者菜单有几种调出方式、真机和模拟器的行为差在哪，最后给一份连不上时按顺序往下走的排查清单。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>运行<code>adb reverse tcp:8081 tcp:8081</code></li>
-<li>在命令行执行 <code>adb shell input keyevent 82</code> 弹出开发者工具。打开热更新和远程调试</li>
+<li>为什么有些问题必须上真机才能复现</li>
+<li><code>Android</code> 怎么开启 <code>USB</code> 调试，开发者选项藏在哪</li>
+<li>用 <code>adb devices</code> 确认设备真的连上了，<code>unauthorized</code> 和 <code>offline</code> 分别是什么意思</li>
+<li><code>adb reverse</code> 的端口转发原理，以及它和「同一个局域网」方案的区别</li>
+<li>调出开发者菜单的三种方式，摇一摇、快捷键、<code>adb shell input keyevent 82</code></li>
+<li><code>iOS</code> 真机调试和 <code>Android</code> 的差异，证书、签名、<code>Metro</code> 地址</li>
+<li>真机和模拟器到底有哪些行为差异，哪些问题只会在真机上出现</li>
+<li>连不上时按什么顺序排查，一条一条往下走</li>
 </ul>
-<p><strong>方式二</strong></p>
-<blockquote>
-<p>摇晃手机即可弹出开发者工具</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20190926/2.png"></p>
+<h2 id="一、为什么非得上真机"><a href="#一、为什么非得上真机" class="headerlink" title="一、为什么非得上真机"></a>一、为什么非得上真机</h2><p>先说清楚这件事，不然会觉得配环境太折腾不值得。</p>
+<p>模拟器其实就是跑在你电脑上的一个虚拟设备，它模拟的是系统层面的 <code>API</code>，硬件那一层大多是假的。相机在 <code>iOS</code> 模拟器上直接不可用，<code>Android</code> 模拟器上是一张滚动的测试图；蓝牙在两端的模拟器上都没有真正的射频能力，扫不到任何设备；定位是你手动设的固定坐标；推送、指纹、<code>NFC</code>、传感器同理。</p>
+<p>性能特征也完全对不上。模拟器跑在你 <code>Mac</code> 的 <code>CPU</code> 上，内存管够，滚一个长列表流畅得不像话，装到一台三年前的中端安卓机上就开始掉帧。这类问题在模拟器上永远复现不出来，具体的性能定位方法可以看这篇<a href="https://feinterview.poetries.top/blog/react-native-ios-android-device-performance-profiling">React Native 真机性能调优实战</a>。</p>
+<p>还有一类是屏幕相关的。刘海、挖孔、异形屏、系统字体缩放、深色模式，真机上的表现和模拟器有出入。</p>
+<p>所以规则很简单，涉及硬件、性能、屏幕特性的，一律真机。日常写业务页面用模拟器就够了，效率高。</p>
+<h2 id="二、开启-USB-调试"><a href="#二、开启-USB-调试" class="headerlink" title="二、开启 USB 调试"></a>二、开启 USB 调试</h2><p><code>Android</code> 设备默认只能从应用市场安装应用，要装开发版本的 <code>APK</code>，得先把 <code>USB</code> 调试打开。</p>
+<p>路径在设置里，但被藏起来了。先进「关于手机」，找到「版本号」那一栏，连续点七次，系统会提示「你已进入开发者模式」。然后回到设置主页，会多出一个「开发者选项」的入口，进去把「<code>USB</code> 调试」的开关打开。</p>
+<p>不同厂商的路径不太一样。小米那边版本号叫「<code>MIUI</code> 版本」，华为在「软件信息」里，<code>OPPO</code> 和 <code>vivo</code> 又各有各的叫法，找不到就在设置的搜索框里搜「版本号」。</p>
+<p>有几个开关顺手也一起打开会省事。「<code>USB</code> 安装」允许通过数据线直接装应用，不开的话 <code>run-android</code> 装包那一步会失败。「<code>USB</code> 调试（安全设置）」在部分小米机型上是修改系统设置必需的。「停用权限监控」这类选项在某些机型上会拦截调试进程的权限申请，遇到权限弹框不出现的情况可以看看这里。</p>
+<h2 id="三、用-adb-devices-确认连接"><a href="#三、用-adb-devices-确认连接" class="headerlink" title="三、用 adb devices 确认连接"></a>三、用 adb devices 确认连接</h2><p>线插上之后，第一件事不是跑项目，是先确认电脑真的看到了这台设备。</p>
+<p><code>adb</code> 是 <code>Android Debug Bridge</code> 的缩写，它是电脑和 <code>Android</code> 设备之间所有调试通信的入口，装 <code>Android SDK</code> 的时候会一起带上。在终端敲这条命令。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb devices</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s.poetries.top/gitee/20190926/1.png" alt="adb devices 命令输出，列出已连接的 Android 设备"></p>
+<p>正常情况下会列出设备序列号，后面跟着状态 <code>device</code>。这个状态是唯一表示「一切正常」的，其他几种都有问题。</p>
+<p>看到 <code>unauthorized</code>，说明设备端还没授权这台电脑。手机屏幕上应该弹出了一个「允许 <code>USB</code> 调试吗」的对话框，勾上「一律允许使用这台计算机进行调试」再点确定。如果弹框没出现，把线拔了重插一次，或者在开发者选项里点「撤销 <code>USB</code> 调试授权」再重连。</p>
+<p>看到 <code>offline</code>，通常是 <code>adb</code> 服务和设备的连接状态错乱了。<code>adb kill-server</code> 后再 <code>adb devices</code> 重启一次服务就好。</p>
+<p>什么都没列出来，那就是线或者驱动的问题。先换一根线试试，很多充电线只有供电线芯没有数据线芯，插上能充电但传不了数据，这个坑非常常见。<code>Windows</code> 上还要装对应厂商的 <code>USB</code> 驱动。</p>
+<h2 id="四、把应用装到设备上"><a href="#四、把应用装到设备上" class="headerlink" title="四、把应用装到设备上"></a>四、把应用装到设备上</h2><p>设备连上了，就可以装包运行了。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">react-native run-android</span><br></pre></td></tr></table></figure>
+
+<p>这条命令做的事比看上去多。它会先编译 <code>Android</code> 原生工程生成 <code>APK</code>，通过 <code>adb</code> 装到设备上，同时在你的电脑上起一个 <code>Metro</code> 打包服务（默认监听 <code>8081</code> 端口），最后拉起 <code>App</code>。</p>
+<p><code>App</code> 启动之后，它需要去 <code>Metro</code> 那里拉 <code>JS bundle</code>。这就是下一节要解决的问题了。</p>
+<p>顺带说时效性。<code>react-native</code> 这个全局命令行工具在后来的版本里已经不推荐了，现在通常写成 <code>npx react-native run-android</code>，或者直接用 <code>package.json</code> 里的脚本 <code>npm run android</code> &#x2F; <code>yarn android</code>。命令名字变了，底下做的事情是一样的。具体到某个版本用哪个入口，以官方文档为准。</p>
+<h2 id="五、adb-reverse-让真机找到你的电脑"><a href="#五、adb-reverse-让真机找到你的电脑" class="headerlink" title="五、adb reverse 让真机找到你的电脑"></a>五、adb reverse 让真机找到你的电脑</h2><p>这里是整套流程里最容易卡住的一环，也是最值得讲清楚原理的一环。</p>
+<p><code>Metro</code> 跑在你的电脑上，监听 <code>localhost:8081</code>。真机是一台独立的设备，它的 <code>localhost</code> 是它自己，跟你电脑的 <code>localhost</code> 没有半点关系。所以真机上的 <code>App</code> 去访问 <code>localhost:8081</code> 是访问不到 <code>Metro</code> 的，红屏 <code>Unable to load script</code> 就是这么来的。</p>
+<p>要解决这个问题有两条路。</p>
+<p>第一条是让真机和电脑连同一个 <code>Wi-Fi</code>，然后在开发者菜单的 <code>Dev Settings</code> 里把服务器地址手动改成你电脑的局域网 <code>IP</code>，比如 <code>192.168.1.100:8081</code>。这条路的问题在于，公司网络经常做客户端隔离，同一个 <code>Wi-Fi</code> 下两台设备互相 <code>ping</code> 不通；<code>IP</code> 还会随着 <code>DHCP</code> 续租变化，换个地方办公就得重设一次。</p>
+<p>第二条就是 <code>adb reverse</code>，<code>Android 5.0</code> 及以上支持。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb reverse tcp:8081 tcp:8081</span><br></pre></td></tr></table></figure>
+
+<p>这条命令的意思是，在设备上开一个 <code>8081</code> 端口的监听，所有发到设备这个端口的流量，通过 <code>USB</code> 数据线转发到电脑的 <code>8081</code> 端口。于是真机上的 <code>App</code> 访问自己的 <code>localhost:8081</code>，实际拿到的是你电脑上 <code>Metro</code> 的响应。</p>
+<p>走的是数据线，不依赖网络，公司网、地铁上、飞行模式都能用。这个设计是真的舒服。</p>
+<p>两个参数的顺序容易记反。前面那个 <code>tcp:8081</code> 是设备端的端口，后面那个是电脑端的端口，两边可以不一样。比如你的 <code>Metro</code> 因为端口冲突起在了 <code>8088</code>，那就写 <code>adb reverse tcp:8081 tcp:8088</code>，设备端还是访问 <code>8081</code>，转到电脑的 <code>8088</code> 上去。</p>
+<p>有个坑要注意。<code>adb reverse</code> 的转发规则不是永久的，设备重启、拔插数据线、<code>adb</code> 服务重启之后都会失效，需要重新执行。<code>run-android</code> 每次跑的时候会自动帮你设一遍，所以平时感知不强，但如果你只是重启 <code>App</code> 没有重新 <code>run</code>，就得手动补这一条。</p>
+<h2 id="六、调出开发者菜单"><a href="#六、调出开发者菜单" class="headerlink" title="六、调出开发者菜单"></a>六、调出开发者菜单</h2><p>开发者菜单是真机调试的控制面板，热更新、性能监视器、服务器地址设置都在里面。</p>
+<p><img src="https://s.poetries.top/gitee/20190926/2.png" alt="React Native 开发者菜单在真机上弹出的样子"></p>
+<p>调出来有三种方式。</p>
+<p>最直接的是摇晃手机。<code>RN</code> 监听了加速度传感器，晃一下就会弹出菜单。缺点是有时候要晃好几次才响应，在办公室里晃手机的姿势也比较微妙。</p>
+<p>第二种是走 <code>adb</code> 发送按键事件。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb shell input keyevent 82</span><br></pre></td></tr></table></figure>
+
+<p><code>82</code> 是 <code>Android</code> 里 <code>KEYCODE_MENU</code> 的键值，<code>RN</code> 把菜单键映射成了打开开发者菜单。这条命令的好处是稳定，敲一次弹一次，不用晃手机。我自己基本只用这种。</p>
+<p>第三种是模拟器上的快捷键，<code>macOS</code> 下 <code>iOS</code> 模拟器是 <code>Cmd + D</code>，<code>Android</code> 模拟器是 <code>Cmd + M</code>（<code>Windows</code> 和 <code>Linux</code> 上是 <code>Ctrl + M</code>）。真机上没有快捷键这一说。</p>
+<p>菜单弹出来之后，几个常用项是这样的。<code>Reload</code> 重新拉一次 <code>bundle</code>，等价于 <code>RR</code> 双击。<code>Enable Fast Refresh</code>（早期叫 <code>Enable Live Reload</code> 和 <code>Enable Hot Reloading</code>）打开热更新，改完代码保存就自动刷新。<code>Debug</code>（早期叫 <code>Debug JS Remotely</code>）把 <code>JS</code> 执行环境切到 <code>Chrome</code> 里，可以打断点看变量。<code>Show Perf Monitor</code> 打开性能浮窗，能看到 <code>JS FPS</code> 和 <code>UI FPS</code>。<code>Dev Settings</code> 里面可以改服务器地址。</p>
+<p>这里也有个时效性说明。远程 <code>JS</code> 调试那一套在 <code>Hermes</code> 成为默认引擎之后已经变了，现在的调试入口是 <code>React Native DevTools</code>，直接连 <code>Hermes</code> 而不是把代码搬到 <code>Chrome</code> 里跑。老的远程调试模式在新版本里陆续被移除了。菜单项的名字和具体行为随版本变化比较大，以官方文档为准。</p>
+<h2 id="七、iOS-真机调试的不同之处"><a href="#七、iOS-真机调试的不同之处" class="headerlink" title="七、iOS 真机调试的不同之处"></a>七、iOS 真机调试的不同之处</h2><p><code>iOS</code> 这边流程不一样，主要卡在签名上。</p>
+<p><code>Android</code> 装个包基本没有门槛，<code>iOS</code> 必须有一个有效的开发者证书和描述文件，设备的 <code>UDID</code> 还得在描述文件的设备列表里。用免费的个人 <code>Apple ID</code> 也能装，但证书七天过期，过期后 <code>App</code> 就打不开了，得重新签一次。团队开发建议还是走付费开发者账号。证书和描述文件怎么配，可以参考<a href="https://feinterview.poetries.top/blog/rn-ios-cert-config">React Native iOS 证书配置</a>这篇。</p>
+<p>设备连上 <code>Mac</code> 之后，在 <code>Xcode</code> 里选中你的真机作为运行目标，<code>Cmd + R</code> 就能编译安装。第一次运行需要在手机的「设置 - 通用 - <code>VPN</code> 与设备管理」里信任你的开发者证书，不信任的话应用图标装上了但点开会报「不受信任的开发者」。</p>
+<p><code>iOS</code> 没有 <code>adb reverse</code> 这种东西。<code>RN</code> 的处理方式是，<code>Xcode</code> 编译 <code>Debug</code> 包时会把你 <code>Mac</code> 的局域网 <code>IP</code> 写进 <code>App</code>，运行时按这个地址去连 <code>Metro</code>。所以 <code>iOS</code> 真机调试必须和 <code>Mac</code> 在同一个局域网里，而且这个网络不能有客户端隔离。你的 <code>Mac</code> 换了网络导致 <code>IP</code> 变了，就得重新编译一次，或者在开发者菜单的 <code>Dev Settings</code> 里手动改地址。</p>
+<p>开发者菜单在 <code>iOS</code> 真机上同样靠摇一摇调出，或者连着 <code>Mac</code> 时用 <code>Cmd + D</code>（需要 <code>Xcode</code> 在跑）。</p>
+<h2 id="八、真机和模拟器差在哪"><a href="#八、真机和模拟器差在哪" class="headerlink" title="八、真机和模拟器差在哪"></a>八、真机和模拟器差在哪</h2><p>除了硬件能力，这几类差异是我实际踩过的。</p>
+<p><strong>性能与内存</strong>。模拟器用的是你电脑的 <code>CPU</code> 和内存，中低端真机的差距非常大。列表滚动、动画、大图解码这几类，模拟器上完全看不出问题。</p>
+<p><strong>图片资源的选取</strong>。模拟器的像素密度是固定的几档，真机上密度更碎，<code>@2x</code> <code>@3x</code> 的挑选结果可能和你预期不同，图标发虚这类问题得真机看。</p>
+<p><strong>权限弹框</strong>。<code>Android</code> 各家厂商对权限的处理差异很大，模拟器跑的是原生 <code>AOSP</code>，弹框行为和小米、华为的定制系统完全不一样。定位、后台运行、自启动这几项尤其明显。</p>
+<p><strong>网络环境</strong>。模拟器走的是你电脑的网络，真机可能在 4G&#x2F;5G 上。超时时间、弱网表现、<code>HTTPS</code> 证书校验，这几块只有真机能测。</p>
+<p><strong>Release 包的差异</strong>。这一点最容易忽略。真机上装的 <code>Debug</code> 包依然带着 <code>Metro</code> 连接和未优化的 <code>bundle</code>，和上架的 <code>Release</code> 包还是两码事。做性能验收要打 <code>Release</code> 包在真机上测，不然数据不作数。</p>
+<h2 id="九、连不上时的排查顺序"><a href="#九、连不上时的排查顺序" class="headerlink" title="九、连不上时的排查顺序"></a>九、连不上时的排查顺序</h2><p>真到了连不上的时候，别乱试，按这个顺序一条条往下走，基本都能定位。</p>
+<p><strong>第一步，确认设备连上了。</strong> 跑 <code>adb devices</code>，状态必须是 <code>device</code>。是 <code>unauthorized</code> 就去手机上点授权，是 <code>offline</code> 就 <code>adb kill-server</code> 重启服务，列表为空就换数据线。</p>
+<p><strong>第二步，确认 Metro 在跑。</strong> 在浏览器里打开 <code>http://localhost:8081/status</code>，正常会返回 <code>packager-status:running</code>。返回不了说明 <code>Metro</code> 根本没起来，或者端口被别的进程占了。查占用可以用 <code>lsof -i :8081</code>。</p>
+<p><strong>第三步，确认端口转发生效。</strong> 跑 <code>adb reverse --list</code> 看有没有那条 <code>8081</code> 的规则。没有就手动执行 <code>adb reverse tcp:8081 tcp:8081</code>。这一步在设备重启或者重插数据线之后必做。</p>
+<p><strong>第四步，确认 App 里的服务器地址。</strong> 摇一摇打开 <code>Dev Settings</code>，看 <code>Debug server host</code> 那一项。用 <code>adb reverse</code> 方案的话这里应该是空的或者 <code>localhost:8081</code>；如果之前手填过一个过期的局域网 <code>IP</code>，会一直连不上，清空它。</p>
+<p><strong>第五步，清缓存重来。</strong> <code>Metro</code> 的缓存偶尔会脏，尤其是切了分支或者改了 <code>babel</code> 配置之后。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 清掉 Metro 缓存重启</span></span><br><span class="line">npx react-native start --reset-cache</span><br></pre></td></tr></table></figure>
+
+<p><strong>第六步，检查防火墙和代理。</strong> 这个坑我自己踩过。<code>Mac</code> 上开着 <code>Clash</code> 之类的代理软件时，本机的 <code>HTTP</code> 请求会被劫持，<code>Metro</code> 的连接可能受影响。把代理临时关掉试一次，能很快排除掉这个因素。</p>
+<p><strong>第七步，重装。</strong> 前面都没问题就卸载 <code>App</code> 重新 <code>run</code> 一次。有时候旧包里缓存了错误的 <code>bundle</code> 或者服务器配置，覆盖安装清不掉。</p>
+<p>我自己的经验是，八成的问题都停在第一步和第三步，数据线和 <code>adb reverse</code> 失效是最高频的两个原因。</p>
+<p>顺带一提，如果你想搞明白 <code>App</code> 启动时到底做了什么、<code>bundle</code> 是怎么被加载和执行的，可以接着看<a href="https://feinterview.poetries.top/blog/rn-start-progress">React Native 启动流程</a>，那篇把从 <code>MainActivity</code> 到 <code>AppRegistry.runApplication</code> 的整条链路拆开讲了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>真机调试这件事，理清楚之后其实就三层。第一层是物理连接，<code>USB</code> 调试开关加一根能传数据的线，用 <code>adb devices</code> 验证。第二层是网络可达，<code>Android</code> 用 <code>adb reverse</code> 通过数据线把设备的 <code>8081</code> 转到电脑上，<code>iOS</code> 靠同一局域网加编译期写入的 <code>IP</code>。第三层是控制入口，开发者菜单靠摇一摇或者 <code>adb shell input keyevent 82</code> 调出来，热更新、性能面板、服务器地址都在里面。</p>
+<p>三层里任意一层断了，表现都是同一个红屏，所以排查必须按顺序来，从物理连接往上走，别一上来就怀疑代码。</p>
+<p>最后再强调一次，真机上跑的 <code>Debug</code> 包和上架的 <code>Release</code> 包不是一回事。功能验证用 <code>Debug</code> 包没问题，性能和内存的结论必须在 <code>Release</code> 包上采。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://reactnative.dev/docs/running-on-device">React Native 在设备上运行官方文档</a></li>
+<li><a href="https://reactnative.dev/docs/debugging">React Native 调试官方文档</a></li>
+<li><a href="https://developer.android.com/tools/adb">Android Debug Bridge 官方文档</a></li>
+<li><a href="https://developer.android.com/studio/debug/dev-options">Android 开发者选项官方说明</a></li>
+<li><a href="https://feinterview.poetries.top/blog/react-native-ios-android-device-performance-profiling">React Native 真机性能调优实战</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

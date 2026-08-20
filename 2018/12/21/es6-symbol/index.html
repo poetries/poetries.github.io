@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>ES6系列之Symbol | 前端进阶之旅</title>
+  <title>ES6系列之Symbol的唯一性与内置符号 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="ES6,Javascript," />
+    <meta name="keywords" content="ES6,Javascript,Symbol,数据类型," />
   
 
-  <meta name="description" content="一、简介 ES6新加入了一种原始数据类型Symbol，表示独一无二的值，这是js的第七种数据类型，前六种是：Undefined、Null、布尔值（Boolean）、字符串（String）、数值（Number）、对象（Object）   对象的属性名现在可以有两种类型，一种是原来就有的字符串，另一种就是新增的Symbol类型。凡是属性名属于Symbol类型，就都是独一无二的，可以保证不会与其他属性名">
+  <meta name="description" content="Symbol 为什么能保证属性名不冲突，Symbol.for 的全局注册表和普通 Symbol 差在哪，以及 Symbol.iterator、Symbol.toStringTag 这类内置符号是如何被语言当作协议钩子来用的。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="ES6系列之Symbol">
+<meta property="og:title" content="ES6系列之Symbol的唯一性与内置符号">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/21/es6-symbol/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、简介 ES6新加入了一种原始数据类型Symbol，表示独一无二的值，这是js的第七种数据类型，前六种是：Undefined、Null、布尔值（Boolean）、字符串（String）、数值（Number）、对象（Object）   对象的属性名现在可以有两种类型，一种是原来就有的字符串，另一种就是新增的Symbol类型。凡是属性名属于Symbol类型，就都是独一无二的，可以保证不会与其他属性名">
+<meta property="og:description" content="Symbol 为什么能保证属性名不冲突，Symbol.for 的全局注册表和普通 Symbol 差在哪，以及 Symbol.iterator、Symbol.toStringTag 这类内置符号是如何被语言当作协议钩子来用的。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-12-21T07:00:21.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.658Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.929Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="ES6">
 <meta property="article:tag" content="Javascript">
+<meta property="article:tag" content="Symbol">
+<meta property="article:tag" content="数据类型">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%AE%80%E4%BB%8B"><span class="toc-text">一、简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89"><span class="toc-text">1.1 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%80%BC%E5%94%AF%E4%B8%80%E6%80%A7"><span class="toc-text">1.2 值唯一性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%8D%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8-new-%E6%93%8D%E4%BD%9C%E7%AC%A6"><span class="toc-text">1.3 不可以使用 new 操作符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E7%BB%93%E5%90%88-Object-%E5%87%BD%E6%95%B0"><span class="toc-text">1.4 结合 Object() 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E5%85%A8%E5%B1%80%E5%85%B1%E4%BA%AB-Symbol"><span class="toc-text">1.5 全局共享 Symbol</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E5%9C%A8%E5%AF%B9%E8%B1%A1%E4%B8%AD%E6%9F%A5%E6%89%BE-Symbol-%E5%B1%9E%E6%80%A7"><span class="toc-text">1.6 在对象中查找 Symbol 属性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E9%9D%99%E6%80%81%E5%B1%9E%E6%80%A7"><span class="toc-text">二、静态属性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-length-%E5%B1%9E%E6%80%A7"><span class="toc-text">2.1 length 属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%BF%AD%E4%BB%A3-Symbols"><span class="toc-text">2.2 迭代 Symbols</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Symbol%E7%9A%84%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-text">2.3 Symbol的正则表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%85%B6%E4%BB%96%E5%B1%9E%E6%80%A7"><span class="toc-text">2.4 其他属性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95"><span class="toc-text">三、静态方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Symbol-for-key"><span class="toc-text">3.1 Symbol.for(key)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Symbol-keyFor-sym"><span class="toc-text">3.2 Symbol.keyFor(sym)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%81%8D%E5%8E%86"><span class="toc-text">四、遍历</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%AE%80%E4%BB%8B"><span class="toc-text">一、简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89"><span class="toc-text">1.1 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%80%BC%E5%94%AF%E4%B8%80%E6%80%A7"><span class="toc-text">1.2 值唯一性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%8D%E5%8F%AF%E4%BB%A5%E4%BD%BF%E7%94%A8-new-%E6%93%8D%E4%BD%9C%E7%AC%A6"><span class="toc-text">1.3 不可以使用 new 操作符</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E7%BB%93%E5%90%88-Object-%E5%87%BD%E6%95%B0"><span class="toc-text">1.4 结合 Object() 函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E5%85%A8%E5%B1%80%E5%85%B1%E4%BA%AB-Symbol"><span class="toc-text">1.5 全局共享 Symbol</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E5%9C%A8%E5%AF%B9%E8%B1%A1%E4%B8%AD%E6%9F%A5%E6%89%BE-Symbol-%E5%B1%9E%E6%80%A7"><span class="toc-text">1.6 在对象中查找 Symbol 属性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%86%85%E7%BD%AE%E7%AC%A6%E5%8F%B7%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%87%AA%E5%B7%B1%E5%BC%80%E7%9A%84%E9%92%A9%E5%AD%90"><span class="toc-text">二、内置符号：语言自己开的钩子</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-length-%E5%B1%9E%E6%80%A7"><span class="toc-text">2.1 length 属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-Symbol-iterator-%E4%B8%8E%E8%BF%AD%E4%BB%A3%E5%8D%8F%E8%AE%AE"><span class="toc-text">2.2 Symbol.iterator 与迭代协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%AD%A3%E5%88%99%E7%9B%B8%E5%85%B3%E7%9A%84%E5%9B%9B%E4%B8%AA%E7%AC%A6%E5%8F%B7"><span class="toc-text">2.3 正则相关的四个符号</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-hasInstance-%E4%B8%8E-toStringTag"><span class="toc-text">2.4 hasInstance 与 toStringTag</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95%E4%B8%8E%E5%85%A8%E5%B1%80%E6%B3%A8%E5%86%8C%E8%A1%A8"><span class="toc-text">三、静态方法与全局注册表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Symbol-for-key"><span class="toc-text">3.1 Symbol.for(key)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Symbol-keyFor-sym"><span class="toc-text">3.2 Symbol.keyFor(sym)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%81%8D%E5%8E%86%E6%97%B6%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-text">四、遍历时的可见性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%9C%9F%E7%9A%84%E8%AF%A5%E7%94%A8-Symbol"><span class="toc-text">五、什么时候真的该用 Symbol</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-es6-symbol" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">ES6系列之Symbol</h1>
+    <h1 class="post-title">ES6系列之Symbol的唯一性与内置符号</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.5k字</span>
+            <span>字数统计 4.1k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 16分</span>
           </span>
       
       
@@ -289,111 +291,125 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h2><blockquote>
-<p><code>ES6</code>新加入了一种原始数据类型<code>Symbol</code>，表示独一无二的值，这是<code>js</code>的第七种数据类型，前六种是：<code>Undefined</code>、<code>Null</code>、布尔值（<code>Boolean</code>）、字符串（<code>String</code>）、数值（<code>Number</code>）、对象（<code>Object</code>）</p>
-</blockquote>
+        <p>给别人的对象上挂一个属性，这件事听着简单，做起来其实一直有风险。你写一个日志库，想在用户传进来的对象上标记一个 <code>__logged__</code>，怎么保证用户自己没用过这个名字？加下划线、加前缀、加随机数，都是概率游戏，赌的是不撞车。</p>
+<p>Symbol 就是来终结这个赌局的。它生成的值天生独一无二，拿它当属性名，谁也覆盖不了谁。更有意思的是，语言自己也在用这套机制，<code>for...of</code> 能遍历什么、<code>instanceof</code> 怎么判断、<code>Object.prototype.toString</code> 输出什么标签，背后全是几个内置 Symbol 在做钩子。这篇把 Symbol 的基本行为和这套「协议钩子」的设计一起讲清楚。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>对象的属性名现在可以有两种类型，一种是原来就有的字符串，另一种就是新增的<code>Symbol</code>类型。凡是属性名属于<code>Symbol</code>类型，就都是独一无二的，可以保证不会与其他属性名产生冲突</li>
+<li>Symbol 作为原始类型的定位，以及它和 BigInt 的先后关系</li>
+<li>唯一性怎么体现，为什么不能用 <code>new</code></li>
+<li><code>Symbol.for</code> 的全局注册表和普通 Symbol 的区别</li>
+<li>内置符号（well-known symbols）是怎么当协议钩子用的</li>
+<li>Symbol 属性在各种遍历方式下的可见性对照</li>
+<li>什么场景真的该用 Symbol，什么场景是过度设计</li>
 </ul>
+<h2 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h2><p><code>ES6</code> 新加入了一种原始数据类型 <code>Symbol</code>，表示独一无二的值。在 ES6 那个时间点，它是 JS 的第七种数据类型，前六种是 <code>Undefined</code>、<code>Null</code>、布尔值（<code>Boolean</code>）、字符串（<code>String</code>）、数值（<code>Number</code>）、对象（<code>Object</code>）。</p>
+<p>这里补一句时效性说明。原文写于 2018 年，那会儿说「第七种」是准确的。后来 ES2020 又加了 <code>BigInt</code>，所以现在的完整清单是七种原始类型（<code>Undefined</code>、<code>Null</code>、<code>Boolean</code>、<code>String</code>、<code>Number</code>、<code>Symbol</code>、<code>BigInt</code>）加上 <code>Object</code>。数数的说法变了，Symbol 本身的行为没变。</p>
+<p>对象的属性名现在可以有两种类型，一种是原来就有的字符串，另一种就是新增的 <code>Symbol</code> 类型。凡是属性名属于 <code>Symbol</code> 类型，就都是独一无二的，可以保证不会与其他属性名产生冲突。</p>
 <h3 id="1-1-定义"><a href="#1-1-定义" class="headerlink" title="1.1 定义"></a>1.1 定义</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Symbol([description])</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>参数 <code>description</code> 是一个可选参数，是一个字符串，可以用于调试，但不能访问<code>Symbol</code> 自身</p>
-</blockquote>
+<p>参数 <code>description</code> 是一个可选参数，是一个字符串，可以用于调试，但不能通过它访问到 <code>Symbol</code> 自身。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> sym1 = <span class="title class_">Symbol</span>();</span><br><span class="line"><span class="keyword">var</span> sym2 = <span class="title class_">Symbol</span>(<span class="string">&#x27;foo&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> sym3 = <span class="title class_">Symbol</span>(<span class="string">&#x27;foo&#x27;</span>);</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-2-值唯一性"><a href="#1-2-值唯一性" class="headerlink" title="1.2 值唯一性"></a>1.2 值唯一性</h3><blockquote>
-<p>每一个 <code>Symbol() </code>返回的值都是唯一的。一个<code>Symbol</code> 值能作为对象属性的标识符，这是改数据类型仅有的目的</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Symbol</span>(<span class="string">&quot;yuan&quot;</span>) === <span class="title class_">Symbol</span>(<span class="string">&quot;yuan&quot;</span>); <span class="comment">// false </span></span><br></pre></td></tr></table></figure>
+<p><code>description</code> 纯粹是给人看的。你在 DevTools 里看到 <code>Symbol(userId)</code>，能一眼知道这是干嘛的，仅此而已，代码逻辑一点都碰不到它。ES2019 之后可以用 <code>sym.description</code> 直接读回这个字符串，比 <code>sym.toString().slice(7, -1)</code> 那种土办法干净不少。</p>
+<h3 id="1-2-值唯一性"><a href="#1-2-值唯一性" class="headerlink" title="1.2 值唯一性"></a>1.2 值唯一性</h3><p>每一个 <code>Symbol()</code> 返回的值都是唯一的。一个 <code>Symbol</code> 值能作为对象属性的标识符，这是该数据类型仅有的目的。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Symbol</span>(<span class="string">&quot;yuan&quot;</span>) === <span class="title class_">Symbol</span>(<span class="string">&quot;yuan&quot;</span>); <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="1-3-不可以使用-new-操作符"><a href="#1-3-不可以使用-new-操作符" class="headerlink" title="1.3 不可以使用 new 操作符"></a>1.3 不可以使用 new 操作符</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> sym = <span class="keyword">new</span> <span class="title class_">Symbol</span>(); <span class="comment">// TypeError报错</span></span><br></pre></td></tr></table></figure>
+<p>原文这里写的是「这是改数据类型仅有的目的」，「改」应为「该」，顺手改了。</p>
+<p>两个描述一模一样的 Symbol 依然不相等，这就是唯一性的全部含义。回到开头那个日志库的问题，现在解法很干净：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// logger.js</span></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">LOGGED</span> = <span class="title class_">Symbol</span>(<span class="string">&#x27;logged&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">markLogged</span>(<span class="params">obj</span>) &#123;</span><br><span class="line">  obj[<span class="variable constant_">LOGGED</span>] = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">isLogged</span>(<span class="params">obj</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> obj[<span class="variable constant_">LOGGED</span>] === <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-4-结合-Object-函数"><a href="#1-4-结合-Object-函数" class="headerlink" title="1.4 结合 Object() 函数"></a>1.4 结合 Object() 函数</h3><blockquote>
-<p>结合 <code>Object()</code> 函数，创建一个 <code>Symbol</code> 包装器对象</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> sym = <span class="title class_">Symbol</span>();</span><br><span class="line"><span class="keyword">typeof</span> sym;  <span class="comment">// &quot;symbol“”</span></span><br><span class="line"><span class="keyword">var</span> symobj = <span class="title class_">Object</span>(sym);</span><br><span class="line"><span class="keyword">typeof</span> symobj; <span class="comment">// &quot;object&quot;</span></span><br></pre></td></tr></table></figure>
+<p><code>LOGGED</code> 这个值只有你的模块持有，用户就算自己也写了 <code>Symbol(&#39;logged&#39;)</code>，那也是另一个值，两边井水不犯河水。</p>
+<h3 id="1-3-不可以使用-new-操作符"><a href="#1-3-不可以使用-new-操作符" class="headerlink" title="1.3 不可以使用 new 操作符"></a>1.3 不可以使用 new 操作符</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> sym = <span class="keyword">new</span> <span class="title class_">Symbol</span>(); <span class="comment">// TypeError 报错</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="1-5-全局共享-Symbol"><a href="#1-5-全局共享-Symbol" class="headerlink" title="1.5 全局共享 Symbol"></a>1.5 全局共享 Symbol</h3><blockquote>
-<p>使用<code>Symbol.for()</code> 方法会根据给定的键 <code>key</code>，来从运行时的 <code>symbol</code> 注册表中找到对应的 <code>symbol</code>，如果找到了，则返回它，否则，新建一个与该键关联的 <code>symbol</code>，并放入全局 <code>symbol</code> 注册表中</p>
-</blockquote>
+<p>原因很直白，Symbol 是原始类型，不是对象。<code>new</code> 的语义是造一个对象出来，跟原始类型天然冲突。<code>Number</code>、<code>String</code>、<code>Boolean</code> 之所以能 <code>new</code>（虽然没人这么写），是历史包袱，Symbol 是新加的，标准直接把这条路封了。</p>
+<h3 id="1-4-结合-Object-函数"><a href="#1-4-结合-Object-函数" class="headerlink" title="1.4 结合 Object() 函数"></a>1.4 结合 Object() 函数</h3><p>结合 <code>Object()</code> 函数，可以创建一个 <code>Symbol</code> 包装器对象。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> sym = <span class="title class_">Symbol</span>();</span><br><span class="line"><span class="keyword">typeof</span> sym;  <span class="comment">// &quot;symbol&quot;</span></span><br><span class="line"><span class="keyword">var</span> symobj = <span class="title class_">Object</span>(sym);</span><br><span class="line"><span class="keyword">typeof</span> symobj; <span class="comment">// &quot;object&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>原文这一行的注释末尾混进了两个全角弯引号字符，已经清理掉。这类字符在 markdown 双引擎渲染下容易出乱码，属于顺手要修的东西。</p>
+<p>包装对象日常几乎用不上，知道 <code>typeof</code> 会从 <code>&quot;symbol&quot;</code> 变成 <code>&quot;object&quot;</code> 就行，免得类型判断的时候被绕进去。</p>
+<h3 id="1-5-全局共享-Symbol"><a href="#1-5-全局共享-Symbol" class="headerlink" title="1.5 全局共享 Symbol"></a>1.5 全局共享 Symbol</h3><p>使用 <code>Symbol.for()</code> 方法会根据给定的键 <code>key</code>，从运行时的 <code>symbol</code> 注册表中找到对应的 <code>symbol</code>。如果找到了就返回它，否则新建一个与该键关联的 <code>symbol</code>，并放入全局 <code>symbol</code> 注册表中。</p>
+<p>这一条和 1.2 的唯一性看起来矛盾，其实是两套不同的用途，第三节会展开讲。</p>
 <h3 id="1-6-在对象中查找-Symbol-属性"><a href="#1-6-在对象中查找-Symbol-属性" class="headerlink" title="1.6 在对象中查找 Symbol 属性"></a>1.6 在对象中查找 Symbol 属性</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;&#125;;</span><br><span class="line"><span class="keyword">var</span> a = <span class="title class_">Symbol</span>(<span class="string">&quot;a&quot;</span>);</span><br><span class="line"><span class="keyword">var</span> b = <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;b&quot;</span>);</span><br><span class="line"></span><br><span class="line">obj[a] = <span class="string">&quot;localSymbol&quot;</span>;</span><br><span class="line">obj[b] = <span class="string">&quot;globalSymbol&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> objectSymbols = <span class="title class_">Object</span>.<span class="title function_">getOwnPropertySymbols</span>(obj);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(objectSymbols)         <span class="comment">// [Symbol(a), Symbol(b)]</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="二、静态属性"><a href="#二、静态属性" class="headerlink" title="二、静态属性"></a>二、静态属性</h2><h3 id="2-1-length-属性"><a href="#2-1-length-属性" class="headerlink" title="2.1 length 属性"></a>2.1 length 属性</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Symbol 的长度属性值为0.</span></span><br><span class="line"><span class="title class_">Symbol</span>.<span class="property">length</span> <span class="comment">// 0</span></span><br></pre></td></tr></table></figure>
+<p>注意 <code>Object.keys(obj)</code> 在这里会返回空数组。Symbol 属性不参与常规遍历，想拿到它们只有 <code>Object.getOwnPropertySymbols</code> 和 <code>Reflect.ownKeys</code> 两条路。这个特性有好有坏，第四节专门对照。</p>
+<h2 id="二、内置符号：语言自己开的钩子"><a href="#二、内置符号：语言自己开的钩子" class="headerlink" title="二、内置符号：语言自己开的钩子"></a>二、内置符号：语言自己开的钩子</h2><p>这一节是 Symbol 里最有意思的部分。除了让你造独一无二的属性名，标准还预置了一批 Symbol，挂在 <code>Symbol</code> 对象上，用来让你改写语言层面的默认行为。它们有个专门的名字，叫 well-known symbols。</p>
+<h3 id="2-1-length-属性"><a href="#2-1-length-属性" class="headerlink" title="2.1 length 属性"></a>2.1 length 属性</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Symbol 函数本身的 length 为 0</span></span><br><span class="line"><span class="title class_">Symbol</span>.<span class="property">length</span> <span class="comment">// 0</span></span><br></pre></td></tr></table></figure>
 
-
-<h3 id="2-2-迭代-Symbols"><a href="#2-2-迭代-Symbols" class="headerlink" title="2.2 迭代 Symbols"></a>2.2 迭代 Symbols</h3><blockquote>
-<p><code>Symbol.iterator</code> 该方法为每一个对象定义了默认的迭代器。该迭代器可以被 <code>for.. of</code> 循环使用。</p>
-</blockquote>
+<p>这个跟内置符号无关，只是 <code>Symbol</code> 这个函数对象的 <code>length</code>。函数的 <code>length</code> 表示形参个数，<code>description</code> 是可选参数不计入，所以是 0。</p>
+<h3 id="2-2-Symbol-iterator-与迭代协议"><a href="#2-2-Symbol-iterator-与迭代协议" class="headerlink" title="2.2 Symbol.iterator 与迭代协议"></a>2.2 Symbol.iterator 与迭代协议</h3><p><code>Symbol.iterator</code> 为每一个对象定义了默认的迭代器。这个迭代器可以被 <code>for...of</code> 循环使用。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 自定义迭代器</span></span><br><span class="line"><span class="keyword">var</span> myIterator = &#123;&#125;;</span><br><span class="line">myIterator[<span class="title class_">Symbol</span>.<span class="property">iterator</span>] = <span class="keyword">function</span>* () &#123;</span><br><span class="line">    <span class="keyword">yield</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">yield</span> <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">yield</span> <span class="number">3</span>;</span><br><span class="line">&#125;;</span><br><span class="line">[...myIterator] <span class="comment">// [1, 2, 3]</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>Symbols</code> 与 <code>for... in</code> 迭代</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;&#125;;</span><br><span class="line">obj[<span class="title class_">Symbol</span>(<span class="string">&quot;a&quot;</span>)] = <span class="string">&quot;a&quot;</span>;</span><br><span class="line">obj[<span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;b&quot;</span>)] = <span class="string">&quot;b&quot;</span>;</span><br><span class="line">obj[<span class="string">&quot;c&quot;</span>] = <span class="string">&quot;c&quot;</span>;</span><br><span class="line">obj.<span class="property">d</span> = <span class="string">&quot;d&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i <span class="keyword">in</span> obj) &#123;</span><br><span class="line">   <span class="variable language_">console</span>.<span class="title function_">log</span>(i); </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// &quot;c&quot;</span></span><br><span class="line"><span class="comment">// &quot;d&quot;</span></span><br></pre></td></tr></table></figure>
+<p>一个普通对象本来是不能展开的，<code>[...&#123;&#125;]</code> 直接报 <code>object is not iterable</code>。挂上 <code>Symbol.iterator</code> 之后它就成了可迭代对象，<code>for...of</code>、展开运算符、解构赋值、<code>Array.from</code>、<code>Promise.all</code> 全都能吃它。</p>
+<p>这就是「协议钩子」的意思。语言不关心你的对象是什么类，只看你有没有实现那个约定的 Symbol 键。用 Symbol 而不是字符串 <code>&#39;iterator&#39;</code> 来当这个键，就是为了避免和用户自己定义的属性撞名。这套用生成器来部署迭代接口的写法，我在 <a href="https://feinterview.poetries.top/blog/es6-generator">ES6系列之 Generator 函数的暂停与自动执行</a> 里有更完整的展开。</p>
+<p><code>Symbol</code> 属性和 <code>for...in</code> 迭代：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> obj = &#123;&#125;;</span><br><span class="line">obj[<span class="title class_">Symbol</span>(<span class="string">&quot;a&quot;</span>)] = <span class="string">&quot;a&quot;</span>;</span><br><span class="line">obj[<span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;b&quot;</span>)] = <span class="string">&quot;b&quot;</span>;</span><br><span class="line">obj[<span class="string">&quot;c&quot;</span>] = <span class="string">&quot;c&quot;</span>;</span><br><span class="line">obj.<span class="property">d</span> = <span class="string">&quot;d&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i <span class="keyword">in</span> obj) &#123;</span><br><span class="line">   <span class="variable language_">console</span>.<span class="title function_">log</span>(i);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// &quot;c&quot;</span></span><br><span class="line"><span class="comment">// &quot;d&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="2-3-Symbol的正则表达式"><a href="#2-3-Symbol的正则表达式" class="headerlink" title="2.3 Symbol的正则表达式"></a>2.3 Symbol的正则表达式</h3><blockquote>
-<p>用于标识对象是否具有正则表达式的行为。<code>Symbol.match</code>:对象是否具有指定的匹配的正则表达式</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;/bar/&quot;</span>.<span class="title function_">startsWith</span>(<span class="regexp">/bar/</span>); </span><br><span class="line"><span class="comment">// Throws TypeError, 因为 /bar/ 是一个正则表达式</span></span><br><span class="line"><span class="comment">// 且 Symbol.match 没有修改。</span></span><br></pre></td></tr></table></figure>
+<p>两个 Symbol 键被完全跳过了。</p>
+<h3 id="2-3-正则相关的四个符号"><a href="#2-3-正则相关的四个符号" class="headerlink" title="2.3 正则相关的四个符号"></a>2.3 正则相关的四个符号</h3><p>这一组符号用于标识对象是否具有正则表达式的行为。<code>Symbol.match</code> 表示对象是否具有指定的匹配的正则表达式。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;/bar/&quot;</span>.<span class="title function_">startsWith</span>(<span class="regexp">/bar/</span>);</span><br><span class="line"><span class="comment">// Throws TypeError，因为 /bar/ 是一个正则表达式</span></span><br><span class="line"><span class="comment">// 且 Symbol.match 没有修改</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>如果你将 <code>Symbol.match</code> 置为 <code>false</code>，使用 <code>match</code> 属性的表达式检查会认为该象不是正则表达式对象。<code>startsWith</code> 和 <code>endsWith</code> 方法将不会抛出 <code>TypeError</code></p>
-</blockquote>
+<p><code>startsWith</code> 这类方法会先检查参数上有没有 <code>Symbol.match</code>，有就认为它是正则，直接抛 <code>TypeError</code>。这是标准刻意留的一道保险，防止你把正则当字符串误用。</p>
+<p>如果你将 <code>Symbol.match</code> 置为 <code>false</code>，使用 <code>match</code> 属性的表达式检查会认为该对象不是正则表达式对象，<code>startsWith</code> 和 <code>endsWith</code> 方法将不会抛出 <code>TypeError</code>。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> re = <span class="regexp">/foo/</span>;</span><br><span class="line">re[<span class="title class_">Symbol</span>.<span class="property">match</span>] = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line"><span class="string">&quot;/foo/&quot;</span>.<span class="title function_">startsWith</span>(re); <span class="comment">// true</span></span><br><span class="line"><span class="string">&quot;/baz/&quot;</span>.<span class="title function_">endsWith</span>(re);   <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>Symbol.replace</strong></p>
-<blockquote>
-<p>这个属性指定了当一个字符串替换所匹配字符串时所调用的方法。<code>String.prototype.replace()</code> 方法会调用此方法。</p>
-</blockquote>
-<p><strong>Symbol.search</strong></p>
-<blockquote>
-<p>指定了一个搜索方法，这个方法接受用户输入的正则表达式，返回该正则表达式在字符串中匹配到的下标，这个方法由以下的方法来调用 <code>String.prototype.search()</code></p>
-</blockquote>
-<p><strong>Symbol.split</strong></p>
-<blockquote>
-<p>指向 一个正则表达式的索引处分割字符串的方法。 这个方法通过<code>String.prototype.split()</code> 调用</p>
-</blockquote>
-<h3 id="2-4-其他属性"><a href="#2-4-其他属性" class="headerlink" title="2.4 其他属性"></a>2.4 其他属性</h3><p><strong>Symbol.hasInstance</strong></p>
-<blockquote>
-<p>一个确定一个构造器对象识别的对象是否为它的实例的方法</p>
-</blockquote>
-<p><strong>Symbol.toStringTag</strong></p>
-<blockquote>
-<p>用于对象的默认描述的字符串值。使用<code>Object.prototype.toString().</code></p>
-</blockquote>
-<h2 id="三、静态方法"><a href="#三、静态方法" class="headerlink" title="三、静态方法"></a>三、静态方法</h2><h3 id="3-1-Symbol-for-key"><a href="#3-1-Symbol-for-key" class="headerlink" title="3.1 Symbol.for(key)"></a>3.1 Symbol.for(key)</h3><blockquote>
-<p>根据给定的键 <code>key</code>， 从运行时的 <code>symbol</code> 注册表中找到对应的 <code>symbol</code>，如果找到了，则返回它，否则，新建一个与该键关联的 <code>symbol</code>，并放入全局 <code>symbol</code> 注册表</p>
-</blockquote>
-<ul>
-<li>这里的参数<code>key</code>，是一个字符串，作为 <code>symbol</code> 注册表中与某 <code>symbol</code> 关联的键</li>
-<li>和 <code>Symbol()</code> 不同的是，用<code>Symbol.for()</code> 方法创建的 <code>symbol</code> 会被放入一个全局 symbol 注册表中</li>
-<li><code>Symbol.for()</code> 并不是每次都会创建一个新的 symbol，它会首先检查给定的 <code>key</code> 是否已经在注册表中了，如果是，则会直接返回上次存储的那个。否则，会再新建一个</li>
-</ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>); <span class="comment">// 创建一个 symbol 并放入 symbol 注册表中，键为 &quot;foo&quot;</span></span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>); <span class="comment">// 从 symbol 注册表中读取键为&quot;foo&quot;的 symbol</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;bar&quot;</span>) === <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;bar&quot;</span>); <span class="comment">// true，证明了上面说的</span></span><br><span class="line"><span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>) === <span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>); <span class="comment">// false，Symbol() 函数每次都会返回新的一个 symbol</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> sym = <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;mario&quot;</span>);</span><br><span class="line">sym.<span class="title function_">toString</span>(); </span><br><span class="line"><span class="comment">// &quot;Symbol(mario)&quot;，mario 既是该 symbol 在 symbol 注册表中的键名，又是该 symbol 自身的描述字符串</span></span><br></pre></td></tr></table></figure>
+<p>这两行的结果值得解释一下。关掉 <code>Symbol.match</code> 之后，<code>re</code> 被当成普通对象，参数会被转成字符串，<code>String(/foo/)</code> 就是 <code>&quot;/foo/&quot;</code>。所以第一行相当于 <code>&quot;/foo/&quot;.startsWith(&quot;/foo/&quot;)</code>，为 <code>true</code>；第二行相当于 <code>&quot;/baz/&quot;.endsWith(&quot;/foo/&quot;)</code>，为 <code>false</code>。</p>
+<p>另外三个是 <code>Symbol.replace</code>、<code>Symbol.search</code>、<code>Symbol.split</code>，分别指定了 <code>String.prototype.replace()</code>、<code>String.prototype.search()</code>、<code>String.prototype.split()</code> 在遇到这个对象时调用的方法。改写它们你就能造出一个「行为像正则但不是正则」的东西，日常业务基本用不到，但看到某些库里有奇怪的字符串处理行为时，可以往这里查。</p>
+<h3 id="2-4-hasInstance-与-toStringTag"><a href="#2-4-hasInstance-与-toStringTag" class="headerlink" title="2.4 hasInstance 与 toStringTag"></a>2.4 hasInstance 与 toStringTag</h3><p><code>Symbol.hasInstance</code> 是一个用来确定构造器对象识别的对象是否为它的实例的方法。它决定的其实就是 <code>instanceof</code> 怎么判。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Even</span> &#123;</span><br><span class="line">  <span class="keyword">static</span> [<span class="title class_">Symbol</span>.<span class="property">hasInstance</span>](num) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Number</span>(num) % <span class="number">2</span> === <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">2</span> <span class="keyword">instanceof</span> <span class="title class_">Even</span>);  <span class="comment">// true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="number">3</span> <span class="keyword">instanceof</span> <span class="title class_">Even</span>);  <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="3-2-Symbol-keyFor-sym"><a href="#3-2-Symbol-keyFor-sym" class="headerlink" title="3.2 Symbol.keyFor(sym)"></a>3.2 Symbol.keyFor(sym)</h3><ul>
-<li>该方法用来获取 <code>symbol</code> 注册表中与某个 <code>symbol</code> 关联的键。</li>
-<li>参数 <code>sym</code> 是指存储在 <code>symbol</code> 注册表中的某个 <code>symbol</code></li>
-</ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 创建一个 symbol 并放入 Symbol 注册表，key 为 &quot;foo&quot;</span></span><br><span class="line"><span class="keyword">var</span> globalSym = <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>); </span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">keyFor</span>(globalSym); <span class="comment">// &quot;foo&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个 symbol，但不放入 symbol 注册表中</span></span><br><span class="line"><span class="keyword">var</span> localSym = <span class="title class_">Symbol</span>(); </span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">keyFor</span>(localSym); <span class="comment">// undefined，所以是找不到 key 的</span></span><br></pre></td></tr></table></figure>
+<p><code>Symbol.toStringTag</code> 用于对象的默认描述的字符串值，也就是 <code>Object.prototype.toString()</code> 输出的那个尾巴。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Collection</span> &#123;</span><br><span class="line">  get [<span class="title class_">Symbol</span>.<span class="property">toStringTag</span>]() &#123; <span class="keyword">return</span> <span class="string">&#x27;Collection&#x27;</span>; &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">toString</span>.<span class="title function_">call</span>(<span class="keyword">new</span> <span class="title class_">Collection</span>()); <span class="comment">// &quot;[object Collection]&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="四、遍历"><a href="#四、遍历" class="headerlink" title="四、遍历"></a>四、遍历</h2><blockquote>
-<p><code>Symbol</code>定义的属性不会出现在下面循环中</p>
-</blockquote>
+<p>很多人写类型判断工具函数会用 <code>Object.prototype.toString.call(x)</code>，它之所以能区分 <code>Map</code>、<code>Set</code>、<code>Promise</code>，靠的就是这些内置类都设置了自己的 <code>toStringTag</code>。</p>
+<h2 id="三、静态方法与全局注册表"><a href="#三、静态方法与全局注册表" class="headerlink" title="三、静态方法与全局注册表"></a>三、静态方法与全局注册表</h2><h3 id="3-1-Symbol-for-key"><a href="#3-1-Symbol-for-key" class="headerlink" title="3.1 Symbol.for(key)"></a>3.1 Symbol.for(key)</h3><p><code>Symbol.for</code> 根据给定的键 <code>key</code>，从运行时的 <code>symbol</code> 注册表中找到对应的 <code>symbol</code>。如果找到了则返回它，否则新建一个与该键关联的 <code>symbol</code> 并放入全局 <code>symbol</code> 注册表。</p>
 <ul>
-<li><code>for in</code>:可获取原型属性，不可获取不可枚举属性</li>
-<li><code>for of</code>:不可遍历对象，可遍历数组</li>
+<li>这里的参数 <code>key</code> 是一个字符串，作为 <code>symbol</code> 注册表中与某 <code>symbol</code> 关联的键</li>
+<li>和 <code>Symbol()</code> 不同的是，用 <code>Symbol.for()</code> 方法创建的 <code>symbol</code> 会被放入一个全局 symbol 注册表中</li>
+<li><code>Symbol.for()</code> 并不是每次都会创建一个新的 symbol，它会首先检查给定的 <code>key</code> 是否已经在注册表中，如果在就直接返回上次存储的那个，否则再新建</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>); <span class="comment">// 创建一个 symbol 并放入 symbol 注册表中，键为 &quot;foo&quot;</span></span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>); <span class="comment">// 从 symbol 注册表中读取键为 &quot;foo&quot; 的 symbol</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;bar&quot;</span>) === <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;bar&quot;</span>); <span class="comment">// true，证明了上面说的</span></span><br><span class="line"><span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>) === <span class="title class_">Symbol</span>(<span class="string">&quot;bar&quot;</span>); <span class="comment">// false，Symbol() 函数每次都会返回新的一个 symbol</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> sym = <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;mario&quot;</span>);</span><br><span class="line">sym.<span class="title function_">toString</span>();</span><br><span class="line"><span class="comment">// &quot;Symbol(mario)&quot;，mario 既是该 symbol 在注册表中的键名，又是该 symbol 自身的描述字符串</span></span><br></pre></td></tr></table></figure>
+
+<p>那问题来了，既然 Symbol 卖点就是唯一性，为什么还要提供一个能重复拿到同一个值的入口？</p>
+<p>因为跨作用域的场景需要它。<code>Symbol()</code> 创建的值只在你能拿到那个变量的地方有用，一旦跨了 iframe、跨了 realm、或者两个互不知道对方存在的模块想约定同一个键，普通 Symbol 就传不过去了。全局注册表是按字符串 key 查的，任何地方 <code>Symbol.for(&#39;app.state&#39;)</code> 拿到的都是同一个值。</p>
+<p>代价是，注册表是全局共享的，key 会撞。所以社区惯例是给 key 加命名空间前缀，比如 <code>Symbol.for(&#39;react.element&#39;)</code> 这种，React 内部就是这么标记元素类型的。</p>
+<h3 id="3-2-Symbol-keyFor-sym"><a href="#3-2-Symbol-keyFor-sym" class="headerlink" title="3.2 Symbol.keyFor(sym)"></a>3.2 Symbol.keyFor(sym)</h3><p>该方法用来获取 <code>symbol</code> 注册表中与某个 <code>symbol</code> 关联的键。参数 <code>sym</code> 是指存储在 <code>symbol</code> 注册表中的某个 <code>symbol</code>。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 创建一个 symbol 并放入 Symbol 注册表，key 为 &quot;foo&quot;</span></span><br><span class="line"><span class="keyword">var</span> globalSym = <span class="title class_">Symbol</span>.<span class="title function_">for</span>(<span class="string">&quot;foo&quot;</span>);</span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">keyFor</span>(globalSym); <span class="comment">// &quot;foo&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个 symbol，但不放入 symbol 注册表中</span></span><br><span class="line"><span class="keyword">var</span> localSym = <span class="title class_">Symbol</span>();</span><br><span class="line"><span class="title class_">Symbol</span>.<span class="title function_">keyFor</span>(localSym); <span class="comment">// undefined，所以是找不到 key 的</span></span><br></pre></td></tr></table></figure>
+
+<p><code>keyFor</code> 只认注册表里的东西，这也是判断一个 Symbol 是不是全局 Symbol 最直接的办法。</p>
+<h2 id="四、遍历时的可见性"><a href="#四、遍历时的可见性" class="headerlink" title="四、遍历时的可见性"></a>四、遍历时的可见性</h2><p><code>Symbol</code> 定义的属性不会出现在下面这些遍历方式中：</p>
+<ul>
+<li><code>for in</code>：可获取原型属性，不可获取不可枚举属性</li>
+<li><code>for of</code>：不可遍历普通对象，可遍历数组等可迭代对象</li>
 <li><code>Object.keys</code>：原型属性和不可枚举属性都不能获取</li>
-<li><code>Object.getOwnPropertyByNames</code>：不可获取原型属性，可获取不可枚举属性</li>
+<li><code>Object.getOwnPropertyNames</code>：不可获取原型属性，可获取不可枚举属性</li>
 <li><code>JSON.stringify</code>：原型属性和不可枚举属性都不能获取</li>
-<li><code>Reflect.ownKeys</code>：可获取不可枚举和<code>Symbol</code>，不可获取原型</li>
+<li><code>Reflect.ownKeys</code>：可获取不可枚举属性和 <code>Symbol</code>，不可获取原型属性</li>
 </ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> p = &#123;<span class="attr">w</span>:<span class="number">2</span>&#125;;</span><br><span class="line"><span class="keyword">var</span> obj = <span class="title class_">Object</span>.<span class="title function_">create</span>(p);</span><br><span class="line">obj.<span class="property">a</span> = <span class="number">1</span>;</span><br><span class="line"><span class="title class_">Object</span>.<span class="title function_">defineProperty</span>(obj,<span class="string">&quot;b&quot;</span>,&#123;</span><br><span class="line">    <span class="attr">value</span>:<span class="number">123</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">var</span> a = <span class="title class_">Symbol</span>(<span class="string">&#x27;a&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> b = <span class="title class_">Symbol</span>(<span class="string">&#x27;b&#x27;</span>);</span><br><span class="line"></span><br><span class="line">obj[a] = <span class="string">&#x27;Hello&#x27;</span>;</span><br><span class="line">obj[b] = <span class="string">&#x27;World&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Reflect</span>.<span class="title function_">ownKeys</span>(obj);<span class="comment">// [Symbol(a), Symbol(b)]</span></span><br></pre></td></tr></table></figure>
+<p>原文第四条写成了 <code>Object.getOwnPropertyByNames</code>，没有这个 API，正确的名字是 <code>Object.getOwnPropertyNames</code>，上面已经改正。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> p = &#123;<span class="attr">w</span>: <span class="number">2</span>&#125;;</span><br><span class="line"><span class="keyword">var</span> obj = <span class="title class_">Object</span>.<span class="title function_">create</span>(p);</span><br><span class="line">obj.<span class="property">a</span> = <span class="number">1</span>;</span><br><span class="line"><span class="title class_">Object</span>.<span class="title function_">defineProperty</span>(obj, <span class="string">&quot;b&quot;</span>, &#123;</span><br><span class="line">    <span class="attr">value</span>: <span class="number">123</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">var</span> a = <span class="title class_">Symbol</span>(<span class="string">&#x27;a&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> b = <span class="title class_">Symbol</span>(<span class="string">&#x27;b&#x27;</span>);</span><br><span class="line"></span><br><span class="line">obj[a] = <span class="string">&#x27;Hello&#x27;</span>;</span><br><span class="line">obj[b] = <span class="string">&#x27;World&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Reflect</span>.<span class="title function_">ownKeys</span>(obj); <span class="comment">// [&quot;a&quot;, &quot;b&quot;, Symbol(a), Symbol(b)]</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>或者使用<code>Object.getOwnPropertySymbols(obj)</code>遍历</p>
-</blockquote>
+<p>原文这里的注释只写了两个 Symbol，实际 <code>Reflect.ownKeys</code> 会把字符串键一起返回，而且顺序是「整数键 → 字符串键 → Symbol 键」，所以完整结果是 <code>[&quot;a&quot;, &quot;b&quot;, Symbol(a), Symbol(b)]</code>。上面已经改正。</p>
+<p>或者使用 <code>Object.getOwnPropertySymbols(obj)</code> 只取 Symbol 键。</p>
+<p>这里有个坑要注意。<code>JSON.stringify</code> 会完全丢掉 Symbol 键，所以任何需要序列化持久化的数据，都不能把关键信息放在 Symbol 属性上。我见过有人用 Symbol 存对象的 id，结果存 localStorage 再读回来，id 就没了。</p>
+<p>反过来说，这个特性也可以当成优点用。有些内部状态你<strong>就是不想</strong>被序列化出去，挂在 Symbol 上正好，<code>JSON.stringify</code> 天然过滤掉。</p>
+<p>还有一点要澄清，Symbol 属性不是私有属性。<code>Object.getOwnPropertySymbols</code> 和 <code>Reflect.ownKeys</code> 都能列出来，只要拿到对象就能反查。它提供的是「不会撞名」和「不会被误遍历」，不是访问控制。真要私有，现在有类的 <code>#</code> 私有字段，或者用 <code>Proxy</code> 做拦截，Proxy 那套写法我整理在 <a href="https://feinterview.poetries.top/blog/es6-proxy">ES6系列之 Proxy 的拦截机制与实战场景</a> 里。</p>
+<h2 id="五、什么时候真的该用-Symbol"><a href="#五、什么时候真的该用-Symbol" class="headerlink" title="五、什么时候真的该用 Symbol"></a>五、什么时候真的该用 Symbol</h2><p>说实话，业务代码里直接写 Symbol 的机会不多。我自己总结下来，值得用的就三类场景。</p>
+<p>第一类是<strong>给别人的对象打标记</strong>，也就是开头那个日志库的例子。你的模块要往外部对象上挂东西，用 Symbol 是唯一能保证不冲突的做法。</p>
+<p>第二类是<strong>实现语言协议</strong>。想让自己的类支持 <code>for...of</code>，就实现 <code>Symbol.iterator</code>；想让 <code>Object.prototype.toString</code> 输出有意义的标签，就设 <code>Symbol.toStringTag</code>。这类用法不是选择题，是标准要求你这么写。</p>
+<p>第三类是<strong>枚举常量</strong>。用 Symbol 当枚举值，天生不会和数字、字符串意外相等，误比较会直接暴露出来。不过代价是不能序列化、调试时看不到具体值，很多团队还是选字符串常量，也没什么问题。</p>
+<p>反过来，有一类用法我觉得是过度设计，就是「用 Symbol 模拟私有属性」。它挡不住 <code>Object.getOwnPropertySymbols</code>，安全性是假的；同时又让代码变复杂、丢失可序列化性。现代 JS 有 <code>#privateField</code>，语法上真正私有，没必要用 Symbol 绕。</p>
+<p>另外顺带提一句，如果你需要的是「给对象附加数据但不影响对象生命周期」，那该用的是 <code>WeakMap</code> 而不是 Symbol 属性。两者场景很像但机制完全不同，<code>WeakMap</code> 那套弱引用集合我整理在 <a href="https://feinterview.poetries.top/blog/es6-set-weakSet-map-weakMap">Set WeakSet Map WeakMap 梳理</a> 这篇。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Symbol 只做了一件事，提供一种「保证不重复」的值，然后允许它当属性名用。围绕这一件事，衍生出两条使用路径。</p>
+<p>一条是你自己造 Symbol 来占坑，<code>Symbol()</code> 每次都返回新值，谁持有变量谁能访问，用来给外部对象打标记最合适。要跨作用域共享同一个值就走 <code>Symbol.for</code>，代价是 key 全局共享要加命名空间前缀。</p>
+<p>另一条是用标准预置的内置符号去改写语言行为。<code>Symbol.iterator</code> 决定能不能 <code>for...of</code>，<code>Symbol.hasInstance</code> 决定 <code>instanceof</code> 怎么判，<code>Symbol.toStringTag</code> 决定类型标签。这套设计的巧妙之处在于，用一个不可能撞名的键当协议钩子，语言和用户代码互不干扰。</p>
+<p>遍历这块记住一条就够了：Symbol 键只能通过 <code>Object.getOwnPropertySymbols</code> 和 <code>Reflect.ownKeys</code> 拿到，<code>Object.keys</code>、<code>for...in</code>、<code>JSON.stringify</code> 一律跳过。所以别把需要序列化的数据放在 Symbol 属性上，也别指望它能当私有属性用。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Symbol">MDN Symbol</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for">MDN Symbol.for</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Iteration_protocols">MDN 迭代协议</a></li>
+<li><a href="https://es6.ruanyifeng.com/#docs/symbol">ryf教程-Symbol</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

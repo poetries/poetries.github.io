@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>浅析React高阶组件HOC | 前端进阶之旅</title>
+  <title>浅析 React 高阶组件 HOC 的两种实现与常见陷阱 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,react," />
+    <meta name="keywords" content="JavaScript,react,高阶组件,组件复用," />
   
 
-  <meta name="description" content="高阶组件是什么 高阶组件其实就是一个函数，传入一个组件返回一个新的组件。它接受一个组件作为参数，返回一个新的组件。这个新的组件会使用你传给它的组件作为子组件 高阶组件的作用其实不言而喻，其实就是为了组件之间的代码复用。组件可能有着某些相同的逻辑，把这些逻辑抽离出来，放到高阶组件中进行复用。高阶组件内部的包装组件和被包装组件之间通过 props 传递数据  如何实现高阶组件 高阶组件其实就是处理re">
+  <meta name="description" content="讲清楚 React 高阶组件 HOC 的属性代理和反向继承两种写法，以及静态方法丢失、ref 不透传、命名冲突这些实战里绕不开的坑和现在的替代方案。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浅析React高阶组件HOC">
+<meta property="og:title" content="浅析 React 高阶组件 HOC 的两种实现与常见陷阱">
 <meta property="og:url" content="http://blog.poetries.top/2018/07/22/react-hoc/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="高阶组件是什么 高阶组件其实就是一个函数，传入一个组件返回一个新的组件。它接受一个组件作为参数，返回一个新的组件。这个新的组件会使用你传给它的组件作为子组件 高阶组件的作用其实不言而喻，其实就是为了组件之间的代码复用。组件可能有着某些相同的逻辑，把这些逻辑抽离出来，放到高阶组件中进行复用。高阶组件内部的包装组件和被包装组件之间通过 props 传递数据  如何实现高阶组件 高阶组件其实就是处理re">
+<meta property="og:description" content="讲清楚 React 高阶组件 HOC 的属性代理和反向继承两种写法，以及静态方法丢失、ref 不透传、命名冲突这些实战里绕不开的坑和现在的替代方案。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-07-22T16:10:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.684Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.949Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="react">
+<meta property="article:tag" content="高阶组件">
+<meta property="article:tag" content="组件复用">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E9%98%B6%E7%BB%84%E4%BB%B6%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">高阶组件是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E9%98%B6%E7%BB%84%E4%BB%B6"><span class="toc-text">如何实现高阶组件</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%AB%98%E9%98%B6%E7%BB%84%E4%BB%B6%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">一、高阶组件是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%AB%98%E9%98%B6%E7%BB%84%E4%BB%B6"><span class="toc-text">二、如何实现高阶组件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%B1%9E%E6%80%A7%E4%BB%A3%E7%90%86"><span class="toc-text">2.1 属性代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8F%8D%E5%90%91%E7%BB%A7%E6%89%BF"><span class="toc-text">2.2 反向继承</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81HOC-%E7%9A%84%E4%B8%89%E4%B8%AA%E5%9D%91"><span class="toc-text">三、HOC 的三个坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95%E4%BC%9A%E4%B8%A2"><span class="toc-text">3.1 静态方法会丢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-ref-%E6%8B%BF%E4%B8%8D%E5%88%B0%E9%87%8C%E9%9D%A2%E7%9A%84%E5%AE%9E%E4%BE%8B"><span class="toc-text">3.2 ref 拿不到里面的实例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-props-%E5%91%BD%E5%90%8D%E5%86%B2%E7%AA%81%E5%92%8C%E8%B0%83%E8%AF%95%E5%9B%B0%E9%9A%BE"><span class="toc-text">3.3 props 命名冲突和调试困难</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%BB%8A%E5%A4%A9%E8%BF%98%E7%94%A8-HOC-%E5%90%97"><span class="toc-text">四、今天还用 HOC 吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-hoc" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">浅析React高阶组件HOC</h1>
+    <h1 class="post-title">浅析 React 高阶组件 HOC 的两种实现与常见陷阱</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 565字</span>
+            <span>字数统计 3.4k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -289,37 +291,89 @@
   <div class="article-content">
     
       <div id="container">
-        <h3 id="高阶组件是什么"><a href="#高阶组件是什么" class="headerlink" title="高阶组件是什么"></a>高阶组件是什么</h3><ul>
-<li>高阶组件其实就是一个函数，传入一个组件返回一个新的组件。它接受一个组件作为参数，返回一个新的组件。这个新的组件会使用你传给它的组件作为子组件</li>
-<li>高阶组件的作用其实不言而喻，其实就是为了组件之间的代码复用。组件可能有着某些相同的逻辑，把这些逻辑抽离出来，放到高阶组件中进行复用。高阶组件内部的包装组件和被包装组件之间通过 props 传递数据</li>
+        <p>项目里有三个页面都要做同一件事：进页面先查登录态，没登录跳登录页，登录了再拉数据。第一遍是复制粘贴，第二遍改需求的时候发现有一个页面漏改了。这种「逻辑一样、UI 完全不同」的复用需求，用继承解决不了，因为它们的渲染内容毫无共同点；抽成工具函数也不行，因为它要挂在组件的生命周期上。</p>
+<p>高阶组件就是 React 给这类问题的答案。这篇把它的两种实现方式讲透，顺带把我在实际项目里踩过的几个坑摊开说，最后聊聊今天还该不该用它。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>高阶组件到底是什么，它和高阶函数的关系</li>
+<li>属性代理的写法，以及为什么它是最常用的那一种</li>
+<li>反向继承能做到属性代理做不到的什么事</li>
+<li>静态方法丢失、ref 断链、props 命名冲突这三个必踩的坑</li>
+<li>HOC、render props、Hooks 三者的取舍</li>
+<li>这套模式在今天的位置</li>
 </ul>
-<h3 id="如何实现高阶组件"><a href="#如何实现高阶组件" class="headerlink" title="如何实现高阶组件"></a>如何实现高阶组件</h3><blockquote>
-<p>高阶组件其实就是处理react组件的函数。那么我们如何实现一个高阶组件？有两种方法</p>
-</blockquote>
-<p><strong>属性代理</strong></p>
-<blockquote>
-<p>属性代理是最常见的实现方式，将被处理组件的props和新的props一起传递给新组件</p>
-</blockquote>
+<h2 id="一、高阶组件是什么"><a href="#一、高阶组件是什么" class="headerlink" title="一、高阶组件是什么"></a>一、高阶组件是什么</h2><p>高阶组件其实就是一个函数，传入一个组件返回一个新的组件。它接受一个组件作为参数，返回一个新的组件。这个新的组件会使用你传给它的组件作为子组件。</p>
+<p>高阶组件的作用其实不言而喻，就是为了组件之间的代码复用。组件可能有着某些相同的逻辑，把这些逻辑抽离出来，放到高阶组件中进行复用。高阶组件内部的包装组件和被包装组件之间通过 props 传递数据。</p>
+<p>名字里的「高阶」和函数式编程里的高阶函数是一回事。高阶函数接收函数返回函数，高阶组件接收组件返回组件。签名写出来就很直观：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 高阶函数</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">withLog</span> = fn =&gt; <span class="function">(<span class="params">...args</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;调用参数&#x27;</span>, args)</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">fn</span>(...args)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 高阶组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">withAuth</span> = <span class="title class_">Component</span> =&gt; <span class="function"><span class="params">props</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 返回一个新组件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有一点要先说清楚，HOC 不是 React 提供的 API，你在 React 的文档目录里找不到一个叫 <code>createHOC</code> 的东西。它纯粹是一种约定俗成的写法，是从 React 组件即函数这个特性里自然长出来的模式。这也是为什么不同库里的 HOC 长相各不相同，redux 的 <code>connect</code>、react-router 的 <code>withRouter</code>、antd 的 <code>Form.create</code>，写法细节都有出入，但骨架都是「组件进，组件出」。</p>
+<h2 id="二、如何实现高阶组件"><a href="#二、如何实现高阶组件" class="headerlink" title="二、如何实现高阶组件"></a>二、如何实现高阶组件</h2><p>高阶组件其实就是处理 react 组件的函数。那么我们如何实现一个高阶组件？有两种方法。</p>
+<h3 id="2-1-属性代理"><a href="#2-1-属性代理" class="headerlink" title="2.1 属性代理"></a>2.1 属性代理</h3><p>属性代理是最常见的实现方式，将被处理组件的 props 和新的 props 一起传递给新组件。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">withHeader</span>(<span class="params">WrappedComponent</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">class</span> <span class="title class_">HOC</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;demo-header&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          我是标题</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">WrappedComponent</span> &#123;<span class="attr">...this.props</span>&#125;/&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在其他组件里，我们引用这个高阶组件，用来强化它</p>
-</blockquote>
+<p>这段代码干的事是：包一层 <code>div</code>，塞一个标题进去，再把外面收到的所有 props 原封不动透传给被包装的组件。<code>&#123;...this.props&#125;</code> 这一行是属性代理的灵魂，少了它，被包装组件就一个 prop 都收不到。</p>
+<p>在其他组件里，我们引用这个高阶组件，用来强化它。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">@withHeader</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> <span class="title class_">Demo</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        我是一个普通组件</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>使用ES6写法可以更加简洁</p>
-</blockquote>
+<p>使用 ES6 写法可以更加简洁。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="title function_">default</span>(title) =&gt; <span class="function">(<span class="params">WrappedComponent</span>) =&gt;</span> <span class="keyword">class</span> <span class="title class_">HOC</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;demo-header&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;title</span></span><br><span class="line"><span class="language-xml">          ? title</span></span><br><span class="line"><span class="language-xml">          : &#x27;我是标题&#x27;&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">WrappedComponent</span> &#123;<span class="attr">...this.props</span>&#125;/&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>从代码中看，就是使用HOC这个函数，向被处理的组件WrappedComponent上面添加一些属性，并返回一个包含原组件的新组件</p>
-</blockquote>
-<p><strong>反向继承</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">HOC</span>(<span class="params">WrappedComponent</span>)&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">class</span> <span class="title class_">HOC</span> <span class="keyword">extends</span> <span class="title class_ inherited__">WrappedComponent</span> &#123;</span><br><span class="line">        <span class="comment">//继承了传入的组件</span></span><br><span class="line">        <span class="title function_">test1</span>(<span class="params"></span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">test2</span>() + <span class="number">5</span>;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="title function_">componentDidMount</span>(<span class="params"></span>)&#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;<span class="attr">number</span>:<span class="number">2</span>&#125;);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="title function_">render</span>(<span class="params"></span>)&#123;</span><br><span class="line">            <span class="comment">//使用super调用传入组件的render方法</span></span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">super</span>.<span class="title function_">render</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">@<span class="variable constant_">HOC</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">OriginComponent</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">    <span class="title function_">constructor</span>(<span class="params">props</span>)&#123;</span><br><span class="line">        <span class="variable language_">super</span>(props);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123;<span class="attr">number</span>:<span class="number">1</span>&#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="title function_">test2</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">componentDidMount</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;2&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                &#123;this.state.number&#125;&#123;&#x27;and&#x27;&#125;</span></span><br><span class="line"><span class="language-xml">                &#123;this.test1()&#125;</span></span><br><span class="line"><span class="language-xml">                这是原始组件</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">//const newComponent = HOC(OriginComponent)</span></span><br></pre></td></tr></table></figure>
+<p>这个版本多包了一层函数，先收配置再收组件，用的时候是 <code>withHeader(&#39;订单详情&#39;)(Demo)</code>。这种柯里化的写法在 HOC 里非常普遍，<code>connect(mapStateToProps)(Component)</code> 就是同一个套路。好处是配置和组件分离，<code>withHeader(&#39;订单详情&#39;)</code> 本身可以被存下来复用。</p>
+<p>从代码中看，就是使用 HOC 这个函数，向被处理的组件 <code>WrappedComponent</code> 上面添加一些属性，并返回一个包含原组件的新组件。</p>
+<p>属性代理能做的事其实相当宽：注入 props、包裹额外的 DOM 结构、劫持 props 做转换、在自己的生命周期里做订阅和清理、甚至根据条件决定渲不渲染原组件。回到开头那个登录态的需求，用属性代理写出来大概是这样：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">withAuth</span>(<span class="params">WrappedComponent</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">class</span> <span class="title class_">extends</span> <span class="title class_">Component</span> &#123;</span><br><span class="line">    state = &#123; <span class="attr">checked</span>: <span class="literal">false</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">componentDidMount</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="title function_">checkLogin</span>().<span class="title function_">then</span>(<span class="function"><span class="params">ok</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!ok) <span class="keyword">return</span> <span class="title function_">redirectToLogin</span>()</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123; <span class="attr">checked</span>: <span class="literal">true</span> &#125;)</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (!<span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">checked</span>) <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Loading</span> /&gt;</span></span></span><br><span class="line">      <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">WrappedComponent</span> &#123;<span class="attr">...this.props</span>&#125; /&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>三个页面各自 <code>export default withAuth(PageA)</code>，逻辑就只有一份了。</p>
+<p>顺便说一句上面那个装饰器写法。<code>@withHeader</code> 这种语法在 2018 年需要 Babel 的 legacy decorators 插件才能用，它当时还是一个提案。装饰器提案后来经历过重写，语义和早期的 legacy 版本并不完全一致。老项目里 <code>@connect</code> 这类写法很常见，新项目要不要用，建议先确认你的构建链支持哪一个版本的提案，具体以 Babel 和 TypeScript 的官方文档为准。稳妥的做法是直接写成函数调用 <code>export default withHeader(Demo)</code>，没有任何兼容性负担。</p>
+<h3 id="2-2-反向继承"><a href="#2-2-反向继承" class="headerlink" title="2.2 反向继承"></a>2.2 反向继承</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">HOC</span>(<span class="params">WrappedComponent</span>)&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">class</span> <span class="title class_">HOC</span> <span class="keyword">extends</span> <span class="title class_ inherited__">WrappedComponent</span> &#123;</span><br><span class="line">        <span class="comment">//继承了传入的组件</span></span><br><span class="line">        <span class="title function_">test1</span>(<span class="params"></span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">test2</span>() + <span class="number">5</span>;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="title function_">componentDidMount</span>(<span class="params"></span>)&#123;</span><br><span class="line">            <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;<span class="attr">number</span>:<span class="number">2</span>&#125;);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="title function_">render</span>(<span class="params"></span>)&#123;</span><br><span class="line">            <span class="comment">//使用super调用传入组件的render方法</span></span><br><span class="line">            <span class="keyword">return</span> <span class="variable language_">super</span>.<span class="title function_">render</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">@<span class="variable constant_">HOC</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">OriginComponent</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">    <span class="title function_">constructor</span>(<span class="params">props</span>)&#123;</span><br><span class="line">        <span class="variable language_">super</span>(props);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123;<span class="attr">number</span>:<span class="number">1</span>&#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="title function_">test2</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">4</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">componentDidMount</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;2&#x27;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>)&#123;</span><br><span class="line">        <span class="keyword">return</span> (</span><br><span class="line">            <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">                &#123;this.state.number&#125;&#123;&#x27;and&#x27;&#125;</span></span><br><span class="line"><span class="language-xml">                &#123;this.test1()&#125;</span></span><br><span class="line"><span class="language-xml">                这是原始组件</span></span><br><span class="line"><span class="language-xml">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">        )</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">//const newComponent = HOC(OriginComponent)</span></span><br></pre></td></tr></table></figure>
 
+<p>和属性代理最大的区别在第一行：<code>extends WrappedComponent</code> 而不是 <code>extends Component</code>。返回的组件继承了被包装组件，于是它能直接访问对方的 <code>state</code>、<code>props</code> 和实例方法，这是属性代理做不到的。</p>
+<p>跑一下这个例子，控制台只会打印 <code>1</code>，不会打印 <code>2</code>。因为子类的 <code>componentDidMount</code> 覆盖了父类的同名方法，父类那个 <code>console.log(&#39;2&#39;)</code> 根本没被调用。想让两个都执行，得在子类里显式 <code>super.componentDidMount()</code>。这个细节很容易翻车，尤其当被包装组件是别人写的、你不知道它在生命周期里做了什么的时候。</p>
+<p><code>render</code> 里的 <code>super.render()</code> 是反向继承的招牌用法，业内叫渲染劫持。因为你拿到的是原组件 <code>render</code> 的返回值，也就是一棵 React 元素树，可以在返回之前对它做手脚，比如用 <code>React.cloneElement</code> 改属性、根据条件替换某个子节点、或者干脆返回 <code>null</code> 把整个组件藏起来。</p>
+<p>不过我得说实话，反向继承在实际项目里用得非常少。原因有几个。它对被包装组件是有侵入性的，你必须知道对方是类组件（函数组件没有 <code>render</code> 方法可以 <code>super</code>，直接就用不了）。渲染劫持能改的也只是 <code>render</code> 返回的元素树，元素树里嵌套的子组件返回了什么，你依然看不到也改不了。再加上继承链一长，<code>this</code> 上的东西来自哪一层就没人说得清了。</p>
+<p>React 官方文档里明确推荐组合优于继承，属性代理就是组合。绝大多数场景选属性代理就对了。</p>
+<h2 id="三、HOC-的三个坑"><a href="#三、HOC-的三个坑" class="headerlink" title="三、HOC 的三个坑"></a>三、HOC 的三个坑</h2><p>这几个坑我都实打实撞过，写出来省得你再撞一遍。</p>
+<h3 id="3-1-静态方法会丢"><a href="#3-1-静态方法会丢" class="headerlink" title="3.1 静态方法会丢"></a>3.1 静态方法会丢</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Page</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line"><span class="title class_">Page</span>.<span class="property">fetchData</span> = <span class="function">() =&gt;</span> &#123; <span class="comment">/* SSR 预取数据 */</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Wrapped</span> = <span class="title function_">withAuth</span>(<span class="title class_">Page</span>)</span><br><span class="line"><span class="title class_">Wrapped</span>.<span class="property">fetchData</span> <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
 
+<p>属性代理返回的是一个全新的类，原组件挂在类上的静态属性一个都不会跟过来。做服务端渲染时这个坑特别致命，因为 SSR 框架常常靠 <code>Component.fetchData</code> 这类静态方法来预取数据，包一层 HOC 之后数据就没了，页面白屏，还不报错。</p>
+<p>解决办法是手动拷贝，或者用 <code>hoist-non-react-statics</code> 这个包自动拷贝所有非 React 内置的静态属性：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> hoistNonReactStatic <span class="keyword">from</span> <span class="string">&#x27;hoist-non-react-statics&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">withAuth</span>(<span class="params">WrappedComponent</span>) &#123;</span><br><span class="line">  <span class="keyword">class</span> <span class="title class_">HOC</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="title function_">hoistNonReactStatic</span>(<span class="variable constant_">HOC</span>, <span class="title class_">WrappedComponent</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>redux 的 <code>connect</code> 内部就用了它，所以 <code>connect</code> 过的组件静态方法是保得住的。</p>
+<h3 id="3-2-ref-拿不到里面的实例"><a href="#3-2-ref-拿不到里面的实例" class="headerlink" title="3.2 ref 拿不到里面的实例"></a>3.2 ref 拿不到里面的实例</h3><p><code>ref</code> 不是普通的 prop，<code>&#123;...this.props&#125;</code> 展开的时候它不在里面。你在外面给 <code>Wrapped</code> 挂一个 <code>ref</code>，拿到的是 HOC 那一层的实例，而不是你真正想操作的那个组件。</p>
+<p>标准解法是 <code>React.forwardRef</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">withAuth</span>(<span class="params">WrappedComponent</span>) &#123;</span><br><span class="line">  <span class="keyword">class</span> <span class="title class_">HOC</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> &#123; forwardedRef, ...rest &#125; = <span class="variable language_">this</span>.<span class="property">props</span></span><br><span class="line">      <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">WrappedComponent</span> <span class="attr">ref</span>=<span class="string">&#123;forwardedRef&#125;</span> &#123;<span class="attr">...rest</span>&#125; /&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">React</span>.<span class="title function_">forwardRef</span>(<span class="function">(<span class="params">props, ref</span>) =&gt;</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">HOC</span> &#123;<span class="attr">...props</span>&#125; <span class="attr">forwardedRef</span>=<span class="string">&#123;ref&#125;</span> /&gt;</span></span></span><br><span class="line">  ))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里有个细节，<code>forwardRef</code> 是 React 16.3 才有的。这块请以你项目实际使用的 React 版本文档为准。</p>
+<h3 id="3-3-props-命名冲突和调试困难"><a href="#3-3-props-命名冲突和调试困难" class="headerlink" title="3.3 props 命名冲突和调试困难"></a>3.3 props 命名冲突和调试困难</h3><p>HOC 往下注入 props，如果注入的名字恰好和使用者手动传的重名，就会互相覆盖，而且覆盖谁取决于 JSX 里属性的书写顺序。多层 HOC 嵌套时这个问题会放大，<code>withRouter(connect(...)(withForm(Page)))</code> 这种组合出问题基本只能一层层注释掉来排查，我为这种事排查过一下午。</p>
+<p>有两个习惯能缓解。一是给注入的 props 加统一前缀，比如 <code>auth_user</code> 而不是 <code>user</code>。二是给 HOC 设置 <code>displayName</code>：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable constant_">HOC</span>.<span class="property">displayName</span> = <span class="string">`WithAuth(<span class="subst">$&#123;WrappedComponent.displayName || WrappedComponent.name || <span class="string">&#x27;Component&#x27;</span>&#125;</span>)`</span></span><br></pre></td></tr></table></figure>
+
+<p>设了之后 React DevTools 里显示的是 <code>WithAuth(OrderDetail)</code> 而不是一串 <code>HOC</code>，看组件树的时候能省很多事。</p>
+<p>另外有一条硬规则：不要在 <code>render</code> 方法里创建 HOC。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> <span class="title class_">Enhanced</span> = <span class="title function_">withAuth</span>(<span class="title class_">MyComponent</span>) <span class="comment">// 错误写法</span></span><br><span class="line">  <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">Enhanced</span> /&gt;</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每次渲染都会生成一个新的组件类型，React 在 diff 时发现类型不同，会把旧子树整个卸载再重新挂载，组件内部的 state 全丢，DOM 全重建。HOC 一律在模块顶层调用。</p>
+<h2 id="四、今天还用-HOC-吗"><a href="#四、今天还用-HOC-吗" class="headerlink" title="四、今天还用 HOC 吗"></a>四、今天还用 HOC 吗</h2><p>这篇写于 2018 年，那时候 React 的逻辑复用只有两条路，HOC 和 render props。这两种模式都能工作，但代价是组件树里多出一堆只为了传数据而存在的包装层，DevTools 里点开一个业务组件，先要往下翻五六层。</p>
+<p>2019 年 React 16.8 带来了 Hooks，情况变了。自定义 Hook 能把带状态的逻辑抽出来，还不产生任何额外的组件层级。前面那个登录态的例子用 Hook 写出来是这样：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">useAuth</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> [checked, setChecked] = <span class="title function_">useState</span>(<span class="literal">false</span>)</span><br><span class="line">  <span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">checkLogin</span>().<span class="title function_">then</span>(<span class="function"><span class="params">ok</span> =&gt;</span> ok ? <span class="title function_">setChecked</span>(<span class="literal">true</span>) : <span class="title function_">redirectToLogin</span>())</span><br><span class="line">  &#125;, [])</span><br><span class="line">  <span class="keyword">return</span> checked</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>页面里 <code>const checked = useAuth()</code>，一行搞定，没有包装组件，没有 props 冲突，静态方法和 ref 的坑自然也不存在。Hooks 的完整用法和它自己的一套坑，我写在 <a href="https://feinterview.poetries.top/blog/react-hooks">React Hooks 详解</a> 里。</p>
+<p>不是说 HOC 就完全没用了。有两类场景它还是合适的。一类是要在组件外层包裹额外 DOM 结构或者做条件渲染的，比如权限不足时整个组件不渲染，这件事 Hook 做不了，Hook 只能返回数据不能替换你的返回值。另一类是给第三方组件统一注入能力，你改不到它内部代码，只能从外面包。</p>
+<p>所以我的判断是：新写的逻辑复用优先自定义 Hook；需要「包一层」或者「换掉渲染结果」的时候，HOC 依然是对的工具。至于反向继承，除非你在写调试工具或者做渲染劫持，否则可以直接忘掉。</p>
+<p>组件之间数据怎么传，除了 HOC 注入这一条路，还有 props、回调、context、事件总线几种，各自的适用范围我在 <a href="https://feinterview.poetries.top/blog/react-comp-communicate">React 组件通信方式全解</a> 里做了横向对比。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>高阶组件是一个函数，吃进一个组件，吐出一个增强过的组件。它不是 React 的 API，只是从「组件是函数」这个事实里长出来的复用约定。</p>
+<p>实现上分两派。属性代理用组合，包一层新组件，透传 props 再注入自己的东西，能力足够、边界清晰，日常用它就够了。反向继承用继承，能碰到原组件的实例和 <code>render</code> 返回值，能力更大但侵入性强、只支持类组件，属于特殊需求才动用的手段。</p>
+<p>用之前记住三件事：静态方法要用 <code>hoist-non-react-statics</code> 搬过去，ref 要用 <code>forwardRef</code> 转发，HOC 必须在模块顶层创建而不是在 <code>render</code> 里。</p>
+<p>一句话概括它在今天的位置：纯逻辑复用交给自定义 Hook，需要在外层包点什么的时候才请出 HOC。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://legacy.reactjs.org/docs/higher-order-components.html">高阶组件 - React 官方文档</a></li>
+<li><a href="https://legacy.reactjs.org/docs/composition-vs-inheritance.html">组合优于继承 - React 官方文档</a></li>
+<li><a href="https://react.dev/reference/react/forwardRef">forwardRef - React 官方文档</a></li>
+<li><a href="https://github.com/mridgway/hoist-non-react-statics">hoist-non-react-statics</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

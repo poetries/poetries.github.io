@@ -7,37 +7,38 @@
 <head>
   <meta charset="utf-8">
   
-  <title>初探vscode插件开发 | 前端进阶之旅</title>
+  <title>初探vscode插件开发 从环境搭建到发布上架 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="插件,vscode," />
+    <meta name="keywords" content="工程化,插件,vscode," />
   
 
-  <meta name="description" content="趁着元旦假期最后一天，初次尝试了一下vscode插件开发，写了一个前端工具箱作为日常方便使用，记录一下    在vscode插件里面搜索：前端工具箱。或打开该网址安装即可 https:&#x2F;&#x2F;marketplace.visualstudio.com&#x2F;items?itemName&#x3D;poetries.fe-tools  搭建开发环境 我们先准备开发环境。我使用的操作系统：mac，首先确保安装了VS Co">
+  <meta name="description" content="用一个前端工具箱插件的开发过程串起 VSCode 插件开发全流程，讲清激活事件、贡献点、package.json 清单、extension.js 入口、Webview 与插件通信，以及 vsce 打包发布和版本升级。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="初探vscode插件开发">
+<meta property="og:title" content="初探vscode插件开发 从环境搭建到发布上架">
 <meta property="og:url" content="http://blog.poetries.top/2021/01/03/vscode-plugin/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="趁着元旦假期最后一天，初次尝试了一下vscode插件开发，写了一个前端工具箱作为日常方便使用，记录一下    在vscode插件里面搜索：前端工具箱。或打开该网址安装即可 https:&#x2F;&#x2F;marketplace.visualstudio.com&#x2F;items?itemName&#x3D;poetries.fe-tools  搭建开发环境 我们先准备开发环境。我使用的操作系统：mac，首先确保安装了VS Co">
+<meta property="og:description" content="用一个前端工具箱插件的开发过程串起 VSCode 插件开发全流程，讲清激活事件、贡献点、package.json 清单、extension.js 入口、Webview 与插件通信，以及 vsce 打包发布和版本升级。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2020/12/screenshot.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/3.gif">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/4.gif">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/10.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/11.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/5.jpeg">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/7.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/8.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2021/01/9.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2020/12/screenshot.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/3.gif">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/4.gif">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/10.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/11.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/5.jpeg">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/7.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/8.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2021/01/9.png">
 <meta property="article:published_time" content="2021-01-03T07:01:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.693Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.958Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="工程化">
 <meta property="article:tag" content="插件">
 <meta property="article:tag" content="vscode">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2020/12/screenshot.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2020/12/screenshot.png">
 
   
 
@@ -215,7 +216,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%90%AD%E5%BB%BA%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-text">搭建开发环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E6%8F%92%E4%BB%B6"><span class="toc-text">运行插件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E6%8F%92%E4%BB%B6"><span class="toc-text">调试插件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E8%AF%95webview"><span class="toc-text">调试webview</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E8%A7%A3%E6%9E%90"><span class="toc-text">项目解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JavaScript-%E6%8F%92%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">JavaScript 插件目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%85%E5%8D%95%E6%96%87%E4%BB%B6%EF%BC%9Apackage-json"><span class="toc-text">清单文件：package.json</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E5%85%A5%E5%8F%A3%E6%96%87%E4%BB%B6%EF%BC%9Aextension-js"><span class="toc-text">插件入口文件：extension.js</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Webview"><span class="toc-text">Webview</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E8%B5%84%E6%BA%90%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">本地资源的使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Webview%E4%B8%8E%E6%8F%92%E4%BB%B6%E9%80%9A%E4%BF%A1"><span class="toc-text">Webview与插件通信</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85%E3%80%81%E5%8F%91%E5%B8%83%E5%92%8C%E5%8D%87%E7%BA%A7"><span class="toc-text">打包、发布和升级</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="toc-text">参考文档</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Step-1-%E6%90%AD%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-text">一、Step 1 搭开发环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Step-2-%E8%B7%91%E8%B5%B7%E6%9D%A5%EF%BC%8C%E7%84%B6%E5%90%8E%E5%AD%A6%E4%BC%9A%E8%B0%83%E8%AF%95"><span class="toc-text">二、Step 2 跑起来，然后学会调试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%89-F5-%E4%B9%8B%E5%90%8E%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">按 F5 之后发生了什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%93%E6%96%AD%E7%82%B9%E8%B0%83%E8%AF%95"><span class="toc-text">打断点调试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E8%AF%95-Webview"><span class="toc-text">调试 Webview</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Step-3-%E8%AF%BB%E6%87%82-helloworld-%E8%BF%99%E4%B8%AA%E9%AA%A8%E6%9E%B6"><span class="toc-text">三、Step 3 读懂 helloworld 这个骨架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E4%B8%AA%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-text">三个基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#JavaScript-%E6%8F%92%E4%BB%B6%E7%9A%84%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">JavaScript 插件的目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B8%85%E5%8D%95%E6%96%87%E4%BB%B6-package-json"><span class="toc-text">清单文件 package.json</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%92%E4%BB%B6%E5%85%A5%E5%8F%A3%E6%96%87%E4%BB%B6-extension-js"><span class="toc-text">插件入口文件 extension.js</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Step-4-%E5%81%9A%E4%B8%80%E4%B8%AA-Webview-%E9%9D%A2%E6%9D%BF"><span class="toc-text">四、Step 4 做一个 Webview 面板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E8%B5%84%E6%BA%90%E8%AF%A5%E6%80%8E%E4%B9%88%E5%BC%95"><span class="toc-text">本地资源该怎么引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Webview-%E5%92%8C%E6%8F%92%E4%BB%B6%E6%80%8E%E4%B9%88%E9%80%9A%E4%BF%A1"><span class="toc-text">Webview 和插件怎么通信</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Step-5-%E6%89%93%E5%8C%85%E3%80%81%E5%8F%91%E5%B8%83%E5%92%8C%E5%8D%87%E7%BA%A7"><span class="toc-text">五、Step 5 打包、发布和升级</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%A4%E8%AF%86-vsce"><span class="toc-text">认识 vsce</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%B3%E8%AF%B7%E5%8F%91%E5%B8%83%E6%9D%83%E9%99%90"><span class="toc-text">申请发布权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%87%E7%BA%A7%E5%B7%B2%E5%8F%91%E5%B8%83%E7%9A%84%E6%8F%92%E4%BB%B6"><span class="toc-text">升级已发布的插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E5%AE%89%E8%A3%85-vsix"><span class="toc-text">本地安装 vsix</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%8F%91%E5%B8%83%E5%89%8D%E7%9A%84-checklist"><span class="toc-text">六、发布前的 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -238,13 +239,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vscode-plugin" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">初探vscode插件开发</h1>
+    <h1 class="post-title">初探vscode插件开发 从环境搭建到发布上架</h1>
 
     <div class="article-meta">
       <span>
@@ -280,12 +281,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.8k字</span>
+            <span>字数统计 6.1k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 11分</span>
+            <span>阅读时长 23分</span>
           </span>
       
       
@@ -299,147 +300,176 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>趁着元旦假期最后一天，初次尝试了一下vscode插件开发，写了一个前端工具箱作为日常方便使用，记录一下</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2020/12/screenshot.png"></p>
-<blockquote>
-<p>在vscode插件里面搜索：前端工具箱。或打开该网址安装即可 <a href="https://marketplace.visualstudio.com/items?itemName=poetries.fe-tools">https://marketplace.visualstudio.com/items?itemName=poetries.fe-tools</a></p>
-</blockquote>
-<h2 id="搭建开发环境"><a href="#搭建开发环境" class="headerlink" title="搭建开发环境"></a>搭建开发环境</h2><blockquote>
-<p>我们先准备开发环境。我使用的操作系统：mac，首先确保安装了VS Code、Node.js 和 Git：</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">code -v</span><br><span class="line">node -v</span><br><span class="line">npm -v</span><br><span class="line">git --version</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p><a href="https://code.visualstudio.com/api/get-started/your-first-extension">https://code.visualstudio.com/api/get-started/your-first-extension</a></p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install -g yo generator-code</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>使用yo code指令初始化VSCode插件项目，然后需要回答一些简单的配置问题</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yo code</span><br><span class="line"></span><br><span class="line"><span class="comment"># What type of extension do you want to create? </span></span><br><span class="line"><span class="comment"># 创建那一种类型的扩展？</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># What&#x27;s the name of your extension?</span></span><br><span class="line"><span class="comment"># 扩展的名称？</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># What&#x27;s the identifier of your extension?</span></span><br><span class="line"><span class="comment"># 扩展的标示？</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># What&#x27;s the description of your extension?</span></span><br><span class="line"><span class="comment"># 扩展的描述</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Initialize a git repository? </span></span><br><span class="line"><span class="comment"># 初始化git仓库</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Which package manager to use? </span></span><br><span class="line"><span class="comment"># 使用那一种包管理器</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="运行插件"><a href="#运行插件" class="headerlink" title="运行插件"></a>运行插件</h2><blockquote>
-<p>使用 VS Code 打开项目，在编辑器内部，按F5，编译并打开一个“扩展开发宿主机”窗口运行调试插件。为了叙述方便，把新打开的窗口称为运行窗口，旧窗口称为编辑窗口。在新窗口的命令面板（<code>Ctrl+Shift+P</code>） 运行 Hello World 命令。看到右下角的 Hello World 通知信息了吗？恭喜你已经运行了一个自己编写的插件！</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/3.gif"></p>
-<h2 id="调试插件"><a href="#调试插件" class="headerlink" title="调试插件"></a>调试插件</h2><blockquote>
-<p>使用 VS Code 调试扩展插件很容易。这里演示一下如何设置断点。在编辑窗口打开 extension.js 文件， 点击编辑器行号左侧的边栏设置断点。在运行窗口 命令面板输入 Hello World 命令运行插件，命中断点。</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/4.gif"></p>
-<h3 id="调试webview"><a href="#调试webview" class="headerlink" title="调试webview"></a>调试webview</h3><blockquote>
-<p>按F5打开调试模式，在webview页面，按<code>command+shift+p</code>选择open webview</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/10.png"><br><img src="https://poetries1.gitee.io/img-repo/2021/01/11.png"></p>
-<h2 id="项目解析"><a href="#项目解析" class="headerlink" title="项目解析"></a>项目解析</h2><blockquote>
-<p>接下来我们来深入研究一下 helloworld 插件。 helloworld 的功能很简单，就是用户可以在命令面板执行 Hello World 命令，输出 Hello World 信息</p>
-</blockquote>
-<p><strong>从实现的角度来看，helloworld 插件做了三件事：</strong></p>
+        <p>每天在 VSCode 里待八小时，总有些重复动作让人手痒：查个正则、转个时间戳、格式化一段 JSON，每次都要切浏览器找在线工具。趁着元旦假期最后一天，我照着官方文档把 VSCode 插件开发从头走了一遍，做了个前端工具箱塞进侧边栏，顺手把整个流程记下来。这篇从装脚手架讲到发布上架，中间把激活事件、贡献点、Webview 通信这几个绕人的概念拆开说，代码都是能直接跑的。看完你至少能把自己那几个小工具做成插件，不用再开浏览器。</p>
+<p><img src="https://s.poetries.top/gitee/2020/12/screenshot.png" alt="前端工具箱插件在 VSCode 中的运行截图"></p>
+<p>在 VSCode 插件市场里搜「前端工具箱」，或者直接打开 <a href="https://marketplace.visualstudio.com/items?itemName=poetries.fe-tools">https://marketplace.visualstudio.com/items?itemName=poetries.fe-tools</a> 就能装。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>注册激活事件 <code>onCommand:extension.helloWorld</code>：插件在<code>extension.helloWorld</code> 触发时被激活。</li>
-<li>注册贡献点 <code>contributes.commands:extension.helloWorld</code>：在命令面板中使能 <code>hello world</code> 命令，并将其绑定到 <code>extension.helloworld</code>。</li>
-<li>调用 <code>VS Code API commands.registerCommand</code> 给注册的命令 <code>extension.helloWorld</code>绑定处理函数。</li>
+<li>开发环境怎么搭，<code>yo code</code> 脚手架问的那几个问题该怎么答</li>
+<li>按 F5 之后发生了什么，扩展宿主窗口和编辑窗口的关系</li>
+<li>怎么给插件打断点，Webview 里的代码又该怎么调</li>
+<li>激活事件、贡献点、VS Code API 这三个概念各自管什么</li>
+<li><code>package.json</code> 清单文件的每个字段是干嘛的</li>
+<li><code>extension.js</code> 里 <code>activate</code> 和 <code>deactivate</code> 的调用时机</li>
+<li>Webview 面板怎么创建，本地资源路径为什么不能直接写</li>
+<li>Webview 和插件之间怎么双向通信</li>
+<li>vsce 打包、发布、升级的完整命令，以及一份发布前 checklist</li>
 </ul>
-<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><blockquote>
-<p>简单解释一下上面提到的三个概念：激活事件、贡献点和接口：</p>
-</blockquote>
+<h2 id="一、Step-1-搭开发环境"><a href="#一、Step-1-搭开发环境" class="headerlink" title="一、Step 1 搭开发环境"></a>一、Step 1 搭开发环境</h2><p>先把环境准备好。我用的是 macOS，第一步确认 VS Code、Node.js 和 Git 都装了：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">code -v</span><br><span class="line">node -v</span><br><span class="line">npm -v</span><br><span class="line">git --version</span><br></pre></td></tr></table></figure>
+
+<p><code>code -v</code> 如果报命令找不到，去 VS Code 里按 <code>Cmd+Shift+P</code> 执行 <code>Shell Command: Install &#39;code&#39; command in PATH</code>，这一步在后面本地安装 vsix 的时候还会用到。</p>
+<p>官方的起步文档在这里，建议对照着看：<a href="https://code.visualstudio.com/api/get-started/your-first-extension">https://code.visualstudio.com/api/get-started/your-first-extension</a></p>
+<p>然后全局装脚手架。<code>yo</code> 是 Yeoman，<code>generator-code</code> 是 VS Code 官方提供的插件项目生成器：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g yo generator-code</span><br></pre></td></tr></table></figure>
+
+<p>用 <code>yo code</code> 初始化项目，它会问你一串问题：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yo code</span><br><span class="line"></span><br><span class="line"><span class="comment"># What type of extension do you want to create? </span></span><br><span class="line"><span class="comment"># 创建哪一种类型的扩展</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># What&#x27;s the name of your extension?</span></span><br><span class="line"><span class="comment"># 扩展的名称</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># What&#x27;s the identifier of your extension?</span></span><br><span class="line"><span class="comment"># 扩展的标识</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># What&#x27;s the description of your extension?</span></span><br><span class="line"><span class="comment"># 扩展的描述</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Initialize a git repository? </span></span><br><span class="line"><span class="comment"># 是否初始化 git 仓库</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Which package manager to use? </span></span><br><span class="line"><span class="comment"># 使用哪一种包管理器</span></span><br></pre></td></tr></table></figure>
+
+<p>第一个问题最关键，它决定了生成什么骨架。当年的选项主要是 JavaScript、TypeScript、Color Theme、Language Support、Code Snippets、Keymap、Extension Pack 这几类，选 JavaScript 或 TypeScript 就能拿到一个可运行的 helloworld 项目。</p>
+<p>这里补一句时效性的话。这篇写于 2021 年初，<code>yo code</code> 的选项列表这几年增加过（比如面向浏览器环境的 Web Extension 类型），提问的措辞也调整过。你跑出来和上面对不上是正常的，按提示选就行，具体以官方文档为准。标识（identifier）这一项建议一次填对，它会和后面的发布者名字拼成插件在市场里的唯一 ID，改起来很麻烦。</p>
+<h2 id="二、Step-2-跑起来，然后学会调试"><a href="#二、Step-2-跑起来，然后学会调试" class="headerlink" title="二、Step 2 跑起来，然后学会调试"></a>二、Step 2 跑起来，然后学会调试</h2><h3 id="按-F5-之后发生了什么"><a href="#按-F5-之后发生了什么" class="headerlink" title="按 F5 之后发生了什么"></a>按 F5 之后发生了什么</h3><p>用 VS Code 打开刚生成的项目，在编辑器里按 F5，它会编译并打开一个新窗口，官方叫「扩展开发宿主机」（Extension Development Host）。为了叙述方便，下面把新打开的窗口叫<strong>运行窗口</strong>，原来那个叫<strong>编辑窗口</strong>。</p>
+<p>在运行窗口的命令面板（<code>Ctrl+Shift+P</code>，macOS 是 <code>Cmd+Shift+P</code>）里执行 Hello World 命令，右下角就会弹出通知。到这一步，你已经跑起了一个自己写的插件。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/3.gif" alt="按 F5 打开扩展开发宿主窗口并执行 Hello World 命令的演示动图"></p>
+<p>这个两窗口的设计一开始会有点绕，但想明白就很自然：插件跑在一个独立的扩展宿主进程里，编辑窗口是你的开发环境，运行窗口是插件的沙箱。你改了代码，在运行窗口按 <code>Cmd+R</code> 重载就能生效，不用重启整个 VS Code。</p>
+<h3 id="打断点调试"><a href="#打断点调试" class="headerlink" title="打断点调试"></a>打断点调试</h3><p>调试插件很省事，不需要额外配置，<code>yo code</code> 生成的项目里已经带好了 <code>.vscode/launch.json</code>。</p>
+<p>在编辑窗口打开 <code>extension.js</code>，点击行号左侧的边栏设置断点。然后在运行窗口的命令面板里执行 Hello World 命令，断点就会命中，变量、调用栈、单步执行全都能用，和调试普通 Node 程序一模一样。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/4.gif" alt="在 extension.js 中设置断点并命中的调试演示动图"></p>
+<p>这块要理解的是：插件代码跑在 Node 环境里，所以你调的是 Node 进程，<code>console.log</code> 的输出会打到编辑窗口的「调试控制台」，不是运行窗口的开发者工具。这两个地方我一开始经常找错。</p>
+<h3 id="调试-Webview"><a href="#调试-Webview" class="headerlink" title="调试 Webview"></a>调试 Webview</h3><p>Webview 是另一回事。它其实就是一个内嵌的网页，跑在渲染进程里，Node 的断点管不着它。</p>
+<p>调试方法是这样：按 F5 打开调试模式，在 Webview 页面上按 <code>Cmd+Shift+P</code>，执行 Open Webview Developer Tools（面板里搜 webview 就能找到）。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/10.png" alt="命令面板中查找 webview 开发者工具的入口"></p>
+<p>打开之后就是一个完整的 Chrome DevTools，Elements、Console、Network、Sources 全都在，调它和调普通网页没有区别。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/11.png" alt="Webview 开发者工具打开后的界面，可以像调试网页一样调试 Webview 内容"></p>
+<p>所以一个带 Webview 的插件其实有两套调试链路，插件侧走 Node 断点，Webview 侧走 DevTools。搞混了会浪费很多时间，这个我踩过，在 Webview 里打 <code>console.log</code> 死活在调试控制台看不到，排查了一下午才反应过来看错地方了。</p>
+<h2 id="三、Step-3-读懂-helloworld-这个骨架"><a href="#三、Step-3-读懂-helloworld-这个骨架" class="headerlink" title="三、Step 3 读懂 helloworld 这个骨架"></a>三、Step 3 读懂 helloworld 这个骨架</h2><p>接下来深入看看 helloworld 插件。它的功能极简，用户在命令面板执行 Hello World 命令，弹出一条 Hello World 消息。</p>
+<p>从实现角度看，它做了三件事：</p>
 <ul>
-<li><strong>激活事件</strong>，译自 Activation Events，在配置清单 package.json 中静态声明，其实就是 JSON 数组 <code>activationEvents</code> 的值。当激活事件发生时，声明的扩展将被激活。以下是目前所有可用激活事件：<code>onLanguage</code>、<code>onCommand</code>、<code>onDebug:onDebugInitialConfigurations</code>、<code>onDebugResolve</code>、<code>workspaceContains</code>、<code>onFileSystem</code>、<code>onView</code>、<code>onUri</code>、<code>onWebviewPanel</code>、*；</li>
-<li><strong>贡献点</strong>，译自 <code>Contribution Points</code>，在配置清单 <code>package.json</code> 中静态声明，贡献点其实就是VS Code 的可以扩展的功能点。以下是目前所有可用的贡献点：<code>configuration</code>、<code>configurationDefaults</code>、<code>commands</code>、<code>menus</code>、<code>keybindings</code>、<code>languages</code>、<code>debuggers</code>、<code>breakpoints</code>、<code>grammars</code>、<code>themes</code>、<code>snippets</code>、<code>jsonValidation</code>、<code>views</code>、<code>viewsContainers</code>、<code>problemMatchers</code>、<code>problemPatterns taskDefinitions</code>、<code>colors</code>、<code>typescriptServerPlugins</code>、<code>resourceLabelFormatters</code>、<code>contributes.configur</code>。</li>
-<li><strong>VS Code 接口</strong>：可以在扩展代码中调用的一组 JavaScript API。链接中列举了所有可用的API，熟悉基本的，其他的用到的时候按需查找就行了。</li>
+<li>注册激活事件 <code>onCommand:extension.helloWorld</code>，插件在这个命令被触发时才被激活</li>
+<li>注册贡献点 <code>contributes.commands:extension.helloWorld</code>，在命令面板中登记 Hello World 命令，并把它绑到 <code>extension.helloWorld</code> 这个 ID 上</li>
+<li>调用 VS Code API <code>commands.registerCommand</code>，给这个命令 ID 绑定真正的处理函数</li>
 </ul>
-<blockquote>
-<p>一般来说，插件都会使用到这三个概念：<strong>激活事件</strong>、<strong>贡献点</strong>和 <strong>VS Code API</strong>。接下来我们分析一下 HelloWorld 示例的源代码，看看它是如何使用这些概念的。</p>
-</blockquote>
-<h3 id="JavaScript-插件目录结构"><a href="#JavaScript-插件目录结构" class="headerlink" title="JavaScript 插件目录结构"></a>JavaScript 插件目录结构</h3><p><img src="https://poetries1.gitee.io/img-repo/2021/01/5.jpeg"></p>
-<blockquote>
-<p>VS Code 插件的目录结构很简单，根据命名大概就能知道作用。不同项目类型目录结构可能会有很大不同。对于 JavaScript 类型的项目来说，最重要的就是<code>package.json</code> 和 <code>extension.js</code> 。</p>
-</blockquote>
-<h3 id="清单文件：package-json"><a href="#清单文件：package-json" class="headerlink" title="清单文件：package.json"></a>清单文件：package.json</h3><blockquote>
-<p>每个 VS Code 插件都必须有一个用来描述插件的清单文件 package.json。VS Code 的清单文件是声明式的 JSON 格式，用于声明插件名（name）、插件展示名（ <code>displayName</code> ）、描述信息（<code>description</code>）、版本（ version ）、引擎（ engines ）、类别（ categories ）、依赖（ devDependencies ）、脚本 （scripts）、贡献点（ contributes ）、入口文件（ main ）、激活事件（ activationEvents ）等。</p>
-</blockquote>
-<blockquote>
-<p>下面是 helloworld 插件的清单文件内容，为了便于理解，我加了一些注释。</p>
-</blockquote>
+<h3 id="三个基本概念"><a href="#三个基本概念" class="headerlink" title="三个基本概念"></a>三个基本概念</h3><p>上面提到的激活事件、贡献点和 API，是插件开发里绕不开的三个词，值得单独说清楚。</p>
+<p><strong>激活事件</strong>（Activation Events），在配置清单 <code>package.json</code> 里静态声明，就是 JSON 数组 <code>activationEvents</code> 的值。当声明的事件发生时，插件才会被激活。当年可用的激活事件包括 <code>onLanguage</code>、<code>onCommand</code>、<code>onDebug</code>、<code>onDebugInitialConfigurations</code>、<code>onDebugResolve</code>、<code>workspaceContains</code>、<code>onFileSystem</code>、<code>onView</code>、<code>onUri</code>、<code>onWebviewPanel</code>，以及表示「启动就激活」的 <code>*</code>。</p>
+<p>那为什么要有激活事件这个东西？因为 VS Code 不想在启动时加载你的插件。一个人装二三十个插件很常见，如果每个都在启动时跑一遍初始化，编辑器几秒钟都起不来。所以设计成按需激活：声明清楚你在什么情况下需要被叫醒，其余时间你的代码根本不会被加载。<strong>别图省事写 <code>*</code></strong>，那等于在所有人的启动时间上收税。</p>
+<p>这里也有个时效性的提醒。较新版本的 VS Code 对 <code>contributes.commands</code> 里声明过的命令会自动推导出对应的激活事件，不用再在 <code>activationEvents</code> 里重复写一遍 <code>onCommand:xxx</code>。你如果看到新生成的项目里 <code>activationEvents</code> 是个空数组，不是脚手架坏了。具体规则以官方文档为准。</p>
+<p><strong>贡献点</strong>（Contribution Points），同样在 <code>package.json</code> 里静态声明，指的是 VS Code 开放给插件扩展的那些功能点。当年可用的贡献点包括 <code>configuration</code>、<code>configurationDefaults</code>、<code>commands</code>、<code>menus</code>、<code>keybindings</code>、<code>languages</code>、<code>debuggers</code>、<code>breakpoints</code>、<code>grammars</code>、<code>themes</code>、<code>snippets</code>、<code>jsonValidation</code>、<code>views</code>、<code>viewsContainers</code>、<code>problemMatchers</code>、<code>problemPatterns</code>、<code>taskDefinitions</code>、<code>colors</code>、<code>typescriptServerPlugins</code>、<code>resourceLabelFormatters</code> 等。</p>
+<p>理解贡献点的关键是：它们全是<strong>声明式</strong>的。你在 JSON 里说「我要往右键菜单加一项」「我要占一个侧边栏图标」，VS Code 读了清单就知道该怎么渲染 UI，压根不用先加载你的代码。这也是它敢做懒激活的前提。</p>
+<p><strong>VS Code API</strong>，一组能在扩展代码里调用的 JavaScript 接口。官方文档列了全部可用 API，熟悉常用的那些就够了（<code>window</code>、<code>commands</code>、<code>workspace</code>、<code>languages</code> 这几个命名空间覆盖了绝大多数场景），其他的用到再查。</p>
+<p>一句话串起来：贡献点负责「让用户看见入口」，激活事件负责「决定什么时候加载你」，API 负责「加载之后你能干什么」。</p>
+<h3 id="JavaScript-插件的目录结构"><a href="#JavaScript-插件的目录结构" class="headerlink" title="JavaScript 插件的目录结构"></a>JavaScript 插件的目录结构</h3><p><img src="https://s.poetries.top/gitee/2021/01/5.jpeg" alt="VS Code 插件项目的目录结构，包含 package.json、extension.js 与 test 目录"></p>
+<p>目录结构很简单，看名字大概就知道作用。不同项目类型的结构差别可能很大，但对 JavaScript 项目来说，最重要的就两个文件：<code>package.json</code> 和 <code>extension.js</code>。前者告诉 VS Code「我是谁、我提供什么」，后者是真正跑起来的代码。</p>
+<h3 id="清单文件-package-json"><a href="#清单文件-package-json" class="headerlink" title="清单文件 package.json"></a>清单文件 package.json</h3><p>每个 VS Code 插件都必须有一个描述自己的清单文件 <code>package.json</code>。它是声明式的 JSON，用来声明插件名（name）、展示名（displayName）、描述（description）、版本（version）、引擎（engines）、类别（categories）、依赖（devDependencies）、脚本（scripts）、贡献点（contributes）、入口文件（main）、激活事件（activationEvents）等。</p>
+<p>下面是 helloworld 插件的清单内容，我加了注释方便对照：</p>
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;helloworld&quot;</span><span class="punctuation">,</span> <span class="comment">//插件名</span></span><br><span class="line">    <span class="attr">&quot;displayName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;helloworld&quot;</span><span class="punctuation">,</span> <span class="comment">// 插件市场显示的插件名，支持中文</span></span><br><span class="line">    <span class="attr">&quot;description&quot;</span><span class="punctuation">:</span> <span class="string">&quot;demo&quot;</span><span class="punctuation">,</span> <span class="comment">// 插件市场显示的描述信息</span></span><br><span class="line">    <span class="attr">&quot;version&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.1&quot;</span><span class="punctuation">,</span> <span class="comment">// 版本号</span></span><br><span class="line">    <span class="comment">// 最低支持的 VS Code 版本</span></span><br><span class="line">    <span class="attr">&quot;engines&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;vscode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^1.38.0&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment">// 插件市场分类</span></span><br><span class="line">    <span class="attr">&quot;categories&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="string">&quot;Other&quot;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment">// 激活事件</span></span><br><span class="line">    <span class="attr">&quot;activationEvents&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="string">&quot;onCommand:extension.helloWorld&quot;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;main&quot;</span><span class="punctuation">:</span> <span class="string">&quot;./extension.js&quot;</span><span class="punctuation">,</span> <span class="comment">// 指定入口文件</span></span><br><span class="line">    <span class="comment">// 贡献点</span></span><br><span class="line">    <span class="attr">&quot;contributes&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;commands&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;extension.helloWorld&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Hello World&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment">// 脚本</span></span><br><span class="line">    <span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;test&quot;</span><span class="punctuation">:</span> <span class="string">&quot;node ./test/runTest.js&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="comment">// 依赖，包含版本信息</span></span><br><span class="line">    <span class="attr">&quot;devDependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;@types/glob&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^7.1.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;@types/mocha&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^5.2.6&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;@types/node&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^10.12.21&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;@types/vscode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^1.38.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;eslint&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^5.13.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;glob&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^7.1.4&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;mocha&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^6.1.4&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;typescript&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^3.3.1&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;vscode-test&quot;</span><span class="punctuation">:</span> <span class="string">&quot;^1.2.0&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="插件入口文件：extension-js"><a href="#插件入口文件：extension-js" class="headerlink" title="插件入口文件：extension.js"></a>插件入口文件：extension.js</h3><blockquote>
-<p>插件的入口文件是在清单文件中指定的，如果项目比较大，源文件比较多，也可以统一放在 src 目录里。</p>
-</blockquote>
+<p>有三个字段容易踩坑，单独说一下。</p>
+<p><code>engines.vscode</code> 声明的是最低支持版本，它必须和 <code>@types/vscode</code> 的版本对得上，否则你可能用了一个高版本才有的 API，类型检查过了但在用户的旧版本上直接报错。写高了会把老用户挡在门外，写低了自己束手束脚，一般跟着你实际用到的 API 走。</p>
+<p><code>displayName</code> 和 <code>name</code> 是两个东西。<code>name</code> 参与组成插件 ID，只能是小写字母数字和连字符；<code>displayName</code> 是市场上展示的名字，可以写中文。上面那个前端工具箱，<code>name</code> 是 <code>fe-tools</code>，<code>displayName</code> 才是「前端工具箱」。</p>
+<p><code>categories</code> 影响你在市场里被归到哪一类，随手写 <code>Other</code> 会让插件很难被发现，能对上号就尽量填准确。</p>
+<p>另外，上面 <code>devDependencies</code> 里的 <code>vscode-test</code> 是当年的测试包名，后来官方把这一系列工具包迁到了 <code>@vscode/</code> 命名空间下。你新建项目看到的名字大概率和这里不一样，以脚手架生成的为准。</p>
+<h3 id="插件入口文件-extension-js"><a href="#插件入口文件-extension-js" class="headerlink" title="插件入口文件 extension.js"></a>插件入口文件 extension.js</h3><p>入口文件由清单里的 <code>main</code> 字段指定。项目大了源文件多了，也可以统一放进 <code>src</code> 目录再改 <code>main</code> 指向。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// The module &#x27;vscode&#x27; contains the VS Code extensibility API</span></span><br><span class="line"><span class="comment">// Import the module and reference it with the alias vscode in your code below</span></span><br><span class="line"><span class="comment">/* 导入 &quot;vscode&quot; 模块，这个模块包含 VS Code 的扩展接口。 */</span> </span><br><span class="line"><span class="keyword">const</span> vscode = <span class="built_in">require</span>(<span class="string">&#x27;vscode&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// this method is called when your extension is activated</span></span><br><span class="line"><span class="comment">// your extension is activated the very first time the command is executed</span></span><br><span class="line"><span class="comment">// 第一次执行命令时，插件会被激活；插件被激活时，这个函数会被调用</span></span><br><span class="line"><span class="comment">// 必须在入口中实现这个函数。</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> &#123;<span class="type">vscode.ExtensionContext</span>&#125; <span class="variable">context</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">activate</span>(<span class="params">context</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Use the console to output diagnostic information (console.log) and errors (console.error)</span></span><br><span class="line">    <span class="comment">// This line of code will only be executed once when your extension is activated</span></span><br><span class="line">    <span class="comment">/* 输出诊断日志到控制台 */</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Congratulations, your extension &quot;helloworld&quot; is now active!&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// The command has been defined in the package.json file</span></span><br><span class="line">    <span class="comment">// Now provide the implementation of the command with  registerCommand</span></span><br><span class="line">    <span class="comment">// The commandId parameter must match the command field in package.json</span></span><br><span class="line">    <span class="comment">/* </span></span><br><span class="line"><span class="comment">     * 这个命令 extension.helloWorld 已经在 package.json 文件中定义了。</span></span><br><span class="line"><span class="comment">     * 现在我们使用 registerCommand 接口给这个命令绑定实现。</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">let</span> disposable = vscode.<span class="property">commands</span>.<span class="title function_">registerCommand</span>(<span class="string">&#x27;extension.helloWorld&#x27;</span>, <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">        <span class="comment">// The code you place here will be executed every time your command is executed</span></span><br><span class="line">        <span class="comment">/* 每一次执行命令，这儿的代码都会执行 */</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Display a message box to the user</span></span><br><span class="line">        vscode.<span class="property">window</span>.<span class="title function_">showInformationMessage</span>(<span class="string">&#x27;Hello World!&#x27;</span>);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    context.<span class="property">subscriptions</span>.<span class="title function_">push</span>(disposable);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">exports</span>.<span class="property">activate</span> = activate;</span><br><span class="line"></span><br><span class="line"><span class="comment">// this method is called when your extension is deactivated</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">deactivate</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    activate,</span><br><span class="line">    deactivate</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>一个插件必须在其主模块实现并导出 <code>activate()</code>和 <code>deactivate()</code> 函数。</p>
-</blockquote>
-<ul>
-<li><code>activate()</code> 函数 初始化插件。当任何指定的激活事件发生时，VS Code 会调用并且只调用它一次。</li>
-<li><code>deactivate()</code> 函数 清理插件。如果清理过程是异步的， <code>deactivate()</code> 函数必须返回一个 Promise 对象。如果清理运行同步，则 <code>deactivate()</code> 函数返回 <code>undefined</code> 。</li>
-</ul>
-<h2 id="Webview"><a href="#Webview" class="headerlink" title="Webview"></a>Webview</h2><blockquote>
-<p>插件可以分为多种，比如主题样式类型的插件，图标插件，语言支持类型的插件。Webview类型的插件只是Vscode插件的一个大类。大致的实现大家可以参考文档，文档的示例使用的是html字符串，但这不适合复杂的Webview的开发。在GameNews这个插件中，模版部分，我使用了vue以及pug。</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 静态资源的目录。绝对路径，并且使用了vscode-resource协议</span></span><br><span class="line"><span class="comment">// vscode-resource:/Users/Desktop/game-news/views</span></span><br><span class="line"><span class="keyword">const</span> webviewDir = path.<span class="title function_">join</span>(context.<span class="property">extensionPath</span>, <span class="string">&#x27;views&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个Webview的面板</span></span><br><span class="line"><span class="keyword">const</span> panel = vscode.<span class="property">window</span>.<span class="title function_">createWebviewPanel</span>(</span><br><span class="line">    viewType,</span><br><span class="line">    title,</span><br><span class="line">    vscode.<span class="property">ViewColumn</span>.<span class="property">One</span>,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="attr">enableScripts</span>: <span class="literal">true</span>, <span class="comment">// 允许运行js脚本，默认是关闭的</span></span><br><span class="line">        <span class="attr">retainContextWhenHidden</span>: <span class="literal">true</span>, <span class="comment">// webview不可见时，脚本就会被挂起</span></span><br><span class="line">        <span class="comment">// 指定允许加载的本地资源的根目录</span></span><br><span class="line">        <span class="attr">localResourceRoots</span>: [vscode.<span class="property">Uri</span>.<span class="title function_">file</span>(webviewDir)]</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模版文件</span></span><br><span class="line"><span class="keyword">const</span> tpl = path.<span class="title function_">join</span>(webviewDir, <span class="string">&#x27;index.pug&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过pug渲染模版文件，到webview上</span></span><br><span class="line">panel.<span class="property">webview</span>.<span class="property">html</span> = pug.<span class="title function_">renderFile</span>(tpl, options);</span><br></pre></td></tr></table></figure>
+<p>一个插件必须在主模块里实现并导出 <code>activate()</code> 和 <code>deactivate()</code> 两个函数。</p>
+<p><code>activate()</code> 负责初始化。任何一个声明的激活事件发生时，VS Code 会调用它，而且只调用一次。后面命令被执行多少次，跑的都是 <code>registerCommand</code> 里那个回调，<code>activate</code> 不会再进。</p>
+<p><code>deactivate()</code> 负责清理。如果清理过程是异步的，它必须返回一个 Promise；如果是同步的，返回 <code>undefined</code> 即可。</p>
+<p>最后那行 <code>context.subscriptions.push(disposable)</code> 别漏掉。<code>registerCommand</code> 返回的是一个可释放对象，把它推进 <code>context.subscriptions</code>，VS Code 会在插件停用时自动帮你注销。不推进去的话，插件重载时命令会重复注册，行为就开始飘了。这条对所有 <code>register*</code> 系列 API 都适用，包括事件监听、TreeView、状态栏项。</p>
+<h2 id="四、Step-4-做一个-Webview-面板"><a href="#四、Step-4-做一个-Webview-面板" class="headerlink" title="四、Step 4 做一个 Webview 面板"></a>四、Step 4 做一个 Webview 面板</h2><p>插件分很多类，主题样式类、图标类、语言支持类，Webview 只是其中一个大类。但它是自由度最高的一类，因为你可以在里面塞一整个网页，前端那套技能直接复用。前面那个工具箱的界面就是 Webview 做的。</p>
+<p>官方文档的示例里，Webview 的 HTML 是拼字符串生成的。演示够用，真做起来不行，稍微复杂一点的界面拼字符串就没法维护了。常见做法是引一个模板引擎，比如 pug，把模板文件单独放，再在里面按普通网页的方式引入 Vue 之类的运行时脚本。</p>
+<p>创建一个 Webview 面板长这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 静态资源的目录。绝对路径，并且使用了vscode-resource协议</span></span><br><span class="line"><span class="comment">// vscode-resource:/Users/Desktop/game-news/views</span></span><br><span class="line"><span class="keyword">const</span> webviewDir = path.<span class="title function_">join</span>(context.<span class="property">extensionPath</span>, <span class="string">&#x27;views&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建一个Webview的面板</span></span><br><span class="line"><span class="keyword">const</span> panel = vscode.<span class="property">window</span>.<span class="title function_">createWebviewPanel</span>(</span><br><span class="line">    viewType,</span><br><span class="line">    title,</span><br><span class="line">    vscode.<span class="property">ViewColumn</span>.<span class="property">One</span>,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="attr">enableScripts</span>: <span class="literal">true</span>, <span class="comment">// 允许运行js脚本，默认是关闭的</span></span><br><span class="line">        <span class="attr">retainContextWhenHidden</span>: <span class="literal">true</span>, <span class="comment">// 面板被隐藏时保留上下文，脚本不会被挂起</span></span><br><span class="line">        <span class="comment">// 指定允许加载的本地资源的根目录</span></span><br><span class="line">        <span class="attr">localResourceRoots</span>: [vscode.<span class="property">Uri</span>.<span class="title function_">file</span>(webviewDir)]</span><br><span class="line">    &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 模版文件</span></span><br><span class="line"><span class="keyword">const</span> tpl = path.<span class="title function_">join</span>(webviewDir, <span class="string">&#x27;index.pug&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过pug渲染模版文件，到webview上</span></span><br><span class="line">panel.<span class="property">webview</span>.<span class="property">html</span> = pug.<span class="title function_">renderFile</span>(tpl, options);</span><br></pre></td></tr></table></figure>
 
-<h3 id="本地资源的使用"><a href="#本地资源的使用" class="headerlink" title="本地资源的使用"></a>本地资源的使用</h3><blockquote>
-<p>Webview中，我们会需要使用本地的css，js文件。虽然可以使用行间js或者行间样式，但是总归不太好。使用本地文件，就会涉及的静态文件路径的问题，在VScode中，我们需要使用绝对路径。并且是vscode-resource协议的路径。</p>
-</blockquote>
+<p>这几个配置项都有坑，一个个说。</p>
+<p><code>enableScripts</code> 默认是 <code>false</code>，也就是说你的 Webview 里所有 <code>&lt;script&gt;</code> 都不会执行。这是安全默认值，做纯展示面板保持关闭最好，需要交互再打开。</p>
+<p><code>retainContextWhenHidden</code> 这一项原文的注释写反了，我改过来了。设成 <code>true</code> 的含义是<strong>面板被隐藏（比如切到别的标签页）时保留上下文</strong>，DOM 状态和 JS 变量都还在，切回来还是原样。默认值 <code>false</code> 才会在隐藏时销毁上下文，下次显示时重新加载 HTML。方便是方便，代价是内存一直占着，官方明确建议只在「重建状态成本很高」的场景才开。</p>
+<p><code>localResourceRoots</code> 限定了 Webview 能加载哪些本地目录的资源。不在白名单里的路径一律加载失败，浏览器控制台里能看到被拦的请求。</p>
+<h3 id="本地资源该怎么引"><a href="#本地资源该怎么引" class="headerlink" title="本地资源该怎么引"></a>本地资源该怎么引</h3><p>Webview 里免不了要用本地的 CSS 和 JS 文件。行内写当然可以，但总归不好维护。用外部文件就会遇到路径问题：Webview 的页面上下文和你的插件目录不在同一个来源上，写相对路径找不到文件。</p>
+<p>当年的解法是把文件系统路径转成 <code>vscode-resource</code> 协议的 URI：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> webviewDir = path.<span class="title function_">join</span>(context.<span class="property">extensionPath</span>, <span class="string">&#x27;views&#x27;</span>);</span><br><span class="line"><span class="comment">// 静态资源的绝对目录</span></span><br><span class="line"><span class="keyword">let</span> <span class="variable constant_">URI</span> = vscode.<span class="property">Uri</span>.<span class="title function_">file</span>(path.<span class="title function_">join</span>(webviewDir, <span class="string">&#x27;js&#x27;</span>, <span class="string">&#x27;vue.js&#x27;</span>))</span><br><span class="line"><span class="comment">// 使用vscode-resource协议头</span></span><br><span class="line"><span class="comment">// 然后这个URL就可以使用在我们的webview的模版中了</span></span><br><span class="line"><span class="variable constant_">URI</span> = <span class="variable constant_">URI</span>.<span class="title function_">with</span>(&#123; <span class="attr">scheme</span>: <span class="string">&#x27;vscode-resource&#x27;</span> &#125;);</span><br></pre></td></tr></table></figure>
 
-<h3 id="Webview与插件通信"><a href="#Webview与插件通信" class="headerlink" title="Webview与插件通信"></a>Webview与插件通信</h3><blockquote>
-<p>Webview相当于一个网页，而网页是无法调用一些本地功能的。但是插件本身是运行在node环境的，而已我们可以通过插件实现一些在网页中无法完成的功能。Webview如果通知插件呢？这涉及到了Webview于网页的通信机制。</p>
-</blockquote>
-<p>下面是GameNews插件的例子，我通过事件将游戏新闻的url，发送给插件。插件会调用系统的命令，使用本地的浏览器打开url。</p>
+<p>这块要提醒一下时效性。<code>vscode-resource:</code> 是旧写法，后来官方提供了 <code>panel.webview.asWebviewUri(uri)</code> 来生成资源 URI，同时引入了 <code>panel.webview.cspSource</code> 配合内容安全策略使用。新项目建议直接用 <code>asWebviewUri</code>，手动拼协议头的方式在新版本上可能不再工作。具体 API 名和支持的版本以官方文档为准，我这份代码保留原样是为了和当时的写法对得上。</p>
+<h3 id="Webview-和插件怎么通信"><a href="#Webview-和插件怎么通信" class="headerlink" title="Webview 和插件怎么通信"></a>Webview 和插件怎么通信</h3><p>Webview 相当于一个网页，网页调不了本地功能。但插件本身跑在 Node 环境里，能干很多网页干不了的事。两边怎么搭上线？靠消息机制。</p>
+<p>举个具体场景：Webview 里列了一堆链接，点击某一条要用系统默认浏览器打开。Webview 自己做不到，那就把 url 发给插件，让插件去调系统命令。</p>
+<p>Webview 这一侧：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// webview</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// webview中，一个内置的全局api</span></span><br><span class="line"><span class="keyword">const</span> vscode = <span class="title function_">acquireVsCodeApi</span>()</span><br><span class="line"></span><br><span class="line">vscode.<span class="title function_">postMessage</span>(&#123;</span><br><span class="line">    <span class="attr">command</span>: <span class="string">&#x27;preview&#x27;</span>,</span><br><span class="line">    <span class="attr">text</span>: url</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
+<p>插件这一侧：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 插件</span></span><br><span class="line">panel.<span class="property">webview</span>.<span class="title function_">onDidReceiveMessage</span>(<span class="function"><span class="params">message</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">switch</span> (message.<span class="property">command</span>) &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="string">&#x27;preview&#x27;</span>:</span><br><span class="line">            <span class="comment">// 打开浏览器</span></span><br><span class="line">            <span class="title function_">open</span>(message.<span class="property">text</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;, <span class="literal">undefined</span>, context.<span class="property">subscriptions</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>更多参考文档：<a href="https://code.visualstudio.com/api/extension-guides/webview">https://code.visualstudio.com/api/extension-guides/webview</a></p>
-</blockquote>
-<h2 id="打包、发布和升级"><a href="#打包、发布和升级" class="headerlink" title="打包、发布和升级"></a>打包、发布和升级</h2><blockquote>
-<p>如何让别人也能使用自己开发的插件呢？这和移动应用开发一样，有两种方式：</p>
-</blockquote>
+<p><code>acquireVsCodeApi()</code> 是 VS Code 注入到 Webview 全局的函数，<strong>一个 Webview 里只能调用一次</strong>，调第二次会直接抛错。所以正确姿势是在脚本最开头调一次，把返回值存成模块级变量，后面都用它。这个我踩过，热重载的时候脚本跑了两遍，报了个莫名其妙的错。</p>
+<p>反方向也能通，插件调 <code>panel.webview.postMessage(data)</code> 往 Webview 发消息，Webview 里监听 <code>window.addEventListener(&#39;message&#39;, event =&gt; &#123;...&#125;)</code> 接收。加上 <code>acquireVsCodeApi()</code> 返回对象上的 <code>getState</code> &#x2F; <code>setState</code>，就能在面板被销毁重建时恢复界面状态，这也是 <code>retainContextWhenHidden</code> 之外的另一条路，而且更省内存。</p>
+<p>更多细节看官方的 Webview 指南：<a href="https://code.visualstudio.com/api/extension-guides/webview">https://code.visualstudio.com/api/extension-guides/webview</a></p>
+<h2 id="五、Step-5-打包、发布和升级"><a href="#五、Step-5-打包、发布和升级" class="headerlink" title="五、Step 5 打包、发布和升级"></a>五、Step 5 打包、发布和升级</h2><p>插件写完了，怎么让别人也用上？和移动应用一样，两条路：</p>
 <ul>
-<li>把它发布到 VS Code 插件市场，这样其他人就可以找到、下载和使用你的插件。</li>
-<li>或者，可以将插件打包为可安装的<code>vsix</code>格式，并与其他用户共享。</li>
+<li>发布到 VS Code 插件市场，别人搜索就能找到、下载、安装</li>
+<li>打包成 <code>vsix</code> 格式的文件，直接发给其他人手动安装</li>
 </ul>
-<blockquote>
-<p>vsce，简写自 Visual Studio Code Extensions， 是用于打包、发布和管理 VS Code 插件的命令行工具</p>
-</blockquote>
-<p>先安装 <code>Node.js</code> ，然后运行 <code>npm install -g vsce</code> 安装 <code>vsce</code>。在插件的根目录下运行 <code>vsce package</code> 打包插件，运行 <code>vsce publish</code> 发布插件。</p>
+<h3 id="认识-vsce"><a href="#认识-vsce" class="headerlink" title="认识 vsce"></a>认识 vsce</h3><p>vsce 是 Visual Studio Code Extensions 的缩写，是用于打包、发布和管理 VS Code 插件的命令行工具。</p>
+<p>装好 Node.js 之后全局装它：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g vsce</span><br></pre></td></tr></table></figure>
 
+<p>然后在插件根目录执行这几条：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">vsce create-publisher poetry <span class="comment"># 这一步先创建一个发布账号，需要用到token，看下面步骤获取token</span></span><br><span class="line">vsce package <span class="comment">#打包插件 .vsix 格式</span></span><br><span class="line">vsce publish <span class="comment">#发布到 MarketPlace</span></span><br></pre></td></tr></table></figure>
 
-<p>发布插件到 <code>VS Code</code> 插件市场，需要注册开发者账号。有关如何发布插件的内容很简单，可以参考官方文档这一部分的内容：<a href="https://code.visualstudio.com/api/working-with-extensions/publishing-extension">https://code.visualstudio.com/api/working-with-extensions/publishing-extension</a></p>
-<ul>
-<li><p>在Visual Studio Team Services 创建一个账号</p>
-</li>
-<li><p>根据账号的名字访问主页，例如我的名字是bingou-ms，<a href="https://login.microsoftonline.com/common/oauth2/authorize?client_id=499b84ac-1321-427f-aa17-267ca6975798&site_id=501454&response_mode=form_post&response_type=code+id_token&redirect_uri=https://spsprodea1.vssps.visualstudio.com/_signedin&nonce=58d775e1-0aec-4083-a57d-14f1328f132c&state=realm=bingou-ms.visualstudio.com&reply_to=https%253A%252F%252Fbingou-ms.visualstudio.com%252F&ht=2&hid=00672ded-af5d-4302-9485-09c5e20f9667&nonce=58d775e1-0aec-4083-a57d-14f1328f132c&resource=https://management.core.windows.net/&cid=58d775e1-0aec-4083-a57d-14f1328f132c&wsucxt=1&githubsi=true&msaoauth2=true&sso_reload=true">主页链接就是</a></p>
-</li>
-<li><p>创建Personal Access Token</p>
-</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/7.png"><br><img src="https://poetries1.gitee.io/img-repo/2021/01/8.png"></p>
-<blockquote>
-<p>需要将Accounts设置为All accessible accounts</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2021/01/9.png"></p>
-<blockquote>
-<p>那么如何升级已经发布到插件市场的插件呢？修改&#x2F;增加版本号，然后再执行 <code>vsce publish</code> 即可。</p>
-</blockquote>
-<p><strong>安装vsix文件</strong></p>
-<blockquote>
-<p>可以直接安装vsce package的vsix文件，方便在本地进行调试。</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">code --install-extension vsix文件名</span><br></pre></td></tr></table></figure>
+<p>时效性提醒放在这里：<code>vsce</code> 这个 npm 包后来迁到了 <code>@vscode/vsce</code>，旧包名不再维护，现在安装一般写 <code>npm install -g @vscode/vsce</code>。另外创建发布者（publisher）这一步也调整过，官方推荐在 Marketplace 管理页面上创建，命令行子命令是否还保留以官方文档为准。<code>vsce package</code> 和 <code>vsce publish</code> 这两个核心命令一直都在。</p>
+<h3 id="申请发布权限"><a href="#申请发布权限" class="headerlink" title="申请发布权限"></a>申请发布权限</h3><p>发布到插件市场需要一个发布者账号，背后依赖的是微软的 Azure DevOps（当年叫 Visual Studio Team Services）。完整流程官方文档写得很细：<a href="https://code.visualstudio.com/api/working-with-extensions/publishing-extension">https://code.visualstudio.com/api/working-with-extensions/publishing-extension</a></p>
+<p>大致是这么几步：</p>
+<p>Step 1. 在 Azure DevOps 创建一个组织（organization），入口是 <a href="https://dev.azure.com/">https://dev.azure.com/</a></p>
+<p>Step 2. 在个人设置里创建 Personal Access Token</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/7.png" alt="在 Azure DevOps 个人设置中进入 Personal Access Tokens 页面"></p>
+<p><img src="https://s.poetries.top/gitee/2021/01/8.png" alt="创建 Personal Access Token 的表单，填写名称与有效期"></p>
+<p>Step 3. 这一步最容易卡住，Organization 一定要选 <strong>All accessible organizations</strong>，Scopes 里勾上 Marketplace 的管理权限。范围选窄了，<code>vsce publish</code> 会报 401 之类的鉴权错误，而且错误信息不会告诉你是范围的问题。</p>
+<p><img src="https://s.poetries.top/gitee/2021/01/9.png" alt="Personal Access Token 的 Organization 需要设置为所有可访问的组织"></p>
+<p>Step 4. 拿到 token 之后，用它登录发布者身份，之后 <code>vsce publish</code> 就能直接推上去了。token 是有有效期的，过期之后重新生成一个换上就行。</p>
+<h3 id="升级已发布的插件"><a href="#升级已发布的插件" class="headerlink" title="升级已发布的插件"></a>升级已发布的插件</h3><p>改完代码，把 <code>package.json</code> 里的版本号加一位，再执行一次 <code>vsce publish</code> 即可。</p>
+<p>也可以让 vsce 帮你改版本号，<code>vsce publish patch</code> &#x2F; <code>minor</code> &#x2F; <code>major</code> 会自动递增对应位并发布。注意插件市场不允许覆盖同一个版本号，所以每次发布必须是新版本。</p>
+<h3 id="本地安装-vsix"><a href="#本地安装-vsix" class="headerlink" title="本地安装 vsix"></a>本地安装 vsix</h3><p>不想发到市场，或者想先在本地验证一下打包产物，可以直接安装 <code>vsce package</code> 生成的 vsix 文件：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">code --install-extension vsix文件名</span><br></pre></td></tr></table></figure>
 
-<h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ul>
+<p>这条命令在给同事分发内部工具插件的时候很好用，不用走市场审核，把文件发过去就行。</p>
+<h2 id="六、发布前的-checklist"><a href="#六、发布前的-checklist" class="headerlink" title="六、发布前的 checklist"></a>六、发布前的 checklist</h2><p>我自己发布前会过一遍这个清单，前面几条踩过坑才加上的：</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>name</code> 全小写、无空格，和 publisher 拼起来的 ID 是你想要的</li>
+<li><input disabled="" type="checkbox"> <code>displayName</code> 和 <code>description</code> 写清楚了，这两项决定用户在市场里第一眼看到什么</li>
+<li><input disabled="" type="checkbox"> <code>categories</code> 填了准确的分类，不是随手留的 <code>Other</code></li>
+<li><input disabled="" type="checkbox"> <code>engines.vscode</code> 和你实际用到的 API 匹配，没有虚高也没有虚低</li>
+<li><input disabled="" type="checkbox"> <code>activationEvents</code> 里没有偷懒写 <code>*</code></li>
+<li><input disabled="" type="checkbox"> 所有 <code>register*</code> 返回的 disposable 都推进了 <code>context.subscriptions</code></li>
+<li><input disabled="" type="checkbox"> Webview 的 <code>localResourceRoots</code> 覆盖了全部静态资源目录</li>
+<li><input disabled="" type="checkbox"> <code>acquireVsCodeApi()</code> 在每个 Webview 里只调了一次</li>
+<li><input disabled="" type="checkbox"> 加了 <code>README.md</code>，市场详情页直接渲染它，空的会很难看</li>
+<li><input disabled="" type="checkbox"> 加了 <code>icon</code> 字段和一张图标（建议 128x128 PNG），没有图标的插件点击率明显低</li>
+<li><input disabled="" type="checkbox"> 加了 <code>repository</code> 字段，方便别人提 issue</li>
+<li><input disabled="" type="checkbox"> 写了 <code>.vscodeignore</code>，把 <code>node_modules</code> 里的开发依赖、测试文件、源码 map 排除掉，vsix 体积能小一大截</li>
+<li><input disabled="" type="checkbox"> 用 <code>vsce package</code> 打出包，先 <code>code --install-extension</code> 本地装一遍验证，再 publish</li>
+<li><input disabled="" type="checkbox"> 版本号已经递增，没有和线上已发布的版本重复</li>
+</ul>
+<p>最后两条我建议每次都做，本地装一遍能拦掉大部分「开发时好好的、打包后就白屏」的问题，绝大多数是资源路径没打进包里。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把整个流程走完，几个能直接带走的结论：</p>
+<ul>
+<li>环境就三样，VS Code、Node.js、Git，脚手架是 <code>yo</code> 加 <code>generator-code</code>，<code>yo code</code> 生成的骨架已经配好了调试</li>
+<li>按 F5 会开一个扩展开发宿主窗口，插件跑在里面。编辑窗口调 Node 断点，Webview 走自己的 DevTools，两套链路别搞混</li>
+<li>贡献点让用户看见入口，激活事件决定什么时候加载你，API 决定你能干什么。三者都在 <code>package.json</code> 里有声明，只有 API 在代码里</li>
+<li>激活事件是懒加载的关键，写 <code>*</code> 等于在所有用户的启动时间上收税</li>
+<li><code>activate</code> 只会被调用一次，命令的实际逻辑在 <code>registerCommand</code> 的回调里</li>
+<li>所有 <code>register*</code> 返回的 disposable 都要推进 <code>context.subscriptions</code>，否则重载会重复注册</li>
+<li>Webview 的 <code>enableScripts</code> 默认关闭，<code>retainContextWhenHidden</code> 开了会一直占内存，本地资源必须走专门的 URI 转换和 <code>localResourceRoots</code> 白名单</li>
+<li>两侧通信靠 <code>postMessage</code> 加 <code>onDidReceiveMessage</code>，<code>acquireVsCodeApi()</code> 一个 Webview 只能调一次</li>
+<li>发布走 vsce，卡人的一步基本都是 Personal Access Token 的组织范围没选全</li>
+</ul>
+<p>最后再强调一次时效性。这篇写于 2021 年初，VS Code 的 API 和工具链这几年迭代过好几轮，<code>vsce</code> 包名、<code>vscode-resource</code> 协议、<code>activationEvents</code> 的自动推导、测试包的命名空间都有变化。文章里的写法和思路依然成立，但具体的包名、命令和 API 签名请以官方文档为准，别直接照抄版本号。</p>
+<p>真正让我觉得值的是，做完一个插件之后你会重新审视自己每天的重复操作。哪些能自动化、哪些能一键完成，这个视角比插件本身更有用。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a href="https://code.visualstudio.com/api/references/vscode-api">vscode API文档</a></li>
 <li><a href="https://code.visualstudio.com/api/extension-guides/overview">vscode插件开发文档</a></li>
+<li><a href="https://code.visualstudio.com/api/get-started/your-first-extension">VS Code 官方 - 你的第一个插件</a></li>
+<li><a href="https://code.visualstudio.com/api/extension-guides/webview">VS Code 官方 - Webview API 指南</a></li>
+<li><a href="https://code.visualstudio.com/api/working-with-extensions/publishing-extension">VS Code 官方 - 发布插件</a></li>
+<li><a href="https://code.visualstudio.com/api/references/activation-events">VS Code 官方 - 激活事件</a></li>
+<li><a href="https://code.visualstudio.com/api/references/contribution-points">VS Code 官方 - 贡献点</a></li>
 <li><a href="https://liiked.github.io/VS-Code-Extension-Doc-ZH/#/get-started/your-first-extension">中文文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

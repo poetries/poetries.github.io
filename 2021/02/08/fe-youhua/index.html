@@ -7,20 +7,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>前端页面性能优化方式 | 前端进阶之旅</title>
+  <title>前端页面性能优化实战，从测量到加载渲染全链路调优 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="性能优化," />
+    <meta name="keywords" content="性能优化,缓存,前端性能,Lighthouse,webpack,懒加载," />
   
 
-  <meta name="description" content="一、调试工具1、Network 这里可以看到资源加载详情，初步评估影响页面性能的因素。鼠标右键可以自定义选项卡，页面底部是当前加载资源的一个概览。DOMContentLoaded DOM渲染完成的时间，Load：当前页面所有资源加载完成的时间 思考：如何判断哪些资源对当前页面加载无用，做对应优化？ shift + cmd + P 调出控制台的扩展工具，添加规则  监控页面性能变化  瀑布流wate">
+  <meta name="description" content="前端性能优化的完整路径，先用 Network、Lighthouse、Performance 和 Performance API 把问题量化，再逐条落地压缩、构建拆包、骨架屏、虚拟列表、缓存、预加载与懒加载。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="前端页面性能优化方式">
+<meta property="og:title" content="前端页面性能优化实战，从测量到加载渲染全链路调优">
 <meta property="og:url" content="http://blog.poetries.top/2021/02/08/fe-youhua/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、调试工具1、Network 这里可以看到资源加载详情，初步评估影响页面性能的因素。鼠标右键可以自定义选项卡，页面底部是当前加载资源的一个概览。DOMContentLoaded DOM渲染完成的时间，Load：当前页面所有资源加载完成的时间 思考：如何判断哪些资源对当前页面加载无用，做对应优化？ shift + cmd + P 调出控制台的扩展工具，添加规则  监控页面性能变化  瀑布流wate">
+<meta property="og:description" content="前端性能优化的完整路径，先用 Network、Lighthouse、Performance 和 Performance API 把问题量化，再逐条落地压缩、构建拆包、骨架屏、虚拟列表、缓存、预加载与懒加载。">
 <meta property="og:locale">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208102537169.png">
 <meta property="og:image" content="https://blog.poetries.top/img/static/images/image-20210208102549961.png">
@@ -50,9 +50,14 @@
 <meta property="og:image" content="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7427e9243791461b8ffa49f47981cfba~tplv-k3u1fbpfcp-watermark.image?imageslim">
 <meta property="og:image" content="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/41557f3a361c4cf899a4eab3bde79154~tplv-k3u1fbpfcp-watermark.image">
 <meta property="article:published_time" content="2021-02-08T02:50:03.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.659Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.930Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="缓存">
+<meta property="article:tag" content="前端性能">
+<meta property="article:tag" content="Lighthouse">
+<meta property="article:tag" content="webpack">
+<meta property="article:tag" content="懒加载">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://blog.poetries.top/img/static/images/image-20210208102537169.png">
 
@@ -232,7 +237,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="toc-text">一、调试工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81Network"><span class="toc-text">1、Network</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%80%91%E5%B8%83%E6%B5%81waterfal"><span class="toc-text">瀑布流waterfal</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81Lighthouse"><span class="toc-text">2、Lighthouse</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81Peformance"><span class="toc-text">3、Peformance</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81webPageTest"><span class="toc-text">4、webPageTest</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%E3%80%81%E8%B5%84%E6%BA%90%E6%89%93%E5%8C%85%E5%88%86%E6%9E%90"><span class="toc-text">5、资源打包分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#webpack-bundle-analyzer"><span class="toc-text">webpack-bundle-analyzer</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E5%90%AFsource-map"><span class="toc-text">开启source-map</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81WEB-API"><span class="toc-text">二、WEB API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E7%9B%91%E5%90%AC%E8%A7%86%E7%AA%97%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">1、监听视窗激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E8%A7%82%E5%AF%9F%E9%95%BF%E4%BB%BB%E5%8A%A1%EF%BC%88performance-%E4%B8%ADTask%EF%BC%89"><span class="toc-text">2、观察长任务（performance 中Task）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E7%9B%91%E5%90%AC%E7%BD%91%E7%BB%9C%E5%8F%98%E5%8C%96"><span class="toc-text">3、监听网络变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81%E8%AE%A1%E7%AE%97DOMContentLoaded%E6%97%B6%E9%97%B4"><span class="toc-text">4、计算DOMContentLoaded时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%E3%80%81%E6%9B%B4%E5%A4%9A%E8%AE%A1%E7%AE%97%E8%A7%84%E5%88%99"><span class="toc-text">5、更多计算规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E9%9B%85%E8%99%8E%E5%86%9B%E8%A7%84"><span class="toc-text">三、雅虎军规</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81%E5%87%8F%E5%B0%91cookie%E4%BC%A0%E8%BE%93"><span class="toc-text">1、减少cookie传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E9%81%BF%E5%85%8D%E8%BF%87%E5%A4%9A%E7%9A%84%E5%9B%9E%E6%B5%81%E4%B8%8E%E9%87%8D%E7%BB%98"><span class="toc-text">2、避免过多的回流与重绘</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8E%8B%E7%BC%A9"><span class="toc-text">四、压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81Gzip"><span class="toc-text">1、Gzip</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%8E%8B%E7%BC%A9"><span class="toc-text">2、服务端压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81JavaScript%E3%80%81Css%E3%80%81Html%E5%8E%8B%E7%BC%A9"><span class="toc-text">3、JavaScript、Css、Html压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%E3%80%81http2%E9%A6%96%E9%83%A8%E5%8E%8B%E7%BC%A9"><span class="toc-text">4、http2首部压缩</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81webpack%E4%BC%98%E5%8C%96"><span class="toc-text">五、webpack优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81DllPlugin-%E6%8F%90%E5%8D%87%E6%9E%84%E5%BB%BA%E9%80%9F%E5%BA%A6"><span class="toc-text">1、DllPlugin 提升构建速度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81splitChunks-%E6%8B%86%E5%8C%85"><span class="toc-text">2、splitChunks 拆包</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%AA%A8%E6%9E%B6%E5%B1%8F"><span class="toc-text">六、骨架屏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%AA%97%E5%8F%A3%E5%8C%96"><span class="toc-text">七、窗口化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%BC%93%E5%AD%98"><span class="toc-text">八、缓存</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81http%E7%BC%93%E5%AD%98"><span class="toc-text">1、http缓存</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#keep-alive"><span class="toc-text">keep-alive</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Cache-Control-Expires-Max-Age"><span class="toc-text">Cache-Control &#x2F; Expires &#x2F; Max-Age</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Etag-If-None-Match"><span class="toc-text">Etag &#x2F; If-None-Match</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Last-Modified-If-Modified-Since"><span class="toc-text">Last-Modified &#x2F; If-Modified-Since</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81Service-Worker"><span class="toc-text">2、Service Worker</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E9%A2%84%E5%8A%A0%E8%BD%BD-%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="toc-text">九、预加载 &amp;&amp; 懒加载</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%E3%80%81preload"><span class="toc-text">1、preload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%E3%80%81prefetch"><span class="toc-text">2、prefetch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%E3%80%81%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="toc-text">3、懒加载</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9B%BE%E7%89%87"><span class="toc-text">图片</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="toc-text">路由懒加载</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81ssr-react-snap"><span class="toc-text">十、ssr &amp;&amp; react-snap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E4%BD%93%E9%AA%8C%E4%BC%98%E5%8C%96"><span class="toc-text">十一、体验优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%99%BD%E5%B1%8Floading"><span class="toc-text">白屏loading</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8A%8A%E9%97%AE%E9%A2%98%E9%87%8F%E5%87%BA%E6%9D%A5%EF%BC%8C%E5%9B%9B%E7%B1%BB%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="toc-text">一、先把问题量出来，四类调试工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Network"><span class="toc-text">1.1 Network</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%80%91%E5%B8%83%E6%B5%81-waterfall"><span class="toc-text">瀑布流 waterfall</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Lighthouse"><span class="toc-text">1.2 Lighthouse</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-Performance"><span class="toc-text">1.3 Performance</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-WebPageTest"><span class="toc-text">1.4 WebPageTest</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E6%89%93%E5%8C%85%E4%BD%93%E7%A7%AF%E5%88%86%E6%9E%90"><span class="toc-text">1.5 打包体积分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%94%A8-Web-API-%E8%87%AA%E5%B7%B1%E9%87%87%E6%95%B0%E6%8D%AE"><span class="toc-text">二、用 Web API 自己采数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%9B%91%E5%90%AC%E8%A7%86%E7%AA%97%E6%BF%80%E6%B4%BB%E7%8A%B6%E6%80%81"><span class="toc-text">2.1 监听视窗激活状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%A7%82%E5%AF%9F%E9%95%BF%E4%BB%BB%E5%8A%A1"><span class="toc-text">2.2 观察长任务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%9B%91%E5%90%AC%E7%BD%91%E7%BB%9C%E5%8F%98%E5%8C%96"><span class="toc-text">2.3 监听网络变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E8%AE%A1%E7%AE%97-DOMContentLoaded-%E6%97%B6%E9%97%B4"><span class="toc-text">2.4 计算 DOMContentLoaded 时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%9B%B4%E5%A4%9A%E8%AE%A1%E7%AE%97%E8%A7%84%E5%88%99"><span class="toc-text">2.5 更多计算规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E9%9B%85%E8%99%8E%E5%86%9B%E8%A7%84%E9%87%8C%E4%BB%8A%E5%A4%A9%E8%BF%98%E7%AE%A1%E7%94%A8%E7%9A%84%E5%87%A0%E6%9D%A1"><span class="toc-text">三、雅虎军规里今天还管用的几条</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%87%8F%E5%B0%91-cookie-%E4%BC%A0%E8%BE%93"><span class="toc-text">3.1 减少 cookie 传输</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%81%BF%E5%85%8D%E8%BF%87%E5%A4%9A%E7%9A%84%E5%9B%9E%E6%B5%81%E4%B8%8E%E9%87%8D%E7%BB%98"><span class="toc-text">3.2 避免过多的回流与重绘</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%8E%8B%E7%BC%A9"><span class="toc-text">四、压缩</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Gzip"><span class="toc-text">4.1 Gzip</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%8E%8B%E7%BC%A9"><span class="toc-text">4.2 服务端压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-JavaScript%E3%80%81CSS%E3%80%81HTML-%E5%8E%8B%E7%BC%A9"><span class="toc-text">4.3 JavaScript、CSS、HTML 压缩</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-HTTP-2-%E9%A6%96%E9%83%A8%E5%8E%8B%E7%BC%A9"><span class="toc-text">4.4 HTTP&#x2F;2 首部压缩</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81webpack-%E4%BE%A7%E7%9A%84%E6%9E%84%E5%BB%BA%E4%BC%98%E5%8C%96"><span class="toc-text">五、webpack 侧的构建优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-DllPlugin-%E6%8F%90%E5%8D%87%E6%9E%84%E5%BB%BA%E9%80%9F%E5%BA%A6"><span class="toc-text">5.1 DllPlugin 提升构建速度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-splitChunks-%E6%8B%86%E5%8C%85"><span class="toc-text">5.2 splitChunks 拆包</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%AA%A8%E6%9E%B6%E5%B1%8F"><span class="toc-text">六、骨架屏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%AA%97%E5%8F%A3%E5%8C%96"><span class="toc-text">七、窗口化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E7%BC%93%E5%AD%98"><span class="toc-text">八、缓存</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-HTTP-%E7%BC%93%E5%AD%98"><span class="toc-text">8.1 HTTP 缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-Service-Worker"><span class="toc-text">8.2 Service Worker</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E9%A2%84%E5%8A%A0%E8%BD%BD%E4%B8%8E%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="toc-text">九、预加载与懒加载</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-preload"><span class="toc-text">9.1 preload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-prefetch"><span class="toc-text">9.2 prefetch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%9B%BE%E7%89%87%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="toc-text">9.3 图片懒加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4-%E8%B7%AF%E7%94%B1%E6%87%92%E5%8A%A0%E8%BD%BD"><span class="toc-text">9.4 路由懒加载</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81SSR-%E4%B8%8E-react-snap"><span class="toc-text">十、SSR 与 react-snap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E4%BD%93%E9%AA%8C%E4%BC%98%E5%8C%96"><span class="toc-text">十一、体验优化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%99%BD%E5%B1%8F-loading"><span class="toc-text">白屏 loading</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -255,13 +260,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-fe-youhua" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">前端页面性能优化方式</h1>
+    <h1 class="post-title">前端页面性能优化实战，从测量到加载渲染全链路调优</h1>
 
     <div class="article-meta">
       <span>
@@ -297,12 +302,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 3.1k字</span>
+            <span>字数统计 7.9k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 14分</span>
+            <span>阅读时长 31分</span>
           </span>
       
       
@@ -316,234 +321,282 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、调试工具"><a href="#一、调试工具" class="headerlink" title="一、调试工具"></a>一、调试工具</h2><h3 id="1、Network"><a href="#1、Network" class="headerlink" title="1、Network"></a>1、Network</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208102537169.png" alt="image-20210208102537169"></p>
-<p>这里可以看到资源加载详情，初步评估影响<code>页面性能</code>的因素。鼠标右键可以自定义选项卡，页面底部是当前加载资源的一个概览。<code>DOMContentLoaded</code> DOM渲染完成的时间，<code>Load</code>：当前页面所有资源加载完成的时间</p>
-<p><strong>思考：如何判断哪些资源对当前页面加载无用，做对应优化？</strong></p>
-<p><strong>shift + cmd + P 调出控制台的扩展工具，添加规则</strong></p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208102549961.png" alt="image-20210208102549961"></p>
-<p><strong>监控页面性能变化</strong></p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208102650825.png" alt="image-20210208102650825"></p>
-<h4 id="瀑布流waterfal"><a href="#瀑布流waterfal" class="headerlink" title="瀑布流waterfal"></a>瀑布流waterfal</h4><p><img src="https://blog.poetries.top/img/static/images/image-20210208102723253.png" alt="image-20210208102723253"></p>
+        <p>页面慢这件事最难受的地方，不是不知道怎么优化，是不知道该优化哪儿。有人上来就压图片，有人先去拆包，忙活一通首屏时间纹丝不动。我自己也走过这段弯路，后来才想明白，性能优化的第一步从来不是动手改代码，是先把「慢在哪一毫秒」量出来。</p>
+<p>这篇按这个顺序展开：先把测量工具和 Web API 讲清楚，让你能拿到数字；再按加载、渲染、缓存三条线逐条给可落地的手段，压缩、拆包、骨架屏、虚拟列表、预加载懒加载都在里面。每一条都说清它在解决哪个指标，以及什么场景下用了也白用。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><p><code>Queueing</code> 浏览器将资源放入队列时间</p>
-</li>
-<li><p><code>Stalled</code> 因放入队列时间而发生的停滞时间</p>
-</li>
-<li><p><code>DNS Lookup</code> DNS解析时间</p>
-</li>
-<li><p><code>Initial connection</code>  建立HTTP连接的时间</p>
-</li>
-<li><p><code>SSL</code> 浏览器与服务器建立安全性连接的时间</p>
-</li>
-<li><p><code>TTFB</code> 等待服务端返回数据的时间</p>
-</li>
-<li><p><code>Content Download</code>  浏览器下载资源的时间</p>
-</li>
+<li>Network、Lighthouse、Performance、WebPageTest 各自适合看什么</li>
+<li>用 Performance API 自己算白屏、TTI、DNS 这些指标</li>
+<li>雅虎军规里今天还真正管用的那几条</li>
+<li>Gzip、服务端压缩、JS&#x2F;CSS&#x2F;HTML 压缩、HTTP&#x2F;2 首部压缩的实际收益</li>
+<li>webpack 侧的 DllPlugin 与 splitChunks 拆包</li>
+<li>骨架屏、虚拟列表、白屏 loading 这类体验优化的原理</li>
+<li>HTTP 缓存四件套和 Service Worker</li>
+<li>preload、prefetch 和图片、路由懒加载的正确用法</li>
 </ul>
-<h3 id="2、Lighthouse"><a href="#2、Lighthouse" class="headerlink" title="2、Lighthouse"></a>2、Lighthouse</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208102851752.png" alt="image-20210208102851752"></p>
+<h2 id="一、先把问题量出来，四类调试工具"><a href="#一、先把问题量出来，四类调试工具" class="headerlink" title="一、先把问题量出来，四类调试工具"></a>一、先把问题量出来，四类调试工具</h2><p>工欲善其事必先利其器。这一节的工具不用全学，但至少要知道各自看什么。</p>
+<h3 id="1-1-Network"><a href="#1-1-Network" class="headerlink" title="1.1 Network"></a>1.1 Network</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208102537169.png" alt="Chrome DevTools Network 面板总览"></p>
+<p>Network 面板能看到资源加载详情，用来初步评估影响页面性能的因素。鼠标右键可以自定义列，页面底部是当前加载资源的一个概览。里面有两个数字要先认准：<code>DOMContentLoaded</code> 是 DOM 渲染完成的时间，<code>Load</code> 是当前页面所有资源加载完成的时间。</p>
+<p>先想一个问题，怎么判断哪些资源对当前页面加载是无用的？</p>
+<p>答案不在这个面板里。按 <code>shift + cmd + P</code> 调出命令面板，输入 Coverage 打开覆盖率工具，它会告诉你每个 JS 和 CSS 文件里有多少字节是本次访问根本没执行到的：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208102549961.png" alt="DevTools 命令面板与扩展工具"></p>
+<p>同一个命令面板里还能调出 Performance monitor，实时看 DOM 节点数、JS 堆大小、每秒布局次数的变化：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208102650825.png" alt="Performance monitor 实时监控页面性能"></p>
+<p>DOM 节点数持续上涨而不回落，基本可以断定有泄漏，这个指标比内存曲线更直观。</p>
+<h4 id="瀑布流-waterfall"><a href="#瀑布流-waterfall" class="headerlink" title="瀑布流 waterfall"></a>瀑布流 waterfall</h4><p>单条请求点开的这个时间条，是排查慢请求最重要的信息：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208102723253.png" alt="Network 瀑布流各阶段耗时拆解"></p>
 <ul>
-<li><code>First Contentful Paint</code> 首屏渲染时间，1s以内绿色</li>
-<li><code>Speed Index</code> 速度指数，4s以内绿色</li>
-<li><code>Time to Interactive</code> 到页面可交换的时间</li>
+<li><code>Queueing</code> 浏览器将资源放入队列的时间</li>
+<li><code>Stalled</code> 因放入队列时间而发生的停滞时间</li>
+<li><code>DNS Lookup</code> DNS 解析时间</li>
+<li><code>Initial connection</code> 建立 HTTP 连接的时间</li>
+<li><code>SSL</code> 浏览器与服务器建立安全性连接的时间</li>
+<li><code>TTFB</code> 等待服务端返回数据的时间</li>
+<li><code>Content Download</code> 浏览器下载资源的时间</li>
 </ul>
-<blockquote>
-<p>根据chrome的一些策略自动对网站做一个质量评估，并且会给出一些优化的建议</p>
-</blockquote>
-<h3 id="3、Peformance"><a href="#3、Peformance" class="headerlink" title="3、Peformance"></a>3、Peformance</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208102949596.png" alt="image-20210208102949596"></p>
-<p>对网站最专业的分析</p>
-<h3 id="4、webPageTest"><a href="#4、webPageTest" class="headerlink" title="4、webPageTest"></a>4、webPageTest</h3><blockquote>
-<p>可以模拟不同场景下访问的情况，比如模拟不同浏览器、不同国家等等，在线测试地址：<a href="https://www.webpagetest.org/">webPageTest</a></p>
-</blockquote>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208103032419.png" alt="image-20210208103032419"></p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208103054016.png" alt="image-20210208103054016"></p>
-<h3 id="5、资源打包分析"><a href="#5、资源打包分析" class="headerlink" title="5、资源打包分析"></a>5、资源打包分析</h3><h4 id="webpack-bundle-analyzer"><a href="#webpack-bundle-analyzer" class="headerlink" title="webpack-bundle-analyzer"></a>webpack-bundle-analyzer</h4><p><img src="https://blog.poetries.top/img/static/images/image-20210208103127992.png" alt="image-20210208103127992"></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">npm install --save-dev webpack-bundle-analyzer</span><br><span class="line"><span class="comment">// webpack.config.js 文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">BundleAnalyzerPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;webpack-bundle-analyzer&#x27;</span>).<span class="property">BundleAnalyzerPlugin</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span>=&#123;</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">BundleAnalyzerPlugin</span>(&#123;</span><br><span class="line">          <span class="attr">analyzerMode</span>: <span class="string">&#x27;server&#x27;</span>,</span><br><span class="line">          <span class="attr">analyzerHost</span>: <span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">          <span class="attr">analyzerPort</span>: <span class="number">8889</span>,</span><br><span class="line">          <span class="attr">reportFilename</span>: <span class="string">&#x27;report.html&#x27;</span>,</span><br><span class="line">          <span class="attr">defaultSizes</span>: <span class="string">&#x27;parsed&#x27;</span>,</span><br><span class="line">          <span class="attr">openAnalyzer</span>: <span class="literal">true</span>,</span><br><span class="line">          <span class="attr">generateStatsFile</span>: <span class="literal">false</span>,</span><br><span class="line">          <span class="attr">statsFilename</span>: <span class="string">&#x27;stats.json&#x27;</span>,</span><br><span class="line">          <span class="attr">statsOptions</span>: <span class="literal">null</span>,</span><br><span class="line">          <span class="attr">logLevel</span>: <span class="string">&#x27;info&#x27;</span></span><br><span class="line">        &#125;),</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// package.json</span></span><br><span class="line"><span class="string">&quot;analyz&quot;</span>: <span class="string">&quot;NODE_ENV=production npm_config_report=true npm run build&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这七段的意义在于它能直接告诉你锅在哪边。<code>TTFB</code> 长是后端慢或者网络链路远，<code>Content Download</code> 长是资源太大，<code>Queueing</code> 和 <code>Stalled</code> 长通常是同域名并发请求数打满了。三种情况的解法完全不同，光看一个总耗时是分不出来的。</p>
+<h3 id="1-2-Lighthouse"><a href="#1-2-Lighthouse" class="headerlink" title="1.2 Lighthouse"></a>1.2 Lighthouse</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208102851752.png" alt="Lighthouse 性能评分报告"></p>
+<p>Lighthouse 会根据 Chrome 的一套策略自动对网站做质量评估，并给出优化建议。几个核心指标：</p>
+<ul>
+<li><code>First Contentful Paint</code> 首屏渲染时间，1s 以内是绿色</li>
+<li><code>Speed Index</code> 速度指数，4s 以内是绿色</li>
+<li><code>Time to Interactive</code> 到页面可交互的时间</li>
+</ul>
+<p>它最大的价值是把「感觉有点慢」变成一个可以拿去开会的分数，而且给的建议基本都能直接照着做。缺点是本地跑分受你自己的机器和网络影响很大，同一个页面开着一堆标签页跑和干净环境跑能差二十分，看趋势别看绝对值。</p>
+<h3 id="1-3-Performance"><a href="#1-3-Performance" class="headerlink" title="1.3 Performance"></a>1.3 Performance</h3><p><img src="https://blog.poetries.top/img/static/images/image-20210208102949596.png" alt="Performance 面板的火焰图分析"></p>
+<p>Performance 是对网站最专业的分析面板，能看到每一帧里 JS 执行、样式计算、布局、绘制各花了多久。前面两个工具告诉你有问题，这个告诉你问题具体在哪一行代码。</p>
+<p>学会读火焰图之后，很多玄学问题会立刻变得具体。渲染链路这块我在 <a href="https://feinterview.poetries.top/blog/render-path-optimize">浏览器渲染路径与性能优化</a> 里单独展开过，可以配着看。</p>
+<h3 id="1-4-WebPageTest"><a href="#1-4-WebPageTest" class="headerlink" title="1.4 WebPageTest"></a>1.4 WebPageTest</h3><p>WebPageTest 可以模拟不同场景下的访问情况，比如不同浏览器、不同国家、不同网速，在线测试地址是 <a href="https://www.webpagetest.org/">webPageTest</a>。</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208103032419.png" alt="WebPageTest 测试结果概览"></p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208103054016.png" alt="WebPageTest 逐帧加载视图"></p>
+<p>它比本地 Lighthouse 强的地方是节点在全球各地，能真实反映海外用户或者弱网用户看到的样子。做出海业务的话这个工具比什么都实在。</p>
+<h3 id="1-5-打包体积分析"><a href="#1-5-打包体积分析" class="headerlink" title="1.5 打包体积分析"></a>1.5 打包体积分析</h3><p>前面几个看的是运行时，这个看的是产物。</p>
+<p><code>webpack-bundle-analyzer</code> 会把打包结果画成一张矩形树图，哪个包占地大一目了然：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208103127992.png" alt="webpack-bundle-analyzer 体积树图"></p>
+<p>安装和配置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save-dev webpack-bundle-analyzer</span><br></pre></td></tr></table></figure>
 
-<h4 id="开启source-map"><a href="#开启source-map" class="headerlink" title="开启source-map"></a>开启source-map</h4><blockquote>
-<p> <code>webpack.config.js</code></p>
-</blockquote>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// webpack.config.js 文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">BundleAnalyzerPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;webpack-bundle-analyzer&#x27;</span>).<span class="property">BundleAnalyzerPlugin</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span>=&#123;</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">BundleAnalyzerPlugin</span>(&#123;</span><br><span class="line">          <span class="attr">analyzerMode</span>: <span class="string">&#x27;server&#x27;</span>,</span><br><span class="line">          <span class="attr">analyzerHost</span>: <span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">          <span class="attr">analyzerPort</span>: <span class="number">8889</span>,</span><br><span class="line">          <span class="attr">reportFilename</span>: <span class="string">&#x27;report.html&#x27;</span>,</span><br><span class="line">          <span class="attr">defaultSizes</span>: <span class="string">&#x27;parsed&#x27;</span>,</span><br><span class="line">          <span class="attr">openAnalyzer</span>: <span class="literal">true</span>,</span><br><span class="line">          <span class="attr">generateStatsFile</span>: <span class="literal">false</span>,</span><br><span class="line">          <span class="attr">statsFilename</span>: <span class="string">&#x27;stats.json&#x27;</span>,</span><br><span class="line">          <span class="attr">statsOptions</span>: <span class="literal">null</span>,</span><br><span class="line">          <span class="attr">logLevel</span>: <span class="string">&#x27;info&#x27;</span></span><br><span class="line">        &#125;),</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再在 <code>package.json</code> 里加个入口：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot;analyz&quot;: &quot;NODE_ENV=production npm_config_report=true npm run build&quot;</span><br></pre></td></tr></table></figure>
+
+<p>另一条路是开 source-map 配合 <code>source-map-explorer</code>，它的粒度更细，能看到某个第三方库里具体是哪几个文件占了体积。先在 <code>webpack.config.js</code> 里开 source-map：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">module.exports = &#123;</span><br><span class="line">    mode: &#x27;production&#x27;,</span><br><span class="line">    devtool: &#x27;hidden-source-map&#x27;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>package.json</p>
+<p><code>hidden-source-map</code> 会生成 map 文件但不在 bundle 末尾写引用注释，这样浏览器 DevTools 不会自动加载它，源码不至于泄漏出去，同时本地分析工具还能用。</p>
+<p>然后配脚本：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;analyze&quot;</span>: <span class="string">&quot;source-map-explorer &#x27;build/*.js&#x27;&quot;</span>,</span><br></pre></td></tr></table></figure>
 
-<p>npm run analyze</p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208103321371.png" alt="image-20210208103321371"></p>
-<h2 id="二、WEB-API"><a href="#二、WEB-API" class="headerlink" title="二、WEB API"></a>二、WEB API</h2><p>工欲善其事，必先利其器。浏览器提供的一些分析API<code>至关重要</code></p>
-<h3 id="1、监听视窗激活状态"><a href="#1、监听视窗激活状态" class="headerlink" title="1、监听视窗激活状态"></a>1、监听视窗激活状态</h3><p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9b7ab11fc7b94fcf8c79bd3b28706b2c~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
+<p>跑 <code>npm run analyze</code> 出来的结果长这样：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208103321371.png" alt="source-map-explorer 分析结果"></p>
+<p>我一般是先用 <code>webpack-bundle-analyzer</code> 找大块，锁定某个库之后再用 <code>source-map-explorer</code> 看内部构成，判断是能 tree-shaking 掉还是得整个换掉。</p>
+<h2 id="二、用-Web-API-自己采数据"><a href="#二、用-Web-API-自己采数据" class="headerlink" title="二、用 Web API 自己采数据"></a>二、用 Web API 自己采数据</h2><p>工具面板只能看当下这一次访问。要做长期监控，得靠浏览器提供的这几个 API 自己上报。</p>
+<h3 id="2-1-监听视窗激活状态"><a href="#2-1-监听视窗激活状态" class="headerlink" title="2.1 监听视窗激活状态"></a>2.1 监听视窗激活状态</h3><p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9b7ab11fc7b94fcf8c79bd3b28706b2c~tplv-k3u1fbpfcp-watermark.image" alt="页面可见性变化的效果演示"></p>
+<p>用户切走标签页之后，页面里的定时器、轮询、动画其实都还在跑，白白烧电和流量。<code>visibilitychange</code> 就是用来管这件事的：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 窗口激活状态监听</span></span><br><span class="line"><span class="keyword">let</span> vEvent = <span class="string">&#x27;visibilitychange&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="variable language_">document</span>.<span class="property">webkitHidden</span> != <span class="literal">undefined</span>) &#123;</span><br><span class="line">    vEvent = <span class="string">&#x27;webkitvisibilitychange&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">visibilityChanged</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">document</span>.<span class="property">hidden</span> || <span class="variable language_">document</span>.<span class="property">webkitHidden</span>) &#123;</span><br><span class="line">        <span class="variable language_">document</span>.<span class="property">title</span> = <span class="string">&#x27;客官，别走啊~&#x27;</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Web page is hidden.&quot;</span>)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable language_">document</span>.<span class="property">title</span> = <span class="string">&#x27;客官，你又回来了呢~&#x27;</span></span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Web page is visible.&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">addEventListener</span>(vEvent, visibilityChanged, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
 
-<p>其实有很多隐藏的api，这里大家有兴趣的可以去试试看：</p>
-<h3 id="2、观察长任务（performance-中Task）"><a href="#2、观察长任务（performance-中Task）" class="headerlink" title="2、观察长任务（performance 中Task）"></a>2、观察长任务（performance 中Task）</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> observer = <span class="keyword">new</span> <span class="title class_">PerformanceObserver</span>(<span class="function">(<span class="params">list</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> entry <span class="keyword">of</span> list.<span class="title function_">getEntries</span>()) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(entry)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">observer.<span class="title function_">observe</span>(&#123;<span class="attr">entryTypes</span>: [<span class="string">&#x27;longtask&#x27;</span>]&#125;)</span><br></pre></td></tr></table></figure>
+<p>这段里的 <code>webkitHidden</code> 是老 Safari 和老 Android 浏览器时代的前缀写法，现在主流浏览器全都支持无前缀的 <code>document.hidden</code> 和 <code>visibilitychange</code>，新项目直接用标准写法就够了，不用再做这层降级判断。</p>
+<p>真正有价值的用法不是改标题逗用户，是在 <code>hidden</code> 时暂停轮询、停掉 <code>requestAnimationFrame</code>、断开 WebSocket，回到 <code>visible</code> 时再恢复。做直播或者行情类页面，这一下能省掉相当可观的资源。</p>
+<h3 id="2-2-观察长任务"><a href="#2-2-观察长任务" class="headerlink" title="2.2 观察长任务"></a>2.2 观察长任务</h3><p>主线程上超过 50ms 的任务就算长任务，它是页面卡顿、点击没反应的直接原因。<code>PerformanceObserver</code> 能把它们全捞出来：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> observer = <span class="keyword">new</span> <span class="title class_">PerformanceObserver</span>(<span class="function">(<span class="params">list</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> entry <span class="keyword">of</span> list.<span class="title function_">getEntries</span>()) &#123;</span><br><span class="line">        <span class="variable language_">console</span>.<span class="title function_">log</span>(entry)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">observer.<span class="title function_">observe</span>(&#123;<span class="attr">entryTypes</span>: [<span class="string">&#x27;longtask&#x27;</span>]&#125;)</span><br></pre></td></tr></table></figure>
 
-<h3 id="3、监听网络变化"><a href="#3、监听网络变化" class="headerlink" title="3、监听网络变化"></a>3、监听网络变化</h3><p>网络变化时给用户反馈网络问题，有时候看直播的时候自己的网络卡顿，直播平台也会提醒你或者自动给你切换清晰度</p>
+<p>拿到 <code>entry</code> 之后上报到监控平台，就能知道线上用户实际卡在哪些操作上，比在本地反复复现靠谱得多。</p>
+<h3 id="2-3-监听网络变化"><a href="#2-3-监听网络变化" class="headerlink" title="2.3 监听网络变化"></a>2.3 监听网络变化</h3><p>网络变化时给用户一个反馈，看直播的时候网络卡了平台会提醒你或者自动降清晰度，就是这套东西：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> connection = navigator.<span class="property">connection</span> || navigator.<span class="property">mozConnection</span> || navigator.<span class="property">webkitConnection</span>;</span><br><span class="line"><span class="keyword">var</span> type = connection.<span class="property">effectiveType</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">updateConnectionStatus</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;Connection type changed from &quot;</span> + type + <span class="string">&quot; to &quot;</span> + connection.<span class="property">effectiveType</span>);</span><br><span class="line">  type = connection.<span class="property">effectiveType</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">connection.<span class="title function_">addEventListener</span>(<span class="string">&#x27;change&#x27;</span>, updateConnectionStatus);</span><br></pre></td></tr></table></figure>
 
-<h3 id="4、计算DOMContentLoaded时间"><a href="#4、计算DOMContentLoaded时间" class="headerlink" title="4、计算DOMContentLoaded时间"></a>4、计算DOMContentLoaded时间</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;DOMContentLoaded&#x27;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> timing = performance.<span class="title function_">getEntriesByType</span>(<span class="string">&#x27;navigation&#x27;</span>)[<span class="number">0</span>];</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(timing.<span class="property">domInteractive</span>);</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(timing.<span class="property">fetchStart</span>);</span><br><span class="line">    <span class="keyword">let</span> diff = timing.<span class="property">domInteractive</span> - timing.<span class="property">fetchStart</span>;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;TTI: &quot;</span> + diff);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>这个我踩过一个坑，<code>navigator.connection</code> 的兼容性比看起来差，Safari 到现在都不支持，直接取 <code>connection.effectiveType</code> 会抛错。上生产一定要判空，别学上面这段直接往下写。</p>
+<h3 id="2-4-计算-DOMContentLoaded-时间"><a href="#2-4-计算-DOMContentLoaded-时间" class="headerlink" title="2.4 计算 DOMContentLoaded 时间"></a>2.4 计算 DOMContentLoaded 时间</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;DOMContentLoaded&#x27;</span>, <span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> timing = performance.<span class="title function_">getEntriesByType</span>(<span class="string">&#x27;navigation&#x27;</span>)[<span class="number">0</span>];</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(timing.<span class="property">domInteractive</span>);</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(timing.<span class="property">fetchStart</span>);</span><br><span class="line">    <span class="keyword">let</span> diff = timing.<span class="property">domInteractive</span> - timing.<span class="property">fetchStart</span>;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;TTI: &quot;</span> + diff);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<h3 id="5、更多计算规则"><a href="#5、更多计算规则" class="headerlink" title="5、更多计算规则"></a>5、更多计算规则</h3><ul>
-<li><code>DNS</code> 解析耗时: <code>domainLookupEnd - domainLookupStart </code></li>
-<li><code>TCP</code> 连接耗时: <code>connectEnd - connectStart </code></li>
-<li><code>SSL</code> 安全连接耗时: <code>connectEnd - secureConnectionStart </code></li>
-<li>网络请求耗时 (<code>TTFB</code>): <code>responseStart - requestStart </code></li>
-<li>数据传输耗时: <code>responseEnd - responseStart </code></li>
-<li><code>DOM</code> 解析耗时: <code>domInteractive - responseEnd </code></li>
-<li>资源加载耗时:<code>loadEventStart - domContentLoadedEventEnd</code></li>
-<li><code>First Byte</code>时间: <code>responseStart - domainLookupStart </code></li>
-<li>白屏时间: <code>responseEnd - fetchStart </code></li>
-<li>首次可交互时间: <code>domInteractive - fetchStart </code></li>
-<li><code>DOM Ready</code> 时间: <code>domContentLoadEventEnd - fetchStart </code></li>
-<li>页面完全加载时间: <code>loadEventStart - fetchStart </code></li>
-<li><code>http</code> 头部大小： <code>transferSize - encodedBodySize </code></li>
-<li>重定向次数：<code>performance.navigation.redirectCount </code></li>
-<li>重定向耗时: <code>redirectEnd - redirectStart</code></li>
-</ul>
-<h2 id="三、雅虎军规"><a href="#三、雅虎军规" class="headerlink" title="三、雅虎军规"></a>三、雅虎军规</h2><p>关于雅虎军规，你知道的有多少条，平时写用到的又有哪些？针对以下规则，我们可以做很多优化工作</p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208103918197.png" alt="image-20210208103918197"></p>
-<h3 id="1、减少cookie传输"><a href="#1、减少cookie传输" class="headerlink" title="1、减少cookie传输"></a>1、减少cookie传输</h3><blockquote>
-<p> <code>cookie</code>传输会造成带宽浪费，可以：</p>
-</blockquote>
+<p><code>performance.getEntriesByType(&#39;navigation&#39;)[0]</code> 拿到的是 Navigation Timing Level 2 的数据，比老的 <code>performance.timing</code> 更准，因为它的时间戳都是相对 <code>navigationStart</code> 的高精度值，不用自己做减法对齐。</p>
+<h3 id="2-5-更多计算规则"><a href="#2-5-更多计算规则" class="headerlink" title="2.5 更多计算规则"></a>2.5 更多计算规则</h3><p>有了这份 timing 对象，常见指标基本都能自己算出来：</p>
 <ul>
-<li>减少<code>cookie</code>中存储的东西</li>
-<li>静态资源不需要<code>cookie</code>，可以采用其他的域名，不会主动带上<code>cookie</code></li>
+<li><code>DNS</code> 解析耗时：<code>domainLookupEnd - domainLookupStart</code></li>
+<li><code>TCP</code> 连接耗时：<code>connectEnd - connectStart</code></li>
+<li><code>SSL</code> 安全连接耗时：<code>connectEnd - secureConnectionStart</code></li>
+<li>网络请求耗时（<code>TTFB</code>）：<code>responseStart - requestStart</code></li>
+<li>数据传输耗时：<code>responseEnd - responseStart</code></li>
+<li><code>DOM</code> 解析耗时：<code>domInteractive - responseEnd</code></li>
+<li>资源加载耗时：<code>loadEventStart - domContentLoadedEventEnd</code></li>
+<li><code>First Byte</code> 时间：<code>responseStart - domainLookupStart</code></li>
+<li>白屏时间：<code>responseEnd - fetchStart</code></li>
+<li>首次可交互时间：<code>domInteractive - fetchStart</code></li>
+<li><code>DOM Ready</code> 时间：<code>domContentLoadedEventEnd - fetchStart</code></li>
+<li>页面完全加载时间：<code>loadEventStart - fetchStart</code></li>
+<li><code>http</code> 头部大小：<code>transferSize - encodedBodySize</code></li>
+<li>重定向次数：<code>performance.navigation.redirectCount</code></li>
+<li>重定向耗时：<code>redirectEnd - redirectStart</code></li>
 </ul>
-<h3 id="2、避免过多的回流与重绘"><a href="#2、避免过多的回流与重绘" class="headerlink" title="2、避免过多的回流与重绘"></a>2、避免过多的回流与重绘</h3><p>连续触发页面回流操作</p>
+<p>这里提醒一句，上面这些名字容易记混，<code>domContentLoadedEventEnd</code> 中间那个 <code>ed</code> 别丢，写成 <code>domContentLoadEventEnd</code> 取到的是 <code>undefined</code>，算出来的指标是 <code>NaN</code>，而且不会报错，很难发现。</p>
+<p>另外 <code>secureConnectionStart</code> 在非 HTTPS 请求下是 0，直接拿 <code>connectEnd</code> 减它会得到一个巨大的数字，上报前要过滤掉。</p>
+<h2 id="三、雅虎军规里今天还管用的几条"><a href="#三、雅虎军规里今天还管用的几条" class="headerlink" title="三、雅虎军规里今天还管用的几条"></a>三、雅虎军规里今天还管用的几条</h2><p><img src="https://blog.poetries.top/img/static/images/image-20210208103918197.png" alt="雅虎前端性能优化军规"></p>
+<p>雅虎军规你知道多少条，平时真正用到的又有哪些？这套规则出得早，有些条目在 HTTP&#x2F;2 普及之后已经不适用了，比如合并请求减少 HTTP 数量。但下面这两条到今天依然成立。</p>
+<h3 id="3-1-减少-cookie-传输"><a href="#3-1-减少-cookie-传输" class="headerlink" title="3.1 减少 cookie 传输"></a>3.1 减少 cookie 传输</h3><p>cookie 会跟着同域名下的每一个请求发出去，包括图片和 JS，这是纯粹的带宽浪费。两个做法：</p>
+<p>减少 cookie 中存储的东西，别把用户配置、埋点参数这类大对象往里塞。以及静态资源换一个独立域名，不同域名不会主动带上主站的 cookie。很多大站的静态资源用单独的 CDN 域名，一半原因就在这儿。</p>
+<h3 id="3-2-避免过多的回流与重绘"><a href="#3-2-避免过多的回流与重绘" class="headerlink" title="3.2 避免过多的回流与重绘"></a>3.2 避免过多的回流与重绘</h3><p>这条是所有军规里我认为最值钱的一条，因为它造成的卡顿是持续的，用户能实时感觉到。</p>
+<p>先看一段会连续触发回流的代码：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> cards = <span class="variable language_">document</span>.<span class="title function_">getElementsByClassName</span>(<span class="string">&quot;MuiPaper-rounded&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> <span class="title function_">update</span> = (<span class="params">timestamp</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;cards.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">let</span> top = cards[i].<span class="property">offsetTop</span>;</span><br><span class="line">    cards[i].<span class="property">style</span>.<span class="property">width</span> = ((<span class="title class_">Math</span>.<span class="title function_">sin</span>(cards[i].<span class="property">offsetTop</span> + timestamp / <span class="number">100</span> + <span class="number">1</span>) * <span class="number">500</span>) + <span class="string">&#x27;px&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">window</span>.<span class="title function_">requestAnimationFrame</span>(update)</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">update</span>(<span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
 
-<p>看下效果，很明显的卡顿</p>
-<p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7618dea1a4774c8685e9926b08d67fdd~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
-<blockquote>
-<p><code>performance</code>分析结果，<code>load</code>事件之后存在大量的回流，并且<code>chrome</code>都给标记了红色</p>
-</blockquote>
-<p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9b543d68fab7445da1dedb72bb224f69~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
-<blockquote>
-<p>使用<code>fastDom</code>进行优化，将对dom的<code>读和写</code>分离，合并</p>
-</blockquote>
+<p>问题出在循环里的读写交替。<code>offsetTop</code> 是读操作，浏览器为了给出准确值必须立刻做一次布局计算；紧接着 <code>style.width</code> 是写操作，把刚算好的布局又弄脏了。下一轮循环再读，又得重算一次。这叫强制同步布局，几十个元素就能把一帧的预算吃光。</p>
+<p>效果非常明显的卡顿：</p>
+<p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7618dea1a4774c8685e9926b08d67fdd~tplv-k3u1fbpfcp-watermark.image" alt="强制同步布局导致的页面卡顿"></p>
+<p>Performance 里的分析结果，<code>load</code> 事件之后存在大量回流，Chrome 直接给标了红色：</p>
+<p><img src="https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/9b543d68fab7445da1dedb72bb224f69~tplv-k3u1fbpfcp-watermark.image" alt="Performance 中大量回流被标红"></p>
+<p>解法是把对 DOM 的读和写分离再各自合并，让浏览器在一帧里只做一次布局。<code>fastdom</code> 就是干这个的：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> cards = <span class="variable language_">document</span>.<span class="title function_">getElementsByClassName</span>(<span class="string">&quot;MuiPaper-rounded&quot;</span>);</span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">update</span> = (<span class="params">timestamp</span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; cards.<span class="property">length</span>; i++) &#123;</span><br><span class="line">      fastdom.<span class="title function_">measure</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> top = cards[i].<span class="property">offsetTop</span>;</span><br><span class="line">        fastdom.<span class="title function_">mutate</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">          cards[i].<span class="property">style</span>.<span class="property">width</span> =</span><br><span class="line">            <span class="title class_">Math</span>.<span class="title function_">sin</span>(top + timestamp / <span class="number">100</span> + <span class="number">1</span>) * <span class="number">500</span> + <span class="string">&quot;px&quot;</span>;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="variable language_">window</span>.<span class="title function_">requestAnimationFrame</span>(update)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">update</span>(<span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1df5c32c30494c13b3402305f866b327~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
-<blockquote>
-<p><code>performance</code>分析结果，load事件之后也没有了那么多的红色标记</p>
-</blockquote>
-<p>感兴趣的可以去了解一下fastDom：<a href="https://github.com/wilsonpage/fastdom">github fastdom</a> 在线预览：<a href="http://wilsonpage.github.io/fastdom/examples/animation.html">fastdom demo</a></p>
-<p>关于任务拆分与组合的思想，<code>react fiber</code>架构做的很牛逼，有兴趣的可以去了解一下调度算法在fiber中的实践</p>
-<h2 id="四、压缩"><a href="#四、压缩" class="headerlink" title="四、压缩"></a>四、压缩</h2><h3 id="1、Gzip"><a href="#1、Gzip" class="headerlink" title="1、Gzip"></a>1、Gzip</h3><p>开启方式可参考：<a href="https://juejin.cn/post/6844903605187641357">nginx开启gzip</a></p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208104535672.png" alt="image-20210208104535672"></p>
-<blockquote>
-<p> 还有一种方式：打包的时候生成gz文件，上传到服务器端，这样就不需要nginx来压缩了，可以降低服务器压力。 可参考：<a href="https://segmentfault.com/a/1190000020976930">gzip压缩文件&amp;webPack配置Compression-webpack-plugin</a></p>
-</blockquote>
-<h3 id="2、服务端压缩"><a href="#2、服务端压缩" class="headerlink" title="2、服务端压缩"></a>2、服务端压缩</h3><p>server.js</p>
+<p><code>measure</code> 里放读、<code>mutate</code> 里放写，<code>fastdom</code> 会把所有 measure 排到一起先跑完，再统一跑 mutate。注意优化后的版本里用的是外层缓存下来的 <code>top</code> 变量，而不是重新读 <code>offsetTop</code>，这一点很关键，写回调里再去读就前功尽弃了。</p>
+<p>优化后的效果：</p>
+<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1df5c32c30494c13b3402305f866b327~tplv-k3u1fbpfcp-watermark.image" alt="使用 fastdom 后帧率恢复正常"></p>
+<p>Performance 分析结果里，<code>load</code> 事件之后也没有那么多红色标记了。</p>
+<p>感兴趣可以去看 <a href="https://github.com/wilsonpage/fastdom">github fastdom</a>，在线预览 <a href="http://wilsonpage.github.io/fastdom/examples/animation.html">fastdom demo</a>。</p>
+<p>顺着这个思路再往下走一层，就是任务的拆分与调度。React Fiber 架构把渲染工作切成小块、在浏览器空闲时逐块执行，跟读写分离其实是同一类思想，都是在跟浏览器的一帧预算做配合。有兴趣可以去了解调度算法在 Fiber 里的实践。</p>
+<h2 id="四、压缩"><a href="#四、压缩" class="headerlink" title="四、压缩"></a>四、压缩</h2><h3 id="4-1-Gzip"><a href="#4-1-Gzip" class="headerlink" title="4.1 Gzip"></a>4.1 Gzip</h3><p>开启方式可以参考 <a href="https://juejin.cn/post/6844903605187641357">nginx 开启 gzip</a>。</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208104535672.png" alt="开启 gzip 前后的体积对比"></p>
+<p>Gzip 对文本类资源的压缩率相当可观，JS 和 CSS 普遍能压到三分之一以下。图片和视频这类已经压缩过的二进制格式就别开了，压不动还白白消耗 CPU。</p>
+<p>还有一种方式是打包时直接生成 <code>.gz</code> 文件传到服务器，这样 Nginx 就不用实时压缩了，能降低服务器压力。可以参考 <a href="https://segmentfault.com/a/1190000020976930">gzip 压缩文件 &amp; webPack 配置 Compression-webpack-plugin</a>。</p>
+<h3 id="4-2-服务端压缩"><a href="#4-2-服务端压缩" class="headerlink" title="4.2 服务端压缩"></a>4.2 服务端压缩</h3><p>Node 侧用 <code>compression</code> 中间件，一行 <code>app.use</code> 的事：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">&#x27;express&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> app = <span class="title function_">express</span>();</span><br><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;fs&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> compression = <span class="built_in">require</span>(<span class="string">&#x27;compression&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">compression</span>());</span><br><span class="line">app.<span class="title function_">use</span>(express.<span class="title function_">static</span>(<span class="string">&#x27;build&#x27;</span>));</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">get</span>(<span class="string">&#x27;*&#x27;</span>, <span class="function">(<span class="params">req,res</span>) =&gt;</span>&#123;</span><br><span class="line">    res.<span class="title function_">sendFile</span>(path.<span class="title function_">join</span>(__dirname+<span class="string">&#x27;/build/index.html&#x27;</span>));</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> listener = app.<span class="title function_">listen</span>(process.<span class="property">env</span>.<span class="property">PORT</span> || <span class="number">3000</span>, <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`Listening on port <span class="subst">$&#123;listener.address().port&#125;</span>`</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<p>package.json</p>
+<p><code>app.use(compression())</code> 要写在 <code>express.static</code> 前面，顺序反了静态文件会先被返回，压缩中间件就不生效了。这个坑很典型，改完发现体积没变的话先检查这里。</p>
+<p>配上启动脚本：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot;start&quot;: &quot;npm run build &amp;&amp; node server.js&quot;,</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208104641677.png" alt="image-20210208104641677"></p>
-<h3 id="3、JavaScript、Css、Html压缩"><a href="#3、JavaScript、Css、Html压缩" class="headerlink" title="3、JavaScript、Css、Html压缩"></a>3、JavaScript、Css、Html压缩</h3><p>工程化项目中直接使用对应的插件即可，webpack的主要有下面三个：</p>
+<p>效果：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208104641677.png" alt="开启服务端压缩后的响应体积"></p>
+<h3 id="4-3-JavaScript、CSS、HTML-压缩"><a href="#4-3-JavaScript、CSS、HTML-压缩" class="headerlink" title="4.3 JavaScript、CSS、HTML 压缩"></a>4.3 JavaScript、CSS、HTML 压缩</h3><p>工程化项目里直接用对应插件即可，webpack 侧主要是这三个：</p>
 <ul>
 <li><code>UglifyJS</code></li>
 <li><code>webpack-parallel-uglify-plugin</code></li>
 <li><code>terser-webpack-plugin</code></li>
 </ul>
-<blockquote>
-<p> 具体优缺点可参考：<a href="https://blog.csdn.net/qq_24147051/article/details/103557728">webpack常用的三种JS压缩插件</a>。<code>压缩原理</code>简单的讲就是去除一些空格、换行、注释，借助es6模块化的功能，做了一些<code>tree-shaking</code>的优化。同时做了一些代码混淆，一方面是为了更小的体积，另一方面也是为了源码的安全性。</p>
-</blockquote>
-<p>css压缩主要是<code>mini-css-extract-plugin</code>，当然前面的js压缩插件也会给你做好css压缩。使用姿势</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save-dev mini-css-extract-plugin</span><br><span class="line">const MiniCssExtractPlugin = require(&quot;mini-css-extract-plugin&quot;);</span><br><span class="line">plugins:[</span><br><span class="line"> new MiniCssExtractPlugin(&#123;</span><br><span class="line">       filename: &quot;[name].css&quot;,</span><br><span class="line">       chunkFilename: &quot;[id].css&quot;</span><br><span class="line">   &#125;)</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<p>具体优缺点可参考 <a href="https://blog.csdn.net/qq_24147051/article/details/103557728">webpack 常用的三种 JS 压缩插件</a>。压缩原理简单讲就是去掉空格、换行、注释，再借助 ES6 模块化做一些 tree-shaking 优化，同时做代码混淆，一方面为了更小的体积，另一方面也是为了源码安全。</p>
+<p>这三个里现在只需要记住 <code>terser-webpack-plugin</code>。<code>UglifyJS</code> 不支持 ES6+ 语法，webpack 4 开始默认压缩器就换成 terser 了，webpack 5 内置了它，生产模式下不配也会自动压缩，只有要改压缩选项时才需要显式安装配置。</p>
+<p>CSS 这块要澄清一个常见的说法。<code>mini-css-extract-plugin</code> 的职责是把 CSS 从 JS 里抽成独立文件，它本身并不做压缩，真正压缩 CSS 的是 <code>css-minimizer-webpack-plugin</code>（老版本叫 <code>optimize-css-assets-webpack-plugin</code>）。两个通常配着用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save-dev mini-css-extract-plugin</span><br></pre></td></tr></table></figure>
 
-<p>html压缩可以用<code>HtmlWebpackPlugin</code>，单页项目就一个index.html,性能提升微乎其微~</p>
-<h3 id="4、http2首部压缩"><a href="#4、http2首部压缩" class="headerlink" title="4、http2首部压缩"></a>4、http2首部压缩</h3><p><strong>http2的特点</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">MiniCssExtractPlugin</span> = <span class="built_in">require</span>(<span class="string">&quot;mini-css-extract-plugin&quot;</span>);</span><br><span class="line"><span class="attr">plugins</span>:[</span><br><span class="line"> <span class="keyword">new</span> <span class="title class_">MiniCssExtractPlugin</span>(&#123;</span><br><span class="line">       <span class="attr">filename</span>: <span class="string">&quot;[name].css&quot;</span>,</span><br><span class="line">       <span class="attr">chunkFilename</span>: <span class="string">&quot;[id].css&quot;</span></span><br><span class="line">   &#125;)</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>抽成独立文件本身也是一项优化，CSS 和 JS 可以并行下载，而且能各自走缓存，改了 JS 不至于让 CSS 缓存一起失效。</p>
+<p>HTML 压缩用 <code>HtmlWebpackPlugin</code> 的 <code>minify</code> 选项。单页项目就一个 <code>index.html</code>，这块的收益微乎其微，配上就行别指望它。</p>
+<h3 id="4-4-HTTP-2-首部压缩"><a href="#4-4-HTTP-2-首部压缩" class="headerlink" title="4.4 HTTP&#x2F;2 首部压缩"></a>4.4 HTTP&#x2F;2 首部压缩</h3><p>HTTP&#x2F;2 的几个特点：</p>
 <ul>
 <li>二进制分帧</li>
 <li>首部压缩</li>
 <li>流量控制</li>
 <li>多路复用</li>
 <li>请求优先级</li>
-<li>服务器推送<code>http2_push: &#39;xxx.jpg&#39;</code></li>
+<li>服务器推送</li>
 </ul>
-<p>具体升级方式也很简单，修改一下<code>nginx</code>配置，方法请自行<code>Google</code></p>
-<h2 id="五、webpack优化"><a href="#五、webpack优化" class="headerlink" title="五、webpack优化"></a>五、webpack优化</h2><p>上文中也提到了部分webpack插件，下面我再来看看还有哪些~</p>
-<h3 id="1、DllPlugin-提升构建速度"><a href="#1、DllPlugin-提升构建速度" class="headerlink" title="1、DllPlugin 提升构建速度"></a>1、DllPlugin 提升构建速度</h3><blockquote>
-<p>通过<code>DllPlugin</code>插件，将一些比较大的，基本很少升级的包拆分出来，生成<code>xx.dll.js</code>文件,通过<code>manifest.json</code>引用</p>
-</blockquote>
-<p>webpack.dll.config.js</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&quot;path&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">&quot;webpack&quot;</span>);</span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">mode</span>: <span class="string">&quot;production&quot;</span>,</span><br><span class="line">    <span class="attr">entry</span>: &#123;</span><br><span class="line">        <span class="attr">react</span>: [<span class="string">&quot;react&quot;</span>, <span class="string">&quot;react-dom&quot;</span>],</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">output</span>: &#123;</span><br><span class="line">        <span class="attr">filename</span>: <span class="string">&quot;[name].dll.js&quot;</span>,</span><br><span class="line">        <span class="attr">path</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&quot;dll&quot;</span>),</span><br><span class="line">        <span class="attr">library</span>: <span class="string">&quot;[name]&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">plugins</span>: [</span><br><span class="line">        <span class="keyword">new</span> webpack.<span class="title class_">DllPlugin</span>(&#123;</span><br><span class="line">            <span class="attr">name</span>: <span class="string">&quot;[name]&quot;</span>,</span><br><span class="line">            <span class="attr">path</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&quot;dll/[name].manifest.json&quot;</span>)</span><br><span class="line">        &#125;)</span><br><span class="line">    ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>首部压缩用的是 HPACK，把重复的请求头做字典编码。请求越多、头越大，省得越明显，带一堆 cookie 的场景效果尤其突出。多路复用则让同一个连接上可以并行跑多个请求，前面 Network 那节说的 <code>Queueing</code> 和 <code>Stalled</code> 问题在 HTTP&#x2F;2 下基本消失了。</p>
+<p>升级方式很简单，改一下 Nginx 配置在 <code>listen 443 ssl</code> 后面加 <code>http2</code> 即可。</p>
+<p>服务器推送这条要打个问号。它当年的写法是在 Nginx 里配 <code>http2_push /xxx.jpg;</code>，主动把资源推给客户端。但实践下来命中率不高，经常推了一堆客户端已经缓存的东西，反而更慢。Chrome 后来移除了对 HTTP&#x2F;2 Server Push 的支持，现在想提前加载关键资源，用 <code>preload</code> 更可控，服务端能力允许的话 103 Early Hints 是更现代的替代品。</p>
+<h2 id="五、webpack-侧的构建优化"><a href="#五、webpack-侧的构建优化" class="headerlink" title="五、webpack 侧的构建优化"></a>五、webpack 侧的构建优化</h2><p>上面提到了几个 webpack 插件，这一节看看还有哪些。</p>
+<h3 id="5-1-DllPlugin-提升构建速度"><a href="#5-1-DllPlugin-提升构建速度" class="headerlink" title="5.1 DllPlugin 提升构建速度"></a>5.1 DllPlugin 提升构建速度</h3><p>思路是把体积大、基本不升级的包提前单独打成 <code>xx.dll.js</code>，业务代码构建时不再重复处理它们，通过 <code>manifest.json</code> 建立映射关系：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// webpack.dll.config.js</span></span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&quot;path&quot;</span>);</span><br><span class="line"><span class="keyword">const</span> webpack = <span class="built_in">require</span>(<span class="string">&quot;webpack&quot;</span>);</span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">mode</span>: <span class="string">&quot;production&quot;</span>,</span><br><span class="line">    <span class="attr">entry</span>: &#123;</span><br><span class="line">        <span class="attr">react</span>: [<span class="string">&quot;react&quot;</span>, <span class="string">&quot;react-dom&quot;</span>],</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">output</span>: &#123;</span><br><span class="line">        <span class="attr">filename</span>: <span class="string">&quot;[name].dll.js&quot;</span>,</span><br><span class="line">        <span class="attr">path</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&quot;dll&quot;</span>),</span><br><span class="line">        <span class="attr">library</span>: <span class="string">&quot;[name]&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">plugins</span>: [</span><br><span class="line">        <span class="keyword">new</span> webpack.<span class="title class_">DllPlugin</span>(&#123;</span><br><span class="line">            <span class="attr">name</span>: <span class="string">&quot;[name]&quot;</span>,</span><br><span class="line">            <span class="attr">path</span>: path.<span class="title function_">resolve</span>(__dirname, <span class="string">&quot;dll/[name].manifest.json&quot;</span>)</span><br><span class="line">        &#125;)</span><br><span class="line">    ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-
-
-<p>package.json</p>
+<p>配一个单独的构建脚本，改了依赖才需要重新跑一次：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">    &quot;dll-build&quot;: &quot;NODE_ENV=production webpack --config webpack.dll.config.js&quot;,</span><br><span class="line">  &#125;,</span><br></pre></td></tr></table></figure>
 
+<p>这套写法今天基本可以不用了。webpack 4 开始打包性能已经足够好，vue-cli 3 直接移除了 dll 相关配置，webpack 5 更是内置了文件系统级的持久化缓存（<code>cache: &#123; type: &#39;filesystem&#39; &#125;</code>），二次构建的提速比 DllPlugin 更明显，配置量也少得多。我把这段留在这儿，是因为老项目里还能见到，看到了不至于懵。</p>
+<h3 id="5-2-splitChunks-拆包"><a href="#5-2-splitChunks-拆包" class="headerlink" title="5.2 splitChunks 拆包"></a>5.2 splitChunks 拆包</h3><p>这个才是今天真正天天在用的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="attr">optimization</span>: &#123;</span><br><span class="line">        <span class="attr">splitChunks</span>: &#123;</span><br><span class="line">            <span class="attr">cacheGroups</span>: &#123;</span><br><span class="line">                <span class="attr">vendor</span>: &#123;</span><br><span class="line">                    <span class="attr">name</span>: <span class="string">&#x27;vendor&#x27;</span>,</span><br><span class="line">                    <span class="attr">test</span>: <span class="regexp">/[\\/]node_modules[\\/]/</span>,</span><br><span class="line">                    <span class="attr">minSize</span>: <span class="number">0</span>,</span><br><span class="line">                    <span class="attr">minChunks</span>: <span class="number">1</span>,</span><br><span class="line">                    <span class="attr">priority</span>: <span class="number">10</span>,</span><br><span class="line">                    <span class="attr">chunks</span>: <span class="string">&#x27;initial&#x27;</span></span><br><span class="line">                &#125;,</span><br><span class="line">                <span class="attr">common</span>: &#123;</span><br><span class="line">                    <span class="attr">name</span>: <span class="string">&#x27;common&#x27;</span>,</span><br><span class="line">                    <span class="attr">test</span>: <span class="regexp">/[\\/]src[\\/]/</span>,</span><br><span class="line">                    <span class="attr">chunks</span>: <span class="string">&#x27;all&#x27;</span>,</span><br><span class="line">                    <span class="attr">minSize</span>: <span class="number">0</span>,</span><br><span class="line">                    <span class="attr">minChunks</span>: <span class="number">2</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure>
 
-
-<blockquote>
-<p>webpack4不需要配置dll了，因为webpack4打包性能已经足够优化，vue-cli3都已经移除<code>dll</code></p>
-</blockquote>
-<h3 id="2、splitChunks-拆包"><a href="#2、splitChunks-拆包" class="headerlink" title="2、splitChunks 拆包"></a>2、splitChunks 拆包</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="attr">optimization</span>: &#123;</span><br><span class="line">        <span class="attr">splitChunks</span>: &#123;</span><br><span class="line">            <span class="attr">cacheGroups</span>: &#123;</span><br><span class="line">                <span class="attr">vendor</span>: &#123;</span><br><span class="line">                    <span class="attr">name</span>: <span class="string">&#x27;vendor&#x27;</span>,</span><br><span class="line">                    <span class="attr">test</span>: <span class="regexp">/[\\/]node_modules[\\/]/</span>,</span><br><span class="line">                    <span class="attr">minSize</span>: <span class="number">0</span>,</span><br><span class="line">                    <span class="attr">minChunks</span>: <span class="number">1</span>,</span><br><span class="line">                    <span class="attr">priority</span>: <span class="number">10</span>,</span><br><span class="line">                    <span class="attr">chunks</span>: <span class="string">&#x27;initial&#x27;</span></span><br><span class="line">                &#125;,</span><br><span class="line">                <span class="attr">common</span>: &#123;</span><br><span class="line">                    <span class="attr">name</span>: <span class="string">&#x27;common&#x27;</span>,</span><br><span class="line">                    <span class="attr">test</span>: <span class="regexp">/[\\/]src[\\/]/</span>,</span><br><span class="line">                    <span class="attr">chunks</span>: <span class="string">&#x27;all&#x27;</span>,</span><br><span class="line">                    <span class="attr">minSize</span>: <span class="number">0</span>,</span><br><span class="line">                    <span class="attr">minChunks</span>: <span class="number">2</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br></pre></td></tr></table></figure>
-
-<h2 id="六、骨架屏"><a href="#六、骨架屏" class="headerlink" title="六、骨架屏"></a>六、骨架屏</h2><blockquote>
-<p>用css提前占好位置，当资源加载完成即可填充，减少页面的回流与重绘，同时还能给用户最直接的反馈。 图中使用插件：<a href="https://github.com/buildo/react-placeholder">react-placeholder</a></p>
-</blockquote>
-<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3666ae07b9eb4d839f7a893b89d83f47~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
-<p>关于实现骨架屏还有很多种方案，用<code>Puppeteer</code>服务端渲染的挺多的</p>
-<p>使用css伪类：<a href="https://segmentfault.com/a/1190000020437426">只要css就能实现的骨架屏方案</a></p>
-<h2 id="七、窗口化"><a href="#七、窗口化" class="headerlink" title="七、窗口化"></a>七、窗口化</h2><blockquote>
-<p>原理：只加载当前窗口能显示的DOM元素，当视图变化时，删除隐藏的，添加要显示的DOM就可以保证页面上存在的dom元素数量永远不多，页面就不会卡顿</p>
-</blockquote>
-<p>图中使用的插件：<a href="https://github.com/bvaughn/react-window">react-window</a></p>
-<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1a459cc811844b7793aff6c9878d19ad~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
-<p>安装：<code>npm i react-window</code></p>
-<p>引入：<code>import &#123; FixedSizeList as List &#125; from &#39;react-window&#39;;</code></p>
-<p>使用：</p>
+<p>两个 cacheGroup 分工明确。<code>vendor</code> 把 <code>node_modules</code> 里的三方库抽出去，这部分内容几乎不变，用户第一次访问下载之后长期命中缓存。<code>common</code> 抽的是被至少两个模块引用的自家代码（<code>minChunks: 2</code>），避免同一段逻辑在多个 chunk 里重复打包。</p>
+<p><code>priority</code> 数字大的先匹配，<code>vendor</code> 给了 10 就是让三方库优先归到 vendor 而不是被 common 抢走。</p>
+<p>拆包不是越碎越好。分得太细会让请求数暴涨，HTTP&#x2F;1.1 下并发受限反而更慢，<code>minSize</code> 设成 0 在小项目里没问题，中大型项目建议给个几十 KB 的下限。</p>
+<h2 id="六、骨架屏"><a href="#六、骨架屏" class="headerlink" title="六、骨架屏"></a>六、骨架屏</h2><p>用 CSS 提前把位置占好，资源加载完成就直接填充，既减少页面回流与重绘，又给了用户最直接的反馈。图中用的插件是 <a href="https://github.com/buildo/react-placeholder">react-placeholder</a>：</p>
+<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/3666ae07b9eb4d839f7a893b89d83f47~tplv-k3u1fbpfcp-watermark.image" alt="骨架屏加载效果"></p>
+<p>骨架屏骗的是感知时间，实际加载并没有变快，但用户看到有结构的灰块和看到一片空白，等待的心理体验完全不同。这类优化的性价比往往比抠几十毫秒高得多。</p>
+<p>实现方案还有很多种，用 <code>Puppeteer</code> 在服务端把首屏渲染成骨架的做法也不少。纯 CSS 伪类也能实现，可以看 <a href="https://segmentfault.com/a/1190000020437426">只要 css 就能实现的骨架屏方案</a>。</p>
+<p>要注意骨架的形状得和真实内容对得上。骨架是三行文字、真实内容是一张大图，填充那一刻会有明显的跳动，这就是 CLS 变差，得不偿失。</p>
+<h2 id="七、窗口化"><a href="#七、窗口化" class="headerlink" title="七、窗口化"></a>七、窗口化</h2><p>原理是只渲染当前视口能显示的 DOM 元素，视图变化时删掉移出的、补上要显示的，保证页面上存在的 DOM 数量永远维持在一个很小的量级，页面就不会卡。这套东西现在更常听到的叫法是虚拟列表。</p>
+<p>图中使用的插件是 <a href="https://github.com/bvaughn/react-window">react-window</a>：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/1a459cc811844b7793aff6c9878d19ad~tplv-k3u1fbpfcp-watermark.image" alt="react-window 虚拟列表效果"></p>
+<p>安装 <code>npm i react-window</code>，引入 <code>import &#123; FixedSizeList as List &#125; from &#39;react-window&#39;;</code>，用法：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const Row = (&#123; index, style &#125;) =&gt; (</span><br><span class="line">  &lt;div style=&#123;style&#125;&gt;Row &#123;index&#125;&lt;/div&gt;</span><br><span class="line">);</span><br><span class="line"> </span><br><span class="line">const Example = () =&gt; (</span><br><span class="line">  &lt;List</span><br><span class="line">    height=&#123;150&#125;</span><br><span class="line">    itemCount=&#123;1000&#125;</span><br><span class="line">    itemSize=&#123;35&#125;</span><br><span class="line">    width=&#123;300&#125;</span><br><span class="line">  &gt;</span><br><span class="line">    &#123;Row&#125;</span><br><span class="line">  &lt;/List&gt;</span><br><span class="line">);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<h2 id="八、缓存"><a href="#八、缓存" class="headerlink" title="八、缓存"></a>八、缓存</h2><h3 id="1、http缓存"><a href="#1、http缓存" class="headerlink" title="1、http缓存"></a>1、http缓存</h3><h4 id="keep-alive"><a href="#keep-alive" class="headerlink" title="keep-alive"></a>keep-alive</h4><p>判断是否开启：看<code>response headers</code>中有没有<code>Connection: keep-alive</code> 。开启以后，看<code>network</code>的瀑布流中就没有 <code>Initial connection</code>耗时了</p>
-<p><code>nginx</code>设置<code>keep-alive</code>（默认开启）</p>
+<p><code>Row</code> 上那个 <code>style</code> 一定要透传下去，里面是 <code>react-window</code> 算好的 <code>position: absolute</code> 和 <code>top</code>，漏了的话所有行会堆在一起。<code>FixedSizeList</code> 要求每行等高，行高不固定的场景用 <code>VariableSizeList</code>，得自己提供一个根据 index 返回高度的函数，这块实现起来会麻烦不少。</p>
+<p>一千条以内的列表其实不太需要上虚拟化，直接渲染也不卡，反而是虚拟化带来的滚动白屏和搜索定位失效更烦人。上万条再考虑。</p>
+<h2 id="八、缓存"><a href="#八、缓存" class="headerlink" title="八、缓存"></a>八、缓存</h2><h3 id="8-1-HTTP-缓存"><a href="#8-1-HTTP-缓存" class="headerlink" title="8.1 HTTP 缓存"></a>8.1 HTTP 缓存</h3><p><strong>keep-alive</strong> 判断是否开启，看 <code>response headers</code> 里有没有 <code>Connection: keep-alive</code>。开启之后，Network 的瀑布流里就不再有 <code>Initial connection</code> 耗时了，因为 TCP 连接被复用了。</p>
+<p>Nginx 侧默认就是开的：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 0 为关闭</span><br><span class="line">#keepalive_timeout 0;</span><br><span class="line"># 65s无连接 关闭</span><br><span class="line">keepalive_timeout 65;</span><br><span class="line"># 连接数，达到100断开</span><br><span class="line">keepalive_requests 100;</span><br></pre></td></tr></table></figure>
 
-<h4 id="Cache-Control-Expires-Max-Age"><a href="#Cache-Control-Expires-Max-Age" class="headerlink" title="Cache-Control &#x2F; Expires &#x2F; Max-Age"></a>Cache-Control &#x2F; Expires &#x2F; Max-Age</h4><p>设置资源是否缓存，以及缓存时间</p>
-<h4 id="Etag-If-None-Match"><a href="#Etag-If-None-Match" class="headerlink" title="Etag &#x2F; If-None-Match"></a>Etag &#x2F; If-None-Match</h4><p>资源唯一标识作对比，如果有变化，从服务器拉取资源。如果没变化则取缓存资源，状态码304，也就是协商缓存</p>
-<h4 id="Last-Modified-If-Modified-Since"><a href="#Last-Modified-If-Modified-Since" class="headerlink" title="Last-Modified &#x2F; If-Modified-Since"></a>Last-Modified &#x2F; If-Modified-Since</h4><p>通过对比时间的差异来觉得要不要从服务器获取资源</p>
-<p>更多HTTP缓存参数可参考：<a href="https://harttle.land/2017/04/04/using-http-cache.html">使用 HTTP 缓存：Etag, Last-Modified 与 Cache-Control</a></p>
-<h3 id="2、Service-Worker"><a href="#2、Service-Worker" class="headerlink" title="2、Service Worker"></a>2、Service Worker</h3><blockquote>
-<p>借助webpack插件<code>WorkboxWebpackPlugin</code>和<code>ManifestPlugin</code>,加载serviceWorker.js,通过<code>serviceWorker.register()</code>注册</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">WorkboxWebpackPlugin</span>.<span class="title class_">GenerateSW</span>(&#123;</span><br><span class="line">    <span class="attr">clientsClaim</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">exclude</span>: [<span class="regexp">/\.map$/</span>, <span class="regexp">/asset-manifest\.json$/</span>],</span><br><span class="line">    <span class="attr">importWorkboxFrom</span>: <span class="string">&#x27;cdn&#x27;</span>,</span><br><span class="line">    <span class="attr">navigateFallback</span>: paths.<span class="property">publicUrlOrPath</span> + <span class="string">&#x27;index.html&#x27;</span>,</span><br><span class="line">    <span class="attr">navigateFallbackBlacklist</span>: [</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">RegExp</span>(<span class="string">&#x27;^/_&#x27;</span>),</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">RegExp</span>(<span class="string">&#x27;/[^/?]+\\.[^/]+$&#x27;</span>),</span><br><span class="line">    ],</span><br><span class="line">&#125;),</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">ManifestPlugin</span>(&#123;</span><br><span class="line">    <span class="attr">fileName</span>: <span class="string">&#x27;asset-manifest.json&#x27;</span>,</span><br><span class="line">    <span class="attr">publicPath</span>: paths.<span class="property">publicUrlOrPath</span>,</span><br><span class="line">    <span class="attr">generate</span>: <span class="function">(<span class="params">seed, files, entrypoints</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> manifestFiles = files.<span class="title function_">reduce</span>(<span class="function">(<span class="params">manifest, file</span>) =&gt;</span> &#123;</span><br><span class="line">            manifest[file.<span class="property">name</span>] = file.<span class="property">path</span>;</span><br><span class="line">            <span class="keyword">return</span> manifest;</span><br><span class="line">        &#125;, seed);</span><br><span class="line">        <span class="keyword">const</span> entrypointFiles = entrypoints.<span class="property">app</span>.<span class="title function_">filter</span>(</span><br><span class="line">            <span class="function"><span class="params">fileName</span> =&gt;</span> !fileName.<span class="title function_">endsWith</span>(<span class="string">&#x27;.map&#x27;</span>)</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> &#123;</span><br><span class="line">            <span class="attr">files</span>: manifestFiles,</span><br><span class="line">            <span class="attr">entrypoints</span>: entrypointFiles,</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;),</span><br></pre></td></tr></table></figure>
+<p><code>keepalive_requests 100</code> 意味着一条连接跑满 100 个请求就会断开重建。静态资源多的页面这个值偏小，可以往上调。</p>
+<p><strong>Cache-Control &#x2F; Expires &#x2F; Max-Age</strong> 设置资源是否缓存以及缓存时间，命中的是强缓存，浏览器压根不发请求。</p>
+<p><strong>Etag &#x2F; If-None-Match</strong> 用资源的唯一标识做对比，有变化就从服务器拉新的，没变化返回 304 取缓存，这是协商缓存。</p>
+<p><strong>Last-Modified &#x2F; If-Modified-Since</strong> 通过对比修改时间来决定要不要重新获取资源。它的精度只到秒，同一秒内的多次修改识别不出来，所以 Etag 的优先级比它高。</p>
+<p>更多参数可参考 <a href="https://harttle.land/2017/04/04/using-http-cache.html">使用 HTTP 缓存：Etag, Last-Modified 与 Cache-Control</a>。</p>
+<p>实际配置时的原则很简单，带 hash 的静态资源走一年的强缓存，入口 <code>index.html</code> 必须禁强缓存走协商缓存。反过来配的话，你发了新版本用户却一直看到老页面，而且怎么刷新都不管用。</p>
+<h3 id="8-2-Service-Worker"><a href="#8-2-Service-Worker" class="headerlink" title="8.2 Service Worker"></a>8.2 Service Worker</h3><p>借助 webpack 插件 <code>WorkboxWebpackPlugin</code> 和 <code>ManifestPlugin</code> 生成 <code>serviceWorker.js</code>，再通过 <code>serviceWorker.register()</code> 注册：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">WorkboxWebpackPlugin</span>.<span class="title class_">GenerateSW</span>(&#123;</span><br><span class="line">    <span class="attr">clientsClaim</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="attr">exclude</span>: [<span class="regexp">/\.map$/</span>, <span class="regexp">/asset-manifest\.json$/</span>],</span><br><span class="line">    <span class="attr">importWorkboxFrom</span>: <span class="string">&#x27;cdn&#x27;</span>,</span><br><span class="line">    <span class="attr">navigateFallback</span>: paths.<span class="property">publicUrlOrPath</span> + <span class="string">&#x27;index.html&#x27;</span>,</span><br><span class="line">    <span class="attr">navigateFallbackBlacklist</span>: [</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">RegExp</span>(<span class="string">&#x27;^/_&#x27;</span>),</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">RegExp</span>(<span class="string">&#x27;/[^/?]+\\.[^/]+$&#x27;</span>),</span><br><span class="line">    ],</span><br><span class="line">&#125;),</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208105415279.png" alt="image-20210208105415279"></p>
-<h2 id="九、预加载-懒加载"><a href="#九、预加载-懒加载" class="headerlink" title="九、预加载 &amp;&amp; 懒加载"></a>九、预加载 &amp;&amp; 懒加载</h2><h3 id="1、preload"><a href="#1、preload" class="headerlink" title="1、preload"></a>1、preload</h3><p>就拿demo中的字体举例，正常情况下的加载顺序是这样的：</p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208105446451.png" alt="image-20210208105446451"></p>
-<p>加入preload：</p>
+<p>配套的资源清单生成：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">ManifestPlugin</span>(&#123;</span><br><span class="line">    <span class="attr">fileName</span>: <span class="string">&#x27;asset-manifest.json&#x27;</span>,</span><br><span class="line">    <span class="attr">publicPath</span>: paths.<span class="property">publicUrlOrPath</span>,</span><br><span class="line">    <span class="attr">generate</span>: <span class="function">(<span class="params">seed, files, entrypoints</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> manifestFiles = files.<span class="title function_">reduce</span>(<span class="function">(<span class="params">manifest, file</span>) =&gt;</span> &#123;</span><br><span class="line">            manifest[file.<span class="property">name</span>] = file.<span class="property">path</span>;</span><br><span class="line">            <span class="keyword">return</span> manifest;</span><br><span class="line">        &#125;, seed);</span><br><span class="line">        <span class="keyword">const</span> entrypointFiles = entrypoints.<span class="property">app</span>.<span class="title function_">filter</span>(</span><br><span class="line">            <span class="function"><span class="params">fileName</span> =&gt;</span> !fileName.<span class="title function_">endsWith</span>(<span class="string">&#x27;.map&#x27;</span>)</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> &#123;</span><br><span class="line">            <span class="attr">files</span>: manifestFiles,</span><br><span class="line">            <span class="attr">entrypoints</span>: entrypointFiles,</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">&#125;),</span><br></pre></td></tr></table></figure>
+
+<p>注册成功后在 DevTools 的 Application 面板能看到：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208105415279.png" alt="Service Worker 注册成功"></p>
+<p>Service Worker 是二次访问的加速利器，但它也是最容易翻车的一块。缓存策略配错了，用户会被永久锁在某个旧版本上，而且清浏览器缓存都不一定管用，得手动 unregister。上线前一定要想清楚更新和失效的路径，<code>clientsClaim: true</code> 配合 <code>skipWaiting</code> 能让新版本尽快接管，代价是页面可能在使用中途被切换。</p>
+<p>排查这类缓存问题的具体手法，我在 <a href="https://feinterview.poetries.top/blog/fe-debug">前端调试实战</a> 里写过一些，可以参考。</p>
+<h2 id="九、预加载与懒加载"><a href="#九、预加载与懒加载" class="headerlink" title="九、预加载与懒加载"></a>九、预加载与懒加载</h2><p>前面所有手段都是让资源更小更快，这一节换个思路，调整资源的加载顺序和时机。</p>
+<h3 id="9-1-preload"><a href="#9-1-preload" class="headerlink" title="9.1 preload"></a>9.1 preload</h3><p>拿 demo 里的字体举例。正常情况下字体的加载顺序是这样，它藏在 CSS 里，浏览器要先下 CSS、再解析、再发现字体、再去下，串行了好几步：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208105446451.png" alt="未使用 preload 时字体的加载顺序"></p>
+<p>加上 <code>preload</code> 之后，浏览器在解析 HTML 阶段就知道要下这几个文件，直接并行发出去：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;preload&quot;</span> <span class="attr">href</span>=<span class="string">&quot;https://fonts.gstatic.com/s/longcang/v5/LYjAdGP8kkgoTec8zkRgqHAtXN-dRp6ohF_hzzTtOcBgYoCKmPpHHEBiM6LIGv3EnKLjtw.119.woff2&quot;</span> <span class="attr">as</span>=<span class="string">&quot;font&quot;</span> <span class="attr">crossorigin</span>=<span class="string">&quot;anonymous&quot;</span>/&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;preload&quot;</span> <span class="attr">href</span>=<span class="string">&quot;https://fonts.gstatic.com/s/longcang/v5/LYjAdGP8kkgoTec8zkRgqHAtXN-dRp6ohF_hzzTtOcBgYoCKmPpHHEBiM6LIGv3EnKLjtw.118.woff2&quot;</span> <span class="attr">as</span>=<span class="string">&quot;font&quot;</span> <span class="attr">crossorigin</span>=<span class="string">&quot;anonymous&quot;</span>/&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;preload&quot;</span> <span class="attr">href</span>=<span class="string">&quot;https://fonts.gstatic.com/s/longcang/v5/LYjAdGP8kkgoTec8zkRgqHAtXN-dRp6ohF_hzzTtOcBgYoCKmPpHHEBiM6LIGv3EnKLjtw.116.woff2&quot;</span> <span class="attr">as</span>=<span class="string">&quot;font&quot;</span> <span class="attr">crossorigin</span>=<span class="string">&quot;anonymous&quot;</span>/&gt;</span> </span><br></pre></td></tr></table></figure>
 
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208105522277.png" alt="image-20210208105522277"></p>
-<h3 id="2、prefetch"><a href="#2、prefetch" class="headerlink" title="2、prefetch"></a>2、prefetch</h3><blockquote>
-<p> 场景：首页不需要这样的字体文件，下个页面需要：首页会以最低优先级<code>Lowest</code>来提前加载</p>
-</blockquote>
-<p>加入<code>prefetch</code>：</p>
-<p>需要的页面，从<code>prefetch cache</code>中取</p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208105625448.png" alt="image-20210208105625448"></p>
-<p>webpack也是支持这两个属性的:<a href="https://www.cnblogs.com/skychx/p/webpack-webpackChunkName-webpackPreload-webpackPreload.html">webpackPrefetch 和 webpackPreload</a></p>
-<h3 id="3、懒加载"><a href="#3、懒加载" class="headerlink" title="3、懒加载"></a>3、懒加载</h3><h4 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h4><p>机械图片</p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208105717958.png" alt="image-20210208105717958"></p>
-<p><code>渐进式图片（类似高斯模糊）</code> 需要UI小姐姐出稿的时候指定这种格式</p>
-<p><img src="https://blog.poetries.top/img/static/images/image-20210208105747314.png" alt="image-20210208105747314"></p>
-<p><code>响应式图片</code></p>
-<p>原生模式：<code>&lt;img src=&quot;./img/index.jpg&quot; sizes=&quot;100vw&quot; srcset=&quot;./img/dog.jpg 800w, ./img/index.jpg 1200w&quot;/&gt;</code></p>
-<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7427e9243791461b8ffa49f47981cfba~tplv-k3u1fbpfcp-watermark.image?imageslim" alt="img"></p>
-<h4 id="路由懒加载"><a href="#路由懒加载" class="headerlink" title="路由懒加载"></a>路由懒加载</h4><p>通过<code>函数 + import</code>实现</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208105522277.png" alt="使用 preload 后的加载顺序"></p>
+<p><code>as=&quot;font&quot;</code> 不能省，浏览器靠它决定优先级和 Accept 头。字体的 <code>crossorigin</code> 也必须写，哪怕是同源的，因为字体请求默认按匿名 CORS 模式发起，不写会导致下载两次，反而更慢。这个坑很多人踩过，控制台里会有一条明确的警告，别忽略它。</p>
+<p><code>preload</code> 只管下载不管执行，下完先放进内存缓存等着用。如果下了三秒还没被用到，控制台同样会警告，这通常说明你 preload 了不该 preload 的东西。</p>
+<h3 id="9-2-prefetch"><a href="#9-2-prefetch" class="headerlink" title="9.2 prefetch"></a>9.2 prefetch</h3><p>场景不一样。首页不需要这个字体文件，但下一个页面需要，那就用 <code>prefetch</code>，浏览器会以最低优先级 <code>Lowest</code> 在空闲时提前加载，需要的页面直接从 <code>prefetch cache</code> 里取：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208105625448.png" alt="prefetch 命中缓存的效果"></p>
+<p>一句话区分，<code>preload</code> 是「这个页面马上要用」，<code>prefetch</code> 是「下个页面可能会用」。用反了会抢占关键资源的带宽。</p>
+<p>webpack 也支持这两个属性，写成魔法注释就行，可参考 <a href="https://www.cnblogs.com/skychx/p/webpack-webpackChunkName-webpackPreload-webpackPreload.html">webpackPrefetch 和 webpackPreload</a>。</p>
+<h3 id="9-3-图片懒加载"><a href="#9-3-图片懒加载" class="headerlink" title="9.3 图片懒加载"></a>9.3 图片懒加载</h3><p>最朴素的做法是先放一张体积极小的占位图，滚到视口附近再换成真图：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208105717958.png" alt="占位图方式的图片懒加载"></p>
+<p>进一步是渐进式图片，先出一张模糊的低清版本，清晰版本下完再替换，视觉上是逐渐变清楚的过程，比突然蹦出来舒服：</p>
+<p><img src="https://blog.poetries.top/img/static/images/image-20210208105747314.png" alt="渐进式图片的加载过程"></p>
+<p>这种要在设计出稿时就指定格式，JPEG 存成 progressive、PNG 用交错模式，前端这边改不了。</p>
+<p>再往上是响应式图片，让浏览器根据视口宽度自己挑合适尺寸，手机上就别下 1200px 的图了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;img src=&quot;./img/index.jpg&quot; sizes=&quot;100vw&quot; srcset=&quot;./img/dog.jpg 800w, ./img/index.jpg 1200w&quot;/&gt;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://p9-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/7427e9243791461b8ffa49f47981cfba~tplv-k3u1fbpfcp-watermark.image?imageslim" alt="响应式图片按视口选择资源"></p>
+<p><code>srcset</code> 里的 <code>800w</code> 是图片的真实像素宽度，<code>sizes</code> 描述的是图片在布局中会占多宽。两者配合浏览器才能算对，只写 <code>srcset</code> 不写 <code>sizes</code> 的话浏览器会按 100vw 估算，小图容器上会挑到过大的资源。</p>
+<p>补一句现在的做法，纯粹的「滚到再加载」已经不需要写 JS 了，<code>&lt;img loading=&quot;lazy&quot;&gt;</code> 原生属性主流浏览器都支持，一个属性搞定。上面那些手写 <code>IntersectionObserver</code> 的方案，留给需要精细控制加载时机的场景就行。</p>
+<h3 id="9-4-路由懒加载"><a href="#9-4-路由懒加载" class="headerlink" title="9.4 路由懒加载"></a>9.4 路由懒加载</h3><p>通过函数加 <code>import()</code> 实现，webpack 会自动把它切成独立 chunk：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const Page404 = () =&gt; import(/* webpackChunkName: &quot;error&quot; */&#x27;@views/errorPage/404&#x27;);</span><br></pre></td></tr></table></figure>
 
-
-
-<h2 id="十、ssr-react-snap"><a href="#十、ssr-react-snap" class="headerlink" title="十、ssr &amp;&amp; react-snap"></a>十、ssr &amp;&amp; react-snap</h2><ul>
-<li>服务端渲染<code>SSR</code>，vue使用<code>nuxt.js</code>，<code>react</code>使用<code>next.js</code></li>
-<li><code>react-snap</code>可以借助<code>Puppeteer</code>实现先渲染单页，然后保留<code>DOM</code>，发送到客户端</li>
+<p><code>webpackChunkName</code> 那段魔法注释别嫌麻烦，产物文件名带上语义之后，出问题时看 Network 一眼就知道是哪个页面的包在拖慢加载。多个路由用同一个 chunkName 还能把它们合并成一个包，适合那种几个小页面各自单独打包反而不划算的场景。</p>
+<h2 id="十、SSR-与-react-snap"><a href="#十、SSR-与-react-snap" class="headerlink" title="十、SSR 与 react-snap"></a>十、SSR 与 react-snap</h2><p>上面所有手段都在优化「资源什么时候到」，服务端渲染换的是另一条思路，让用户拿到的第一份 HTML 里就已经有内容。</p>
+<ul>
+<li>服务端渲染 SSR，Vue 用 <code>nuxt.js</code>，React 用 <code>next.js</code></li>
+<li><code>react-snap</code> 借助 <code>Puppeteer</code> 在构建时把单页预渲染一遍，保留渲染后的 DOM 发给客户端</li>
 </ul>
-<h2 id="十一、体验优化"><a href="#十一、体验优化" class="headerlink" title="十一、体验优化"></a>十一、体验优化</h2><h3 id="白屏loading"><a href="#白屏loading" class="headerlink" title="白屏loading"></a>白屏loading</h3><p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/41557f3a361c4cf899a4eab3bde79154~tplv-k3u1fbpfcp-watermark.image" alt="img"></p>
-<p><strong>loading.html</strong> 需要自取哦，还有种方式，使用<code>webpack</code>插件<code>HtmlWebpackPlugin</code>将loading资源插入到页面中</p>
+<p>两者的区别是 SSR 每次请求都在服务端渲染，能处理动态内容但要养一台 Node 服务；<code>react-snap</code> 属于构建时预渲染，产物还是纯静态文件，部署成本几乎为零，代价是只适合内容不随用户变化的页面。营销页、文档站这类用后者就够了。</p>
+<h2 id="十一、体验优化"><a href="#十一、体验优化" class="headerlink" title="十一、体验优化"></a>十一、体验优化</h2><h3 id="白屏-loading"><a href="#白屏-loading" class="headerlink" title="白屏 loading"></a>白屏 loading</h3><p>单页应用在 JS 加载执行完之前是彻底空白的，给一个动画至少让用户知道页面在动：</p>
+<p><img src="https://p6-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/41557f3a361c4cf899a4eab3bde79154~tplv-k3u1fbpfcp-watermark.image" alt="白屏期间的 loading 动画"></p>
+<p>关键点在于这段 loading 必须是纯 HTML 加 CSS 内联在 <code>index.html</code> 里，不能依赖任何 JS 或外部资源，否则它自己也得等加载，就失去意义了。可以用 <code>HtmlWebpackPlugin</code> 在构建时把 loading 资源插进页面。</p>
+<p>完整的 <code>loading.html</code> 需要自取：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Loading<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span><span class="language-css"></span></span><br><span class="line"><span class="language-css">      <span class="selector-tag">body</span> &#123;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">margin</span>: <span class="number">0</span>;</span></span><br><span class="line"><span class="language-css">      &#125;</span></span><br><span class="line"><span class="language-css">      <span class="selector-id">#loadding</span> &#123;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">position</span>: fixed;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">top</span>: <span class="number">0</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">bottom</span>: <span class="number">0</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">display</span>: flex;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">width</span>: <span class="number">100%</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">align-items</span>: center;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">justify-content</span>: center;</span></span><br><span class="line"><span class="language-css">      &#125;</span></span><br><span class="line"><span class="language-css">      <span class="selector-id">#loadding</span> &gt; <span class="selector-tag">span</span> &#123;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">display</span>: inline-block;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">width</span>: <span class="number">8px</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">height</span>: <span class="number">100%</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">margin-right</span>: <span class="number">5px</span>;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">border-radius</span>: <span class="number">4px</span>;</span></span><br><span class="line"><span class="language-css">        -webkit-<span class="attribute">animation</span>: load <span class="number">1.04s</span> ease infinite;</span></span><br><span class="line"><span class="language-css">        <span class="attribute">animation</span>: load <span class="number">1.04s</span> ease infinite;</span></span><br><span class="line"><span class="language-css">      &#125;</span></span><br><span class="line"><span class="language-css">      <span class="keyword">@keyframes</span> load &#123;</span></span><br><span class="line"><span class="language-css">        <span class="number">0%</span>,</span></span><br><span class="line"><span class="language-css">        <span class="number">100%</span> &#123;</span></span><br><span class="line"><span class="language-css">          <span class="attribute">height</span>: <span class="number">40px</span>;</span></span><br><span class="line"><span class="language-css">          <span class="attribute">background</span>: <span class="number">#98beff</span>;</span></span><br><span class="line"><span class="language-css">        &#125;</span></span><br><span class="line"><span class="language-css">        <span class="number">50%</span> &#123;</span></span><br><span class="line"><span class="language-css">          <span class="attribute">height</span>: <span class="number">60px</span>;</span></span><br><span class="line"><span class="language-css">          <span class="attribute">margin-top</span>: -<span class="number">20px</span>;</span></span><br><span class="line"><span class="language-css">          <span class="attribute">background</span>: <span class="number">#3e7fee</span>;</span></span><br><span class="line"><span class="language-css">        &#125;</span></span><br><span class="line"><span class="language-css">      &#125;</span></span><br><span class="line"><span class="language-css">    </span><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;loadding&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">span</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">span</span> <span class="attr">style</span>=<span class="string">&quot;animation-delay: 0.13s&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">span</span> <span class="attr">style</span>=<span class="string">&quot;animation-delay: 0.26s&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">span</span> <span class="attr">style</span>=<span class="string">&quot;animation-delay: 0.39s&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">span</span> <span class="attr">style</span>=<span class="string">&quot;animation-delay: 0.52s&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&quot;DOMContentLoaded&quot;</span>, <span class="function">() =&gt;</span> &#123;</span></span><br><span class="line"><span class="language-javascript">      <span class="keyword">const</span> $loadding = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;loadding&quot;</span>);</span></span><br><span class="line"><span class="language-javascript">      <span class="keyword">if</span> (!$loadding) &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="keyword">return</span>;</span></span><br><span class="line"><span class="language-javascript">      &#125;</span></span><br><span class="line"><span class="language-javascript">      $loadding.<span class="property">style</span>.<span class="property">display</span> = <span class="string">&quot;none&quot;</span>;</span></span><br><span class="line"><span class="language-javascript">      $loadding.<span class="property">parentNode</span>.<span class="title function_">removeChild</span>($loadding);</span></span><br><span class="line"><span class="language-javascript">    &#125;);</span></span><br><span class="line"><span class="language-javascript">  </span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
+<p>动画本身靠 <code>@keyframes</code> 改高度，五个 <code>span</code> 用不同的 <code>animation-delay</code> 错开就有了波浪效果，全程只动 <code>height</code> 和 <code>margin-top</code>。这两个属性会触发布局，元素少的时候无所谓，如果你要做更复杂的加载动画，尽量只用 <code>transform</code> 和 <code>opacity</code>，它们能走合成器不占主线程。</p>
+<p>移除时机选在 <code>DOMContentLoaded</code>，也就是 DOM 结构就绪的那一刻。如果你的应用要等数据回来才有内容，那这里移得太早，用户会看到 loading 消失后又是一片白，改成由框架在首屏渲染完成后手动移除更合适。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>性能优化的顺序应该是先量再改。Network 的瀑布流告诉你锅在网络、服务端还是资源体积，Lighthouse 给你一个能拿去开会的分数，Performance 定位到具体哪一行代码，WebPageTest 模拟真实的弱网和海外场景，<code>webpack-bundle-analyzer</code> 和 <code>source-map-explorer</code> 负责产物侧。线上长期监控则靠 <code>PerformanceObserver</code> 和 Navigation Timing 自己采数据上报。</p>
+<p>具体手段可以归到三条线。加载这条线上，Gzip 对文本资源收益最大，<code>terser-webpack-plugin</code> 和 <code>css-minimizer-webpack-plugin</code> 各管一摊（<code>mini-css-extract-plugin</code> 只负责抽离不负责压缩），<code>splitChunks</code> 把三方库和公共代码拆出去吃缓存，<code>preload</code> 管本页关键资源、<code>prefetch</code> 管下一页，图片用 <code>loading=&quot;lazy&quot;</code> 加响应式 <code>srcset</code>，路由用 <code>import()</code> 切包。</p>
+<p>渲染这条线上，最值钱的是避免强制同步布局，读写分离用 <code>fastdom</code> 或者手动分批，动画尽量只碰 <code>transform</code> 和 <code>opacity</code>。列表上万条再考虑虚拟化，骨架屏和白屏 loading 优化的是感知时间，性价比往往比抠毫秒更高。</p>
+<p>缓存这条线上记住一条铁律，带 hash 的静态资源走长强缓存，入口 <code>index.html</code> 必须走协商缓存。Service Worker 能显著加速二次访问，但更新策略配错会把用户锁在旧版本上，上线前一定要把失效路径想清楚。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Performance_API">MDN - Performance API</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/PerformanceObserver">MDN - PerformanceObserver</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Page_Visibility_API">MDN - Page Visibility API</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTML/Attributes/rel/preload">MDN - rel&#x3D;preload 预加载内容</a></li>
+<li><a href="https://web.dev/articles/vitals">web.dev - Core Web Vitals</a></li>
+<li><a href="https://webpack.js.org/plugins/split-chunks-plugin/">webpack - SplitChunksPlugin</a></li>
+<li><a href="https://developer.yahoo.com/performance/rules.html">Yahoo - Best Practices for Speeding Up Your Web Site</a></li>
+<li><a href="https://github.com/wilsonpage/fastdom">github fastdom</a></li>
+<li><a href="https://github.com/bvaughn/react-window">react-window</a></li>
+<li><a href="https://harttle.land/2017/04/04/using-http-cache.html">使用 HTTP 缓存：Etag, Last-Modified 与 Cache-Control</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

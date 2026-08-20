@@ -7,23 +7,23 @@
 <head>
   <meta charset="utf-8">
   
-  <title>拯救磁盘空间 为什么pnpm是更好的包管理工具 | 前端进阶之旅</title>
+  <title>拯救磁盘空间 为什么 pnpm 是更好的包管理工具 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="前端工程化,pnpm,npm,yarn,包管理工具,Workspace," />
+    <meta name="keywords" content="前端工程化,pnpm,npm,yarn,包管理工具,Workspace,monorepo," />
   
 
-  <meta name="description" content="深度解读pnpm包管理工具，对比npm&#x2F;yarn的差异，详解硬链接与软链接原理，分析pnpm的性能优势、磁盘空间优化和安全性保障，包含Workspace工作空间完整用法。">
+  <meta name="description" content="从 npm 早期嵌套 node_modules 到扁平化带来的幽灵依赖，讲清 pnpm 的硬链接与软链接机制、内容寻址存储、虚拟存储目录 .pnpm 的结构原理，以及 Workspace 工作空间的完整用法和踩坑点。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="拯救磁盘空间 为什么pnpm是更好的包管理工具">
+<meta property="og:title" content="拯救磁盘空间 为什么 pnpm 是更好的包管理工具">
 <meta property="og:url" content="http://blog.poetries.top/2023/05/26/pnpm-package-manager-guide/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="深度解读pnpm包管理工具，对比npm&#x2F;yarn的差异，详解硬链接与软链接原理，分析pnpm的性能优势、磁盘空间优化和安全性保障，包含Workspace工作空间完整用法。">
+<meta property="og:description" content="从 npm 早期嵌套 node_modules 到扁平化带来的幽灵依赖，讲清 pnpm 的硬链接与软链接机制、内容寻址存储、虚拟存储目录 .pnpm 的结构原理，以及 Workspace 工作空间的完整用法和踩坑点。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2023-05-26T06:40:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.682Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.948Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="前端工程化">
 <meta property="article:tag" content="pnpm">
@@ -31,6 +31,7 @@
 <meta property="article:tag" content="yarn">
 <meta property="article:tag" content="包管理工具">
 <meta property="article:tag" content="Workspace">
+<meta property="article:tag" content="monorepo">
 <meta name="twitter:card" content="summary">
 
   
@@ -209,7 +210,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%9B%B4%E5%A5%BD%E7%9A%84%E5%8C%85%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7"><span class="toc-text">一、为什么需要更好的包管理工具</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-npm%E4%B8%8Eyarn%E7%9A%84%E5%8F%91%E5%B1%95%E5%8E%86%E7%A8%8B"><span class="toc-text">1.1 npm与yarn的发展历程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%89%81%E5%B9%B3%E5%8C%96%E4%BE%9D%E8%B5%96%E5%B8%A6%E6%9D%A5%E7%9A%84%E6%96%B0%E9%97%AE%E9%A2%98"><span class="toc-text">1.2 扁平化依赖带来的新问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81pnpm%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">二、pnpm是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81pnpm%E6%A0%B8%E5%BF%83%E4%BC%98%E5%8A%BF"><span class="toc-text">三、pnpm核心优势</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%89%E8%A3%85%E9%80%9F%E5%BA%A6%E5%BF%AB"><span class="toc-text">3.1 安装速度快</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%8A%82%E7%9C%81%E7%A3%81%E7%9B%98%E7%A9%BA%E9%97%B4"><span class="toc-text">3.2 节省磁盘空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%AE%89%E5%85%A8%E6%80%A7%E9%AB%98"><span class="toc-text">3.3 安全性高</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E6%94%AF%E6%8C%81Monorepo"><span class="toc-text">3.4 支持Monorepo</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81pnpm%E4%BE%9D%E8%B5%96%E7%AE%A1%E7%90%86%E5%8E%9F%E7%90%86"><span class="toc-text">四、pnpm依赖管理原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-npm-yarn%E7%9A%84%E5%AE%89%E8%A3%85%E5%8E%9F%E7%90%86"><span class="toc-text">4.1 npm&#x2F;yarn的安装原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-node-modules%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">4.2 node_modules目录结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BD%AF%E9%93%BE%E6%8E%A5%E4%B8%8E%E7%A1%AC%E9%93%BE%E6%8E%A5%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-text">4.3 软链接与硬链接的协作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81pnpm%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4-Workspace-%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97"><span class="toc-text">五、pnpm工作空间(Workspace)完全指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%BB%80%E4%B9%88%E6%98%AFMonorepo"><span class="toc-text">5.1 什么是Monorepo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%88%9B%E5%BB%BAWorkspace%E9%A1%B9%E7%9B%AE"><span class="toc-text">5.2 创建Workspace项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-Workspace%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">5.3 Workspace常用命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-Workspace%E5%86%85%E9%83%A8%E4%BE%9D%E8%B5%96"><span class="toc-text">5.4 Workspace内部依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-5-%E5%8F%91%E5%B8%83%E9%85%8D%E7%BD%AE"><span class="toc-text">5.5 发布配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81pnpm%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-text">六、pnpm基本使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96"><span class="toc-text">6.1 安装依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E6%9B%B4%E6%96%B0%E4%B8%8E%E5%8D%B8%E8%BD%BD"><span class="toc-text">6.2 更新与卸载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%BF%90%E8%A1%8C%E8%84%9A%E6%9C%AC"><span class="toc-text">6.3 运行脚本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%85%B6%E4%BB%96%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">6.4 其他常用命令</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%B8%89%E8%80%85%E5%8A%9F%E8%83%BD%E5%AF%B9%E6%AF%94%E4%B8%80%E8%A7%88"><span class="toc-text">七、三者功能对比一览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%B7%AE%E5%BC%82%E8%A7%A3%E8%AF%BB"><span class="toc-text">核心差异解读</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">八、总结</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81npm-%E6%97%A9%E6%9C%9F%E7%9A%84%E5%B5%8C%E5%A5%97-node-modules-%E6%98%AF%E6%80%8E%E4%B9%88%E6%8A%8A%E8%87%AA%E5%B7%B1%E5%9D%91%E6%AD%BB%E7%9A%84"><span class="toc-text">一、npm 早期的嵌套 node_modules 是怎么把自己坑死的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%89%81%E5%B9%B3%E5%8C%96%E8%A7%A3%E5%86%B3%E4%BA%86%E8%80%81%E9%97%AE%E9%A2%98%EF%BC%8C%E5%8F%88%E9%80%A0%E5%87%BA%E4%B8%89%E4%B8%AA%E6%96%B0%E9%97%AE%E9%A2%98"><span class="toc-text">二、扁平化解决了老问题，又造出三个新问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81pnpm-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">三、pnpm 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81pnpm-%E5%BF%AB%E5%9C%A8%E5%93%AA%EF%BC%8C%E7%9C%81%E5%9C%A8%E5%93%AA"><span class="toc-text">四、pnpm 快在哪，省在哪</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%AE%89%E8%A3%85%E9%80%9F%E5%BA%A6"><span class="toc-text">4.1 安装速度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%8A%82%E7%9C%81%E7%A3%81%E7%9B%98%E7%A9%BA%E9%97%B4"><span class="toc-text">4.2 节省磁盘空间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-text">4.3 安全性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%AF%B9-monorepo-%E7%9A%84%E6%94%AF%E6%8C%81"><span class="toc-text">4.4 对 monorepo 的支持</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81pnpm-%E7%9A%84-node-modules-%E7%BB%93%E6%9E%84%E6%8B%86%E8%A7%A3"><span class="toc-text">五、pnpm 的 node_modules 结构拆解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%88%E7%9C%8B-npm-yarn-%E6%98%AF%E6%80%8E%E4%B9%88%E8%A3%85%E7%9A%84"><span class="toc-text">5.1 先看 npm&#x2F;yarn 是怎么装的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E8%A3%85%E4%B8%80%E4%B8%AA-express-%E7%9C%8B%E7%9C%8B%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-text">5.2 装一个 express 看看长什么样</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%BD%AF%E9%93%BE%E6%8E%A5%E5%92%8C%E7%A1%AC%E9%93%BE%E6%8E%A5%E6%98%AF%E6%80%8E%E4%B9%88%E9%85%8D%E5%90%88%E7%9A%84"><span class="toc-text">5.3 软链接和硬链接是怎么配合的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81pnpm-%E5%B7%A5%E4%BD%9C%E7%A9%BA%E9%97%B4-Workspace-%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97"><span class="toc-text">六、pnpm 工作空间 Workspace 完全指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%BB%80%E4%B9%88%E6%98%AF-Monorepo"><span class="toc-text">6.1 什么是 Monorepo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%88%9B%E5%BB%BA-Workspace-%E9%A1%B9%E7%9B%AE"><span class="toc-text">6.2 创建 Workspace 项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">6.3 常用命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-Workspace-%E5%86%85%E9%83%A8%E4%BE%9D%E8%B5%96"><span class="toc-text">6.4 Workspace 内部依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E5%8F%91%E5%B8%83%E9%85%8D%E7%BD%AE"><span class="toc-text">6.5 发布配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%97%A5%E5%B8%B8%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-text">七、日常命令速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E4%B8%89%E8%80%85%E5%8A%9F%E8%83%BD%E5%AF%B9%E6%AF%94%E4%B8%80%E8%A7%88"><span class="toc-text">八、三者功能对比一览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E5%88%AB%E6%80%A5%E7%9D%80%E6%8D%A2-pnpm"><span class="toc-text">九、什么情况下别急着换 pnpm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -232,13 +233,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-pnpm-package-manager-guide" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">拯救磁盘空间 为什么pnpm是更好的包管理工具</h1>
+    <h1 class="post-title">拯救磁盘空间 为什么 pnpm 是更好的包管理工具</h1>
 
     <div class="article-meta">
       <span>
@@ -274,12 +275,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 3.2k字</span>
+            <span>字数统计 5.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 12分</span>
+            <span>阅读时长 20分</span>
           </span>
       
       
@@ -293,125 +294,140 @@
   <div class="article-content">
     
       <div id="container">
-        <p>在前端开发中，我们每天都会与各种<code>npm</code>包打交道，选择一个合适的包管理工具能显著提升开发体验和构建效率。近年来，<code>pnpm</code>作为一款新兴的包管理工具逐渐受到越来越多开发者青睐，它究竟有何魅力能让众多开源项目纷纷转投其怀抱？本文将带你深入了解<code>pnpm</code>的原理与优势。</p>
-<h2 id="一、为什么需要更好的包管理工具"><a href="#一、为什么需要更好的包管理工具" class="headerlink" title="一、为什么需要更好的包管理工具"></a>一、为什么需要更好的包管理工具</h2><h3 id="1-1-npm与yarn的发展历程"><a href="#1-1-npm与yarn的发展历程" class="headerlink" title="1.1 npm与yarn的发展历程"></a>1.1 npm与yarn的发展历程</h3><p>在早期<code>npm 1</code>、<code>npm 2</code>时代，项目的<code>node_modules</code>会呈现出嵌套结构：</p>
+        <p>有天我清理 <code>Mac</code> 硬盘，跑了一句 <code>du -sh ~/projects/*/node_modules</code>，结果加起来三十多个 G。十几个项目，每个都装了自己那一份 <code>react</code>、<code>lodash</code>、<code>webpack</code>，同一个版本的同一份代码在磁盘上被写了十几遍。删了一轮，过两周装回来又是三十个 G。</p>
+<p>这就是我当初换 <code>pnpm</code> 的直接动机。后来用下来发现省空间只是它顺手做到的事，真正让我不想再回去的是它把 <code>node_modules</code> 那套混乱的扁平结构给理清楚了。这篇把 <code>pnpm</code> 为什么这么设计、它的软硬链接到底怎么工作、<code>Workspace</code> 怎么用，从头捋一遍。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>npm</code> 早期的嵌套 <code>node_modules</code> 踩过哪三个坑，为什么后来全行业改成扁平化</li>
+<li>扁平化又带来了幽灵依赖、结构不确定、非法访问这三个新问题</li>
+<li>硬链接和软链接的区别，以及 <code>pnpm</code> 的内容寻址存储是怎么省下磁盘的</li>
+<li><code>node_modules/.pnpm</code> 这个虚拟存储目录的结构长什么样，为什么这么设计</li>
+<li><code>Workspace</code> 从建目录到 <code>filter</code> 过滤、内部依赖、发布配置的完整用法</li>
+<li><code>pnpm</code> &#x2F; <code>yarn</code> &#x2F; <code>npm</code> 的功能对比，以及什么情况下别用 <code>pnpm</code></li>
+</ul>
+<h2 id="一、npm-早期的嵌套-node-modules-是怎么把自己坑死的"><a href="#一、npm-早期的嵌套-node-modules-是怎么把自己坑死的" class="headerlink" title="一、npm 早期的嵌套 node_modules 是怎么把自己坑死的"></a>一、npm 早期的嵌套 node_modules 是怎么把自己坑死的</h2><p>在早期 <code>npm 1</code>、<code>npm 2</code> 的年代，项目的 <code>node_modules</code> 是严格的嵌套结构，你依赖谁，谁的依赖就装在谁自己的目录里：</p>
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">└─ foo</span><br><span class="line">   ├─ index.js</span><br><span class="line">   ├─ package.json</span><br><span class="line">   └─ node_modules</span><br><span class="line">      └─ bar</span><br><span class="line">         ├─ index.js</span><br><span class="line">         └─ package.json</span><br></pre></td></tr></table></figure>
 
-<p>这种嵌套依赖树设计存在三个严重问题：</p>
-<p><strong>问题一：依赖层级太深</strong></p>
-<p>这会导致文件的路径过长的问题，尤其在Windows系统下文件路径默认最多支持256个字符。</p>
-<p><strong>问题二：包重复安装</strong></p>
-<p>比如<code>foo</code>和<code>zoo</code>都依赖于<code>bar</code>，那么<code>bar</code>就会在两者的<code>node_modules</code>中被安装两次，导致项目体积暴涨。</p>
-<p><strong>问题三：模块实例不能共享</strong></p>
-<p>比如React有一些内部变量，在两个不同包引入的React不是同一个模块实例，因此无法共享内部变量，导致一些不可预知的bug。</p>
-<p>后来<code>yarn</code>横空出世解决了这些问题，<code>npm</code>也在3.0版本中沿用了<code>yarn</code>的解决方案，这个解决方案就是<strong>扁平化依赖</strong>。</p>
-<h3 id="1-2-扁平化依赖带来的新问题"><a href="#1-2-扁平化依赖带来的新问题" class="headerlink" title="1.2 扁平化依赖带来的新问题"></a>1.2 扁平化依赖带来的新问题</h3><p>所谓的扁平化依赖就是将所有依赖铺平，放到同一级目录下：</p>
+<p>这个结构其实很符合直觉，依赖关系一目了然。但它有三个致命问题。</p>
+<p><strong>问题一是依赖层级太深</strong>。依赖套依赖套依赖，路径长度会指数级增长。这在 <code>Windows</code> 上直接要命，因为文件路径默认最多支持 256 个字符，层级一深就会出现「路径过长导致文件删不掉」这种诡异情况，很多老前端应该都被这个折磨过。</p>
+<p><strong>问题二是包重复安装</strong>。比如 <code>foo</code> 和 <code>zoo</code> 都依赖于 <code>bar</code>，那么 <code>bar</code> 就会在两者的 <code>node_modules</code> 中被安装两次。项目一大，同一个包被装几十份是常态，磁盘和安装时间都撑不住。</p>
+<p><strong>问题三是模块实例不能共享</strong>。这个最阴。<code>React</code> 有一些内部变量（比如那个著名的 hooks dispatcher），如果两个包各自引入了自己那份 <code>React</code>，它们拿到的<strong>不是同一个模块实例</strong>，内部变量自然对不上，跑出来就是各种玄学 bug。<code>Invalid hook call</code> 那个经典报错里专门列了「你可能有多份 React」这一条原因，说的就是这个。</p>
+<p>后来 <code>yarn</code> 横空出世解决了这些问题，<code>npm</code> 也在 3.0 版本中沿用了 <code>yarn</code> 的解决方案，这个方案就是<strong>扁平化依赖</strong>。</p>
+<h2 id="二、扁平化解决了老问题，又造出三个新问题"><a href="#二、扁平化解决了老问题，又造出三个新问题" class="headerlink" title="二、扁平化解决了老问题，又造出三个新问题"></a>二、扁平化解决了老问题，又造出三个新问题</h2><p>所谓扁平化，就是把所有依赖（包括依赖的依赖）都铺平，尽量放到 <code>node_modules</code> 的同一级目录下：</p>
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">├─ foo</span><br><span class="line">│  ├─ index.js</span><br><span class="line">│  └─ package.json</span><br><span class="line">└─ bar</span><br><span class="line">   ├─ index.js</span><br><span class="line">   └─ package.json</span><br></pre></td></tr></table></figure>
 
-<p>虽然之前的问题得到了解决，但这种扁平化的处理方式自身也存在许多问题：</p>
-<p><strong>问题一：幽灵依赖</strong></p>
-<p>所谓的幽灵依赖是指我们明明没有在<code>package.json</code>的<code>dependencies</code>里声明某个依赖，但在代码里却可以<code>import</code>进来。因为项目依赖被铺平了，那么依赖的依赖自然也是可以被引入到项目中。</p>
-<p>幽灵依赖带来的弊端很明显：我们显式依赖了A，A又依赖了B，这时候我们在项目中直接使用B是可以的，但如果某一天A不再依赖于B，那么我们项目中使用B的地方就会报错。</p>
-<p><strong>问题二：依赖结构不确定性</strong></p>
-<p>举例来说，如果项目同时依赖<code>foo</code>和<code>bar</code>，而它们都依赖不同版本的<code>lodash</code>，那么最终安装哪个版本是不确定的，完全取决于<code>package.json</code>中的声明顺序。</p>
-<p>这就是为什么会产生依赖结构的<code>不确定</code>问题，也是<code>lock文件</code>诞生的原因，无论是<code>package-lock.json</code>还是<code>yarn.lock</code>，都是为了保证install之后都产生确定的<code>node_modules</code>结构。</p>
-<p><strong>问题三：非法访问依赖</strong></p>
-<p>由于扁平化结构，如果A依赖B，B依赖C，那么A当中是可以直接使用C的，但A并没有声明C这个依赖，这就是非法访问。</p>
-<p>在monorepo项目中，如果A依赖X，B依赖X，还有一个C，它不依赖X，但它代码里面用到了X。由于依赖提升的存在，npm&#x2F;yarn会把X放到根目录的node_modules中，这样C在本地是能够跑起来的。但试想一下，一旦C单独发包出去，用户单独安装C，那么就找不到X了，执行到引用X的代码时就直接报错了。</p>
-<p>正是这些问题促使了<code>pnpm</code>的诞生。</p>
-<h2 id="二、pnpm是什么"><a href="#二、pnpm是什么" class="headerlink" title="二、pnpm是什么"></a>二、pnpm是什么</h2><p><code>pnpm</code>（Performant NPM）是一个<strong>快速的</strong>、<strong>节省磁盘空间</strong>的包管理工具，同时它还对<code>monorepo</code>有良好的支持。</p>
+<p><code>Node</code> 的模块解析规则是逐层向上找 <code>node_modules</code>，所以铺平之后 <code>foo</code> 依然能找到 <code>bar</code>。层级深、重复装、实例不共享这三个问题一次性解决了。</p>
+<p>但这套处理方式自己也带来了新麻烦。</p>
+<p><strong>幽灵依赖</strong>。你明明没有在 <code>package.json</code> 的 <code>dependencies</code> 里声明某个包，代码里却能直接 <code>require</code> 或 <code>import</code> 进来。因为它是被依赖的依赖提升上来的，物理上就躺在 <code>node_modules</code> 根目录，<code>Node</code> 当然找得到。</p>
+<p>这东西的危害不在当下，在未来。你显式依赖了 A，A 依赖了 B，你在项目里直接用 B 一点问题没有。但某天 A 升级不再依赖 B 了，或者 A 把 B 换成了别的版本，你项目里所有用 B 的地方就集体报错，而你的 <code>package.json</code> 上看不出任何线索。这个我踩过，排查了一下午才想明白是自己一直在偷用一个从没声明过的包。</p>
+<p><strong>依赖结构不确定</strong>。假设项目同时依赖 <code>foo</code> 和 <code>bar</code>，两者又依赖不同版本的 <code>lodash</code>。谁的版本被提升到根目录、谁被留在自己的 <code>node_modules</code> 里，取决于 <code>package.json</code> 里的声明顺序和解析先后。同样一份 <code>package.json</code>，两台机器装出来的 <code>node_modules</code> 结构可能不一样。</p>
+<p>这正是 <code>lock</code> 文件诞生的原因。无论是 <code>package-lock.json</code> 还是 <code>yarn.lock</code>，都是为了把这个不确定的结构钉死，保证每次 <code>install</code> 之后产生一致的结果。</p>
+<p><strong>非法访问依赖</strong>。跟幽灵依赖是一体两面，但在 <code>monorepo</code> 里危害更大。假设包 A 依赖 X、包 B 依赖 X，还有一个包 C 不依赖 X 但代码里用了 X。由于依赖提升，X 被放在了根目录的 <code>node_modules</code>，C 在本地跑得好好的。可一旦 C 被单独发布出去，用户单独安装 C，运行到引用 X 的代码就直接崩了。<strong>本地跑通不代表发出去能跑</strong>，这类问题往往要到用户手上才暴露。</p>
+<p>正是这些问题促使了 <code>pnpm</code> 的诞生。</p>
+<h2 id="三、pnpm-是什么"><a href="#三、pnpm-是什么" class="headerlink" title="三、pnpm 是什么"></a>三、pnpm 是什么</h2><p><code>pnpm</code>（<code>Performant NPM</code>）是一个快速的、节省磁盘空间的包管理工具，同时它对 <code>monorepo</code> 有原生的良好支持。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装pnpm</span></span><br><span class="line">npm i pnpm -g</span><br></pre></td></tr></table></figure>
 
-<p>它的用处与<code>npm</code>和<code>yarn</code>并没有什么本质区别，甚至连用法都十分相似，但却在性能和安全性方面有显著优势。</p>
-<h2 id="三、pnpm核心优势"><a href="#三、pnpm核心优势" class="headerlink" title="三、pnpm核心优势"></a>三、pnpm核心优势</h2><h3 id="3-1-安装速度快"><a href="#3-1-安装速度快" class="headerlink" title="3.1 安装速度快"></a>3.1 安装速度快</h3><p>根据官方文档的benchmark测试数据，<code>pnpm</code>在大多数场景下的安装速度都要优于<code>npm</code>和<code>yarn</code>。</p>
-<p>可以看到，<code>pnpm</code>在绝多大数场景下，包安装的速度都是明显优于<code>npm/yarn</code>，速度会比<code>npm/yarn</code>快2-3倍。</p>
-<p>对yarn比较熟悉的同学可能会说，yarn不是有<code>PnP安装模式</code>吗？直接去掉<code>node_modules</code>，将依赖包内容写在磁盘，节省了node文件I&#x2F;O的开销，这样也能提升安装速度。</p>
-<p>但总体而言，<code>pnpm</code>的包安装速度还是明显优于<code>yarn</code> <code>npm</code>。</p>
-<p>这是因为<code>pnpm</code>采用了并行的网络请求和本地缓存策略，减少了等待时间。</p>
-<h3 id="3-2-节省磁盘空间"><a href="#3-2-节省磁盘空间" class="headerlink" title="3.2 节省磁盘空间"></a>3.2 节省磁盘空间</h3><p><code>pnpm</code>内部使用**基于内容寻址存储（CAS - Content-addressable store）**的方式来存储依赖。</p>
-<p><strong>硬链接与软链接机制</strong></p>
+<p>现在更推荐的装法是用 <code>Node</code> 自带的 <code>Corepack</code>，在项目 <code>package.json</code> 里写一行 <code>&quot;packageManager&quot;: &quot;pnpm@9.x.x&quot;</code>，然后 <code>corepack enable</code>，团队所有人用的版本就自动对齐了，不用挨个叮嘱「你的 pnpm 版本是多少」。原文那种全局 <code>npm i -g</code> 的装法当然也能用，只是版本容易在团队里跑偏。</p>
+<p>它的用处和 <code>npm</code>、<code>yarn</code> 没有本质区别，命令都长得差不多，<code>pnpm install</code>、<code>pnpm add</code>、<code>pnpm run</code> 上手几乎零成本。差别全在底层怎么组织 <code>node_modules</code>。</p>
+<h2 id="四、pnpm-快在哪，省在哪"><a href="#四、pnpm-快在哪，省在哪" class="headerlink" title="四、pnpm 快在哪，省在哪"></a>四、pnpm 快在哪，省在哪</h2><h3 id="4-1-安装速度"><a href="#4-1-安装速度" class="headerlink" title="4.1 安装速度"></a>4.1 安装速度</h3><p>按官方文档的 benchmark 数据，<code>pnpm</code> 在大多数场景下的安装速度都优于 <code>npm</code> 和 <code>yarn</code>，原文记录的量级是快 2 到 3 倍。这个数字受缓存状态、<code>lock</code> 文件是否存在、网络环境影响很大，你自己项目上跑出来的比例可能完全不同，建议实测再下结论。</p>
+<p>快的原因主要是两条：并行的网络请求，以及本地那个全局 store 的复用。装过一次的包再装就是本地建链接，几乎不耗时。</p>
+<p>对 <code>yarn</code> 熟悉的同学可能会说，<code>yarn</code> 不是有 <code>PnP</code> 安装模式吗，直接干掉 <code>node_modules</code>，把依赖内容写进 <code>.yarn/cache</code>，省掉大量文件 <code>I/O</code>，也能提速。这话没错，<code>PnP</code> 在纯安装速度上确实很猛。不是说 <code>PnP</code> 不行，而是它改变了 <code>Node</code> 的模块解析方式，很多工具链（尤其是那些自己实现了模块查找的老工具）需要专门适配，迁移成本不低。<code>pnpm</code> 走的是「保留 <code>node_modules</code>、但把结构做对」这条更保守的路，兼容性上省心得多。</p>
+<h3 id="4-2-节省磁盘空间"><a href="#4-2-节省磁盘空间" class="headerlink" title="4.2 节省磁盘空间"></a>4.2 节省磁盘空间</h3><p>这才是 <code>pnpm</code> 最直观的杀手锏。它内部使用<strong>基于内容寻址的存储</strong>（<code>Content-addressable store</code>，简称 CAS）来存放依赖，所有包的文件按内容哈希存在一个全局 store 里，项目里的 <code>node_modules</code> 只是指向它的链接。</p>
+<p>要理解这套机制，得先分清两种链接。</p>
 <ul>
-<li><strong>硬链接</strong>（hard link）：多个文件平等地共享同一个文件存储单元</li>
-<li><strong>符号链接&#x2F;软链接</strong>（Symbolic link）：一种特殊的文件，包含有一条指向其它文件或者目录的引用</li>
+<li><strong>硬链接</strong>（hard link）：多个文件名平等地指向磁盘上的同一份数据。删掉其中任何一个都不影响其他，只有当所有硬链接都被删除时，这份数据才真正被回收。</li>
+<li><strong>软链接 &#x2F; 符号链接</strong>（symbolic link）：一个独立的小文件，里面存的是一条指向另一个文件或目录的路径。它相当于 <code>Windows</code> 里的快捷方式，本身的存在不依赖目标文件，目标没了它就变成一个断掉的链接。</li>
 </ul>
-<p>软链接其实很好理解，它就相当于Windows系统中的快捷方式。一个符号链接文件仅包含有一个文本字符串，其被操作系统解释为一条指向另一个文件或者目录的路径。它是一个独立文件，其存在并不依赖于目标文件。</p>
-<p>硬链接可以理解成给同一个文件创建了多个入口，它们都指向磁盘上的同一个存储位置。删除任何一个硬链接不影响其他链接，只有当所有硬链接都被删除时，文件才会被真正删除。</p>
-<p><code>pnpm</code>的磁盘空间优化策略包括：</p>
-<ol>
-<li><p><strong>不会重复安装同一个包</strong>：用<code>npm/yarn</code>的时候，如果100个项目都依赖<code>lodash</code>，那么<code>lodash</code>很可能就被安装了100次，磁盘中就有100个地方写入了这部分代码。但使用<code>pnpm</code>则只会安装一次，磁盘中只有一个地方写入，后面再次使用都会直接使用<strong>硬链接</strong>。</p>
-</li>
-<li><p><strong>不同版本复用</strong>：即使一个包的不同版本，<code>pnpm</code>也会极大程度地复用之前版本的代码。比如<code>lodash</code>有100个文件，更新版本之后多了一个文件，那么磁盘当中并不会重新写入101个文件，而是保留原来100个文件的硬链接，<strong>仅仅写入那一个新增的文件</strong>。</p>
-</li>
-</ol>
-<h3 id="3-3-安全性高"><a href="#3-3-安全性高" class="headerlink" title="3.3 安全性高"></a>3.3 安全性高</h3><p><code>pnpm</code>自创了一套依赖管理方式——<strong>虚拟存储目录</strong>，很好地解决了幽灵依赖和非法访问的问题。</p>
-<p>在<code>pnpm</code>中，只有在<code>package.json</code>中显式声明的依赖才能被访问，未声明的依赖是无法引入的，这保证了项目的安全性。</p>
-<h3 id="3-4-支持Monorepo"><a href="#3-4-支持Monorepo" class="headerlink" title="3.4 支持Monorepo"></a>3.4 支持Monorepo</h3><p><code>pnpm</code>对<code>monorepo</code>的支持体现在各个子命令的功能上：</p>
+<p>差别记住一点就够了：硬链接指向的是<strong>数据本身</strong>，软链接指向的是<strong>路径</strong>。</p>
+<p>有了硬链接，<code>pnpm</code> 的省空间策略就好理解了。</p>
+<p><strong>同一个包只在磁盘上存一份</strong>。用 <code>npm</code> 或 <code>yarn</code> 时，如果 100 个项目都依赖 <code>lodash</code>，<code>lodash</code> 很可能就被完整写入磁盘 100 次。用 <code>pnpm</code> 则只写一次，后面 99 次都是硬链接过去，几乎不占额外空间。</p>
+<p><strong>不同版本之间复用未变的文件</strong>。因为 store 是按文件内容寻址的，假设 <code>lodash</code> 有 100 个文件，升级之后只新增了 1 个、改了 2 个，那磁盘上不会重新写 101 个文件，而是复用没变的那 97 个，只写入新增和改动的那几个。包体越大、版本迭代越频繁，这个收益越明显。</p>
+<p>这里有个前提条件很多人不知道：<strong>硬链接只能在同一个文件系统内建立</strong>。如果你的全局 store 和项目目录不在同一个磁盘分区（比如项目放在外接移动硬盘上），<code>pnpm</code> 建不了硬链接，会退化成直接拷贝，省空间的效果就没了。用 <code>pnpm store path</code> 可以看到 store 的实际位置，遇到「怎么装完还是这么大」的时候先查这个。</p>
+<h3 id="4-3-安全性"><a href="#4-3-安全性" class="headerlink" title="4.3 安全性"></a>4.3 安全性</h3><p><code>pnpm</code> 自创了一套虚拟存储目录的依赖管理方式，把幽灵依赖和非法访问这两个问题从结构上堵死了。</p>
+<p>在 <code>pnpm</code> 装出来的项目里，<code>node_modules</code> 根目录<strong>只会出现你在 <code>package.json</code> 里显式声明过的包</strong>。没声明的，物理上就不在那个位置，<code>Node</code> 的解析规则找不到，代码里 <code>import</code> 直接报错。</p>
+<p>这个设计刚上手会有点不适应，因为它会把你项目里潜藏的幽灵依赖全部暴露出来，从 <code>npm</code> 迁过来第一次跑经常一堆红。但这些错误本来就该报，只是之前被扁平化结构掩盖了而已。</p>
+<h3 id="4-4-对-monorepo-的支持"><a href="#4-4-对-monorepo-的支持" class="headerlink" title="4.4 对 monorepo 的支持"></a>4.4 对 monorepo 的支持</h3><p><code>pnpm</code> 的 <code>monorepo</code> 支持体现在几乎每个子命令上，都能配合 <code>-r</code>（递归）和 <code>--filter</code>（过滤）：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在根目录下执行，所有package都会被添加依赖</span></span><br><span class="line">pnpm add A -r</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用filter指定package</span></span><br><span class="line">pnpm add lodash --filter package-a</span><br></pre></td></tr></table></figure>
 
-<h2 id="四、pnpm依赖管理原理"><a href="#四、pnpm依赖管理原理" class="headerlink" title="四、pnpm依赖管理原理"></a>四、pnpm依赖管理原理</h2><h3 id="4-1-npm-yarn的安装原理"><a href="#4-1-npm-yarn的安装原理" class="headerlink" title="4.1 npm&#x2F;yarn的安装原理"></a>4.1 npm&#x2F;yarn的安装原理</h3><p>当执行<code>npm/yarn install</code>命令之后，首先会构建依赖树，然后针对每个节点下的包会经历以下四个步骤：</p>
+<p>这块第五、六节会展开讲。</p>
+<h2 id="五、pnpm-的-node-modules-结构拆解"><a href="#五、pnpm-的-node-modules-结构拆解" class="headerlink" title="五、pnpm 的 node_modules 结构拆解"></a>五、pnpm 的 node_modules 结构拆解</h2><h3 id="5-1-先看-npm-yarn-是怎么装的"><a href="#5-1-先看-npm-yarn-是怎么装的" class="headerlink" title="5.1 先看 npm&#x2F;yarn 是怎么装的"></a>5.1 先看 npm&#x2F;yarn 是怎么装的</h3><p>执行 <code>npm install</code> 或 <code>yarn install</code> 之后，工具会先构建依赖树，然后对树上的每个节点做四件事：</p>
 <ol>
-<li>将依赖包的版本区间解析为某个具体的版本号</li>
-<li>下载对应版本依赖的tar包到本地离线镜像</li>
-<li>将依赖从离线镜像解压到本地缓存</li>
-<li>将依赖从缓存拷贝到当前目录的node_modules目录</li>
+<li>把依赖包的版本区间解析成一个具体的版本号</li>
+<li>下载对应版本的 tar 包到本地离线镜像</li>
+<li>把依赖从离线镜像解压到本地缓存</li>
+<li>把依赖从缓存<strong>拷贝</strong>到当前目录的 <code>node_modules</code></li>
 </ol>
-<h3 id="4-2-node-modules目录结构"><a href="#4-2-node-modules目录结构" class="headerlink" title="4.2 node_modules目录结构"></a>4.2 node_modules目录结构</h3><p>使用<code>pnpm</code>安装<code>express</code>后，目录结构如下：</p>
+<p>注意最后一步是拷贝。这就是为什么 100 个项目会在磁盘上留下 100 份 <code>lodash</code>。<code>pnpm</code> 改的就是这一步，它不拷贝，改成建链接。</p>
+<h3 id="5-2-装一个-express-看看长什么样"><a href="#5-2-装一个-express-看看长什么样" class="headerlink" title="5.2 装一个 express 看看长什么样"></a>5.2 装一个 express 看看长什么样</h3><p>用 <code>pnpm</code> 安装 <code>express</code> 之后，<code>node_modules</code> 是这样的：</p>
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">node_modules</span><br><span class="line">├─ .pnpm</span><br><span class="line">│  ├─ express@4.17.1</span><br><span class="line">│  │  └─ node_modules</span><br><span class="line">│  │     ├─ accept</span><br><span class="line">│  │     └─ express</span><br><span class="line">│  └─ accepts@1.3.7</span><br><span class="line">│     └─ node_modules</span><br><span class="line">│        └─ accepts</span><br><span class="line">└─ express  → 软链接，指向.pnpm/express@4.17.1/node_modules/express</span><br></pre></td></tr></table></figure>
 
-<p>可以明显感觉到<code>pnpm</code>的目录结构更加合理：项目只依赖了<code>express</code>，那么<code>node_modules</code>中就只存在<code>express</code>的文件。</p>
-<p>展开<code>.pnpm</code>文件夹，我们可以找到其真正的位置：<code>express</code>的真正位置位于<code>.pnpm/express@4.17.1/node_modules/express</code>。</p>
-<p>这也代表了<code>pnpm</code>中的依赖规律，也是<code>&lt;package-name&gt;@version/node_modules/&lt;package-name&gt;</code>这种目录结构。</p>
-<h3 id="4-3-软链接与硬链接的协作"><a href="#4-3-软链接与硬链接的协作" class="headerlink" title="4.3 软链接与硬链接的协作"></a>4.3 软链接与硬链接的协作</h3><p><code>pnpm</code>的依赖规律是<code>&lt;package-name&gt;@version/node_modules/&lt;package-name&gt;</code>这种目录结构：</p>
+<p>第一眼就能看出区别：项目只依赖了 <code>express</code>，那么 <code>node_modules</code> 根目录下就<strong>只有 <code>express</code> 这一个入口</strong>，<code>express</code> 自己那一堆依赖全被收进了 <code>.pnpm</code> 这个虚拟存储目录里，不会污染根目录。幽灵依赖就是这么被堵掉的。</p>
+<p>展开 <code>.pnpm</code> 能找到包的真正位置，<code>express</code> 实际躺在 <code>.pnpm/express@4.17.1/node_modules/express</code>。这个 <code>&lt;package-name&gt;@version/node_modules/&lt;package-name&gt;</code> 的目录规律，是 <code>pnpm</code> 整套结构的基础。</p>
+<h3 id="5-3-软链接和硬链接是怎么配合的"><a href="#5-3-软链接和硬链接是怎么配合的" class="headerlink" title="5.3 软链接和硬链接是怎么配合的"></a>5.3 软链接和硬链接是怎么配合的</h3><p>这套结构里两种链接各司其职，分三层：</p>
 <ol>
-<li>所有的依赖都是从全局<code>store</code><strong>硬链接</strong>到了<code>node_modules/.pnpm</code>下</li>
-<li>项目中的直接依赖通过<strong>软链接</strong>指向<code>.pnpm</code>中的实际位置</li>
-<li>依赖包中的每个文件再硬链接到<code>.pnpm store</code></li>
+<li>全局 store 里的文件通过<strong>硬链接</strong>落到 <code>node_modules/.pnpm</code> 下对应的包目录里</li>
+<li>项目的直接依赖，在 <code>node_modules</code> 根目录下通过<strong>软链接</strong>指向 <code>.pnpm</code> 里的实际位置</li>
+<li>包与包之间的依赖关系，也是在各自的 <code>node_modules</code> 里用<strong>软链接</strong>互相指</li>
 </ol>
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">.pnpm</span><br><span class="line">├─ accepts@1.3.7</span><br><span class="line">│  └─ node_modules</span><br><span class="line">│     └─ accepts  → 硬链接到store</span><br><span class="line">├─ express@4.17.1</span><br><span class="line">│  └─ node_modules</span><br><span class="line">│     ├─ accepts  → ../accepts@1.3.7/node_modules/accepts (软链接)</span><br><span class="line">│     └─ express</span><br><span class="line">│        └─ index.js → 硬链接到store</span><br></pre></td></tr></table></figure>
 
-<p>这种设计将<code>包本身</code>和<code>依赖</code>放在同一个<code>node_module</code>下面，与原生Node完全兼容，又能将package与相关的依赖很好地组织到一起，设计十分精妙。</p>
-<h2 id="五、pnpm工作空间-Workspace-完全指南"><a href="#五、pnpm工作空间-Workspace-完全指南" class="headerlink" title="五、pnpm工作空间(Workspace)完全指南"></a>五、pnpm工作空间(Workspace)完全指南</h2><h3 id="5-1-什么是Monorepo"><a href="#5-1-什么是Monorepo" class="headerlink" title="5.1 什么是Monorepo"></a>5.1 什么是Monorepo</h3><p>Monorepo（单体仓库）是一种将多个项目存放在同一个代码仓库中的开发策略。相比传统的多仓库方案，Monorepo可以让代码共享更加方便版本管理更加统一。</p>
-<p><code>pnpm</code>从设计上就原生支持Monorepo，通过<code>workspace</code>功能可以轻松管理多个包。</p>
-<h3 id="5-2-创建Workspace项目"><a href="#5-2-创建Workspace项目" class="headerlink" title="5.2 创建Workspace项目"></a>5.2 创建Workspace项目</h3><p>首先在项目根目录创建<code>pnpm-workspace.yaml</code>文件：</p>
+<p>为什么非要套这么一层 <code>&lt;package&gt;@&lt;version&gt;/node_modules/&lt;package&gt;</code> 呢？因为这样一来，包本身和它的依赖就处在同一个 <code>node_modules</code> 层级下，<code>Node</code> 原生的逐层向上查找规则不用做任何改动就能正常工作。既拿到了严格隔离，又保持了和 <code>Node</code> 的完全兼容，这个设计是真的舒服。</p>
+<p>顺便一提，也正因为大量使用了软链接，某些对符号链接不友好的工具（早期的 <code>React Native</code> 打包器、部分 <code>Electron</code> 构建工具、一些 <code>Windows</code> 下的老脚本）在 <code>pnpm</code> 项目里会出问题。这类情况可以在 <code>.npmrc</code> 里配 <code>node-linker=hoisted</code> 退回扁平结构，代价是丢掉严格隔离。</p>
+<h2 id="六、pnpm-工作空间-Workspace-完全指南"><a href="#六、pnpm-工作空间-Workspace-完全指南" class="headerlink" title="六、pnpm 工作空间 Workspace 完全指南"></a>六、pnpm 工作空间 Workspace 完全指南</h2><h3 id="6-1-什么是-Monorepo"><a href="#6-1-什么是-Monorepo" class="headerlink" title="6.1 什么是 Monorepo"></a>6.1 什么是 Monorepo</h3><p>Monorepo（单体仓库）是把多个项目放在同一个代码仓库里管理的策略。相比多仓库方案，它的好处是代码共享方便、版本管理统一、跨包重构一次搞定。</p>
+<p><code>pnpm</code> 从设计上就原生支持 Monorepo，不需要额外装 <code>lerna</code> 之类的工具，<code>workspace</code> 是内置能力。</p>
+<h3 id="6-2-创建-Workspace-项目"><a href="#6-2-创建-Workspace-项目" class="headerlink" title="6.2 创建 Workspace 项目"></a>6.2 创建 Workspace 项目</h3><p>在项目根目录建一个 <code>pnpm-workspace.yaml</code>，声明哪些目录下的子目录算作 package：</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># pnpm-workspace.yaml</span></span><br><span class="line"><span class="attr">packages:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">&#x27;packages/*&#x27;</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">&#x27;apps/*&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<p>然后创建项目结构：</p>
+<p>这个文件是 <code>pnpm</code> 识别 workspace 的唯一开关，没有它，<code>-r</code> 和 <code>--filter</code> 都不会生效。然后按声明的路径建目录：</p>
 <figure class="highlight text"><table><tr><td class="code"><pre><span class="line">my-monorepo/</span><br><span class="line">├── pnpm-workspace.yaml</span><br><span class="line">├── package.json</span><br><span class="line">├── packages/</span><br><span class="line">│   ├── pkg1/</span><br><span class="line">│   │   ├── package.json</span><br><span class="line">│   │   └── src/index.js</span><br><span class="line">│   └── pkg2/</span><br><span class="line">│       ├── package.json</span><br><span class="line">│       └── src/index.js</span><br><span class="line">└── apps/</span><br><span class="line">    └── web/</span><br><span class="line">        ├── package.json</span><br><span class="line">        └── src/index.js</span><br></pre></td></tr></table></figure>
 
-<h3 id="5-3-Workspace常用命令"><a href="#5-3-Workspace常用命令" class="headerlink" title="5.3 Workspace常用命令"></a>5.3 Workspace常用命令</h3><p><strong>安装所有依赖</strong></p>
+<p>每个子目录下必须有自己的 <code>package.json</code> 且 <code>name</code> 字段唯一，否则 <code>--filter</code> 没法定位。根目录的 <code>package.json</code> 建议加上 <code>&quot;private&quot;: true</code>，防止手滑把整个仓库发到 npm 上去。</p>
+<h3 id="6-3-常用命令"><a href="#6-3-常用命令" class="headerlink" title="6.3 常用命令"></a>6.3 常用命令</h3><p><strong>安装所有依赖</strong>：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装workspace下所有packages的依赖</span></span><br><span class="line">pnpm install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或使用-r递归安装</span></span><br><span class="line">pnpm install -r</span><br></pre></td></tr></table></figure>
 
-<p><strong>在所有package中安装依赖</strong></p>
+<p>在 workspace 根目录跑 <code>pnpm install</code>，会一次性把所有子包的依赖都装好，不用挨个进目录。</p>
+<p><strong>给 package 装依赖</strong>：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在根目录执行，所有package都会被添加lodash依赖</span></span><br><span class="line">pnpm add lodash -r</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定添加到某个package</span></span><br><span class="line">pnpm add lodash --filter pkg1</span><br></pre></td></tr></table></figure>
 
-<p><strong>使用filter过滤</strong></p>
+<p><code>-r</code> 是「所有包都装」，<code>--filter</code> 是「只给指定的包装」。日常用得最多的是后者，前者慎用，很容易给一堆用不上的包塞进无关依赖。</p>
+<p><strong>用 filter 做更细的过滤</strong>：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 只在pkg1中安装</span></span><br><span class="line">pnpm add lodash --filter pkg1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 只在以@apps开头的package中安装</span></span><br><span class="line">pnpm add lodash --filter <span class="string">&#x27;@apps/*&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>在特定package中执行命令</strong></p>
+<p><code>--filter</code> 还支持一些很实用的高级写法，比如 <code>--filter pkg1...</code> 表示 <code>pkg1</code> 以及所有依赖它的包，<code>--filter ...pkg1</code> 表示 <code>pkg1</code> 以及它依赖的所有包，<code>--filter &#39;...[origin/main]&#39;</code> 表示只处理相对某个 git 分支有改动的包。CI 里做增量构建全靠这几个。</p>
+<p><strong>在特定 package 中执行命令</strong>：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在pkg1中执行构建命令</span></span><br><span class="line">pnpm --filter pkg1 run build</span><br><span class="line"></span><br><span class="line"><span class="comment"># 简写形式</span></span><br><span class="line">pnpm -F pkg1 run build</span><br></pre></td></tr></table></figure>
 
-<h3 id="5-4-Workspace内部依赖"><a href="#5-4-Workspace内部依赖" class="headerlink" title="5.4 Workspace内部依赖"></a>5.4 Workspace内部依赖</h3><p>在workspace中，不同package之间可以相互引用：</p>
+<h3 id="6-4-Workspace-内部依赖"><a href="#6-4-Workspace-内部依赖" class="headerlink" title="6.4 Workspace 内部依赖"></a>6.4 Workspace 内部依赖</h3><p>workspace 里的包可以互相引用，这是 monorepo 的核心价值：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 将pkg2添加到pkg1的依赖中</span></span><br><span class="line">pnpm add pkg2 --filter pkg1</span><br></pre></td></tr></table></figure>
 
-<p>这会自动在<code>packages/pkg1/package.json</code>中添加：</p>
+<p>执行完 <code>packages/pkg1/package.json</code> 里会自动多出一行：</p>
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;dependencies&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;pkg2&quot;</span><span class="punctuation">:</span> <span class="string">&quot;workspace:*&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<p>使用<code>workspace:*</code>可以引用当前workspace中的版本，确保所有package使用一致的内部依赖版本。</p>
-<h3 id="5-5-发布配置"><a href="#5-5-发布配置" class="headerlink" title="5.5 发布配置"></a>5.5 发布配置</h3><p>在根目录的<code>package.json</code>中配置发布相关设置：</p>
+<p><code>workspace:*</code> 这个协议是关键。它告诉 <code>pnpm</code>「这个依赖去本地 workspace 里找，别去 registry 下载」，<code>pnpm</code> 会在 <code>node_modules</code> 里建一条软链接直接指向 <code>packages/pkg2</code>，改了 <code>pkg2</code> 的源码，<code>pkg1</code> 立刻就能看到，不用发版也不用 <code>npm link</code>。</p>
+<p>发布的时候 <code>pnpm publish</code> 会自动把 <code>workspace:*</code> 替换成当时的真实版本号，所以发出去的包对外部用户是正常的，不用手动处理。</p>
+<h3 id="6-5-发布配置"><a href="#6-5-发布配置" class="headerlink" title="6.5 发布配置"></a>6.5 发布配置</h3><p>在根目录的 <code>package.json</code> 里配好发布相关设置：</p>
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my-monorepo&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;private&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;publishConfig&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;access&quot;</span><span class="punctuation">:</span> <span class="string">&quot;public&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="六、pnpm基本使用"><a href="#六、pnpm基本使用" class="headerlink" title="六、pnpm基本使用"></a>六、pnpm基本使用</h2><p><code>pnpm</code>的使用成本非常低，因为它的基础命令和<code>npm/yarn</code>基本相似。</p>
-<h3 id="6-1-安装依赖"><a href="#6-1-安装依赖" class="headerlink" title="6.1 安装依赖"></a>6.1 安装依赖</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装项目所有依赖</span></span><br><span class="line">pnpm install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 lodash</span></span><br><span class="line">pnpm install lodash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加至 devDependencies</span></span><br><span class="line">pnpm install lodash -D</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加至 dependencies</span></span><br><span class="line">pnpm install lodash -S</span><br></pre></td></tr></table></figure>
+<p><code>private: true</code> 保证根仓库本身不会被发布，<code>publishConfig.access</code> 对带 scope 的包（比如 <code>@myorg/utils</code>）是必需的，不写默认是私有包，发布会因为没有付费账号而失败。</p>
+<h2 id="七、日常命令速查"><a href="#七、日常命令速查" class="headerlink" title="七、日常命令速查"></a>七、日常命令速查</h2><p><code>pnpm</code> 的迁移成本低，很大程度上就因为命令跟 <code>npm</code> 高度一致。</p>
+<p><strong>安装依赖</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装项目所有依赖</span></span><br><span class="line">pnpm install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 lodash</span></span><br><span class="line">pnpm install lodash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加至 devDependencies</span></span><br><span class="line">pnpm install lodash -D</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加至 dependencies</span></span><br><span class="line">pnpm install lodash -S</span><br></pre></td></tr></table></figure>
 
-<h3 id="6-2-更新与卸载"><a href="#6-2-更新与卸载" class="headerlink" title="6.2 更新与卸载"></a>6.2 更新与卸载</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 更新依赖到最新版本</span></span><br><span class="line">pnpm update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载依赖</span></span><br><span class="line">pnpm uninstall lodash</span><br></pre></td></tr></table></figure>
+<p><strong>更新与卸载</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 更新依赖到最新版本</span></span><br><span class="line">pnpm update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载依赖</span></span><br><span class="line">pnpm uninstall lodash</span><br></pre></td></tr></table></figure>
 
-<h3 id="6-3-运行脚本"><a href="#6-3-运行脚本" class="headerlink" title="6.3 运行脚本"></a>6.3 运行脚本</h3><figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="comment">// package.json</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;dev&quot;</span><span class="punctuation">:</span> <span class="string">&quot;webpack serve&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;webpack build&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><strong>运行脚本</strong>：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="comment">// package.json</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;dev&quot;</span><span class="punctuation">:</span> <span class="string">&quot;webpack serve&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;webpack build&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 运行脚本</span></span><br><span class="line">pnpm run dev</span><br><span class="line"><span class="comment"># 或简写</span></span><br><span class="line">pnpm dev</span><br></pre></td></tr></table></figure>
 
-<h3 id="6-4-其他常用命令"><a href="#6-4-其他常用命令" class="headerlink" title="6.4 其他常用命令"></a>6.4 其他常用命令</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看依赖信息</span></span><br><span class="line">pnpm list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理缓存</span></span><br><span class="line">pnpm store prune</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看store路径</span></span><br><span class="line">pnpm store path</span><br><span class="line"></span><br><span class="line"><span class="comment"># 动态执行包（类似npx）</span></span><br><span class="line">pnpm dlx create-react-app my-app</span><br></pre></td></tr></table></figure>
+<p>这里有个细节比 <code>npm</code> 舒服：<code>pnpm dev</code> 可以直接省掉 <code>run</code>，而且不像 <code>npm</code> 那样需要 <code>--</code> 来传参，<code>pnpm dev --port 3001</code> 会直接把参数透传过去。</p>
+<p><strong>其他常用命令</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看依赖信息</span></span><br><span class="line">pnpm list</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清理缓存</span></span><br><span class="line">pnpm store prune</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看store路径</span></span><br><span class="line">pnpm store path</span><br><span class="line"></span><br><span class="line"><span class="comment"># 动态执行包（类似npx）</span></span><br><span class="line">pnpm dlx create-react-app my-app</span><br></pre></td></tr></table></figure>
 
-<h2 id="七、三者功能对比一览"><a href="#七、三者功能对比一览" class="headerlink" title="七、三者功能对比一览"></a>七、三者功能对比一览</h2><table>
+<p><code>pnpm store prune</code> 值得单独说一句，它会清掉全局 store 里已经没有任何项目引用的那些包。用久了 store 会慢慢变大，半年跑一次这个能回收不少空间，而且完全安全，还在用的包不会被删。</p>
+<p>顺着构建这条线说，依赖装得快只是开发体验的一半，另一半在打包环节，这块我另外写过一篇 <a href="https://feinterview.poetries.top/blog/webpack-5-build-optimization">Webpack 5 构建优化</a>，两边配合下来提升会更明显。</p>
+<h2 id="八、三者功能对比一览"><a href="#八、三者功能对比一览" class="headerlink" title="八、三者功能对比一览"></a>八、三者功能对比一览</h2><table>
 <thead>
 <tr>
 <th>功能</th>
@@ -511,41 +527,26 @@
 <td align="center">❌</td>
 </tr>
 </tbody></table>
-<h3 id="核心差异解读"><a href="#核心差异解读" class="headerlink" title="核心差异解读"></a>核心差异解读</h3><ol>
-<li><p><strong>pnpm vs npm&#x2F;yarn 最大的区别</strong>在于node_modules的结构：</p>
-<ul>
-<li>npm&#x2F;yarn采用扁平化结构，会产生幽灵依赖</li>
-<li>pnpm采用虚拟存储目录，依赖严格隔离</li>
-</ul>
-</li>
-<li><p><strong>内容可寻址存储</strong>让pnpm能够：</p>
-<ul>
-<li>同一包的不同项目只安装一次</li>
-<li>不同版本之间复用相同文件</li>
-</ul>
-</li>
-<li><p><strong>pnpm独有的功能</strong>：</p>
-<ul>
-<li><code>pnpm env</code>：管理Node.js版本</li>
-<li><code>pnpm patch</code>：修补依赖项</li>
-<li><code>Catalogs</code>：目录功能</li>
-</ul>
-</li>
-</ol>
-<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p><code>pnpm</code>相比<code>npm/yarn</code>的核心优势在于：</p>
-<ol>
-<li><strong>更快</strong>：安装速度比<code>npm/yarn</code>快2-3倍</li>
-<li><strong>更省空间</strong>：通过硬链接机制避免重复安装，节省大量磁盘空间</li>
-<li><strong>更安全</strong>：严格的依赖管理避免幽灵依赖和非法访问</li>
-<li><strong>更规范</strong>：清晰的目录结构，原生支持Monorepo</li>
-</ol>
-<p>综合来看，<code>pnpm</code>是一个相比<code>npm/yarn</code>更为优秀的包管理方案。推荐在新项目中使用，体验现代包管理工具带来的效率提升。</p>
-<hr>
-<p><em>参考资料：</em></p>
-<ul>
-<li><a href="https://pnpm.io/zh/motivation">pnpm官方文档</a></li>
-<li><a href="https://pnpm.io/zh/benchmarks">pnpm性能基准测试</a></li>
-<li><a href="https://classic.yarnpkg.com/en/docs/pnp/">Yarn PnP特性</a></li>
+<p>这张表照抄自 <code>pnpm</code> 官方文档的对比页，里面有几行值得单独解读。</p>
+<p><code>pnpm</code> 和 <code>npm</code>、<code>yarn</code> 最大的区别在 <code>node_modules</code> 的结构上。后两者默认走扁平化，天生带幽灵依赖；<code>pnpm</code> 走虚拟存储目录，依赖严格隔离。这一条决定了其他所有差异。</p>
+<p>内容可寻址存储带来的是两个直接收益：同一个包在多个项目里只落盘一次，不同版本之间还能复用没变的文件。</p>
+<p>表里那几个 <code>pnpm</code> 独有的功能，实际用起来最有价值的是 <code>pnpm patch</code>。它让你能给某个三方依赖打补丁并把补丁提交进仓库，团队所有人 <code>install</code> 之后自动生效。以前遇到依赖有 bug 又等不及上游修，只能 fork 一份自己发包，现在几行命令就解决了。<code>pnpm env</code> 用来管理 <code>Node</code> 版本，能替掉一部分 <code>nvm</code> 的场景。<code>Catalogs</code> 是在 workspace 里统一声明版本号的功能，monorepo 里几十个包依赖同一个 <code>react</code> 版本时特别省事，注意它是较新版本才加上的。</p>
+<h2 id="九、什么情况下别急着换-pnpm"><a href="#九、什么情况下别急着换-pnpm" class="headerlink" title="九、什么情况下别急着换 pnpm"></a>九、什么情况下别急着换 pnpm</h2><p>聊完优点，把我遇到过的几个坑也摆出来，免得你换过去之后骂街。</p>
+<p><strong>依赖了幽灵依赖的老项目</strong>。这是最常见的翻车点。老项目从 <code>npm</code> 迁到 <code>pnpm</code>，第一次 <code>install</code> 完启动，一堆 <code>Cannot find module</code> 报错。这些包其实一直在被偷用，只是之前扁平结构给兜住了。正确做法是老老实实按报错把缺的依赖补进 <code>package.json</code>，虽然烦，但补完项目的依赖声明才是真实的。实在赶时间，可以在 <code>.npmrc</code> 里临时加 <code>shamefully-hoist=true</code> 恢复成扁平结构，不过这等于放弃了 <code>pnpm</code> 最大的价值，只能当过渡手段。</p>
+<p><strong>对软链接不友好的工具链</strong>。前面提过一句，这里再强调下。<code>React Native</code>、部分 <code>Electron</code> 打包工具、某些自己实现模块解析的老构建脚本，碰到 <code>pnpm</code> 的软链接结构会解析失败。这类项目要么配 <code>node-linker=hoisted</code>，要么就先别迁。</p>
+<p><strong>store 和项目不在同一分区</strong>。硬链接跨不了文件系统，这时候 <code>pnpm</code> 会退化成拷贝，省空间的效果直接归零。</p>
+<p><strong>依赖 postinstall 脚本的场景</strong>。较新的 <code>pnpm</code> 版本出于供应链安全考虑，默认不再自动执行依赖包的构建脚本，需要在 <code>package.json</code> 里用 <code>onlyBuiltDependencies</code> 显式放行。第一次遇到会一头雾水，因为它不报错，只是某个包该生成的二进制没生成。这块的默认行为不同大版本之间调整过，升级时留意一下 changelog。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>pnpm</code> 值得换，但理由不该只是「快」和「省空间」。</p>
+<p>省空间是硬链接和内容寻址存储的自然结果，你项目越多、依赖越重，这个收益越明显；快是并行请求加本地 store 复用带来的，具体倍数看你自己的环境，别拿官方 benchmark 当承诺。</p>
+<p>真正长期有价值的是第三条：<strong>严格的依赖隔离</strong>。<code>node_modules</code> 根目录里只有你声明过的包，这一条从结构上消灭了幽灵依赖和非法访问，让「本地跑通」和「发出去能跑」重新划上等号。代价是迁移时会暴露一堆历史欠账，但那些欠账本来就存在，早暴露比晚暴露强。</p>
+<p>如果你在做 monorepo，那基本不用犹豫，<code>pnpm</code> 的 <code>workspace</code> 加 <code>--filter</code> 那套过滤语法是目前体验最顺的方案之一。如果你手上是个跑了多年、依赖关系一团麻的老项目，先在一个小项目上试，把 <code>.npmrc</code> 那几个逃生开关搞清楚了再往主力项目上推。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>pnpm 官方文档：动机 <a href="https://pnpm.io/zh/motivation">https://pnpm.io/zh/motivation</a></li>
+<li>pnpm 官方文档：性能基准测试 <a href="https://pnpm.io/zh/benchmarks">https://pnpm.io/zh/benchmarks</a></li>
+<li>pnpm 官方文档：Workspace <a href="https://pnpm.io/zh/workspaces">https://pnpm.io/zh/workspaces</a></li>
+<li>pnpm 官方文档：功能对比 <a href="https://pnpm.io/zh/feature-comparison">https://pnpm.io/zh/feature-comparison</a></li>
+<li>Yarn PnP 特性 <a href="https://classic.yarnpkg.com/en/docs/pnp/">https://classic.yarnpkg.com/en/docs/pnp/</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

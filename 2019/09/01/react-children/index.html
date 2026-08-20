@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>浅析React children | 前端进阶之旅</title>
+  <title>React children 详解，Children 工具方法与 cloneElement 实践 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="React,React.cloneElement," />
+    <meta name="keywords" content="React,React.cloneElement,React.Children,组件设计," />
   
 
-  <meta name="description" content="一、子组件 我们有一个组件 &lt;Grid &#x2F;&gt; 包含了几个组件 &lt;Row &#x2F;&gt; 。你可能会这么使用它  &lt;Grid&gt;  &lt;Row &#x2F;&gt;  &lt;Row &#x2F;&gt;  &lt;Row &#x2F;&gt;&lt;&#x2F;Grid&gt;   这三个 Row 组件都成为了 Grid 的 props.children 。使用一个表达式容器，父组件就能够渲染它们的子组件">
+  <meta name="description" content="从 props.children 的真实结构讲起，梳理 React.Children 的 map、forEach、count、toArray、only 五个工具方法各自的边界，以及用 React.cloneElement 给子元素批量注入属性的完整写法和踩坑点。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浅析React children">
+<meta property="og:title" content="React children 详解，Children 工具方法与 cloneElement 实践">
 <meta property="og:url" content="http://blog.poetries.top/2019/09/01/react-children/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、子组件 我们有一个组件 &lt;Grid &#x2F;&gt; 包含了几个组件 &lt;Row &#x2F;&gt; 。你可能会这么使用它  &lt;Grid&gt;  &lt;Row &#x2F;&gt;  &lt;Row &#x2F;&gt;  &lt;Row &#x2F;&gt;&lt;&#x2F;Grid&gt;   这三个 Row 组件都成为了 Grid 的 props.children 。使用一个表达式容器，父组件就能够渲染它们的子组件">
+<meta property="og:description" content="从 props.children 的真实结构讲起，梳理 React.Children 的 map、forEach、count、toArray、only 五个工具方法各自的边界，以及用 React.cloneElement 给子元素批量注入属性的完整写法和踩坑点。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-09-01T08:10:40.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.683Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.948Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="React">
 <meta property="article:tag" content="React.cloneElement">
+<meta property="article:tag" content="React.Children">
+<meta property="article:tag" content="组件设计">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%AD%90%E7%BB%84%E4%BB%B6"><span class="toc-text">一、子组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%BB%E4%BD%95%E4%B8%9C%E8%A5%BF%E9%83%BD%E8%83%BD%E6%98%AF%E4%B8%80%E4%B8%AAchild"><span class="toc-text">二、任何东西都能是一个child</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81child-%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="toc-text">三、child 的功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%93%8D%E4%BD%9Cchildren"><span class="toc-text">四、操作children</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BE%AA%E7%8E%AF"><span class="toc-text">4.1 循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%AE%A1%E6%95%B0"><span class="toc-text">4.2 计数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BD%AC%E6%8D%A2%E4%B8%BA%E6%95%B0%E7%BB%84"><span class="toc-text">4.3 转换为数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%89%A7%E8%A1%8C%E5%8D%95%E4%B8%80child"><span class="toc-text">4.4 执行单一child</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%BC%96%E8%BE%91children"><span class="toc-text">五、编辑children</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%94%B9%E5%8F%98children%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="toc-text">5.1 改变children的属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-React-cloneElement%E5%85%8B%E9%9A%86%E5%85%83%E7%B4%A0"><span class="toc-text">5.2 React.cloneElement克隆元素</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%AD%90%E7%BB%84%E4%BB%B6"><span class="toc-text">一、子组件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BB%BB%E4%BD%95%E4%B8%9C%E8%A5%BF%E9%83%BD%E8%83%BD%E6%98%AF%E4%B8%80%E4%B8%AA-child"><span class="toc-text">二、任何东西都能是一个 child</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%8A%8A%E5%87%BD%E6%95%B0%E5%BD%93-child-%E4%BC%A0%E8%BF%9B%E5%8E%BB"><span class="toc-text">三、把函数当 child 传进去</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%93%8D%E4%BD%9C-children"><span class="toc-text">四、操作 children</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%BE%AA%E7%8E%AF"><span class="toc-text">4.1 循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E8%AE%A1%E6%95%B0"><span class="toc-text">4.2 计数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BD%AC%E6%8D%A2%E4%B8%BA%E6%95%B0%E7%BB%84"><span class="toc-text">4.3 转换为数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%89%A7%E8%A1%8C%E5%8D%95%E4%B8%80-child"><span class="toc-text">4.4 执行单一 child</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%BC%96%E8%BE%91-children"><span class="toc-text">五、编辑 children</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%94%B9%E5%8F%98-children-%E7%9A%84%E5%B1%9E%E6%80%A7"><span class="toc-text">5.1 改变 children 的属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-React-cloneElement-%E5%85%8B%E9%9A%86%E5%85%83%E7%B4%A0"><span class="toc-text">5.2 React.cloneElement 克隆元素</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%812026-%E5%B9%B4%E5%86%8D%E7%9C%8B%E8%BF%99%E5%A5%97-API"><span class="toc-text">六、2026 年再看这套 API</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-children" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">浅析React children</h1>
+    <h1 class="post-title">React children 详解，Children 工具方法与 cloneElement 实践</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2k字</span>
+            <span>字数统计 4.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 9分</span>
+            <span>阅读时长 17分</span>
           </span>
       
       
@@ -289,162 +291,146 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、子组件"><a href="#一、子组件" class="headerlink" title="一、子组件"></a>一、子组件</h2><blockquote>
-<p>我们有一个组件 <code>&lt;Grid /&gt;</code> 包含了几个组件 <code>&lt;Row /&gt;</code> 。你可能会这么使用它</p>
-</blockquote>
+        <p>写一个 <code>RadioGroup</code> 组件，想给里面每个 <code>RadioButton</code> 自动补上同一个 <code>name</code>，最直觉的写法是 <code>this.props.children.map(...)</code>。跑一下，控制台丢出来一句 <code>this.props.children.map is not a function</code>。定睛一看，调用方只传了一个子元素，<code>props.children</code> 这时候压根不是数组。</p>
+<p>这篇就是把 <code>props.children</code> 的真实形态、<code>React.Children</code> 那几个工具方法各自能兜住什么、以及 <code>React.cloneElement</code> 怎么给子元素批量注入属性，一次讲清楚。顺带把原文里三处经不起验证的说法改对了，我在 React 19.2.8 上一条条跑过。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>props.children</code> 到底是什么类型，为什么它有时是数组有时不是</li>
+<li>任何值都能当 children，JSX 对空白字符做了哪些处理</li>
+<li>把函数当 children 传进去，也就是 render props 的雏形写法</li>
+<li><code>React.Children</code> 的 map、forEach、count、toArray、only 分别兜住哪些边界</li>
+<li>用 <code>React.cloneElement</code> 给子元素统一注入属性，实现 RadioGroup 这类联动组件</li>
+<li>2026 年这个时间点，这套 API 在新项目里还该不该用</li>
+</ul>
+<h2 id="一、子组件"><a href="#一、子组件" class="headerlink" title="一、子组件"></a>一、子组件</h2><p>假设我们有一个组件 <code>&lt;Grid /&gt;</code>，里面包含了几个 <code>&lt;Row /&gt;</code>。你可能会这么使用它：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Grid</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Row</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Row</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">Row</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Grid</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这三个 <code>Row</code> 组件都成为了 <code>Grid</code> 的 <code>props.children</code> 。使用一个表达式容器，父组件就能够渲染它们的子组件</p>
-</blockquote>
+<p>这三个 <code>Row</code> 组件都成为了 <code>Grid</code> 的 <code>props.children</code>。父组件用一个表达式容器，就能把它们渲染出来：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Grid</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;this.props.children&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-<blockquote>
-<p>父组件也能够决定不渲染任何的子组件或者在渲染之前对它们进行操作。例如，这个 <code>&lt;Fullstop /&gt;</code> 组件就没有渲染它的子组件</p>
-</blockquote>
+<p>这里有个容易被忽略的点。<code>children</code> 是通过 props 传进来的，所以它对父组件来说只是一份数据，父组件完全可以选择不渲染，或者渲染之前先加工一遍。下面这个 <code>&lt;Fullstop /&gt;</code> 就把子组件全丢掉了：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Fullstop</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>Hello world!<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-<h2 id="二、任何东西都能是一个child"><a href="#二、任何东西都能是一个child" class="headerlink" title="二、任何东西都能是一个child"></a>二、任何东西都能是一个child</h2><blockquote>
-<p><code>React</code>中的<code>Children</code>不一定是组件，它们可以使任何东西。例如，我们能够将上面的文字作为<code>children</code>传递我们的 <code>&lt;Grid /&gt; </code>组件</p>
-</blockquote>
+<p>这个行为不是 bug，是设计。React 的组合模型建立在「子元素只是描述，什么时候渲染由父级决定」之上，条件渲染、插槽、包裹层这些能力全从这一条推出来。</p>
+<h2 id="二、任何东西都能是一个-child"><a href="#二、任何东西都能是一个-child" class="headerlink" title="二、任何东西都能是一个 child"></a>二、任何东西都能是一个 child</h2><p><code>React</code> 中的 <code>children</code> 不一定是组件，它可以是任何东西。比如直接把一段文字传给 <code>&lt;Grid /&gt;</code>：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Grid</span>&gt;</span>Hello world!<span class="tag">&lt;/<span class="name">Grid</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><code>JSX</code>将会自动删除每行开头和结尾的空格，以及空行。它还会把字符串中间的空白行压缩为一个空格</li>
-<li>你也可以将多种类型的<code>children</code>完美的结合在一起：</li>
-</ul>
+<p>JSX 在编译这段结构时会自动删除每行开头和结尾的空格以及空行，还会把字符串中间的空白行压缩为一个空格。所以你为了排版好看而缩进的那些空格，不会莫名其妙跑进渲染结果里。</p>
+<p>多种类型的 children 也可以混着传：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Grid</span>&gt;</span></span><br><span class="line">  Here is a row:</span><br><span class="line">  <span class="tag">&lt;<span class="name">Row</span> /&gt;</span></span><br><span class="line">  Here is another row:</span><br><span class="line">  <span class="tag">&lt;<span class="name">Row</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">Grid</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="三、child-的功能"><a href="#三、child-的功能" class="headerlink" title="三、child 的功能"></a>三、child 的功能</h2><ul>
-<li>我们能够传递任何的JavaScript表达式作为children，包括函数</li>
-</ul>
-<blockquote>
-<p>为了说明这种情况，以下是一个组件，它将执行一个传递过来的作为child的函数</p>
-</blockquote>
+<p>回到开头那个报错。<code>props.children</code> 的类型完全取决于调用方怎么写：传一个子元素时它就是那个元素本身，传多个时它是数组，传文字时它是字符串，什么都不传时它是 <code>undefined</code>。这四种形态在同一个组件里都可能出现，所以直接当数组用一定会翻车。</p>
+<p>这就是 <code>React.Children</code> 这套工具方法存在的全部理由。</p>
+<h2 id="三、把函数当-child-传进去"><a href="#三、把函数当-child-传进去" class="headerlink" title="三、把函数当 child 传进去"></a>三、把函数当 child 传进去</h2><p>我们能够传递任何的 JavaScript 表达式作为 children，包括函数。下面这个组件会把接到的 child 当函数执行：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Executioner</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// See how we&#x27;re calling the child as a function?</span></span><br><span class="line">    <span class="comment">//                        ↓</span></span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">props</span>.<span class="title function_">children</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-<p>你会像这样的使用这个组件</p>
+<p>调用方这么写：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Executioner</span>&gt;</span></span><br><span class="line">  &#123;() =&gt; <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Hello World!<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">Executioner</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="四、操作children"><a href="#四、操作children" class="headerlink" title="四、操作children"></a>四、操作children</h2><blockquote>
-<p>从本质上来讲， <code>props.children</code> 可以使任何的类型，比如数组、函数、对象等</p>
-</blockquote>
-<blockquote>
-<p>React提供了一系列的函数助手来使得操作children更加方便</p>
-</blockquote>
-<h3 id="4-1-循环"><a href="#4-1-循环" class="headerlink" title="4.1 循环"></a>4.1 循环</h3><blockquote>
-<p>两个最显眼的函数助手就是 <code>React.Children.map</code> 以及 <code>React.Children.forEach</code>。它们在对应数组的情况下能起作用，除此之外，当函数、对象或者任何东西作为<code>children</code>传递时，它们也会起作用</p>
-</blockquote>
+<p>这个写法在 2016 年前后挺流行，后来演化成了 render props 模式，再后来大部分场景被自定义 Hook 接管了。它解决的问题是「渲染什么由调用方决定，什么时候渲染、拿什么数据渲染由组件决定」，Formik、React Router 的旧版 API、以及各种虚拟列表库都用过这一套。</p>
+<p>我一直觉得这个模式比高阶组件好懂，因为数据是怎么流下来的，你在 JSX 里一眼能看到，不用去猜某个 HOC 到底往 props 里塞了什么。</p>
+<h2 id="四、操作-children"><a href="#四、操作-children" class="headerlink" title="四、操作 children"></a>四、操作 children</h2><p><code>props.children</code> 可以是任何类型，比如数组、函数、对象、字符串。React 提供了一系列函数助手来让操作 children 变得可控。</p>
+<h3 id="4-1-循环"><a href="#4-1-循环" class="headerlink" title="4.1 循环"></a>4.1 循环</h3><p>两个最常用的助手是 <code>React.Children.map</code> 和 <code>React.Children.forEach</code>。它们在 children 是数组时能起作用，在 children 是单个元素、字符串、数字这类非数组值时也能正常工作，不会像原生数组方法那样直接抛错。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">IgnoreFirstChild</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> children = <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;React.Children.map(children, (child, i) =&gt; &#123;</span></span><br><span class="line"><span class="language-xml">          // Ignore the first child</span></span><br><span class="line"><span class="language-xml">          if (i &lt; 1) return</span></span><br><span class="line"><span class="language-xml">          return child</span></span><br><span class="line"><span class="language-xml">        &#125;)&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>&lt;IgnoreFirstChild /&gt;</code> 组件在这里会遍历所有的<code>children</code>，忽略第一个<code>child</code>然后返回其他的</p>
-</blockquote>
+<p><code>&lt;IgnoreFirstChild /&gt;</code> 会遍历所有的 children，忽略第一个然后返回其他的：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">IgnoreFirstChild</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">h1</span>&gt;</span>First<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">h1</span>&gt;</span>Second<span class="tag">&lt;/<span class="name">h1</span>&gt;</span> // &lt;- Only this is rendered</span><br><span class="line"><span class="tag">&lt;/<span class="name">IgnoreFirstChild</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在这种情况下，我们也可以使用&#96;&#96;this.props.children.map<code> 的方法。但将一个函数作为child传递过来将会发生什么呢？</code>this.props.children&#96; 会是一个函数而不是一个数组，接着我们就会产生一个error</p>
-</blockquote>
-<blockquote>
-<p>然而使用 <code>React.Children.map</code>函数，无论什么都不会报错</p>
-</blockquote>
+<p>这种情况下我们当然也可以用 <code>this.props.children.map</code>。但如果调用方传进来的是一个函数呢？<code>this.props.children</code> 就是一个函数而不是数组，<code>.map</code> 直接报错。</p>
+<p>用 <code>React.Children.map</code> 就不会：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">IgnoreFirstChild</span>&gt;</span></span><br><span class="line">  &#123;() =&gt; <span class="tag">&lt;<span class="name">h1</span>&gt;</span>First<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>&#125; // &lt;- Ignored 💪</span><br><span class="line"><span class="tag">&lt;/<span class="name">IgnoreFirstChild</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="4-2-计数"><a href="#4-2-计数" class="headerlink" title="4.2 计数"></a>4.2 计数</h3><blockquote>
-<p>因为<code>this.props.children</code> 可以是任何类型的，检查一个组件有多少个<code>children</code>是非常困难的。天真的使用 <code>this.props.children.length</code> ，当传递了字符串或者函数时程序便会中断。假设我们有个child：”Hello World!” ，但是使用 <code>.length</code> 的方法将会显示为12。</p>
-</blockquote>
-<p>这就是为什么我们有 <code>React.Children.count</code> 方法的原因</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ChildrenCounter</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>React.Children.count(this.props.children)<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里要把话说准一点。<code>React.Children.map</code> 面对函数类型的 child，做法不是「把它当成一个 child 遍历一遍」，而是<strong>根本不会调用你的回调</strong>，直接返回空结果。我在 React 19.2.8 上验证过，回调被触发的次数是 0。所以上面那句「Ignored」的实际含义是这个函数被整个丢掉了，不是被跳过了第一个。</p>
+<h3 id="4-2-计数"><a href="#4-2-计数" class="headerlink" title="4.2 计数"></a>4.2 计数</h3><p>因为 <code>this.props.children</code> 可以是任何类型，检查一个组件有多少个 children 是件麻烦事。直接用 <code>this.props.children.length</code>，在传字符串或者函数时会给出离谱的结果。假设我们有个 child 是 <code>&quot;Hello World!&quot;</code>，<code>.length</code> 会告诉你有 12 个。</p>
+<p>这就是 <code>React.Children.count</code> 存在的原因：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ChildrenCounter</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;React.Children.count(this.props.children)&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>无论时什么类型它都会返回<code>children</code>的数量</p>
-</blockquote>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">// Renders &quot;1&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line">  Second!</span><br><span class="line"><span class="tag">&lt;/<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line"></span><br><span class="line">// Renders &quot;2&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>First<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">ChildComponent</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line"></span><br><span class="line">// Renders &quot;3&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line">  &#123;() =&gt; <span class="tag">&lt;<span class="name">h1</span>&gt;</span>First!<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>&#125;</span><br><span class="line">  Second!</span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>Third!<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ChildrenCounter</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><strong>原文这段代码漏了外层的花括号</strong>，写成了 <code>&lt;p&gt;React.Children.count(this.props.children)&lt;/p&gt;</code>，那样渲染出来的是这一行字符串本身，不是数字。这个 typo 我改了。</p>
+<p>它对元素、字符串、混合结构都能给出合理数字：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">// Renders &quot;1&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line">  Second!</span><br><span class="line"><span class="tag">&lt;/<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line"></span><br><span class="line">// Renders &quot;2&quot;</span><br><span class="line"><span class="tag">&lt;<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>First<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">ChildComponent</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ChildrenCounter</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="4-3-转换为数组"><a href="#4-3-转换为数组" class="headerlink" title="4.3 转换为数组"></a>4.3 转换为数组</h3><blockquote>
-<p>如果以上的方法你都不适合，你能将<code>children</code>转换为数组通过 <code>React.Children.toArray</code> 方法。如果你需要对它们进行排序，这个方法是非常有用的</p>
-</blockquote>
+<p>原文接下来还给了一个例子，说下面这种混了函数的结构会渲染成 <code>3</code>：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ChildrenCounter</span>&gt;</span></span><br><span class="line">  &#123;() =&gt; <span class="tag">&lt;<span class="name">h1</span>&gt;</span>First!<span class="tag">&lt;/<span class="name">h1</span>&gt;</span>&#125;</span><br><span class="line">  Second!</span><br><span class="line">  <span class="tag">&lt;<span class="name">p</span>&gt;</span>Third!<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ChildrenCounter</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个结论是错的，实际是 <code>2</code>。原因和上一节一样，<code>React.Children.count</code> 内部走的是同一套遍历逻辑，函数既不是合法元素也不是可迭代对象，所以它不被计入。这个我在 React 19.2.8 上单独跑过一遍确认。</p>
+<p>也就是说，<code>React.Children.count</code> 数的是「React 认得的可渲染节点」，不是「你传了几个东西进来」。</p>
+<h3 id="4-3-转换为数组"><a href="#4-3-转换为数组" class="headerlink" title="4.3 转换为数组"></a>4.3 转换为数组</h3><p>如果以上方法都不趁手，你可以用 <code>React.Children.toArray</code> 把 children 转成真正的数组。需要排序、过滤、取前 N 个的时候，这个方法最省事：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Sort</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> children = <span class="title class_">React</span>.<span class="property">Children</span>.<span class="title function_">toArray</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>)</span><br><span class="line">    <span class="comment">// Sort and render the children</span></span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;children.sort().join(&#x27; &#x27;)&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Sort</span>&gt;</span></span><br><span class="line">  // We use expression containers to make sure our strings</span><br><span class="line">  // are passed as three children, not as one string</span><br><span class="line">  &#123;&#x27;bananas&#x27;&#125;&#123;&#x27;oranges&#x27;&#125;&#123;&#x27;apples&#x27;&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">Sort</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p>上例会渲染为三个排好序的字符串</p>
-<h3 id="4-4-执行单一child"><a href="#4-4-执行单一child" class="headerlink" title="4.4 执行单一child"></a>4.4 执行单一child</h3><blockquote>
-<p>如果你回过来想刚才的 <code>&lt;Executioner /&gt;</code> 组件，它只能在传递单一<code>child</code>的情况下使用，而且<code>child</code>必须为函数</p>
-</blockquote>
+<p>上例会渲染为三个排好序的字符串。</p>
+<p><code>toArray</code> 还有一个不太起眼但很重要的副作用，它会给返回数组里的每个元素重新分配 <code>key</code>，加上一段前缀做前缀命名空间。所以你如果先 <code>toArray</code> 再排序再渲染，React 不会因为顺序变了而误判成删除加新建。这个设计是真的舒服，省掉了自己补 key 的活儿。</p>
+<h3 id="4-4-执行单一-child"><a href="#4-4-执行单一-child" class="headerlink" title="4.4 执行单一 child"></a>4.4 执行单一 child</h3><p>回过头看刚才的 <code>&lt;Executioner /&gt;</code> 组件，它只能在传单一 child、而且 child 必须是函数的情况下使用：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Executioner</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">props</span>.<span class="title function_">children</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>我们可以试着去强制执行 <code>propTypes</code> ，就像下面这样</p>
-</blockquote>
+<p>原文给的第一个方案是用 <code>propTypes</code> 约束：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Executioner</span>.<span class="property">propTypes</span> = &#123;</span><br><span class="line">  <span class="attr">children</span>: <span class="title class_">React</span>.<span class="property">PropTypes</span>.<span class="property">func</span>.<span class="property">isRequired</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这会使控制台打印出一条消息，部分的开发者将会把它忽视。相反的，我们可以使用在 <code>render</code> 里面使用 <code>React.Children.only</code></p>
-</blockquote>
+<p>这里有两处已经过时了，得说明一下。<code>React.PropTypes</code> 从 React 15.5 起就被标记废弃，React 16 里正式移除，正确写法是单独装 <code>prop-types</code> 包然后 <code>PropTypes.func.isRequired</code>。而到了 React 19，函数组件上的 <code>propTypes</code> 和 <code>defaultProps</code> 也一并被移除了，运行时不再做任何校验，这类约束现在统一交给 TypeScript。</p>
+<p>原文接着提出了第二个方案，说可以在 <code>render</code> 里用 <code>React.Children.only</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Executioner</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">React</span>.<span class="property">Children</span>.<span class="title function_">only</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>)()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这样只会返回一个<code>child</code>。如果不止一个<code>child</code>，它就会抛出错误，让整个程序陷入中断——完美的避开了试图破坏组件的懒惰的开发者</p>
-<h2 id="五、编辑children"><a href="#五、编辑children" class="headerlink" title="五、编辑children"></a>五、编辑children</h2><blockquote>
-<p>我们可以将任意的组件呈现为<code>children</code>，但是任然可以用父组件去控制它们，而不是用渲染的组件。为了说明这点，让我们举例一个 能够拥有很多 <code>RadioButton</code> 组件的 <code>RadiaGroup</code> 组件</p>
-</blockquote>
-<blockquote>
-<p><code>RadioButtons</code> 不会从 <code>RadioGroup</code> 本身上进行渲染，它们只是作为<code>children</code>使用。这意味着我们将会有这样的代码</p>
-</blockquote>
+<p><strong>这段代码是跑不通的</strong>，我在 React 19.2.8 上试了一下，直接抛 <code>React.Children.only expected to receive a single React element child.</code>。原因是 <code>React.Children.only</code> 内部用 <code>isValidElement</code> 做校验，而函数不是合法的 React 元素，所以只要 child 是函数它就一定会抛错，跟只传一个还是传多个没关系。</p>
+<p><code>React.Children.only</code> 真正的用途是「我只接受一个 React 元素，多了就报错」，典型场景是那种需要拿到唯一子元素往上挂 ref 或者克隆属性的包裹型组件。要约束「child 必须是函数」，得自己写：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Executioner</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; children &#125; = <span class="variable language_">this</span>.<span class="property">props</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> children !== <span class="string">&#x27;function&#x27;</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&#x27;Executioner 只接受一个函数作为 children&#x27;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">children</span>()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>排查这个错误的路径其实挺固定的。看到 <code>React.Children.only</code> 报错，先在报错处把 children 打出来看一眼类型，是函数就说明选错了工具，是数组就说明调用方多传了元素，是 <code>undefined</code> 就说明调用方压根没写 children。</p>
+<h2 id="五、编辑-children"><a href="#五、编辑-children" class="headerlink" title="五、编辑 children"></a>五、编辑 children</h2><p>我们可以把任意组件当作 children 传进来，同时仍然由父组件来控制它们，而不是由渲染它们的地方控制。举个例子，一个 <code>RadioGroup</code> 组件里放很多 <code>RadioButton</code>。</p>
+<p><code>RadioButton</code> 不是从 <code>RadioGroup</code> 内部渲染出来的，它们只是作为 children 传进来：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span>(</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">RadioGroup</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">value</span>=<span class="string">&quot;first&quot;</span>&gt;</span>First<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">value</span>=<span class="string">&quot;second&quot;</span>&gt;</span>Second<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">value</span>=<span class="string">&quot;third&quot;</span>&gt;</span>Third<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">RadioGroup</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>这段代码有一个问题。<code>input</code> 没有被分组</li>
-<li>为了把 <code>input</code> 标签弄到同组，必须拥有相同的<code>name</code> 属性。当然我们可以直接给每个<code>RadioButton</code> 的<code>name</code> 赋值</li>
-</ul>
+<p>这段代码有一个问题，<code>input</code> 没有被分组。原生 radio 要互斥，必须拥有相同的 <code>name</code> 属性。最笨的办法是每个都手写一遍：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">RadioGroup</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">name</span>=<span class="string">&quot;g1&quot;</span> <span class="attr">value</span>=<span class="string">&quot;first&quot;</span>&gt;</span>First<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">name</span>=<span class="string">&quot;g1&quot;</span> <span class="attr">value</span>=<span class="string">&quot;second&quot;</span>&gt;</span>Second<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">name</span>=<span class="string">&quot;g1&quot;</span> <span class="attr">value</span>=<span class="string">&quot;third&quot;</span>&gt;</span>Third<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">RadioGroup</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="5-1-改变children的属性"><a href="#5-1-改变children的属性" class="headerlink" title="5.1 改变children的属性"></a>5.1 改变children的属性</h3><blockquote>
-<p>在<code>RadioGroup</code> 中我们将会添加一个叫做 <code>renderChildren</code> 的方法，在这里我们编辑<code>children</code>的属性</p>
-</blockquote>
+<p>能用，但很脆。多加一个选项忘了写 <code>name</code>，它就从这一组里掉出去了，而且不报错，只是行为变得诡异。这个我踩过，页面上表现为「明明是单选，却能同时选中两个」，找了半天才想起来是 <code>name</code> 漏了。</p>
+<h3 id="5-1-改变-children-的属性"><a href="#5-1-改变-children-的属性" class="headerlink" title="5.1 改变 children 的属性"></a>5.1 改变 children 的属性</h3><p>在 <code>RadioGroup</code> 里我们加一个 <code>renderChildren</code> 方法，在这里编辑 children 的属性：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RadioGroup</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">super</span>()</span><br><span class="line">    <span class="comment">// Bind the method to the component context</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">renderChildren</span> = <span class="variable language_">this</span>.<span class="property">renderChildren</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">renderChildren</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> Change the name prop of all children</span></span><br><span class="line">    <span class="comment">// to this.props.name</span></span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;group&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;this.renderChildren()&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>让我们开始遍历<code>children</code>获得每个<code>child</code></p>
-</blockquote>
+<p>先把遍历部分补上，拿到每个 child：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">renderChildren</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">React</span>.<span class="property">Children</span>.<span class="title function_">map</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>, <span class="function"><span class="params">child</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> Change the name prop to this.props.name</span></span><br><span class="line">    <span class="keyword">return</span> child</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>我们如何编辑它们的属性呢？</p>
-<h3 id="5-2-React-cloneElement克隆元素"><a href="#5-2-React-cloneElement克隆元素" class="headerlink" title="5.2 React.cloneElement克隆元素"></a>5.2 React.cloneElement克隆元素</h3><blockquote>
-<p><code>React.cloneElement</code> 会克隆一个元素。我们将想要克隆的元素当作第一个参数，然后将想要设置的属性以对象的方式作为第二个参数。</p>
-</blockquote>
+<p>那我们如何编辑它们的属性呢？直接 <code>child.props.name = this.props.name</code> 是不行的，React 元素是冻结对象，改不动，严格模式下还会直接抛错。</p>
+<h3 id="5-2-React-cloneElement-克隆元素"><a href="#5-2-React-cloneElement-克隆元素" class="headerlink" title="5.2 React.cloneElement 克隆元素"></a>5.2 React.cloneElement 克隆元素</h3><p><code>React.cloneElement</code> 会克隆一个元素。把想要克隆的元素当作第一个参数，把想要设置的属性以对象的方式作为第二个参数：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> cloned = <span class="title class_">React</span>.<span class="title function_">cloneElement</span>(element, &#123;</span><br><span class="line">  <span class="attr">new</span>: <span class="string">&#x27;yes!&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<p><strong>React.cloneElement参数</strong></p>
+<p>完整签名是这样：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">React.cloneElement(</span><br><span class="line">  element,</span><br><span class="line">  [props],</span><br><span class="line">  [...children]</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>第一个参数：element</li>
-<li>必须是一个存在的React组件或者原生DOM，以下都可以</li>
-</ul>
+<p>第一个参数必须是一个已存在的 React 元素，自定义组件和原生 DOM 都可以：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line">React.cloneElement(<span class="tag">&lt;<span class="name">div</span> /&gt;</span>)</span><br><span class="line">React.cloneElement(<span class="tag">&lt;<span class="name">Child</span> /&gt;</span>)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>但我们通常发现用的最多的是搭配<code>React.Children.map</code>和<code>this.props.children</code>使用，如下</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">React</span>.<span class="property">Children</span>.<span class="title function_">map</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>,<span class="function"><span class="params">child</span>=&gt;</span>&#123;</span><br><span class="line">    <span class="title class_">React</span>.<span class="title function_">cloneElement</span>(child,&#123;...props&#125;,children)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>实际项目里用得最多的是搭配 <code>React.Children.map</code> 和 <code>this.props.children</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">React</span>.<span class="property">Children</span>.<span class="title function_">map</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>, <span class="function"><span class="params">child</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="title class_">React</span>.<span class="title function_">cloneElement</span>(child, &#123;...props&#125;, children)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这正是我们的 <code>RadioGroup</code> 所需的。我们克隆所有的<code>child</code>并且设置<code>name</code> 属性</p>
-</blockquote>
+<p>这正是 <code>RadioGroup</code> 需要的。克隆所有的 child 并设置 <code>name</code> 属性：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">renderChildren</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">React</span>.<span class="property">Children</span>.<span class="title function_">map</span>(<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>, <span class="function"><span class="params">child</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">React</span>.<span class="title function_">cloneElement</span>(child, &#123;</span><br><span class="line">      <span class="attr">name</span>: <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">name</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>最后一步就是传递一个唯一的 <code>name</code> 给<code>RadioGroup</code></p>
-</blockquote>
+<p>最后一步是给 <code>RadioGroup</code> 传一个唯一的 <code>name</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;<span class="title class_">RadioGroup</span> name=<span class="string">&quot;g1&quot;</span>&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">value</span>=<span class="string">&quot;first&quot;</span>&gt;</span>First<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span></span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">value</span>=<span class="string">&quot;second&quot;</span>&gt;</span>Second<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span></span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">RadioButton</span> <span class="attr">value</span>=<span class="string">&quot;third&quot;</span>&gt;</span>Third<span class="tag">&lt;/<span class="name">RadioButton</span>&gt;</span></span></span><br><span class="line">&lt;/<span class="title class_">RadioGroup</span>&gt;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>没有手动添加 <code>name</code> 属性给所有的 <code>RadioButton</code> ，我们只是告诉了 <code>RadioGroup</code> 所需的<code>name</code>而已。</p>
-</blockquote>
+<p>没有手动给每个 <code>RadioButton</code> 加 <code>name</code>，我们只是告诉了 <code>RadioGroup</code> 这一组要用什么名字。</p>
+<p>有两个边界条件要留意。<code>cloneElement</code> 的第二个参数是浅合并，你传的 props 会覆盖原元素上的同名 props，所以调用方如果自己写了 <code>name</code>，会被父组件的值盖掉。另外如果 children 里混进了字符串或者 <code>null</code>，直接 <code>cloneElement</code> 会报错，稳妥的写法是先 <code>React.isValidElement(child)</code> 判一下，不是元素就原样返回。</p>
+<h2 id="六、2026-年再看这套-API"><a href="#六、2026-年再看这套-API" class="headerlink" title="六、2026 年再看这套 API"></a>六、2026 年再看这套 API</h2><p>上面这些写法在今天依然能跑，React 19 没有移除 <code>React.Children</code> 和 <code>cloneElement</code>。但官方文档已经把 <code>Children</code> 归到了 Legacy API 那一栏，明确说这个用法不常见并且容易写出脆弱的代码。</p>
+<p>脆的地方在哪？在于它把「结构」当成了「接口」。<code>RadioGroup</code> 遍历 children 注入 <code>name</code>，隐含假设了每个 child 都是直接子元素、都是 <code>RadioButton</code>、都认识 <code>name</code> 这个 prop。哪天有人在中间包了一层 <code>&lt;div&gt;</code> 做布局，或者用 <code>.map</code> 生成了一个数组，注入链路就断了，而且不报错。</p>
+<p>现在更推荐的做法是走 Context。<code>RadioGroup</code> 用 Provider 往下传 <code>name</code>，<code>RadioButton</code> 内部用 <code>useContext</code> 取，中间隔多少层、怎么包裹都无所谓：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">RadioGroupContext</span> = <span class="title class_">React</span>.<span class="title function_">createContext</span>(<span class="literal">null</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">RadioGroup</span>(<span class="params">&#123; name, children &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">RadioGroupContext.Provider</span> <span class="attr">value</span>=<span class="string">&#123;&#123;</span> <span class="attr">name</span> &#125;&#125;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">className</span>=<span class="string">&quot;group&quot;</span>&gt;</span>&#123;children&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">RadioGroupContext.Provider</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">RadioButton</span>(<span class="params">&#123; value, children &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; name &#125; = <span class="title class_">React</span>.<span class="title function_">useContext</span>(<span class="title class_">RadioGroupContext</span>)</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">label</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;radio&quot;</span> <span class="attr">name</span>=<span class="string">&#123;name&#125;</span> <span class="attr">value</span>=<span class="string">&#123;value&#125;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123;children&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">label</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另一条路是把 children 从「元素」换成「配置数据」或者「函数」，也就是让调用方传 <code>options</code> 数组或者传一个渲染函数，父组件自己负责渲染。这样你拿到的是数据，不用去拆解别人的 JSX 树。</p>
+<p>不是说 <code>cloneElement</code> 不能用，而是它适合的场景收窄了。我自己现在只在两种情况下还会用它：给唯一子元素挂一个 ref 或者补一个事件回调，以及写一些明确只服务于内部的复合组件时图省事。跨团队复用的组件，我一律走 Context。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>props.children</code> 的类型是不稳定的，这是所有问题的源头。同一个组件，调用方传一个元素、传三个元素、传一段文字、什么都不传，<code>props.children</code> 分别是元素、数组、字符串、<code>undefined</code>，直接当数组用必然出事。</p>
+<p><code>React.Children</code> 那五个方法各有各的边界，用之前得知道它们兜的是什么。<code>map</code> 和 <code>forEach</code> 能吃下非数组结构但会静默丢弃函数类型的 child；<code>count</code> 数的是 React 认得的可渲染节点，函数不算；<code>toArray</code> 会顺手重排 key；<code>only</code> 只认单个合法元素，child 是函数时必抛错。原文里关于 <code>count</code> 数出 3 和 <code>only</code> 能执行函数 child 的两处说法，实测都不成立，我改过来了。</p>
+<p>给 children 批量注入属性靠 <code>React.cloneElement</code>，配合 <code>React.Children.map</code> 是标准写法，记得加 <code>isValidElement</code> 判断兜住字符串和 <code>null</code>。</p>
+<p>至于要不要在新代码里用这套，我的看法是能用 Context 就别遍历 children。Context 传的是约定，遍历传的是结构，前者经得起重构，后者一改布局就断。React 官方把 <code>Children</code> 划进 Legacy API，理由也是这个。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://react.dev/reference/react/Children">Children - React 官方文档</a></li>
+<li><a href="https://react.dev/reference/react/cloneElement">cloneElement - React 官方文档</a></li>
+<li><a href="https://react.dev/reference/react/isValidElement">isValidElement - React 官方文档</a></li>
+<li><a href="https://react.dev/learn/passing-data-deeply-with-context">Passing Data Deeply with Context - React 官方文档</a></li>
+<li><a href="https://react.dev/blog/2024/12/05/react-19">React v19 发布公告</a></li>
+<li><a href="https://feinterview.poetries.top/blog/react-19-new-features">React 19 新特性</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

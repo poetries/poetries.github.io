@@ -7,26 +7,27 @@
 <head>
   <meta charset="utf-8">
   
-  <title>editconfig配置 | 前端进阶之旅</title>
+  <title>.editorconfig 配了却不生效？把团队缩进和换行一次管住 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="规范,editconfig," />
+    <meta name="keywords" content="规范,前端工程化,EditorConfig," />
   
 
-  <meta name="description" content="简介 在团队开发中，统一的代码格式是必要的。但是不同开发人员的代码风格不同，代码编辑工具的默认格式也不相同，这样就造成代码的differ。而editorConfig可以帮助开发人员在不同的编辑器和IDE中定义和维护一致的编码风格  editorconfig 一个editorconfig文件例子，用于设置Python和JavaScript行尾和缩进风格的配置文件  # EditorConfig is">
+  <meta name="description" content="从查找顺序、通配符和属性优先级讲清 EditorConfig，给出适合前端仓库的完整配置，并说明它与 Prettier、ESLint、Git 的职责边界和排查方法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="editconfig配置">
+<meta property="og:title" content=".editorconfig 配了却不生效？把团队缩进和换行一次管住">
 <meta property="og:url" content="http://blog.poetries.top/2018/01/27/editconfig/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="简介 在团队开发中，统一的代码格式是必要的。但是不同开发人员的代码风格不同，代码编辑工具的默认格式也不相同，这样就造成代码的differ。而editorConfig可以帮助开发人员在不同的编辑器和IDE中定义和维护一致的编码风格  editorconfig 一个editorconfig文件例子，用于设置Python和JavaScript行尾和缩进风格的配置文件  # EditorConfig is">
+<meta property="og:description" content="从查找顺序、通配符和属性优先级讲清 EditorConfig，给出适合前端仓库的完整配置，并说明它与 Prettier、ESLint、Git 的职责边界和排查方法。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-01-27T14:48:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.656Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.927Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="规范">
-<meta property="article:tag" content="editconfig">
+<meta property="article:tag" content="前端工程化">
+<meta property="article:tag" content="EditorConfig">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-text">简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#editorconfig"><span class="toc-text">editorconfig</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85editorconfig"><span class="toc-text">安装editorconfig</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="toc-text">文件格式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BE%8B%E5%AD%90"><span class="toc-text">例子</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81EditorConfig-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E7%BC%96%E8%BE%91%E5%99%A8%E5%B7%AE%E5%BC%82"><span class="toc-text">一、EditorConfig 解决的是编辑器差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%A7%84%E5%88%99%E6%98%AF%E6%80%8E%E4%B9%88%E6%89%BE%E5%88%B0%E5%BD%93%E5%89%8D%E6%96%87%E4%BB%B6%E7%9A%84"><span class="toc-text">二、规则是怎么找到当前文件的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E4%BB%BD%E9%80%82%E5%90%88%E5%89%8D%E7%AB%AF%E4%BB%93%E5%BA%93%E7%9A%84%E5%9F%BA%E7%A1%80%E9%85%8D%E7%BD%AE"><span class="toc-text">三、一份适合前端仓库的基础配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E7%94%A8%E5%B1%9E%E6%80%A7%E5%88%AB%E9%85%8D%E5%8F%8D%E4%BA%86"><span class="toc-text">四、常用属性别配反了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%80%9A%E9%85%8D%E7%AC%A6%E6%80%8E%E4%B9%88%E5%8C%B9%E9%85%8D"><span class="toc-text">五、通配符怎么匹配</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%AE%83%E5%92%8C-Prettier%E3%80%81ESLint%E3%80%81Git-%E6%80%8E%E4%B9%88%E5%88%86%E5%B7%A5"><span class="toc-text">六、它和 Prettier、ESLint、Git 怎么分工</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%85%8D%E7%BD%AE%E4%B8%8D%E7%94%9F%E6%95%88%E6%80%8E%E4%B9%88%E6%9F%A5"><span class="toc-text">七、配置不生效怎么查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E8%80%81%E9%A1%B9%E7%9B%AE%E6%8E%A5%E5%85%A5%E6%97%B6%E5%88%AB%E4%B8%80%E6%AC%A1%E6%94%B9%E5%AE%8C%E6%95%B4%E4%BB%93"><span class="toc-text">八、老项目接入时别一次改完整仓</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-editconfig" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">editconfig配置</h1>
+    <h1 class="post-title">.editorconfig 配了却不生效？把团队缩进和换行一次管住</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 675字</span>
+            <span>字数统计 2.3k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 8分</span>
           </span>
       
       
@@ -289,98 +290,164 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><blockquote>
-<p>在团队开发中，统一的代码格式是必要的。但是不同开发人员的代码风格不同，代码编辑工具的默认格式也不相同，这样就造成代码的<code>differ</code>。而<code>editorConfig</code>可以帮助开发人员在不同的编辑器和IDE中定义和维护一致的编码风格</p>
+        <blockquote>
+<p>文章首发于: <a href="https://feinterview.poetries.top/blog/editconfig">https://feinterview.poetries.top/blog/editconfig</a></p>
 </blockquote>
-<h2 id="editorconfig"><a href="#editorconfig" class="headerlink" title="editorconfig"></a>editorconfig</h2><ul>
-<li>一个<code>editorconfig</code>文件例子，用于设置<code>Python</code>和<code>JavaScript</code>行尾和缩进风格的配置文件</li>
+<p>同一份代码在 macOS 上保存成 <code>LF</code>，到了 Windows 变成 <code>CRLF</code>；有人用两个空格，有人按一次 Tab；改了一行逻辑，Git 却显示整个文件都变了。这类 diff 最让人头疼，因为 review 看不到真正的业务改动。</p>
+<p><code>.editorconfig</code> 就是解决这件事的。它不负责格式化表达式，也不检查代码质量，只把缩进、编码、换行符、文件末尾换行这些最基础的编辑行为写进仓库。规则跟着代码走，团队成员换编辑器也能得到接近的保存结果。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>EditorConfig 到底约束什么，不约束什么</li>
+<li><code>.editorconfig</code> 的查找顺序与覆盖规则</li>
+<li>前端项目可以直接使用的配置模板</li>
+<li>通配符和七个常用属性怎么写</li>
+<li>EditorConfig、Prettier、ESLint 与 <code>.gitattributes</code> 怎样分工</li>
+<li>配置没有生效时如何逐层排查</li>
+<li>老项目第一次接入怎样避免全仓 diff</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># EditorConfig is awesome: http://EditorConfig.org</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># top-most EditorConfig file</span></span><br><span class="line">root = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Unix-style newlines with a newline ending every file</span></span><br><span class="line">[*]</span><br><span class="line">end_of_line = lf</span><br><span class="line">insert_final_newline = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Matches multiple files with brace expansion notation</span></span><br><span class="line"><span class="comment"># Set default charset</span></span><br><span class="line">[*.&#123;js,py&#125;]</span><br><span class="line">charset = utf-8</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4 space indentation</span></span><br><span class="line">[*.py]</span><br><span class="line">indent_style = space</span><br><span class="line">indent_size = 4</span><br><span class="line"></span><br><span class="line"><span class="comment"># Tab indentation (no size specified)</span></span><br><span class="line">[*.js]</span><br><span class="line">indent_style = tab</span><br><span class="line"></span><br><span class="line"><span class="comment"># Indentation override for all JS under lib directory</span></span><br><span class="line">[lib/**.js]</span><br><span class="line">indent_style = space</span><br><span class="line">indent_size = 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># Matches the exact files either package.json or .travis.yml</span></span><br><span class="line">[&#123;package.json,.travis.yml&#125;]</span><br><span class="line">indent_style = space</span><br><span class="line">indent_size = 2</span><br></pre></td></tr></table></figure>
+<h2 id="一、EditorConfig-解决的是编辑器差异"><a href="#一、EditorConfig-解决的是编辑器差异" class="headerlink" title="一、EditorConfig 解决的是编辑器差异"></a>一、EditorConfig 解决的是编辑器差异</h2><p>EditorConfig 由一套配置文件格式和编辑器插件或内置支持组成。编辑器打开文件时读取 <code>.editorconfig</code>，再把匹配到的属性应用到当前文件。</p>
+<p>它最适合管理这些事情：</p>
+<ul>
+<li>使用空格还是 Tab</li>
+<li>一个缩进占几列</li>
+<li>文件使用 <code>LF</code> 还是 <code>CRLF</code></li>
+<li>编码是否为 UTF-8</li>
+<li>保存时是否删除行尾空格</li>
+<li>文件末尾是否保留换行</li>
+</ul>
+<p>它不会替你决定单引号还是双引号，不会把长数组自动换行，也不会发现未使用变量。前两类交给 Prettier，后一类交给 ESLint 或编译器。</p>
+<p>先把边界划清楚，工具之间就不会互相打架。</p>
+<h2 id="二、规则是怎么找到当前文件的"><a href="#二、规则是怎么找到当前文件的" class="headerlink" title="二、规则是怎么找到当前文件的"></a>二、规则是怎么找到当前文件的</h2><p>打开一个文件时，EditorConfig 会从文件所在目录开始向父目录查找 <code>.editorconfig</code>。遇到文件系统根目录，或遇到包含 <code>root = true</code> 的配置就停止。</p>
+<p>规则读取有两层优先级：</p>
+<ol>
+<li>同一个文件里的 section 从上往下读取，后匹配的属性覆盖前面的属性。</li>
+<li>多层目录存在 <code>.editorconfig</code> 时，离目标文件更近的配置优先。</li>
+</ol>
+<p>假设仓库结构是这样：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">project/</span><br><span class="line">├── .editorconfig</span><br><span class="line">├── src/</span><br><span class="line">│   └── app.ts</span><br><span class="line">└── legacy/</span><br><span class="line">    ├── .editorconfig</span><br><span class="line">    └── old.js</span><br></pre></td></tr></table></figure>
 
-<h2 id="安装editorconfig"><a href="#安装editorconfig" class="headerlink" title="安装editorconfig"></a>安装editorconfig</h2><blockquote>
-<p>当打开一个文件时，<code>EditorConfig</code>插件会在打开文件的目录和其每一级父目录查找<code>.editorconfig</code>文件，直到有一个配置文件<code>root=true</code>。<code>EditorConfig</code>配置文件从上往下读取，并且路径最近的文件最后被读取。匹配的配置属性按照属性应用在代码上，所以最接近代码文件的属性优先级最高。</p>
-</blockquote>
-<h2 id="文件格式"><a href="#文件格式" class="headerlink" title="文件格式"></a>文件格式</h2><blockquote>
-<p><code>EditorConfig</code>文件使用INI格式。斜杠<code>(/)</code>作为路径分隔符，<code>#</code>或者<code>;</code>作为注释。<code>EditorConfig</code>文件使用<code>UTF-8</code>格式、<code>CRLF</code>或<code>LF</code>作为换行符</p>
-</blockquote>
-<p><strong>通配符</strong></p>
+<p><code>src/app.ts</code> 只受根配置影响，<code>legacy/old.js</code> 会先读根配置，再由 <code>legacy/.editorconfig</code> 覆盖其中同名属性。多包仓库可以利用这个机制为旧模块保留特殊规则，不必把所有例外堆在根文件里。</p>
+<h2 id="三、一份适合前端仓库的基础配置"><a href="#三、一份适合前端仓库的基础配置" class="headerlink" title="三、一份适合前端仓库的基础配置"></a>三、一份适合前端仓库的基础配置</h2><p>下面这份可以作为起点。它先设置全局默认值，再针对 Markdown 和 Makefile 处理例外。</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">root</span> = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="section">[*]</span></span><br><span class="line"><span class="attr">charset</span> = utf-<span class="number">8</span></span><br><span class="line"><span class="attr">end_of_line</span> = lf</span><br><span class="line"><span class="attr">insert_final_newline</span> = <span class="literal">true</span></span><br><span class="line"><span class="attr">indent_style</span> = space</span><br><span class="line"><span class="attr">indent_size</span> = <span class="number">2</span></span><br><span class="line"><span class="attr">trim_trailing_whitespace</span> = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="section">[*.md]</span></span><br><span class="line"><span class="attr">trim_trailing_whitespace</span> = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Makefile]</span></span><br><span class="line"><span class="attr">indent_style</span> = tab</span><br><span class="line"></span><br><span class="line"><span class="section">[*.py]</span></span><br><span class="line"><span class="attr">indent_size</span> = <span class="number">4</span></span><br><span class="line"></span><br><span class="line"><span class="section">[&#123;package.json,*.yml,*.yaml&#125;]</span></span><br><span class="line"><span class="attr">indent_style</span> = space</span><br><span class="line"><span class="attr">indent_size</span> = <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>Markdown 单独关闭行尾空格清理，是因为两个行尾空格在 Markdown 里可能代表硬换行。Makefile 必须保留 Tab，强行换成空格会改变语义。Python 常用四空格，所以放在后面的 section 覆盖全局两空格。</p>
+<p>我一直觉得，配置越短越好。仓库里没有的语言不要提前写，真正出现例外时再加，后面维护的人才看得懂每条规则为何存在。</p>
+<h2 id="四、常用属性别配反了"><a href="#四、常用属性别配反了" class="headerlink" title="四、常用属性别配反了"></a>四、常用属性别配反了</h2><p><code>indent_style</code> 决定缩进字符，值是 <code>space</code> 或 <code>tab</code>。<code>indent_size</code> 决定每级缩进占几列。设置 Tab 时，如果 <code>tab_width</code> 没写，通常会使用 <code>indent_size</code>；但团队只想保留真实 Tab、允许成员自行选择显示宽度时，可以不写 <code>indent_size</code>。</p>
+<p><code>end_of_line</code> 支持 <code>lf</code>、<code>crlf</code> 和 <code>cr</code>。跨平台 Web 项目通常统一成 <code>lf</code>，Git diff 会干净很多。</p>
+<p><code>charset</code> 常见选择是 <code>utf-8</code>。除非兼容历史系统，不建议新项目使用 BOM 或 UTF-16。</p>
+<p><code>trim_trailing_whitespace = true</code> 会在保存时删除行尾空格。这个配置对代码文件很合适，对 Markdown 要看团队是否用两个空格表示换行。</p>
+<p><code>insert_final_newline = true</code> 表示文件结尾保留一个换行。这里不是额外插入空白行，而是让最后一行以换行符结束。很多命令行工具和补丁格式都期待这个行为。</p>
+<p><code>root</code> 不是普通 section 属性，它只能写在文件顶部。设置为 <code>true</code> 后，当前目录就是查找边界。</p>
+<p>还有一个不太常用但很好使的值是 <code>unset</code>。子目录想取消父配置的某个属性时，可以写 <code>indent_size = unset</code>，让编辑器回到自己的默认设置。</p>
+<h2 id="五、通配符怎么匹配"><a href="#五、通配符怎么匹配" class="headerlink" title="五、通配符怎么匹配"></a>五、通配符怎么匹配</h2><p>section 名称是区分大小写的文件路径 glob，并且统一使用 <code>/</code> 作为分隔符。</p>
 <table>
 <thead>
 <tr>
-<th></th>
-<th></th>
+<th>模式</th>
+<th>匹配范围</th>
 </tr>
 </thead>
 <tbody><tr>
 <td><code>*</code></td>
-<td>匹配除&#x2F;之外的任意字符串</td>
+<td>除 <code>/</code> 外的任意字符</td>
 </tr>
 <tr>
 <td><code>**</code></td>
-<td>匹配任意字符串</td>
+<td>包含目录分隔符的任意字符</td>
 </tr>
 <tr>
 <td><code>?</code></td>
-<td>匹配任意单个字符</td>
+<td>任意单个字符</td>
 </tr>
 <tr>
-<td><code>[name</code>]</td>
-<td>匹配name字符</td>
+<td><code>[abc]</code></td>
+<td><code>a</code>、<code>b</code>、<code>c</code> 中的一个字符</td>
 </tr>
 <tr>
-<td><code>[!name]</code></td>
-<td>匹配非name字符</td>
+<td><code>[!abc]</code></td>
+<td>不属于集合的单个字符</td>
 </tr>
 <tr>
-<td><code>&#123;s1,s2,s3&#125;</code></td>
-<td>匹配任意给定的字符串(since 0.11.0)</td>
+<td><code>&#123;js,ts,tsx&#125;</code></td>
+<td>任意一个给定字符串</td>
+</tr>
+<tr>
+<td><code>&#123;1..3&#125;</code></td>
+<td>范围内的整数</td>
 </tr>
 </tbody></table>
-<p><strong>属性</strong></p>
+<p>比如下面的规则只覆盖 <code>lib</code> 目录及其子目录里的 JavaScript 文件：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[lib/**.js]</span></span><br><span class="line"><span class="attr">indent_style</span> = space</span><br><span class="line"><span class="attr">indent_size</span> = <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>这里有个坑要注意。<code>*</code> 不会跨过 <code>/</code>，要匹配任意深度目录应该用 <code>**</code>。规则看着没问题但深层文件不生效，经常就是少了一个星号。</p>
+<h2 id="六、它和-Prettier、ESLint、Git-怎么分工"><a href="#六、它和-Prettier、ESLint、Git-怎么分工" class="headerlink" title="六、它和 Prettier、ESLint、Git 怎么分工"></a>六、它和 Prettier、ESLint、Git 怎么分工</h2><p>四个工具可以同时存在，只要职责没有重叠得太离谱。</p>
 <table>
 <thead>
 <tr>
-<th></th>
-<th></th>
+<th>工具</th>
+<th>主要职责</th>
+<th>典型配置</th>
 </tr>
 </thead>
 <tbody><tr>
-<td><code>indent_style</code></td>
-<td>设置缩进风格，tab或者空格。tab是hard tabs，space为soft tabs。</td>
+<td>EditorConfig</td>
+<td>编辑器基础行为</td>
+<td>缩进、编码、换行、行尾空格</td>
 </tr>
 <tr>
-<td><code>indent_size</code></td>
-<td>缩进的宽度，即列数，整数。如果indent_style为tab，则此属性默认为tab_width。</td>
+<td>Prettier</td>
+<td>代码排版</td>
+<td>引号、分号、换行、对象与数组布局</td>
 </tr>
 <tr>
-<td><code>tab_width</code></td>
-<td>设置tab的列数。默认是indent_size。</td>
+<td>ESLint</td>
+<td>代码质量</td>
+<td>未使用变量、危险语法、框架规则</td>
 </tr>
 <tr>
-<td><code>end_of_line</code></td>
-<td>换行符，lf、cr和crlf</td>
-</tr>
-<tr>
-<td><code>charset</code></td>
-<td>编码，latin1、utf-8、utf-8-bom、utf-16be和utf-16le，不建议使用utf-8-bom。</td>
-</tr>
-<tr>
-<td><code>trim_trailing_whitespace</code></td>
-<td>设为true表示会除去换行行首的任意空白字符。</td>
-</tr>
-<tr>
-<td><code>insert_final_newline</code></td>
-<td>设为true表明使文件以一个空白行结尾</td>
-</tr>
-<tr>
-<td><code>root</code></td>
-<td>表明是最顶层的配置文件，发现设为true时，才会停止查找.editorconfig文件</td>
+<td><code>.gitattributes</code></td>
+<td>Git 检出与入库换行</td>
+<td><code>text=auto eol=lf</code></td>
 </tr>
 </tbody></table>
-<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><blockquote>
-<p>下面以<code>sublime text</code>为例，测试<code>editorconfig</code>是否起作用。首先需要给<code>sublime</code>安装<code>EditorConfig</code>插件，然后在项目的根目录新建文件”<code>.editorconfig</code>“，内容如下</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># EditorConfig is awesome: &lt;a onclick=&quot;javascript:pageTracker._trackPageview(&#x27;/outgoing/EditorConfig.org&#x27;);&quot; href=&quot;http://EditorConfig.org&quot;&gt;http://EditorConfig.org&lt;/a&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># top-most EditorConfig file</span></span><br><span class="line">root = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Unix-style newlines with a newline ending every file</span></span><br><span class="line">[*]</span><br><span class="line">end_of_line = lf</span><br><span class="line">insert_final_newline = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Matches multiple files with brace expansion notation</span></span><br><span class="line"><span class="comment"># Set default charset</span></span><br><span class="line">[*.&#123;js,html,css&#125;]</span><br><span class="line">charset = utf-8</span><br><span class="line"></span><br><span class="line"><span class="comment"># Tab indentation (no size specified)</span></span><br><span class="line">[*.js]</span><br><span class="line">indent_style = tab</span><br><span class="line">tab_width = 50</span><br></pre></td></tr></table></figure>
+<p>EditorConfig 与 Prettier 都可能碰缩进和换行。项目里已经用 Prettier 时，让两边配置保持一致就行，不要一边两空格、一边四空格。EditorConfig 仍然能覆盖 <code>.env</code>、纯文本、配置片段等 Prettier 没处理的文件。</p>
+<p><code>.gitattributes</code> 管的是 Git 仓库层面的规范化，EditorConfig 管的是编辑器保存行为。对换行要求严格的跨平台仓库，两者可以一起用。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">* text=auto eol=lf</span><br><span class="line">*.bat text eol=crlf</span><br><span class="line">*.cmd text eol=crlf</span><br></pre></td></tr></table></figure>
+
+<p>这段配置让文本文件入库时统一为 <code>LF</code>，Windows 批处理文件保留 <code>CRLF</code>。它解决 Git 层问题，不能代替编辑器里的缩进设置。</p>
+<h2 id="七、配置不生效怎么查"><a href="#七、配置不生效怎么查" class="headerlink" title="七、配置不生效怎么查"></a>七、配置不生效怎么查</h2><p>碰到某个文件不听话，我通常按这个顺序排：</p>
+<ol>
+<li>文件名是不是严格的 <code>.editorconfig</code>，有没有被保存成 <code>.editorconfig.txt</code>。</li>
+<li>当前编辑器是否内置支持，还是需要安装插件并重新加载窗口。</li>
+<li>section 的 glob 能否匹配目标文件，路径大小写是否一致。</li>
+<li>更靠后的 section 有没有覆盖前面的属性。</li>
+<li>子目录是否存在另一份 <code>.editorconfig</code>。</li>
+<li>Prettier 或语言扩展是否在保存时再次格式化文件。</li>
+<li>文件是否已经带着旧换行，编辑器只对新输入内容应用配置。</li>
+</ol>
+<p>VS Code 可以查看右下角的缩进和换行状态，也可以执行「Developer: Inspect Editor Tokens and Scopes」之外的扩展日志来确认插件是否工作。不同插件的诊断入口会变化，最直接的测试仍是新建一个空文件，输入两级缩进并保存，再检查字节和换行。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看文件类型与换行信息</span></span><br><span class="line">file src/app.ts</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查行尾是否出现 CR 字符</span></span><br><span class="line">sed -n <span class="string">&#x27;l&#x27;</span> src/app.ts | <span class="built_in">head</span></span><br></pre></td></tr></table></figure>
+
+<p>先在临时文件测试，不要直接拿几千个历史文件试保存。</p>
+<h2 id="八、老项目接入时别一次改完整仓"><a href="#八、老项目接入时别一次改完整仓" class="headerlink" title="八、老项目接入时别一次改完整仓"></a>八、老项目接入时别一次改完整仓</h2><p><code>.editorconfig</code> 加进仓库后，开发者下一次保存可能触发大量空白变化。如果同一个提交里还混着业务逻辑，review 基本没法看。</p>
+<p>更稳的做法是分两步：先提交配置文件，让团队确认规则；再用统一工具做一次纯格式迁移，单独提交，并明确说明没有业务变更。迁移期间避免多人同时改同一批文件。</p>
+<p>上生产前可以照这份清单检查：</p>
+<ul>
+<li><input disabled="" type="checkbox"> 根目录包含 <code>root = true</code></li>
+<li><input disabled="" type="checkbox"> Markdown 和 Makefile 的例外已经处理</li>
+<li><input disabled="" type="checkbox"> EditorConfig 与 Prettier 的缩进、换行配置一致</li>
+<li><input disabled="" type="checkbox"> macOS、Windows 各保存一个测试文件并比较 diff</li>
+<li><input disabled="" type="checkbox"> 没有把格式迁移和业务代码混在同一个提交</li>
+<li><input disabled="" type="checkbox"> CI 至少检查格式，避免不支持 EditorConfig 的工具写回脏文件</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>EditorConfig 做的事情很小，却正好卡在团队协作最前面。根配置给默认值，后置 section 写例外，离文件更近的配置覆盖父级，这三条弄明白后，绝大多数问题都能定位。</p>
+<p>一份基础配置十分钟就能接入。老项目真正需要时间的是清理历史格式，最好拆成独立提交。它不能替代 Prettier 和 ESLint，但能把编辑器差异挡在代码进入 review 之前。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://editorconfig.org/">EditorConfig 官方网站与配置示例</a></li>
+<li><a href="https://spec.editorconfig.org/">EditorConfig 规范</a></li>
+<li><a href="https://git-scm.com/docs/gitattributes">Git 官方文档 - gitattributes</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

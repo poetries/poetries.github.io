@@ -7,28 +7,29 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Vue多页路由与模板解析 | 前端进阶之旅</title>
+  <title>Vue多页路由与模板解析 单页间跳转与模板定制 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="工程化,Vue,webpack,Vue Router," />
   
 
-  <meta name="description" content="一、路由配置1. 跳转  在配置路由前，首先我们要明确一点就是，多页应用中的每个单页都是相互隔离的，即如果你想从 page1 下的路由跳到 page2 下的路由，你无法使用 vue-router 中的方法进行跳转，需要使用原生方法：location.href 或 location.replace  此外为了能够清晰的分辨路由属于哪个单页，我们应该给每个单页路由添加前缀，比如  index 单页：&#x2F;">
+  <meta name="description" content="多页应用里每个单页的路由怎么加前缀、跨单页跳转为什么只能用 location、devServer 的 historyApiFallback 怎么重写，以及 html-webpack-plugin 模板语法和自定义配置的用法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vue多页路由与模板解析">
+<meta property="og:title" content="Vue多页路由与模板解析 单页间跳转与模板定制">
 <meta property="og:url" content="http://blog.poetries.top/2019/06/01/vue-router-and-template-analyse/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、路由配置1. 跳转  在配置路由前，首先我们要明确一点就是，多页应用中的每个单页都是相互隔离的，即如果你想从 page1 下的路由跳到 page2 下的路由，你无法使用 vue-router 中的方法进行跳转，需要使用原生方法：location.href 或 location.replace  此外为了能够清晰的分辨路由属于哪个单页，我们应该给每个单页路由添加前缀，比如  index 单页：&#x2F;">
+<meta property="og:description" content="多页应用里每个单页的路由怎么加前缀、跨单页跳转为什么只能用 location、devServer 的 historyApiFallback 怎么重写，以及 html-webpack-plugin 模板语法和自定义配置的用法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/8/3/164fb7b172500b55">
 <meta property="article:published_time" content="2019-06-01T16:15:32.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.695Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.960Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="工程化">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="webpack">
+<meta property="article:tag" content="Vue Router">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/8/3/164fb7b172500b55">
 
   
 
@@ -206,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%B7%AF%E7%94%B1%E9%85%8D%E7%BD%AE"><span class="toc-text">一、路由配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A8%A1%E6%9D%BF%E9%85%8D%E7%BD%AE"><span class="toc-text">二、模板配置</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%B7%AF%E7%94%B1%E9%85%8D%E7%BD%AE"><span class="toc-text">一、路由配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%A8%E5%8D%95%E9%A1%B5%E8%B7%B3%E8%BD%AC%E5%8F%AA%E8%83%BD%E9%9D%A0-location"><span class="toc-text">跨单页跳转只能靠 location</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-text">重定向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A8%A1%E6%9D%BF%E9%85%8D%E7%BD%AE"><span class="toc-text">二、模板配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A8%A1%E6%9D%BF%E6%B8%B2%E6%9F%93"><span class="toc-text">模板渲染</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%85%8D%E7%BD%AE"><span class="toc-text">自定义配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E5%A5%97%E5%86%99%E6%B3%95%E5%9C%A8%E4%BB%8A%E5%A4%A9"><span class="toc-text">这套写法在今天</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -229,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-router-and-template-analyse" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Vue多页路由与模板解析</h1>
+    <h1 class="post-title">Vue多页路由与模板解析 单页间跳转与模板定制</h1>
 
     <div class="article-meta">
       <span>
@@ -271,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.8k字</span>
+            <span>字数统计 4.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 16分</span>
           </span>
       
       
@@ -290,90 +291,111 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、路由配置"><a href="#一、路由配置" class="headerlink" title="一、路由配置"></a>一、路由配置</h2><p><strong>1. 跳转</strong></p>
-<blockquote>
-<p>在配置路由前，首先我们要明确一点就是，多页应用中的每个单页都是相互隔离的，即如果你想从 <code>page1</code> 下的路由跳到 <code>page2</code> 下的路由，你无法使用 <code>vue-router</code> 中的方法进行跳转，需要使用原生方法：<code>location.href</code> 或 <code>location.replace</code></p>
-</blockquote>
-<p>此外为了能够清晰的分辨路由属于哪个单页，我们应该给每个单页路由添加前缀，比如</p>
+        <p>多页应用的构建配好之后，第一个真正卡住人的问题往往是：从 <code>page1</code> 点一个链接跳到 <code>page2</code>，<code>this.$router.push(&#39;/page2&#39;)</code> 敲下去，地址栏变了，页面没换，控制台还一声不吭。接着是本地跑得好好的，刷新 <code>/vue/page1</code> 直接 404。这两个坑都出在同一个地方，多页应用的每个 html 是独立的运行时，路由的边界跟单页完全不是一回事。这篇把多页的路由前缀、跨单页跳转、服务端重写，还有 html 模板怎么按环境定制，一条线讲清楚。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>多页应用里为什么 <code>vue-router</code> 跳不到别的单页，只能用 <code>location</code></li>
+<li>用 <code>base</code> 给每个单页的路由加前缀，避免路径互相打架</li>
+<li>把跨单页跳转封装成 <code>$openRouter</code>，保持和 <code>vue-router</code> 一致的调用手感</li>
+<li><code>devServer.historyApiFallback.rewrites</code> 怎么把 <code>/vue/page1</code> 重写到 <code>page1.html</code></li>
+<li><code>html-webpack-plugin</code> 的默认模板语法，<code>htmlWebpackPlugin.files</code> 里到底有什么</li>
+<li>用自定义配置在生产环境往指定模板里注入统计脚本</li>
+</ul>
+<h2 id="一、路由配置"><a href="#一、路由配置" class="headerlink" title="一、路由配置"></a>一、路由配置</h2><h3 id="跨单页跳转只能靠-location"><a href="#跨单页跳转只能靠-location" class="headerlink" title="跨单页跳转只能靠 location"></a>跨单页跳转只能靠 location</h3><p>在配置路由前，首先我们要明确一点就是，多页应用中的每个单页都是相互隔离的。即如果你想从 <code>page1</code> 下的路由跳到 <code>page2</code> 下的路由，你无法使用 <code>vue-router</code> 中的方法进行跳转，需要使用原生方法 <code>location.href</code> 或 <code>location.replace</code>。</p>
+<p>为什么？因为 <code>vue-router</code> 从头到尾都活在一个 html 的内存里。它的路由表是这个页面加载时注册的，<code>push</code> 做的事情是调 <code>history.pushState</code> 改地址栏，然后在自己的路由表里找匹配项去换 <code>&lt;router-view&gt;</code> 的内容。<code>page2</code> 的路由表在另一个 html 里，当前这个页面根本不知道它的存在，匹配不上就只能落到 404 或者什么都不做。</p>
+<p>所以跨单页跳转必须让浏览器真的去请求另一个文档。</p>
+<p><code>location.href</code> 和 <code>location.replace</code> 的区别在历史记录上。前者会往历史栈里压一条，用户按返回键能回来；后者是替换当前记录，回不去。登录跳转、支付完成这类不希望用户退回去的场景用 <code>replace</code>，普通导航用 <code>href</code>。</p>
+<p>此外为了能够清晰地分辨路由属于哪个单页，我们应该给每个单页路由添加前缀，比如：</p>
 <ul>
 <li><code>index</code> 单页：<code>/vue/</code></li>
 <li><code>page1</code> 单页：<code>/vue/page1/</code></li>
-<li><code>page2</code> 单页：<code>/vue/page2/- </code></li>
+<li><code>page2</code> 单页：<code>/vue/page2/</code></li>
 </ul>
-<blockquote>
-<p>其中 <code>/vue/</code> 为项目的二级目录，其后的目录代表路由属于哪个单页。因此我们每个单页的路由配置可以像这样</p>
-</blockquote>
+<p>其中 <code>/vue/</code> 为项目的二级目录，其后的目录代表路由属于哪个单页。因此我们每个单页的路由配置可以像这样：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* page1 单页路由配置 */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Router</span> <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 首页</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Home</span> = (<span class="function"><span class="params">resolve</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">require</span>.<span class="title function_">ensure</span>([<span class="string">&#x27;../views/home.vue&#x27;</span>], <span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="built_in">require</span>(<span class="string">&#x27;../views/home.vue&#x27;</span>))</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Router</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> base = <span class="string">`<span class="subst">$&#123;process.env.BASE_URL&#125;</span>`</span> + <span class="string">&#x27;page1&#x27;</span>; <span class="comment">// 添加单页前缀</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Router</span>(&#123;</span><br><span class="line">    <span class="attr">mode</span>: <span class="string">&#x27;history&#x27;</span>,</span><br><span class="line">    <span class="attr">base</span>: base,</span><br><span class="line">    <span class="attr">routes</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">            <span class="attr">name</span>: <span class="string">&#x27;home&#x27;</span>,</span><br><span class="line">            <span class="attr">component</span>: <span class="title class_">Home</span></span><br><span class="line">        &#125;,</span><br><span class="line">    ]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>我们通过设置路由的 <code>base</code> 值来为每个单页添加路由前缀，如果是 <code>index</code> 单页我们无需拼接路由前缀，直接跳转至二级目录即可</p>
-</blockquote>
-<p>那么在单页间跳转的地方，我们可以这样写</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;nav&quot;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">a</span> @<span class="attr">click</span>=<span class="string">&quot;goFn(&#x27;&#x27;)&quot;</span>&gt;</span>Index<span class="tag">&lt;/<span class="name">a</span>&gt;</span> |</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">a</span> @<span class="attr">click</span>=<span class="string">&quot;goFn(&#x27;page1&#x27;)&quot;</span>&gt;</span>Page1<span class="tag">&lt;/<span class="name">a</span>&gt;</span> |</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">a</span> @<span class="attr">click</span>=<span class="string">&quot;goFn(&#x27;page2&#x27;)&quot;</span>&gt;</span>Page2<span class="tag">&lt;/<span class="name">a</span>&gt;</span> |</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">router-view</span>/&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">    <span class="attr">methods</span>: &#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        <span class="title function_">goFn</span>(<span class="params">name</span>) &#123;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">            location.<span class="property">href</span> = <span class="string">`<span class="subst">$&#123;process.env.BASE_URL&#125;</span>`</span> + name</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">        &#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">    &#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml">&#125;</span></span></span><br><span class="line"><span class="language-javascript"><span class="language-xml"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>我们通过设置路由的 <code>base</code> 值来为每个单页添加路由前缀，如果是 <code>index</code> 单页我们无需拼接路由前缀，直接跳转至二级目录即可。</p>
+<p>这里的巧妙之处在于，每个单页内部的路由表都可以从 <code>/</code> 开始写，互相之间不用协调命名。<code>page1</code> 有一个 <code>/detail</code>，<code>page2</code> 也有一个 <code>/detail</code>，两者实际的 URL 是 <code>/vue/page1/detail</code> 和 <code>/vue/page2/detail</code>，各走各的。前缀这件事交给 <code>base</code> 统一处理，业务代码里一个字都不用改。</p>
+<p><code>process.env.BASE_URL</code> 是 Vue CLI 3 根据 <code>vue.config.js</code> 里的 <code>publicPath</code> 自动注入的，这一层的来龙去脉我在 <a href="https://feinterview.poetries.top/blog/vue-single-page-config">Vue单页应用的基本配置</a> 里说过。</p>
+<p>那么在单页间跳转的地方，我们可以这样写：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;nav&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">a</span> @<span class="attr">click</span>=<span class="string">&quot;goFn(&#x27;&#x27;)&quot;</span>&gt;</span>Index<span class="tag">&lt;/<span class="name">a</span>&gt;</span> |</span><br><span class="line">      <span class="tag">&lt;<span class="name">a</span> @<span class="attr">click</span>=<span class="string">&quot;goFn(&#x27;page1&#x27;)&quot;</span>&gt;</span>Page1<span class="tag">&lt;/<span class="name">a</span>&gt;</span> |</span><br><span class="line">      <span class="tag">&lt;<span class="name">a</span> @<span class="attr">click</span>=<span class="string">&quot;goFn(&#x27;page2&#x27;)&quot;</span>&gt;</span>Page2<span class="tag">&lt;/<span class="name">a</span>&gt;</span> |</span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">router-view</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span></span><br><span class="line"><span class="language-javascript">    <span class="attr">methods</span>: &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="title function_">goFn</span>(<span class="params">name</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">            location.<span class="property">href</span> = <span class="string">`<span class="subst">$&#123;process.env.BASE_URL&#125;</span>`</span> + name</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript">&#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>但是为了保持和 <code>Vue</code> 路由跳转同样的风格，我可以对单页之间的跳转做一下封装，实现一个 <code>Navigator</code> 类，类的代码可以查看本文最后的示例，封装完成后我们可以将跳转方法修改为</p>
-</blockquote>
+<p>能用，但难受。项目里一半跳转写 <code>this.$router.push(&#123; name, query &#125;)</code>，另一半写 <code>location.href = 拼字符串</code>，参数传递的写法也完全不同，新人过来根本分不清什么时候该用哪个。</p>
+<p>为了保持和 Vue 路由跳转同样的风格，我可以对单页之间的跳转做一下封装，实现一个 <code>Navigator</code> 类。封装完成后我们可以将跳转方法修改为：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">this</span>.$openRouter(&#123;</span><br><span class="line">    <span class="attr">name</span>: name, <span class="comment">// 跳转地址</span></span><br><span class="line">    <span class="attr">query</span>: &#123;</span><br><span class="line">        <span class="attr">text</span>: <span class="string">&#x27;hello&#x27;</span> <span class="comment">// 可以进行参数传递</span></span><br><span class="line">    &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>使用上述 <code>$openRouter</code> 方法我们还需要一个前提条件，便是将其绑定到 Vue 的原型链上，我们在所有单页的入口文件中添加</p>
-</blockquote>
+<p>调用手感和 <code>this.$router.push</code> 对齐了，<code>Navigator</code> 内部做的事情就是把 <code>name</code> 拼成完整路径、把 <code>query</code> 对象序列化成 query string，最后走 <code>location.href</code>。这样业务代码里两种跳转看起来是一套东西，未来哪天页面合并回单页，改起来也只动 <code>Navigator</code> 一个文件。</p>
+<p>使用上述 <code>$openRouter</code> 方法我们还需要一个前提条件，便是将其绑定到 Vue 的原型链上。我们在所有单页的入口文件中添加：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Navigator</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;../../common&#x27;</span> <span class="comment">// 引入 Navigator</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$openRouter</span> = <span class="title class_">Navigator</span>.<span class="property">openRouter</span>; <span class="comment">// 添加至 Vue 原型链</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>至此我们已经能够成功模仿 <code>vue-router</code> 进行单页间的跳转，但是需要注意的是因为其本质使用的是 <code>location</code> 跳转，所以必然会产生浏览器的刷新与重载</p>
-</blockquote>
-<p><strong>2. 重定向</strong></p>
-<blockquote>
-<p>当我们完成上述路由跳转的功能后，可以在本地服务器上来进行一下测试，你会发现 <code>Index</code> 首页可以正常打开，但是跳转 <code>Page1</code>、<code>Page2</code> 却仍然处于 <code>Index</code> 父组件下，这是因为浏览器认为你所要跳转的页面还是在 <code>Index</code> 根路由下，同时又没有匹配到 <code>Index</code> 单页中对应的路由。这时候我们服务器需要做一次重定向，将下方路由指向对应的 <code>html</code> 文件即可</p>
-</blockquote>
+<p>「在所有单页的入口文件中添加」这句话本身就是个信号。三个入口文件里抄三遍同样的代码，改一次要改三处。这个问题有专门的解法，把入口的公共配置抽成一个函数，我在 <a href="https://feinterview.poetries.top/blog/vue-opz">Vue之项目整合与优化</a> 里写了具体怎么做。</p>
+<p>至此我们已经能够成功模仿 <code>vue-router</code> 进行单页间的跳转，但是需要注意的是因为其本质使用的是 <code>location</code> 跳转，所以必然会产生浏览器的刷新与重载。这个成本躲不掉，页面状态全丢，公共依赖重新解析一遍。所以多页的切分粒度要想清楚，把用户会频繁来回切的两个页面拆成两个单页，体验是倒退的。</p>
+<h3 id="重定向"><a href="#重定向" class="headerlink" title="重定向"></a>重定向</h3><p>当我们完成上述路由跳转的功能后，可以在本地服务器上来进行一下测试。你会发现 <code>Index</code> 首页可以正常打开，但是跳转 <code>Page1</code>、<code>Page2</code> 却仍然处于 <code>Index</code> 父组件下。</p>
+<p>这是因为浏览器认为你所要跳转的页面还是在 <code>Index</code> 根路由下，同时又没有匹配到 <code>Index</code> 单页中对应的路由。</p>
+<p>说得再具体一点，你请求的是 <code>/vue/page1</code> 这个路径，服务器上并没有一个叫 <code>page1</code> 的文件或目录，开发服务器的 history 兜底规则把它交还给了 <code>index.html</code>。于是加载的还是 <code>Index</code> 单页，它的路由表里没有 <code>/page1</code>，就停在那儿了。</p>
+<p>这时候我们服务器需要做一次重定向，将下方路由指向对应的 <code>html</code> 文件即可：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/vue/page1 -&gt; /vue/page1.html</span><br><span class="line">/vue/page2 -&gt; /vue/page2.html</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在 <code>vue.config.js</code> 中，我们需要对 <code>devServer</code> 进行配置，添加 <code>historyApiFallback </code>配置项，该配置项主要用于解决 <code>HTML5 History API</code> 产生的问题，比如其 <code>rewrites</code> 选项用于重写路由</p>
-</blockquote>
+<p>在 <code>vue.config.js</code> 中，我们需要对 <code>devServer</code> 进行配置，添加 <code>historyApiFallback</code> 配置项。该配置项主要用于解决 HTML5 History API 产生的问题，比如其 <code>rewrites</code> 选项用于重写路由：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* vue.config.js */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> baseUrl = <span class="string">&#x27;/vue/&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">devServer</span>: &#123;</span><br><span class="line">        <span class="attr">historyApiFallback</span>: &#123;</span><br><span class="line">            <span class="attr">rewrites</span>: [</span><br><span class="line">                &#123; <span class="attr">from</span>: <span class="keyword">new</span> <span class="title class_">RegExp</span>(baseUrl + <span class="string">&#x27;page1&#x27;</span>), <span class="attr">to</span>: baseUrl + <span class="string">&#x27;page1.html&#x27;</span> &#125;,</span><br><span class="line">                &#123; <span class="attr">from</span>: <span class="keyword">new</span> <span class="title class_">RegExp</span>(baseUrl + <span class="string">&#x27;page2&#x27;</span>), <span class="attr">to</span>: baseUrl + <span class="string">&#x27;page2.html&#x27;</span> &#125;,</span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上方我们通过 <code>rewrites</code> 匹配正则表达式的方式将 <code>/vue/page1</code> 这样的路由替换为访问服务器下正确 <code>html</code> 文件的形式，如此不同单页间便可以进行正确跳转和访问了</p>
-</blockquote>
-<h2 id="二、模板配置"><a href="#二、模板配置" class="headerlink" title="二、模板配置"></a>二、模板配置</h2><p><strong>1. 模板渲染</strong></p>
-<blockquote>
-<p>这里所说的模板渲染是在我们的 <code>html</code> 模板文件中使用 <code>html-webpack-plugin</code> 提供的 <code>default template</code> 语法进行模板编写，比如</p>
-</blockquote>
+<p>上方我们通过 <code>rewrites</code> 匹配正则表达式的方式将 <code>/vue/page1</code> 这样的路由替换为访问服务器下正确 <code>html</code> 文件的形式，如此不同单页间便可以进行正确跳转和访问了。</p>
+<p>两个提醒。</p>
+<p>一是 <code>rewrites</code> 是按数组顺序匹配的，命中第一条就停。规则写得越宽泛越要往后放，否则会把后面的都吃掉。这里的正则没加 <code>^</code> 和边界，<code>/vue/page10</code> 也会被 <code>page1</code> 这条命中，页面数量多起来之后建议把正则写严一点。</p>
+<p>二是这只是开发服务器的配置。生产环境上 <code>devServer</code> 整个不存在，同样的重写规则得在 nginx 或者你用的静态服务器上再配一遍。这件事我第一次做多页的时候忘了，本地全绿，一上测试环境所有子页面 404，排查了半天才想起来 <code>devServer</code> 三个字的含义。</p>
+<h2 id="二、模板配置"><a href="#二、模板配置" class="headerlink" title="二、模板配置"></a>二、模板配置</h2><h3 id="模板渲染"><a href="#模板渲染" class="headerlink" title="模板渲染"></a>模板渲染</h3><p>这里所说的模板渲染是在我们的 <code>html</code> 模板文件中使用 <code>html-webpack-plugin</code> 提供的 default template 语法进行模板编写。比如：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;utf-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;X-UA-Compatible&quot;</span> <span class="attr">content</span>=<span class="string">&quot;IE=edge&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width,initial-scale=1.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>模板<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    &lt;% for (var chunk in htmlWebpackPlugin.files.css) &#123; %&gt;</span><br><span class="line">        &lt;% if(htmlWebpackPlugin.files.css[chunk]) &#123;%&gt;</span><br><span class="line">            <span class="tag">&lt;<span class="name">link</span> <span class="attr">href</span>=<span class="string">&quot;&lt;%= htmlWebpackPlugin.files.css[chunk] %&gt;&quot;</span> <span class="attr">rel</span>=<span class="string">&quot;stylesheet&quot;</span> /&gt;</span></span><br><span class="line">        &lt;%&#125;%&gt;</span><br><span class="line">    &lt;% &#125; %&gt;</span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- built files will be auto injected --&gt;</span></span><br><span class="line"></span><br><span class="line">    &lt;% for (var chunk in htmlWebpackPlugin.files.js) &#123; %&gt;</span><br><span class="line">        &lt;% if(htmlWebpackPlugin.files.js[chunk]) &#123;%&gt;</span><br><span class="line">            <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span> <span class="attr">src</span>=<span class="string">&quot;&lt;%= htmlWebpackPlugin.files.js[chunk] %&gt;&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">        &lt;%&#125;%&gt;</span><br><span class="line">    &lt;% &#125; %&gt;</span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>以上我们使用模板语法手动获取并遍历 <code>htmlWebpackPlugin</code> 打包后的文件并生成到模板中，其中的 <code>htmlWebpackPlugin</code> 变量是模板提供的可访问变量，其有以下特定数据</p>
-</blockquote>
+<p>这套 <code>&lt;% %&gt;</code> 语法是 lodash 的模板语法，<code>html-webpack-plugin</code> 默认用它来编译模板。<code>&lt;% %&gt;</code> 里写逻辑，<code>&lt;%= %&gt;</code> 输出内容。它是在构建时执行的，产出的是静态 html，跟运行时没有任何关系，别跟 Vue 的模板语法混在一起理解。</p>
+<p>以上我们使用模板语法手动获取并遍历 <code>htmlWebpackPlugin</code> 打包后的文件并生成到模板中。其中的 <code>htmlWebpackPlugin</code> 变量是模板提供的可访问变量，其有以下特定数据：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="string">&quot;htmlWebpackPlugin&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;files&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;css&quot;</span>: [ <span class="string">&quot;main.css&quot;</span> ],</span><br><span class="line">        <span class="string">&quot;js&quot;</span>: [ <span class="string">&quot;assets/head_bundle.js&quot;</span>, <span class="string">&quot;assets/main_bundle.js&quot;</span>],</span><br><span class="line">        <span class="string">&quot;chunks&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;head&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;entry&quot;</span>: <span class="string">&quot;assets/head_bundle.js&quot;</span>,</span><br><span class="line">                <span class="string">&quot;css&quot;</span>: [ <span class="string">&quot;main.css&quot;</span> ]</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="string">&quot;main&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;entry&quot;</span>: <span class="string">&quot;assets/main_bundle.js&quot;</span>,</span><br><span class="line">                <span class="string">&quot;css&quot;</span>: []</span><br><span class="line">            &#125;,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>我们通过 <code>htmlWebpackPlugin.files </code>可以获取打包输出的 <code>js </code>及 <code>css</code> 文件路径，包括入口文件路径等</li>
-<li>需要注意的是如果你在模板中编写了插入对应 <code>js</code> 及 <code>css</code> 的语法，你需要设置 <code>inject</code> 的值为 <code>false</code> 来关闭资源的自动注入</li>
-</ul>
+<p>我们通过 <code>htmlWebpackPlugin.files</code> 可以获取打包输出的 js 及 css 文件路径，包括入口文件路径等。注意这些路径都是带 hash 的最终产物路径，这也是为什么不能在模板里手写死一个固定的资源路径，hash 每次构建都会变。</p>
+<p>需要注意的是如果你在模板中编写了插入对应 js 及 css 的语法，你需要设置 <code>inject</code> 的值为 <code>false</code> 来关闭资源的自动注入：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* utils.js */</span></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> conf = &#123;</span><br><span class="line">    <span class="attr">entry</span>: filePath, <span class="comment">// page 的入口</span></span><br><span class="line">    <span class="attr">template</span>: filePath, <span class="comment">// 模板路径</span></span><br><span class="line">    <span class="attr">filename</span>: filename + <span class="string">&#x27;.html&#x27;</span>, <span class="comment">// 生成 html 的文件名</span></span><br><span class="line">    <span class="attr">chunks</span>: [<span class="string">&#x27;manifest&#x27;</span>, <span class="string">&#x27;vendor&#x27;</span>,  filename],</span><br><span class="line">    <span class="attr">inject</span>: <span class="literal">false</span>, <span class="comment">// 关闭资源自动注入</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
-<p>否则在页面会引入两次资源，如下图所示</p>
-<p><img src="https://user-gold-cdn.xitu.io/2018/8/3/164fb7b172500b55"></p>
-<p><strong>2. 自定义配置</strong></p>
-<blockquote>
-<p>在模板渲染中，我们只能够使用 <code>htmlWebpackPlugin</code> 内部的一些属性和方法来进行模板的定制化开发，那么如果遇到需要根据不同环境来引入不同资源，同时不同模板间的配置还可能不一样的需求情况的话，我们使用自定义配置会比较方便。比如我们需要在生产环境模板中引入第三方统计脚本</p>
-</blockquote>
+<p>否则页面上同一个 js 会被引入两次，一次是你在模板里手动写的，一次是插件自动注入的。表现出来就是入口代码执行了两遍，Vue 实例挂载两次，或者埋点上报翻倍。这类问题从现象上很难联想到构建配置，遇到的时候先打开生成的 html 看一眼 script 标签有几个，比什么都快。</p>
+<p>反过来说，如果你不需要在模板里做任何定制，就让 <code>inject: true</code> 自动注入，别自己遍历，省事且不容易错。<code>html-webpack-plugin</code> 的多模板配置怎么批量生成，我在 <a href="https://feinterview.poetries.top/blog/vue-muti-page-config">Vue CLI3之pages 构建多页应用</a> 里写过完整的 <code>setPages</code> 方法。</p>
+<h3 id="自定义配置"><a href="#自定义配置" class="headerlink" title="自定义配置"></a>自定义配置</h3><p>在模板渲染中，我们只能够使用 <code>htmlWebpackPlugin</code> 内部的一些属性和方法来进行模板的定制化开发。那么如果遇到需要根据不同环境来引入不同资源，同时不同模板间的配置还可能不一样的需求情况的话，我们使用自定义配置会比较方便。</p>
+<p>原理是 <code>HtmlWebpackPlugin</code> 构造函数里传的所有字段都会挂到模板可访问的 <code>htmlWebpackPlugin.options</code> 上，包括你自己加的那些非标准字段。也就是说，你可以从 <code>vue.config.js</code> 往模板里传任意东西，甚至传函数。</p>
+<p>比如我们需要在生产环境模板中引入第三方统计脚本：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* vue.config.js */</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">pages</span>: utils.<span class="title function_">setPages</span>(&#123;</span><br><span class="line">        <span class="title function_">addScript</span>(<span class="params"></span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">`</span></span><br><span class="line"><span class="string">                    &lt;script src=&quot;https://s95.cnzz.com/z_stat.php?id=xxx&amp;web_id=xxx&quot; language=&quot;JavaScript&quot;&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">                `</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;),</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>然后在页面模板中通过 <code>htmlWebpackPlugin.options</code> 获取自定义配置对象并进行输出</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;% if(htmlWebpackPlugin.options.addScript)&#123; %&gt;</span><br><span class="line">    &lt;%= htmlWebpackPlugin.options.addScript() %&gt;</span><br><span class="line">&lt;%&#125;%&gt;</span><br></pre></td></tr></table></figure>
+<p><code>setPages</code> 的参数会被 merge 进每个页面的配置，所以这个 <code>addScript</code> 方法在所有模板里都能拿到。</p>
+<p>然后在页面模板中通过 <code>htmlWebpackPlugin.options</code> 获取自定义配置对象并进行输出：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&lt;% if(htmlWebpackPlugin.options.addScript)&#123; %&gt;</span><br><span class="line">    &lt;%= htmlWebpackPlugin.options.addScript() %&gt;</span><br><span class="line">&lt;%&#125;%&gt;</span><br></pre></td></tr></table></figure>
 
-<p>同时你也可以针对个别模板进行配置，比如我想只在 Index 单页中添加统计脚本，在 Page1 单页中添加其他脚本，那么你可以给 addScript 传入标识符来进行判断输出，比如</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;% if(htmlWebpackPlugin.options.addScript)&#123; %&gt;</span><br><span class="line">    &lt;%= htmlWebpackPlugin.options.addScript(&#x27;index&#x27;) %&gt;</span><br><span class="line">&lt;%&#125;%&gt;</span><br></pre></td></tr></table></figure>
+<p>外面那层 <code>if</code> 判断不能省。模板是共用的，万一某个页面的配置里没传 <code>addScript</code>，直接调用就是 <code>undefined is not a function</code>，整个构建会挂在模板编译这一步，报错信息还很不友好。</p>
+<p>这里用 <code>&lt;%= %&gt;</code> 而不是 <code>&lt;%- %&gt;</code>，因为我们要输出的是一段真实的 HTML 标签，需要原样插入，不能被转义成实体字符。</p>
+<p>同时你也可以针对个别模板进行配置。比如我想只在 Index 单页中添加统计脚本，在 Page1 单页中添加其他脚本，那么你可以给 <code>addScript</code> 传入标识符来进行判断输出，比如：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&lt;% if(htmlWebpackPlugin.options.addScript)&#123; %&gt;</span><br><span class="line">    &lt;%= htmlWebpackPlugin.options.addScript(&#x27;index&#x27;) %&gt;</span><br><span class="line">&lt;%&#125;%&gt;</span><br></pre></td></tr></table></figure>
 
 <p>同时为 <code>addScript</code> 方法添加参数 <code>from</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">addScript</span>(<span class="params"><span class="keyword">from</span></span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> url = <span class="string">&quot;https://xxx&quot;</span>;</span><br><span class="line">    </span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">from</span> === <span class="string">&#x27;index&#x27;</span>) &#123;</span><br><span class="line">            url = <span class="string">&quot;https://s95.cnzz.com/z_stat.php?id=xxx&amp;web_id=xxx&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> <span class="string">`</span></span><br><span class="line"><span class="string">            &lt;script src=<span class="subst">$&#123;url&#125;</span> language=&quot;JavaScript&quot;&gt;&lt;/script&gt;</span></span><br><span class="line"><span class="string">        `</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>标识符写在模板里而不是配置里，这个选择挺关键：配置是一份，模板是每个页面各一份，把差异点放在模板侧，就不用在 <code>vue.config.js</code> 里为每个页面单独写一套配置。</p>
+<p>顺带说一句，返回的字符串里 <code>src=$&#123;url&#125;</code> 没加引号。HTML 规范允许无引号属性值，但只限于值里不含空格、引号、<code>&lt;</code>、<code>&gt;</code>、反引号和等号。统计脚本的 URL 通常带 <code>?id=xxx&amp;web_id=xxx</code>，等号在里面，无引号写法在这种情况下是有风险的，建议改成 <code>src=&quot;$&#123;url&#125;&quot;</code>。</p>
+<h3 id="这套写法在今天"><a href="#这套写法在今天" class="headerlink" title="这套写法在今天"></a>这套写法在今天</h3><p><code>html-webpack-plugin</code> 的 lodash 模板语法在 4.x 之后做过调整，<code>htmlWebpackPlugin.files.chunks</code> 这个字段在新版本里的形态和上面这份数据结构不完全一样。抄这段之前建议先把插件版本对一下，或者在模板里先 <code>&lt;%= JSON.stringify(htmlWebpackPlugin.files) %&gt;</code> 打出来看看。</p>
+<p>如果是新项目走 Vite，模板这一层的玩法完全变了。Vite 的 html 本身就是入口，不需要插件去注入资源；要做环境相关的注入，官方提供了 <code>transformIndexHtml</code> 钩子，或者直接在 html 里用 <code>%VITE_XXX%</code> 这种环境变量占位符。思路还是那个思路，构建时往 html 里塞点东西，只是接口换了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把这一圈过下来，几个能直接带走的结论：</p>
+<ul>
+<li>多页应用里 <code>vue-router</code> 只在单页内部有效，跨单页跳转必须走 <code>location.href</code> 或 <code>location.replace</code>，代价是整页重载</li>
+<li>用 <code>base</code> 给每个单页加路由前缀，各单页内部的路由表就能互不干扰地从 <code>/</code> 开始写</li>
+<li>把跨单页跳转封装成 <code>$openRouter</code>，让调用方式和 <code>this.$router.push</code> 保持一致，未来改造成本低得多</li>
+<li><code>historyApiFallback.rewrites</code> 按顺序匹配，正则要写严；而且它只管开发服务器，nginx 上得再配一遍</li>
+<li><code>htmlWebpackPlugin.files</code> 拿到的是带 hash 的最终路径，模板里手写资源路径行不通</li>
+<li>模板里自己插了资源就必须把 <code>inject</code> 关掉，否则同一份 js 会被引入两次</li>
+<li><code>HtmlWebpackPlugin</code> 的配置对象会整体挂到 <code>htmlWebpackPlugin.options</code>，可以传函数进去做环境判断</li>
+</ul>
+<p>多页配置这类东西的特点是，配对了之后基本再也不用碰，配错了又很难从现象倒推回原因。所以每一处配置为什么这么写，最好当时就记下来。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://v3.router.vuejs.org/zh/guide/essentials/history-mode.html">Vue Router 3 - HTML5 History 模式</a></li>
+<li><a href="https://github.com/jantimon/html-webpack-plugin">html-webpack-plugin - GitHub</a></li>
+<li><a href="https://webpack.js.org/configuration/dev-server/#devserverhistoryapifallback">webpack-dev-server - historyApiFallback</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Location/replace">MDN - Location.replace</a></li>
+<li><a href="https://cn.vitejs.dev/guide/api-plugin.html">Vite - HTML 转换钩子</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

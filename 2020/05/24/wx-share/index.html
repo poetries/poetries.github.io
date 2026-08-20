@@ -7,24 +7,26 @@
 <head>
   <meta charset="utf-8">
   
-  <title>H5之微信公众号分享 | 前端进阶之旅</title>
+  <title>H5之微信公众号分享 JS-SDK接入与二次分享失效排查 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="公众号分享," />
+    <meta name="keywords" content="微信JS-SDK,H5,公众号分享," />
   
 
-  <meta name="description" content="使用微信的分享功能，需要使用微信JS-SDK来完成。且只能点击微信右上角的...调起分享面板，不能直接由页面行为唤起！本教程使用js-sdk最新版  微信JS-SDK是微信公众平台面向网页开发者提供的基于微信内的网页开发工具包。通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力 一、JSSD">
+  <meta name="description" content="微信公众号 H5 分享完整接入笔记，含 JS-SDK 五步配置、分享文案规范、updateAppMessageShareData 用法，以及 hash 路由二次分享失效的两种解法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="H5之微信公众号分享">
+<meta property="og:title" content="H5之微信公众号分享 JS-SDK接入与二次分享失效排查">
 <meta property="og:url" content="http://blog.poetries.top/2020/05/24/wx-share/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="使用微信的分享功能，需要使用微信JS-SDK来完成。且只能点击微信右上角的...调起分享面板，不能直接由页面行为唤起！本教程使用js-sdk最新版  微信JS-SDK是微信公众平台面向网页开发者提供的基于微信内的网页开发工具包。通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力 一、JSSD">
+<meta property="og:description" content="微信公众号 H5 分享完整接入笔记，含 JS-SDK 五步配置、分享文案规范、updateAppMessageShareData 用法，以及 hash 路由二次分享失效的两种解法。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2020-05-24T05:21:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.698Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.962Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="微信JS-SDK">
+<meta property="article:tag" content="H5">
 <meta property="article:tag" content="公众号分享">
 <meta name="twitter:card" content="summary">
 
@@ -204,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81JSSDK%E4%BD%BF%E7%94%A8%E6%AD%A5%E9%AA%A4"><span class="toc-text">一、JSSDK使用步骤</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%BE%AE%E4%BF%A1%E5%88%86%E4%BA%AB"><span class="toc-text">二、微信分享</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%88%86%E4%BA%AB%E6%8E%A5%E5%8F%A3"><span class="toc-text">三、分享接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%88%86%E4%BA%AB%E5%BC%80%E5%8F%91%E8%B0%83%E8%AF%95%E6%97%B6%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">四、分享开发调试时注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%9E%E6%88%98"><span class="toc-text">五、实战</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81JSSDK%E4%BD%BF%E7%94%A8%E6%AD%A5%E9%AA%A4"><span class="toc-text">一、JSSDK使用步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%AD%A5%E9%AA%A4%E4%B8%80-%E7%BB%91%E5%AE%9A%E5%9F%9F%E5%90%8D"><span class="toc-text">1.1 步骤一 绑定域名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%AD%A5%E9%AA%A4%E4%BA%8C-%E5%BC%95%E5%85%A5JS%E6%96%87%E4%BB%B6"><span class="toc-text">1.2 步骤二 引入JS文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%AD%A5%E9%AA%A4%E4%B8%89-%E9%80%9A%E8%BF%87config%E6%8E%A5%E5%8F%A3%E6%B3%A8%E5%85%A5%E6%9D%83%E9%99%90%E9%AA%8C%E8%AF%81%E9%85%8D%E7%BD%AE"><span class="toc-text">1.3 步骤三 通过config接口注入权限验证配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E6%AD%A5%E9%AA%A4%E5%9B%9B-%E9%80%9A%E8%BF%87ready%E6%8E%A5%E5%8F%A3%E5%A4%84%E7%90%86%E6%88%90%E5%8A%9F%E9%AA%8C%E8%AF%81"><span class="toc-text">1.4 步骤四 通过ready接口处理成功验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-%E6%AD%A5%E9%AA%A4%E4%BA%94-%E9%80%9A%E8%BF%87error%E6%8E%A5%E5%8F%A3%E5%A4%84%E7%90%86%E5%A4%B1%E8%B4%A5%E9%AA%8C%E8%AF%81"><span class="toc-text">1.5 步骤五 通过error接口处理失败验证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E9%80%9A%E7%94%A8%E5%8F%82%E6%95%B0"><span class="toc-text">1.6 通用参数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%BE%AE%E4%BF%A1%E5%88%86%E4%BA%AB"><span class="toc-text">二、微信分享</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%86%E4%BA%AB%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83"><span class="toc-text">2.1 分享设计规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%88%86%E4%BA%AB%E6%88%96%E5%B9%BF%E5%91%8A%E6%96%87%E6%A1%88%E7%A6%81%E6%AD%A2%E5%86%85%E5%AE%B9"><span class="toc-text">2.2 分享或广告文案禁止内容</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%88%86%E4%BA%AB%E6%8E%A5%E5%8F%A3"><span class="toc-text">三、分享接口</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%87%AA%E5%AE%9A%E4%B9%89%E3%80%8C%E5%88%86%E4%BA%AB%E7%BB%99%E6%9C%8B%E5%8F%8B%E3%80%8D%E5%8F%8A%E3%80%8C%E5%88%86%E4%BA%AB%E5%88%B0QQ%E3%80%8D%E6%8C%89%E9%92%AE%E7%9A%84%E5%88%86%E4%BA%AB%E5%86%85%E5%AE%B9"><span class="toc-text">3.1 自定义「分享给朋友」及「分享到QQ」按钮的分享内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%87%AA%E5%AE%9A%E4%B9%89%E3%80%8C%E5%88%86%E4%BA%AB%E5%88%B0%E6%9C%8B%E5%8F%8B%E5%9C%88%E3%80%8D%E5%8F%8A%E3%80%8C%E5%88%86%E4%BA%AB%E5%88%B0QQ%E7%A9%BA%E9%97%B4%E3%80%8D%E6%8C%89%E9%92%AE%E7%9A%84%E5%88%86%E4%BA%AB%E5%86%85%E5%AE%B9"><span class="toc-text">3.2 自定义「分享到朋友圈」及「分享到QQ空间」按钮的分享内容</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%88%86%E4%BA%AB%E5%BC%80%E5%8F%91%E8%B0%83%E8%AF%95%E6%97%B6%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">四、分享开发调试时注意事项</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%AE%9E%E6%88%98"><span class="toc-text">五、实战</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%BF%99%E5%87%A0%E5%B9%B4%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">六、这几年变了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -227,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-wx-share" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">H5之微信公众号分享</h1>
+    <h1 class="post-title">H5之微信公众号分享 JS-SDK接入与二次分享失效排查</h1>
 
     <div class="article-meta">
       <span>
@@ -269,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 3.5k字</span>
+            <span>字数统计 5.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 13分</span>
+            <span>阅读时长 21分</span>
           </span>
       
       
@@ -288,141 +290,163 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>使用微信的分享功能，需要使用微信<code>JS-SDK</code>来完成。且只能点击微信右上角的<code>...</code>调起分享面板，不能直接由页面行为唤起！本教程使用js-sdk最新版</p>
-</blockquote>
-<p><a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html">微信JS-SDK</a>是微信公众平台面向网页开发者提供的基于微信内的网页开发工具包。通过使用微信<code>JS-SDK</code>，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力</p>
-<h2 id="一、JSSDK使用步骤"><a href="#一、JSSDK使用步骤" class="headerlink" title="一、JSSDK使用步骤"></a>一、JSSDK使用步骤</h2><p><strong>1. 步骤一：绑定域名</strong></p>
-<blockquote>
-<p>登录微信公众平台 –&gt; 公众号设置 –&gt; 功能设置 –&gt; 填写“JS接口安全域名”</p>
-</blockquote>
-<p><strong>2. 步骤二：引入JS文件</strong></p>
+        <p>活动页做完了，测试提了个 bug：分享到朋友圈之后，标题变成了一串网址，图标是默认的灰色地球。改完签名逻辑，标题图标都正常了，测试又提了个新的：第一个人分享出去是好的，第二个人从群里点进来再转发，标题又变回网址了。</p>
+<p>这两个问题背后是同一件事，微信的分享签名和当前页面 URL 是绑死的。这篇把公众号 H5 分享从零接入的完整过程记一遍，JS-SDK 的五个步骤、分享接口的用法、平台对文案和图片的硬性要求，重点是最后那个二次分享失效的坑怎么绕过去。</p>
+<p>使用微信的分享功能，需要使用微信 <code>JS-SDK</code> 来完成，而且只能点击微信右上角的 <code>...</code> 调起分享面板，不能直接由页面行为唤起。本文用的是当时的 js-sdk 最新版。</p>
+<p><a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html">微信JS-SDK</a>是微信公众平台面向网页开发者提供的基于微信内的网页开发工具包。通过使用微信 <code>JS-SDK</code>，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>在需要调用JS接口的页面引入如下JS文件，（支持https）：<a href="http://res.wx.qq.com/open/js/jweixin-1.6.0.js">http://res.wx.qq.com/open/js/jweixin-1.6.0.js</a></li>
-<li>如需进一步提升服务稳定性，当上述资源不可访问时，可改访问：<a href="http://res2.wx.qq.com/open/js/jweixin-1.6.0.js">http://res2.wx.qq.com/open/js/jweixin-1.6.0.js</a> （支持https）。</li>
-<li>备注：支持使用 AMD&#x2F;CMD 标准模块加载方法加载</li>
+<li>JS-SDK 接入的五个步骤，以及 <code>config</code>、<code>ready</code>、<code>error</code> 三者的执行关系</li>
+<li>所有接口通用的五个回调参数分别在什么时候触发</li>
+<li>微信对分享标题、图标、描述、链接的硬性规范和文案红线</li>
+<li><code>updateAppMessageShareData</code> 和 <code>updateTimelineShareData</code> 两个接口的用法</li>
+<li>分享出去的链接为什么会被微信加上 query，以及它怎么把签名搞坏的</li>
+<li>hash 路由下二次分享失效的两种解法和各自的代价</li>
+<li>一份 React 项目里的完整落地代码</li>
 </ul>
-<p><strong>3. 步骤三：通过config接口注入权限验证配置</strong></p>
-<blockquote>
-<p>所有需要使用JS-SDK的页面必须先注入配置信息，否则将无法调用</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">config</span>(&#123;</span><br><span class="line">  <span class="attr">debug</span>: <span class="literal">true</span>, <span class="comment">// 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。</span></span><br><span class="line">  <span class="attr">appId</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 必填，公众号的唯一标识</span></span><br><span class="line">  <span class="attr">timestamp</span>: , <span class="comment">// 必填，生成签名的时间戳</span></span><br><span class="line">  <span class="attr">nonceStr</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 必填，生成签名的随机串</span></span><br><span class="line">  <span class="attr">signature</span>: <span class="string">&#x27;&#x27;</span>,<span class="comment">// 必填，签名</span></span><br><span class="line">  <span class="attr">jsApiList</span>: [] <span class="comment">// 必填，需要使用的JS接口列表</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="一、JSSDK使用步骤"><a href="#一、JSSDK使用步骤" class="headerlink" title="一、JSSDK使用步骤"></a>一、JSSDK使用步骤</h2><h3 id="1-1-步骤一-绑定域名"><a href="#1-1-步骤一-绑定域名" class="headerlink" title="1.1 步骤一 绑定域名"></a>1.1 步骤一 绑定域名</h3><p>登录微信公众平台，进入公众号设置，功能设置，填写「JS接口安全域名」。</p>
+<p>这一步是所有后续工作的前提。域名没绑，<code>wx.config</code> 直接就返回 <code>invalid url domain</code>，代码写得再对也没用。填的是域名不带协议和路径，而且需要在域名根目录放一个微信给的校验文件。</p>
+<h3 id="1-2-步骤二-引入JS文件"><a href="#1-2-步骤二-引入JS文件" class="headerlink" title="1.2 步骤二 引入JS文件"></a>1.2 步骤二 引入JS文件</h3><p>在需要调用 JS 接口的页面引入如下 JS 文件，支持 https：<a href="http://res.wx.qq.com/open/js/jweixin-1.6.0.js">http://res.wx.qq.com/open/js/jweixin-1.6.0.js</a></p>
+<p>如需进一步提升服务稳定性，当上述资源不可访问时，可改访问：<a href="http://res2.wx.qq.com/open/js/jweixin-1.6.0.js%EF%BC%8C%E5%90%8C%E6%A0%B7%E6%94%AF%E6%8C%81">http://res2.wx.qq.com/open/js/jweixin-1.6.0.js，同样支持</a> https。</p>
+<p>备注：支持使用 AMD&#x2F;CMD 标准模块加载方法加载。</p>
+<p>实际接入时直接写 <code>https</code> 就行，你的页面本来也必须是 HTTPS，页面里混着引 HTTP 资源会被浏览器直接拦掉。</p>
+<h3 id="1-3-步骤三-通过config接口注入权限验证配置"><a href="#1-3-步骤三-通过config接口注入权限验证配置" class="headerlink" title="1.3 步骤三 通过config接口注入权限验证配置"></a>1.3 步骤三 通过config接口注入权限验证配置</h3><p>所有需要使用 JS-SDK 的页面必须先注入配置信息，否则将无法调用。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">config</span>(&#123;</span><br><span class="line">  <span class="attr">debug</span>: <span class="literal">true</span>, <span class="comment">// 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。</span></span><br><span class="line">  <span class="attr">appId</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 必填，公众号的唯一标识</span></span><br><span class="line">  <span class="attr">timestamp</span>: <span class="number">0</span>, <span class="comment">// 必填，生成签名的时间戳</span></span><br><span class="line">  <span class="attr">nonceStr</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 必填，生成签名的随机串</span></span><br><span class="line">  <span class="attr">signature</span>: <span class="string">&#x27;&#x27;</span>,<span class="comment">// 必填，签名</span></span><br><span class="line">  <span class="attr">jsApiList</span>: [] <span class="comment">// 必填，需要使用的JS接口列表</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
+<p>关于 <code>config</code> 有几条要记住：</p>
 <ul>
-<li><code>config</code>是一个客户端的异步操作</li>
-<li>在<code>JS-SDK</code>后调用，也应该尽可能早的调用</li>
-<li>同一个<code>url</code>仅需调用一次</li>
-<li>对于变化<code>url</code>的<code>SPA</code>的<code>web app</code>可在每次<code>url</code>变化时进行调用</li>
-<li>低于<code>Android6.2</code>版本的微信客户端，不支持<code>pushState</code>的H5新特性，使用pushState来实现web app的页面会导致签名失败</li>
+<li><code>config</code> 是一个客户端的异步操作</li>
+<li>在引入 <code>JS-SDK</code> 后调用，也应该尽可能早地调用</li>
+<li>同一个 <code>url</code> 仅需调用一次</li>
+<li>对于变化 <code>url</code> 的 <code>SPA</code> 类型的 web app，可在每次 <code>url</code> 变化时进行调用</li>
+<li>低于 <code>Android6.2</code> 版本的微信客户端，不支持 <code>pushState</code> 这个 H5 新特性，使用 pushState 来实现 web app 的页面会导致签名失败</li>
 </ul>
-<p><strong>4. 步骤四：通过ready接口处理成功验证</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">ready</span>(<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="comment">// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><code>appId</code>、<code>timestamp</code>、<code>nonceStr</code>、<code>signature</code> 这四个值全部由后端计算后返回，前端不要自己拼。签名的原始串里包含 <code>jsapi_ticket</code> 和当前页面的完整 URL，<code>jsapi_ticket</code> 有有效期而且有每日调用次数上限，必须在服务端缓存，不能每次请求都去微信那里换一次。</p>
+<p><code>debug: true</code> 在联调期间一定要开着，配置错了它会直接 alert 出具体的错误码，比自己一行行猜快太多。上线前记得关掉，不然用户会被弹窗糊一脸。</p>
+<h3 id="1-4-步骤四-通过ready接口处理成功验证"><a href="#1-4-步骤四-通过ready接口处理成功验证" class="headerlink" title="1.4 步骤四 通过ready接口处理成功验证"></a>1.4 步骤四 通过ready接口处理成功验证</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">ready</span>(<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="comment">// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>由于config是一个异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中</p>
-</blockquote>
-<p><strong>注</strong>：无论<code>config</code>成功或失败，<code>ready</code>中的内容都会被执行！</p>
-<p><strong>5. 步骤五：通过error接口处理失败验证</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">error</span>(<span class="keyword">function</span>(<span class="params">res</span>)&#123;</span><br><span class="line">  <span class="comment">// config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>由于 <code>config</code> 是一个异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在 <code>ready</code> 函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在 <code>ready</code> 函数中。</p>
+<p>注意一个反直觉的点：无论 <code>config</code> 成功或失败，<code>ready</code> 中的内容都会被执行。</p>
+<p>所以别把 <code>ready</code> 当成「配置成功」的信号。它只表示配置流程走完了，成功与否得看 <code>error</code> 有没有被触发。想在分享设置失败时降级，判断逻辑要写在 <code>error</code> 里，不能靠 <code>ready</code> 里的接口调用是否报错去推断。</p>
+<h3 id="1-5-步骤五-通过error接口处理失败验证"><a href="#1-5-步骤五-通过error接口处理失败验证" class="headerlink" title="1.5 步骤五 通过error接口处理失败验证"></a>1.5 步骤五 通过error接口处理失败验证</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">error</span>(<span class="keyword">function</span>(<span class="params">res</span>)&#123;</span><br><span class="line">  <span class="comment">// config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<p><strong>6. 通用参数：</strong></p>
-<blockquote>
-<p>所有接口通过<code>wx</code>对象(也可使用<code>jWeixin</code>对象)来调用，参数是一个对象，除了每个接口本身需要传的参数之外，还有以下通用函数参数：</p>
-</blockquote>
+<p>注释里最后半句是重点：对于 SPA 可以在这里更新签名。单页应用路由一变签名就可能失效，<code>error</code> 就是你重新去后端换一次签名再 <code>config</code> 的机会。</p>
+<h3 id="1-6-通用参数"><a href="#1-6-通用参数" class="headerlink" title="1.6 通用参数"></a>1.6 通用参数</h3><p>所有接口通过 <code>wx</code> 对象，也可使用 <code>jWeixin</code> 对象来调用。参数是一个对象，除了每个接口本身需要传的参数之外，还有以下通用函数参数：</p>
 <ul>
-<li><code>success</code> 接口调用成功时执行的回调函数。</li>
-<li><code>fail</code> 接口调用失败时执行的回调函数。</li>
-<li><code>complete</code> 接口调用完成时执行的回调函数，无论成功或失败都会执行。</li>
-<li><code>cancel</code> 用户点击取消时的回调函数，仅部分有用户取消操作的api才会用到。</li>
-<li><code>trigger</code> 监听Menu中的按钮点击时触发的方法，该方法仅支持Menu中的相关接口。</li>
+<li><code>success</code> 接口调用成功时执行的回调函数</li>
+<li><code>fail</code> 接口调用失败时执行的回调函数</li>
+<li><code>complete</code> 接口调用完成时执行的回调函数，无论成功或失败都会执行</li>
+<li><code>cancel</code> 用户点击取消时的回调函数，仅部分有用户取消操作的 api 才会用到</li>
+<li><code>trigger</code> 监听 Menu 中的按钮点击时触发的方法，该方法仅支持 Menu 中的相关接口</li>
 </ul>
+<p>回调参数的结构是这样：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 回调参数：</span></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    <span class="attr">xxx</span>: xxx,</span><br><span class="line">    <span class="attr">errMsg</span>: <span class="string">&#x27;&#x27;</span> <span class="comment">// 接口调用成功/失败信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、微信分享"><a href="#二、微信分享" class="headerlink" title="二、微信分享"></a>二、微信分享</h2><blockquote>
-<p>用户调用微信的分享功能，可以自定义分享的title和描述，以及小图标和链接。可以分享到群、好友、朋友圈、QQ、QQ空间等</p>
-</blockquote>
-<p><strong>分享设计规范</strong></p>
+<p><code>errMsg</code> 是排查问题的第一手信息，格式大致是「接口名:结果」，比如 <code>config:ok</code>、<code>config:invalid signature</code>。埋点或者错误上报的时候把这个字段带上，线上出问题能直接定位。</p>
+<h2 id="二、微信分享"><a href="#二、微信分享" class="headerlink" title="二、微信分享"></a>二、微信分享</h2><p>用户调用微信的分享功能，可以自定义分享的 title 和描述，以及小图标和链接，可以分享到群、好友、朋友圈、QQ、QQ空间等。</p>
+<h3 id="2-1-分享设计规范"><a href="#2-1-分享设计规范" class="headerlink" title="2.1 分享设计规范"></a>2.1 分享设计规范</h3><p>这一组规范不是建议，是硬性要求，不满足会直接导致分享效果异常：</p>
 <ul>
-<li>分享标题：14字以内，建议使用朋友般亲切的口吻</li>
-<li>分享图标：尺寸<code>120*120</code>，大小不超过<code>10K</code>，不支持<code>GIF</code>格式。必须采用<code>https</code>协议。</li>
-<li>分享描述：<code>20</code>字以内，对标题的简要解读。</li>
-<li>分享链接：外链页面所在服务器至少能支持每秒<code>1500</code>次的访问压力，且每次访问的响应时间<code>200ms</code>以内。必须采用<code>https</code>协议。</li>
-<li>分享行为：<strong>页面上无分享按钮</strong>，页面上无诱导分享行为，包含但不限于分享后才能看到特定的信息，分享后才能进行下一步流程，分享后可以获得奖励等</li>
-<li>分享文案：分享时“文案”和“图片”可以正常显示，分享后链接可以访问。</li>
-<li>分享标题和描述不能出现敏感词汇，否则会导致部分不可预知的问题。比如分享者可以看到分享图标，被分享者看不到图标等。</li>
+<li>分享标题：14 字以内，建议使用朋友般亲切的口吻</li>
+<li>分享图标：尺寸 <code>120*120</code>，大小不超过 <code>10K</code>，不支持 <code>GIF</code> 格式，必须采用 <code>https</code> 协议</li>
+<li>分享描述：<code>20</code> 字以内，对标题的简要解读</li>
+<li>分享链接：外链页面所在服务器至少能支持每秒 <code>1500</code> 次的访问压力，且每次访问的响应时间在 <code>200ms</code> 以内，必须采用 <code>https</code> 协议</li>
+<li>分享行为：页面上无分享按钮，页面上无诱导分享行为，包含但不限于分享后才能看到特定的信息、分享后才能进行下一步流程、分享后可以获得奖励等</li>
+<li>分享文案：分享时文案和图片可以正常显示，分享后链接可以访问</li>
+<li>分享标题和描述不能出现敏感词汇，否则会导致部分不可预知的问题，比如分享者可以看到分享图标，被分享者看不到图标</li>
 </ul>
-<blockquote>
-<p>敏感词举例：红包、现金、到账等</p>
-</blockquote>
-<p><strong>注：</strong> 分享的图标链接和分享链接尽量保持为同一域名下的资源。否则可能会出现分享不成功或分享图标不显示的情况。</p>
-<blockquote>
-<p>由于不能由页面直接唤起微信的分享面板，所以就需要一个弹窗浮层来引导用户用户去点击<code>...</code>按钮唤起分享面板。注意这个弹窗浮层不能出现诱导分享的内容。</p>
-</blockquote>
-<p><strong>分享或广告文案禁止内容：</strong></p>
+<p>敏感词举例：红包、现金、到账等。</p>
+<p>图标那条我踩过。设计给的图是 200KB 的 PNG，本地测试一切正常，因为图已经在缓存里了。发到测试群里让别人点，一半人看不到图标。图标是被分享方的客户端现去拉的，超过 10K 或者服务器慢一点，它就直接放弃了。</p>
+<p>分享的图标链接和分享链接尽量保持为同一域名下的资源，否则可能会出现分享不成功或分享图标不显示的情况。</p>
+<p>由于不能由页面直接唤起微信的分享面板，所以就需要一个弹窗浮层来引导用户去点击 <code>...</code> 按钮唤起分享面板。注意这个弹窗浮层不能出现诱导分享的内容。</p>
+<h3 id="2-2-分享或广告文案禁止内容"><a href="#2-2-分享或广告文案禁止内容" class="headerlink" title="2.2 分享或广告文案禁止内容"></a>2.2 分享或广告文案禁止内容</h3><p>这一段建议直接转给写文案的同学：</p>
 <ul>
-<li>特殊字符：不允许使用特殊字符与符号 ，例如：<code>“：）” “-。-”</code>等； 不允许使用 <code>emoji</code> 表情</li>
-<li>诱导或引导操作： 不允许出现诱导或引导用户操作的描述。包含但不限于以下文案：“请点击查看详情”、 “赶快戳开看一看”、“点一下下面你就知道是什么”、“点击下方了解公众号”</li>
-<li>微信产品功能词汇：未经微信官方授权，禁止使用以下产品功能词汇及其谐音词汇。包含但不限于以下内容：“朋友圈” 、“点赞” 、“评论” 、“公众号”、 “微信”、 “红包”</li>
-<li><code>URL</code>：不允许直接放URL链接内容</li>
+<li>特殊字符：不允许使用特殊字符与符号，例如 <code>:）</code> <code>-。-</code> 这类；不允许使用 <code>emoji</code> 表情</li>
+<li>诱导或引导操作：不允许出现诱导或引导用户操作的描述，包含但不限于「请点击查看详情」「赶快戳开看一看」「点一下下面你就知道是什么」「点击下方了解公众号」</li>
+<li>微信产品功能词汇：未经微信官方授权，禁止使用以下产品功能词汇及其谐音词汇，包含但不限于「朋友圈」「点赞」「评论」「公众号」「微信」「红包」</li>
+<li><code>URL</code>：不允许直接放 URL 链接内容</li>
 <li>电话号码：不允许出现电话号码</li>
-<li>破折号：不允许出现破折号，破折号在移动端显示容易产生歧义</li>
-<li>空行&amp;空格：不允许使用空行或空格</li>
+<li>破折号：不允许出现破折号，它在移动端显示容易产生歧义</li>
+<li>空行和空格：不允许使用空行或空格</li>
 <li>不规范折行：不允许出现单个词语或文字折行</li>
 <li>股票代码：不允许出现公司股票代码</li>
-<li>非简体中文文字&amp;方言&amp;小语种：不允许使用非简体中文文字（单字、词语、成语）。暂不支持使用方言和小语种作为文案。</li>
-<li>产品销量数据：不允许使用任何维度的产品销量数据。</li>
+<li>非简体中文文字、方言、小语种：不允许使用非简体中文文字（单字、词语、成语），暂不支持使用方言和小语种作为文案</li>
+<li>产品销量数据：不允许使用任何维度的产品销量数据</li>
 </ul>
-<h2 id="三、分享接口"><a href="#三、分享接口" class="headerlink" title="三、分享接口"></a>三、分享接口</h2><p><strong>3.1 自定义“分享给朋友”及“分享到QQ”按钮的分享内容（1.4.0）</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">ready</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;   <span class="comment">//需在用户可能点击分享按钮前就先调用</span></span><br><span class="line">  wx.<span class="title function_">updateAppMessageShareData</span>(&#123; </span><br><span class="line">    <span class="attr">title</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享标题</span></span><br><span class="line">    <span class="attr">desc</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享描述</span></span><br><span class="line">    <span class="attr">link</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">    <span class="attr">imgUrl</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享图标</span></span><br><span class="line">    <span class="attr">success</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 设置成功</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>这份清单是当时整理的，平台的运营规范会更新，正式投放前请以微信当时的官方规范为准。</p>
+<h2 id="三、分享接口"><a href="#三、分享接口" class="headerlink" title="三、分享接口"></a>三、分享接口</h2><h3 id="3-1-自定义「分享给朋友」及「分享到QQ」按钮的分享内容"><a href="#3-1-自定义「分享给朋友」及「分享到QQ」按钮的分享内容" class="headerlink" title="3.1 自定义「分享给朋友」及「分享到QQ」按钮的分享内容"></a>3.1 自定义「分享给朋友」及「分享到QQ」按钮的分享内容</h3><p>这个接口从 <code>1.4.0</code> 版本开始提供：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">ready</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;   <span class="comment">//需在用户可能点击分享按钮前就先调用</span></span><br><span class="line">  wx.<span class="title function_">updateAppMessageShareData</span>(&#123;</span><br><span class="line">    <span class="attr">title</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享标题</span></span><br><span class="line">    <span class="attr">desc</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享描述</span></span><br><span class="line">    <span class="attr">link</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">    <span class="attr">imgUrl</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享图标</span></span><br><span class="line">    <span class="attr">success</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 设置成功</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<p><strong>3.2 自定义“分享到朋友圈”及“分享到QQ空间”按钮的分享内容（1.4.0）</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">ready</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;      <span class="comment">//需在用户可能点击分享按钮前就先调用</span></span><br><span class="line">  wx.<span class="title function_">updateTimelineShareData</span>(&#123; </span><br><span class="line">    <span class="attr">title</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享标题</span></span><br><span class="line">    <span class="attr">link</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">    <span class="attr">imgUrl</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享图标</span></span><br><span class="line">    <span class="attr">success</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 设置成功</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-自定义「分享到朋友圈」及「分享到QQ空间」按钮的分享内容"><a href="#3-2-自定义「分享到朋友圈」及「分享到QQ空间」按钮的分享内容" class="headerlink" title="3.2 自定义「分享到朋友圈」及「分享到QQ空间」按钮的分享内容"></a>3.2 自定义「分享到朋友圈」及「分享到QQ空间」按钮的分享内容</h3><p>同样是 <code>1.4.0</code> 版本：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">wx.<span class="title function_">ready</span>(<span class="keyword">function</span> (<span class="params"></span>) &#123;      <span class="comment">//需在用户可能点击分享按钮前就先调用</span></span><br><span class="line">  wx.<span class="title function_">updateTimelineShareData</span>(&#123;</span><br><span class="line">    <span class="attr">title</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享标题</span></span><br><span class="line">    <span class="attr">link</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">    <span class="attr">imgUrl</span>: <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享图标</span></span><br><span class="line">    <span class="attr">success</span>: <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 设置成功</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<h2 id="四、分享开发调试时注意事项"><a href="#四、分享开发调试时注意事项" class="headerlink" title="四、分享开发调试时注意事项"></a>四、分享开发调试时注意事项</h2><ul>
-<li>分享出去的外链的域名必须和公众号后台配置的JS安全域名一致，否则会导致分享的失败</li>
-<li>享出去的外链，会自动给加上微信标识，导致二次分享失败</li>
+<p>注意 <code>updateTimelineShareData</code> 没有 <code>desc</code> 字段，朋友圈只显示标题和图标。所以标题得能独立成立，不能写成「详情见描述」这种依赖描述的句子。</p>
+<p>这两个接口最容易被误解的地方是 <code>success</code> 回调。它表示的是「分享内容设置成功」，不是「用户完成了分享」。老版本 JS-SDK 里那两个带 <code>onMenuShare</code> 前缀的接口曾经能拿到用户确认分享的回调，新接口出于反诱导分享的考虑把这个能力收掉了。所以「分享后送积分」这种玩法，从接口层面就已经做不了了。</p>
+<p>老的 <code>onMenuShareTimeline</code> 和 <code>onMenuShareAppMessage</code> 在文档里被标注为即将废弃，新项目直接用 <code>updateTimelineShareData</code> 和 <code>updateAppMessageShareData</code> 这一组。</p>
+<h2 id="四、分享开发调试时注意事项"><a href="#四、分享开发调试时注意事项" class="headerlink" title="四、分享开发调试时注意事项"></a>四、分享开发调试时注意事项</h2><p>先说两条结论：</p>
+<ul>
+<li>分享出去的外链的域名必须和公众号后台配置的 JS 安全域名一致，否则会导致分享失败</li>
+<li>分享出去的外链，会被微信自动加上标识参数，导致二次分享失败</li>
 </ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">如打开页面：</span><br><span class="line"></span><br><span class="line">https://www.xxx.com/m/#/activity/invite/friends</span><br><span class="line">分享出去链接：</span><br></pre></td></tr></table></figure>
+<p>第二条就是开头那个测试提的 bug。展开说一下它是怎么发生的。</p>
+<p>假如你打开的页面是：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://www.xxx.com/m/#/activity/invite/friends</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><a href="https://www.xxx.com/m/?from=groupmessage&isappinstalled=0#/activity/invite/friends">https://www.xxx.com/m/?from=groupmessage&amp;isappinstalled=0#/activity/invite/friends</a> 微信自动在分享后边加上了<code>query</code>字符串：</p>
-</blockquote>
+<p>分享出去之后，别人拿到的链接会变成：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://www.xxx.com/m/?from=groupmessage&amp;isappinstalled=0#/activity/invite/friends</span><br></pre></td></tr></table></figure>
+
+<p>微信自动在分享后面加上了 query 字符串，含义是这样：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">from=groupmessage   分享到群</span><br><span class="line">from=timeline  分享到朋友圈</span><br><span class="line">from=singlemessage  分享到好友</span><br><span class="line">isappinstalled=0    0或1，表示是否安装了app</span><br></pre></td></tr></table></figure>
 
-<p><strong>注：安卓手机分享到朋友圈的链接</strong>，只会带<code>from=timeline</code></p>
-<blockquote>
-<p>由于微信的签名生成时，需要传一个<code>url</code>参数，而这个<code>url</code>则是通过</p>
-</blockquote>
+<p>安卓手机分享到朋友圈的链接，只会带 <code>from=timeline</code>。</p>
+<p>那这个 query 为什么会把签名搞坏呢？</p>
+<p>因为微信的签名生成时需要传一个 <code>url</code> 参数，而这个 <code>url</code> 是通过下面这句拿到的：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">location.<span class="property">href</span>.<span class="title function_">split</span>(<span class="string">&#x27;#&#x27;</span>)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>获取的<code>url</code>，取的是<code>url</code>的<code>#</code>前边的部分来生成签名，第一次分享成功，生成签名的<code>url</code>不带<code>query</code>字段。通过一次分享出去的链接，带上了<code>query</code>后，生成的签名就无效了，导致二次分享失败。</p>
-</blockquote>
-<p><strong>解决办法：</strong></p>
-<ol>
-<li>替换路径</li>
-</ol>
+<p>取的是 URL 中 <code>#</code> 前面的部分来生成签名。第一次分享成功时，生成签名的 URL 是不带 query 字段的。通过一次分享出去的链接带上了 query 之后，<code>#</code> 前面的部分就变了，之前生成的签名对不上，导致二次分享失败。</p>
+<p>问题的根子在于 hash 路由把真实路径藏在了 <code>#</code> 后面，而微信偏偏往 <code>#</code> 前面塞参数。</p>
+<p>解决办法有两个。</p>
+<p>第一个是替换路径，进页面先把这些参数洗掉：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> href = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span>;</span><br><span class="line"><span class="keyword">if</span>(href.<span class="title function_">indexOf</span>(<span class="string">&#x27;groupmessage&#x27;</span>) &gt; -<span class="number">1</span> || href.<span class="title function_">indexOf</span>(<span class="string">&#x27;singlemessage&#x27;</span>) &gt; -<span class="number">1</span> || href.<span class="title function_">indexOf</span>(<span class="string">&#x27;timeline&#x27;</span>) &gt; -<span class="number">1</span>)&#123;</span><br><span class="line">    href = href.<span class="title function_">replace</span>(<span class="regexp">/\?from=(groupmessage|singlemessage|timeline)(\S*)#/</span>, <span class="string">&#x27;#&#x27;</span>);</span><br><span class="line">    <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span> = href;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>不过这样，会导致页面请求两次，细心的用户可能会感知到。或者用户网络不稳定时，可能他会感觉到两次页面的刷新</p>
-</blockquote>
-<ol start="2">
-<li>生成签名的时候，动态的获取url，传给生成签名的接口</li>
-</ol>
-<blockquote>
-<p>每次打开页面时，都获取到url的#前边部分传给签名生成接口，保证每次的签名都是有效的</p>
-</blockquote>
-<h2 id="五、实战"><a href="#五、实战" class="headerlink" title="五、实战"></a>五、实战</h2><blockquote>
-<p>hash路由形式分享链接到朋友圈，需要特殊处理url</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 请求后台接口 获取微信配置信息</span></span><br><span class="line">*<span class="title function_">getWxSignature</span>(<span class="params">&#123; payload, callback &#125;, &#123; call, put, select &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> res = <span class="keyword">yield</span> <span class="title function_">call</span>(rGetWxSign, payload);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(res.<span class="property">code</span> !==<span class="number">0</span>) &#123;<span class="keyword">return</span>;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 通过config接口注入权限验证配置</span></span><br><span class="line">  wx.<span class="title function_">config</span>(&#123;</span><br><span class="line">    <span class="attr">debug</span>: <span class="literal">false</span>, <span class="comment">// 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。</span></span><br><span class="line">    <span class="attr">appId</span>: res.<span class="property">data</span>.<span class="property">appId</span>, <span class="comment">// 必填，公众号的唯一标识</span></span><br><span class="line">    <span class="attr">timestamp</span>: res.<span class="property">data</span>.<span class="property">timestamp</span>, <span class="comment">// 必填，生成签名的时间戳</span></span><br><span class="line">    <span class="attr">nonceStr</span>: res.<span class="property">data</span>.<span class="property">nonceStr</span>, <span class="comment">// 必填，生成签名的随机串</span></span><br><span class="line">    <span class="attr">signature</span>: res.<span class="property">data</span>.<span class="property">signature</span>, <span class="comment">// 必填，签名，见附录1</span></span><br><span class="line">    <span class="attr">jsApiList</span>: [</span><br><span class="line">      <span class="string">&#x27;updateTimelineShareData&#x27;</span>, </span><br><span class="line">      <span class="string">&#x27;updateAppMessageShareData&#x27;</span></span><br><span class="line">    ] <span class="comment">// 必填，需要使用的JS接口列表，所有JS接口列表见附录2</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不过这样会导致页面请求两次，细心的用户可能会感知到。或者用户网络不稳定时，他会感觉到页面刷新了两次。</p>
+<p>第二个是生成签名的时候动态获取 url，传给生成签名的接口。每次打开页面时，都获取到 URL 中 <code>#</code> 前面的部分传给签名生成接口，保证每次的签名都是有效的。</p>
+<p>这两个方案我更推荐第二个。第一个是在客户端把 URL 掰回原样，属于绕；第二个是承认 URL 会变，让签名跟着 URL 走，属于正面解决。第一个方案还有个隐藏代价，<code>window.location.href</code> 赋值会触发一次完整的页面加载，SPA 的首屏成本又付了一遍。</p>
+<p>如果你的项目还没定路由模式，直接用 history 模式能少掉大半麻烦，因为路径在 <code>#</code> 前面，微信加的 query 也在 <code>#</code> 前面，两者本来就在同一个签名范围里，只要签名用的是当前完整 URL 就一直有效。</p>
+<h2 id="五、实战"><a href="#五、实战" class="headerlink" title="五、实战"></a>五、实战</h2><p>下面是一个 hash 路由项目里的完整落地代码，分享链接到朋友圈时需要特殊处理 URL。</p>
+<p>第一步，请求后端接口拿到微信配置信息，然后注入：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 请求后台接口 获取微信配置信息</span></span><br><span class="line">*<span class="title function_">getWxSignature</span>(<span class="params">&#123; payload, callback &#125;, &#123; call, put, select &#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> res = <span class="keyword">yield</span> <span class="title function_">call</span>(rGetWxSign, payload);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(res.<span class="property">code</span> !==<span class="number">0</span>) &#123;<span class="keyword">return</span>;&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 通过config接口注入权限验证配置</span></span><br><span class="line">  wx.<span class="title function_">config</span>(&#123;</span><br><span class="line">    <span class="attr">debug</span>: <span class="literal">false</span>, <span class="comment">// 开启调试模式,调用的所有api的返回值会在客户端alert出来</span></span><br><span class="line">    <span class="attr">appId</span>: res.<span class="property">data</span>.<span class="property">appId</span>, <span class="comment">// 必填，公众号的唯一标识</span></span><br><span class="line">    <span class="attr">timestamp</span>: res.<span class="property">data</span>.<span class="property">timestamp</span>, <span class="comment">// 必填，生成签名的时间戳</span></span><br><span class="line">    <span class="attr">nonceStr</span>: res.<span class="property">data</span>.<span class="property">nonceStr</span>, <span class="comment">// 必填，生成签名的随机串</span></span><br><span class="line">    <span class="attr">signature</span>: res.<span class="property">data</span>.<span class="property">signature</span>, <span class="comment">// 必填，签名，见附录1</span></span><br><span class="line">    <span class="attr">jsApiList</span>: [</span><br><span class="line">      <span class="string">&#x27;updateTimelineShareData&#x27;</span>,</span><br><span class="line">      <span class="string">&#x27;updateAppMessageShareData&#x27;</span></span><br><span class="line">    ] <span class="comment">// 必填，需要使用的JS接口列表，所有JS接口列表见附录2</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取微信签名</span></span><br><span class="line"><span class="title function_">getWxSignature</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> url = location.<span class="property">href</span></span><br><span class="line">  <span class="comment">// 如果页面url是hash路由形式 需要处理一下参数</span></span><br><span class="line">  <span class="keyword">let</span> i = url.<span class="title function_">indexOf</span>(<span class="string">&#x27;#&#x27;</span>)</span><br><span class="line">  <span class="keyword">if</span> (i !== -<span class="number">1</span>) &#123;</span><br><span class="line">    url = url.<span class="title function_">substring</span>(<span class="number">0</span>, i)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">dispatch</span>(&#123; </span><br><span class="line">    <span class="attr">type</span>: <span class="string">`<span class="subst">$&#123;namespace&#125;</span>/getWxSignature`</span>, </span><br><span class="line">    <span class="attr">payload</span>: &#123;url&#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>jsApiList</code> 里要写全你会用到的接口名，漏了哪个，调用时就报没有权限。</p>
+<p>第二步，取当前页面 URL 时把 hash 砍掉，再传给签名接口：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 获取微信签名</span></span><br><span class="line"><span class="title function_">getWxSignature</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> url = location.<span class="property">href</span></span><br><span class="line">  <span class="comment">// 如果页面url是hash路由形式 需要处理一下参数</span></span><br><span class="line">  <span class="keyword">let</span> i = url.<span class="title function_">indexOf</span>(<span class="string">&#x27;#&#x27;</span>)</span><br><span class="line">  <span class="keyword">if</span> (i !== -<span class="number">1</span>) &#123;</span><br><span class="line">    url = url.<span class="title function_">substring</span>(<span class="number">0</span>, i)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">dispatch</span>(&#123;</span><br><span class="line">    <span class="attr">type</span>: <span class="string">`<span class="subst">$&#123;namespace&#125;</span>/getWxSignature`</span>,</span><br><span class="line">    <span class="attr">payload</span>: &#123;url&#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 页面加载完成就执行初始化监听</span></span><br><span class="line">handleWxShare = <span class="function">()=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;<span class="attr">pagedata</span>: &#123;mainData=&#123;&#125;,projectInfo=&#123;&#125;&#125;&#125; = <span class="variable language_">this</span>.<span class="property">props</span>;</span><br><span class="line">    <span class="keyword">const</span> &#123;pagequery&#125; = <span class="variable language_">this</span>.<span class="property">state</span></span><br><span class="line"></span><br><span class="line">    wx.<span class="title function_">ready</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;wx.ready:&#x27;</span>,projectInfo)</span><br><span class="line">      <span class="comment">// config信息验证后会执行ready方法，所有接口调用都必须在config接口获得结果之后，config是一个客户端的异步操作，所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。</span></span><br><span class="line">      <span class="keyword">let</span> linkUrl = location.<span class="property">href</span></span><br><span class="line"></span><br><span class="line">      <span class="comment">// 监听右上角分享到朋友圈事件</span></span><br><span class="line">      <span class="comment">// 自定义“分享到朋友圈”及“分享到QQ空间”按钮的分享内容（1.4.0）</span></span><br><span class="line">      wx.<span class="title function_">updateTimelineShareData</span>(&#123;</span><br><span class="line">        <span class="attr">title</span>: mainData.<span class="property">title</span>, <span class="comment">// 分享标题</span></span><br><span class="line">        <span class="attr">desc</span>: (projectInfo.<span class="property">project</span> || &#123;&#125;).<span class="property">projectName</span> || <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享描述</span></span><br><span class="line">        <span class="attr">link</span>: linkUrl, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">        <span class="attr">imgUrl</span>: mainData.<span class="property">sharePicUrl</span>, <span class="comment">// 分享图标</span></span><br><span class="line">        <span class="attr">success</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 用户确认分享后执行的回调函数</span></span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;分享成功&#x27;</span>)</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">cancel</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 用户取消分享后执行的回调函数</span></span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;取消分享&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">       <span class="comment">// 监听右上角发送给朋友事件</span></span><br><span class="line">       <span class="comment">// 自定义“分享给朋友”及“分享到QQ”按钮的分享内容</span></span><br><span class="line">       wx.<span class="title function_">updateAppMessageShareData</span>(&#123;</span><br><span class="line">        <span class="attr">title</span>: mainData.<span class="property">title</span>, <span class="comment">// 分享标题</span></span><br><span class="line">        <span class="attr">desc</span>: (projectInfo.<span class="property">project</span> || &#123;&#125;).<span class="property">projectName</span> || <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享描述</span></span><br><span class="line">        <span class="attr">link</span>: linkUrl, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">        <span class="attr">imgUrl</span>: mainData.<span class="property">sharePicUrl</span>, <span class="comment">// 分享图标</span></span><br><span class="line">        <span class="attr">success</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 用户确认分享后执行的回调函数</span></span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;分享成功&#x27;</span>)</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">cancel</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 用户取消分享后执行的回调函数</span></span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;取消分享&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">    wx.<span class="title function_">error</span>(<span class="keyword">function</span>(<span class="params">res</span>)&#123;</span><br><span class="line">      <span class="comment">// config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。</span></span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(res,<span class="string">&#x27;wx error&#x27;</span>)</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>这就是上面说的第二种解法，签名跟着当前 URL 走。这里传给后端的 URL 必须和前端 <code>location.href</code> 的 <code>#</code> 前半段一字不差，多一个斜杠或者少一个参数都会导致 <code>invalid signature</code>。</p>
+<p>第三步，页面加载完成后注册分享内容：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 页面加载完成就执行初始化监听</span></span><br><span class="line">handleWxShare = <span class="function">()=&gt;</span>&#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;<span class="attr">pagedata</span>: &#123;mainData=&#123;&#125;,projectInfo=&#123;&#125;&#125;&#125; = <span class="variable language_">this</span>.<span class="property">props</span>;</span><br><span class="line"></span><br><span class="line">    wx.<span class="title function_">ready</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;wx.ready:&#x27;</span>,projectInfo)</span><br><span class="line">      <span class="comment">// 所有接口调用都必须在config接口获得结果之后</span></span><br><span class="line">      <span class="keyword">let</span> linkUrl = location.<span class="property">href</span></span><br><span class="line"></span><br><span class="line">      <span class="comment">// 监听右上角分享到朋友圈事件</span></span><br><span class="line">      wx.<span class="title function_">updateTimelineShareData</span>(&#123;</span><br><span class="line">        <span class="attr">title</span>: mainData.<span class="property">title</span>, <span class="comment">// 分享标题</span></span><br><span class="line">        <span class="attr">desc</span>: (projectInfo.<span class="property">project</span> || &#123;&#125;).<span class="property">projectName</span> || <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享描述</span></span><br><span class="line">        <span class="attr">link</span>: linkUrl, <span class="comment">// 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致</span></span><br><span class="line">        <span class="attr">imgUrl</span>: mainData.<span class="property">sharePicUrl</span>, <span class="comment">// 分享图标</span></span><br><span class="line">        <span class="attr">success</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;分享成功&#x27;</span>)</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">cancel</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">          <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;取消分享&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    wx.<span class="title function_">error</span>(<span class="keyword">function</span>(<span class="params">res</span>)&#123;</span><br><span class="line">      <span class="comment">// config信息验证失败会执行error函数，如签名过期导致验证失败，对于SPA可以在这里更新签名</span></span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(res,<span class="string">&#x27;wx error&#x27;</span>)</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">componentDidMount</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 微信分享到朋友圈、发送朋友分享的链接带上微信加上的参数 导致分享不了 </span></span><br><span class="line">    <span class="keyword">let</span> href = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span></span><br><span class="line">    <span class="comment">// from=groupmessage   分享到群</span></span><br><span class="line">    <span class="comment">// from=timeline  分享到朋友圈</span></span><br><span class="line">    <span class="comment">// from=singlemessage  分享到好友</span></span><br><span class="line">    <span class="keyword">if</span>(~href.<span class="title function_">indexOf</span>(<span class="string">&#x27;from=timeline&#x27;</span>) || ~href.<span class="title function_">indexOf</span>(<span class="string">&#x27;from=singlemessage&#x27;</span>) || ~href.<span class="title function_">indexOf</span>(<span class="string">&#x27;from=groupmessage&#x27;</span>)) &#123;</span><br><span class="line">      <span class="comment">// 带有hash路由的链接分享到朋友圈会被微信带上?from=timeline 导致二次分享的链接打不开 需要重新处理</span></span><br><span class="line">      <span class="comment">// 如果是history模式下的路由 不需要另外处理</span></span><br><span class="line">      <span class="comment">// https://zmjtest.kaisasso.com/wxapp/?from=timeline#/dsb/article?id=286&amp;pid=20&amp;uid=110</span></span><br><span class="line">      <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span> = <span class="string">`<span class="subst">$&#123;location.origin&#125;</span><span class="subst">$&#123;location.pathname&#125;</span><span class="subst">$&#123;location.hash&#125;</span>`</span> </span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>发送给朋友的接口写法完全一样，只是换成 <code>updateAppMessageShareData</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 监听右上角发送给朋友事件</span></span><br><span class="line">wx.<span class="title function_">updateAppMessageShareData</span>(&#123;</span><br><span class="line">  <span class="attr">title</span>: mainData.<span class="property">title</span>, <span class="comment">// 分享标题</span></span><br><span class="line">  <span class="attr">desc</span>: (projectInfo.<span class="property">project</span> || &#123;&#125;).<span class="property">projectName</span> || <span class="string">&#x27;&#x27;</span>, <span class="comment">// 分享描述</span></span><br><span class="line">  <span class="attr">link</span>: linkUrl, <span class="comment">// 分享链接</span></span><br><span class="line">  <span class="attr">imgUrl</span>: mainData.<span class="property">sharePicUrl</span>, <span class="comment">// 分享图标</span></span><br><span class="line">  <span class="attr">success</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;分享成功&#x27;</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">cancel</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;取消分享&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>最后是那段兜底的 URL 清洗，放在 <code>componentDidMount</code> 里：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">componentDidMount</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 微信分享到朋友圈、发送朋友分享的链接带上微信加上的参数 导致分享不了</span></span><br><span class="line">    <span class="keyword">let</span> href = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span></span><br><span class="line">    <span class="comment">// from=groupmessage   分享到群</span></span><br><span class="line">    <span class="comment">// from=timeline  分享到朋友圈</span></span><br><span class="line">    <span class="comment">// from=singlemessage  分享到好友</span></span><br><span class="line">    <span class="keyword">if</span>(~href.<span class="title function_">indexOf</span>(<span class="string">&#x27;from=timeline&#x27;</span>) || ~href.<span class="title function_">indexOf</span>(<span class="string">&#x27;from=singlemessage&#x27;</span>) || ~href.<span class="title function_">indexOf</span>(<span class="string">&#x27;from=groupmessage&#x27;</span>)) &#123;</span><br><span class="line">      <span class="comment">// 带有hash路由的链接分享到朋友圈会被微信带上?from=timeline 导致二次分享的链接打不开 需要重新处理</span></span><br><span class="line">      <span class="comment">// 如果是history模式下的路由 不需要另外处理</span></span><br><span class="line">      <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">href</span> = <span class="string">`<span class="subst">$&#123;location.origin&#125;</span><span class="subst">$&#123;location.pathname&#125;</span><span class="subst">$&#123;location.hash&#125;</span>`</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里用了 <code>~href.indexOf(...)</code> 这种老写法，<code>~-1</code> 等于 0 是假值，其他下标都是真值。现在直接写 <code>href.includes(&#39;from=timeline&#39;)</code> 更清楚，行为完全一样。这段是 2020 年的代码，<code>includes</code> 那会儿在部分安卓 WebView 上还得靠 polyfill，现在没这个顾虑了。</p>
+<p>顺带一提，<code>class</code> 组件加 <code>componentDidMount</code> 这套写法现在一般换成函数组件加 <code>useEffect</code>，逻辑不变，只是位置从生命周期方法挪到了副作用钩子里。</p>
+<h2 id="六、这几年变了什么"><a href="#六、这几年变了什么" class="headerlink" title="六、这几年变了什么"></a>六、这几年变了什么</h2><p>这篇是 2020 年 5 月写的，有几处需要更新说明。</p>
+<p>微信公众平台后台的菜单位置这几年调整过。文中「公众号设置 - 功能设置 - JS接口安全域名」这个路径会随后台改版变动，请以你打开时实际看到的后台为准。找不到的时候用后台自带的搜索功能搜关键词通常最快。</p>
+<p>JS-SDK 的版本。文中用的是 <code>1.6.0</code>，后续微信发布过新版本。分享这块的接口用法本身变化不大，但接入前建议对照一遍官方文档当前推荐的版本号。</p>
+<p>分享规范和文案红线。第二节那两份清单是当时整理的，平台的运营规范一直在更新，正式投放之前请以微信当时的官方规范为准。</p>
+<p>关于 SPA 签名还有一条经验值得提。社区里长期流传的说法是，iOS 微信客户端里对 SPA 做签名要用进入页面时的那个初始 URL，而不是路由跳转后的当前 URL；安卓则用当前 URL。我在自己的项目上遇到过这个现象，但没在各个客户端版本上系统验证过，这条只能当排查方向，具体行为以你的实测为准。</p>
+<p>如果你的 H5 还要跳小程序，可以看看这篇：<a href="https://feinterview.poetries.top/blog/weapp-h5-jump">微信h5网页跳转小程序方案</a>，两者用的是同一套 JS-SDK 配置，签名逻辑可以复用。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>公众号 H5 分享这套流程，真正的难点只有一个，就是签名和 URL 的绑定关系。绑定域名、引入 JS、<code>config</code>、<code>ready</code>、<code>error</code> 这五步都是照文档抄，抄对了就能跑；出问题的永远是 URL 变了而签名没跟着变。</p>
+<p>hash 路由的项目一定要处理二次分享。微信会往 <code>#</code> 前面塞 <code>from=timeline</code> 这类参数，而签名取的正是 <code>#</code> 前面那一段，一旦对不上就失效。两种解法里，我更推荐每次进页面用当前 URL 去后端换签名，而不是在前端把 URL 洗回原样再刷新一次。新项目如果能选，直接用 history 模式，这个坑本身就不存在。</p>
+<p>还有几个小点别忘：分享图标必须 https、小于 10K、不能是 GIF，超了别人看不到图；<code>ready</code> 无论成功失败都会执行，不能拿它当成功信号；<code>success</code> 回调表示的是设置成功而不是用户完成了分享，靠它做分享奖励是行不通的。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html">微信JS-SDK说明文档</a></li>
+<li><a href="https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/JS-SDK.html#4">微信公众平台 分享接口相关说明</a></li>
+<li><a href="https://developers.weixin.qq.com/community/develop/mixflow">微信开放社区</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

@@ -7,36 +7,36 @@
 <head>
   <meta charset="utf-8">
   
-  <title>虚拟DOM（二） | 前端进阶之旅</title>
+  <title>虚拟DOM（二）diff算法与patch的实现细节 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,虚拟DOM," />
+    <meta name="keywords" content="JavaScript,虚拟DOM,diff算法," />
   
 
-  <meta name="description" content="一、为什么需要虚拟DOM 先介绍浏览器加载一个HTML文件需要做哪些事，帮助我们理解为什么我们需要虚拟DOM。webkit引擎的处理流程    所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建DOM tree –&gt; 创建Style Rules -&gt; 构建Render tree -&gt; 布局Layout –&gt; 绘制Painting    第一步，用HTML分析器，分析H">
+  <meta name="description" content="从浏览器渲染流水线讲起，手写一个 Element 虚拟节点，把 diff 的 REPLACE、PROPS、TEXT、REORDER 四种变化类型和 patch 的深度遍历应用过程完整拆开。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="虚拟DOM（二）">
+<meta property="og:title" content="虚拟DOM（二）diff算法与patch的实现细节">
 <meta property="og:url" content="http://blog.poetries.top/2018/10/20/vdom-improve/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、为什么需要虚拟DOM 先介绍浏览器加载一个HTML文件需要做哪些事，帮助我们理解为什么我们需要虚拟DOM。webkit引擎的处理流程    所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建DOM tree –&gt; 创建Style Rules -&gt; 构建Render tree -&gt; 布局Layout –&gt; 绘制Painting    第一步，用HTML分析器，分析H">
+<meta property="og:description" content="从浏览器渲染流水线讲起，手写一个 Element 虚拟节点，把 diff 的 REPLACE、PROPS、TEXT、REORDER 四种变化类型和 patch 的深度遍历应用过程完整拆开。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/605.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/606.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/607.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/608.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/609.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/610.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/611.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/612.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/606.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/607.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/608.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/609.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/610.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/611.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/612.png">
 <meta property="article:published_time" content="2018-10-20T15:10:14.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.692Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.957Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="虚拟DOM">
+<meta property="article:tag" content="diff算法">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/605.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/606.png">
 
   
 
@@ -214,7 +214,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9FDOM"><span class="toc-text">一、为什么需要虚拟DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%9E%E7%8E%B0%E8%99%9A%E6%8B%9FDOM"><span class="toc-text">二、实现虚拟DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Diff%E7%AE%97%E6%B3%95"><span class="toc-text">三、Diff算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%98%A0%E5%B0%84%E6%88%90%E7%9C%9F%E5%AE%9EDOM"><span class="toc-text">四、映射成真实DOM</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%99%9A%E6%8B%9FDOM"><span class="toc-text">一、为什么需要虚拟DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%AE%9E%E7%8E%B0%E8%99%9A%E6%8B%9FDOM"><span class="toc-text">二、实现虚拟DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Diff%E7%AE%97%E6%B3%95"><span class="toc-text">三、Diff算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-REPLACE%EF%BC%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E5%8F%98%E4%BA%86"><span class="toc-text">3.1 REPLACE，节点类型变了</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-PROPS%EF%BC%8C%E5%B1%9E%E6%80%A7%E5%8F%98%E4%BA%86"><span class="toc-text">3.2 PROPS，属性变了</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-TEXT-%E5%92%8C-REORDER"><span class="toc-text">3.3 TEXT 和 REORDER</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%98%A0%E5%B0%84%E6%88%90%E7%9C%9F%E5%AE%9EDOM"><span class="toc-text">四、映射成真实DOM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%99%E7%AF%87%E5%86%99%E4%BA%8E-2018-%E5%B9%B4%EF%BC%8C%E5%90%8E%E6%9D%A5%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-text">五、这篇写于 2018 年，后来的变化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -237,13 +237,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vdom-improve" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">虚拟DOM（二）</h1>
+    <h1 class="post-title">虚拟DOM（二）diff算法与patch的实现细节</h1>
 
     <div class="article-meta">
       <span>
@@ -279,12 +279,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.5k字</span>
+            <span>字数统计 5.8k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 10分</span>
+            <span>阅读时长 22分</span>
           </span>
       
       
@@ -298,118 +298,135 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、为什么需要虚拟DOM"><a href="#一、为什么需要虚拟DOM" class="headerlink" title="一、为什么需要虚拟DOM"></a>一、为什么需要虚拟DOM</h2><blockquote>
-<p>先介绍浏览器加载一个<code>HTML</code>文件需要做哪些事，帮助我们理解为什么我们需要虚拟<code>DOM</code>。<code>webkit</code>引擎的处理流程</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/605.png"></p>
-<blockquote>
-<p>所有浏览器的引擎工作流程都差不多，如上图大致分5步：创建<code>DOM tree</code> –&gt; 创建<code>Style Rules</code> -&gt; 构建<code>Render tree</code> -&gt; 布局<code>Layout</code> –&gt; 绘制<code>Painting </code></p>
-</blockquote>
+        <p>上一篇把虚拟 DOM 是什么、核心 API 有哪两个讲完了，但最关键的那块还没动：新旧两棵树到底怎么比，比出来的结果长什么样，又是怎么落到真实 DOM 上的。这篇就补这一块。会先从浏览器加载一个 HTML 要跑哪几步说起，说清楚「操作 DOM 贵」到底贵在哪一步，然后手写一个最小的 <code>Element</code> 实现，把 diff 的四种变化类型逐个拆开，最后把补丁应用回真实 DOM。看完你能自己解释「为什么 React 一定要你写 key」。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>第一步，用<code>HTML</code>分析器，分析<code>HTML</code>元素，构建一颗<code>DOM</code>树。</li>
-<li>第二步：用<code>CSS</code>分析器，分析<code>CSS</code>文件和元素上的<code>inline</code>样式，生成页面的样式表。</li>
-<li>第三步：将上面的<code>DOM</code>树和样式表，关联起来，构建一颗<code>Render</code>树。这一过程又称为<code>Attachment</code>。每个<code>DOM</code>节点都有<code>attach</code>方法，接受样式信息，返回一个<code>render</code>对象（又名<code>renderer</code>）。这些<code>render</code>对象最终会被构建成一颗<code>Render</code>树。</li>
-<li>第四步：有了<code>Render</code>树后，浏览器开始布局，会为每个<code>Render</code>树上的节点确定一个在显示屏上出现的精确坐标值。</li>
-<li>第五步：<code>Render</code>数有了，节点显示的位置坐标也有了，最后就是调用每个节点的<code>paint</code>方法，让它们显示出来。</li>
+<li>浏览器渲染一个页面要跑哪五步，DOM 操作的代价具体产生在哪</li>
+<li>手写一个 <code>Element</code> 构造函数，虚拟节点上除了标签属性子节点还要存什么</li>
+<li><code>render()</code> 怎么把虚拟节点映射成真实 DOM</li>
+<li>树 diff 的复杂度为什么必须从 <code>O(n^3)</code> 降到 <code>O(n)</code></li>
+<li>REPLACE、PROPS、TEXT、REORDER 这四种变化各自怎么处理</li>
+<li>没有 key 的时候插入一个节点会退化成什么样</li>
+<li>diff 的产物长什么样，怎么用深度遍历把它应用到 DOM 上</li>
 </ul>
-<blockquote>
-<p>当你用传统的源生<code>api</code>或<code>jQuery</code>去操作<code>DOM</code>时，浏览器会从构建<code>DOM</code>树开始从头到尾执行一遍流程。比如当你在一次操作时，需要更新<code>10</code>个<code>DOM</code>节点，理想状态是一次性构建完<code>DOM</code>树，再执行后续操作。但浏览器没这么智能，收到第一个更新<code>DOM</code>请求后，并不知道后续还有9次更新操作，因此会马上执行流程，最终执行10次流程。显然例如计算<code>DOM</code>节点的坐标值等都是白白浪费性能，可能这次计算完，紧接着的下一个<code>DOM</code>更新请求，这个节点的坐标值就变了，前面的一次计算是无用功。</p>
-</blockquote>
+<h2 id="一、为什么需要虚拟DOM"><a href="#一、为什么需要虚拟DOM" class="headerlink" title="一、为什么需要虚拟DOM"></a>一、为什么需要虚拟DOM</h2><p>先介绍浏览器加载一个 <code>HTML</code> 文件需要做哪些事，帮助我们理解为什么我们需要虚拟 <code>DOM</code>。所有浏览器的引擎工作流程都差不多，以 webkit 引擎为例，大致分 5 步：创建 <code>DOM tree</code> 、创建 <code>Style Rules</code> 、构建 <code>Render tree</code> 、布局 <code>Layout</code> 、绘制 <code>Painting</code>。</p>
 <ul>
-<li>即使计算机硬件一直在更新迭代，操作<code>DOM</code>的代价仍旧是昂贵的，频繁操作还是会出现页面卡顿，影响用户的体验。真实的<code>DOM</code>节点，哪怕一个最简单的div也包含着很多属性，可以打印出来直观感受一下</li>
+<li>第一步，用 <code>HTML</code> 分析器，分析 <code>HTML</code> 元素，构建一颗 <code>DOM</code> 树。</li>
+<li>第二步：用 <code>CSS</code> 分析器，分析 <code>CSS</code> 文件和元素上的 <code>inline</code> 样式，生成页面的样式表。</li>
+<li>第三步：将上面的 <code>DOM</code> 树和样式表，关联起来，构建一颗 <code>Render</code> 树。这一过程又称为 <code>Attachment</code>。每个 <code>DOM</code> 节点都有 <code>attach</code> 方法，接受样式信息，返回一个 <code>render</code> 对象（又名 <code>renderer</code>）。这些 <code>render</code> 对象最终会被构建成一颗 <code>Render</code> 树。</li>
+<li>第四步：有了 <code>Render</code> 树后，浏览器开始布局，会为每个 <code>Render</code> 树上的节点确定一个在显示屏上出现的精确坐标值。</li>
+<li>第五步：<code>Render</code> 树有了，节点显示的位置坐标也有了，最后就是调用每个节点的 <code>paint</code> 方法，让它们显示出来。</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/606.png"></p>
-<blockquote>
-<p>虚拟<code>DOM</code>就是为了解决这个浏览器性能问题而被设计出来的。例如前面的例子，假如一次操作中有<code>10</code>次更新<code>DOM</code>的动作，虚拟<code>DOM</code>不会立即操作<code>DOM</code>，而是将这<code>10</code>次更新的<code>diff</code>内容保存到本地的一个<code>js</code>对象中，最终将这个js对象一次性<code>attach</code>到<code>DOM</code>树上，通知浏览器去执行绘制工作，这样可以避免大量的无谓的计算量</p>
-</blockquote>
-<h2 id="二、实现虚拟DOM"><a href="#二、实现虚拟DOM" class="headerlink" title="二、实现虚拟DOM"></a>二、实现虚拟DOM</h2><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;real-container&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Real DOM<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span>cannot update<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">className</span>=<span class="string">&quot;item&quot;</span>&gt;</span>Item 1<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">className</span>=<span class="string">&quot;item&quot;</span>&gt;</span>Item 2<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">className</span>=<span class="string">&quot;item&quot;</span>&gt;</span>Item 3<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>真正吃性能的是第四步和第五步。前三步在页面首次加载时跑一遍就够了，但布局和绘制会被反复触发，你每改一次几何属性，这一段就得重来。</p>
+<p>当你用传统的原生 <code>api</code> 或 <code>jQuery</code> 去操作 <code>DOM</code> 时，浏览器会从构建 <code>DOM</code> 树开始从头到尾执行一遍流程。比如当你在一次操作时，需要更新 <code>10</code> 个 <code>DOM</code> 节点，理想状态是一次性构建完 <code>DOM</code> 树，再执行后续操作。但浏览器没这么智能，收到第一个更新 <code>DOM</code> 请求后，并不知道后续还有 9 次更新操作，因此会马上执行流程，最终执行 10 次流程。显然例如计算 <code>DOM</code> 节点的坐标值等都是白白浪费性能，可能这次计算完，紧接着的下一个 <code>DOM</code> 更新请求，这个节点的坐标值就变了，前面的一次计算是无用功。</p>
+<p>这里得补一句现在的情况。现代浏览器其实做了写操作合并，多次样式修改会被攒进一个队列，等到帧末尾统一刷新，并不是真的老老实实跑十遍。但只要你在两次写之间读了一个布局属性，比如 <code>offsetHeight</code>、<code>getBoundingClientRect</code>，浏览器为了给你一个准确的值就必须立刻把队列刷掉，重新算布局。这个叫强制同步布局，也就是俗称的布局抖动。所以「10 次更新触发 10 次流程」这个说法在极端的读写交替代码里是成立的，只是触发条件比原文写的更具体一点。</p>
+<p>即使计算机硬件一直在更新迭代，操作 <code>DOM</code> 的代价仍旧是昂贵的，频繁操作还是会出现页面卡顿，影响用户的体验。真实的 <code>DOM</code> 节点，哪怕一个最简单的 div 也包含着很多属性，可以打印出来直观感受一下：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/606.png" alt="打印一个 div 元素的全部属性，可以看到真实 DOM 节点上挂了数百个字段"></p>
+<p>这张图值得多看两眼。上面那一大坨里绝大多数字段你一辈子都用不到，但它们确实挂在每个节点上。你要在这样的对象上做新旧对比，光是决定「比哪些字段」就无从下手。而一个虚拟节点只有三四个字段，比起来毫无压力。</p>
+<p>虚拟 <code>DOM</code> 就是为了解决这个浏览器性能问题而被设计出来的。例如前面的例子，假如一次操作中有 <code>10</code> 次更新 <code>DOM</code> 的动作，虚拟 <code>DOM</code> 不会立即操作 <code>DOM</code>，而是将这 <code>10</code> 次更新的 <code>diff</code> 内容保存到本地的一个 js 对象中，最终将这个 js 对象一次性 <code>attach</code> 到 <code>DOM</code> 树上，通知浏览器去执行绘制工作，这样可以避免大量的无谓的计算量。</p>
+<h2 id="二、实现虚拟DOM"><a href="#二、实现虚拟DOM" class="headerlink" title="二、实现虚拟DOM"></a>二、实现虚拟DOM</h2><p>光看定义没感觉，动手写一个最小的实现最快。假设我们要描述的真实结构是这样：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;real-container&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">p</span>&gt;</span>Real DOM<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span>cannot update<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ul</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">class</span>=<span class="string">&quot;item&quot;</span>&gt;</span>Item 1<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">class</span>=<span class="string">&quot;item&quot;</span>&gt;</span>Item 2<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">li</span> <span class="attr">class</span>=<span class="string">&quot;item&quot;</span>&gt;</span>Item 3<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ul</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>用<code>js</code>对象来模拟<code>DOM</code>节点如下</p>
-</blockquote>
+<p>用 <code>js</code> 对象来模拟 <code>DOM</code> 节点如下。三层嵌套，和上面那段 HTML 一一对应：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> tree = <span class="title class_">Element</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">id</span>: <span class="string">&#x27;virtual-container&#x27;</span> &#125;, [</span><br><span class="line">    <span class="title class_">Element</span>(<span class="string">&#x27;p&#x27;</span>, &#123;&#125;, [<span class="string">&#x27;Virtual DOM&#x27;</span>]),</span><br><span class="line">    <span class="title class_">Element</span>(<span class="string">&#x27;div&#x27;</span>, &#123;&#125;, [<span class="string">&#x27;before update&#x27;</span>]),</span><br><span class="line">    <span class="title class_">Element</span>(<span class="string">&#x27;ul&#x27;</span>, &#123;&#125;, [</span><br><span class="line">        <span class="title class_">Element</span>(<span class="string">&#x27;li&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;item&#x27;</span> &#125;, [<span class="string">&#x27;Item 1&#x27;</span>]),</span><br><span class="line">        <span class="title class_">Element</span>(<span class="string">&#x27;li&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;item&#x27;</span> &#125;, [<span class="string">&#x27;Item 2&#x27;</span>]),</span><br><span class="line">        <span class="title class_">Element</span>(<span class="string">&#x27;li&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;item&#x27;</span> &#125;, [<span class="string">&#x27;Item 3&#x27;</span>]),</span><br><span class="line">    ]),</span><br><span class="line">]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> root = tree.<span class="title function_">render</span>();</span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;virtualDom&#x27;</span>).<span class="title function_">appendChild</span>(root);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>用<code>js</code>对象模拟<code>DOM</code>节点的好处是，页面的更新可以先全部反映在<code>js</code>对象上，操作内存中的<code>js</code>对象的速度显然要快多了。等更新完后，再将最终的<code>js</code>对象映射成真实的<code>DOM</code>，交由浏览器去绘制</p>
-</blockquote>
+<p>用 <code>js</code> 对象模拟 <code>DOM</code> 节点的好处是，页面的更新可以先全部反映在 <code>js</code> 对象上，操作内存中的 <code>js</code> 对象的速度显然要快多了。等更新完后，再将最终的 <code>js</code> 对象映射成真实的 <code>DOM</code>，交由浏览器去绘制。</p>
+<p><code>Element</code> 本身很朴素，就是一个把参数挂到 <code>this</code> 上的构造函数：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Element</span>(<span class="params">tagName, props, children</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!(<span class="variable language_">this</span> <span class="keyword">instanceof</span> <span class="title class_">Element</span>)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Element</span>(tagName, props, children);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">tagName</span> = tagName;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">props</span> = props || &#123;&#125;;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">children</span> = children || [];</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">key</span> = props ? props.<span class="property">key</span> : <span class="literal">undefined</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">children</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">child</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (child <span class="keyword">instanceof</span> <span class="title class_">Element</span>) &#123;</span><br><span class="line">            count += child.<span class="property">count</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">count</span> = count;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>第一个参数是节点名（如<code>div</code>），第二个参数是节点的属性（如<code>class</code>），第三个参数是子节点（如<code>ul</code>的<code>li</code>）。除了这三个参数会被保存在对象上外，还保存了<code>key</code>和<code>count</code></p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/607.png"></p>
-<blockquote>
-<p>有了<code>js</code>对象后，最终还需要将其映射成真实的<code>DOM</code></p>
-</blockquote>
+<p>第一个参数是节点名（如 <code>div</code>），第二个参数是节点的属性（如 <code>class</code>），第三个参数是子节点（如 <code>ul</code> 的 <code>li</code>）。除了这三个参数会被保存在对象上外，还保存了 <code>key</code> 和 <code>count</code>。</p>
+<p>开头那个 <code>if (!(this instanceof Element))</code> 是个小技巧，让你不写 <code>new</code> 也能调用，所以上面才能直接写 <code>Element(&#39;div&#39;, ...)</code>。<code>key</code> 后面 diff 列表时要用，先存着。<code>count</code> 记的是这棵子树一共有多少个节点，它的用处在应用补丁那一步，深度遍历时需要知道每个节点对应的全局序号，有了 <code>count</code> 就能直接跳过整棵子树。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/607.png" alt="虚拟节点对象的结构，tagName、props、children 之外还保存了 key 和 count"></p>
+<p>对着这张图理解 <code>count</code> 的累加逻辑：子节点如果本身也是 <code>Element</code>，先把它的 <code>count</code> 加进来，再给它自己算一个，所以最终数出来的是整棵子树的节点总数，不是直接子节点的个数。</p>
+<p>有了 <code>js</code> 对象后，最终还需要将其映射成真实的 <code>DOM</code>：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Element</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">render</span> = <span class="keyword">function</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">createElement</span>(<span class="variable language_">this</span>.<span class="property">tagName</span>);</span><br><span class="line">    <span class="keyword">const</span> props = <span class="variable language_">this</span>.<span class="property">props</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> propName <span class="keyword">in</span> props) &#123;</span><br><span class="line">        <span class="title function_">setAttr</span>(el, propName, props[propName]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">children</span>.<span class="title function_">forEach</span>(<span class="function">(<span class="params">child</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> childEl = (child <span class="keyword">instanceof</span> <span class="title class_">Element</span>) ? child.<span class="title function_">render</span>() : <span class="variable language_">document</span>.<span class="title function_">createTextNode</span>(child);</span><br><span class="line">        el.<span class="title function_">appendChild</span>(childEl);</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> el;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>根据<code>DOM</code>名调用源生的<code>createElement</code>创建真实<code>DOM</code>，将<code>DOM</code>的属性全都加到这个<code>DOM</code>元素上，如果有子元素继续递归调用创建子元素，并<code>appendChild</code>挂到该<code>DOM</code>元素上。这样就完成了从创建虚拟<code>DOM</code>到将其映射成真实<code>DOM</code>的全部工作</p>
-</blockquote>
-<h2 id="三、Diff算法"><a href="#三、Diff算法" class="headerlink" title="三、Diff算法"></a>三、Diff算法</h2><blockquote>
-<p>我们已经完成了创建虚拟<code>DOM</code>并将其映射成真实<code>DOM</code>的工作，这样所有的更新都可以先反映到虚拟<code>DOM</code>上，如何反映呢？需要明确一下<code>Diff</code>算法</p>
-</blockquote>
+<p>根据 <code>DOM</code> 名调用原生的 <code>createElement</code> 创建真实 <code>DOM</code>，将 <code>DOM</code> 的属性全都加到这个 <code>DOM</code> 元素上，如果有子元素继续递归调用创建子元素，并 <code>appendChild</code> 挂到该 <code>DOM</code> 元素上。这样就完成了从创建虚拟 <code>DOM</code> 到将其映射成真实 <code>DOM</code> 的全部工作。</p>
+<p>这里有个细节容易忽略：整个递归过程中，<code>el</code> 一直是游离的，没有挂进文档。只有最外层那个 <code>root</code> 被 <code>appendChild</code> 到页面上时，浏览器才会触发一次布局和绘制。这就是前面说的「攒起来一次性提交」，在这个几十行的实现里已经体现出来了。</p>
+<h2 id="三、Diff算法"><a href="#三、Diff算法" class="headerlink" title="三、Diff算法"></a>三、Diff算法</h2><p>我们已经完成了创建虚拟 <code>DOM</code> 并将其映射成真实 <code>DOM</code> 的工作，这样所有的更新都可以先反映到虚拟 <code>DOM</code> 上。怎么反映呢？需要明确一下 <code>Diff</code> 算法。</p>
 <ul>
-<li>两棵树如果完全比较时间复杂度是<code>O(n^3)</code></li>
-<li><code>React</code>的<code>Diff</code>算法的时间复杂度是<code>O(n)</code>。要实现这么低的时间复杂度，意味着只能平层地比较两棵树的节点，放弃了深度遍历</li>
-<li>这样做，似乎牺牲了一定的精确性来换取速度，但考虑到现实中前端页面通常也不会跨层级移动<code>DOM</code>元素，所以这样做是最优的。</li>
+<li>两棵树如果完全比较时间复杂度是 <code>O(n^3)</code></li>
+<li><code>React</code> 的 <code>Diff</code> 算法的时间复杂度是 <code>O(n)</code>。要实现这么低的时间复杂度，意味着只能平层地比较两棵树的节点，放弃了深度遍历</li>
+<li>这样做，似乎牺牲了一定的精确性来换取速度，但考虑到现实中前端页面通常也不会跨层级移动 <code>DOM</code> 元素，所以这样做是最优的。</li>
 </ul>
-<p>我们新创建一棵树，用于和之前的树进行比较</p>
+<p>这笔账值得算一下。<code>O(n^3)</code> 里的三次方来自哪里？通用树 diff 要在两棵树之间求最小编辑距离，需要拿第一棵树的每个节点去和第二棵树的每个节点比，还要考虑各种插入删除的组合。一千个节点就是十亿量级的操作，浏览器主线程直接卡死。</p>
+<p>放弃跨层匹配之后就简单了，同一层的节点按顺序对一遍，然后各自往下递归。每个节点只被访问一次，复杂度落到 <code>O(n)</code>。</p>
+<p>我们新创建一棵树，用于和之前的树进行比较：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> newTree = <span class="title class_">Element</span>(<span class="string">&#x27;div&#x27;</span>, &#123; <span class="attr">id</span>: <span class="string">&#x27;virtual-container&#x27;</span> &#125;, [</span><br><span class="line">    <span class="title class_">Element</span>(<span class="string">&#x27;h3&#x27;</span>, &#123;&#125;, [<span class="string">&#x27;Virtual DOM&#x27;</span>]),                     <span class="comment">// REPLACE</span></span><br><span class="line">    <span class="title class_">Element</span>(<span class="string">&#x27;div&#x27;</span>, &#123;&#125;, [<span class="string">&#x27;after update&#x27;</span>]),                   <span class="comment">// TEXT</span></span><br><span class="line">    <span class="title class_">Element</span>(<span class="string">&#x27;ul&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;marginLeft10&#x27;</span> &#125;, [              <span class="comment">// PROPS</span></span><br><span class="line">        <span class="title class_">Element</span>(<span class="string">&#x27;li&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;item&#x27;</span> &#125;, [<span class="string">&#x27;Item 1&#x27;</span>]),</span><br><span class="line">        <span class="comment">// Element(&#x27;li&#x27;, &#123; class: &#x27;item&#x27; &#125;, [&#x27;Item 2&#x27;]),    // REORDER remove</span></span><br><span class="line">        <span class="title class_">Element</span>(<span class="string">&#x27;li&#x27;</span>, &#123; <span class="attr">class</span>: <span class="string">&#x27;item&#x27;</span> &#125;, [<span class="string">&#x27;Item 3&#x27;</span>]),</span><br><span class="line">    ]),</span><br><span class="line">]);</span><br></pre></td></tr></table></figure>
 
-<p>只考虑平层地<code>Diff</code>的话，就简单多了，只需要考虑以下4种情况</p>
-<blockquote>
-<p>第一种是最简单的，节点类型变了，例如下图中的<code>P</code>变成了<code>h3</code>。我们将这个过程称之为<code>REPLACE</code>。直接将旧节点卸载（<code>componentWillUnmount</code>）并装载新节点（<code>componentWillMount</code>）就行了</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/608.png"></p>
-<p>旧节点包括下面的子节点都将被卸载，如果新节点和旧节点仅仅是类型不同，但下面的所有子节点都一样时，这样做显得效率不高。但为了避免<code>O(n^3)</code>的时间复杂度，这样做是值得的。这也提醒了<code>React</code>开发者，应该避免无谓的节点类型的变化，例如运行时将<code>div</code>变成<code>p</code>就没什么太大意义</p>
-<blockquote>
-<p>第二种也比较简单，节点类型一样，仅仅属性或属性值变了</p>
-</blockquote>
+<p>这棵新树是刻意构造的，四种变化各安排了一处，注释里已经标好了对应类型。只考虑平层地 <code>Diff</code> 的话，就简单多了，只需要考虑以下 4 种情况。</p>
+<h3 id="3-1-REPLACE，节点类型变了"><a href="#3-1-REPLACE，节点类型变了" class="headerlink" title="3.1 REPLACE，节点类型变了"></a>3.1 REPLACE，节点类型变了</h3><p>第一种是最简单的，节点类型变了，例如下图中的 <code>P</code> 变成了 <code>h3</code>。我们将这个过程称之为 <code>REPLACE</code>。直接将旧节点卸载（<code>componentWillUnmount</code>）并装载新节点（<code>componentWillMount</code>）就行了。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/608.png" alt="节点类型从 p 变成 h3，整棵子树被卸载后重新装载"></p>
+<p>旧节点包括下面的子节点都将被卸载，如果新节点和旧节点仅仅是类型不同，但下面的所有子节点都一样时，这样做显得效率不高。但为了避免 <code>O(n^3)</code> 的时间复杂度，这样做是值得的。这也提醒了 <code>React</code> 开发者，应该避免无谓的节点类型的变化，例如运行时将 <code>div</code> 变成 <code>p</code> 就没什么太大意义。</p>
+<p>这条约束在写业务代码时是有实际影响的。条件渲染里如果两个分支的根节点标签不一样，切换的时候整棵子树都会重建，里面组件的 state 全部丢失，正在播放的视频会重新加载。碰到这种情况通常的做法是把两个分支的外层标签统一，只让内部内容变。</p>
+<h3 id="3-2-PROPS，属性变了"><a href="#3-2-PROPS，属性变了" class="headerlink" title="3.2 PROPS，属性变了"></a>3.2 PROPS，属性变了</h3><p>第二种也比较简单，节点类型一样，仅仅属性或属性值变了：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">renderA: &lt;ul&gt;</span><br><span class="line">renderB: &lt;ul class: &#x27;marginLeft10&#x27;&gt;</span><br><span class="line">=&gt; [addAttribute class &quot;marginLeft10&quot;]</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>我们将这个过程称之为<code>PROPS</code>。此时不会触发节点的卸载（<code>componentWillUnmount</code>）和装载（<code>componentWillMount</code>）动作。而是执行节点更新（<code>shouldComponentUpdate</code>到<code>componentDidUpdate</code>的一系列方法）</p>
-</blockquote>
+<p>我们将这个过程称之为 <code>PROPS</code>。此时不会触发节点的卸载（<code>componentWillUnmount</code>）和装载（<code>componentWillMount</code>）动作。而是执行节点更新（<code>shouldComponentUpdate</code> 到 <code>componentDidUpdate</code> 的一系列方法）。</p>
+<p>对比属性的代码是纯粹的两轮遍历，一轮找改掉的，一轮找新增的：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">diffProps</span>(<span class="params">oldNode, newNode</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> oldProps = oldNode.<span class="property">props</span>;</span><br><span class="line">    <span class="keyword">const</span> newProps = newNode.<span class="property">props</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> key;</span><br><span class="line">    <span class="keyword">const</span> propsPatches = &#123;&#125;;</span><br><span class="line">    <span class="keyword">let</span> isSame = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// find out different props</span></span><br><span class="line">    <span class="keyword">for</span> (key <span class="keyword">in</span> oldProps) &#123;</span><br><span class="line">        <span class="keyword">if</span> (newProps[key] !== oldProps[key]) &#123;</span><br><span class="line">            isSame = <span class="literal">false</span>;</span><br><span class="line">            propsPatches[key] = newProps[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// find out new props</span></span><br><span class="line">    <span class="keyword">for</span> (key <span class="keyword">in</span> newProps) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!oldProps.<span class="title function_">hasOwnProperty</span>(key)) &#123;</span><br><span class="line">            isSame = <span class="literal">false</span>;</span><br><span class="line">            propsPatches[key] = newProps[key];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> isSame ? <span class="literal">null</span> : propsPatches;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>第三种是文本变了，文本对也是一个<code>Text Node</code>，也比较简单，直接修改文字内容就行了，我们将这个过程称之为<code>TEXT</code></li>
-<li>第四种是移动，增加，删除子节点，我们将这个过程称之为<code>REORDER</code></li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/609.png"></p>
-<blockquote>
-<p>在中间插入一个节点，程序员写代码很简单：$(B).after(F)。但如何高效地插入呢？简单粗暴的做法是：卸载C，装载F，卸载D，装载C，卸载E，装载D，装载E。如下图</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/610.png"></p>
-<blockquote>
-<p>我们写<code>JSX</code>代码时，如果没有给数组或枚举类型定义一个<code>key</code>，就会看到下面这样的<code>warning</code>。<code>React</code>提醒我们，没有<code>key</code>的话，涉及到移动，增加，删除子节点的操作时，就会用上面那种简单粗暴的做法来更新。虽然程序运行不会有错，但效率太低，因此<code>React</code>会给我们一个<code>warning</code></p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/611.png"></p>
-<blockquote>
-<p>如果我们在<code>JSX</code>里为数组或枚举型元素增加上<code>key</code>后，<code>React</code>就能根据<code>key</code>，直接找到具体的位置进行操作，效率比较高。如下图</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/612.png"></p>
-<blockquote>
-<p>常见的最小编辑距离问题，可以用<code>Levenshtein Distance</code>算法来实现，时间复杂度是<code>O(M*N)</code>，但通常我们只要一些简单的移动就能满足需要，降低点精确性，将时间复杂度降低到<code>O(max(M, N)</code>即可</p>
-</blockquote>
-<p>最终<code>Diff</code>出来的结果如下</p>
+<p>第一轮遍历旧属性，值不一样就记下新值，属性被删掉的情况下 <code>newProps[key]</code> 是 <code>undefined</code>，记的也是 <code>undefined</code>，后面应用补丁时会当成移除处理。第二轮遍历新属性，专门捞旧对象里压根没有的那些 key。两轮跑完 <code>isSame</code> 还是 <code>true</code>，就返回 <code>null</code>，上层看到 <code>null</code> 就知道这个节点的属性完全没变，一条 DOM 操作都不用发。</p>
+<p>这里的比较是 <code>!==</code>，也就是引用比较。所以你如果每次渲染都传一个新的对象字面量或者新的箭头函数当属性，哪怕内容完全一样，diff 也会判定为「变了」。React 里那些 <code>useCallback</code>、<code>useMemo</code> 要解决的就是这一层。</p>
+<h3 id="3-3-TEXT-和-REORDER"><a href="#3-3-TEXT-和-REORDER" class="headerlink" title="3.3 TEXT 和 REORDER"></a>3.3 TEXT 和 REORDER</h3><p>第三种是文本变了，文本对也是一个 <code>Text Node</code>，也比较简单，直接修改文字内容就行了，我们将这个过程称之为 <code>TEXT</code>。</p>
+<p>第四种是移动，增加，删除子节点，我们将这个过程称之为 <code>REORDER</code>。这一种是四种里最麻烦的。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/609.png" alt="子节点发生移动、增加、删除时的 REORDER 处理"></p>
+<p>在中间插入一个节点，程序员写代码很简单：<code>$(B).after(F)</code>。但如何高效地插入呢？简单粗暴的做法是：卸载 C，装载 F，卸载 D，装载 C，卸载 E，装载 D，装载 E。如下图：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/610.png" alt="没有 key 时在中间插入节点，后续所有节点被逐个卸载再装载"></p>
+<p>盯着这张图想一下代价。插入位置之后的每一个节点都被拆了重建一遍，插入点越靠前，浪费越大。往一个一千行的表格头部插一行，等于把一千行全部重建。而实际上真正需要的 DOM 操作只有一个 <code>insertBefore</code>。</p>
+<p>问题出在哪？出在 diff 只能按位置对齐。它看到旧的第三个位置是 C、新的第三个位置是 F，只能判定「这个位置的节点变了」，它没法知道 C 其实只是往后挪了一格。</p>
+<p>我们写 <code>JSX</code> 代码时，如果没有给数组或枚举类型定义一个 <code>key</code>，就会看到下面这样的 <code>warning</code>。<code>React</code> 提醒我们，没有 <code>key</code> 的话，涉及到移动，增加，删除子节点的操作时，就会用上面那种简单粗暴的做法来更新。虽然程序运行不会有错，但效率太低，因此 <code>React</code> 会给我们一个 <code>warning</code>：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/611.png" alt="React 在数组元素缺少 key 时给出的控制台 warning"></p>
+<p>如果我们在 <code>JSX</code> 里为数组或枚举型元素增加上 <code>key</code> 后，<code>React</code> 就能根据 <code>key</code>，直接找到具体的位置进行操作，效率比较高。如下图：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/612.png" alt="有 key 时通过 key 定位节点，只做必要的插入和移动"></p>
+<p>key 给节点提供的是身份，不是位置。有了身份，diff 才能在旧列表里找到「同一个」节点，进而判断出它只是移动了。</p>
+<p>顺着这个逻辑就能推出那条老生常谈的建议：别拿数组下标当 key。下标是位置，不是身份。往头部插一条数据，所有元素的下标全变了，key 跟着变，diff 判定为每一项都不是同一个节点，效果和不写 key 一样糟。真要写就写数据本身的稳定 id。</p>
+<p>常见的最小编辑距离问题，可以用 <code>Levenshtein Distance</code> 算法来实现，时间复杂度是 <code>O(M*N)</code>，但通常我们只要一些简单的移动就能满足需要，降低点精确性，将时间复杂度降低到 <code>O(max(M, N))</code> 即可。</p>
+<p>最终 <code>Diff</code> 出来的结果如下：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="number">1</span>: [ &#123;<span class="attr">type</span>: <span class="variable constant_">REPLACE</span>, <span class="attr">node</span>: <span class="title class_">Element</span>&#125; ],</span><br><span class="line">    <span class="number">4</span>: [ &#123;<span class="attr">type</span>: <span class="variable constant_">TEXT</span>, <span class="attr">content</span>: <span class="string">&quot;after update&quot;</span>&#125; ],</span><br><span class="line">    <span class="number">5</span>: [ &#123;<span class="attr">type</span>: <span class="variable constant_">PROPS</span>, <span class="attr">props</span>: &#123;<span class="attr">class</span>: <span class="string">&quot;marginLeft10&quot;</span>&#125;&#125;, &#123;<span class="attr">type</span>: <span class="variable constant_">REORDER</span>, <span class="attr">moves</span>: [&#123;<span class="attr">index</span>: <span class="number">2</span>, <span class="attr">type</span>: <span class="number">0</span>&#125;]&#125; ],</span><br><span class="line">    <span class="number">6</span>: [ &#123;<span class="attr">type</span>: <span class="variable constant_">REORDER</span>, <span class="attr">moves</span>: [&#123;<span class="attr">index</span>: <span class="number">2</span>, <span class="attr">type</span>: <span class="number">0</span>&#125;]&#125; ],</span><br><span class="line">    <span class="number">8</span>: [ &#123;<span class="attr">type</span>: <span class="variable constant_">REORDER</span>, <span class="attr">moves</span>: [&#123;<span class="attr">index</span>: <span class="number">2</span>, <span class="attr">type</span>: <span class="number">0</span>&#125;]&#125; ],</span><br><span class="line">    <span class="number">9</span>: [ &#123;<span class="attr">type</span>: <span class="variable constant_">TEXT</span>, <span class="attr">content</span>: <span class="string">&quot;Item 3&quot;</span>&#125; ],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="四、映射成真实DOM"><a href="#四、映射成真实DOM" class="headerlink" title="四、映射成真实DOM"></a>四、映射成真实DOM</h2><blockquote>
-<p>虚拟<code>DOM</code>有了，<code>Diff</code>也有了，现在就可以将<code>Diff</code>应用到真实<code>DOM</code>上了</p>
-</blockquote>
-<p>深度遍历DOM将Diff的内容更新进去</p>
+<p>这个结构就是所谓的补丁包。key 是节点在深度遍历顺序里的序号，value 是这个节点身上要做的操作列表。一个节点可能同时有多种变化，比如序号 5 那个 <code>ul</code>，既改了 class 又删了一个子节点，所以数组里有两项。</p>
+<p>到这一步为止，一次真实的 DOM 操作都还没发生。</p>
+<h2 id="四、映射成真实DOM"><a href="#四、映射成真实DOM" class="headerlink" title="四、映射成真实DOM"></a>四、映射成真实DOM</h2><p>虚拟 <code>DOM</code> 有了，<code>Diff</code> 也有了，现在就可以将 <code>Diff</code> 应用到真实 <code>DOM</code> 上了。</p>
+<p>深度遍历 DOM 将 Diff 的内容更新进去：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">dfsWalk</span>(<span class="params">node, walker, patches</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> currentPatches = patches[walker.<span class="property">index</span>];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> len = node.<span class="property">childNodes</span> ? node.<span class="property">childNodes</span>.<span class="property">length</span> : <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        walker.<span class="property">index</span>++;</span><br><span class="line">        <span class="title function_">dfsWalk</span>(node.<span class="property">childNodes</span>[i], walker, patches);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (currentPatches) &#123;</span><br><span class="line">        <span class="title function_">applyPatches</span>(node, currentPatches);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>具体更新的代码如下，其实就是根据<code>Diff</code>信息调用源生<code>API</code>操作<code>DOM</code></p>
-</blockquote>
+<p><code>walker.index</code> 是关键。它是一个共享的计数器，跟着深度优先的访问顺序自增，正好和上面补丁包里的 key 对得上。所以 diff 和 apply 这两趟遍历必须用完全一致的顺序，否则序号会错位，补丁会打到别的节点上。前面 <code>Element</code> 里存的那个 <code>count</code>，作用就是在真正的实现里能按子树规模批量跳过序号。</p>
+<p>还有一个顺序上的讲究：这个函数是先递归子节点，最后才处理自己。这样写是为了避免自己被 REPLACE 掉之后，子节点的引用失效。</p>
+<p>具体更新的代码如下，其实就是根据 <code>Diff</code> 信息调用原生 <code>API</code> 操作 <code>DOM</code>：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">applyPatches</span>(<span class="params">node, currentPatches</span>) &#123;</span><br><span class="line">    currentPatches.<span class="title function_">forEach</span>(<span class="function">(<span class="params">currentPatch</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (currentPatch.<span class="property">type</span>) &#123;</span><br><span class="line">            <span class="keyword">case</span> <span class="attr">REPLACE</span>: &#123;</span><br><span class="line">                <span class="keyword">const</span> newNode = (<span class="keyword">typeof</span> currentPatch.<span class="property">node</span> === <span class="string">&#x27;string&#x27;</span>)</span><br><span class="line">                    ? <span class="variable language_">document</span>.<span class="title function_">createTextNode</span>(currentPatch.<span class="property">node</span>)</span><br><span class="line">                    : currentPatch.<span class="property">node</span>.<span class="title function_">render</span>();</span><br><span class="line">                node.<span class="property">parentNode</span>.<span class="title function_">replaceChild</span>(newNode, node);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">case</span> <span class="attr">REORDER</span>:</span><br><span class="line">                <span class="title function_">reorderChildren</span>(node, currentPatch.<span class="property">moves</span>);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="attr">PROPS</span>:</span><br><span class="line">                <span class="title function_">setProps</span>(node, currentPatch.<span class="property">props</span>);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="attr">TEXT</span>:</span><br><span class="line">                <span class="keyword">if</span> (node.<span class="property">textContent</span>) &#123;</span><br><span class="line">                    node.<span class="property">textContent</span> = currentPatch.<span class="property">content</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">// ie</span></span><br><span class="line">                    node.<span class="property">nodeValue</span> = currentPatch.<span class="property">content</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="attr">default</span>:</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`Unknown patch type <span class="subst">$&#123;currentPatch.type&#125;</span>`</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>虚拟<code>DOM</code>的目的是将所有操作累加起来，统计计算出所有的变化后，统一更新一次<code>DOM</code></p>
-</blockquote>
+<p>四个 case 各对应前面讲的一种变化类型，一一对上。<code>REPLACE</code> 里那个 <code>typeof === &#39;string&#39;</code> 的判断是在区分文本节点和元素节点，字符串直接造 <code>createTextNode</code>，<code>Element</code> 实例就调它自己的 <code>render()</code>。</p>
+<p><code>TEXT</code> 那个分支里的 <code>node.nodeValue</code> 是给老 IE 兜底的，注释也写了。这个写法现在可以直接删掉了，<code>textContent</code> 从 IE 9 开始就支持。不过这里有个坑要注意，<code>if (node.textContent)</code> 这个判断条件写得不严谨，如果节点当前的文本恰好是空字符串，条件会为假，代码会走进 IE 分支去改 <code>nodeValue</code>。更稳的写法是判断 <code>&#39;textContent&#39; in node</code>。这个我在自己的 demo 上验证过，空文本节点确实会走错分支。</p>
+<p>虚拟 <code>DOM</code> 的目的是将所有操作累加起来，统计计算出所有的变化后，统一更新一次 <code>DOM</code>。</p>
+<h2 id="五、这篇写于-2018-年，后来的变化"><a href="#五、这篇写于-2018-年，后来的变化" class="headerlink" title="五、这篇写于 2018 年，后来的变化"></a>五、这篇写于 2018 年，后来的变化</h2><p>上面这套是 React 15 时代的经典模型，思路到今天依然是理解 diff 的基础，但几个主流框架都往前走了。</p>
+<p>React 16 引入 Fiber 之后，最大的改变是把「一口气递归比完」换成了可中断的链表遍历。原来的 <code>dfsWalk</code> 是纯递归，一旦开始就必须跑完，长列表更新时主线程会被占住，用户输入卡在那里没反应。Fiber 把每个节点变成链表上的一个工作单元，每处理完一个就看一眼还有没有剩余时间，没时间就把控制权交回浏览器，下一帧接着做。所以现在 React 里的 diff 是可以被高优先级更新打断并重来的。这块我在 <a href="https://feinterview.poetries.top/blog/react-fiber">React Fiber</a> 那篇里展开写过。</p>
+<p>Vue 3 走的是另一个方向。它在编译期就分析出模板里哪些是静态节点、动态节点动态在哪个属性上，把这些信息作为标记编进渲染函数，运行时可以整块跳过静态内容。带 key 的列表 diff 换成了「先双端预处理掉头尾相同的部分，中间乱序段求最长递增子序列」的做法，能待在原地不动的节点最多，DOM 移动次数最少。</p>
+<p>再往外还有 Svelte 和 Solid 这一派，主张压根不需要虚拟 DOM。它们在编译期就把「哪个变量改了要更新哪个 DOM 节点」算清楚，运行时直接精确更新，中间不造树也不比较。这条路省掉了虚拟树的内存和 diff 的计算，代价是灵活度降低，动态性很强的场景不好处理。</p>
+<p>不是说虚拟 DOM 不行了，而是它多出来的那层开销，在某些场景下确实可以省掉。我自己的感受是，这几种方案改的都是「怎么比更省」，没改「为什么要比」，所以上面那套四种变化类型的模型依然值得先吃透。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这一篇拆下来的结论：</p>
+<ul>
+<li>浏览器渲染分五步，反复被触发的是布局和绘制，DOM 操作的代价主要产生在这两步</li>
+<li>读布局属性会强制刷新样式队列，读写交替是造成布局抖动的直接原因</li>
+<li>一个虚拟节点除了 <code>tagName</code>、<code>props</code>、<code>children</code>，还要存 <code>key</code> 和 <code>count</code>，前者给 diff 提供身份，后者给深度遍历提供序号</li>
+<li><code>render()</code> 递归创建的过程中 DOM 一直是游离的，只有最后挂载那一下才触发布局和绘制</li>
+<li>通用树 diff 是 <code>O(n^3)</code>，放弃跨层匹配才降到 <code>O(n)</code>，代价是跨层移动会被当成删除加新建</li>
+<li>平层 diff 只有四种变化：REPLACE 换类型、PROPS 改属性、TEXT 改文本、REORDER 增删移</li>
+<li>REPLACE 会整棵子树重建，条件渲染时尽量别让两个分支的根标签不一样</li>
+<li>没有 key 的时候中间插入一个节点，后面所有节点都会被拆了重建，key 提供的是身份而不是位置</li>
+<li>diff 的产物是一个以遍历序号为 key 的补丁包，<code>dfsWalk</code> 和 diff 必须用完全一致的遍历顺序</li>
+</ul>
+<p>前一篇讲的是虚拟 DOM 是什么和 snabbdom 的核心 API，没看的可以回去补 <a href="https://feinterview.poetries.top/blog/vdom-base">虚拟DOM（一）</a>。想看一份真实库的源码级拆解，<a href="https://feinterview.poetries.top/blog/virtual-dom-analysis">虚拟DOM原理分析 Snabbdom源码与diff算法拆解</a> 那篇把 snabbdom 的 <code>updateChildren</code> 双端比较逐行走了一遍，和这篇的 REORDER 正好对照着看。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://legacy.reactjs.org/docs/reconciliation.html">React 官方文档 - Reconciliation</a></li>
+<li><a href="https://legacy.reactjs.org/docs/lists-and-keys.html">React 官方文档 - Lists and Keys</a></li>
+<li><a href="https://cn.vuejs.org/guide/extras/rendering-mechanism.html">Vue 3 官方文档 - 渲染机制</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Node/textContent">MDN - Node.textContent</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Node/replaceChild">MDN - Node.replaceChild</a></li>
+<li><a href="https://web.dev/articles/avoid-large-complex-layouts-and-layout-thrashing">web.dev - Avoid large, complex layouts and layout thrashing</a></li>
+<li><a href="https://github.com/snabbdom/snabbdom">Snabbdom - GitHub</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

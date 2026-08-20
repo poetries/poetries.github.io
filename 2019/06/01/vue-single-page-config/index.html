@@ -7,28 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Vue单页应用的基本配置 | 前端进阶之旅</title>
+  <title>Vue单页应用的基本配置 路由 Vuex 与接口层分层 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="工程化,Vue,Vue CLI," />
   
 
-  <meta name="description" content="1.1 路由配置 我们来看一下 CLI 给我们生成的 router.js 文件的配  &#x2F;* router.js *&#x2F;import Vue from &#x27;vue&#x27;import Router from &#x27;vue-router&#x27;import Home from &#x27;.&#x2F;views&#x2F;Home.vue&#x27; &#x2F;&#x2F; 引入 Home 组件import Abou">
+  <meta name="description" content="从 Vue CLI 3 生成的默认模板出发，把路由懒加载、history 模式、Vuex 模块拆分、接口层封装和 devServer 代理一步步配到能上生产，并补上这些写法在 Vite 时代的对应做法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vue单页应用的基本配置">
+<meta property="og:title" content="Vue单页应用的基本配置 路由 Vuex 与接口层分层">
 <meta property="og:url" content="http://blog.poetries.top/2019/06/01/vue-single-page-config/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="1.1 路由配置 我们来看一下 CLI 给我们生成的 router.js 文件的配  &#x2F;* router.js *&#x2F;import Vue from &#x27;vue&#x27;import Router from &#x27;vue-router&#x27;import Home from &#x27;.&#x2F;views&#x2F;Home.vue&#x27; &#x2F;&#x2F; 引入 Home 组件import Abou">
+<meta property="og:description" content="从 Vue CLI 3 生成的默认模板出发，把路由懒加载、history 模式、Vuex 模块拆分、接口层封装和 devServer 代理一步步配到能上生产，并补上这些写法在 Vite 时代的对应做法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c0985b8c2ae68">
 <meta property="article:published_time" content="2019-06-01T16:13:32.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.695Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.960Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="工程化">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="Vue CLI">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/10/30/166c0985b8c2ae68">
 
   
 
@@ -206,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%B7%AF%E7%94%B1%E9%85%8D%E7%BD%AE"><span class="toc-text">1.1 路由配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Vuex-%E9%85%8D%E7%BD%AE"><span class="toc-text">1.2 Vuex 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%8E%A5%E5%8F%A3%E9%85%8D%E7%BD%AE"><span class="toc-text">1.3 接口配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%85%AC%E5%85%B1%E8%AE%BE%E6%96%BD%E9%85%8D%E7%BD%AE"><span class="toc-text">1.4 公共设施配置</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%B7%AF%E7%94%B1%E9%85%8D%E7%BD%AE%E4%BB%8E%E9%BB%98%E8%AE%A4%E6%A8%A1%E6%9D%BF%E6%94%B9%E8%B5%B7"><span class="toc-text">一、路由配置从默认模板改起</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CLI-%E7%94%9F%E6%88%90%E7%9A%84%E9%82%A3%E4%BB%BD%E9%85%8D%E7%BD%AE"><span class="toc-text">CLI 生成的那份配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#base-%E6%98%AF%E7%BB%99%E4%BA%8C%E7%BA%A7%E7%9B%AE%E5%BD%95%E5%87%86%E5%A4%87%E7%9A%84"><span class="toc-text">base 是给二级目录准备的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#history-%E6%A8%A1%E5%BC%8F%E8%A6%81%E5%90%8E%E7%AB%AF%E9%85%8D%E5%90%88"><span class="toc-text">history 模式要后端配合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E6%87%92%E5%8A%A0%E8%BD%BD%EF%BC%8C%E4%B8%A4%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-text">路由懒加载，两种写法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Vuex-%E4%BB%8E%E5%8D%95%E6%96%87%E4%BB%B6%E6%8B%86%E6%88%90%E6%A8%A1%E5%9D%97"><span class="toc-text">二、Vuex 从单文件拆成模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%8E%A5%E5%8F%A3%E5%B1%82%E5%B0%81%E8%A3%85%E6%88%90%E4%B8%80%E4%B8%AA-Http-%E7%B1%BB"><span class="toc-text">三、接口层封装成一个 Http 类</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#devServer-%E4%BB%A3%E7%90%86"><span class="toc-text">devServer 代理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%85%AC%E5%85%B1%E8%AE%BE%E6%96%BD%E9%85%8D%E7%BD%AE"><span class="toc-text">四、公共设施配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%99%E5%A5%97%E9%85%8D%E7%BD%AE%E6%94%BE%E5%88%B0%E4%BB%8A%E5%A4%A9%E6%80%8E%E4%B9%88%E5%86%99"><span class="toc-text">五、这套配置放到今天怎么写</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -229,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-single-page-config" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Vue单页应用的基本配置</h1>
+    <h1 class="post-title">Vue单页应用的基本配置 路由 Vuex 与接口层分层</h1>
 
     <div class="article-meta">
       <span>
@@ -271,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.6k字</span>
+            <span>字数统计 4.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 7分</span>
+            <span>阅读时长 18分</span>
           </span>
       
       
@@ -290,81 +290,125 @@
   <div class="article-content">
     
       <div id="container">
-        <h3 id="1-1-路由配置"><a href="#1-1-路由配置" class="headerlink" title="1.1 路由配置"></a>1.1 路由配置</h3><blockquote>
-<p>我们来看一下 <code>CLI</code> 给我们生成的 <code>router.js</code> 文件的配</p>
-</blockquote>
+        <p><code>vue create</code> 敲完，项目跑起来了，<code>Home.vue</code> 和 <code>About.vue</code> 也能来回切。看着挺完整，但真接上业务就会发现，路由是全量打进一个 bundle 的，<code>Vuex</code> 只有一个空壳 <code>store.js</code>，请求是散在各个组件里的 <code>axios.get</code>，公共方法找不到地方放。这些坑我在几个项目上都重复踩过一遍。这篇把单页项目开工前该定下来的四件事捋一遍，路由、状态、接口、公共设施，每一处都给出改动前后的代码和改动的理由。读完你能拿到一份可以直接抄进新项目的目录约定。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>CLI 默认生成的 <code>router.js</code> 有哪三处必须改</li>
+<li><code>base</code>、<code>history</code> 模式、路由懒加载各自解决什么问题，代价是什么</li>
+<li><code>require.ensure</code> 和动态 <code>import()</code> 的区别，以及 webpack 魔法注释怎么给 chunk 命名</li>
+<li>Vuex 从单文件拆成模块的目录约定，四个核心概念之间的调用顺序</li>
+<li>接口层怎么封装成一个 <code>Http</code> 类，<code>devServer.proxy</code> 怎么绕开本地跨域</li>
+<li>这套 2019 年的配置，放到 Vite + Vue 3 时代对应的写法是什么</li>
+</ul>
+<h2 id="一、路由配置从默认模板改起"><a href="#一、路由配置从默认模板改起" class="headerlink" title="一、路由配置从默认模板改起"></a>一、路由配置从默认模板改起</h2><h3 id="CLI-生成的那份配置"><a href="#CLI-生成的那份配置" class="headerlink" title="CLI 生成的那份配置"></a>CLI 生成的那份配置</h3><p>先看 <code>CLI</code> 给我们生成的 <code>router.js</code> 文件的配置：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* router.js */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Router</span> <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Home</span> <span class="keyword">from</span> <span class="string">&#x27;./views/Home.vue&#x27;</span> <span class="comment">// 引入 Home 组件</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">About</span> <span class="keyword">from</span> <span class="string">&#x27;./views/About.vue&#x27;</span> <span class="comment">// 引入 About 组件</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Router</span>) <span class="comment">// 注册路由</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Router</span>(&#123;</span><br><span class="line">    <span class="attr">routes</span>: [&#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">        <span class="attr">name</span>: <span class="string">&#x27;home&#x27;</span>,</span><br><span class="line">        <span class="attr">component</span>: <span class="title class_">Home</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;/about&#x27;</span>,</span><br><span class="line">        <span class="attr">name</span>: <span class="string">&#x27;about&#x27;</span>,</span><br><span class="line">        <span class="attr">component</span>: <span class="title class_">About</span></span><br><span class="line">    &#125;]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这份配置可以算是最基础的路由配置，有以下几点需要进行优化：</p>
-</blockquote>
+<p>这份配置能跑，但它是给「跑通 demo」准备的，不是给上线准备的。有三点需要优化：</p>
 <ul>
-<li>如果路由存在二级目录，需要添加 base 属性，否则默认为 <code>&quot;/&quot;</code></li>
-<li>默认路由模式是 <code>hash</code> 模式，会携带 # 标记，与真实 <code>url </code>不符，可以改为 <code>history</code> 模式</li>
-<li>页面组件没有进行按需加载，可以使用 <code>require.ensure() </code>来进行优化</li>
+<li>如果路由存在二级目录，需要添加 <code>base</code> 属性，否则默认为 <code>&quot;/&quot;</code></li>
+<li>默认路由模式是 <code>hash</code> 模式，会携带 <code>#</code> 标记，与真实 url 不符，可以改为 <code>history</code> 模式</li>
+<li>页面组件没有进行按需加载，可以使用 <code>require.ensure()</code> 来进行优化</li>
 </ul>
-<p><strong>下面是我们优化结束的代码：</strong></p>
+<p>下面是我们优化结束的代码：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* router.js */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Router</span> <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 引入 Home 组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">Home</span> = resolve =&gt; &#123;</span><br><span class="line">    <span class="built_in">require</span>.<span class="title function_">ensure</span>([<span class="string">&#x27;./views/Home.vue&#x27;</span>], <span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="built_in">require</span>(<span class="string">&#x27;./views/Home.vue&#x27;</span>))</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 引入 About 组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">About</span> = resolve =&gt; &#123;</span><br><span class="line">    <span class="built_in">require</span>.<span class="title function_">ensure</span>([<span class="string">&#x27;./views/About.vue&#x27;</span>], <span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="title function_">resolve</span>(<span class="built_in">require</span>(<span class="string">&#x27;./views/About.vue&#x27;</span>))</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Router</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> base = <span class="string">`<span class="subst">$&#123;process.env.BASE_URL&#125;</span>`</span> <span class="comment">// 动态获取二级目录</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Router</span>(&#123;</span><br><span class="line">    <span class="attr">mode</span>: <span class="string">&#x27;history&#x27;</span>,</span><br><span class="line">    <span class="attr">base</span>: base,</span><br><span class="line">    <span class="attr">routes</span>: [&#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>,</span><br><span class="line">        <span class="attr">name</span>: <span class="string">&#x27;home&#x27;</span>,</span><br><span class="line">        <span class="attr">component</span>: <span class="title class_">Home</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;/about&#x27;</span>,</span><br><span class="line">        <span class="attr">name</span>: <span class="string">&#x27;about&#x27;</span>,</span><br><span class="line">        <span class="attr">component</span>: <span class="title class_">About</span></span><br><span class="line">    &#125;]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>当然，除了使用 <code>require.ensure</code> 来拆分代码，<code>Vue Router</code> 官方文档还推荐使用动态 <code>import</code> 语法来进行代码分块，比如上述 <code>require.ensure</code> 代码可以修改为</p>
-</blockquote>
+<p>三处改动，三个不同的问题。挨个说。</p>
+<h3 id="base-是给二级目录准备的"><a href="#base-是给二级目录准备的" class="headerlink" title="base 是给二级目录准备的"></a>base 是给二级目录准备的</h3><p>很多人第一次遇到 <code>base</code> 是在部署之后。本地 <code>yarn serve</code> 一切正常，传到服务器上放在 <code>https://xxx.com/vue/</code> 这个路径下，页面一片空白，控制台全是 404。</p>
+<p>原因是路由默认认为自己挂在域名根路径上。你访问 <code>/vue/about</code>，<code>vue-router</code> 拿到的 <code>path</code> 是 <code>/vue/about</code>，而路由表里注册的是 <code>/about</code>，匹配不上。</p>
+<p><code>base</code> 做的事就是告诉路由「前面这一截不归你管」。配上 <code>base: &#39;/vue/&#39;</code> 之后，<code>vue-router</code> 会先把这一段截掉再去匹配。</p>
+<p>这里用 <code>process.env.BASE_URL</code> 而不是写死字符串，是因为 Vue CLI 3 会自动把 <code>vue.config.js</code> 里的 <code>publicPath</code> 注入成这个环境变量。这样部署路径只需要改一个地方，路由和静态资源引用会同步跟着走，不会出现「JS 加载成功但路由匹配不上」这种最难查的半残状态。</p>
+<p>顺带说一句，<code>publicPath</code> 这个字段在 Vue CLI 3.3 之前叫 <code>baseUrl</code>，老文章和老项目里两种写法都能见到，看到 <code>baseUrl</code> 别以为是笔误。</p>
+<h3 id="history-模式要后端配合"><a href="#history-模式要后端配合" class="headerlink" title="history 模式要后端配合"></a>history 模式要后端配合</h3><p><code>hash</code> 模式的地址长这样：<code>https://xxx.com/#/about</code>。井号后面的内容不会发给服务器，所以刷新页面永远命中的是同一个 <code>index.html</code>，天然不需要后端做任何事。代价是 URL 里挂着一个多余的 <code>#</code>，做 SEO 和分享的时候都不好看。</p>
+<p><code>history</code> 模式用的是 HTML5 的 <code>pushState</code>，地址是干净的 <code>https://xxx.com/about</code>。但你在这个地址上按刷新，请求是真的会发到服务器的，服务器上并没有 <code>/about</code> 这个文件，返回 404。</p>
+<p>所以 <code>history</code> 模式不是改一行配置就完事的。</p>
+<p>服务端需要配一条兜底规则，把所有匹配不到静态文件的请求都指回 <code>index.html</code>。nginx 里就是 <code>try_files $uri $uri/ /index.html;</code> 这一行。这块在多页应用里要复杂得多，每个单页都得单独指回自己的 html，我在 <a href="https://feinterview.poetries.top/blog/vue-router-and-template-analyse">Vue多页路由与模板解析</a> 里专门写了怎么配。</p>
+<h3 id="路由懒加载，两种写法"><a href="#路由懒加载，两种写法" class="headerlink" title="路由懒加载，两种写法"></a>路由懒加载，两种写法</h3><p>不做懒加载的项目，打包出来就是一个几百 KB 的 <code>app.js</code>，用户打开首页要把整站所有页面的代码都下载完。页面越多，首屏越慢。</p>
+<p>懒加载做的事是把每个路由组件切成单独的 chunk，访问到哪个路由才去下载哪个 chunk。</p>
+<p>上面的优化版用的是 <code>require.ensure</code>，这是 webpack 早期提供的代码分割 API。它能用，但语法比较绕，<code>resolve</code> 回调那一层完全是仪式感。</p>
+<p>除了使用 <code>require.ensure</code> 来拆分代码，<code>Vue Router</code> 官方文档还推荐使用动态 <code>import</code> 语法来进行代码分块，比如上述 <code>require.ensure</code> 代码可以修改为：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 引入 Home 组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">Home</span> = (<span class="params"></span>) =&gt; <span class="keyword">import</span>(<span class="string">&#x27;./views/Home.vue&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 引入 About 组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">About</span> = (<span class="params"></span>) =&gt; <span class="keyword">import</span>(<span class="string">&#x27;./views/About.vue&#x27;</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>如果你想给拆分出的文件命名，可以尝试一下 webpack 提供的 Magic Comments（魔法注释）</p>
-</blockquote>
+<p>一行搞定，而且这是 ECMAScript 的标准提案，不绑定 webpack。新项目直接用这个就行，<code>require.ensure</code> 只在维护老代码时才需要认识。</p>
+<p>拆出来的 chunk 默认叫 <code>0.js</code>、<code>1.js</code> 这种数字名，线上排查问题的时候完全看不出是哪个页面。如果你想给拆分出的文件命名，可以尝试一下 webpack 提供的 Magic Comments（魔法注释）：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">Home</span> = (<span class="params"></span>) =&gt; <span class="keyword">import</span>(<span class="comment">/* webpackChunkName:&#x27;home&#x27;*/</span> <span class="string">&#x27;./views/Home.vue&#x27;</span>);</span><br></pre></td></tr></table></figure>
 
+<p>这个注释会被 webpack 读走，打包产物就变成 <code>home.js</code>。多个路由用同一个 <code>webpackChunkName</code>，它们还会被合并进同一个 chunk，适合把几个总是一起访问的页面打包在一起，省几次请求。</p>
+<h2 id="二、Vuex-从单文件拆成模块"><a href="#二、Vuex-从单文件拆成模块" class="headerlink" title="二、Vuex 从单文件拆成模块"></a>二、Vuex 从单文件拆成模块</h2><p>CLI 生成的 <code>store.js</code> 是这样一个空壳：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vuex</span> <span class="keyword">from</span> <span class="string">&#x27;vuex&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Vuex</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">    <span class="attr">state</span>: &#123;</span><br><span class="line"></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">mutations</span>: &#123;</span><br><span class="line"></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">actions</span>: &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-2-Vuex-配置"><a href="#1-2-Vuex-配置" class="headerlink" title="1.2 Vuex 配置"></a>1.2 Vuex 配置</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vuex</span> <span class="keyword">from</span> <span class="string">&#x27;vuex&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Vuex</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">    <span class="attr">state</span>: &#123;</span><br><span class="line"></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">mutations</span>: &#123;</span><br><span class="line"></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">actions</span>: &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>主要有 4 个核心点：<code>state</code>、<code>mutations</code>、<code>actions</code> 及 <code>getter</code></p>
-</blockquote>
-<p>这里我用一句话介绍它们之间的关系就是：<strong>我们可以通过 actions 异步提交 mutations 去 修改 state 的值并通过 getter 获取</strong></p>
+<p>主要有 4 个核心点：<code>state</code>、<code>mutations</code>、<code>actions</code> 及 <code>getter</code>。</p>
+<p>这里我用一句话介绍它们之间的关系就是：<strong>我们可以通过 actions 异步提交 mutations 去修改 state 的值并通过 getter 获取</strong>。</p>
+<p>这个顺序不是 Vuex 故意找麻烦。<code>mutations</code> 必须是同步的，因为 devtools 要靠它记录每一次状态变更的快照，异步操作一进来时间线就乱了。所以异步逻辑统一放 <code>actions</code>，拿到结果再 <code>commit</code> 给 <code>mutations</code>。你在 <code>actions</code> 里直接改 <code>state</code> 也能改动，但 devtools 追踪不到，出问题的时候你会很想抽自己。</p>
+<p>项目一大，所有状态堆在一个文件里就没法看了。按模块拆开：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">└── store</span><br><span class="line">    ├── index.js          # 我们组装模块并导出 store 的地方</span><br><span class="line">    ├── actions.js        # 根级别的 action</span><br><span class="line">    ├── mutations.js      # 根级别的 mutation</span><br><span class="line">    └── modules</span><br><span class="line">        ├── moduleA.js    # A模块</span><br><span class="line">        └── moduleB.js    # B模块</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://user-gold-cdn.xitu.io/2018/10/30/166c0985b8c2ae68"></p>
-<blockquote>
-<p>与单个 <code>store.js</code> 文件不同的是，我们按模块进行了划分，每个模块中都可以包含自己 <code>4</code> 个核心功能。比如模块 <code>A</code> 中</p>
-</blockquote>
+<p>与单个 <code>store.js</code> 文件不同的是，我们按模块进行了划分，每个模块中都可以包含自己 4 个核心功能。比如模块 A 中：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* moduleA.js */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> moduleA = &#123;</span><br><span class="line">    <span class="attr">state</span>: &#123; </span><br><span class="line">        <span class="attr">text</span>: <span class="string">&#x27;hello&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">mutations</span>: &#123;</span><br><span class="line">        <span class="title function_">addText</span> (state, txt) &#123;</span><br><span class="line">            <span class="comment">// 这里的 `state` 对象是模块的局部状态</span></span><br><span class="line">            state.<span class="property">text</span> += txt</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    </span><br><span class="line">    <span class="attr">actions</span>: &#123;</span><br><span class="line">        <span class="title function_">setText</span> (&#123; commit &#125;) &#123;</span><br><span class="line">            <span class="title function_">commit</span>(<span class="string">&#x27;addText&#x27;</span>, <span class="string">&#x27; world&#x27;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="attr">getters</span>: &#123;</span><br><span class="line">        <span class="title function_">getText</span> (state) &#123;</span><br><span class="line">            <span class="keyword">return</span> state.<span class="property">text</span> + <span class="string">&#x27;!&#x27;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> moduleA</span><br></pre></td></tr></table></figure>
 
+<p>注意 <code>mutations</code> 里那个 <code>state</code> 参数，它是模块的局部状态，不是根 state。想在模块里访问根 state，得从 <code>actions</code> 的第一个参数里解构 <code>rootState</code>。这个我踩过，在模块的 <code>getters</code> 里直接写 <code>state.someGlobalFlag</code> 拿到 <code>undefined</code>，查了半天才反应过来作用域不对。</p>
+<p>然后在 <code>index.js</code> 里组装：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* index.js */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vuex</span> <span class="keyword">from</span> <span class="string">&#x27;vuex&#x27;</span></span><br><span class="line"><span class="keyword">import</span> moduleA <span class="keyword">from</span> <span class="string">&#x27;./modules/moduleA&#x27;</span></span><br><span class="line"><span class="keyword">import</span> moduleB <span class="keyword">from</span> <span class="string">&#x27;./modules/moduleB&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; mutations &#125; <span class="keyword">from</span> <span class="string">&#x27;./mutations&#x27;</span></span><br><span class="line"><span class="keyword">import</span> actions <span class="keyword">from</span> <span class="string">&#x27;./actions&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Vuex</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">    <span class="attr">state</span>: &#123;</span><br><span class="line">        <span class="attr">groups</span>: [<span class="number">1</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">modules</span>: &#123;</span><br><span class="line">        moduleA, <span class="comment">// 引入 A 模块</span></span><br><span class="line">        moduleB, <span class="comment">// 引入 B 模块</span></span><br><span class="line">    &#125;,</span><br><span class="line">    actions, <span class="comment">// 根级别的 action</span></span><br><span class="line">    mutations, <span class="comment">// 根级别的 mutations</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 根级别的 getters</span></span><br><span class="line">    <span class="attr">getters</span>: &#123;</span><br><span class="line">        <span class="title function_">getGroups</span> (state) &#123;</span><br><span class="line">            <span class="keyword">return</span> state.<span class="property">groups</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这样项目中状态的模块划分就更加清晰，对应模块的状态我们只需要修改相应模块文件即可</p>
-</blockquote>
-<h3 id="1-3-接口配置"><a href="#1-3-接口配置" class="headerlink" title="1.3 接口配置"></a>1.3 接口配置</h3><blockquote>
-<p>我们可以在 src 目录下新建 services 文件夹用于存放接口文件：</p>
-</blockquote>
+<p>这样项目中状态的模块划分就更加清晰，对应模块的状态我们只需要修改相应模块文件即可。</p>
+<p>还有一个坑要注意：模块默认是不带命名空间的，<code>moduleA</code> 里的 <code>addText</code> 会被注册到全局，两个模块起了同名的 mutation 就会互相覆盖，而且不报错，只是两个都被触发。解决办法是在模块里加一行 <code>namespaced: true</code>，之后调用要写成 <code>commit(&#39;moduleA/addText&#39;)</code>。新项目建议一开始就全开，省得后面回来改一遍调用点。</p>
+<h2 id="三、接口层封装成一个-Http-类"><a href="#三、接口层封装成一个-Http-类" class="headerlink" title="三、接口层封装成一个 Http 类"></a>三、接口层封装成一个 Http 类</h2><p>请求散在组件里是个慢性病。刚开始只是 <code>axios.get(&#39;/api/list&#39;)</code>，后来要加 token，要统一处理 401，要在 loading 期间禁用按钮，你就得挨个文件去改。</p>
+<p>我们可以在 <code>src</code> 目录下新建 <code>services</code> 文件夹用于存放接口文件：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">└── src</span><br><span class="line">    └── services</span><br><span class="line">        ├── http.js      # 接口封装</span><br><span class="line">        ├── moduleA.js    # A模块接口</span><br><span class="line">        └── moduleB.js    # B模块接口</span><br></pre></td></tr></table></figure>
 
-
+<p><code>http.js</code> 是底座，它只关心「怎么发一个请求」，不关心业务：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* http.js */</span></span><br><span class="line"><span class="keyword">import</span> <span class="string">&#x27;whatwg-fetch&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// HTTP 工具类</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">class</span> <span class="title class_">Http</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">async</span> <span class="title function_">request</span>(<span class="params">method, url, data</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> param = &#123;</span><br><span class="line">            <span class="attr">method</span>: method,</span><br><span class="line">            <span class="attr">headers</span>: &#123;</span><br><span class="line">                <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (method === <span class="string">&#x27;GET&#x27;</span>) &#123;</span><br><span class="line">            url += <span class="variable language_">this</span>.<span class="title function_">formatQuery</span>(data)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            param[<span class="string">&#x27;body&#x27;</span>] = <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(data)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Tips.loading(); // 可调用 loading 组件</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="title function_">fetch</span>(url, param).<span class="title function_">then</span>(<span class="function"><span class="params">response</span> =&gt;</span> <span class="variable language_">this</span>.<span class="title function_">isSuccess</span>(response))</span><br><span class="line">                .<span class="title function_">then</span>(<span class="function"><span class="params">response</span> =&gt;</span> &#123;</span><br><span class="line">                    <span class="keyword">return</span> response.<span class="title function_">json</span>()</span><br><span class="line">            &#125;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 判断请求是否成功</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">isSuccess</span>(<span class="params">res</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (res.<span class="property">status</span> &gt;= <span class="number">200</span> &amp;&amp; res.<span class="property">status</span> &lt; <span class="number">300</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> res</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">requestException</span>(res)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 处理异常</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">requestException</span>(<span class="params">res</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> error = <span class="keyword">new</span> <span class="title class_">Error</span>(res.<span class="property">statusText</span>)</span><br><span class="line"></span><br><span class="line">        error.<span class="property">response</span> = res</span><br><span class="line"></span><br><span class="line">        <span class="keyword">throw</span> error</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// url处理</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">formatQuery</span>(<span class="params">query</span>) &#123;</span><br><span class="line">        <span class="keyword">let</span> params = [];</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (query) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">let</span> item <span class="keyword">in</span> query) &#123;</span><br><span class="line">                <span class="keyword">let</span> vals = query[item];</span><br><span class="line">                <span class="keyword">if</span> (vals !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">                    params.<span class="title function_">push</span>(item + <span class="string">&#x27;=&#x27;</span> + query[item])</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> params.<span class="property">length</span> ? <span class="string">&#x27;?&#x27;</span> + params.<span class="title function_">join</span>(<span class="string">&#x27;&amp;&#x27;</span>) : <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理 get 请求</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">get</span>(<span class="params">url, data</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">request</span>(<span class="string">&#x27;GET&#x27;</span>, url, data)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理 put 请求</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">put</span>(<span class="params">url, data</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">request</span>(<span class="string">&#x27;PUT&#x27;</span>, url, data)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理 post 请求</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">post</span>(<span class="params">url, data</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">request</span>(<span class="string">&#x27;POST&#x27;</span>, url, data)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理 patch 请求</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">patch</span>(<span class="params">url, data</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">request</span>(<span class="string">&#x27;PATCH&#x27;</span>, url, data)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 处理 delete 请求</span></span><br><span class="line">    <span class="keyword">static</span> <span class="title function_">delete</span>(<span class="params">url, data</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="title function_">request</span>(<span class="string">&#x27;DELETE&#x27;</span>, url, data)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这段代码有几处值得停一下。</p>
+<p><code>isSuccess</code> 只把 2xx 当成功。这一步不能省，因为 <code>fetch</code> 的行为和 <code>XMLHttpRequest</code> 不一样，服务器返回 404 或者 500，<code>fetch</code> 的 Promise 依然是 resolve 的，只有网络层面彻底断了才会 reject。不自己判断 <code>status</code>，你会拿着一个 500 的响应体去 <code>response.json()</code>，然后收获一个莫名其妙的解析错误。</p>
+<p>开头那句 <code>import &#39;whatwg-fetch&#39;</code> 是 fetch 的 polyfill，2019 年还得考虑 IE 和一部分安卓机型。现在主流浏览器都原生支持了，新项目可以去掉，除非你的目标里还有 IE11。</p>
+<p><code>formatQuery</code> 这里有个隐患得提一句：它直接把值拼进 URL，没有做 <code>encodeURIComponent</code>。参数里一旦出现 <code>&amp;</code>、<code>=</code> 或者中文，拼出来的 query string 就是错的。真正用的时候这行应该改成 <code>params.push(item + &#39;=&#39; + encodeURIComponent(vals))</code>。原文这段是从演示代码里来的，我把这个问题标在这里。</p>
+<p>上层的业务接口文件就很薄了，只声明「有这么一个接口」：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* moduleA.js */</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Http</span> <span class="keyword">from</span> <span class="string">&#x27;./http&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取测试数据</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getTestData</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Http</span>.<span class="title function_">get</span>(<span class="string">&#x27;https://api.github.com/repos/octokit/octokit.rb&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>然后在项目页面中进行调用，会成功获取 <code>github</code> 返回的数据，但是一般我们在项目中配置接口的时候会直接省略项目 <code>url</code> 部分，比如</p>
-</blockquote>
+<p>然后在项目页面中进行调用，会成功获取 <code>github</code> 返回的数据。但是一般我们在项目中配置接口的时候会直接省略项目 url 部分，比如：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* moduleA.js */</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Http</span> <span class="keyword">from</span> <span class="string">&#x27;./http&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取测试数据</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> <span class="title function_">getTestData</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Http</span>.<span class="title function_">get</span>(<span class="string">&#x27;/repos/octokit/octokit.rb&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这时候我们再次调用接口的时候会发现其调用地址为本地地址：<a href="http://127.0.0.1:8080/repos/octokit/octokit.rb%EF%BC%8C%E9%82%A3%E4%B9%88%E4%B8%BA%E4%BA%86%E8%AE%A9%E5%85%B6%E6%8C%87%E5%90%91">http://127.0.0.1:8080/repos/octokit/octokit.rb，那么为了让其指向</a> <a href="https://api.github.com,我们需要在/">https://api.github.com，我们需要在</a> vue.config.js 中进行 devServer 的配置</p>
-</blockquote>
+<h3 id="devServer-代理"><a href="#devServer-代理" class="headerlink" title="devServer 代理"></a>devServer 代理</h3><p>写成相对路径之后问题就来了。这时候我们再次调用接口的时候会发现其调用地址为本地地址 <code>http://127.0.0.1:8080/repos/octokit/octokit.rb</code>，那么为了让其指向 <code>https://api.github.com</code>，我们需要在 <code>vue.config.js</code> 中进行 <code>devServer</code> 的配置：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* vue.config.js */</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">devServer</span>: &#123;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// string | Object 代理设置</span></span><br><span class="line">        <span class="attr">proxy</span>: &#123;</span><br><span class="line">        </span><br><span class="line">            <span class="comment">// 接口是 &#x27;/repos&#x27; 开头的才用代理</span></span><br><span class="line">            <span class="string">&#x27;/repos&#x27;</span>: &#123;</span><br><span class="line">                <span class="attr">target</span>: <span class="string">&#x27;https://api.github.com&#x27;</span>, <span class="comment">// 目标地址</span></span><br><span class="line">                <span class="attr">changeOrigin</span>: <span class="literal">true</span>, <span class="comment">// 是否改变源地址</span></span><br><span class="line">                <span class="comment">// pathRewrite: &#123;&#x27;^/api&#x27;: &#x27;&#x27;&#125;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-4-公共设施配置"><a href="#1-4-公共设施配置" class="headerlink" title="1.4 公共设施配置"></a>1.4 公共设施配置</h3><blockquote>
-<p>最后我们项目开发中肯定需要对一些公共的方法进行封装使用，这里我把它称之为公共设施，那么我们可以在 <code>src</code> 目录下建一个 <code>common</code> 文件夹来存放其配置文件</p>
-</blockquote>
+<p><code>changeOrigin: true</code> 这一行经常被忽略，但它是很多「本地代理配了却还是 403」的原因。它做的事是把转发出去的请求头里的 <code>Host</code> 改成目标服务器的域名。不少后端服务，尤其是走了网关或者带虚拟主机的，会按 <code>Host</code> 来路由，收到一个 <code>localhost:8080</code> 的 Host 直接就拒了。</p>
+<p>被注释掉的 <code>pathRewrite</code> 用在前缀不一致的场景。比如你本地统一用 <code>/api</code> 开头做标记，但后端真实路径没有这一层，就写 <code>pathRewrite: &#123; &#39;^/api&#39;: &#39;&#39; &#125;</code> 把它剥掉。</p>
+<p>要记住的是，<code>devServer.proxy</code> 只在开发服务器上生效。打包出来的静态文件里没有代理这回事，生产环境的跨域得靠 nginx 转发或者后端开 CORS。这个错我见过不止一次，本地跑得好好的，一上测试环境全挂。</p>
+<h2 id="四、公共设施配置"><a href="#四、公共设施配置" class="headerlink" title="四、公共设施配置"></a>四、公共设施配置</h2><p>最后我们项目开发中肯定需要对一些公共的方法进行封装使用，这里我把它称之为公共设施，那么我们可以在 <code>src</code> 目录下建一个 <code>common</code> 文件夹来存放其配置文件：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">└── src</span><br><span class="line">    └── common</span><br><span class="line">        ├── index.js      # 公共配置入口</span><br><span class="line">        ├── validate.js   # 表单验证配置</span><br><span class="line">        └── other.js      # 其他配置</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在入口文件中我们可以向外暴露其他功能配置的模块，比如</p>
-</blockquote>
+<p>在入口文件中我们可以向外暴露其他功能配置的模块，比如：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* index.js */</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Validate</span> <span class="keyword">from</span> <span class="string">&#x27;./validate&#x27;</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Other</span> <span class="keyword">from</span> <span class="string">&#x27;./other&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    <span class="title class_">Validate</span>,</span><br><span class="line">    <span class="title class_">Other</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 <code>index.js</code> 看着没什么技术含量，作用是给调用方一个稳定的入口。业务代码里只写 <code>import &#123; Validate &#125; from &#39;@/common&#39;</code>，具体是从哪个文件来的、后面文件拆分了没有，调用方不用关心。等某天 <code>validate.js</code> 涨到八百行需要拆成三个文件，你只改这一个入口就行。</p>
+<p>这套目录约定的价值在于「新人进来知道东西该放哪」。<code>components</code> 放通用组件，<code>views</code> 放页面，<code>services</code> 放接口，<code>common</code> 放纯函数工具，<code>store</code> 放状态。约定本身怎么定其实没那么重要，重要的是定下来之后全组都遵守。</p>
+<h2 id="五、这套配置放到今天怎么写"><a href="#五、这套配置放到今天怎么写" class="headerlink" title="五、这套配置放到今天怎么写"></a>五、这套配置放到今天怎么写</h2><p>得说清楚，上面这些是 2019 年 Vue CLI 3 时代的做法。这几年变化不小，一条条对照：</p>
+<p>Vue CLI 目前已经进入维护状态，官方文档明确推荐新项目使用 Vite 搭配 <code>create-vue</code>。所以 <code>vue.config.js</code> 这个文件在新项目里不存在了，对应的是 <code>vite.config.js</code>。<code>devServer.proxy</code> 那套配置在 Vite 里叫 <code>server.proxy</code>，字段名和行为很接近，<code>target</code> 和 <code>changeOrigin</code> 都还在，迁移的时候基本能平移过去。</p>
+<p><code>publicPath</code> 在 Vite 里对应 <code>base</code>。路由懒加载不用再考虑 <code>require.ensure</code>，动态 <code>import()</code> 是 Vite 的原生能力，连魔法注释都不太需要，Vite 有自己的 chunk 命名策略。</p>
+<p>Vue 2 已经在 2023 年底停止官方维护，新项目直接上 Vue 3。路由换成 Vue Router 4，<code>new Router(&#123;&#125;)</code> 改成 <code>createRouter(&#123; history: createWebHistory() &#125;)</code>，<code>mode: &#39;history&#39;</code> 这个字段没有了，模式变成了传入不同的 history 实现。状态管理官方推荐从 Vuex 换成 Pinia，<code>mutations</code> 这一层被彻底去掉了，直接在 action 里改 state，devtools 的追踪能力用别的方式补上。Vue 3 本身的写法变化我在 <a href="https://feinterview.poetries.top/blog/vue3-base">Vue3基础入门</a> 里整理过。</p>
+<p>但这不是说这篇就作废了。目录怎么分层、接口层为什么要抽一个 <code>Http</code> 类、<code>base</code> 和 history 模式的关系、代理为什么只在开发环境生效，这些判断跟构建工具是哪个没关系。工具换了一茬，要解决的问题还是同一批。</p>
+<p>如果你的项目不是单页而是多页，也就是一个仓库里要打出好几个 html，配置的思路完全是另一套，得从入口和模板的批量生成开始。这部分我写在 <a href="https://feinterview.poetries.top/blog/vue-muti-page-config">Vue CLI3之pages 构建多页应用</a> 里，和这篇是配套的。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把这一圈过下来，几个能直接带走的结论：</p>
+<ul>
+<li>CLI 生成的 <code>router.js</code> 是 demo 级别的，上生产至少要补 <code>base</code>、路由模式和懒加载这三件事</li>
+<li><code>base</code> 用 <code>process.env.BASE_URL</code> 取，跟着 <code>publicPath</code> 走，部署路径只改一处</li>
+<li><code>history</code> 模式的干净 URL 是拿服务端配置换来的，nginx 那条 <code>try_files</code> 兜底规则必须配</li>
+<li>懒加载优先用动态 <code>import()</code>，<code>require.ensure</code> 只在维护老代码时需要认识；魔法注释能让 chunk 有个人话名字</li>
+<li>Vuex 拆模块的时候顺手把 <code>namespaced: true</code> 开了，别等命名冲突了再回头改</li>
+<li><code>fetch</code> 收到 404 和 500 也是 resolve 的，<code>Http</code> 类里那个 <code>isSuccess</code> 是必需品不是装饰</li>
+<li><code>devServer.proxy</code> 只在开发服务器生效，生产的跨域是另一个问题</li>
+<li>这套配置的工具链已经换代，但分层的判断依据没变</li>
+</ul>
+<p>我的建议是新项目开工第一天就把这几个目录建好，哪怕里面还是空的。等业务代码堆到两百个文件再来分层，成本完全不是一个量级。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://cli.vuejs.org/zh/config/">Vue CLI 配置参考</a></li>
+<li><a href="https://v3.router.vuejs.org/zh/guide/advanced/lazy-loading.html">Vue Router 3 - 路由懒加载</a></li>
+<li><a href="https://v3.router.vuejs.org/zh/guide/essentials/history-mode.html">Vue Router 3 - HTML5 History 模式</a></li>
+<li><a href="https://v3.vuex.vuejs.org/zh/guide/modules.html">Vuex 3 - Module</a></li>
+<li><a href="https://cn.vitejs.dev/config/server-options.html">Vite - 服务器选项</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API/Using_Fetch">MDN - 使用 Fetch</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

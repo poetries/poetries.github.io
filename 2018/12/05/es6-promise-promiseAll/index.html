@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Promise之Promise.all、Promise.race | 前端进阶之旅</title>
+  <title>Promise.all、race、allSettled、any 四个组合方法怎么选 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="ES6,Promise," />
+    <meta name="keywords" content="JavaScript,异步编程,Promise,ES6," />
   
 
-  <meta name="description" content="一、Pomise.all Promise.all可以将多个Promise实例包装成一个新的Promise实例。同时，成功和失败的返回值是不同的，成功的时候返回的是一个结果数组，而失败的时候则返回最先被reject失败状态的值  let p1 &#x3D; new Promise((resolve, reject) &#x3D;&gt; &#123;  resolve(&#x27;成功了&#x27;)&#125;)le">
+  <meta name="description" content="从 Promise.all 的短路失败讲到 race 的赛跑语义，再补上 allSettled 和 any 两个后来标准化的方法，给出四个组合 API 在真实业务场景下的选型判断标准。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Promise之Promise.all、Promise.race">
+<meta property="og:title" content="Promise.all、race、allSettled、any 四个组合方法怎么选">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/05/es6-promise-promiseAll/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、Pomise.all Promise.all可以将多个Promise实例包装成一个新的Promise实例。同时，成功和失败的返回值是不同的，成功的时候返回的是一个结果数组，而失败的时候则返回最先被reject失败状态的值  let p1 &#x3D; new Promise((resolve, reject) &#x3D;&gt; &#123;  resolve(&#x27;成功了&#x27;)&#125;)le">
+<meta property="og:description" content="从 Promise.all 的短路失败讲到 race 的赛跑语义，再补上 allSettled 和 any 两个后来标准化的方法，给出四个组合 API 在真实业务场景下的选型判断标准。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-12-05T02:50:20.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.657Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.929Z">
 <meta property="article:author" content="Poetry">
-<meta property="article:tag" content="ES6">
+<meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="异步编程">
 <meta property="article:tag" content="Promise">
+<meta property="article:tag" content="ES6">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Pomise-all"><span class="toc-text">一、Pomise.all</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Promise-race"><span class="toc-text">二、Promise.race()</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Promise-all"><span class="toc-text">一、Promise.all</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%BB%93%E6%9E%9C%E9%A1%BA%E5%BA%8F%E5%92%8C%E5%AE%8C%E6%88%90%E9%A1%BA%E5%BA%8F%E6%97%A0%E5%85%B3"><span class="toc-text">1.1 结果顺序和完成顺序无关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%9F%AD%E8%B7%AF%E5%A4%B1%E8%B4%A5%E7%9A%84%E4%B8%89%E4%B8%AA%E4%BB%A3%E4%BB%B7"><span class="toc-text">1.2 短路失败的三个代价</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%8F%82%E6%95%B0%E4%B8%8D%E4%B8%80%E5%AE%9A%E6%98%AF%E6%95%B0%E7%BB%84"><span class="toc-text">1.3 参数不一定是数组</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Promise-race"><span class="toc-text">二、Promise.race</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%94%A8-race-%E5%81%9A%E8%B6%85%E6%97%B6%E6%8E%A7%E5%88%B6"><span class="toc-text">2.1 用 race 做超时控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%90%8E%E6%9D%A5%E8%A1%A5%E4%B8%8A%E7%9A%84%E4%B8%A4%E4%B8%AA%E6%96%B9%E6%B3%95"><span class="toc-text">三、后来补上的两个方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Promise-allSettled"><span class="toc-text">3.1 Promise.allSettled</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Promise-any"><span class="toc-text">3.2 Promise.any</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%9B%9B%E4%B8%AA%E6%96%B9%E6%B3%95%E5%AF%B9%E7%85%A7%E4%B8%8E%E9%80%89%E5%9E%8B"><span class="toc-text">四、四个方法对照与选型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-es6-promise-promiseAll" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Promise之Promise.all、Promise.race</h1>
+    <h1 class="post-title">Promise.all、race、allSettled、any 四个组合方法怎么选</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 574字</span>
+            <span>字数统计 3.3k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -289,26 +291,123 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、Pomise-all"><a href="#一、Pomise-all" class="headerlink" title="一、Pomise.all"></a>一、Pomise.all</h2><blockquote>
-<p><code>Promise.all</code>可以将多个<code>Promise</code>实例包装成一个新的<code>Promise</code>实例。同时，成功和失败的返回值是不同的，成功的时候返回的是一个结果数组，而失败的时候则返回最先被<code>reject</code>失败状态的值</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> p1 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="string">&#x27;成功了&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> p2 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="string">&#x27;success&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> p3 = <span class="title class_">Promse</span>.<span class="title function_">reject</span>(<span class="string">&#x27;失败&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">all</span>([p1, p2]).<span class="title function_">then</span>(<span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(result)               <span class="comment">//[&#x27;成功了&#x27;, &#x27;success&#x27;]</span></span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(error)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">all</span>([p1,p3,p2]).<span class="title function_">then</span>(<span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(result)</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(error)      <span class="comment">// 失败了，打出 &#x27;失败&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+        <p>一个页面上要同时拉用户信息、权限列表、消息未读数三个接口，全部回来才能渲染。这时候大部分人会条件反射地写 <code>Promise.all</code>。等到线上跑了两周，消息未读数那个接口偶发超时，整个页面直接白屏，才发现 <code>all</code> 有一条你可能没细想过的规则：只要有一个失败，剩下的结果全都拿不到。</p>
+<p><code>Promise</code> 提供的这几个组合方法，长得都差不多，都是「一堆 Promise 进去，一个 Promise 出来」，区别全在于「什么时候算完成」和「失败了怎么办」这两条规则上。选错了不会报错，只会在某个边界情况下静悄悄地表现得不符合预期。这篇把 <code>all</code>、<code>race</code>、<code>allSettled</code>、<code>any</code> 四个方法的规则摆到一起对比，给一个能直接照着用的选型标准。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>Promise.all</code> 的结果顺序为什么和请求完成顺序无关</li>
+<li>短路失败带来的三个真实问题，以及绕开的办法</li>
+<li><code>Promise.race</code> 的赛跑语义，用它做超时控制的完整写法</li>
+<li><code>Promise.allSettled</code> 和 <code>Promise.any</code> 各自补上了哪块空白</li>
+<li>四个方法的对照表和选型判断标准</li>
+</ul>
+<h2 id="一、Promise-all"><a href="#一、Promise-all" class="headerlink" title="一、Promise.all"></a>一、Promise.all</h2><p><code>Promise.all</code> 可以将多个 <code>Promise</code> 实例包装成一个新的 <code>Promise</code> 实例。成功和失败的返回值是不同的：成功的时候返回的是一个结果数组，失败的时候返回的是最先被 <code>reject</code> 的那个失败状态的值。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> p1 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="string">&#x27;成功了&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> p2 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">resolve</span>(<span class="string">&#x27;success&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> p3 = <span class="title class_">Promise</span>.<span class="title function_">reject</span>(<span class="string">&#x27;失败&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">all</span>([p1, p2]).<span class="title function_">then</span>(<span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(result)               <span class="comment">// [&#x27;成功了&#x27;, &#x27;success&#x27;]</span></span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(error)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">all</span>([p1, p3, p2]).<span class="title function_">then</span>(<span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(result)</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(error)      <span class="comment">// 失败了，打出 &#x27;失败&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li><code>Promse.all</code>在处理多个异步处理时非常有用，比如说一个页面上需要等两个或多个<code>ajax</code>的数据回来以后才正常显示，在此之前只显示<code>loading</code>图标</li>
-</ul>
-<blockquote>
-<p><code>Promise.all</code> 里的任务列表<code>[asyncTask(1),asyncTask(2),asyncTask(3)]</code>,我们是按照顺序发起的。<br>但是根据结果来说，它们是异步的，互相之间并不阻塞，每个任务完成时机是不确定的，尽管如此，所有任务结束之<br>后，它们的结果仍然是按顺序地映射到<code>resultList</code>里,这样就能和<code>Promise.all</code>里的任务列表。这带来了一个绝大的好处：在前端开发请求数据的过程中，偶尔会遇到发送多个请求并根据请求顺序获取和使用数据的场景，使用<code>Promise.all</code>毫无疑问可以解决这个问题</p>
-</blockquote>
-<h2 id="二、Promise-race"><a href="#二、Promise-race" class="headerlink" title="二、Promise.race()"></a>二、Promise.race()</h2><blockquote>
-<p><code>Promise.race([p1, p2, p3])</code>里面哪个结果获得的快，就返回那个结果，不管结果本身是成功状态还是失败状态</p>
-</blockquote>
-<ul>
-<li>我们简单看一下例子，返回结果为3，因为我们设置了定时器，第三个<code>Promise</code>执行的最快</li>
-</ul>
+<p>原文这里写的是 <code>Promse.reject</code>，少了一个字母 <code>i</code>，直接就是 <code>Promse is not defined</code>，上面已经改正。</p>
+<p><code>Promise.all</code> 在处理多个异步操作时非常有用，比如说一个页面上需要等两个或多个 <code>ajax</code> 的数据回来以后才正常显示，在此之前只显示 <code>loading</code> 图标。</p>
+<h3 id="1-1-结果顺序和完成顺序无关"><a href="#1-1-结果顺序和完成顺序无关" class="headerlink" title="1.1 结果顺序和完成顺序无关"></a>1.1 结果顺序和完成顺序无关</h3><p>这是 <code>all</code> 最值得单独拿出来说的一条规则。</p>
+<p><code>Promise.all</code> 里的任务列表 <code>[asyncTask(1), asyncTask(2), asyncTask(3)]</code>，我们是按照顺序发起的。但根据结果来说，它们是异步的，互相之间并不阻塞，每个任务完成时机是不确定的。尽管如此，所有任务结束之后，它们的结果仍然是<strong>按传入顺序</strong>映射到结果数组里的，和数组下标一一对应。</p>
+<p>这带来了一个很大的好处：在前端开发请求数据的过程中，偶尔会遇到发送多个请求并根据请求顺序获取和使用数据的场景，使用 <code>Promise.all</code> 可以直接解决这个问题，不用自己维护一个「第几个请求回来了」的计数器。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> ids = [<span class="number">2</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">11</span>];</span><br><span class="line"><span class="keyword">const</span> users = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(ids.<span class="title function_">map</span>(<span class="function"><span class="params">id</span> =&gt;</span> <span class="title function_">fetchUser</span>(id)));</span><br><span class="line"><span class="comment">// users[0] 一定是 id=2 的那个人，哪怕它最后一个回来</span></span><br></pre></td></tr></table></figure>
+
+<p>要是没有这条规则，你就得给每个请求带上 id，回来之后再自己排一遍序。这个设计是真的舒服。</p>
+<h3 id="1-2-短路失败的三个代价"><a href="#1-2-短路失败的三个代价" class="headerlink" title="1.2 短路失败的三个代价"></a>1.2 短路失败的三个代价</h3><p>回到开头那个白屏的问题。<code>Promise.all</code> 的失败规则是「有一个 reject，整体立刻 reject」，这一条会带来三个连锁反应。</p>
+<p><strong>第一，成功的结果全丢了。</strong> 三个接口两个成功一个失败，<code>catch</code> 里只能拿到失败那个的原因，另外两个已经拿回来的数据你一点都摸不到。页面本来可以只降级一小块，结果只能整个白掉。</p>
+<p><strong>第二，剩下的请求不会被取消。</strong> <code>all</code> 只是不再等它们了，请求本身该发还是发，该跑还是跑。Promise 天生就没有取消机制，想真的中断得配合 <code>AbortController</code>。</p>
+<p><strong>第三，未处理的 rejection 可能报警告。</strong> 如果后面还有别的 Promise 也失败了，而 <code>all</code> 返回的那个 Promise 已经 settle 了，这些迟到的失败就没人接。浏览器会触发 <code>unhandledrejection</code>，Node 里更严格，某些版本会直接让进程退出。</p>
+<p>绕开的办法有两个。老写法是给每个 Promise 自己挂一个 <code>catch</code>，把失败转成一个标记值，这样 <code>all</code> 眼里全是成功：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">safe</span> = p =&gt; p.<span class="title function_">then</span>(</span><br><span class="line">  <span class="function"><span class="params">value</span> =&gt;</span> (&#123; <span class="attr">ok</span>: <span class="literal">true</span>, value &#125;),</span><br><span class="line">  <span class="function"><span class="params">reason</span> =&gt;</span> (&#123; <span class="attr">ok</span>: <span class="literal">false</span>, reason &#125;)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> results = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>([a, b, c].<span class="title function_">map</span>(safe));</span><br><span class="line"><span class="comment">// 每一项都能拿到，自己判断 ok</span></span><br></pre></td></tr></table></figure>
+
+<p>这套写法在 2018 年前后是标准操作，很多项目里都能翻到类似的工具函数。后来标准直接把它内置了，就是下面要讲的 <code>Promise.allSettled</code>。</p>
+<h3 id="1-3-参数不一定是数组"><a href="#1-3-参数不一定是数组" class="headerlink" title="1.3 参数不一定是数组"></a>1.3 参数不一定是数组</h3><p><code>Promise.all</code> 的参数不一定是数组，任何<strong>可迭代对象</strong>都行，Set、Map 的 <code>values()</code>、生成器都可以。数组里的成员也不一定非得是 Promise，非 Promise 的值会被 <code>Promise.resolve</code> 包一层，直接当成已完成处理。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Promise</span>.<span class="title function_">all</span>([<span class="number">1</span>, <span class="title class_">Promise</span>.<span class="title function_">resolve</span>(<span class="number">2</span>), <span class="string">&#x27;three&#x27;</span>])</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function"><span class="params">r</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(r)); <span class="comment">// [1, 2, &#x27;three&#x27;]</span></span><br></pre></td></tr></table></figure>
+
+<p>这个特性在写通用工具函数时很好用，调用方传什么进来都不用管，一律扔给 <code>all</code>。</p>
+<h2 id="二、Promise-race"><a href="#二、Promise-race" class="headerlink" title="二、Promise.race"></a>二、Promise.race</h2><p><code>Promise.race([p1, p2, p3])</code> 里面哪个结果来得快，就返回哪个结果，<strong>不管这个结果本身是成功还是失败</strong>。</p>
+<p>后半句是重点。很多人以为 <code>race</code> 是「取最快成功的那个」，其实不是，它取的是最快 settle 的那个，失败也算数。</p>
+<p>先看一个都成功的例子，返回结果为 3，因为第三个 <code>Promise</code> 的定时器最短：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Promise</span>.<span class="title function_">race</span>([</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve, reject</span>) &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="number">1</span>), <span class="number">1000</span>)</span><br><span class="line">  &#125;),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve, reject</span>) &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="number">2</span>), <span class="number">100</span>)</span><br><span class="line">  &#125;),</span><br><span class="line">  <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="keyword">function</span>(<span class="params">resolve, reject</span>) &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">resolve</span>(<span class="number">3</span>), <span class="number">10</span>)</span><br><span class="line">  &#125;)</span><br><span class="line">]).<span class="title function_">then</span>(<span class="function"><span class="params">value</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(value) <span class="comment">// 3</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> p1 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="string">&#x27;success&#x27;</span>)</span><br><span class="line">  &#125;,<span class="number">1000</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> p2 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">reject</span>(<span class="string">&#x27;failed&#x27;</span>)</span><br><span class="line">  &#125;, <span class="number">500</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">race</span>([p1, p2]).<span class="title function_">then</span>(<span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(result)</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(error)  <span class="comment">// 打开的是 &#x27;failed&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>再看一个快的那个是失败的例子：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> p1 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">resolve</span>(<span class="string">&#x27;success&#x27;</span>)</span><br><span class="line">  &#125;, <span class="number">1000</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> p2 = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="title function_">reject</span>(<span class="string">&#x27;failed&#x27;</span>)</span><br><span class="line">  &#125;, <span class="number">500</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Promise</span>.<span class="title function_">race</span>([p1, p2]).<span class="title function_">then</span>(<span class="function">(<span class="params">result</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(result)</span><br><span class="line">&#125;).<span class="title function_">catch</span>(<span class="function">(<span class="params">error</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(error)  <span class="comment">// 打印的是 &#x27;failed&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>p2</code> 在 500ms 时失败，<code>p1</code> 在 1000ms 时才成功。<code>race</code> 在 500ms 就已经 settle 成 rejected 了，后面 <code>p1</code> 的成功没人再关心。</p>
+<h3 id="2-1-用-race-做超时控制"><a href="#2-1-用-race-做超时控制" class="headerlink" title="2.1 用 race 做超时控制"></a>2.1 用 race 做超时控制</h3><p><code>race</code> 最经典的用途就是给一个没有超时机制的操作加上超时。思路是让真实请求和一个定时炸弹赛跑，谁先到算谁的。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">withTimeout</span>(<span class="params">promise, ms</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> timeout = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">_, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`请求超时 <span class="subst">$&#123;ms&#125;</span>ms`</span>)), ms);</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">race</span>([promise, timeout]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用法</span></span><br><span class="line"><span class="title function_">withTimeout</span>(<span class="title function_">fetch</span>(<span class="string">&#x27;/api/user&#x27;</span>), <span class="number">3000</span>)</span><br><span class="line">  .<span class="title function_">then</span>(<span class="function"><span class="params">res</span> =&gt;</span> res.<span class="title function_">json</span>())</span><br><span class="line">  .<span class="title function_">catch</span>(<span class="function"><span class="params">err</span> =&gt;</span> <span class="variable language_">console</span>.<span class="title function_">log</span>(err.<span class="property">message</span>));</span><br></pre></td></tr></table></figure>
+
+<p>这里有个坑我踩过。上面这个 <code>timeout</code> 里的 <code>setTimeout</code> 不会因为比赛结束就自动清掉，请求 100ms 就回来了，那个 3000ms 的定时器还是会老老实实跑完再触发一次 <code>reject</code>，只是没人理它。单次调用无所谓，如果这个函数在列表里被调几百次，就会有几百个悬着的定时器占着内存。稳妥的写法是在 <code>finally</code> 里 <code>clearTimeout</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">withTimeout</span>(<span class="params">promise, ms</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> timer;</span><br><span class="line">  <span class="keyword">const</span> timeout = <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">_, reject</span>) =&gt;</span> &#123;</span><br><span class="line">    timer = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`请求超时 <span class="subst">$&#123;ms&#125;</span>ms`</span>)), ms);</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">race</span>([promise, timeout]).<span class="title function_">finally</span>(<span class="function">() =&gt;</span> <span class="built_in">clearTimeout</span>(timer));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样要提醒的是，超时了不等于请求被取消了，后端该收到的还是会收到。真要中断得用 <code>AbortController</code> 配合 <code>fetch</code> 的 <code>signal</code>。</p>
+<p>顺带一提，如果 <code>race</code> 传进去的是空数组，返回的 Promise 会永远保持 pending，因为没有任何一个选手会冲线。这个行为不报错，只会让你的 <code>await</code> 卡在那里，排查起来相当费劲。</p>
+<h2 id="三、后来补上的两个方法"><a href="#三、后来补上的两个方法" class="headerlink" title="三、后来补上的两个方法"></a>三、后来补上的两个方法</h2><p>原文写于 2018 年，那时候标准里只有 <code>all</code> 和 <code>race</code>。后面 TC39 又补了两个方法，正好填上了前面提到的两块空白。这两个方法都是 2018 年之后才进入标准的，具体的规范版本以 TC39 提案仓库和 MDN 为准，我这里只讲行为。</p>
+<h3 id="3-1-Promise-allSettled"><a href="#3-1-Promise-allSettled" class="headerlink" title="3.1 Promise.allSettled"></a>3.1 Promise.allSettled</h3><p><code>allSettled</code> 等所有 Promise 都 settle（不管成功还是失败）才结束，而且<strong>永远不会 reject</strong>。结果是一个对象数组，每一项要么是 <code>&#123; status: &#39;fulfilled&#39;, value &#125;</code>，要么是 <code>&#123; status: &#39;rejected&#39;, reason &#125;</code>。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> results = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">allSettled</span>([</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">&#x27;/api/user&#x27;</span>),</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">&#x27;/api/permission&#x27;</span>),</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">&#x27;/api/unread&#x27;</span>),</span><br><span class="line">]);</span><br><span class="line"></span><br><span class="line">results.<span class="title function_">forEach</span>(<span class="function">(<span class="params">r, i</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (r.<span class="property">status</span> === <span class="string">&#x27;fulfilled&#x27;</span>) &#123;</span><br><span class="line">    <span class="title function_">render</span>(i, r.<span class="property">value</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="title function_">renderFallback</span>(i, r.<span class="property">reason</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>对照 1.2 节那个手写的 <code>safe</code> 包装函数，<code>allSettled</code> 做的就是同一件事，只不过是引擎内置的。开头那个白屏场景，换成 <code>allSettled</code> 之后，未读数接口挂了就只有那个角标不显示，用户信息和权限该渲染照样渲染。</p>
+<p>判断标准很直接：<strong>你关心的是「全部结果」还是「全部成功」</strong>。要全部结果、允许部分失败，用 <code>allSettled</code>；缺一个就没法往下走，用 <code>all</code>。</p>
+<h3 id="3-2-Promise-any"><a href="#3-2-Promise-any" class="headerlink" title="3.2 Promise.any"></a>3.2 Promise.any</h3><p><code>any</code> 是 <code>all</code> 在逻辑上的镜像。<code>all</code> 是「全成功才成功，一个失败就失败」，<code>any</code> 是「一个成功就成功，全失败才失败」。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> fastest = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">any</span>([</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">&#x27;https://cdn-a.example.com/lib.js&#x27;</span>),</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">&#x27;https://cdn-b.example.com/lib.js&#x27;</span>),</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">&#x27;https://cdn-c.example.com/lib.js&#x27;</span>),</span><br><span class="line">]);</span><br></pre></td></tr></table></figure>
+
+<p>三个 CDN 谁先给出成功响应就用谁的，某个节点挂了不影响。这就是 <code>race</code> 做不到的地方，<code>race</code> 遇到最快的那个失败就直接失败了，<code>any</code> 会跳过失败继续等。</p>
+<p>全部失败时，<code>any</code> 抛出的是一个 <code>AggregateError</code>，它的 <code>errors</code> 属性里装着所有失败原因：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">any</span>([<span class="title class_">Promise</span>.<span class="title function_">reject</span>(<span class="string">&#x27;a&#x27;</span>), <span class="title class_">Promise</span>.<span class="title function_">reject</span>(<span class="string">&#x27;b&#x27;</span>)]);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(e <span class="keyword">instanceof</span> <span class="title class_">AggregateError</span>); <span class="comment">// true</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(e.<span class="property">errors</span>);                    <span class="comment">// [&#x27;a&#x27;, &#x27;b&#x27;]</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 <code>AggregateError</code> 是跟着 <code>any</code> 一起进标准的新错误类型，老环境里可能没有，用之前先确认目标浏览器和 Node 版本，以 MDN 的兼容性表为准。</p>
+<h2 id="四、四个方法对照与选型"><a href="#四、四个方法对照与选型" class="headerlink" title="四、四个方法对照与选型"></a>四、四个方法对照与选型</h2><p>把规则并排放在一起，差别就一目了然了。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>什么时候 fulfilled</th>
+<th>什么时候 rejected</th>
+<th>结果形态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>all</code></td>
+<td>全部成功</td>
+<td>任意一个失败，立刻</td>
+<td>结果数组，顺序同输入</td>
+</tr>
+<tr>
+<td><code>race</code></td>
+<td>最快 settle 的是成功</td>
+<td>最快 settle 的是失败</td>
+<td>单个值</td>
+</tr>
+<tr>
+<td><code>allSettled</code></td>
+<td>全部 settle，永远成功</td>
+<td>不会 reject</td>
+<td>状态对象数组</td>
+</tr>
+<tr>
+<td><code>any</code></td>
+<td>任意一个成功，立刻</td>
+<td>全部失败</td>
+<td>单个值，失败时抛 AggregateError</td>
+</tr>
+</tbody></table>
+<p>选的时候按这个顺序问自己：</p>
+<p>需要全部结果吗？需要的话，缺一不可就用 <code>all</code>，允许部分失败就用 <code>allSettled</code>。</p>
+<p>只需要一个结果吗？只要最快返回的、失败也认，用 <code>race</code>（典型场景是超时控制）；要最快成功的、失败就换下一个，用 <code>any</code>（典型场景是多源容灾）。</p>
+<p>还有一类需求这四个都盖不住，就是<strong>并发数限制</strong>。一次要发一百个请求，全丢给 <code>Promise.all</code> 会瞬间打满浏览器的并发连接数，甚至被后端限流。这种得自己写一个并发池，或者用 <code>p-limit</code> 这类库，控制同时在飞的请求不超过 N 个。这块标准目前没有内置方案。</p>
+<p>这些组合方法之所以能这么组合，前提是 Promise 本身有一套严格的状态机和 thenable 吸收规则。想知道 <code>all</code> 内部是怎么计数、<code>resolve</code> 传进去一个 Promise 时又发生了什么，可以看 <a href="https://feinterview.poetries.top/blog/promise-anaylse">浅析 Promise 原理与手写实现</a>，那篇从零把这几个静态方法都写了一遍。日常业务里这些组合方法最常见的搭档是 <code>await</code>，用法和坑在 <a href="https://feinterview.poetries.top/blog/es6-async">ES6系列之 async&#x2F;await 的用法与实现原理</a> 里有展开。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这四个方法的差别，全在「什么时候算完成」和「失败怎么处理」两条规则上。</p>
+<p><code>all</code> 是最常用也最容易用错的一个。它的结果按输入顺序排列，这一点很好用；但它短路失败，一个挂了全部作废，成功的结果一并丢掉，剩下的请求也不会取消。凡是「部分失败可以接受」的场景，都该换成 <code>allSettled</code>。</p>
+<p><code>race</code> 取的是最快 settle 的那个，成功失败都算。拿它做超时控制的时候记得清定时器，否则会留一堆悬着的 timer。传空数组会永远 pending，这个坑不报错但很难查。</p>
+<p><code>any</code> 是「最快成功」，专治多源容灾，全失败时抛的是 <code>AggregateError</code>。</p>
+<p>超出这四个方法的需求主要是并发数限制，标准没提供，得自己写池子或者用现成的库。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/all">MDN Promise.all</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/race">MDN Promise.race</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled">MDN Promise.allSettled</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/any">MDN Promise.any</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/AbortController">MDN AbortController</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

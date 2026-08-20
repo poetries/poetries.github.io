@@ -7,24 +7,25 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Nginx中常用的模块整理 | 前端进阶之旅</title>
+  <title>Nginx中常用的模块整理与选型清单 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Nginx,模块," />
+    <meta name="keywords" content="运维,Nginx,模块," />
   
 
-  <meta name="description" content="Nginx 配置文件在线生成: https:&#x2F;&#x2F;nginxconfig.io&#x2F;  第一部分 基础模块一、性能相关配置worker_processes number | auto；   worker进程的数量；通常应该为当前主机的cpu的物理核心数。多于8个的话建议写8，超过8个性能不会提升，稳定性降低  worker_cpu_affinity auto [cpumask] #将work进程绑定在">
+  <meta name="description" content="按能力维度梳理 Nginx 常用模块，access、auth_basic、stub_status、log、gzip、ssl、rewrite、referer、proxy、fastcgi、upstream、stream 各自能干什么、什么时候该用、参数怎么调，附踩坑与选型建议。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Nginx中常用的模块整理">
+<meta property="og:title" content="Nginx中常用的模块整理与选型清单">
 <meta property="og:url" content="http://blog.poetries.top/2018/11/27/nginx-module-summary/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="Nginx 配置文件在线生成: https:&#x2F;&#x2F;nginxconfig.io&#x2F;  第一部分 基础模块一、性能相关配置worker_processes number | auto；   worker进程的数量；通常应该为当前主机的cpu的物理核心数。多于8个的话建议写8，超过8个性能不会提升，稳定性降低  worker_cpu_affinity auto [cpumask] #将work进程绑定在">
+<meta property="og:description" content="按能力维度梳理 Nginx 常用模块，access、auth_basic、stub_status、log、gzip、ssl、rewrite、referer、proxy、fastcgi、upstream、stream 各自能干什么、什么时候该用、参数怎么调，附踩坑与选型建议。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-11-27T02:40:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.680Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.946Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="运维">
 <meta property="article:tag" content="Nginx">
 <meta property="article:tag" content="模块">
 <meta name="twitter:card" content="summary">
@@ -205,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86-%E5%9F%BA%E7%A1%80%E6%A8%A1%E5%9D%97"><span class="toc-text">第一部分 基础模块</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%80%A7%E8%83%BD%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">一、性能相关配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%97%B6%E9%97%B4%E9%A9%B1%E5%8A%A8events%E7%9B%B8%E5%85%B3%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-text">二、时间驱动events相关的配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81http%E6%A0%B8%E5%BF%83%E6%A8%A1%E5%9D%97%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AEngx-http-core-module"><span class="toc-text">三、http核心模块相关配置ngx_http_core_module</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1web%E6%9C%8D%E5%8A%A1%E6%A8%A1%E6%9D%BF"><span class="toc-text">3.1web服务模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">3.2套接字相关配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-server-name"><span class="toc-text">3.3 server_name</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%BB%B6%E8%BF%9F%E5%8F%91%E9%80%81%E9%80%89%E9%A1%B9"><span class="toc-text">3.4 延迟发送选项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-sendfile"><span class="toc-text">3.5 sendfile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E9%9A%90%E8%97%8F%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-text">3.6 隐藏版本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-location%E5%8C%B9%E9%85%8D"><span class="toc-text">3.7 location匹配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2%E6%98%BE%E7%A4%BA"><span class="toc-text">3.8 错误页面显示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-%E9%95%BF%E8%BF%9E%E6%8E%A5%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">3.9 长连接相关配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-10-%E8%AF%B7%E6%B1%82%E6%8A%A5%E6%96%87%E7%BC%93%E5%AD%98"><span class="toc-text">3.10 请求报文缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-11-%E5%AF%B9%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%9B%E8%A1%8C%E9%99%90%E5%88%B6%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">3.11 对客户端进行限制相关配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E6%A8%A1%E5%9D%97ngx-http-access-module"><span class="toc-text">四、访问控制模块ngx_http_access_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%A8%A1%E5%9D%97ngx-http-auth-basic-module"><span class="toc-text">五、用户认证模块ngx_http_auth_basic_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E6%A8%A1%E5%9D%97ngx-http-log-module"><span class="toc-text">七、日志记录模块ngx_http_log_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%8E%8B%E7%BC%A9%E7%9B%B8%E5%85%B3%E9%80%89%E9%A1%B9ngx-http-gzip-module"><span class="toc-text">八、压缩相关选项ngx_http_gzip_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81https%E6%A8%A1%E5%9D%97ngx-http-ssl-module%E6%A8%A1%E5%9D%97%EF%BC%9A"><span class="toc-text">九、https模块ngx_http_ssl_module模块：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E9%87%8D%E5%AE%9A%E5%90%91%E6%A8%A1%E5%9D%97ngx-http-rewrite-module"><span class="toc-text">十、重定向模块ngx_http_rewrite_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%BC%95%E7%94%A8%E6%A8%A1%E5%9D%97ngx-http-referer-module"><span class="toc-text">十一、引用模块ngx_http_referer_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9D%97ngx-http-proxy-module"><span class="toc-text">十二、反向代理模块ngx_http_proxy_module</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-proxy-pass-URL"><span class="toc-text">12.1 proxy_pass URL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-proxy-set-header-field-value"><span class="toc-text">12.2 proxy_set_header field value</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-proxy-cache-path"><span class="toc-text">12.3 proxy_cache_path</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E8%B0%83%E7%94%A8%E7%BC%93%E5%AD%98"><span class="toc-text">12.4 调用缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-proxy-cache-key-string"><span class="toc-text">12.5 proxy_cache_key string</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-proxy-cache-valid-code-%E2%80%A6-time"><span class="toc-text">12.6 proxy_cache_valid [code …] time;</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-proxy-cache-use-stale"><span class="toc-text">12.7 proxy_cache_use_stale</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-8-proxy-cache-methods-GET-HEAD-POST"><span class="toc-text">12.8 proxy_cache_methods GET | HEAD | POST</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-9-proxy-hide-header-field"><span class="toc-text">12.9 proxy_hide_header field;</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-10-proxy-connect-timeout-time"><span class="toc-text">12.10  proxy_connect_timeout time;</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-11-proxy-send-timeout-time"><span class="toc-text">12.11 proxy_send_timeout time</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-12-proxy-read-timeout-time"><span class="toc-text">12.12 proxy_read_timeout time;</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E9%A6%96%E9%83%A8%E4%BF%A1%E6%81%AF"><span class="toc-text">十三、首部信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81-hph-%E7%9B%B8%E5%85%B3%E6%A8%A1%E5%9D%97ngx-http-fastcgi-module"><span class="toc-text">十四、 hph 相关模块ngx_http_fastcgi_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9D%97ngx-http-upstream-module%E6%A8%A1%E5%9D%97"><span class="toc-text">十五、代理模块ngx_http_upstream_module模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#15-1-upstream-name-%E2%80%A6"><span class="toc-text">15.1 upstream name { … }</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-2-server-address-parameters"><span class="toc-text">15.2 server address [parameters];</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-ip-hash-%E6%BA%90%E5%9C%B0%E5%9D%80hash%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95"><span class="toc-text">15.3 ip_hash 源地址hash调度方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-4-least-conn"><span class="toc-text">15.4 least_conn</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-5-hash-key-consistent"><span class="toc-text">15.5 hash key [consistent]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-6-keepalive"><span class="toc-text">15.6 keepalive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-7-health-check-parameters"><span class="toc-text">15.7 health_check [parameters]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-8-match-name-%E2%80%A6"><span class="toc-text">15.8 match name { … }</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%81%E5%85%AD%E3%80%81ngx-stream-core-module%E6%A8%A1%E5%9D%97"><span class="toc-text">十六、ngx_stream_core_module模块</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%83%E3%80%81ngx-stream-proxy-module%E6%A8%A1%E5%9D%97"><span class="toc-text">十七、ngx_stream_proxy_module模块</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86-%E5%8A%9F%E8%83%BD%E8%AF%A6%E8%A7%A3"><span class="toc-text">第二部分 功能详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81proxy-pass"><span class="toc-text">一、proxy_pass</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81rewrite"><span class="toc-text">二、rewrite</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81log-format"><span class="toc-text">三、log_format</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81ssl%E8%AF%81%E4%B9%A6%E5%8A%A0%E5%AF%86%E9%85%8D%E7%BD%AE"><span class="toc-text">四、ssl证书加密配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81sendfile"><span class="toc-text">五、sendfile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81keepalive-timeout"><span class="toc-text">六、keepalive_timeout</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81gzip"><span class="toc-text">七、gzip</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6"><span class="toc-text">八、客户端上传文件限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81worker-processes%E5%92%8Cworker-connections"><span class="toc-text">九、worker_processes和worker_connections</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81stream%E6%A8%A1%E5%9D%97"><span class="toc-text">十、stream模块</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%80%A7%E8%83%BD%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">一、性能相关配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BA%8B%E4%BB%B6%E9%A9%B1%E5%8A%A8events%E7%9B%B8%E5%85%B3%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-text">二、事件驱动events相关的配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81http%E6%A0%B8%E5%BF%83%E6%A8%A1%E5%9D%97%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AEngx-http-core-module"><span class="toc-text">三、http核心模块相关配置ngx_http_core_module</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1web%E6%9C%8D%E5%8A%A1%E6%A8%A1%E6%9D%BF"><span class="toc-text">3.1web服务模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2%E5%A5%97%E6%8E%A5%E5%AD%97%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">3.2套接字相关配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-server-name"><span class="toc-text">3.3 server_name</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%BB%B6%E8%BF%9F%E5%8F%91%E9%80%81%E9%80%89%E9%A1%B9"><span class="toc-text">3.4 延迟发送选项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-sendfile"><span class="toc-text">3.5 sendfile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E9%9A%90%E8%97%8F%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="toc-text">3.6 隐藏版本信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-location%E5%8C%B9%E9%85%8D"><span class="toc-text">3.7 location匹配</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E9%94%99%E8%AF%AF%E9%A1%B5%E9%9D%A2%E6%98%BE%E7%A4%BA"><span class="toc-text">3.8 错误页面显示</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-%E9%95%BF%E8%BF%9E%E6%8E%A5%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">3.9 长连接相关配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-10-%E8%AF%B7%E6%B1%82%E6%8A%A5%E6%96%87%E7%BC%93%E5%AD%98"><span class="toc-text">3.10 请求报文缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-11-%E5%AF%B9%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%9B%E8%A1%8C%E9%99%90%E5%88%B6%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">3.11 对客户端进行限制相关配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E6%A8%A1%E5%9D%97ngx-http-access-module"><span class="toc-text">四、访问控制模块ngx_http_access_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%94%A8%E6%88%B7%E8%AE%A4%E8%AF%81%E6%A8%A1%E5%9D%97ngx-http-auth-basic-module"><span class="toc-text">五、用户认证模块ngx_http_auth_basic_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%8A%B6%E6%80%81%E6%9F%A5%E7%9C%8B%E6%A8%A1%E5%9D%97ngx-http-stub-status-module"><span class="toc-text">六、状态查看模块ngx_http_stub_status_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E6%A8%A1%E5%9D%97ngx-http-log-module"><span class="toc-text">七、日志记录模块ngx_http_log_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%8E%8B%E7%BC%A9%E7%9B%B8%E5%85%B3%E9%80%89%E9%A1%B9ngx-http-gzip-module"><span class="toc-text">八、压缩相关选项ngx_http_gzip_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81https%E6%A8%A1%E5%9D%97ngx-http-ssl-module%E6%A8%A1%E5%9D%97%EF%BC%9A"><span class="toc-text">九、https模块ngx_http_ssl_module模块：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E9%87%8D%E5%AE%9A%E5%90%91%E6%A8%A1%E5%9D%97ngx-http-rewrite-module"><span class="toc-text">十、重定向模块ngx_http_rewrite_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%BC%95%E7%94%A8%E6%A8%A1%E5%9D%97ngx-http-referer-module"><span class="toc-text">十一、引用模块ngx_http_referer_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9D%97ngx-http-proxy-module"><span class="toc-text">十二、反向代理模块ngx_http_proxy_module</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-proxy-pass-URL"><span class="toc-text">12.1 proxy_pass URL</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-proxy-set-header-field-value"><span class="toc-text">12.2 proxy_set_header field value</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-proxy-cache-path"><span class="toc-text">12.3 proxy_cache_path</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E8%B0%83%E7%94%A8%E7%BC%93%E5%AD%98"><span class="toc-text">12.4 调用缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-proxy-cache-key-string"><span class="toc-text">12.5 proxy_cache_key string</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-proxy-cache-valid-code-%E2%80%A6-time"><span class="toc-text">12.6 proxy_cache_valid [code …] time;</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-7-proxy-cache-use-stale"><span class="toc-text">12.7 proxy_cache_use_stale</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-8-proxy-cache-methods-GET-HEAD-POST"><span class="toc-text">12.8 proxy_cache_methods GET | HEAD | POST</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-9-proxy-hide-header-field"><span class="toc-text">12.9 proxy_hide_header field;</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-10-proxy-connect-timeout-time"><span class="toc-text">12.10  proxy_connect_timeout time;</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-11-proxy-send-timeout-time"><span class="toc-text">12.11 proxy_send_timeout time</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-12-proxy-read-timeout-time"><span class="toc-text">12.12 proxy_read_timeout time;</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E9%A6%96%E9%83%A8%E4%BF%A1%E6%81%AF"><span class="toc-text">十三、首部信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81php-%E7%9B%B8%E5%85%B3%E6%A8%A1%E5%9D%97ngx-http-fastcgi-module"><span class="toc-text">十四、php 相关模块ngx_http_fastcgi_module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%94%E3%80%81%E4%BB%A3%E7%90%86%E6%A8%A1%E5%9D%97ngx-http-upstream-module%E6%A8%A1%E5%9D%97"><span class="toc-text">十五、代理模块ngx_http_upstream_module模块</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#15-1-upstream-name-%E2%80%A6"><span class="toc-text">15.1 upstream name { … }</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-2-server-address-parameters"><span class="toc-text">15.2 server address [parameters];</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-3-ip-hash-%E6%BA%90%E5%9C%B0%E5%9D%80hash%E8%B0%83%E5%BA%A6%E6%96%B9%E6%B3%95"><span class="toc-text">15.3 ip_hash 源地址hash调度方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-4-least-conn"><span class="toc-text">15.4 least_conn</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-5-hash-key-consistent"><span class="toc-text">15.5 hash key [consistent]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-6-keepalive"><span class="toc-text">15.6 keepalive</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-7-health-check-parameters"><span class="toc-text">15.7 health_check [parameters]</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#15-8-match-name-%E2%80%A6"><span class="toc-text">15.8 match name { … }</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%85%AD%E3%80%81ngx-stream-core-module%E6%A8%A1%E5%9D%97"><span class="toc-text">十六、ngx_stream_core_module模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%83%E3%80%81ngx-stream-proxy-module%E6%A8%A1%E5%9D%97"><span class="toc-text">十七、ngx_stream_proxy_module模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%85%AB%E3%80%81proxy-pass-%E8%B7%AF%E5%BE%84%E6%8B%BC%E6%8E%A5%E7%9A%84%E5%9B%9B%E7%A7%8D%E6%83%85%E5%86%B5"><span class="toc-text">十八、proxy_pass 路径拼接的四种情况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B9%9D%E3%80%81rewrite-%E4%B8%8E%E6%AD%A3%E5%88%99%E9%80%9F%E6%9F%A5"><span class="toc-text">十九、rewrite 与正则速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E3%80%81log-format-%E4%B8%8E%E6%97%A5%E5%BF%97%E5%AD%97%E6%AE%B5"><span class="toc-text">二十、log_format 与日志字段</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E4%B8%80%E3%80%81ssl%E8%AF%81%E4%B9%A6%E5%8A%A0%E5%AF%86%E9%85%8D%E7%BD%AE"><span class="toc-text">二十一、ssl证书加密配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E4%BA%8C%E3%80%81sendfile"><span class="toc-text">二十二、sendfile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E4%B8%89%E3%80%81keepalive-timeout"><span class="toc-text">二十三、keepalive_timeout</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E5%9B%9B%E3%80%81gzip"><span class="toc-text">二十四、gzip</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E4%BA%94%E3%80%81%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8A%E4%BC%A0%E6%96%87%E4%BB%B6%E9%99%90%E5%88%B6"><span class="toc-text">二十五、客户端上传文件限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E5%85%AD%E3%80%81worker-processes%E5%92%8Cworker-connections"><span class="toc-text">二十六、worker_processes和worker_connections</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8D%81%E4%B8%83%E3%80%81stream%E6%A8%A1%E5%9D%97"><span class="toc-text">二十七、stream模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-nginx-module-summary" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Nginx中常用的模块整理</h1>
+    <h1 class="post-title">Nginx中常用的模块整理与选型清单</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 8.3k字</span>
+            <span>字数统计 23.9k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 34分</span>
+            <span>阅读时长 90分</span>
           </span>
       
       
@@ -292,41 +293,68 @@
         <blockquote>
 <p>Nginx 配置文件在线生成: <a href="https://nginxconfig.io/">https://nginxconfig.io/</a></p>
 </blockquote>
-<h1 id="第一部分-基础模块"><a href="#第一部分-基础模块" class="headerlink" title="第一部分 基础模块"></a>第一部分 基础模块</h1><h2 id="一、性能相关配置"><a href="#一、性能相关配置" class="headerlink" title="一、性能相关配置"></a>一、性能相关配置</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">worker_processes number | auto；</span><br></pre></td></tr></table></figure>
+<p>Nginx 让人头疼的地方不在于指令难，而在于指令太多，而且不告诉你它属于哪个模块。你想做个限速，查到 <code>limit_rate</code>；想做个健康检查，查到 <code>health_check</code>，兴冲冲配上去 reload，报 <code>unknown directive</code>。原因是它压根不在你编译进来的模块里，或者干脆是商业版才有的。</p>
+<p>这篇把 Nginx 里我实际用过的模块按能力分门别类过一遍，每个模块回答三个问题，它能干什么、什么场景下你会需要它、参数里哪几个是真正要调的。清单里的配置片段全部保留原样，我在每段前后补上了它在解决什么问题，以及自己踩过的坑。写于 2018 年，涉及 SSL、HTTP&#x2F;2 这类会过时的部分，我把当年的写法留着，另起小段说明现在的情况。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>进程与事件层的性能参数，<code>worker_processes</code> 到底该写几</li>
+<li><code>ngx_http_core_module</code> 里那批高频指令，从 <code>listen</code> 到 <code>limit_except</code></li>
+<li>访问控制、用户认证、状态查看这三个「运维刚需」模块</li>
+<li>日志、压缩、SSL 三个和线上表现直接相关的模块怎么调</li>
+<li><code>rewrite</code> 和 <code>referer</code> 的常见用法与陷阱</li>
+<li>反向代理模块的缓存体系，<code>proxy_cache_path</code> 那一长串参数分别管什么</li>
+<li><code>upstream</code> 的调度算法选型，以及哪些参数只在商业版生效</li>
+<li><code>stream</code> 模块做四层代理，什么时候它比 HAProxy 更合适</li>
+<li>配套的内核参数调优，以及这批参数在今天还成不成立</li>
+</ul>
+<p>先说明一点，下面这些模块里，标准发行版默认编译进来的只是一部分。<code>stub_status</code>、<code>ssl</code>、<code>stream</code> 这几个都需要在 <code>./configure</code> 阶段显式打开。装完之后敲一句 <code>nginx -V</code>，把输出里的 <code>configure arguments</code> 看一遍，你手上这个二进制有什么能力，那一行说得清清楚楚。这一步能省掉大量「配了没生效」的排查时间。</p>
+<h2 id="一、性能相关配置"><a href="#一、性能相关配置" class="headerlink" title="一、性能相关配置"></a>一、性能相关配置</h2><p>这一组指令都写在配置文件的最外层，也就是 main 上下文，它们决定 Nginx 起几个干活的进程、每个进程能扛多少连接。调错了的表现不是报错，而是压测时怎么都上不去。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">worker_processes number | auto;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p><code>worker</code>进程的数量；通常应该为当前主机的<code>cpu</code>的物理核心数。多于<code>8</code>个的话建议写<code>8</code>，超过<code>8</code>个性能不会提升，稳定性降低</p>
 </blockquote>
+<p>原文这句「多于 8 个建议写 8」是当年多数机器只有四核八核的经验值，现在服务器动辄三四十核，直接写 <code>auto</code> 让 Nginx 自己读 CPU 核心数就行。有一个场景要留神，在容器里跑的时候 <code>auto</code> 读到的是宿主机的核心数，而不是你给容器限的那点配额。给容器限了 2 核却起了 32 个 worker，进程之间抢 CPU 反而更慢。这种情况下就得按配额写死。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">worker_cpu_affinity auto [cpumask] <span class="comment">#将work进程绑定在固定cpu上提高缓存命中率 </span></span><br><span class="line"><span class="comment"># 例：</span></span><br><span class="line">worker_cpu_affinity 0001 0010 0100 1000;</span><br><span class="line">worker_cpu_affinity 0101 1010;</span><br></pre></td></tr></table></figure>
 
+<p><code>worker_cpu_affinity</code> 是把每个 worker 钉死在指定的 CPU 核心上，减少进程在核心之间来回迁移带来的缓存失效。掩码是二进制位，<code>0001</code> 表示第一个核，<code>0010</code> 表示第二个核，一行写几组就是几个 worker 各自绑一个核。这个参数只在 Nginx 是这台机器上的主力进程时才划算，机器上还跑着数据库或者别的服务，绑核反而会让调度器没法腾挪。日常我基本不动它。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">worker_priority number</span><br><span class="line"><span class="comment"># 指定worker进程的nice值，设定worker进程优先级： [-20,20]</span></span><br></pre></td></tr></table></figure>
 
+<p>这里原文写的取值区间不准，Linux 的 nice 值范围是 <code>-20</code> 到 <code>19</code>，越小优先级越高。想让 Nginx 在混部机器上抢到更多 CPU，可以往负值调，但改之前先确认这台机器上没有比它更重要的服务。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">worker_rlimit_nofile number</span><br><span class="line">worker <span class="comment"># 进程所能够打开的文件数量上限,默认较小，生产中需要调大如65535。系统资源通过配置修改/etc/security/limits.conf 例：root soft nofile 65535，或命令修改ulimit -n，修改后需重启服务或系统生效。</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="二、时间驱动events相关的配置"><a href="#二、时间驱动events相关的配置" class="headerlink" title="二、时间驱动events相关的配置"></a>二、时间驱动events相关的配置</h2><ul>
+<p>这个参数是我认为整组里最容易被忽略、也最容易背锅的一个。Nginx 每接一个连接就要占一个文件描述符，反向代理场景下还要再占一个连回后端的。系统默认的 <code>ulimit -n</code> 通常是 1024，你把 <code>worker_connections</code> 配成 10240 是没用的，连接数到一千出头就开始报 <code>too many open files</code>。</p>
+<p>改这个参数得两头一起改，配置里的 <code>worker_rlimit_nofile</code> 和系统的 <code>/etc/security/limits.conf</code> 缺一不可。</p>
+<h2 id="二、事件驱动events相关的配置"><a href="#二、事件驱动events相关的配置" class="headerlink" title="二、事件驱动events相关的配置"></a>二、事件驱动events相关的配置</h2><p><code>events</code> 块管的是「怎么收连接」。它只有三四个指令，但每一个都直接决定并发上限。</p>
+<ul>
 <li>每个<code>worker</code>进程所能够打开的最大并发连接数数量，如<code>10240</code></li>
 <li>总最大并发数： <code>worker_processes * worker_connections</code></li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">worker_connections number</span><br></pre></td></tr></table></figure>
 
+<p>这里的算法要注意，<code>worker_processes * worker_connections</code> 算出来的是「连接数」不是「并发请求数」。做反向代理的时候，一个客户端请求要占两个连接（客户端来的一个，转发到后端的一个），所以能撑的实际并发请求数要再除以 2。这个换算我一开始也是漏掉的，按 10240 去估容量，实测只有一半。</p>
 <ul>
 <li>指明并发连接请求的处理方法,默认自动选择最优方法不用调整</li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">use method</span><br><span class="line"><span class="comment"># 如：use epoll;</span></span><br></pre></td></tr></table></figure>
 
-
+<p><code>use</code> 这个指令基本不用手动写。Linux 上 Nginx 会自动选 <code>epoll</code>，FreeBSD 上选 <code>kqueue</code>，都是当前平台最优的那个。手写它唯一的用处是排查问题时确认它到底选了谁，<code>nginx -V</code> 和启动日志里都能看到。</p>
 <ul>
 <li><code>on</code>指由各个<code>worker</code>轮流处理新请求</li>
-<li><code>Off</code>指每个新请求的到达都会通知(唤醒)所有的<code>worker</code>进程，但只有一个进程可获得连接，造成“惊群”，影响性能，默认<code>on</code></li>
+<li><code>Off</code>指每个新请求的到达都会通知(唤醒)所有的<code>worker</code>进程，但只有一个进程可获得连接，造成「惊群」，影响性能，默认<code>on</code></li>
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 处理新的连接请求的方法</span></span><br><span class="line">accept_mutex on | off <span class="comment"># 互斥；</span></span><br></pre></td></tr></table></figure>
 
+<p><code>accept_mutex</code> 是历史遗留问题的解法。早年内核没有解决惊群，多个 worker 同时被唤醒去抢一个连接，抢不到的白白唤醒一次，CPU 就浪费在这上面。加个互斥锁让 worker 轮流去 accept，惊群没了，但代价是新连接进来要等锁，高并发下反而增加延迟。</p>
+<p>现在的情况反过来了。较新的 Nginx 版本里 <code>accept_mutex</code> 默认是 <code>off</code>，因为内核层面已经有 <code>EPOLLEXCLUSIVE</code> 和 <code>SO_REUSEPORT</code> 来处理惊群，比应用层加锁高效得多。真正推荐的做法是在 <code>listen</code> 上加 <code>reuseport</code>，让内核直接把连接分发到各个 worker，连锁都不用。原文写的默认值 <code>on</code> 是老版本的行为，具体默认值随版本变过，改之前对着你手上那个版本的官方文档确认一下。</p>
+<h2 id="三、http核心模块相关配置ngx-http-core-module"><a href="#三、http核心模块相关配置ngx-http-core-module" class="headerlink" title="三、http核心模块相关配置ngx_http_core_module"></a>三、http核心模块相关配置ngx_http_core_module</h2><p><code>ngx_http_core_module</code> 是唯一一个不用编译开关、不用额外声明就一定在的模块。你在 <code>nginx.conf</code> 里写的 <code>server</code>、<code>location</code>、<code>root</code>、<code>listen</code>，全部由它提供。所以它不像别的模块那样有一个明确的「功能边界」，它更像是 Nginx 的语法本身。</p>
+<p>这一节的指令数量最多，我按用途分成了几块，实际配置时会反复回来查的也就是下面这十来个。</p>
+<h3 id="3-1web服务模板"><a href="#3-1web服务模板" class="headerlink" title="3.1web服务模板"></a>3.1web服务模板</h3><p>一个虚拟主机的最小骨架就三行，监听哪个端口、认哪个域名、文件在哪。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">server &#123; ... &#125;</span><br><span class="line"><span class="comment"># 配置一个虚拟主机</span></span><br><span class="line">server &#123;</span><br><span class="line">    listen address[:PORT]|PORT;</span><br><span class="line">    server_name SERVER_NAME; <span class="comment"># 指令指向不同的主机名</span></span><br><span class="line">    root /PATH/TO/DOCUMENT_ROOT;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
 
-
-
-<h2 id="三、http核心模块相关配置ngx-http-core-module"><a href="#三、http核心模块相关配置ngx-http-core-module" class="headerlink" title="三、http核心模块相关配置ngx_http_core_module"></a>三、http核心模块相关配置ngx_http_core_module</h2><h3 id="3-1web服务模板"><a href="#3-1web服务模板" class="headerlink" title="3.1web服务模板"></a>3.1web服务模板</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">server &#123; ... &#125;</span><br><span class="line"><span class="comment"># 配置一个虚拟主机</span></span><br><span class="line">server &#123;</span><br><span class="line">    listen address[:PORT]|PORT;</span><br><span class="line">    server_name SERVER_NAME; <span class="comment"># 指令指向不同的主机名</span></span><br><span class="line">    root /PATH/TO/DOCUMENT_ROOT;</span><br><span class="line">&#125; </span><br></pre></td></tr></table></figure>
-
-<h3 id="3-2套接字相关配置"><a href="#3-2套接字相关配置" class="headerlink" title="3.2套接字相关配置"></a>3.2套接字相关配置</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">listen address[:port] [default_server] [ssl] [http2 | spdy] [backlog=number] [rcvbuf=size] [sndbuf=size]</span><br></pre></td></tr></table></figure>
+<p>这个骨架有个容易忽略的点，<code>root</code> 写在 <code>server</code> 层还是 <code>location</code> 层结果不一样。写在 <code>server</code> 层是所有 <code>location</code> 的默认值，写在某个 <code>location</code> 里就只对那一段生效并且覆盖外层。混着写的时候，找不到文件的 404 往往就出在这儿。</p>
+<h3 id="3-2套接字相关配置"><a href="#3-2套接字相关配置" class="headerlink" title="3.2套接字相关配置"></a>3.2套接字相关配置</h3><p><code>listen</code> 决定这个 server 块从哪个地址、哪个端口收请求，后面那一串可选参数平时用到的不多，但每一个都是在特定场景下救过命的。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">listen address[:port] [default_server] [ssl] [http2 | spdy] [backlog=number] [rcvbuf=size] [sndbuf=size]</span><br></pre></td></tr></table></figure>
 <ul>
 <li><code>default_server</code> 设定为默认虚拟主机</li>
 <li><code>ssl</code> 限制仅能够通过<code>ssl</code>连接提供服务</li>
@@ -334,6 +362,9 @@
 <li><code>rcvbuf=size</code> 接收缓冲区大小</li>
 <li><code>sndbuf=size</code> 发送缓冲区大小</li>
 </ul>
+<p><code>default_server</code> 管的是「域名对不上时给谁」。有人拿 IP 直接访问你的服务器，或者把自己的域名解析到你的 IP 上，这类请求匹配不到任何 <code>server_name</code>，Nginx 就交给 <code>default_server</code>。不显式指定的话，同端口第一个 <code>server</code> 块自动当默认。生产环境我一般会专门写一个只返回 444 的默认块，把这类野请求直接掐掉。</p>
+<p><code>backlog</code> 是内核层面的等待队列长度，短时间涌进来大量新连接、worker 一时来不及 accept 的时候，多出来的连接排在这个队列里。队列满了内核就直接丢，客户端表现为连接超时而不是 502。这个值同时受 <code>net.core.somaxconn</code> 限制，只调 Nginx 不调内核是没用的，这一点和后面那份 sysctl 调优是配套的。</p>
+<p><code>spdy</code> 现在已经不用看了，它是 HTTP&#x2F;2 标准化之前的过渡协议，早就从 Nginx 里移除。至于 <code>listen 443 ssl http2</code> 这个写法，新版本改成了独立的 <code>http2 on;</code> 指令，老写法一段时间内还兼容但会有 deprecated 提醒。你手上是哪种，以 <code>nginx -V</code> 的版本号对着官方文档看，别照抄博客。</p>
 <h3 id="3-3-server-name"><a href="#3-3-server-name" class="headerlink" title="3.3 server_name"></a>3.3 server_name</h3><ul>
 <li>支持*通配任意长度的任意字符</li>
 </ul>
@@ -352,6 +383,8 @@
 <li>正则表达式 如： <code>~^.*\.magedu\.com$</code></li>
 <li><code>default_server</code></li>
 </ul>
+<p>这个优先级顺序值得单独记一下，因为它和 <code>location</code> 的匹配规则完全不是一套逻辑，很多人会混着记然后记岔。<code>server_name</code> 是「谁更精确谁赢」，和写在配置文件里的先后顺序无关；正则排在通配符后面，意味着你写了一条 <code>~^.*\.magedu\.com$</code> 也抢不过一条 <code>*.magedu.com</code>。</p>
+<p>正则形式的 <code>server_name</code> 我建议能不用就不用。它对每个请求都要跑一遍正则，量大的时候是实打实的开销，而且出问题时排查起来比通配符麻烦得多。<code>location</code> 那套匹配规则更绕一些，我在 <a href="https://feinterview.poetries.top/blog/nginx-location-match-rules">Nginx location 匹配规则</a> 里单独拆过。</p>
 <h3 id="3-4-延迟发送选项"><a href="#3-4-延迟发送选项" class="headerlink" title="3.4 延迟发送选项"></a>3.4 延迟发送选项</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tcp_nodelay on | off;</span><br><span class="line">tcp_nopush  on | off;</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -360,16 +393,22 @@
 <li>默认<code>On</code>时，不延迟发送</li>
 <li>可用于： <code>http</code>, <code>server</code>, <code>location</code></li>
 </ul>
+<p>这两个选项管的是同一件事的两头，要不要攒一攒再发。<code>tcp_nodelay on</code> 关掉 Nagle 算法，小包立刻发出去，延迟低但包多；<code>tcp_nopush on</code> 反过来，等攒满一个 MSS 再发，吞吐高但首字节会慢一点点。</p>
+<p>看起来矛盾，实际上 Nginx 里这两个常常一起开。原因是 Nginx 做了配合，发响应体的时候用 <code>tcp_nopush</code> 把头和body攒到一起发出去，发到最后一个包的时候自动切回 <code>tcp_nodelay</code> 立刻推出去，两头的好处都占了。默认配置里两个都是 <code>on</code>，绝大多数场景不用动。</p>
 <h3 id="3-5-sendfile"><a href="#3-5-sendfile" class="headerlink" title="3.5 sendfile"></a>3.5 sendfile</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sendfile on | off;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>是否启用<code>sendfile</code>功能，在内核中封装报文直接发送。如用来进行下载等应用磁盘IO重负载应用可设置为<code>off</code>，以平衡磁盘与网络IO处理速度降低系统负载，如图片显示不正常把这个改为<code>off</code>。默认<code>Off</code></p>
 </blockquote>
+<p><code>sendfile</code> 是零拷贝，文件数据从磁盘到网卡全程在内核里走，不用先读到 Nginx 的用户态内存再写回内核。静态资源服务开这个能省掉大量内存拷贝，收益很直接。</p>
+<p>原文提到「如图片显示不正常把这个改为 off」，这条经验值得说清楚来龙去脉。历史上有过一类问题，共享目录（比如 NFS、虚拟机的共享文件夹）配合 <code>sendfile</code> 会读到脏数据，表现就是图片花掉或者截断。本地磁盘不会有这个问题。所以判断标准不是「图片坏了就关 sendfile」，而是「文件是不是放在网络文件系统上」。</p>
 <h3 id="3-6-隐藏版本信息"><a href="#3-6-隐藏版本信息" class="headerlink" title="3.6 隐藏版本信息"></a>3.6 隐藏版本信息</h3><blockquote>
 <p>是否在响应报文的<code>Server</code>首部显示<code>nginx</code>版本</p>
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">server_tokens on | off | build | string</span><br></pre></td></tr></table></figure>
 
+<p>这一条属于安全基线里最便宜的一项。默认响应头会带上 <code>Server: nginx/1.14.0</code>，扫描器拿到精确版本号就能直接对着 CVE 列表打。关掉之后只剩 <code>Server: nginx</code>，虽然挡不住有心人，但能过滤掉绝大部分无脑扫描。</p>
+<p>把 <code>Server</code> 头彻底删掉需要 <code>headers_more</code> 这类第三方模块，标准版做不到，<code>server_tokens off</code> 已经是原生能做到的极限了。</p>
 <h3 id="3-7-location匹配"><a href="#3-7-location匹配" class="headerlink" title="3.7 location匹配"></a>3.7 location匹配</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">location [ = | ~ | ~* | ^~ ] uri &#123; ... &#125;</span><br><span class="line">location @name &#123; ... &#125;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
@@ -382,12 +421,16 @@
 <li><code>^~</code>：对<code>URI</code>的最左边部分做匹配检查，不区分字符大小写</li>
 <li><code>~</code>：对<code>URI</code>做正则表达式模式匹配，区分字符大小写</li>
 <li><code>~*</code>：对<code>URI</code>做正则表达式模式匹配，不区分字符大小写<br>不带符号：匹配起始于此<code>uri</code>的所有的<code>uri</code><br>匹配优先级从高到低：</li>
-<li><code>=</code>, <code>^~</code>, <code>～/～*</code>, 不带符号</li>
+<li><code>=</code>, <code>^~</code>, <code>~</code>&#x2F;<code>~*</code>, 不带符号</li>
 </ul>
+<p>这里有个坑要注意，原文那行优先级里的波浪号是全角的 <code>～</code>，正确写法是半角 <code>~</code>，写成全角 Nginx 直接报语法错误。这类字符我在别人给的配置里遇到过好几次，多半是从网页复制粘贴带进来的，<code>nginx -t</code> 会告诉你第几行有问题，但它不会告诉你是「这个符号长得像但不是」。</p>
+<p>另外 <code>^~</code> 那条描述也要澄清一下。它做的是前缀匹配，<code>^~</code> 这个符号的含义是「一旦这条前缀匹配上了，就别再去试正则了」，而不是「不区分大小写的前缀匹配」。前缀匹配本身是否区分大小写取决于操作系统的文件系统，Nginx 这一层的比较是区分的。</p>
+<p>匹配顺序完整说一遍是这样：先找 <code>=</code> 精确匹配，命中就结束；再把所有前缀匹配（含 <code>^~</code> 和不带符号的）里最长的那条记下来，如果它带 <code>^~</code> 就直接用；否则按配置文件里出现的先后顺序试正则，第一条命中的赢；正则全都不中，才回过头用刚才记下的最长前缀。</p>
 <p><strong>路径别名alias path</strong></p>
 <p>示例：</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http://www.magedu.com/bbs/index.php</span></span><br><span class="line"></span><br><span class="line">location /bbs/ &#123;</span><br><span class="line">    <span class="built_in">alias</span> /web/forum/;</span><br><span class="line">&#125; <span class="comment"># --&gt; /web/forum/index.html</span></span><br><span class="line">location /bbs/ &#123;</span><br><span class="line">    root /web/forum/;</span><br><span class="line">&#125;     <span class="comment"># --&gt; /web/forum/bbs/index.html    </span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http://www.magedu.com/bbs/index.php</span></span><br><span class="line"></span><br><span class="line">location /bbs/ &#123;</span><br><span class="line">    <span class="built_in">alias</span> /web/forum/;</span><br><span class="line">&#125; <span class="comment"># --&gt; /web/forum/index.php</span></span><br><span class="line">location /bbs/ &#123;</span><br><span class="line">    root /web/forum/;</span><br><span class="line">&#125;     <span class="comment"># --&gt; /web/forum/bbs/index.php    </span></span><br></pre></td></tr></table></figure>
 
+<p>原文这两行注释里写的是 <code>index.html</code>，但上面请求的是 <code>index.php</code>，前后对不上，我按实际行为改成了 <code>index.php</code>。</p>
 <p><strong>注意</strong>：</p>
 <blockquote>
 <p><code>location</code>中使用<code>root</code>指令和<code>alias</code>指令的意义不同    </p>
@@ -396,6 +439,9 @@
 <li><code>root</code>，相当于追加在<code>root</code>目录后面  </li>
 <li><code>alias</code>，相当于对<code>location</code>中的<code>url</code>进行替换</li>
 </ul>
+<p><code>root</code> 和 <code>alias</code> 的区别是 Nginx 新手 404 的头号来源，记住「拼接」和「替换」这两个词基本就不会错了。<code>root</code> 是把 location 匹配到的那段路径原样接在后面，<code>alias</code> 是把匹配到的那段路径整个换掉。</p>
+<p>还有一条实践上的硬规矩，<code>alias</code> 的路径末尾斜杠必须和 <code>location</code> 的末尾斜杠保持一致。<code>location /bbs/</code> 配 <code>alias /web/forum/</code> 是对的，配 <code>alias /web/forum</code> 就会拼出 <code>/web/forumindex.php</code>。这个错误 <code>nginx -t</code> 检查不出来，因为语法完全合法，只有访问的时候才 404，然后你对着 error.log 里的路径盯半天。</p>
+<p>再补一句，<code>alias</code> 不能用在带正则的 <code>location</code> 里而不做捕获组引用，这种组合官方文档明确不推荐。真要按正则拆路径，用 <code>root</code> 加 <code>rewrite</code> 更稳。</p>
 <h3 id="3-8-错误页面显示"><a href="#3-8-错误页面显示" class="headerlink" title="3.8 错误页面显示"></a>3.8 错误页面显示</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">error_page code ... [=[response]] uri;</span><br></pre></td></tr></table></figure>
 
 <p><strong>模块：</strong></p>
@@ -407,6 +453,8 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">error_page 404 /404.html</span><br><span class="line">error_page 404 =200 /404.html  <span class="comment">#防止404页面被劫持</span></span><br></pre></td></tr></table></figure>
 
+<p>第二行那个 <code>=200</code> 是把响应状态码改写成 200 再返回错误页。原文注释写「防止 404 页面被劫持」，说的是早年一些运营商会拦截 404 响应插广告，把状态码改成 200 就绕过去了。</p>
+<p>这个技巧现在要慎用。全站 HTTPS 之后运营商没法在中间插东西，劫持的前提已经不成立了；反过来，把 404 伪装成 200 会让搜索引擎把大量不存在的 URL 当成正常页面收录，SEO 上是纯亏。做单页应用的时候尤其容易踩，很多人为了让前端路由生效就写 <code>error_page 404 =200 /index.html</code>，正确做法是用 <code>try_files</code> 兜底，具体写法我在 <a href="https://feinterview.poetries.top/blog/nginx-try-files">Nginx try_files 指令详解</a> 里展开过。</p>
 <h3 id="3-9-长连接相关配置"><a href="#3-9-长连接相关配置" class="headerlink" title="3.9 长连接相关配置"></a>3.9 长连接相关配置</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">keepalive_timeout timeout [header_timeout];</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -427,6 +475,8 @@
 <ul>
 <li>向客户端发送响应报文的超时时长，此处是指两次写操作之间的间隔时长，而非<br>整个响应过程的传输时长</li>
 </ul>
+<p><code>send_timeout</code> 这条描述里的区别很关键。它算的是两次成功写操作之间的间隔，不是整个响应传输花了多久。所以一个 2GB 的文件下载十分钟不会超时，只要数据一直在往外流；但客户端要是卡住不收了，超过这个时长 Nginx 就断开。用它当「下载超时」来配的人不少，其实配错了对象。</p>
+<p><code>keepalive_timeout</code> 的默认 75 秒对移动端来说偏长。移动网络下客户端经常静默断开，服务端还傻等着，连接就白占着。做纯 API 网关我一般压到 30 秒以内，配合 <code>keepalive_requests</code> 一起看。顺带说一句，<code>keepalive_requests</code> 默认 100 在今天算很小了，一个稍微复杂点的页面就能发出上百个请求，到了 100 就重新握手一次，新版本已经把默认值调大了。</p>
 <h3 id="3-10-请求报文缓存"><a href="#3-10-请求报文缓存" class="headerlink" title="3.10 请求报文缓存"></a>3.10 请求报文缓存</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">client_body_buffer_size size;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
@@ -444,6 +494,8 @@
 <li><code>2</code>级目录占2位<code>16</code>进制，即<code>2^8=256</code>个目录 <code>00-ff</code></li>
 <li><code>3</code>级目录占2位<code>16</code>进制， 即<code>2^8=256</code>个目录 <code>00--ff</code></li>
 </ul>
+<p>为什么要分这么多级目录？因为传统文件系统在单个目录下放几十万个文件时，查找性能会掉得很难看。拆成三级之后每层最多几百个条目，<code>ls</code> 也不会卡住。同样的目录分级思路后面 <code>proxy_cache_path</code> 的 <code>levels</code> 参数还会再出现一次，它俩解决的是同一个问题。</p>
+<p>顺带提一下，POST 一个大文件时如果 body 超了 <code>client_body_buffer_size</code>，Nginx 会落到磁盘临时文件。这个行为在容器里跑要留神，临时目录默认在容器的可写层，大量上传会把镜像层撑爆，最好挂个卷出去。</p>
 <h3 id="3-11-对客户端进行限制相关配置"><a href="#3-11-对客户端进行限制相关配置" class="headerlink" title="3.11 对客户端进行限制相关配置"></a>3.11 对客户端进行限制相关配置</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">limit_rate rate;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
@@ -458,7 +510,11 @@
 <blockquote>
 <p>除了<code>GET</code>和<code>HEAD</code> 之外其它方法仅允许<code>192.168.1.0/24</code>网段主机使用</p>
 </blockquote>
-<h2 id="四、访问控制模块ngx-http-access-module"><a href="#四、访问控制模块ngx-http-access-module" class="headerlink" title="四、访问控制模块ngx_http_access_module"></a>四、访问控制模块ngx_http_access_module</h2><blockquote>
+<p><code>limit_except</code> 的语义是反的，写 <code>limit_except GET</code> 表示「限制除 GET 之外的所有方法」，块里的 <code>allow</code>&#x2F;<code>deny</code> 作用在被限制的那些方法上。我第一次用的时候理解反了，配完发现 GET 也被拦了，排查了一下才明白它连 <code>HEAD</code> 也一并放行（因为 HEAD 被当作 GET 的一部分）。</p>
+<p>这个指令适合做一件很具体的事，把一个对外只读的接口锁成真正只读，写操作只许内网发起。比 <code>if ($request_method = POST)</code> 那种写法稳，因为 <code>if</code> 在 Nginx 里的行为有一堆边界情况，能不用就不用。</p>
+<p><code>limit_rate</code> 限的是单个连接的速率，不是单个用户的。客户端开十个连接下载，实际带宽就是十倍。真要按用户限速得配合 <code>limit_conn</code> 一起用，把并发连接数也压住。</p>
+<h2 id="四、访问控制模块ngx-http-access-module"><a href="#四、访问控制模块ngx-http-access-module" class="headerlink" title="四、访问控制模块ngx_http_access_module"></a>四、访问控制模块ngx_http_access_module</h2><p>按 IP 放行或者拦截，这是最基础的一道门。管理后台、<code>/status</code> 这类监控端点、内网才能访问的接口，都靠它。它的规则简单到没有歧义，也正因为简单，出错的地方几乎只有一个，顺序。</p>
+<blockquote>
 <p>实现基于<code>ip</code>的访问控制功能</p>
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">allow address | CIDR | unix: | all;</span><br><span class="line">deny address | CIDR | unix: | all;</span><br><span class="line">http, server, location, limit_except</span><br></pre></td></tr></table></figure>
@@ -466,20 +522,27 @@
 <blockquote>
 <p>自上而下检查，一旦匹配，将生效，条件严格的置前</p>
 </blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#示例：</span></span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    deny 192.168.1.1;</span><br><span class="line">    allow 192.168.1.0/24;</span><br><span class="line">    allow 10.1.1.0/16;</span><br><span class="line">    allow 2001:0db8::/32;</span><br><span class="line">    deny all;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#示例：</span></span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    deny 192.168.1.1;</span><br><span class="line">    allow 192.168.1.0/24;</span><br><span class="line">    allow 10.1.0.0/16;</span><br><span class="line">    allow 2001:0db8::/32;</span><br><span class="line">    deny all;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="五、用户认证模块ngx-http-auth-basic-module"><a href="#五、用户认证模块ngx-http-auth-basic-module" class="headerlink" title="五、用户认证模块ngx_http_auth_basic_module"></a>五、用户认证模块ngx_http_auth_basic_module</h2><blockquote>
+<p>原文这里写的是 <code>allow 10.1.1.0/16</code>，掩码 16 位对应的网段应该是 <code>10.1.0.0/16</code>，主机位不能有值，我改成了正确写法。</p>
+<p>这几行的执行顺序是从上往下，命中一条就停。所以第一行单独拒掉 <code>192.168.1.1</code> 必须写在第二行放行整个 <code>/24</code> 网段的前面，调个个儿这台机器就进来了。规则一多就容易乱，我的习惯是把最具体的放最上面，最后一行永远是 <code>deny all</code> 兜底。</p>
+<p>这里有个坑要注意，Nginx 前面挂了 CDN 或者云厂商的负载均衡时，<code>allow</code>&#x2F;<code>deny</code> 看到的是 CDN 回源节点的 IP，不是真实用户 IP，这套规则就完全失效了。要按真实 IP 判断得先配 <code>ngx_http_realip_module</code>，用 <code>set_real_ip_from</code> 声明可信的代理网段，让 Nginx 从 <code>X-Forwarded-For</code> 里取真实地址。这个模块标准版自带但需要编译时打开，<code>nginx -V</code> 里搜 <code>realip</code> 确认。</p>
+<h2 id="五、用户认证模块ngx-http-auth-basic-module"><a href="#五、用户认证模块ngx-http-auth-basic-module" class="headerlink" title="五、用户认证模块ngx_http_auth_basic_module"></a>五、用户认证模块ngx_http_auth_basic_module</h2><p>IP 白名单挡不住的场景，比如你自己在外面出差要连管理后台，就得上账号密码。HTTP Basic Auth 是最省事的一档，不用改应用代码，Nginx 这一层就拦下来了。</p>
+<blockquote>
 <p>实现基于用户的访问控制，使用<code>basic</code>机制进行用户认证</p>
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">auth_basic string | off;</span><br><span class="line">auth_basic_user_file file;</span><br><span class="line">location /admin/ &#123;</span><br><span class="line">    auth_basic <span class="string">&quot;Admin Area&quot;</span>;</span><br><span class="line">    auth_basic_user_file /etc/nginx/.ngxpasswd;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p><code>auth_basic</code> 后面那个字符串会显示在浏览器弹出的登录框标题上，随便写但别写敏感信息。设成 <code>off</code> 可以在子 location 里取消继承来的认证，做「整站要密码但某个路径公开」时用得上。</p>
 <p><strong>用户口令：</strong></p>
 <ul>
 <li>明文文本：格式<code>name:password:comment</code></li>
 <li>加密文本：由<code>htpasswd</code>命令实现 <code>httpd-tools</code>所提供</li>
 <li><code>htpasswd</code> [<code>-c</code>第一次创建时使用] [<code>-D</code>删除用户] <code>passwdfile</code>   <code>username</code></li>
 </ul>
-<p>六、状态查看模块ngx_http_stub_status_module</p>
+<p><code>htpasswd -c</code> 那个 <code>-c</code> 是 create，只有第一次建文件时能用，第二次再带上它会把整个文件覆盖掉，之前建的用户全没了。这个我踩过，加第二个用户的时候顺手复制了上一条命令，结果第一个账号直接消失。</p>
+<p>还有一条必须说的：Basic Auth 把用户名密码做 Base64 编码放在请求头里，Base64 不是加密，抓包就能还原成明文。所以它只能配合 HTTPS 用，纯 HTTP 下开 Basic Auth 等于把密码明着发出去。它适合保护运维端点，不适合当业务的登录体系。</p>
+<h2 id="六、状态查看模块ngx-http-stub-status-module"><a href="#六、状态查看模块ngx-http-stub-status-module" class="headerlink" title="六、状态查看模块ngx_http_stub_status_module"></a>六、状态查看模块ngx_http_stub_status_module</h2><p>想知道 Nginx 现在扛着多少连接、处理了多少请求，靠这个模块。它输出的信息很少，就七个数字，但排查「是不是打满了」的时候，这七个数字比什么都直接。</p>
 <blockquote>
 <p>用于输出nginx的基本状态信息</p>
 </blockquote>
@@ -494,7 +557,11 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例：</span></span><br><span class="line"></span><br><span class="line">location /status &#123;</span><br><span class="line">    stub_status;</span><br><span class="line">    allow 172.16.0.0/16;</span><br><span class="line">    deny all;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="七、日志记录模块ngx-http-log-module"><a href="#七、日志记录模块ngx-http-log-module" class="headerlink" title="七、日志记录模块ngx_http_log_module"></a>七、日志记录模块ngx_http_log_module</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">log_format name string</span><br></pre></td></tr></table></figure>
+<p>这几个字段里最有诊断价值的是 <code>accepts</code> 和 <code>handled</code> 的差值。正常情况下这两个数应该几乎相等，一旦 <code>handled</code> 明显小于 <code>accepts</code>，说明有连接被接下来又丢掉了，通常就是撞到了 <code>worker_connections</code> 上限或者文件描述符不够。这是判断「要不要扩容」最快的一个信号。</p>
+<p><code>Waiting</code> 数很大不用慌，那是开着 keepalive 但当前没有请求的空闲连接，属于正常状态。<code>Reading</code> 长期高才要查，那意味着大量请求头收不全，可能是慢速攻击。</p>
+<p>这个模块默认不编译，<code>./configure</code> 时要带 <code>--with-http_stub_status_module</code>。装的时候顺手加上，不然真出问题时你连个观测口都没有。配置里那两行 <code>allow</code>&#x2F;<code>deny</code> 千万别省，状态页暴露到公网等于把容量信息送人。</p>
+<h2 id="七、日志记录模块ngx-http-log-module"><a href="#七、日志记录模块ngx-http-log-module" class="headerlink" title="七、日志记录模块ngx_http_log_module"></a>七、日志记录模块ngx_http_log_module</h2><p>日志这块很多人是不配的，用默认的 <code>combined</code> 格式凑合。真到线上出问题要查「这个 502 是哪台后端返回的、耗时多少」，默认格式一个字段都给不了你。所以这个模块值得花十分钟配好，收益是长期的。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">log_format name string</span><br></pre></td></tr></table></figure>
 
 <ul>
 <li><code>string</code>可以使用<code>nginx</code>核心模块及其它模块内嵌的变量</li>
@@ -506,9 +573,10 @@
 </ul>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">buffer=size</span><br><span class="line">flush=time </span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例</span></span><br><span class="line">log_format compression <span class="string">&#x27;$remote_addr-$remote_user [$time_local] &#x27;</span></span><br><span class="line">                         <span class="string">&#x27;&quot;$request&quot; $status $bytes_sent &#x27;</span></span><br><span class="line">                         <span class="string">&#x27;&quot;$http_referer&quot; &quot;$http_user_agent&quot; &quot;$gzip_ratio&quot;&#x27;</span>;</span><br><span class="line">access_log /spool/logs/nginx-access.log compression buffer=32k; </span><br><span class="line">json格式日志示例;log_format json <span class="string">&#x27;&#123;&quot;@timestamp&quot;:&quot;$time_iso8601&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;client_ip&quot;:&quot;$remote_addr&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;size&quot;:$body_bytes_sent,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;responsetime&quot;:$request_time,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;upstreamtime&quot;:&quot;$upstream_response_time&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;upstreamhost&quot;:&quot;$upstream_addr&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;http_host&quot;:&quot;$host&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;method&quot;:&quot;$request_method&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;request_uri&quot;:&quot;$request_uri&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;xff&quot;:&quot;$http_x_forwarded_for&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;referrer&quot;:&quot;$http_referer&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;agent&quot;:&quot;$http_user_agent&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;status&quot;:&quot;$status&quot;&#125;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例</span></span><br><span class="line">log_format compression <span class="string">&#x27;$remote_addr-$remote_user [$time_local] &#x27;</span></span><br><span class="line">                         <span class="string">&#x27;&quot;$request&quot; $status $bytes_sent &#x27;</span></span><br><span class="line">                         <span class="string">&#x27;&quot;$http_referer&quot; &quot;$http_user_agent&quot; &quot;$gzip_ratio&quot;&#x27;</span>;</span><br><span class="line">access_log /spool/logs/nginx-access.log compression buffer=32k; </span><br><span class="line"></span><br><span class="line"><span class="comment"># json格式日志示例</span></span><br><span class="line">log_format json <span class="string">&#x27;&#123;&quot;@timestamp&quot;:&quot;$time_iso8601&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;client_ip&quot;:&quot;$remote_addr&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;size&quot;:$body_bytes_sent,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;responsetime&quot;:$request_time,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;upstreamtime&quot;:&quot;$upstream_response_time&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;upstreamhost&quot;:&quot;$upstream_addr&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;http_host&quot;:&quot;$host&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;method&quot;:&quot;$request_method&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;request_uri&quot;:&quot;$request_uri&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;xff&quot;:&quot;$http_x_forwarded_for&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;referrer&quot;:&quot;$http_referer&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;agent&quot;:&quot;$http_user_agent&quot;,&#x27;</span></span><br><span class="line">                                 <span class="string">&#x27;&quot;status&quot;:&quot;$status&quot;&#125;&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-
+<p>这份 JSON 格式我一直在用，它比 <code>combined</code> 强的地方全在那几个额外字段上。<code>$request_time</code> 是 Nginx 从收到请求第一个字节到发完响应最后一个字节的总耗时，<code>$upstream_response_time</code> 是后端花的时间，两个一减就知道慢在网络还是慢在应用。<code>$upstream_addr</code> 告诉你这个请求打到了哪台后端，负载均衡出问题时全靠它定位。<code>$http_x_forwarded_for</code> 留着追真实客户端。</p>
+<p>写成 JSON 是为了直接喂给 ELK 或者 Loki，不用再写 grok 正则去拆。有一个细节要注意，<code>$body_bytes_sent</code> 和 <code>$request_time</code> 这两个我没加引号，因为它们是数字，加了引号进 ES 之后会被识别成字符串，后面想做聚合统计就得重建索引。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">open_log_file_cache max=N [inactive=time] [min_uses=N] [valid=time];</span><br></pre></td></tr></table></figure>
 
 <ul>
@@ -520,7 +588,10 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 例: </span></span><br><span class="line">open_log_file_cache max=1000 inactive=20s  valid=1m;</span><br></pre></td></tr></table></figure>
 
-<h2 id="八、压缩相关选项ngx-http-gzip-module"><a href="#八、压缩相关选项ngx-http-gzip-module" class="headerlink" title="八、压缩相关选项ngx_http_gzip_module"></a>八、压缩相关选项ngx_http_gzip_module</h2><ul>
+<p>这个指令解决的是「按变量分文件写日志」的性能问题。如果你的 <code>access_log</code> 路径里带了变量，比如按域名或者按天分目录，Nginx 每写一条日志都要重新打开一次文件，系统调用开销很可观。缓存住文件描述符之后这笔开销就没了。路径是写死的场景用不上它，因为文件描述符本来就一直开着。</p>
+<p><code>buffer=32k</code> 那个参数也是同类优化，日志先攒在内存里，满了或者到了 <code>flush</code> 时间再落盘。代价是机器突然掉电会丢最后那一小段日志，对访问日志来说完全可以接受。</p>
+<h2 id="八、压缩相关选项ngx-http-gzip-module"><a href="#八、压缩相关选项ngx-http-gzip-module" class="headerlink" title="八、压缩相关选项ngx_http_gzip_module"></a>八、压缩相关选项ngx_http_gzip_module</h2><p>传输压缩是前端能感知最明显的一项服务端优化。一个 500KB 的 JS bundle 开了 gzip 之后通常能压到 150KB 上下，首屏时间的改善是肉眼可见的。这一组参数里真正要动的只有四五个。</p>
+<ul>
 <li><code>gzip on | off</code>;  #启用或禁用<code>gzip</code>压缩</li>
 <li><code>gzip_comp_level level</code>;  #压缩比由低到高： <code>1</code> 到 <code>9 </code> 默认： <code>1</code></li>
 <li><code>gzip_disable regex</code> …;  #匹配到客户端浏览器不执行压缩</li>
@@ -528,7 +599,7 @@
 <li><code>gzip_http_version 1.0 | 1.1</code>; #设定启用压缩功能时，协议的最小版本 默认：<code>1.1</code></li>
 <li><code>gzip_buffers number size</code>;<br>支持实现压缩功能时缓冲区数量及每个缓存区的大小<br>默认： <code>32 4k</code> 或 <code>16 8k</code></li>
 <li><code>gzip_types mime-type</code> …;<br>指明仅对哪些类型的资源执行压缩操作；即压缩过滤器<br>默认包含有<code>text/html</code>，不用显示指定，否则出错</li>
-<li><code>gzip_vary on | off;</code><br>如果启用压缩，是否在响应报文首部插入<code>“Vary: AcceptEncoding</code></li>
+<li><code>gzip_vary on | off;</code><br>如果启用压缩，是否在响应报文首部插入 <code>Vary: Accept-Encoding</code></li>
 <li><code>gzip_proxied off</code> | <code>expired</code> | <code>no-cache</code> | <code>no-store </code>|<br><code>private</code> | <code>no_last_modified</code> | <code>no_etag </code>| <code>auth</code> | <code>any</code> …;</li>
 </ul>
 <blockquote>
@@ -540,10 +611,19 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例：</span></span><br><span class="line">gzip on;</span><br><span class="line">gzip_comp_level 6;</span><br><span class="line">gzip_http_version 1.1;</span><br><span class="line">gzip_vary on;</span><br><span class="line">gzip_min_length 1024;</span><br><span class="line">gzip_buffers 16 8k;</span><br><span class="line">gzip_proxied any;</span><br><span class="line">gzip_disable <span class="string">&quot;MSIE[1-6]\.(?!.*SV1)&quot;</span>;</span><br><span class="line">gzip_types text/xml text/plain text/css application/javascript application/xml application/json;</span><br></pre></td></tr></table></figure>
 
-<h2 id="九、https模块ngx-http-ssl-module模块："><a href="#九、https模块ngx-http-ssl-module模块：" class="headerlink" title="九、https模块ngx_http_ssl_module模块："></a>九、https模块ngx_http_ssl_module模块：</h2><ul>
+<p>这份配置基本可以直接抄，我逐条说下为什么是这些值。</p>
+<p><code>gzip_comp_level 6</code> 是性价比拐点。1 到 9 里，从 6 往上压缩率提升很小，CPU 消耗却接近翻倍。我实测过一个 300KB 的 JS，level 6 和 level 9 的差距不到 3%，但耗时差了一倍多。</p>
+<p><code>gzip_min_length 1024</code> 是必须配的。小于 1KB 的文件压完可能比原文件还大，因为 gzip 有固定的头部开销，再加上一次压缩的 CPU 时间，纯亏。默认值是 20 字节，等于什么都压，一定要改。</p>
+<p><code>gzip_types</code> 里千万别加 <code>text/html</code>，Nginx 强制对它启用压缩，你再写一遍会直接报错。同样也别加图片和视频类型，JPEG、PNG、MP4 本身已经是压缩格式，再压一次只有 CPU 开销没有体积收益。</p>
+<p><code>gzip_vary on</code> 影响的是缓存正确性。开了之后响应带 <code>Vary: Accept-Encoding</code>，CDN 和中间代理才知道要按客户端支不支持压缩分别缓存两份。不开这条，可能出现「不支持 gzip 的客户端拿到了压缩版本」的乱码问题。</p>
+<p><code>gzip_proxied any</code> 是给反向代理场景用的，不配的话，来自上游代理的请求默认不压缩，你会发现直连有压缩、走 CDN 就没有。</p>
+<p><code>gzip_disable &quot;MSIE[1-6]&quot;</code> 这条现在可以删了。IE6 早就不在支持范围内，留着它每个请求都要跑一次 User-Agent 正则，纯浪费。</p>
+<p>说到今天的做法，gzip 之外还有 Brotli。同样的内容 Brotli 通常比 gzip 再小 15% 到 20%，主流浏览器都支持了。Nginx 官方版本没有内置 Brotli，要装 Google 维护的 <code>ngx_brotli</code> 模块，或者用 OpenResty 这类已经打包好的发行版。两个可以共存，客户端带什么 <code>Accept-Encoding</code> 就给什么。我自己的站点是静态资源构建时预先生成 <code>.br</code> 和 <code>.gz</code> 两份，运行时直接发文件，连压缩的 CPU 都省了。</p>
+<h2 id="九、https模块ngx-http-ssl-module模块："><a href="#九、https模块ngx-http-ssl-module模块：" class="headerlink" title="九、https模块ngx_http_ssl_module模块："></a>九、https模块ngx_http_ssl_module模块：</h2><p>HTTPS 现在不是可选项。浏览器对 HTTP 页面标红警告，Service Worker、地理位置、剪贴板这些 API 全都要求安全上下文。这个模块的参数不多，但每一个都直接关系到安全评级。</p>
+<ul>
 <li><code>ssl on | off</code>; 为指定虚拟机启用<code>HTTPS protocol</code>， 建议用<code>listen</code>指令代替</li>
 <li><code>ssl_certificate file</code>; 当前虚拟主机使用PEM格式的证书文件</li>
-<li><code>ssl_certificate_key fil</code>; 当前虚拟主机上与其证书匹配的私钥文件</li>
+<li><code>ssl_certificate_key file</code>; 当前虚拟主机上与其证书匹配的私钥文件</li>
 <li><code>ssl_protocols [SSLv2] [SSLv3] [TLSv1] [TLSv1.1] [TLSv1.2]</code>; 支持<code>ssl</code>协议版本，默认为后三个</li>
 <li><code>ssl_session_cache off | none | [builtin[:size]] [shared:name:size]</code>;<ul>
 <li><code>builtin[:size]</code>：使用<code>OpenSSL</code>内建缓存，为每<code>worker</code>进程私有</li>
@@ -557,7 +637,14 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例：</span></span><br><span class="line">server &#123;</span><br><span class="line">    listen 443 ssl;</span><br><span class="line">    server_name www.magedu.com;</span><br><span class="line">    root /vhosts/ssl/htdocs;</span><br><span class="line">    ssl on;</span><br><span class="line">    ssl_certificate /etc/nginx/ssl/nginx.crt;</span><br><span class="line">    ssl_certificate_key /etc/nginx/ssl/nginx.key;</span><br><span class="line">    ssl_session_cache shared:sslcache:20m;</span><br><span class="line">    ssl_session_timeout 10m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="十、重定向模块ngx-http-rewrite-module"><a href="#十、重定向模块ngx-http-rewrite-module" class="headerlink" title="十、重定向模块ngx_http_rewrite_module"></a>十、重定向模块ngx_http_rewrite_module</h2><ol>
+<p>先说这段配置里最值得关注的一行，<code>ssl_session_cache shared:sslcache:20m</code>。TLS 握手是 HTTPS 里最贵的一步，涉及非对称加密运算和多次往返。会话缓存让复访的客户端跳过完整握手，直接复用之前协商好的密钥。20MB 大概能存四五万个会话，对中小站点绰绰有余。关键是必须用 <code>shared</code> 而不是 <code>builtin</code>，<code>builtin</code> 是每个 worker 各存一份，客户端下次连到另一个 worker 上照样要重新握手，等于白配。</p>
+<p>再说这段配置里过时的部分，一共两处。</p>
+<p>第一处是 <code>ssl on;</code>。这条指令已经废弃并在新版本中移除了，正确写法就是这段配置里已经有的 <code>listen 443 ssl</code>。两种写法同时出现在一个 server 块里，是当年从老配置改过来时留下的历史包袱。今天新写配置，只写 <code>listen 443 ssl</code>，<code>ssl on</code> 一行都不要有。</p>
+<p>第二处是协议版本。原文列出的 <code>ssl_protocols</code> 里包含 SSLv2、SSLv3、TLSv1、TLSv1.1，这些今天全都不能开。SSLv2 和 SSLv3 有已知的可利用漏洞，TLS 1.0 和 1.1 已被各大浏览器停止支持，PCI DSS 之类的合规要求也明确禁止。现在的基线是只开 TLSv1.2 和 TLSv1.3。</p>
+<p>至于加密套件 <code>ssl_ciphers</code> 具体写哪一串，我的建议是别抄博客，包括别抄这篇。套件的推荐列表随着新漏洞披露一直在变，抄一份两年前的下来大概率已经不合适了。去 Mozilla SSL Configuration Generator 上选你的 Nginx 版本和 OpenSSL 版本，它会生成当前时点的推荐配置，这是最省心也最可靠的做法。</p>
+<p>顺带说一句 HTTP&#x2F;2 和 HTTP&#x2F;3。HTTP&#x2F;2 需要编译时带 <code>--with-http_v2_module</code>，开启后多路复用能显著改善并发请求多的页面。HTTP&#x2F;3 基于 QUIC，Nginx 在较新的版本里提供了支持，但需要特定的 OpenSSL 分支，部署门槛比 HTTP&#x2F;2 高不少。还有一个当年很火的 <code>http2_push</code> 服务端推送，Chrome 已经移除了对它的支持，现在不用再考虑，要预加载资源就用 <code>&lt;link rel=&quot;preload&quot;&gt;</code> 配合 <code>103 Early Hints</code>。</p>
+<h2 id="十、重定向模块ngx-http-rewrite-module"><a href="#十、重定向模块ngx-http-rewrite-module" class="headerlink" title="十、重定向模块ngx_http_rewrite_module"></a>十、重定向模块ngx_http_rewrite_module</h2><p><code>rewrite</code> 是 Nginx 里威力最大也最容易写出事的模块。域名跳转、URL 美化、老链接迁移、A&#x2F;B 分流，都在它手上。它的麻烦在于有一套自己的执行阶段和循环机制，不了解的话很容易写出无限重定向。</p>
+<ol>
 <li><strong>rewrite regex replacement [flag]</strong></li>
 </ol>
 <blockquote>
@@ -571,8 +658,13 @@
 <li><code>redirect</code>：临时重定向，重写完成后以临时重定向方式直接返回重写后生成的新URI给客户端，由客户端重新发起请求；不能以<code>http://</code>或<code>https://</code>开头，使用相对路径，状态码： <code>302</code></li>
 <li><code>permanent</code>:重写完成后以永久重定向方式直接返回重写后生成的新URI给客户端，由客户端重新发起请求，状态码：<code>301</code></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 例：</span></span><br><span class="line">rewrite ^/zz/(.*\.html)$  /zhengzhou/<span class="variable">$1</span> <span class="built_in">break</span>;</span><br><span class="line">rewrite ^/zz/(.*\.html)$  https://www.dianping/zhengzhou/<span class="variable">$1</span> permanent;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 例：</span></span><br><span class="line">rewrite ^/zz/(.*\.html)$  /zhengzhou/<span class="variable">$1</span> <span class="built_in">break</span>;</span><br><span class="line">rewrite ^/zz/(.*\.html)$  https://www.dianping.com/zhengzhou/<span class="variable">$1</span> permanent;</span><br></pre></td></tr></table></figure>
 
+<p>原文第二行的域名写成了 <code>www.dianping</code>，少了顶级域，我补全了。</p>
+<p>这四个 flag 的区别是这个模块里最需要搞清楚的东西。<code>last</code> 和 <code>break</code> 都停止当前 location 里后续的 rewrite，区别在于下一步去哪：<code>last</code> 会拿新 URI 重新走一遍 location 匹配，<code>break</code> 是直接在当前 location 里继续往下执行。</p>
+<p>判断用哪个有个简单标准。如果重写后的路径需要被另一个 location 处理（比如重写成 <code>/api/</code> 然后交给代理），用 <code>last</code>；如果重写只是为了改文件路径、还在当前 location 里读文件，用 <code>break</code>。用错的典型症状是 <code>last</code> 写在了应该 <code>break</code> 的地方，然后新 URI 又匹配回同一个 location，转十次之后报 500。</p>
+<p><code>redirect</code> 和 <code>permanent</code> 是真的让浏览器再发一次请求，区别只是 302 和 301。这里有个实践上的教训：301 会被浏览器长期缓存，而且很难清掉。域名迁移这种确定不会改的用 301，任何还可能变的场景都先用 302，等稳定了再换。我见过有人测试环境配了 301，改完之后本机怎么都跳到旧地址，最后只能开无痕窗口验证。</p>
+<p>原文提到「<code>redirect</code> 不能以 <code>http://</code> 或 <code>https://</code> 开头」，这个说法容易引起误解。实际规则是，如果 replacement 以 <code>http://</code>、<code>https://</code> 或 <code>$scheme</code> 开头，Nginx 会直接返回重定向而不管你写没写 flag，此时默认用 302；想要 301 就显式写 <code>permanent</code>。所以带完整 URL 时写 <code>redirect</code> 是多余的，不是不允许。</p>
 <ol start="2">
 <li><strong>return</strong></li>
 </ol>
@@ -581,6 +673,8 @@
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">return</span> code [text];</span><br><span class="line"><span class="built_in">return</span> code URL;</span><br><span class="line"><span class="built_in">return</span> URL;</span><br></pre></td></tr></table></figure>
 
+<p>能用 <code>return</code> 解决的事就别用 <code>rewrite</code>。<code>return</code> 不跑正则，开销更小，意图也更清楚。最典型的例子是 HTTP 跳 HTTPS，<code>return 301 https://$host$request_uri;</code> 一行搞定，比写 <code>rewrite ^(.*)$ https://...</code> 干净得多。</p>
+<p>还有个冷门但很好用的值是 <code>return 444</code>。这是 Nginx 自定义的非标准状态码，含义是不返回任何响应直接关闭连接。扫描器和恶意请求打过来，444 连响应头都不发，比返回 403 更省资源，也不给对方任何信息。</p>
 <ol start="3">
 <li><strong>rewrite_log on | off;</strong></li>
 </ol>
@@ -615,7 +709,11 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 浏览器分流示例：</span></span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$http_user_agent</span> ~ Chrom) &#123;</span><br><span class="line">rewrite ^(.*)$  /chrome/<span class="variable">$1</span> <span class="built_in">break</span>;                                                 </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$http_user_agent</span> ~ MSIE) &#123;</span><br><span class="line">rewrite ^(.*)$  /IE/<span class="variable">$1</span> <span class="built_in">break</span>;                                                      </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="十一、引用模块ngx-http-referer-module"><a href="#十一、引用模块ngx-http-referer-module" class="headerlink" title="十一、引用模块ngx_http_referer_module"></a>十一、引用模块ngx_http_referer_module</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">valid_referers none|blocked|server_names|string ...;</span><br></pre></td></tr></table></figure>
+<p><code>rewrite_log on</code> 配合 <code>error_log ... notice;</code> 一起开，能把每一次重写的前后 URI 都打到日志里。规则一多、跳来跳去搞不清楚的时候，这是最省事的排查手段。调完记得关掉，日志量不小。</p>
+<p>关于 <code>if</code>，Nginx 社区有一篇著名的官方 wiki 文章标题就叫「If Is Evil」，说的是 <code>if</code> 在 location 里的行为很多时候和直觉不符。原因是它属于 rewrite 模块，只在特定阶段执行，块内能安全使用的指令其实很有限，写别的指令可能静默失效甚至段错误。</p>
+<p>安全的用法只有两种，<code>if</code> 里面只写 <code>return</code>，或者只写 <code>rewrite</code>。上面这个浏览器分流的例子恰好符合这条，所以它是安全的。要做复杂判断，优先考虑 <code>map</code> 指令，它在配置解析阶段就展开成查表，没有 <code>if</code> 的那些副作用，性能也更好。</p>
+<h2 id="十一、引用模块ngx-http-referer-module"><a href="#十一、引用模块ngx-http-referer-module" class="headerlink" title="十一、引用模块ngx_http_referer_module"></a>十一、引用模块ngx_http_referer_module</h2><p>防盗链模块。你的图片被别人的站直接引走，带宽是你出、流量是人家赚，这个模块就是拦这个的。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">valid_referers none|blocked|server_names|string ...;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>定义<code>referer</code>首部的合法可用值，不能匹配的将是非法值,用于防盗链，</p>
@@ -628,9 +726,13 @@
 <li><code>regular expression</code>：被指定的正则表达式模式匹配到的字符串,要使用<code>~</code>开头，</li>
 <li>例如： <code>~.*\.magedu\.com </code></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例：</span></span><br><span class="line">location ~*^.+\.(jpg|gif|png|swf|flv|wma|wmv|asf|mp3|mmf|zip|rar)$ &#123;</span><br><span class="line">valid_referers none blocked server_names *.magedu.com</span><br><span class="line">*.mageedu.com magedu.* mageedu.* ~\.magedu\.;</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$invalid_referer</span>) &#123;</span><br><span class="line"><span class="built_in">return</span> 403;</span><br><span class="line"><span class="built_in">break</span>；</span><br><span class="line">&#125;</span><br><span class="line">access_log off;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例：</span></span><br><span class="line">location ~*^.+\.(jpg|gif|png|swf|flv|wma|wmv|asf|mp3|mmf|zip|rar)$ &#123;</span><br><span class="line">valid_referers none blocked server_names *.magedu.com</span><br><span class="line">*.mageedu.com magedu.* mageedu.* ~\.magedu\.;</span><br><span class="line"><span class="keyword">if</span> (<span class="variable">$invalid_referer</span>) &#123;</span><br><span class="line"><span class="built_in">return</span> 403;</span><br><span class="line">&#125;</span><br><span class="line">access_log off;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="十二、反向代理模块ngx-http-proxy-module"><a href="#十二、反向代理模块ngx-http-proxy-module" class="headerlink" title="十二、反向代理模块ngx_http_proxy_module"></a>十二、反向代理模块ngx_http_proxy_module</h2><h3 id="12-1-proxy-pass-URL"><a href="#12-1-proxy-pass-URL" class="headerlink" title="12.1 proxy_pass URL"></a>12.1 proxy_pass URL</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Context:location, if in location, limit_except</span><br></pre></td></tr></table></figure>
+<p>原文这段 <code>if</code> 块里 <code>return 403;</code> 后面还跟了一行 <code>break；</code>，两个问题：那个分号是全角的，Nginx 会直接报语法错；而且 <code>return</code> 已经终止处理了，后面的 <code>break</code> 永远执行不到。我把这行删掉了。</p>
+<p>配置里那个 <code>none</code> 参数要想清楚再放行。它表示请求头里根本没有 Referer，用户直接在地址栏敲图片地址、从收藏夹打开、或者浏览器出于隐私策略不发 Referer，都是这种情况。放行它体验更好，但防盗链的效果也会打折，因为伪造一个空 Referer 太容易了。</p>
+<p>说到今天的情况，Referer 防盗链的可靠性比 2018 年低了不少。浏览器默认的 <code>Referrer-Policy</code> 收紧成了 <code>strict-origin-when-cross-origin</code>，跨站请求只发送源站域名不带路径，跨协议降级时干脆不发。所以你会看到越来越多的合法请求落进 <code>none</code> 这一类。真正要保护的资源，现在更常见的做法是签名 URL，给链接加上时间戳和 HMAC，过期即失效，这个 Nginx 靠 <code>secure_link</code> 模块就能做。</p>
+<h2 id="十二、反向代理模块ngx-http-proxy-module"><a href="#十二、反向代理模块ngx-http-proxy-module" class="headerlink" title="十二、反向代理模块ngx_http_proxy_module"></a>十二、反向代理模块ngx_http_proxy_module</h2><p>这是前端接触最多的一个模块。本地开发的接口转发、生产环境的 API 网关、把静态资源和动态接口挂到同一个域名下解决跨域，全靠它。指令很多，但真正常用的就 <code>proxy_pass</code>、<code>proxy_set_header</code> 加上一组超时参数。缓存那一套单独占了半个模块，值得专门看。</p>
+<h3 id="12-1-proxy-pass-URL"><a href="#12-1-proxy-pass-URL" class="headerlink" title="12.1 proxy_pass URL"></a>12.1 proxy_pass URL</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Context:location, if in location, limit_except</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>注意： <code>proxy_pass</code>后面的路径不带<code>uri</code>时，其会将<code>location</code>的<code>uri</code>传递给后端主机</p>
@@ -645,7 +747,9 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    ...</span><br><span class="line">    server_name HOSTNAME;</span><br><span class="line">    location ~|~* /uri/ &#123;</span><br><span class="line">    proxy_pass http://host; 不能加/</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># http://HOSTNAME/uri/ --&gt; http://host/uri/</span></span><br></pre></td></tr></table></figure>
 
-
+<p><code>proxy_pass</code> 后面带不带 URI 部分，这是整个 Nginx 配置里排名第一的坑。规则本身一句话就能说清：带了 URI（哪怕只是一个斜杠），Nginx 就用它替换掉 location 匹配的那一段；没带，就把原始 URI 原样接上去。</p>
+<p>正则 location 里不能带 URI 这一条也要记住。因为正则匹配的结果是不定长的，Nginx 没法确定该替换掉哪一段，所以直接禁止，写了 <code>nginx -t</code> 就报错。这个限制反过来说明了一件事，需要改写路径的场景，正则 location 配 <code>rewrite ... break</code> 加不带 URI 的 <code>proxy_pass</code> 才是正解。</p>
+<p>后面第二部分我用四个具体例子把这个斜杠的四种组合都跑了一遍，对着看更清楚。</p>
 <h3 id="12-2-proxy-set-header-field-value"><a href="#12-2-proxy-set-header-field-value" class="headerlink" title="12.2 proxy_set_header field value"></a>12.2 proxy_set_header field value</h3><blockquote>
 <p>设定发往后端主机的请求报文的请求首部的值</p>
 </blockquote>
@@ -654,8 +758,14 @@
 <ul>
 <li>后端记录日志记录真实请求服务器<code>IP</code></li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxy_set_header	Host	<span class="variable">$host</span>；</span><br><span class="line">proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br></pre></td></tr></table></figure>
 
+<p>原文第一行末尾用的是全角分号，那样 Nginx 起不来，我改成了半角。</p>
+<p>这三行几乎是所有反向代理配置的标配，值得逐条说。</p>
+<p><code>Host</code> 不转发的话，后端收到的 Host 头是 <code>proxy_pass</code> 里写的那个上游地址，不是用户访问的域名。后端如果按域名区分租户，或者框架用 Host 生成绝对链接（Laravel、Django 都会），就全乱了。表现通常是重定向跳到了内网地址上。</p>
+<p><code>X-Real-IP</code> 和 <code>X-Forwarded-For</code> 都是传递客户端真实 IP，区别在于前者只有一个值，后者是逗号分隔的链路。<code>$proxy_add_x_forwarded_for</code> 这个变量会把已有的 <code>X-Forwarded-For</code> 加上当前 <code>$remote_addr</code> 拼起来，所以多层代理串起来能看到完整路径。</p>
+<p>这里有个安全问题很多人没注意到，<code>X-Forwarded-For</code> 是客户端可以伪造的。用户直接构造一个 <code>X-Forwarded-For: 1.2.3.4</code> 发过来，Nginx 会在后面追加而不是丢弃。所以后端如果拿这个头做 IP 白名单或者限流，取值必须从右往左数、跳过你自己可信的代理层数，不能直接取第一个。真正安全的做法是在最外层入口用 <code>realip</code> 模块统一覆写。</p>
+<p>另外还有两个头在 WebSocket 场景下必须补，<code>Upgrade</code> 和 <code>Connection</code>。少了它们协议升级握手过不去，表现为 WebSocket 连上就断，这个我排查过一下午才想起来是代理层吞了头。</p>
 <p><strong>标准格式如下</strong>：</p>
 <ul>
 <li><code>X-Forwarded-For: client1, proxy1, proxy2 </code></li>
@@ -668,17 +778,25 @@
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 定义可用于proxy功能的缓存； Context:http</span></span><br><span class="line">proxy_cache_path path [levels=levels] [use_temp_path=on|off]</span><br><span class="line">keys_zone=name:size [inactive=<span class="keyword">time</span>] [max_size=size]</span><br><span class="line">[manager_files=number] [manager_sleep=<span class="keyword">time</span>]</span><br><span class="line">[manager_threshold=<span class="keyword">time</span>] [loader_files=number] [loader_sleep=<span class="keyword">time</span>]</span><br><span class="line">[loader_threshold=<span class="keyword">time</span>] [purger=on|off] [purger_files=number]</span><br><span class="line">[purger_sleep=<span class="keyword">time</span>] [purger_threshold=<span class="keyword">time</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment"># 例：</span></span><br><span class="line">proxy_cache_path /data/nginx/cache（属主要为nginx） levels=1:2 keys_zone=nginxcache:20m inactive=2m</span><br></pre></td></tr></table></figure>
 
+<p>这一长串参数看着吓人，真正必填的只有三个，路径、<code>keys_zone</code> 和一个大小上限。其余的全是调优项，默认值在多数场景下够用。</p>
+<p><code>keys_zone=nginxcache:20m</code> 里的 20m 是内存，存的是缓存键和元数据，不是缓存内容本身。官方给的换算大约是 1MB 能放 8000 个键。缓存内容在磁盘上，由 <code>max_size</code> 限制。这两个概念混淆的后果是，你以为配了 20MB 缓存，实际磁盘被塞满了。</p>
+<p><code>inactive=2m</code> 是「多久没人访问就删」，它和 <code>proxy_cache_valid</code> 定义的过期时间是两回事，很容易搞混。前者管的是磁盘空间回收，一个资源两分钟没人要就清掉，哪怕它还没过期；后者管的是内容新鲜度，过期了但还在磁盘上，Nginx 会去后端确认。生产环境 <code>inactive</code> 一般设得比 <code>proxy_cache_valid</code> 大，不然缓存刚建好就被回收，命中率上不去。</p>
+<p><code>levels=1:2</code> 就是前面 <code>client_body_temp_path</code> 提过的目录分级，避免单目录文件太多。不写这个参数所有缓存文件平铺在一个目录里，量大了之后连 <code>ls</code> 都要卡半天。</p>
+<p>那句「属主要为 nginx」是实打实的经验。缓存目录的属主必须是 worker 进程的运行用户，配错了的表现是缓存永远不命中、error.log 里刷 <code>Permission denied</code>，但服务本身跑得好好的，不看日志根本发现不了。</p>
 <h3 id="12-4-调用缓存"><a href="#12-4-调用缓存" class="headerlink" title="12.4 调用缓存"></a>12.4 调用缓存</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxy_cache zone | off; <span class="comment">#默认off</span></span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>指明调用的缓存，或关闭缓存机制； <code>Context: http</code>,<code>server</code>, <code>location</code></p>
 </blockquote>
 <h3 id="12-5-proxy-cache-key-string"><a href="#12-5-proxy-cache-key-string" class="headerlink" title="12.5 proxy_cache_key string"></a>12.5 proxy_cache_key string</h3><blockquote>
-<p>缓存中用于“键”的内容</p>
+<p>缓存中用于「键」的内容</p>
 </blockquote>
 <ul>
 <li>默认值： <code>proxy_cache_key $scheme$proxy_host$request_uri;</code></li>
 </ul>
+<p>缓存键决定了「什么算同一个请求」，配错了要么该命中的不命中，要么不该共享的串了数据。后者是真出过事故的类型，比如缓存键里漏掉了区分用户的维度，A 用户的个人页被缓存下来发给了 B 用户。</p>
+<p>默认键里带了 <code>$proxy_host</code>，多个上游的时候各存各的。如果你的缓存对所有上游是等价的，去掉它能提高命中率。反过来，如果响应内容和 <code>Accept-Language</code>、<code>Accept-Encoding</code> 之类的头有关，就得把对应变量加进键里，否则中文用户可能拿到英文页面。</p>
+<p>带用户态的接口，最稳妥的做法是干脆别缓存。判断标准很简单，响应里有没有和当前登录用户相关的信息，有就不缓存，宁可放弃这点性能。</p>
 <h3 id="12-6-proxy-cache-valid-code-…-time"><a href="#12-6-proxy-cache-valid-code-…-time" class="headerlink" title="12.6 proxy_cache_valid [code …] time;"></a>12.6 proxy_cache_valid [code …] time;</h3><blockquote>
 <p>定义对特定响应码的响应内容的缓存时</p>
 </blockquote>
@@ -687,17 +805,25 @@
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 示例:</span></span><br><span class="line">proxy_cache_valid 200 302 10m;</span><br><span class="line">proxy_cache_valid 404 1m; </span><br><span class="line"></span><br><span class="line"><span class="comment"># 示例：</span></span><br><span class="line"><span class="comment"># 在http配置定义缓存信</span></span><br><span class="line">proxy_cache_path /var/cache/nginx/proxy_cache</span><br><span class="line">levels=1:1:1 keys_zone=proxycache:20m</span><br><span class="line">inactive=120s max_size=1g;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用缓存功能，需要定义在相应的配置段，如server&#123;...&#125;；</span></span><br><span class="line">proxy_cache proxycache;</span><br><span class="line">proxy_cache_key <span class="variable">$request_uri</span>;</span><br><span class="line">proxy_cache_valid 200 302 301 1h;</span><br><span class="line">proxy_cache_valid any 1m;</span><br></pre></td></tr></table></figure>
 
+<p>这段完整示例把定义和调用分开写了，这个结构值得照搬。<code>proxy_cache_path</code> 只能写在 <code>http</code> 块，因为它要分配共享内存；<code>proxy_cache</code> 和它的配套指令写在 <code>server</code> 或 <code>location</code> 里，按路径决定缓存策略。</p>
+<p><code>proxy_cache_valid any 1m;</code> 这行是好习惯。不写它的话，除了显式列出的状态码，其它响应一律不缓存。加上之后 404、500 这类也会短暂缓存一分钟，好处是后端挂了的时候不会被同一批请求反复打穿。缓存时间要短，不然后端恢复了前面还在返回错误。</p>
+<p>有一点要说清楚，<code>proxy_cache_valid</code> 的优先级低于后端返回的 <code>Cache-Control</code> 和 <code>Expires</code> 头。后端明确说了 <code>no-cache</code>，Nginx 就不会缓存，你在这儿配多久都没用。想强制忽略后端的意见，得用 <code>proxy_ignore_headers Cache-Control Expires;</code>，这个开关要慎用，用之前先确认后端不是有意设的。</p>
 <h3 id="12-7-proxy-cache-use-stale"><a href="#12-7-proxy-cache-use-stale" class="headerlink" title="12.7 proxy_cache_use_stale"></a>12.7 proxy_cache_use_stale</h3><blockquote>
 <p>在被代理的后端服务器出现哪种情况下，可以直接使用过期的缓存响应客户端</p>
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxy_cache_use_stale error | <span class="built_in">timeout</span> |</span><br><span class="line">invalid_header | updating | http_500 | http_502 |</span><br><span class="line">http_503 | http_504 | http_403 | http_404 | off ..</span><br></pre></td></tr></table></figure>
 
+<p>这个指令是我心目中整个缓存体系里最有价值的一条，它把缓存从「加速手段」变成了「兜底手段」。后端全挂的时候，用户拿到的是过期五分钟的旧内容，而不是一个 502 白页。对内容类站点来说，这个差别就是「有点旧」和「网站崩了」的差别。</p>
+<p>其中 <code>updating</code> 这个值单独说一下。它的作用是缓存过期后，只放一个请求去回源更新，其余请求继续吃旧缓存。不加它的话，热点内容缓存一过期，成百上千个请求同时打到后端，这就是缓存击穿。配合 <code>proxy_cache_lock on;</code> 效果更彻底，后者会让同一个键上的并发回源请求排队等第一个的结果。</p>
 <h3 id="12-8-proxy-cache-methods-GET-HEAD-POST"><a href="#12-8-proxy-cache-methods-GET-HEAD-POST" class="headerlink" title="12.8 proxy_cache_methods GET | HEAD | POST"></a>12.8 proxy_cache_methods GET | HEAD | POST</h3><blockquote>
 <p>对哪些客户端请求方法对应的响应进行缓存， <code>GET</code>和<code>HEAD</code>方法总是被缓存</p>
 </blockquote>
+<p>缓存 POST 请听起来很怪，但确实有场景，比如查询条件太长只能用 POST 传的搜索接口。要开的话必须把请求体也加进 <code>proxy_cache_key</code>，不然不同条件的查询会共用同一份缓存。这属于高级用法，没把握就别碰。</p>
 <h3 id="12-9-proxy-hide-header-field"><a href="#12-9-proxy-hide-header-field" class="headerlink" title="12.9 proxy_hide_header field;"></a>12.9 proxy_hide_header field;</h3><blockquote>
 <p>用于隐藏后端服务器特定的响应首部</p>
 </blockquote>
+<p>这条主要用来擦掉后端泄露的技术栈信息，<code>X-Powered-By: PHP/7.2</code>、<code>X-AspNet-Version</code> 这类头，攻击者拿到就知道该找哪些漏洞了。Nginx 默认已经隐藏了 <code>Date</code>、<code>Server</code> 等几个上游头，其余的要自己列。</p>
+<p>反过来还有个配套指令 <code>proxy_pass_header</code>，用来放行那些被默认隐藏的头。两个搭配使用，能精确控制暴露给客户端的信息面。</p>
 <h3 id="12-10-proxy-connect-timeout-time"><a href="#12-10-proxy-connect-timeout-time" class="headerlink" title="12.10  proxy_connect_timeout time;"></a>12.10  proxy_connect_timeout time;</h3><blockquote>
 <p>定义与后端服务器建立连接的超时时长，如超时会出现<code>502</code>错误，默认为<code>60s</code>，一般不建议超出<code>75s</code></p>
 </blockquote>
@@ -709,13 +835,23 @@
 <h3 id="12-12-proxy-read-timeout-time"><a href="#12-12-proxy-read-timeout-time" class="headerlink" title="12.12 proxy_read_timeout time;"></a>12.12 proxy_read_timeout time;</h3><blockquote>
 <p>等待后端服务器发送响应报文的超时时长， 默认为60s</p>
 </blockquote>
-<h2 id="十三、首部信息"><a href="#十三、首部信息" class="headerlink" title="十三、首部信息"></a>十三、首部信息</h2><p>添加自定义首部</p>
+<p>这三个超时管的是三个不同阶段，混在一起调是没用的，得先判断卡在哪一步。</p>
+<p><code>proxy_connect_timeout</code> 是 TCP 握手阶段，后端进程没起来或者防火墙拦了，卡的就是这里，表现为 502。这个值不该配大，后端活着的话建连是毫秒级的事，配成 60 秒只会让故障时的请求全堆在这儿。我一般配 2 到 5 秒。</p>
+<p><code>proxy_read_timeout</code> 是等后端返回数据，慢查询、大报表导出卡的是这里，表现为 504。它算的也是两次读之间的间隔而不是总时长，逻辑和前面的 <code>send_timeout</code> 一样。有长耗时接口的话单独给那个 location 调大，别把全局值拉高。</p>
+<p>原文那句「不建议超出 75s」和后端的 keepalive 设置有关。很多应用服务器的空闲连接超时默认是 60 秒，Nginx 这边等得比它久，就会出现连接已经被对端关了、Nginx 还以为能用的情况，随机 502。所以这两头的超时值要对着配，Nginx 侧要比后端侧短。</p>
+<h2 id="十三、首部信息"><a href="#十三、首部信息" class="headerlink" title="十三、首部信息"></a>十三、首部信息</h2><p><code>add_header</code> 是响应头的出口，安全策略头基本都在这儿加。</p>
+<p>添加自定义首部</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">add_header name value [always];</span><br></pre></td></tr></table></figure>
 
 <p>添加自定义响应信息的尾部</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">add_header X-Via <span class="variable">$server_addr</span>;</span><br><span class="line">add_header X-Cache <span class="variable">$upstream_cache_status</span>;</span><br><span class="line">add_header X-Accel <span class="variable">$server_name</span>;</span><br><span class="line">add_trailer name value [always];</span><br></pre></td></tr></table></figure>
 
-<h2 id="十四、-hph-相关模块ngx-http-fastcgi-module"><a href="#十四、-hph-相关模块ngx-http-fastcgi-module" class="headerlink" title="十四、 hph 相关模块ngx_http_fastcgi_module"></a>十四、 hph 相关模块ngx_http_fastcgi_module</h2><p><strong>fastcgi_pass address</strong></p>
+<p><code>$upstream_cache_status</code> 这个变量非常好用，它的值是 <code>MISS</code>、<code>HIT</code>、<code>EXPIRED</code>、<code>BYPASS</code>、<code>STALE</code> 之一。加到响应头里，浏览器 F12 一看就知道这个请求走没走缓存，调缓存策略的时候比翻日志快多了。上线之后建议去掉，或者只对内网可见，暴露缓存状态对外没必要。</p>
+<p><code>add_header</code> 有两个坑必须说。</p>
+<p>第一个是继承规则。子级 location 里只要出现了任何一条 <code>add_header</code>，父级的所有 <code>add_header</code> 全部失效，不是合并而是整体覆盖。所以在 <code>http</code> 层加了安全头，某个 location 里又加了一条别的头，那个 location 的安全头就全没了。排查这种问题很痛苦，因为配置看起来一点毛病没有。</p>
+<p>第二个是 <code>always</code> 参数。不加 <code>always</code> 的话，这个头只在 2xx 和 3xx 响应上生效，4xx、5xx 都不带。CORS 相关的头如果不加 <code>always</code>，接口一报错前端立刻变成跨域错误，真正的错误信息完全看不到。</p>
+<h2 id="十四、php-相关模块ngx-http-fastcgi-module"><a href="#十四、php-相关模块ngx-http-fastcgi-module" class="headerlink" title="十四、php 相关模块ngx_http_fastcgi_module"></a>十四、php 相关模块ngx_http_fastcgi_module</h2><p>原文标题里的 <code>hph</code> 是 <code>php</code> 的笔误，这个模块是给 PHP-FPM 这类 FastCGI 后端用的。前端同学可能觉得用不上，但如果你的站点还挂着 WordPress 或者接手过老项目，这一节会用到。</p>
+<p><strong>fastcgi_pass address</strong></p>
 <ul>
 <li><code>address</code>为后端的<code>fastcgi server</code>的地址</li>
 <li>可用位置：<code> location</code>, <code>if in location</code></li>
@@ -736,6 +872,8 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">location ~* \.php$ &#123;</span><br><span class="line">    fastcgi_pass <span class="comment"># 后端fpm服务器IP:9000;</span></span><br><span class="line">    fastcgi_index index.php;</span><br><span class="line">    fastcgi_param SCRIPT_FILENAME</span><br><span class="line">/usr/share/nginx/html<span class="variable">$fastcgi_script_name</span>;</span><br><span class="line">    include     fastcgi.conf;    </span><br><span class="line">    …    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p><code>SCRIPT_FILENAME</code> 这个参数是整段配置里最关键的一行，它告诉 PHP-FPM 该执行哪个文件。写错了的表现是「File not found」，而且错误出现在 PHP-FPM 的日志里不在 Nginx 日志里，第一次遇到基本查不到方向。</p>
+<p>这里还藏着一个经典安全问题。<code>location ~* \.php$</code> 这种写法配合 PHP 的 <code>cgi.fix_pathinfo=1</code>，会让 <code>/upload/evil.jpg/x.php</code> 这样的路径也被当成 PHP 执行，攻击者上传一个伪装成图片的脚本就能拿到执行权限。防的办法是加一条 <code>try_files $uri =404;</code>，确认文件真实存在再交给 FPM。这条在今天的主流配置模板里都是标配。</p>
 <p>示例2：</p>
 <ul>
 <li>通过<code>/pm_status</code>和<code>/ping</code>来获取<code>fpm server</code>状态信息（真实服务器端<code>php-fpm</code>配置文件中将这两项<br>注释掉）</li>
@@ -761,7 +899,9 @@
 </li>
 <li><code>inactive=time</code> 非活动时长</li>
 </ul>
-<h2 id="十五、代理模块ngx-http-upstream-module模块"><a href="#十五、代理模块ngx-http-upstream-module模块" class="headerlink" title="十五、代理模块ngx_http_upstream_module模块"></a>十五、代理模块ngx_http_upstream_module模块</h2><blockquote>
+<p><code>fastcgi_cache_path</code> 和前面的 <code>proxy_cache_path</code> 参数完全一样，两套缓存是各自独立的，用哪个取决于后端是 FastCGI 还是 HTTP。WordPress 这类动态站开 FastCGI 缓存，效果比装十个缓存插件都好，因为它在 PHP 执行之前就返回了。</p>
+<h2 id="十五、代理模块ngx-http-upstream-module模块"><a href="#十五、代理模块ngx-http-upstream-module模块" class="headerlink" title="十五、代理模块ngx_http_upstream_module模块"></a>十五、代理模块ngx_http_upstream_module模块</h2><p>单台后端撑不住的时候，就轮到这个模块了。它本身不做代理，只负责定义「有哪些后端、按什么规则挑一台」，实际转发还是 <code>proxy_pass</code> 干的。选调度算法这件事，选错了不会报错，只会让某台机器莫名其妙比别的忙一倍。</p>
+<blockquote>
 <p>用于将多个服务器定义成服务器组，而由<code>proxy_pass</code>,<code>fastcgi_pass</code>等指令进行引用</p>
 </blockquote>
 <h3 id="15-1-upstream-name-…"><a href="#15-1-upstream-name-…" class="headerlink" title="15.1 upstream name { … }"></a>15.1 upstream name { … }</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 定义后端服务器组，会引入一个新的上下文</span></span><br><span class="line"><span class="comment"># 默认调度算法是wrr</span></span><br><span class="line"></span><br><span class="line">Context: http</span><br><span class="line">upstream httpdsrvs &#123;</span><br><span class="line">server ...</span><br><span class="line">server...</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -780,14 +920,24 @@
 <li><code>max_fails=number</code>     失败尝试最大次数；超出此处指定的次数时    </li>
 <li><code>server</code>将被标记为不可用,默认为<code>1</code></li>
 <li><code>fail_timeout=time</code> 后端服务器标记为不可用状态的连接超时时<br>长，默认<code>10s</code></li>
-<li><code>backup</code> 将服务器标记为“备用”，即所有服务器均不可用时才启用</li>
-<li><code>down</code> 标记为“不可用”，配合<code>ip_hash</code>使用，实现灰度发布</li>
+<li><code>backup</code> 将服务器标记为「备用」，即所有服务器均不可用时才启用</li>
+<li><code>down</code> 标记为「不可用」，配合<code>ip_hash</code>使用，实现灰度发布</li>
 </ul>
 </li>
 </ul>
-<h3 id="15-3-ip-hash-源地址hash调度方法"><a href="#15-3-ip-hash-源地址hash调度方法" class="headerlink" title="15.3 ip_hash 源地址hash调度方法"></a>15.3 ip_hash 源地址hash调度方法</h3><h3 id="15-4-least-conn"><a href="#15-4-least-conn" class="headerlink" title="15.4 least_conn"></a>15.4 least_conn</h3><blockquote>
+<p><code>max_fails</code> 和 <code>fail_timeout</code> 这一对是被动健康检查，理解它们的联动关系很重要。含义是「在 <code>fail_timeout</code> 这段时间内失败了 <code>max_fails</code> 次，就把这台标记为不可用，然后持续 <code>fail_timeout</code> 这么久不给它派活」。同一个参数在两个地方起作用，这个设计一开始挺反直觉的。</p>
+<p>默认的 <code>max_fails=1</code> 太敏感了，一次网络抖动就把整台后端摘掉。生产上我一般配 <code>max_fails=3 fail_timeout=30s</code>，容忍偶发失败，又能在真挂掉时及时切走。</p>
+<p>什么算「失败」也有讲究。默认只有连接错误和超时算，后端返回 500 是不算的。要把 5xx 也算进去得配 <code>proxy_next_upstream</code>，但这个开关要小心，POST 请求重试到另一台可能造成重复提交。</p>
+<p><code>backup</code> 那台在正常情况下一点流量都没有，那它的状态其实就是未知的，等主力全挂了切过去，很可能发现它自己也有问题（版本旧了、依赖没起来）。所以要么定期演练，要么干脆别用 backup，把所有机器都放进正常轮询。</p>
+<p><code>down</code> 用来做发布最顺手。标记上去、reload 一下，这台就不再接新流量了，等它手上的请求处理完就可以停服务升级，升完再去掉 <code>down</code>。灰度发布和滚动升级基本就是这个套路。</p>
+<h3 id="15-3-ip-hash-源地址hash调度方法"><a href="#15-3-ip-hash-源地址hash调度方法" class="headerlink" title="15.3 ip_hash 源地址hash调度方法"></a>15.3 ip_hash 源地址hash调度方法</h3><p>按客户端 IP 算哈希，同一个 IP 永远落到同一台后端。它解决的是 session 保持问题，后端把会话存在本机内存里的时候必须用它，不然用户点两下就掉登录。</p>
+<p>但它有两个硬伤。一是运营商 NAT 会让一大片用户共用一个出口 IP，全都压到同一台后端上，负载严重倾斜。二是加减机器时哈希结果会大面积变化，一次扩容能让多数用户的会话全部失效。</p>
+<p>我的建议是别靠 <code>ip_hash</code> 解决 session，把会话存到 Redis 里，后端做成无状态的，然后随便用哪种调度算法都行。这个改造成本不高，收益是后面所有扩缩容都不用再提心吊胆。</p>
+<h3 id="15-4-least-conn"><a href="#15-4-least-conn" class="headerlink" title="15.4 least_conn"></a>15.4 least_conn</h3><blockquote>
 <p>最少连接调度算法，当<code>server</code>拥有不同的权重时其为<code>wlc</code>，当所有后端主机连接数相同时，则使用<code>wrr</code>，适用于长连接</p>
 </blockquote>
+<p>轮询假设每个请求的开销差不多，这个假设在有慢接口的系统里不成立。一台机器接连碰上几个大查询，轮询照样按顺序给它派活，它就越积越多。<code>least_conn</code> 看的是当前连接数，谁闲给谁，天然规避了这个问题。</p>
+<p>请求耗时差异大的场景，比如混着查询和导出的后台系统，<code>least_conn</code> 明显比轮询稳。反过来说，如果所有请求都是几十毫秒的短平快，两者没什么区别，轮询还更省一点点开销。</p>
 <h3 id="15-5-hash-key-consistent"><a href="#15-5-hash-key-consistent" class="headerlink" title="15.5 hash key [consistent]"></a>15.5 hash key [consistent]</h3><blockquote>
 <p>基于指定的<code>key</code>的<code>hash</code>表来实现对请求的调度，此处的<code>key</code>可以直接文本、变量或二者组合</p>
 </blockquote>
@@ -799,10 +949,17 @@
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">hash</span> <span class="variable">$request_uri</span> consistent;</span><br><span class="line"><span class="built_in">hash</span> <span class="variable">$remote_addr</span>;</span><br></pre></td></tr></table></figure>
 
+<p><code>consistent</code> 这个参数是精髓所在，它启用一致性哈希。普通哈希是「键对机器数取模」，机器从 4 台变成 5 台，几乎所有键的归属都会变；一致性哈希只会让大约 1&#x2F;N 的键迁移。后端是缓存服务器的时候，这个差别就是「缓存整体失效」和「小部分回源」的差别。</p>
+<p><code>hash $request_uri consistent</code> 是给 CDN 回源层用的经典写法，同一个 URL 永远打到同一台缓存机，命中率能上去一大截。要注意 <code>$request_uri</code> 是带查询串的，如果查询串里有随机参数（时间戳、埋点 ID），每次哈希都不一样，缓存等于白做，这种情况要换成 <code>$uri</code>。</p>
 <h3 id="15-6-keepalive"><a href="#15-6-keepalive" class="headerlink" title="15.6 keepalive"></a>15.6 keepalive</h3><ul>
 <li><code>keepalive</code> 连接<code>数N</code>;</li>
 <li>为每个<code>worker</code>进程保留的空闲的长连接数量,可节约<code>nginx</code>端口，并减少连接管理的消耗</li>
 </ul>
+<p>这个参数我认为是 upstream 里最被低估的一个。默认情况下 Nginx 到后端是短连接，每个请求都要三次握手加四次挥手，高 QPS 下会产生大量 TIME_WAIT 状态的连接，把本地端口耗光，表现是压测到某个值就上不去了，日志里开始报连接失败。</p>
+<p>配它有个前提条件，光写 <code>keepalive 32;</code> 是不够的，还必须在 location 里补两行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxy_http_version 1.1;</span><br><span class="line">proxy_set_header Connection <span class="string">&quot;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>原因是 HTTP&#x2F;1.0 不支持长连接，而 Nginx 到上游默认用的就是 1.0；另外客户端传过来的 <code>Connection</code> 头会被透传，值可能是 <code>close</code>，把它置空才不会干扰。这两行少一行，<code>keepalive</code> 就静默失效，配了跟没配一样，<code>nginx -t</code> 也不会提醒你。这个我踩过，当时以为参数没生效反复调数值，后来抓包才发现每次都在重新建连。</p>
 <h3 id="15-7-health-check-parameters"><a href="#15-7-health-check-parameters" class="headerlink" title="15.7 health_check [parameters]"></a>15.7 health_check [parameters]</h3><blockquote>
 <p>健康状态检测机制；只能用于<code>location</code>上下文</p>
 </blockquote>
@@ -826,11 +983,18 @@
 <li><code>body</code>：期望响应报文的主体部分应该有的内容</li>
 <li>注意：仅对<code>nginx plus</code>有效</li>
 </ul>
-<h3 id="十六、ngx-stream-core-module模块"><a href="#十六、ngx-stream-core-module模块" class="headerlink" title="十六、ngx_stream_core_module模块"></a>十六、ngx_stream_core_module模块</h3><blockquote>
+<p>这两节末尾那句「仅对 nginx plus 有效」千万别跳过，它是选型层面的关键信息。<code>health_check</code> 和 <code>match</code> 是主动健康检查，Nginx 会定期主动去 ping 后端，后端挂了立刻摘掉。开源版没有这个能力，只有商业版 Nginx Plus 才有。</p>
+<p>开源版能用的是前面 <code>server</code> 参数里的 <code>max_fails</code>&#x2F;<code>fail_timeout</code>，属于被动检查，得先有真实用户请求失败了才发现问题。这个差别在故障时很要命，被动检查意味着总有一批用户会先撞上错误。</p>
+<p>开源方案有两条路。一是 <code>nginx_upstream_check_module</code> 这个第三方模块，淘宝出的，能做主动检查，但需要打补丁重新编译。二是干脆换成有原生主动健康检查的组件，比如 OpenResty 加 <code>lua-resty-upstream-healthcheck</code>，或者上 Kubernetes 让 Ingress 和 readinessProbe 去管。选哪条取决于你的运维体量，小项目用被动检查加监控告警其实也够。</p>
+<h2 id="十六、ngx-stream-core-module模块"><a href="#十六、ngx-stream-core-module模块" class="headerlink" title="十六、ngx_stream_core_module模块"></a>十六、ngx_stream_core_module模块</h2><p>前面所有内容都在 HTTP 这一层。但有些东西不是 HTTP，MySQL、Redis、SSH、SMTP、DNS，这些协议 Nginx 也能代理，靠的就是 <code>stream</code> 模块。它工作在传输层，只管转发字节流，不解析内容。</p>
+<blockquote>
 <p>模拟反代基于<code>tcp</code>或<code>udp</code>的服务连接，即工作于传输层的反代或调度器</p>
 </blockquote>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">stream &#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义stream相关的服务； Context:main</span></span><br><span class="line"></span><br><span class="line">stream &#123;</span><br><span class="line">    upstream telnetsrvs &#123;</span><br><span class="line">        server 192.168.22.2:23;</span><br><span class="line">        server 192.168.22.3:23;</span><br><span class="line">        least_conn;</span><br><span class="line">    &#125;</span><br><span class="line">server &#123;</span><br><span class="line">    listen 10.1.0.6:23;</span><br><span class="line">    proxy_pass telnetsrvs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125; </span><br><span class="line">listen address:port [ssl] [udp] [proxy_protocol]</span><br><span class="line">[backlog=number] [<span class="built_in">bind</span>] [ipv6only=on|off] [reuseport]</span><br><span class="line">[so_keepalive=on|off|[keepidle]:[keepintvl]:[keepcnt]];</span><br></pre></td></tr></table></figure>
 
+<p>注意 <code>stream</code> 块和 <code>http</code> 块是平级的，都直接写在配置文件最外层，不能嵌套。第一次配的时候我把它写进了 <code>http</code> 里面，<code>nginx -t</code> 报的错信息不太直观，愣是找了一会儿。</p>
+<p><code>stream</code> 模块默认不编译，要 <code>./configure --with-stream</code>。用发行版的包安装通常已经带了，<code>nginx -V</code> 确认一下。</p>
+<p>四层代理相比七层有个绕不开的问题，后端拿不到客户端真实 IP。因为这一层没有 HTTP 头可以塞 <code>X-Forwarded-For</code>。解法是 <code>proxy_protocol</code>，它在 TCP 连接建立后先发一小段文本声明真实地址，但要求后端也支持解析这个协议。MySQL 不支持，所以四层代理数据库时，后端看到的永远是代理机的 IP，审计日志会失去意义，这一点上线前要跟 DBA 说清楚。</p>
 <h2 id="十七、ngx-stream-proxy-module模块"><a href="#十七、ngx-stream-proxy-module模块" class="headerlink" title="十七、ngx_stream_proxy_module模块"></a>十七、ngx_stream_proxy_module模块</h2><blockquote>
 <p>可实现代理基于·TCP·， ·UDP (1.9.13)·, ·UNIX-domain·</p>
 </blockquote>
@@ -842,21 +1006,32 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">stream &#123;</span><br><span class="line">    upstream telnetsrvs &#123;</span><br><span class="line">        server 192.168.10.130:23;</span><br><span class="line">        server 192.168.10.131:23;</span><br><span class="line">        <span class="built_in">hash</span> <span class="variable">$remote_addr</span> consistent;</span><br><span class="line">    &#125;</span><br><span class="line">    server &#123;</span><br><span class="line">        listen 172.16.100.10:2323;</span><br><span class="line">        proxy_pass telnetsrvs;</span><br><span class="line">        proxy_timeout 60s;</span><br><span class="line">        proxy_connect_timeout 10s;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p><code>proxy_timeout</code> 在四层这里的含义和七层不一样，它是「连接上多久没有数据传输就断开」，双向都算。默认 10 分钟，代理数据库连接池的时候这个值要调大，不然空闲连接被中途掐断，应用侧会收到莫名其妙的连接重置。</p>
+<p>四层代理什么时候比 HAProxy 更合适？我的判断是，如果你的机器上本来就跑着 Nginx 做七层，只是顺带要转发一两个 TCP 服务，那用 <code>stream</code> 省一个组件很划算，配置语法还是同一套，不用再学一份。真要做重度的四层负载均衡，带完整的健康检查、连接统计、动态权重，HAProxy 的功能还是更全。</p>
 <p><strong>linux对于nginx做的内核优化(&#x2F;etc&#x2F;sysctl.conf)</strong></p>
+<p>最后这份 sysctl 参数是配套的，Nginx 配得再好，内核这边卡住了照样上不去。整份抄过去之前有两个必须说清楚的问题。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">fs.file-max = 999999</span><br><span class="line">net.ipv4.ip_forward = 0</span><br><span class="line">net.ipv4.conf.default.rp_filter = 1</span><br><span class="line">net.ipv4.conf.default.accept_source_route = 0</span><br><span class="line">kernel.sysrq = 0</span><br><span class="line">kernel.core_uses_pid = 1</span><br><span class="line">net.ipv4.tcp_syncookies = 1</span><br><span class="line">kernel.msgmnb = 65536</span><br><span class="line">kernel.msgmax = 65536</span><br><span class="line">kernel.shmmax = 68719476736</span><br><span class="line">kernel.shmall = 4294967296</span><br><span class="line">net.ipv4.tcp_max_tw_buckets = 6000</span><br><span class="line">net.ipv4.tcp_sack = 1</span><br><span class="line">net.ipv4.tcp_window_scaling = 1</span><br><span class="line">net.ipv4.tcp_rmem = 10240 87380 12582912</span><br><span class="line">net.ipv4.tcp_wmem = 10240 87380 12582912</span><br><span class="line">net.core.wmem_default = 8388608</span><br><span class="line">net.core.rmem_default = 8388608</span><br><span class="line">net.core.rmem_max = 16777216</span><br><span class="line">net.core.wmem_max = 16777216</span><br><span class="line">net.core.netdev_max_backlog = 262144</span><br><span class="line">net.core.somaxconn = 40960</span><br><span class="line">net.ipv4.tcp_max_orphans = 3276800</span><br><span class="line">net.ipv4.tcp_max_syn_backlog = 262144</span><br><span class="line">net.ipv4.tcp_timestamps = 0</span><br><span class="line">net.ipv4.tcp_synack_retries = 1</span><br><span class="line">net.ipv4.tcp_syn_retries = 1</span><br><span class="line">net.ipv4.tcp_tw_recycle = 1</span><br><span class="line">net.ipv4.tcp_tw_reuse = 1</span><br><span class="line">net.ipv4.tcp_mem = 94500000 915000000 927000000</span><br><span class="line">net.ipv4.tcp_fin_timeout = 1</span><br><span class="line">net.ipv4.tcp_keepalive_time = 30</span><br><span class="line">net.ipv4.ip_local_port_range = 1024 65000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行sysctl  -p使内核修改生效</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="第二部分-功能详解"><a href="#第二部分-功能详解" class="headerlink" title="第二部分 功能详解"></a>第二部分 功能详解</h1><h2 id="一、proxy-pass"><a href="#一、proxy-pass" class="headerlink" title="一、proxy_pass"></a>一、proxy_pass</h2><blockquote>
+<p>第一个问题是 <code>net.ipv4.tcp_tw_recycle = 1</code> 这一行，今天绝对不要开。它在 NAT 环境下会导致丢包，同一个出口 IP 后面的多个客户端时间戳不一致，内核会把后来的连接当成旧包丢掉，表现是部分用户随机连不上，极难排查。Linux 内核在 4.12 之后已经把这个参数移除了，新系统上写了也没用。真正安全有效的是同一份配置里的 <code>net.ipv4.tcp_tw_reuse = 1</code>，保留它就行。</p>
+<p>第二个问题是 <code>net.ipv4.tcp_timestamps = 0</code>。关掉时间戳会让 <code>tcp_tw_reuse</code> 失效，两者是有依赖关系的，这份配置里同时出现是矛盾的。今天的建议是保持 <code>tcp_timestamps = 1</code>。</p>
+<p>其余参数里真正值得关注的是这几个。<code>fs.file-max</code> 是全系统的文件描述符总量，和前面 <code>worker_rlimit_nofile</code> 配套；<code>net.core.somaxconn</code> 决定 <code>listen</code> 的 backlog 上限，Nginx 里配了 <code>backlog=1024</code> 而这里是 128 的话，实际生效的是 128；<code>net.ipv4.ip_local_port_range</code> 放宽本地端口范围，做反向代理时每个到后端的连接都要占一个本地端口，默认范围在高并发下会不够用。</p>
+<p>至于那些 <code>tcp_rmem</code>、<code>tcp_wmem</code>、<code>shmmax</code> 的具体数值，是按当年的内存规格拍的，直接抄到今天的机器上未必合适。我的做法是先只改前面提到的那几个关键项，压测看瓶颈在哪，再针对性地调，而不是一次性把三十行全糊上去。</p>
+<h2 id="十八、proxy-pass-路径拼接的四种情况"><a href="#十八、proxy-pass-路径拼接的四种情况" class="headerlink" title="十八、proxy_pass 路径拼接的四种情况"></a>十八、proxy_pass 路径拼接的四种情况</h2><p>下面这部分是把前面几个高频模块单独拎出来讲透，主要是那些光看指令说明看不明白、必须对着例子才能懂的地方。</p>
+<blockquote>
 <p>在<code>nginx</code>中配置<code>proxy_pass</code>代理转发时，如果在<code>proxy_pass</code>后面的<code>url</code>加<code>/</code>，表示绝对根路径；如果没有<code>/</code>，表示相对路径，把匹配的路径部分也给代理走。</p>
 </blockquote>
 <ul>
 <li>假设下面四种情况分别用 <code>http://192.168.1.1/proxy/test.html</code> 进行访问</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一种：</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1/;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/test.html</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种（相对于第一种，最后少一个 / ）</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/proxy/test.html</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三种：</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1/aaa/;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/aaa/test.html</span></span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 第四种（相对于第三种，最后少一个 / ）</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1/aaa;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/aaatest.html</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第五种 配合upstream模块</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果一个域名可以解析到多个地址，那么这些地址会被轮流使用，此外，还可以把一个地址指定为 server group</span></span><br><span class="line"></span><br><span class="line">upstream fasf.com &#123;</span><br><span class="line"></span><br><span class="line">          server 10.*.*.20:17007 max_fails=2 fail_timeout=15s;</span><br><span class="line"></span><br><span class="line">          server 10.*.*.21:17007 max_fails=2 fail_timeout=15s down;</span><br><span class="line"></span><br><span class="line">          ip_hash;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">        listen       9000;</span><br><span class="line"></span><br><span class="line">        server_name  fsf-NGINX-P01;</span><br><span class="line"></span><br><span class="line">        location / &#123;</span><br><span class="line"></span><br><span class="line">                proxy_pass http://fasf.com;</span><br><span class="line"></span><br><span class="line">                proxy_read_timeout 300;</span><br><span class="line"></span><br><span class="line">                proxy_connect_timeout 90;</span><br><span class="line"></span><br><span class="line">                proxy_send_timeout 300;</span><br><span class="line"></span><br><span class="line">               proxy_set_header HTTP_X_FORWARDED_FOR <span class="variable">$remote_addr</span>;</span><br><span class="line"></span><br><span class="line">        &#125; </span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一种：</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1/;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/test.html</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二种（相对于第一种，最后少一个 / ）</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/proxy/test.html</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三种：</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1/aaa/;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/aaa/test.html</span></span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line"><span class="comment"># 第四种（相对于第三种，最后少一个 / ）</span></span><br><span class="line"></span><br><span class="line">location /proxy/ &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://127.0.0.1/aaa;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 代理到URL：http://127.0.0.1/aaatest.html</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第五种 配合upstream模块</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果一个域名可以解析到多个地址，那么这些地址会被轮流使用，此外，还可以把一个地址指定为 server group</span></span><br><span class="line"></span><br><span class="line">upstream fasf.com &#123;</span><br><span class="line"></span><br><span class="line">          server 10.*.*.20:17007 max_fails=2 fail_timeout=15s;</span><br><span class="line"></span><br><span class="line">          server 10.*.*.21:17007 max_fails=2 fail_timeout=15s down;</span><br><span class="line"></span><br><span class="line">          ip_hash;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">        listen       9000;</span><br><span class="line"></span><br><span class="line">        server_name  fsf-NGINX-P01;</span><br><span class="line"></span><br><span class="line">        location / &#123;</span><br><span class="line"></span><br><span class="line">                proxy_pass http://fasf.com;</span><br><span class="line"></span><br><span class="line">                proxy_read_timeout 300;</span><br><span class="line"></span><br><span class="line">                proxy_connect_timeout 90;</span><br><span class="line"></span><br><span class="line">                proxy_send_timeout 300;</span><br><span class="line"></span><br><span class="line">               proxy_set_header HTTP_X_FORWARDED_FOR <span class="variable">$remote_addr</span>;</span><br><span class="line"></span><br><span class="line">        &#125; </span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p><code>X_Forward_For</code>字段表示该条<code>http</code>请求是有谁发起的？如果反向代理服务器不重写该请求头的话，那么后端真实服务器在处理时会认为所有的请求都来在反向代理服务器，如果后端有防攻击策略的话，那么机器就被封掉了(显示真实访问ip)</p>
+<p><code>X-Forwarded-For</code>字段表示该条<code>http</code>请求是由谁发起的。如果反向代理服务器不重写该请求头的话，那么后端真实服务器在处理时会认为所有的请求都来自反向代理服务器，如果后端有防攻击策略的话，那么机器就被封掉了(显示真实访问ip)</p>
 </blockquote>
-<h2 id="二、rewrite"><a href="#二、rewrite" class="headerlink" title="二、rewrite"></a>二、rewrite</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">syntax: rewrite regex replacement [flag]</span><br></pre></td></tr></table></figure>
+<p>这四种情况建议记结论：<code>proxy_pass</code> 后面只要有路径部分（包括那个孤零零的斜杠），location 匹配到的那一段就被它替换掉；一点路径都没有，就原样拼上去。</p>
+<p>第四种最容易出事，<code>location /proxy/</code> 配 <code>proxy_pass http://127.0.0.1/aaa</code>，结果拼成了 <code>/aaatest.html</code>，两段直接黏在一起。这不是 bug，是严格按替换规则算出来的，<code>/proxy/</code> 被换成了 <code>/aaa</code>，剩下的 <code>test.html</code> 接在后面。真实项目里这种拼错的路径会直接 404，而配置看上去挺正常，所以改完 <code>proxy_pass</code> 一定要实际请求验证一遍，别只跑 <code>nginx -t</code>。</p>
+<p>上面第五个例子还顺带演示了 upstream 的用法，注意那台带 <code>down</code> 标记的机器不会接收流量，是故意留着的备用节点。这个例子里的 <code>proxy_set_header HTTP_X_FORWARDED_FOR</code> 写法不推荐，标准头名是 <code>X-Forwarded-For</code>，用下划线形式后端框架多半读不到，正确写法在前面 12.2 节。</p>
+<h2 id="十九、rewrite-与正则速查"><a href="#十九、rewrite-与正则速查" class="headerlink" title="十九、rewrite 与正则速查"></a>十九、rewrite 与正则速查</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">syntax: rewrite regex replacement [flag]</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p><code>rewrite</code>由<code>ngx_http_rewrite_module</code>标准模块支持是实现URL重定向的重要指令，他根据<code>regex</code>(正则表达式)来匹配内容跳转到<code>replacement</code>，结尾是<code>flag</code>标记</p>
@@ -881,7 +1056,7 @@
 </li>
 <li><p><code>?</code> 匹配前面字符串的零次或者一次</p>
 </li>
-<li><p><code>.</code> 匹配除“<code>\n</code>”之外的所有单个字符</p>
+<li><p><code>.</code> 匹配除 <code>\n</code> 之外的所有单个字符</p>
 </li>
 </ul>
 <p><strong>rewrite 最后一项flag参数</strong></p>
@@ -909,15 +1084,20 @@
 <td>返回<code>301</code>永久重定向</td>
 </tr>
 </tbody></table>
+<p>这张 flag 对照表建议直接背下来，配 rewrite 时多数问题都出在选错 flag 上。表里 <code>last</code> 那行写的「继续向下匹配新的 location URI 规则」是准确的，它会拿改写后的 URI 重新走一遍 location 匹配流程。</p>
 <blockquote>
 <p>在反向代理域名的使用，在<code>tomcat</code>中配置多个项目需要挂目录的使用案例</p>
 </blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">    listen 443;</span><br><span class="line"></span><br><span class="line">    server_name FLS-Nginx-P01;</span><br><span class="line"></span><br><span class="line">    ssl on;</span><br><span class="line"></span><br><span class="line">    ssl_certificate   cert/214837463560686.pem;</span><br><span class="line"></span><br><span class="line">    ssl_certificate_key  cert/214837463560686.key;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">    listen 443 ssl;</span><br><span class="line"></span><br><span class="line">    server_name FLS-Nginx-P01;</span><br><span class="line"></span><br><span class="line">    ssl_certificate   cert/214837463560686.pem;</span><br><span class="line"></span><br><span class="line">    ssl_certificate_key  cert/214837463560686.key;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这段原文写的是 <code>listen 443;</code> 配 <code>ssl on;</code>，我改成了现在的标准写法 <code>listen 443 ssl;</code>。原因前面 SSL 那节说过，<code>ssl on</code> 已被移除，而只写 <code>listen 443;</code> 不带 <code>ssl</code> 参数的话，Nginx 会把 TLS 流量当明文 HTTP 解析，浏览器直接报错。这个组合在老配置里非常常见，迁移时是必查项。</p>
 <p>公网域名解析<code>fls.***.com</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssl_session_timeout 5m;</span><br><span class="line"></span><br><span class="line"> ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;</span><br><span class="line"></span><br><span class="line"> ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</span><br><span class="line"></span><br><span class="line"> ssl_prefer_server_ciphers on;</span><br><span class="line"></span><br><span class="line"> location  = / &#123;</span><br><span class="line"></span><br><span class="line"> rewrite ^(.*)$ https://fls.***.com/fls/;</span><br><span class="line"></span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> location / &#123;</span><br><span class="line"></span><br><span class="line"> proxy_redirect http https;</span><br><span class="line"></span><br><span class="line"> proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line"></span><br><span class="line"> proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line"></span><br><span class="line"> proxy_set_header X-Forwarded_For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line"> proxy_pass http://10.0.3.4:8080;</span><br><span class="line"></span><br><span class="line"> &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssl_session_timeout 5m;</span><br><span class="line"></span><br><span class="line"> ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;</span><br><span class="line"></span><br><span class="line"> ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</span><br><span class="line"></span><br><span class="line"> ssl_prefer_server_ciphers on;</span><br><span class="line"></span><br><span class="line"> location  = / &#123;</span><br><span class="line"></span><br><span class="line"> rewrite ^(.*)$ https://fls.***.com/fls/;</span><br><span class="line"></span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> location / &#123;</span><br><span class="line"></span><br><span class="line"> proxy_redirect http https;</span><br><span class="line"></span><br><span class="line"> proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line"></span><br><span class="line"> proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line"></span><br><span class="line"> proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line"> proxy_pass http://10.0.3.4:8080;</span><br><span class="line"></span><br><span class="line"> &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="三、log-format"><a href="#三、log-format" class="headerlink" title="三、log_format"></a>三、log_format</h2><blockquote>
+<p>这段里我改了一处笔误，原文写的是 <code>X-Forwarded_For</code>，中间是下划线，标准头名全部用连字符。这类错误 Nginx 不会报，后端框架读不到就当没有，然后你会看到日志里所有请求的来源 IP 都是代理机。</p>
+<p>另外那行 <code>proxy_redirect http https;</code> 值得单独说，它改写的是后端返回的 <code>Location</code> 响应头。后端跑在 HTTP 上、不知道外面套了 HTTPS，返回的重定向地址还是 <code>http://</code>，浏览器一跳就掉出安全上下文。更彻底的解法是给后端传 <code>X-Forwarded-Proto $scheme</code>，让应用自己生成正确的绝对地址。</p>
+<p>至于这里的 <code>ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</code>，我保留了原始写法，但今天配置只应该留 TLSv1.2 和 TLSv1.3。同样地，那串 <code>ssl_ciphers</code> 也别照抄，去 Mozilla SSL Configuration Generator 按你的版本生成一份当前的。</p>
+<h2 id="二十、log-format-与日志字段"><a href="#二十、log-format-与日志字段" class="headerlink" title="二十、log_format 与日志字段"></a>二十、log_format 与日志字段</h2><blockquote>
 <p><code>nginx</code>服务器日志相关指令主要有两条：一条是<code>log_format</code>，用来设置日志格式；另外一条是<code>access_log</code>，用来指定日志文件的存放路径、格式和缓存大小，可以参加<code>ngx_http_log_module</code>。一般在<code>nginx</code>的配置文件中日记配置(<code>/usr/local/nginx/conf/nginx.conf</code>)</p>
 </blockquote>
 <ul>
@@ -929,18 +1109,24 @@
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">log_format combined &#x27;$remote_addr-$remote_user [$time_local]&#x27;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><code>‘&quot;$request&quot;$status $body_bytes_sent’</code></li>
-<li><code> ‘&quot;$http_referer&quot; &quot;$http_user_agent&quot;’</code></li>
+<li><code>&#39;&quot;$request&quot; $status $body_bytes_sent&#39;</code></li>
+<li><code>&#39;&quot;$http_referer&quot; &quot;$http_user_agent&quot;&#39;</code></li>
 </ul>
-<h2 id="四、ssl证书加密配置"><a href="#四、ssl证书加密配置" class="headerlink" title="四、ssl证书加密配置"></a>四、ssl证书加密配置</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">upstream fasf.com &#123;</span><br><span class="line"></span><br><span class="line">        server 10.5.1.*:17007 max_fails=2 fail_timeout=15s;</span><br><span class="line"></span><br><span class="line">        server 10.5.1.*:17007 max_fails=2 fail_timeout=15s down;</span><br><span class="line"></span><br><span class="line">        ip_hash;      <span class="comment"># ----同一ip会被分配给固定的后端服务器,解决session问题</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">    listen       443;</span><br><span class="line"></span><br><span class="line">    server_name fsfs-pi-P01;</span><br><span class="line"></span><br><span class="line">    ssl on;</span><br><span class="line"></span><br><span class="line">    ssl_certificate   214820781820381.pem;    <span class="comment">#证书路径:nginx.conf所在目录</span></span><br><span class="line"></span><br><span class="line">    ssl_certificate_key  214820781820381.key;</span><br><span class="line"></span><br><span class="line">    ssl_session_timeout 5m;</span><br><span class="line"></span><br><span class="line">    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;</span><br><span class="line"></span><br><span class="line">    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</span><br><span class="line"></span><br><span class="line">    ssl_prefer_server_ciphers on;</span><br><span class="line"></span><br><span class="line"> location / &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://fafs.com;</span><br><span class="line"></span><br><span class="line">    proxy_set_header HTTP_X_FORWARDED_FOR <span class="variable">$remote_addr</span>;</span><br><span class="line"></span><br><span class="line"> &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>原文这两行用的是中文弯引号，实际配置里必须是英文单引号，我改过来了。</p>
+<p><code>combined</code> 这个默认格式的问题在于它是上世纪 Apache 留下来的遗产，那时候没有反向代理、没有微服务、没有 CDN。今天你需要的 <code>$request_time</code>、<code>$upstream_addr</code>、<code>$request_id</code> 它一个都没有。所以新装一台 Nginx，第一件事就是换掉默认的 log_format，别等出事了才想起来加字段，那时候故障现场已经没了。</p>
+<p>特别推荐加一个 <code>$request_id</code>，这是 Nginx 自动生成的请求唯一标识，通过 <code>proxy_set_header X-Request-Id $request_id;</code> 传给后端，就能把网关日志和应用日志串起来。做链路排查时这个东西的价值远超其它所有字段。</p>
+<h2 id="二十一、ssl证书加密配置"><a href="#二十一、ssl证书加密配置" class="headerlink" title="二十一、ssl证书加密配置"></a>二十一、ssl证书加密配置</h2><p>这一段是把 upstream、SSL 和反向代理拼在一起的完整例子，比前面单条指令更接近真实配置文件的样子。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">upstream fasf.com &#123;</span><br><span class="line"></span><br><span class="line">        server 10.5.1.*:17007 max_fails=2 fail_timeout=15s;</span><br><span class="line"></span><br><span class="line">        server 10.5.1.*:17007 max_fails=2 fail_timeout=15s down;</span><br><span class="line"></span><br><span class="line">        ip_hash;      <span class="comment"># ----同一ip会被分配给固定的后端服务器,解决session问题</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line"></span><br><span class="line">    listen       443 ssl;</span><br><span class="line"></span><br><span class="line">    server_name fsfs-pi-P01;</span><br><span class="line"></span><br><span class="line">    ssl_certificate   214820781820381.pem;    <span class="comment">#证书路径:nginx.conf所在目录</span></span><br><span class="line"></span><br><span class="line">    ssl_certificate_key  214820781820381.key;</span><br><span class="line"></span><br><span class="line">    ssl_session_timeout 5m;</span><br><span class="line"></span><br><span class="line">    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;</span><br><span class="line"></span><br><span class="line">    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;</span><br><span class="line"></span><br><span class="line">    ssl_prefer_server_ciphers on;</span><br><span class="line"></span><br><span class="line"> location / &#123;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://fafs.com;</span><br><span class="line"></span><br><span class="line">    proxy_set_header HTTP_X_FORWARDED_FOR <span class="variable">$remote_addr</span>;</span><br><span class="line"></span><br><span class="line"> &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="五、sendfile"><a href="#五、sendfile" class="headerlink" title="五、sendfile"></a>五、sendfile</h2><blockquote>
+<p>这段配置里 <code>ip_hash</code> 后面那句注释「同一ip会被分配给固定的后端服务器,解决session问题」说清了它的用途，前面 15.3 节我也吐槽过这个方案的局限。同样地，<code>ssl on</code> 这行我按现在的写法并进了 <code>listen 443 ssl</code>。</p>
+<p><code>proxy_set_header HTTP_X_FORWARDED_FOR $remote_addr;</code> 这行有两个问题。头名应该是 <code>X-Forwarded-For</code>，用下划线的话后端多半读不到，因为 Nginx 默认会丢弃带下划线的请求头，<code>underscores_in_headers</code> 这个开关默认是 off。另外用 <code>$remote_addr</code> 会把上一跳传来的链路信息覆盖掉，多层代理时应该用 <code>$proxy_add_x_forwarded_for</code>。原配置我留着没动，它记录了当时的真实写法，但新配置别这么写。</p>
+<h2 id="二十二、sendfile"><a href="#二十二、sendfile" class="headerlink" title="二十二、sendfile"></a>二十二、sendfile</h2><blockquote>
 <p><code>sendfile</code>: 设置为<code>on</code>表示启动高效传输文件的模式。<code>sendfile</code>可以让<code>Nginx</code>在传输文件时直接在磁盘和<code>tcp</code> <code>socket</code>之间传输数据。如果这个参数不开启，会先在用户空间（Nginx进程空间）申请一个<code>buffer</code>，用<code>read</code>函数把数据从磁盘读到<code>cache</code>，再从<code>cache</code>读取到用户空间的<code>buffer</code>，再用<code>write</code>函数把数据从用户空间的<code>buffer</code>写入到内核的<code>buffer</code>，最后到<code>tcp</code> <code>socket</code>。开启这个参数后可以让数据不用经过用户<code>buffer</code></p>
 </blockquote>
-<h2 id="六、keepalive-timeout"><a href="#六、keepalive-timeout" class="headerlink" title="六、keepalive_timeout"></a>六、keepalive_timeout</h2><blockquote>
+<h2 id="二十三、keepalive-timeout"><a href="#二十三、keepalive-timeout" class="headerlink" title="二十三、keepalive_timeout"></a>二十三、keepalive_timeout</h2><blockquote>
 <p>当上传一个发数据文件时，<code>nginx</code>往往会超时，此时需要调整<code>keepalive_timeout</code>参数，保持会话长链接</p>
 </blockquote>
-<h2 id="七、gzip"><a href="#七、gzip" class="headerlink" title="七、gzip"></a>七、gzip</h2><blockquote>
+<h2 id="二十四、gzip"><a href="#二十四、gzip" class="headerlink" title="二十四、gzip"></a>二十四、gzip</h2><blockquote>
 <p>如果你是个前端开发人员，你肯定知道线上环境要把<code>js</code>，<code>css</code>，图片等压缩，尽量减少文件的大小，提升响应速度，特别是对移动端，这个非常重要。</p>
 </blockquote>
 <ul>
@@ -956,20 +1142,22 @@
 </blockquote>
 <p><strong>gzip_buffers 4 16k</strong></p>
 <blockquote>
-<p>获取多少内存用于缓存压缩结果，<code>‘4 16k’</code>表示以<code>16k*4</code>为单位获得</p>
+<p>获取多少内存用于缓存压缩结果，<code>4 16k</code> 表示以 <code>16k*4</code> 为单位获得</p>
 </blockquote>
 <p><strong>gzip_comp_level 5</strong></p>
 <blockquote>
 <p><code>gzip</code>压缩比（1~9），越小压缩效果越差，但是越大处理越慢，所以一般取中间值;</p>
 </blockquote>
+<p>这里的 <code>gzip_comp_level 5</code> 和前面第八节推荐的 6 是同一个量级，5 和 6 差别很小，选哪个都行，关键是别写 9。</p>
 <p><strong>gzip_types text&#x2F;plain application&#x2F;x-javascript text&#x2F;css application&#x2F;xml text&#x2F;javascript application&#x2F;x-httpd-php</strong></p>
 <blockquote>
-<p>对特定的<code>MIME</code>类型生效,其中<code>&#39;text/html’</code>被系统强制启用</p>
+<p>对特定的<code>MIME</code>类型生效,其中 <code>text/html</code> 被系统强制启用</p>
 </blockquote>
 <p><strong>gzip_http_version 1.1</strong></p>
 <blockquote>
-<p>识别<code>http</code>协议的版本,早起浏览器可能不支持<code>zip</code>自解压,用户会看到乱码</p>
+<p>识别<code>http</code>协议的版本,早期浏览器可能不支持<code>gzip</code>自解压,用户会看到乱码</p>
 </blockquote>
+<p>这一条原文有两处笔误，「早起」应为「早期」，「zip 自解压」应为「gzip」，意思都不难猜，但抄进配置注释里容易误导人。这个参数今天保持默认 1.1 就行，HTTP&#x2F;1.0 的客户端在公网上基本绝迹了。</p>
 <p><strong>gzip_vary on</strong></p>
 <ul>
 <li>启用应答头<code>&quot;Vary: Accept-Encoding&quot;</code></li>
@@ -985,7 +1173,9 @@
 <blockquote>
 <p>以上代码可以插入到 <code>http &#123;...&#125;</code>整个服务器的配置里，也可以插入到虚拟主机的 <code>server &#123;...&#125;</code>或者下面的<code>location</code>模块内</p>
 </blockquote>
-<h2 id="八、客户端上传文件限制"><a href="#八、客户端上传文件限制" class="headerlink" title="八、客户端上传文件限制"></a>八、客户端上传文件限制</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">client_body_buffer_size 15M;</span><br></pre></td></tr></table></figure>
+<p><code>gzip_proxied</code> 那一长串取值不用全记，配 <code>any</code> 覆盖所有情况就够了，除非你明确知道某类代理请求不该压缩。<code>gzip_disable msie6</code> 这条今天可以直接删掉，理由前面说过，多跑一次正则而已，没有任何收益。</p>
+<p>放置位置这句话很关键，写在 <code>http</code> 块是全局生效，写在某个 <code>location</code> 里只对那一段生效并且会覆盖外层。我的习惯是在 <code>http</code> 层统一开，个别不需要压缩的路径（比如已经预压缩好的静态资源目录）再单独关掉。</p>
+<h2 id="二十五、客户端上传文件限制"><a href="#二十五、客户端上传文件限制" class="headerlink" title="二十五、客户端上传文件限制"></a>二十五、客户端上传文件限制</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">client_body_buffer_size 15M;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>请求缓冲区在<code>NGINX</code>请求处理中起着重要作用。 在接收到请求时，<code>NGINX</code>将其写入这些缓冲区，此指令设置用于请求主体的缓冲区大小。 如果主体超过缓冲区大小，则完整主体或其一部分将写入临时文件。 如果<code>NGINX</code>配置为使用文件而不是内存缓冲区，则该指令会被忽略。 默认情况下，该指令为<code>32</code>位系统设置一个8k缓冲区，为<code>64</code>位系统设置一个<code>16k</code>缓冲区</p>
@@ -1012,19 +1202,45 @@
 <blockquote>
 <p>此指令设置<code>NGINX</code>能处理的最大请求主体大小。如果请求大于指定的大小，则<code>NGINX</code>发回<code>HTTP 413（Request Entity too large）</code>错误。 如果服务器处理大文件上传，则该指令非常重要</p>
 </blockquote>
-<h2 id="九、worker-processes和worker-connections"><a href="#九、worker-processes和worker-connections" class="headerlink" title="九、worker_processes和worker_connections"></a>九、worker_processes和worker_connections</h2><p><strong>worker_processes</strong>：</p>
+<p><code>client_max_body_size</code> 的默认值是 1MB，这个值小得离谱，稍微传张手机拍的照片就超了。上传功能做完在本地测好好的，一上线就报 413，十有八九是这里没改。它可以写在 <code>http</code>、<code>server</code>、<code>location</code> 任意一层，我的习惯是全局给一个保守值，只在上传接口那个 location 单独放大，别全站开成 100M，那等于给自己开了个内存和磁盘的口子。</p>
+<p>还有一个容易漏的点，如果 Nginx 后面还有一层代理或者应用服务器（Tomcat 的 <code>maxPostSize</code>、Node 的 body-parser limit），每一层都要改。改了 Nginx 还是 413，那就是更里面那层拦的。</p>
+<h2 id="二十六、worker-processes和worker-connections"><a href="#二十六、worker-processes和worker-connections" class="headerlink" title="二十六、worker_processes和worker_connections"></a>二十六、worker_processes和worker_connections</h2><p><strong>worker_processes</strong>：</p>
 <ul>
 <li><p>操作系统启动多少个工作进程运行Nginx。注意是工作进程，不是有多少个nginx工程。在Nginx运行的时候，会启动两种进程，一种是主进程<code>master process</code>；一种是工作进程<code>worker process</code>。例如我在配置文件中将<code>worker_processes</code>设置为<code>4</code>，启动<code>Nginx</code>后，使用进程查看命令观察名字叫做<code>nginx</code>的进程信息，我会看到如下结果：<code>1</code>个<code>nginx</code>主进程，<code>master process</code>；还有四个工作进程，<code>worker process</code>。主进程负责监控端口，协调工作进程的工作状态，分配工作任务，工作进程负责进行任务处理。一般这个参数要和操作系统的CPU内核数成倍数。可以设置为<code>auto</code>自动识别<br><strong>worker_connections</strong>：</p>
 </li>
 <li><p>这个属性是指单个工作进程可以允许同时建立外部连接的数量。无论这个连接是外部主动建立的，还是内部建立的。这里需要注意的是，一个工作进程建立一个连接后，进程将打开一个文件副本。所以这个数量还受操作系统设定的，进程最大可打开的文件数有关。</p>
 </li>
 </ul>
-<h2 id="十、stream模块"><a href="#十、stream模块" class="headerlink" title="十、stream模块"></a>十、stream模块</h2><ul>
+<p>这段把 master 和 worker 的分工讲得挺清楚，补充一点：<code>master</code> 进程以 root 身份启动，作用是绑定 80、443 这类特权端口、读配置、管理 worker 的生死；真正处理请求的 worker 降权到 <code>nginx</code> 或 <code>www-data</code> 用户跑。这个设计让「需要 root 权限」和「暴露在网络上」这两件事分开了，worker 被攻破也拿不到 root。</p>
+<p><code>nginx -s reload</code> 的平滑重启也是靠这套结构：master 收到信号后加载新配置、起一批新 worker，然后给老 worker 发信号让它们处理完手上的请求再退出，全程不断连接。这也是为什么改配置基本不需要 restart，能 reload 就 reload。</p>
+<p><code>worker_connections</code> 那句「受操作系统进程最大可打开文件数限制」，和前面第一节的 <code>worker_rlimit_nofile</code> 是同一件事的两个说法，两个参数要配套调，只改一个不起作用。</p>
+<p>Nginx 的进程模型和配置文件的整体结构，我在 <a href="https://feinterview.poetries.top/blog/nginx-study">Nginx 学习篇</a> 里从安装开始完整梳理过一遍，想补基础可以看那篇。</p>
+<h2 id="二十七、stream模块"><a href="#二十七、stream模块" class="headerlink" title="二十七、stream模块"></a>二十七、stream模块</h2><ul>
 <li><code>nginx</code>从<code>1.9.0</code>开始，新增加了一个<code>stream</code>模块，用来实现四层协议的转发、代理或者负载均衡等。这完全就是抢<code>HAproxy</code>份额的节奏，鉴于<code>nginx</code>在<code>7</code>层负载均衡和<code>web service</code>上的成功，和<code>nginx</code>良好的框架，<code>stream</code>模块前景一片光明</li>
-<li><code>stream</code>模块默认没有编译到<code>nginx</code>， 编译<code>nginx</code>时候 <code>./configure –with-stream </code>即可</li>
+<li><code>stream</code>模块默认没有编译到<code>nginx</code>， 编译<code>nginx</code>时候 <code>./configure --with-stream</code> 即可</li>
 <li><code>stream</code>模块用法和<code>http</code>模块差不多，关键的是语法几乎一致。熟悉<code>http</code>模块配置语法的上手更快<br>以下是一个配置了<code>tcp</code>负载均衡和<code>udp(dns)</code>负载均衡的例子, 有 <code>server</code>，<code>upstream</code>块，而且还有<code>server</code>，<br><code>hash</code>， <code>listen</code>， <code>proxy_pass</code>等指令，如果不看最外层的<code>stream</code>关键字，还以为是<code>http</code>模块呢,下例是四层反代邮箱协议的例子，直写了<code>25</code>端口，其他端口方法相同</li>
 </ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">stream &#123;</span><br><span class="line"></span><br><span class="line">     upstream smtp &#123;</span><br><span class="line"></span><br><span class="line">     least_conn;    <span class="comment"># ------把请求转发给连接数较少的后端，能够达到更好的负载均衡效果</span></span><br><span class="line"></span><br><span class="line">     server 10.5.3.17:25 max_fails=2 fail_timeout=10s;</span><br><span class="line"></span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line"></span><br><span class="line">     listen        25;</span><br><span class="line"></span><br><span class="line">     proxy_pass    smtp;</span><br><span class="line"></span><br><span class="line">     proxy_timeout 3s;</span><br><span class="line"></span><br><span class="line">     proxy_connect_timeout 1s;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">stream &#123;</span><br><span class="line"></span><br><span class="line">     upstream smtp &#123;</span><br><span class="line"></span><br><span class="line">     least_conn;    <span class="comment"># ------把请求转发给连接数较少的后端，能够达到更好的负载均衡效果</span></span><br><span class="line"></span><br><span class="line">     server 10.5.3.17:25 max_fails=2 fail_timeout=10s;</span><br><span class="line"></span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line"></span><br><span class="line">     listen        25;</span><br><span class="line"></span><br><span class="line">     proxy_pass    smtp;</span><br><span class="line"></span><br><span class="line">     proxy_timeout 3s;</span><br><span class="line"></span><br><span class="line">     proxy_connect_timeout 1s;</span><br><span class="line"></span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原文这段少了 <code>stream</code> 块最外层的收尾大括号，我补上了，直接抄过去是起不来的。</p>
+<p><code>least_conn</code> 那行注释说的没错，SMTP 这类连接持续时间长短差异很大的协议，按连接数分发确实比轮询合理。做四层代理时超时值给得比七层短，是因为这里代理的是内网服务，建连本来就该是毫秒级，<code>proxy_connect_timeout 1s</code> 已经很宽松了。</p>
+<p>回到选型这件事，<code>stream</code> 模块的定位一直很清楚：它不是来取代专业四层负载均衡的，它是让你在已经装了 Nginx 的机器上，顺手把几个 TCP 服务也代理掉，不用再引入一个新组件。这个价值对中小规模的部署来说非常实在。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把这一圈模块过完，我自己的收获是终于能把「指令」和「模块」对上号了。以前查到一条配置就往文件里贴，报 <code>unknown directive</code> 只会去搜报错信息；现在会先敲 <code>nginx -V</code> 看看这个二进制到底带了什么，再决定是加配置还是重新编译。这一步的转变，比记住任何单条指令都值。</p>
+<p>如果要从这些模块里挑几条最容易踩的坑，我的清单是这四条。</p>
+<p><code>proxy_pass</code> 结尾那个斜杠，带和不带走的是完全不同的两条拼接路径，改完必须实际发个请求验证，<code>nginx -t</code> 帮不了你。<code>upstream</code> 里的 <code>keepalive</code> 不是写一行就完事，配套的 <code>proxy_http_version 1.1</code> 和 <code>proxy_set_header Connection &quot;&quot;</code> 少一行就静默失效。<code>add_header</code> 在子 location 里出现一次，父级的所有响应头全部丢失，安全头就是这么消失的。<code>health_check</code> 是商业版功能，开源版只有基于失败计数的被动检查，别拿它当主动健康检查用。</p>
+<p>时效性上要动的地方也集中在几处。<code>ssl on</code> 已经废弃，统一写 <code>listen 443 ssl</code>；TLSv1 和 1.1 全部关掉，只留 1.2 和 1.3，套件列表以 Mozilla 的生成器为准而不是抄任何博客；<code>accept_mutex</code> 现在默认关闭，惊群问题交给 <code>reuseport</code> 解决；<code>net.ipv4.tcp_tw_recycle</code> 这一行内核参数在今天必须删掉，NAT 环境下会造成随机丢包，新内核里也已经没有它了；<code>http2_push</code> 被 Chrome 移除，不用再考虑服务端推送这条路。</p>
+<p>最后说个选型上的判断。这些模块里，<code>core</code>、<code>proxy</code>、<code>upstream</code>、<code>log</code>、<code>gzip</code>、<code>ssl</code> 是任何一个线上站点都会用到的，值得花时间吃透；<code>fastcgi</code>、<code>referer</code>、<code>stream</code> 属于按需了解，遇到具体场景再回来查就行；而 <code>health_check</code>、<code>match</code> 这类只在商业版生效的，知道它们的存在和替代方案比记参数更重要。</p>
+<p>配置这东西，抄一份能跑的很容易，知道每一行为什么在那儿才是难的。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://nginx.org/en/docs/">Nginx 官方文档模块索引</a></li>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_core_module.html">ngx_http_core_module 指令说明</a></li>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html">ngx_http_proxy_module 指令说明</a></li>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_upstream_module.html">ngx_http_upstream_module 指令说明</a></li>
+<li><a href="https://nginx.org/en/docs/stream/ngx_stream_core_module.html">ngx_stream_core_module 指令说明</a></li>
+<li><a href="https://www.nginx.com/resources/wiki/start/topics/depth/ifisevil/">If Is Evil，Nginx 官方对 if 指令的说明</a></li>
+<li><a href="https://ssl-config.mozilla.org/">Mozilla SSL Configuration Generator</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

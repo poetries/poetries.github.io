@@ -7,27 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Javascript中的复制粘贴功能 | 前端进阶之旅</title>
+  <title>JavaScript复制粘贴与剪贴板操作详解 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,复制粘贴," />
+    <meta name="keywords" content="JavaScript,复制粘贴,剪贴板," />
   
 
-  <meta name="description" content="来源网络  一、基本使用1.1 API 介绍复制、剪切、粘贴事件  copy 发生复制操作时触发; cut 发生剪切操作时触发; paste 发生粘贴操作时触发   每个事件都有一个 before 事件对应：beforecopy、beforecut、beforepaste。这几个 before 一般不怎么用，所以我们把注意力放在另外三个事件就可以了  触发条件  鼠标右键菜单的复制、粘贴、剪切">
+  <meta name="description" content="梳理 copy&#x2F;cut&#x2F;paste 三个剪贴板事件、clipboardData 的读写方式，实现复制自动追加版权信息、防复制、点击复制按钮，并对比 execCommand 与现代异步 Clipboard API 的差异。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Javascript中的复制粘贴功能">
+<meta property="og:title" content="JavaScript复制粘贴与剪贴板操作详解">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/23/js-copy/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="来源网络  一、基本使用1.1 API 介绍复制、剪切、粘贴事件  copy 发生复制操作时触发; cut 发生剪切操作时触发; paste 发生粘贴操作时触发   每个事件都有一个 before 事件对应：beforecopy、beforecut、beforepaste。这几个 before 一般不怎么用，所以我们把注意力放在另外三个事件就可以了  触发条件  鼠标右键菜单的复制、粘贴、剪切">
+<meta property="og:description" content="梳理 copy&#x2F;cut&#x2F;paste 三个剪贴板事件、clipboardData 的读写方式，实现复制自动追加版权信息、防复制、点击复制按钮，并对比 execCommand 与现代异步 Clipboard API 的差异。">
 <meta property="og:locale">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-2f3188629fa5a86d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="article:published_time" content="2018-12-23T01:10:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.674Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.942Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="复制粘贴">
+<meta property="article:tag" content="剪贴板">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/1480597-2f3188629fa5a86d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
@@ -207,7 +208,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8"><span class="toc-text">一、基本使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-API-%E4%BB%8B%E7%BB%8D"><span class="toc-text">1.1 API 介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-clipboardData"><span class="toc-text">1.2 clipboardData</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%BA%94%E7%94%A8"><span class="toc-text">二、应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%A4%8D%E5%88%B6%E5%A4%A7%E6%AE%B5%E6%96%87%E6%9C%AC"><span class="toc-text">2.1 复制大段文本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%98%B2%E5%A4%8D%E5%88%B6%E5%8A%9F%E8%83%BD"><span class="toc-text">2.2 防复制功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%82%B9%E5%87%BB%E5%A4%8D%E5%88%B6%E5%8A%9F%E8%83%BD"><span class="toc-text">2.3 点击复制功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93clipboard"><span class="toc-text">2.4 第三方库clipboard</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%AA%E8%B4%B4%E6%9D%BF%E7%9A%84%E4%B8%89%E4%B8%AA%E4%BA%8B%E4%BB%B6"><span class="toc-text">一、剪贴板的三个事件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BA%8B%E4%BB%B6%E4%B8%8E%E8%A7%A6%E5%8F%91%E6%9D%A1%E4%BB%B6"><span class="toc-text">1.1 事件与触发条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%80%8E%E4%B9%88%E7%BB%91"><span class="toc-text">1.2 怎么绑</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81clipboardData-%E5%AF%B9%E8%B1%A1"><span class="toc-text">二、clipboardData 对象</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-getData-%E8%AF%BB%E6%95%B0%E6%8D%AE"><span class="toc-text">2.1 getData 读数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-setData-%E5%86%99%E6%95%B0%E6%8D%AE"><span class="toc-text">2.2 setData 写数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-clearData"><span class="toc-text">2.3 clearData</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%A4%8D%E5%88%B6%E5%A4%A7%E6%AE%B5%E6%96%87%E6%9C%AC%E6%97%B6%E8%BF%BD%E5%8A%A0%E7%89%88%E6%9D%83%E4%BF%A1%E6%81%AF"><span class="toc-text">三、复制大段文本时追加版权信息</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%B1%BB%E7%9F%A5%E4%B9%8E-%E6%8E%98%E9%87%91%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-text">3.1 类知乎&#x2F;掘金的实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%BF%99%E6%AE%B5%E4%BB%A3%E7%A0%81%E7%9A%84%E5%85%B3%E9%94%AE%E7%82%B9"><span class="toc-text">3.2 这段代码的关键点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%98%B2%E5%A4%8D%E5%88%B6%E5%8A%9F%E8%83%BD"><span class="toc-text">四、防复制功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%87%A0%E6%9D%A1%E5%B8%B8%E8%A7%81%E5%81%9A%E6%B3%95"><span class="toc-text">4.1 几条常见做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%A0%B4%E8%A7%A3%E9%98%B2%E5%A4%8D%E5%88%B6"><span class="toc-text">4.2 破解防复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%82%B9%E5%87%BB%E5%A4%8D%E5%88%B6%E5%8A%9F%E8%83%BD"><span class="toc-text">五、点击复制功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%9B%B4%E6%8E%A5%E7%94%A8-clipboardData"><span class="toc-text">5.1 为什么不能直接用 clipboardData</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%9A%90%E8%97%8F-input-%E5%8A%A0-execCommand"><span class="toc-text">5.2 隐藏 input 加 execCommand</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%8E%B0%E5%9C%A8%E7%9A%84%E5%81%9A%E6%B3%95%E6%98%AF%E5%BC%82%E6%AD%A5-Clipboard-API"><span class="toc-text">5.3 现在的做法是异步 Clipboard API</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93-clipboard-js"><span class="toc-text">六、第三方库 clipboard.js</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -230,13 +231,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-js-copy" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Javascript中的复制粘贴功能</h1>
+    <h1 class="post-title">JavaScript复制粘贴与剪贴板操作详解</h1>
 
     <div class="article-meta">
       <span>
@@ -272,12 +273,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.6k字</span>
+            <span>字数统计 3.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -294,117 +295,117 @@
         <blockquote>
 <p>来源网络</p>
 </blockquote>
-<h2 id="一、基本使用"><a href="#一、基本使用" class="headerlink" title="一、基本使用"></a>一、基本使用</h2><h3 id="1-1-API-介绍"><a href="#1-1-API-介绍" class="headerlink" title="1.1 API 介绍"></a>1.1 API 介绍</h3><p><strong>复制、剪切、粘贴事件</strong></p>
+<p>产品提了个需求，文档页要加一个「复制代码」按钮，顺手还想学掘金那样，用户复制超过一定长度的正文时自动在末尾追加版权信息。这两件事看起来都很小，真动手才发现剪贴板这块的 API 有点乱，<code>clipboardData</code> 在不同浏览器上挂的位置不一样，<code>execCommand</code> 又被标记成废弃了。</p>
+<p>这篇把浏览器里操作剪贴板的几条路径捋一遍，从最基础的三个事件讲到能落地的几个场景，再说清楚老方案和新方案各自的适用范围。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>copy</code> 发生复制操作时触发;</li>
-<li><code>cut</code> 发生剪切操作时触发;</li>
+<li><code>copy</code>、<code>cut</code>、<code>paste</code> 三个事件的触发时机和绑定方式</li>
+<li><code>clipboardData</code> 对象的兼容处理和三个方法</li>
+<li>复制正文时自动追加版权信息的完整实现</li>
+<li>防复制的几种做法，以及它们为什么拦不住人</li>
+<li>用隐藏 input 加 <code>execCommand</code> 实现点击复制</li>
+<li>现代异步 Clipboard API 的用法和它的两道限制</li>
+<li>什么时候该直接上 clipboard.js</li>
+</ul>
+<h2 id="一、剪贴板的三个事件"><a href="#一、剪贴板的三个事件" class="headerlink" title="一、剪贴板的三个事件"></a>一、剪贴板的三个事件</h2><h3 id="1-1-事件与触发条件"><a href="#1-1-事件与触发条件" class="headerlink" title="1.1 事件与触发条件"></a>1.1 事件与触发条件</h3><p>浏览器暴露了三个剪贴板相关的事件：</p>
+<ul>
+<li><code>copy</code> 发生复制操作时触发</li>
+<li><code>cut</code> 发生剪切操作时触发</li>
 <li><code>paste</code> 发生粘贴操作时触发</li>
 </ul>
-<blockquote>
-<p>每个事件都有一个 <code>before</code> 事件对应：<code>beforecopy</code>、<code>beforecut</code>、<code>beforepaste</code>。这几个 <code>before</code> 一般不怎么用，所以我们把注意力放在另外三个事件就可以了</p>
-</blockquote>
-<p><strong>触发条件</strong></p>
-<ul>
-<li>鼠标右键菜单的<code>复制</code>、<code>粘贴</code>、<code>剪切</code></li>
-<li>使用了相应的键盘组合键，比如:<code>command+c</code>、<code>command+v</code></li>
-</ul>
-<p><strong>使用姿势</strong></p>
-<blockquote>
-<p>以 <code>copy</code> 为例</p>
-</blockquote>
+<p>每个事件都有一个 <code>before</code> 事件对应，<code>beforecopy</code>、<code>beforecut</code>、<code>beforepaste</code>。这几个 <code>before</code> 一般不怎么用，把注意力放在另外三个事件就可以了。</p>
+<p>能触发它们的操作有两类，一类是鼠标右键菜单里的复制、粘贴、剪切，另一类是键盘组合键，比如 <code>command+c</code>、<code>command+v</code>。注意用 JS 主动调用 <code>document.execCommand(&#39;copy&#39;)</code> 同样会触发 <code>copy</code> 事件，这一点在后面实现点击复制的时候会用到。</p>
+<h3 id="1-2-怎么绑"><a href="#1-2-怎么绑" class="headerlink" title="1.2 怎么绑"></a>1.2 怎么绑</h3><p>以 <code>copy</code> 为例，两种写法都可以。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncopy</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 监听全局复制 做点什么</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 还有这种写法：</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;copy&#x27;</span>, <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 监听全局复制 做点什么</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面是在<code>document.body</code>上全局监听的，然而很多人不知道的是，我们还可以为某些 <code>dom</code> 单独添加剪切板事件</p>
-</blockquote>
+<p>上面是在 <code>document.body</code> 上全局监听的。很多人不知道的是，我们还可以为某些 DOM 单独添加剪贴板事件。</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line">// html结构</span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;test1&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;test2&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="comment">// 写法一样：</span></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">let</span> test1 = <span class="variable language_">document</span>.<span class="title function_">querySelector</span>(<span class="string">&#x27;#test1&#x27;</span>);</span></span><br><span class="line"><span class="language-javascript">    test1.<span class="property">oncopy</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="comment">// 监听test1发生的复制事件 做点什么</span></span></span><br><span class="line"><span class="language-javascript">        <span class="comment">// test1发生的复制事件会触发回调，其他地方不会触发回调</span></span></span><br><span class="line"><span class="language-javascript">    &#125;</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>其他事件也是一样的</p>
-</blockquote>
-<h3 id="1-2-clipboardData"><a href="#1-2-clipboardData" class="headerlink" title="1.2 clipboardData"></a>1.2 clipboardData</h3><p><strong>clipboardData 对象:用于访问以及修改剪贴板中的数据</strong></p>
-<blockquote>
-<p>不同浏览器，所属的对象不同：在 <code>IE</code> 中这个对象是<code>window</code>对象的属性，在<code>Chrome</code>、<code>Safari</code>和<code>Firefox</code>中，这个对象是相应的<code>event</code>对象的属性。所以我们在使用的时候，需要做一下如下兼容</p>
-</blockquote>
+<p>其他事件也是一样的。</p>
+<p>为什么绑在 <code>document.body</code> 上就能拦下页面里任何位置的复制？因为剪贴板事件和 <code>click</code> 一样是会冒泡的，从选区所在的元素一路往上传到 <code>document</code>。所以你既可以做全局拦截，也可以只在文章容器上绑一个，让评论区、代码块之类的地方不受影响。事件冒泡和事件委托的完整机制，可以看 <a href="https://feinterview.poetries.top/blog/js-event">JavaScript事件机制</a>。</p>
+<h2 id="二、clipboardData-对象"><a href="#二、clipboardData-对象" class="headerlink" title="二、clipboardData 对象"></a>二、clipboardData 对象</h2><p><code>clipboardData</code> 对象用于访问以及修改剪贴板中的数据。</p>
+<p>不同浏览器，它所属的对象不同。在 IE 中这个对象是 <code>window</code> 对象的属性，在 Chrome、Safari 和 Firefox 中，它是相应的 <code>event</code> 对象的属性。所以使用的时候需要做一下兼容。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncopy</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> clipboardData = e.<span class="property">clipboardData</span> || <span class="variable language_">window</span>.<span class="property">clipboardData</span>;</span><br><span class="line">  <span class="comment">// 获取clipboardData对象 + do something</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<p><strong>对象方法</strong></p>
-<blockquote>
-<p>对象有三个方法: <code>getData()</code>、<code>setData()</code>、<code>clearData()</code></p>
-</blockquote>
-<p><strong>getData() 访问剪切板中的数据</strong></p>
-<blockquote>
-<p><code>getData()</code>接受一个<code>text</code>参数，即要取得的数据的格式</p>
-</blockquote>
-<p><strong>在复制、剪切、粘贴触发的事件的数据</strong></p>
-<blockquote>
-<p>实际上在 <code>chorme</code> 上测试只有<code>paste</code>粘贴的时候才能用<code>getData()</code>访问到数据，用法如下</p>
-</blockquote>
+<p>这个差别不只是挂载位置的问题。把它放在 <code>event</code> 上，等于强制你只能在真实的剪贴板事件回调里访问剪贴板，页面脚本没法在任意时刻偷偷读用户的剪贴板，这其实是一种安全措施。IE 那种挂在 <code>window</code> 上、随时能读写的设计，正是后来被否掉的原因。</p>
+<p>对象有三个方法，<code>getData()</code>、<code>setData()</code>、<code>clearData()</code>。</p>
+<h3 id="2-1-getData-读数据"><a href="#2-1-getData-读数据" class="headerlink" title="2.1 getData 读数据"></a>2.1 getData 读数据</h3><p><code>getData()</code> 接受一个 <code>text</code> 参数，即要取得的数据的格式。</p>
+<p>实际上在 Chrome 上测试，只有 <code>paste</code> 粘贴的时候才能用 <code>getData()</code> 访问到数据，用法如下。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 要粘贴的数据：</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">onpaste</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> clipboardData = e.<span class="property">clipboardData</span> || <span class="variable language_">window</span>.<span class="property">clipboardData</span>; <span class="comment">// 兼容处理</span></span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;要粘贴的数据&#x27;</span>, clipboardData.<span class="title function_">getData</span>(<span class="string">&#x27;text&#x27;</span>));</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<p><strong>被复制&#x2F;剪切的数据</strong>：</p>
-<blockquote>
-<p>在复制和剪切中的数据，需要通过<code>window.getSelection(0).toString()</code>来访问:</p>
-</blockquote>
+<p>这里补一句规范上的说法。<code>copy</code> 和 <code>cut</code> 事件里 <code>clipboardData</code> 处于「只写」状态，读不到东西是设计如此，不是浏览器 bug。要拿被复制的内容得走另一条路。</p>
+<p>被复制和被剪切的数据，需要通过 <code>window.getSelection(0).toString()</code> 来访问。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncopy</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;被复制的数据:&#x27;</span>, <span class="variable language_">window</span>.<span class="title function_">getSelection</span>(<span class="number">0</span>).<span class="title function_">toString</span>());</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<p><strong>setData(): 修改剪切板中的数据</strong></p>
-<blockquote>
-<p>第一个参数也是<code>text</code>，第二个参数是要放在剪切板中的文本</p>
-</blockquote>
-<p><strong>clearData()</strong></p>
-<h2 id="二、应用"><a href="#二、应用" class="headerlink" title="二、应用"></a>二、应用</h2><h3 id="2-1-复制大段文本"><a href="#2-1-复制大段文本" class="headerlink" title="2.1 复制大段文本"></a>2.1 复制大段文本</h3><p><strong>实现类知乎&#x2F;掘金复制大段文本添加版权信息</strong></p>
-<blockquote>
-<p>实现很简单：取消默认复制之后，主要是在被复制的内容后面添加信息，然后根据 <code>clipboardData</code> 的 <code>setData()</code>方法将信息写入剪贴板</p>
-</blockquote>
+<p>顺带说个原文里的小问题，<code>getSelection()</code> 按规范是不接收参数的，写成 <code>getSelection(0)</code> 里的这个 <code>0</code> 会被直接忽略，不影响结果，但新写代码的时候直接写 <code>window.getSelection().toString()</code> 更规范。</p>
+<h3 id="2-2-setData-写数据"><a href="#2-2-setData-写数据" class="headerlink" title="2.2 setData 写数据"></a>2.2 setData 写数据</h3><p><code>setData()</code> 第一个参数也是 <code>text</code>，第二个参数是要放在剪贴板中的文本。</p>
+<p>格式参数这块也演进过。规范里现在用的是标准 MIME 类型，比如 <code>text/plain</code>、<code>text/html</code>，<code>&#39;text&#39;</code> 是浏览器为了兼容老代码保留的别名。新写的代码建议直接写 <code>text/plain</code>，语义清楚，而且如果你要同时写入富文本，还能追加一份 <code>text/html</code>。</p>
+<h3 id="2-3-clearData"><a href="#2-3-clearData" class="headerlink" title="2.3 clearData"></a>2.3 clearData</h3><p><code>clearData()</code> 清空剪贴板中指定格式的数据，实际业务里用得很少。</p>
+<h2 id="三、复制大段文本时追加版权信息"><a href="#三、复制大段文本时追加版权信息" class="headerlink" title="三、复制大段文本时追加版权信息"></a>三、复制大段文本时追加版权信息</h2><h3 id="3-1-类知乎-掘金的实现"><a href="#3-1-类知乎-掘金的实现" class="headerlink" title="3.1 类知乎&#x2F;掘金的实现"></a>3.1 类知乎&#x2F;掘金的实现</h3><p>实现很简单。取消默认复制之后，主要是在被复制的内容后面添加信息，然后根据 <code>clipboardData</code> 的 <code>setData()</code> 方法将信息写入剪贴板。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 掘金这里不是全局监听，应该只是监听文章的dom范围内。</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncopy</span> = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">  event.<span class="title function_">preventDefault</span>(); <span class="comment">// 取消默认的复制事件</span></span><br><span class="line">  <span class="keyword">let</span> textFont,</span><br><span class="line">    copyFont = <span class="variable language_">window</span>.<span class="title function_">getSelection</span>(<span class="number">0</span>).<span class="title function_">toString</span>(); <span class="comment">// 被复制的文字 等下插入</span></span><br><span class="line">  <span class="comment">// 防知乎掘金 复制一两个字则不添加版权信息 超过一定长度的文字 就添加版权信息</span></span><br><span class="line">  <span class="keyword">if</span> (copyFont.<span class="property">length</span> &gt; <span class="number">10</span>) &#123;</span><br><span class="line">    textFont =</span><br><span class="line">      copyFont +</span><br><span class="line">      <span class="string">&#x27;\n&#x27;</span> +</span><br><span class="line">      <span class="string">&#x27;作者：OBKoro1\n&#x27;</span> +</span><br><span class="line">      <span class="string">&#x27;链接：https://juejin.im/user/58714f0e325b123db4a2eb95372/posts\n&#x27;</span> +</span><br><span class="line">      <span class="string">&#x27;来源：掘金\n&#x27;</span> +</span><br><span class="line">      <span class="string">&#x27;著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。&#x27;</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    textFont = copyFont; <span class="comment">// 没超过十个字 则采用被复制的内容。</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (event.<span class="property">clipboardData</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> event.<span class="property">clipboardData</span>.<span class="title function_">setData</span>(<span class="string">&#x27;text&#x27;</span>, textFont); <span class="comment">// 将信息写入粘贴板</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 兼容IE</span></span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">window</span>.<span class="property">clipboardData</span>.<span class="title function_">setData</span>(<span class="string">&#x27;text&#x27;</span>, textFont);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>然后 <code>command+c</code>、<code>command+v</code>，输出:</p>
-</blockquote>
+<p>然后 <code>command+c</code>、<code>command+v</code>，输出：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">你复制的内容</span><br><span class="line">作者：OBKoro1</span><br><span class="line">链接：https://juejin.im/user/58714f0eb123db4a2eb95372/posts</span><br><span class="line">来源：掘金</span><br><span class="line">著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-2-防复制功能"><a href="#2-2-防复制功能" class="headerlink" title="2.2 防复制功能"></a>2.2 防复制功能</h3><ul>
-<li>禁止复制+剪切</li>
-<li>禁止右键，右键某些选项:全选，复制，粘贴等。</li>
-<li>禁用文字选择，能选择却不能复制，体验很差。</li>
-<li><code>user-select</code> 用 <code>css</code> 禁止选择文本</li>
+<h3 id="3-2-这段代码的关键点"><a href="#3-2-这段代码的关键点" class="headerlink" title="3.2 这段代码的关键点"></a>3.2 这段代码的关键点</h3><p><code>event.preventDefault()</code> 这一行是整段的枢纽。剪贴板事件的默认行为就是「把当前选区的内容写进剪贴板」，你不取消它，后面 <code>setData</code> 写进去的东西会被默认行为覆盖掉。取消之后剪贴板就是一块空白画布，完全由你来填。</p>
+<p>长度阈值那个 <code>if</code> 也不是随便加的。用户复制一个词去查释义，结果粘出来跟着四行版权声明，体验很差。设个门槛只对成段的正文追加，是这类功能里必备的一步。</p>
+<p>还有一处原文没提但实际会踩的，就是监听范围。示例绑在 <code>document.body</code> 上，那用户从你页面的输入框里复制自己刚打的字，也会被追加版权信息。真上线的话建议绑在文章容器上，代码块所在的元素再单独 <code>stopPropagation</code> 一下。</p>
+<h2 id="四、防复制功能"><a href="#四、防复制功能" class="headerlink" title="四、防复制功能"></a>四、防复制功能</h2><h3 id="4-1-几条常见做法"><a href="#4-1-几条常见做法" class="headerlink" title="4.1 几条常见做法"></a>4.1 几条常见做法</h3><ul>
+<li>禁止复制和剪切</li>
+<li>禁止右键，右键某些选项：全选、复制、粘贴等</li>
+<li>禁用文字选择，能选择却不能复制，体验很差</li>
+<li><code>user-select</code> 用 CSS 禁止选择文本</li>
 </ul>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 禁止右键菜单</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncontextmenu</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(e, <span class="string">&#x27;右键&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// e.preventDefault();</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 禁止文字选择。</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">onselectstart</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(e, <span class="string">&#x27;文字选择&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// e.preventDefault();</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 禁止复制</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncopy</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(e, <span class="string">&#x27;copy&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// e.preventDefault();</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 禁止剪切</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">oncut</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(e, <span class="string">&#x27;cut&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// e.preventDefault();</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 禁止粘贴</span></span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="property">onpaste</span> = <span class="function"><span class="params">e</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(e, <span class="string">&#x27;paste&#x27;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    <span class="comment">// e.preventDefault();</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="comment">/** css 禁止文本选择 这样不会触发js**/</span></span><br><span class="line"><span class="selector-tag">body</span> &#123;</span><br><span class="line">    <span class="attribute">user-select</span>: none;</span><br><span class="line">    -moz-<span class="attribute">user-select</span>: none;</span><br><span class="line">    -webkit-<span class="attribute">user-select</span>: none;</span><br><span class="line">    -ms-<span class="attribute">user-select</span>: none;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>使用 <code>e.preventDefault()</code> 也可以禁用，但原文建议使用 <code>return false</code>，这样就不用去访问 <code>e</code> 和 <code>e</code> 的方法了。有个前提要说清楚，<code>return false</code> 只在 DOM0 级的 <code>onxxx = fn</code> 这种写法下才等价于阻止默认行为，如果你用的是 <code>addEventListener</code>，<code>return false</code> 什么都不会发生，必须老老实实调 <code>preventDefault()</code>。</p>
+<p>示例中 <code>document.body</code> 全局都禁用了，也可以对某些 DOM 区域单独禁用。实际项目里我更倾向后者，整站禁选会把输入框、可编辑区域一起废掉。</p>
+<h3 id="4-2-破解防复制"><a href="#4-2-破解防复制" class="headerlink" title="4.2 破解防复制"></a>4.2 破解防复制</h3><p>上面的防复制方法是通过 JS 加 CSS 实现的，所以思路就是禁用 JS 加取消 <code>user-select</code> 样式。</p>
+<p>Chrome 浏览器的话，打开浏览器控制台，按 <code>F1</code> 进入 <code>Setting</code>，勾选 <code>Disable JavaScript</code>（禁止 JS）。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-2f3188629fa5a86d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Chrome DevTools 设置面板中勾选 Disable JavaScript 选项"></p>
+<p>此时如果还不能复制的话，就要去找 <code>user-select</code> 样式，取消这个样式就可以了。</p>
+<p>所以防复制这件事，拦得住普通用户，拦不住任何一个会开 DevTools 的人。内容真要保护，得靠服务端做水印、鉴权、限流这类手段，前端这层只能算劝退。我一开始也觉得禁右键挺有用，后来发现被投诉最多的反而是它，因为它把「在新标签页打开链接」「检查元素」这些正常操作一并干掉了。</p>
+<h2 id="五、点击复制功能"><a href="#五、点击复制功能" class="headerlink" title="五、点击复制功能"></a>五、点击复制功能</h2><h3 id="5-1-为什么不能直接用-clipboardData"><a href="#5-1-为什么不能直接用-clipboardData" class="headerlink" title="5.1 为什么不能直接用 clipboardData"></a>5.1 为什么不能直接用 clipboardData</h3><p>在 IE 中可以用 <code>window.clipboardData.setData(&#39;text&#39;,&#39;内容&#39;)</code> 实现，因为上文提到过，在 IE 中 <code>clipboardData</code> 是 <code>window</code> 的属性。</p>
+<p>而其他浏览器则是相应的 <code>event</code> 对象的属性，这实际上是一种安全措施，防止未经授权的访问。为了兼容其他浏览器，所以我们不能通过 <code>clipboardData</code> 来实现这种操作。</p>
+<h3 id="5-2-隐藏-input-加-execCommand"><a href="#5-2-隐藏-input-加-execCommand" class="headerlink" title="5.2 隐藏 input 加 execCommand"></a>5.2 隐藏 input 加 execCommand</h3><p>具体做法是：</p>
 <ul>
-<li>使用<code>e.preventDefault()</code>也可以禁用，但建议使用<code>return false</code>这样就不用去访问<code>e</code>和<code>e</code>的方法了。</li>
-<li>示例中<code>document.body</code>全局都禁用了，也可以对 <code>dom</code>(某些区域)进行禁用</li>
-</ul>
-<p><strong>破解防复制</strong></p>
-<p>上面的防复制方法通过<code>js+css</code>实现的，所以思路就是：禁用<code>js+取消user-select</code>样式。</p>
-<blockquote>
-<p><code>Chrome</code>浏览器的话：打开浏览器控制台，按<code>F1</code>进入<code>Setting</code>，勾选<code>Disable</code> <code>JavaScript</code>(禁止 <code>js</code>)。</p>
-</blockquote>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-2f3188629fa5a86d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
-<blockquote>
-<p>此时如果还不能复制的话，就要去找<code>user-select</code>样式,取消这个样式就可以了</p>
-</blockquote>
-<h3 id="2-3-点击复制功能"><a href="#2-3-点击复制功能" class="headerlink" title="2.3 点击复制功能"></a>2.3 点击复制功能</h3><p><strong>不能使用 clipboardData</strong></p>
-<ul>
-<li>在 <code>IE</code> 中可以用<code>window.clipboardData.setData(&#39;text&#39;,&#39;内容&#39;)</code>实现</li>
-<li>上文提到过，在 <code>IE</code> 中<code>clipboardData</code>是<code>window</code>的属性</li>
-<li>而其他浏览器则是相应的<code>event</code>对象的属性，这实际上是一种安全措施，防止未经授权的访问,为了兼容其他浏览器，所以我们不能通过<code>clipboardData</code>来实现这种操作</li>
-</ul>
-<p><strong>具体做法</strong></p>
-<ul>
-<li>创建一个隐藏的<code>input</code>框</li>
-<li>点击的时候，将要复制的内容放进<code>input</code>框中</li>
-<li>选择文本内容<code>input.select()</code>。这里只能用<code>input</code>或者<code>textarea</code>才能选择文本</li>
+<li>创建一个隐藏的 <code>input</code> 框</li>
+<li>点击的时候，将要复制的内容放进 <code>input</code> 框中</li>
+<li>选择文本内容 <code>input.select()</code>，这里只能用 <code>input</code> 或者 <code>textarea</code> 才能选择文本</li>
 <li><code>document.execCommand(&quot;copy&quot;)</code>，执行浏览器的复制命令</li>
 </ul>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">copyText</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> text = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;text&#x27;</span>).<span class="property">innerText</span>; <span class="comment">// 获取要复制的内容也可以传进来</span></span><br><span class="line">  <span class="keyword">var</span> input = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;input&#x27;</span>); <span class="comment">// 获取隐藏input的dom</span></span><br><span class="line">  input.<span class="property">value</span> = text; <span class="comment">// 修改文本框的内容</span></span><br><span class="line">  input.<span class="title function_">select</span>(); <span class="comment">// 选中文本</span></span><br><span class="line">  <span class="variable language_">document</span>.<span class="title function_">execCommand</span>(<span class="string">&#x27;copy&#x27;</span>); <span class="comment">// 执行浏览器复制命令</span></span><br><span class="line">  <span class="title function_">alert</span>(<span class="string">&#x27;复制成功&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-4-第三方库clipboard"><a href="#2-4-第三方库clipboard" class="headerlink" title="2.4 第三方库clipboard"></a>2.4 第三方库clipboard</h3><blockquote>
+<p>这套写法有几个坑。第一，隐藏 input 不能用 <code>display: none</code> 或者 <code>visibility: hidden</code>，那样元素不可聚焦，<code>select()</code> 会失效，常见做法是绝对定位挪到屏幕外，或者用 <code>opacity: 0</code> 加 <code>position: fixed</code>。第二，iOS Safari 上 <code>input.select()</code> 对只读输入框行为不一致，通常要配合 <code>setSelectionRange(0, text.length)</code> 才稳。第三，<code>execCommand(&#39;copy&#39;)</code> 会返回一个布尔值表示是否成功，直接 <code>alert(&#39;复制成功&#39;)</code> 是不严谨的，应该拿返回值判断。</p>
+<h3 id="5-3-现在的做法是异步-Clipboard-API"><a href="#5-3-现在的做法是异步-Clipboard-API" class="headerlink" title="5.3 现在的做法是异步 Clipboard API"></a>5.3 现在的做法是异步 Clipboard API</h3><p><code>document.execCommand</code> 在 MDN 上已经被标记为废弃，替代方案是 <code>navigator.clipboard</code>。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">copyText</span>(<span class="params">text</span>) &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> navigator.<span class="property">clipboard</span>.<span class="title function_">writeText</span>(text);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">warn</span>(<span class="string">&#x27;复制失败&#x27;</span>, err);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它比隐藏 input 那套干净太多，不用造 DOM、不用管选区、结果通过 Promise 明确告诉你。读取也有对应的 <code>navigator.clipboard.readText()</code>，还能通过 <code>ClipboardItem</code> 写入图片这类非文本内容。</p>
+<p>但它有两道硬限制，不知道的话本地跑得好好的、一上测试环境就报错：</p>
+<ul>
+<li>只在安全上下文里可用。也就是 HTTPS 页面或者 <code>localhost</code>，用 IP 加 HTTP 访问的测试环境直接拿不到 <code>navigator.clipboard</code></li>
+<li>需要用户手势。写入一般要求在用户点击等交互的回调里同步发起，读取在 Chrome 上还要额外的 <code>clipboard-read</code> 权限，Firefox 更保守，基本只允许在 <code>paste</code> 事件里读</li>
+</ul>
+<p>所以稳妥的做法是两套并存，优先走 <code>navigator.clipboard</code>，<code>catch</code> 到或者对象不存在时降级到 <code>execCommand</code>。这也是现在大部分复制类组件的实现思路。</p>
+<h2 id="六、第三方库-clipboard-js"><a href="#六、第三方库-clipboard-js" class="headerlink" title="六、第三方库 clipboard.js"></a>六、第三方库 clipboard.js</h2><p>如果不想自己处理这一堆分支，可以直接用现成的库。</p>
+<blockquote>
 <p><a href="https://github.com/zenorocha/clipboard.js">https://github.com/zenorocha/clipboard.js</a></p>
 </blockquote>
+<p>它把降级、选区处理、iOS 兼容都封装好了，用 <code>data-clipboard-text</code> 属性声明式地绑在按钮上就能工作，体积也很小。除非你的项目对包体积极端敏感，或者只需要一个最简单的 <code>writeText</code>，否则引它比自己维护一份兼容代码划算。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>浏览器操作剪贴板一共就两条路。一条是拦截用户自己发起的复制粘贴，靠 <code>copy</code>&#x2F;<code>cut</code>&#x2F;<code>paste</code> 事件加 <code>clipboardData</code>，追加版权信息、拦截富文本粘贴这类需求都走这条；另一条是页面主动往剪贴板里写，老方案是隐藏 input 加 <code>execCommand</code>，新方案是 <code>navigator.clipboard</code>。</p>
+<p><code>clipboardData</code> 挂在 <code>event</code> 上而不是 <code>window</code> 上，是刻意的安全设计，意思是只有在用户真的做了复制粘贴动作时，页面才有权碰剪贴板。理解了这条，后面异步 Clipboard API 为什么要求安全上下文和用户手势，也就顺理成章了。</p>
+<p>防复制这件事，前端能做的只有劝退。禁 JS 加取消 <code>user-select</code> 两步就能破，投入产出比很低，而且容易伤到正常用户的体验。</p>
+<p>新项目直接用 <code>navigator.clipboard</code> 加一层 <code>execCommand</code> 降级，或者干脆引 clipboard.js，别再从头写一遍隐藏 input 那套了。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Clipboard_API">MDN Clipboard API</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/ClipboardEvent/clipboardData">MDN ClipboardEvent.clipboardData</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Document/execCommand">MDN Document.execCommand</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Window/getSelection">MDN Window.getSelection</a></li>
+<li><a href="https://github.com/zenorocha/clipboard.js">clipboard.js</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

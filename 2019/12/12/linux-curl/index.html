@@ -7,26 +7,27 @@
 <head>
   <meta charset="utf-8">
   
-  <title>学会使用Curl调试接口 | 前端进阶之旅</title>
+  <title>学会用Curl调试接口，从常用参数到耗时排查 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Linux,Curl," />
+    <meta name="keywords" content="Linux,Curl,接口调试," />
   
 
-  <meta name="description" content="在我们平时开发接口完成后，需要上线联调接口，而接口往往和业务逻辑精密联系，想要调试接口，就需要将业务测一遍，那么有没有更好的办法使得调试更简单？  常用的接口分为两类  第一类：自己开发服务于自己系统的接口，该类接口调试可以在本地使用postman工具调试； 第二类：不是自己开发，调用别人能力接口服务于自己的系统，该类接口我们就可以使用curl命令调试。  一、Curl常用参数 -X&#x2F;--req">
+  <meta name="description" content="用 curl 调试 HTTP 接口的实战笔记，讲清 -H、-d、-X、-L、--resolve、-w 的用法，以及 HTTPS 证书报错怎么定位、如何用 -w 打印各阶段耗时排查慢请求。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="学会使用Curl调试接口">
+<meta property="og:title" content="学会用Curl调试接口，从常用参数到耗时排查">
 <meta property="og:url" content="http://blog.poetries.top/2019/12/12/linux-curl/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="在我们平时开发接口完成后，需要上线联调接口，而接口往往和业务逻辑精密联系，想要调试接口，就需要将业务测一遍，那么有没有更好的办法使得调试更简单？  常用的接口分为两类  第一类：自己开发服务于自己系统的接口，该类接口调试可以在本地使用postman工具调试； 第二类：不是自己开发，调用别人能力接口服务于自己的系统，该类接口我们就可以使用curl命令调试。  一、Curl常用参数 -X&#x2F;--req">
+<meta property="og:description" content="用 curl 调试 HTTP 接口的实战笔记，讲清 -H、-d、-X、-L、--resolve、-w 的用法，以及 HTTPS 证书报错怎么定位、如何用 -w 打印各阶段耗时排查慢请求。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-12-12T03:32:41.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.676Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.944Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="Curl">
+<meta property="article:tag" content="接口调试">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Curl%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0"><span class="toc-text">一、Curl常用参数</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81curl%E5%8F%91%E9%80%81%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0%E4%BD%BF%E7%94%A8"><span class="toc-text">二、curl发送请求参数使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E8%AE%BE%E7%BD%AEheader"><span class="toc-text">2.1 设置header</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E8%AE%BE%E7%BD%AEHTTP-parameter"><span class="toc-text">2.2 设置HTTP parameter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-session%E8%AE%A4%E8%AF%81"><span class="toc-text">2.3 session认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-%E4%BD%BF%E7%94%A8cookie"><span class="toc-text">2.4 使用cookie</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-HTTP%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%81"><span class="toc-text">2.5 HTTP基本认证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-post%E8%AF%B7%E6%B1%82"><span class="toc-text">2.6 post请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-7-%E6%89%A9%E5%B1%95%E7%9F%A5%E8%AF%86"><span class="toc-text">2.7 扩展知识</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E6%88%91%E4%BC%9A%E6%95%B2-curl-%E8%80%8C%E4%B8%8D%E6%98%AF%E5%BC%80-Postman"><span class="toc-text">一、什么时候我会敲 curl 而不是开 Postman</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0%E9%80%9F%E6%9F%A5"><span class="toc-text">二、常用参数速查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8F%91%E8%AF%B7%E6%B1%82%E7%9A%84%E5%87%A0%E7%A7%8D%E5%B8%B8%E8%A7%81%E5%86%99%E6%B3%95"><span class="toc-text">三、发请求的几种常见写法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AE%BE%E7%BD%AE-header"><span class="toc-text">3.1 设置 header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%AE%BE%E7%BD%AE%E8%AF%B7%E6%B1%82%E5%8F%82%E6%95%B0"><span class="toc-text">3.2 设置请求参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-session-%E8%AE%A4%E8%AF%81"><span class="toc-text">3.3 session 认证</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%BD%BF%E7%94%A8-cookie"><span class="toc-text">3.4 使用 cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-HTTP-%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%81"><span class="toc-text">3.5 HTTP 基本认证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81POST-%E8%AF%B7%E6%B1%82%E5%9C%A8%E4%B8%A4%E7%A7%8D%E5%8D%8F%E8%AE%AE%E4%B8%8B%E7%9A%84%E8%B0%83%E6%B3%95"><span class="toc-text">四、POST 请求在两种协议下的调法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-http-%E5%8D%8F%E8%AE%AE"><span class="toc-text">4.1 http 协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-https-%E5%8D%8F%E8%AE%AE%E4%B8%8E%E5%8F%8C%E5%90%91%E8%AE%A4%E8%AF%81"><span class="toc-text">4.2 https 协议与双向认证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81HTTPS-%E8%AF%81%E4%B9%A6%E6%8A%A5%E9%94%99%E6%80%8E%E4%B9%88%E4%B8%80%E5%B1%82%E5%B1%82%E5%AE%9A%E4%BD%8D"><span class="toc-text">五、HTTPS 证书报错怎么一层层定位</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%94%A8-%E2%80%93resolve-%E8%B7%B3%E8%BF%87-DNS-%E7%9B%B4%E8%BF%9E%E6%9F%90%E5%8F%B0%E6%9C%BA%E5%99%A8"><span class="toc-text">六、用 –resolve 跳过 DNS 直连某台机器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%94%A8-w-%E7%9C%8B%E5%90%84%E9%98%B6%E6%AE%B5%E8%80%97%E6%97%B6%EF%BC%8C%E6%8E%92%E6%9F%A5%E6%85%A2%E8%AF%B7%E6%B1%82"><span class="toc-text">七、用 -w 看各阶段耗时，排查慢请求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%87%A0%E4%B8%AA%E5%AE%B9%E6%98%93%E5%86%99%E9%94%99%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="toc-text">八、几个容易写错的地方</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E9%87%8D%E5%AE%9A%E5%90%91%E4%B8%8D%E4%BC%9A%E8%87%AA%E5%8A%A8%E8%B7%9F"><span class="toc-text">8.1 重定向不会自动跟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%BC%95%E5%8F%B7%E5%9C%A8-shell-%E9%87%8C%E7%9A%84%E5%9D%91"><span class="toc-text">8.2 引号在 shell 里的坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E4%BB%8E%E6%96%87%E4%BB%B6%E8%AF%BB%E8%AF%B7%E6%B1%82%E4%BD%93"><span class="toc-text">8.3 从文件读请求体</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E8%B6%85%E6%97%B6%E5%92%8C%E9%87%8D%E8%AF%95"><span class="toc-text">8.4 超时和重试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-linux-curl" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">学会使用Curl调试接口</h1>
+    <h1 class="post-title">学会用Curl调试接口，从常用参数到耗时排查</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 884字</span>
+            <span>字数统计 5.1k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 4分</span>
+            <span>阅读时长 19分</span>
           </span>
       
       
@@ -289,78 +290,186 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>在我们平时开发接口完成后，需要上线联调接口，而接口往往和业务逻辑精密联系，想要调试接口，就需要将业务测一遍，那么有没有更好的办法使得调试更简单？</p>
-</blockquote>
-<p><strong>常用的接口分为两类</strong></p>
+        <p>接口联调卡住的时候，最难受的是分不清问题出在前端还是后端。浏览器里点一下，Network 面板一堆请求混在一起，想改个请求头还得回代码里改完重新构建。这种时候一条 curl 命令就够了，参数写在一行里，想改哪个字段改哪个字段，结果直接打在终端上。</p>
+<p>这篇把我平时调接口用得最多的那几个 curl 参数梳理一遍。从 <code>-H</code>、<code>-d</code>、<code>-X</code> 这些基础的，到用 <code>--resolve</code> 绕开 DNS 直连某台机器，再到用 <code>-w</code> 打印各阶段耗时定位慢请求。HTTPS 证书报错的时候，curl 也是把问题缩小到具体哪一层的最快工具。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>第一类：自己开发服务于自己系统的接口，该类接口调试可以在本地使用<code>postman</code>工具调试；</li>
-<li>第二类：不是自己开发，调用别人能力接口服务于自己的系统，该类接口我们就可以使用<code>curl</code>命令调试。</li>
+<li>什么场景下 curl 比 Postman 更顺手</li>
+<li>常用参数速查，长短两种写法的对应关系</li>
+<li>设置请求头、传参数、带 cookie、基本认证的写法</li>
+<li>POST 请求在 http 和 https 两种协议下的差别</li>
+<li>HTTPS 证书报错怎么用 curl 一层层定位</li>
+<li>用 <code>--resolve</code> 跳过 DNS，直接打某台后端机器</li>
+<li>用 <code>-w</code> 打印 DNS、握手、首字节各阶段耗时，排查慢请求</li>
+<li>几个容易写错的地方，比如 <code>-d</code> 会隐式改方法、单双引号在 shell 里的坑</li>
 </ul>
-<h1 id="一、Curl常用参数"><a href="#一、Curl常用参数" class="headerlink" title="一、Curl常用参数"></a>一、Curl常用参数</h1><ul>
-<li><code>-X/--request [GET|POST|PUT|DELETE|…]</code> 使用指定的<code>http method</code>发出 <code>http request</code></li>
-<li><code>-H/--header</code> 设定<code>request</code>里的<code>header</code></li>
-<li><code>-i/--include</code> 显示<code>response</code>的<code>header</code></li>
-<li><code>-d/--data</code> 设定 <code>http parameters</code></li>
-<li><code>-v/--verbose</code> 輸出比较多的信息</li>
-<li><code>-u/--user</code> 使用者账号</li>
-<li><code>-b/--cookie</code> <code>cookie</code> 文件路径 使用<code>cookie</code></li>
-</ul>
-<blockquote>
-<p>同一个功能常会有两个完全相同的参数, 一个是比较短的参数, 另一个是比较长的参数</p>
-</blockquote>
-<blockquote>
-<p>参数<code>-X</code> 和 <code>--request</code> 两个功能是一样的 <code>curl -X POST http://www.example.com</code>  or  <code>curl --request POST http://www.example.com/</code>  是完全相同的.</p>
-</blockquote>
-<h1 id="二、curl发送请求参数使用"><a href="#二、curl发送请求参数使用" class="headerlink" title="二、curl发送请求参数使用"></a>二、curl发送请求参数使用</h1><ul>
-<li><code>curl</code>发送请求参数使用</li>
-</ul>
-<h2 id="2-1-设置header"><a href="#2-1-设置header" class="headerlink" title="2.1 设置header"></a>2.1 设置header</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i -H &quot;Content-Type: application/json&quot; http://www.baidu.com</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-2-设置HTTP-parameter"><a href="#2-2-设置HTTP-parameter" class="headerlink" title="2.2 设置HTTP parameter"></a>2.2 设置HTTP parameter</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -d &quot;param1:value1&amp;param2=value2&quot; 或者 -d &quot;param1=value1&quot; -d &quot;param2=value2&quot;</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-3-session认证"><a href="#2-3-session认证" class="headerlink" title="2.3 session认证"></a>2.3 session认证</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X GET &#x27;http://www.baidu.com/&#x27; --header &#x27;sessionid:sessionid值&#x27;</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-4-使用cookie"><a href="#2-4-使用cookie" class="headerlink" title="2.4 使用cookie"></a>2.4 使用cookie</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i --header &quot;Content-Type:application/json&quot; -X GET -b ~/cookie.txt http://www.baidu.com</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>测试接口上传文件:我们用 <code>-F &quot;file=@__FILE_PATH__&quot;</code> 的方式，传输文件即可, 如果想看到详细的请求信息，可以加上 <code>-v</code> 参数 <code>curl -i -X POST -F &#39;file=@/User/uploadFile.txt&#39; -H &quot;token:abc123</code>“ -v</p>
-</blockquote>
-<h2 id="2-5-HTTP基本认证"><a href="#2-5-HTTP基本认证" class="headerlink" title="2.5 HTTP基本认证"></a>2.5 HTTP基本认证</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i -u username:password http://www.baidu.com/api/foo&#x27;</span><br></pre></td></tr></table></figure>
-
-<h2 id="2-6-post请求"><a href="#2-6-post请求" class="headerlink" title="2.6 post请求"></a>2.6 post请求</h2><blockquote>
-<p>由于我们平时遇到接口请求都是<code>post</code>请求，所以接下来我们以<code>post</code>请求为例，分别探讨http协议和https协议两种情况下如何通过curl命令来调试接口；</p>
-</blockquote>
-<p><strong>http协议</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -v -X POST http://localhost:3000/api/posts --data &#x27;&#123;&quot;title&quot;:&quot;controller&quot;, &quot;content&quot;: &quot;what is controller&quot;&#125;&#x27; -H &#x27;Content-Type:application/json; charset=UTF-8&#x27;</span><br></pre></td></tr></table></figure>
-
+<h2 id="一、什么时候我会敲-curl-而不是开-Postman"><a href="#一、什么时候我会敲-curl-而不是开-Postman" class="headerlink" title="一、什么时候我会敲 curl 而不是开 Postman"></a>一、什么时候我会敲 curl 而不是开 Postman</h2><p>平时打交道的接口大致分两类。</p>
+<p>一类是自己写的、服务于自己系统的接口。这类接口本地就能跑，参数结构自己最清楚，用 Postman 这种 GUI 工具存一套 collection，改改字段点一下发送，效率是高的。</p>
+<p>另一类是别人提供的能力接口，你的系统去调它。这类接口往往鉴权复杂，签名、时间戳、自定义 header 一堆，而且经常只能在特定的机器上才能访问到，比如只有内网某台跳板机能通。这时候 GUI 工具就用不上了，你只有一个 ssh 终端，curl 是唯一的选择。</p>
+<p>我自己的习惯是，只要涉及「在服务器上验证」「问题不确定出在哪一层」这两种情况，一律用 curl。原因是它的输出可以被完整贴给后端同事，对方复制过去就能复现，不需要你截图描述半天。</p>
+<p>还有一点很实际，curl 命令是纯文本，能直接写进部署脚本和健康检查里。你调通的那条命令，稍微改改就是线上的探活脚本。</p>
+<h2 id="二、常用参数速查"><a href="#二、常用参数速查" class="headerlink" title="二、常用参数速查"></a>二、常用参数速查</h2><p>curl 的参数几乎都有长短两种写法，功能完全一样。</p>
 <ul>
-<li><code>-v</code> 显示版本信息</li>
-<li><code>--header</code>等同于 <code>-H</code> 指定请求头（可校验调用方是否有权限，通过判断请求头信息，如果有规定的请求头信息，则允许调用，否则拒绝调用</li>
-<li><code>--data</code> 请求参数(请求报文)</li>
-<li><code>-X</code>：指定请求方式</li>
+<li><code>-X/--request [GET|POST|PUT|DELETE|…]</code> 使用指定的 HTTP method 发出请求</li>
+<li><code>-H/--header</code> 设定 request 里的 header</li>
+<li><code>-i/--include</code> 在输出里带上 response 的 header</li>
+<li><code>-d/--data</code> 设定 HTTP 请求体参数</li>
+<li><code>-v/--verbose</code> 输出比较多的过程信息</li>
+<li><code>-u/--user</code> 使用者账号密码</li>
+<li><code>-b/--cookie</code> 使用 cookie，可以给字符串也可以给文件路径</li>
 </ul>
-<p><strong>通过 curl 发出的 HTTP 请求的内容就会是下面这样的</strong></p>
+<p>所以 <code>curl -X POST http://www.example.com</code> 和 <code>curl --request POST http://www.example.com/</code> 是完全相同的两条命令，写哪个看你自己习惯。我在终端里手敲用短参数，写进脚本里用长参数，因为长参数半年后回来看还认得出是干什么的。</p>
+<p>这里要纠正一个我早年一直搞错的点：<code>-v</code> 不是「显示版本信息」，它是 verbose 的缩写，作用是把整个请求过程打出来，包括 DNS 解析、TCP 连接、TLS 握手、发出去的完整请求头、收到的完整响应头。显示版本用的是 <code>-V</code>（大写）或者 <code>--version</code>。这两个我混过好几次。</p>
+<p><code>-v</code> 的输出里，行首符号是有约定的。<code>*</code> 开头是 curl 自己的过程说明，<code>&gt;</code> 开头是发出去的内容，<code>&lt;</code> 开头是收到的内容。看懂这三个符号，排查问题的效率能翻一倍。</p>
+<h2 id="三、发请求的几种常见写法"><a href="#三、发请求的几种常见写法" class="headerlink" title="三、发请求的几种常见写法"></a>三、发请求的几种常见写法</h2><h3 id="3-1-设置-header"><a href="#3-1-设置-header" class="headerlink" title="3.1 设置 header"></a>3.1 设置 header</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i -H &quot;Content-Type: application/json&quot; http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p><code>-H</code> 可以重复写多次，每个 header 一个 <code>-H</code>。加了 <code>-i</code> 之后响应头会跟着 body 一起打出来，调试的时候基本是默认要加的，不然你看不到状态码，也看不到 <code>Set-Cookie</code> 和缓存相关的头。</p>
+<p>如果只想看响应头不想要 body，用 <code>-I</code>（大写 i），它发的是 HEAD 请求。检查一个静态资源的缓存策略、CDN 有没有命中，用 <code>-I</code> 最快。</p>
+<h3 id="3-2-设置请求参数"><a href="#3-2-设置请求参数" class="headerlink" title="3.2 设置请求参数"></a>3.2 设置请求参数</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -d &quot;param1=value1&amp;param2=value2&quot; http://www.example.com/</span><br></pre></td></tr></table></figure>
+
+<p>或者拆开写，效果一样，curl 会自动用 <code>&amp;</code> 把它们拼起来。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -d &quot;param1=value1&quot; -d &quot;param2=value2&quot; http://www.example.com/</span><br></pre></td></tr></table></figure>
+
+<p>这里有个坑要注意，键值之间是等号不是冒号。表单编码的格式就是 <code>key=value</code>，写成 <code>param1:value1</code> 的话，整串会被当成一个没有等号的字段名发出去，后端解析不到，你会看到一个「参数为空」的报错，然后在参数值上找半天。</p>
+<p>还有一点，只要写了 <code>-d</code>，curl 就会自动把方法切成 POST，并且默认带上 <code>Content-Type: application/x-www-form-urlencoded</code>。所以上面那条命令里的 <code>-X POST</code> 其实可以省掉。但我一般还是会写上，因为显式写出来别人一眼就知道这是个 POST。</p>
+<p>参数值里如果有中文、空格或者 <code>&amp;</code> 这类特殊字符，用 <code>--data-urlencode</code> 代替 <code>-d</code>，它会帮你做 URL 编码。GET 请求想把参数拼到 query string 上，加个 <code>-G</code>，curl 就会把 <code>-d</code> 的内容挪到 URL 后面而不是放进 body。</p>
+<h3 id="3-3-session-认证"><a href="#3-3-session-认证" class="headerlink" title="3.3 session 认证"></a>3.3 session 认证</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X GET &#x27;http://www.baidu.com/&#x27; --header &#x27;sessionid:sessionid值&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>不少内部系统的鉴权就是这么做的，一个自定义 header 带上会话标识。要注意的是自定义 header 的名字大小写不敏感，但值是敏感的，从浏览器里复制的时候别把前后空格带进来。</p>
+<h3 id="3-4-使用-cookie"><a href="#3-4-使用-cookie" class="headerlink" title="3.4 使用 cookie"></a>3.4 使用 cookie</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i --header &quot;Content-Type:application/json&quot; -X GET -b ~/cookie.txt http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p><code>-b</code> 既可以直接给字符串（<code>-b &quot;name=value; name2=value2&quot;</code>），也可以给一个 cookie 文件的路径。配套的还有 <code>-c</code>，作用是把服务端下发的 cookie 存到文件里。这两个搭配起来就能模拟一次完整的登录流程：先用 <code>-c cookie.txt</code> 请求登录接口把会话存下来，后面每次请求都用 <code>-b cookie.txt</code> 带上。</p>
+<p>测试文件上传接口的时候用 <code>-F &quot;file=@__FILE_PATH__&quot;</code> 这种写法，注意路径前面那个 <code>@</code> 不能少，少了的话 curl 会把这串路径当成普通字符串发出去，而不是读文件内容。想看到详细的请求信息就再加个 <code>-v</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i -X POST -F &#x27;file=@/User/uploadFile.txt&#x27; -H &quot;token:abc123&quot; -v http://www.example.com/upload</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-HTTP-基本认证"><a href="#3-5-HTTP-基本认证" class="headerlink" title="3.5 HTTP 基本认证"></a>3.5 HTTP 基本认证</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -i -u username:password http://www.baidu.com/api/foo</span><br></pre></td></tr></table></figure>
+
+<p><code>-u</code> 会把账号密码做 base64 编码放进 <code>Authorization: Basic</code> 头里。这里提醒一句，基本认证的编码不是加密，抓包能直接还原出明文密码，所以走 HTTP 明文协议的基本认证等于没有保护。真要用，前面必须是 HTTPS。</p>
+<p>另外密码写在命令行里会进 shell 的 history 文件，机器上别人能翻到。省事的做法是只写 <code>-u username</code>，curl 会交互式地问你要密码，不落盘。</p>
+<h2 id="四、POST-请求在两种协议下的调法"><a href="#四、POST-请求在两种协议下的调法" class="headerlink" title="四、POST 请求在两种协议下的调法"></a>四、POST 请求在两种协议下的调法</h2><p>平时遇到的接口大多是 POST，所以单独把这块拿出来说。</p>
+<h3 id="4-1-http-协议"><a href="#4-1-http-协议" class="headerlink" title="4.1 http 协议"></a>4.1 http 协议</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -v -X POST http://localhost:3000/api/posts --data &#x27;&#123;&quot;title&quot;:&quot;controller&quot;, &quot;content&quot;: &quot;what is controller&quot;&#125;&#x27; -H &#x27;Content-Type:application/json; charset=UTF-8&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>拆开看这几个参数在干什么。</p>
+<p><code>-v</code> 打印完整交互过程。<code>-H</code>（等同 <code>--header</code>）指定请求头，很多服务端会靠请求头做权限校验，比如约定必须带某个 token 头，带了才放行，不带就直接拒绝。<code>--data</code>（等同 <code>-d</code>）是请求体。<code>-X</code> 显式指定请求方法。</p>
+<p>这里有个必须注意的配合关系：发 JSON 的时候，<code>Content-Type</code> 一定要写成 <code>application/json</code>。前面说过 <code>-d</code> 默认发的是 <code>application/x-www-form-urlencoded</code>，服务端拿到这个 Content-Type 就会按表单去解析，你的 JSON 字符串会被整个当成一个字段名，然后报参数缺失。这个错我见过太多次了，报错信息还特别有迷惑性。</p>
+<p>上面这条命令实际发出去的 HTTP 请求，内容大概是这样。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">POST /api/posts HTTP/1.1</span><br><span class="line">Host: localhost:3000</span><br><span class="line">Content-Type: application/json; charset=UTF-8</span><br><span class="line"></span><br><span class="line">&#123;&quot;title&quot;: &quot;controller&quot;, &quot;content&quot;: &quot;what is controller&quot;&#125;</span><br></pre></td></tr></table></figure>
 
-<p><strong>https协议</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -v -k -X POST http://localhost:3000/api/posts</span><br><span class="line">–cert &#x27;/app/milo/tomcat/milogenius/webapps/client.crt&#x27;</span><br><span class="line">–key &#x27;/app/milo/tomcat/milogenius/webapps/client.key&#x27;</span><br><span class="line">–pass &#x27;milogenius&#x27;</span><br></pre></td></tr></table></figure>
+<p>理解了这个映射关系，curl 就不再是一堆需要背的参数了，它就是让你手写一个 HTTP 报文而已。哪个参数对应报文的哪一部分，心里有数之后写命令就很快。</p>
+<h3 id="4-2-https-协议与双向认证"><a href="#4-2-https-协议与双向认证" class="headerlink" title="4.2 https 协议与双向认证"></a>4.2 https 协议与双向认证</h3><p>对接一些金融、政务类的接口时，服务端会要求客户端也提供证书，也就是双向 TLS。这时候要多传几个参数。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -v -k -X POST https://localhost:3000/api/posts \</span><br><span class="line">  --cert &#x27;/app/milo/tomcat/milogenius/webapps/client.crt&#x27; \</span><br><span class="line">  --key &#x27;/app/milo/tomcat/milogenius/webapps/client.key&#x27; \</span><br><span class="line">  --pass &#x27;milogenius&#x27;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li><code>-k</code> :允许不使用证书到<code>SSL</code>站点;</li>
-<li><code>-cert</code>: 客户端证书文件;</li>
-<li><code>-key</code>: 私钥文件名 (<code>SSL</code>);</li>
-<li><code>-pass</code>: 私钥密码 (<code>SSL</code>);</li>
+<li><code>-k</code> 允许连接没有有效证书的 SSL 站点，跳过证书校验</li>
+<li><code>--cert</code> 客户端证书文件</li>
+<li><code>--key</code> 私钥文件</li>
+<li><code>--pass</code> 私钥密码</li>
 </ul>
-<h2 id="2-7-扩展知识"><a href="#2-7-扩展知识" class="headerlink" title="2.7 扩展知识"></a>2.7 扩展知识</h2><ul>
-<li><code>curl post</code>请求, 数据可以采用<code>xml</code> 或者<code>json</code>格式, 并且可以发送本地<code>xml</code>和<code>json</code>文件</li>
+<p>原文这几个参数写成了单横线的 <code>-cert</code>、<code>-key</code>、<code>-pass</code>，实际上它们都是长参数，必须写两个横线。还有一处原文把 URL 写成了 <code>http://</code>，既然是配 SSL 证书，协议头得是 <code>https://</code> 才有意义，我一并改过来了。</p>
+<p><code>-k</code> 这个参数要谨慎。它确实能让「证书验证失败」这个报错立刻消失，但它同时也把 TLS 的身份校验整个关掉了，中间人可以随便冒充服务端。开发环境用自签证书时可以图方便加上，联调完记得去掉，绝不能带进生产脚本里。</p>
+<h2 id="五、HTTPS-证书报错怎么一层层定位"><a href="#五、HTTPS-证书报错怎么一层层定位" class="headerlink" title="五、HTTPS 证书报错怎么一层层定位"></a>五、HTTPS 证书报错怎么一层层定位</h2><p><code>-k</code> 是绕过问题，不是解决问题。真遇到证书报错，curl 是把问题缩小到具体哪一层最好用的工具。</p>
+<p>先不加 <code>-k</code> 直接打一次，看 curl 给的是什么错。常见的几种表现不一样，对应的原因也完全不同。</p>
+<p>如果提示证书是自签的或者签发方不受信任，那多半是服务端用了内部 CA，你的机器上没装这个根证书。正确做法不是 <code>-k</code>，是用 <code>--cacert</code> 把那个根证书指给 curl。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl --cacert /path/to/internal-ca.crt https://api.internal.example.com/health</span><br></pre></td></tr></table></figure>
+
+<p>如果提示的是主机名不匹配，说明证书上的域名和你访问的域名对不上。常见于用 IP 直接访问一个绑了域名的 HTTPS 服务，或者证书里只签了 <code>example.com</code> 却拿去给 <code>api.example.com</code> 用（没有配泛域名）。</p>
+<p>如果提示证书过期，那看一眼本机时间。容器里时间不同步导致「证书还没生效」或者「已过期」的情况我踩过，服务端证书其实好好的，是客户端的钟走偏了。</p>
+<p>想直接看服务端到底给了张什么证书，<code>-v</code> 的输出里就有，包括签发者、有效期、主题备用名（SAN）。这几行信息基本能定位掉八成的证书问题。</p>
+<p>补一句时效性的说明：这篇写于 2019 年，这些年 TLS 生态变化不小，curl 对 TLS 1.3、HTTP&#x2F;2 乃至 HTTP&#x2F;3 的支持，以及不同发行版自带的 curl 链接的是 OpenSSL 还是别的库，行为都可能有出入。<code>curl -V</code> 能看到你这台机器上的 curl 链接了哪个 TLS 库、支持哪些协议，具体行为差异以官方文档为准。</p>
+<h2 id="六、用-–resolve-跳过-DNS-直连某台机器"><a href="#六、用-–resolve-跳过-DNS-直连某台机器" class="headerlink" title="六、用 –resolve 跳过 DNS 直连某台机器"></a>六、用 –resolve 跳过 DNS 直连某台机器</h2><p>这个参数知道的人不多，但排查线上问题时特别好用。</p>
+<p>场景是这样：服务挂在负载均衡后面，有四台后端机器，用户反馈说「有时候能打开有时候报错」。这种间歇性问题，多半是其中某一台机器出了问题，但你直接请求域名的话，DNS 和负载均衡会随机把你分到某一台，抓不住那台坏的。</p>
+<p><code>--resolve</code> 让你手动指定某个域名在某个端口上解析到哪个 IP。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -v --resolve api.example.com:443:10.0.0.11 https://api.example.com/health</span><br></pre></td></tr></table></figure>
+
+<p>这条命令的 Host 头和 TLS SNI 用的还是 <code>api.example.com</code>，所以服务端那边的域名匹配、证书校验全都正常，但 TCP 连接实际打到了 <code>10.0.0.11</code> 这台机器上。四台机器挨个打一遍，坏的那台立刻就现原形了。</p>
+<p>同样的思路还能用来验证 DNS 切换。新域名的解析还没生效，你想提前确认新机器上的服务是不是配对了，<code>--resolve</code> 指过去打一发就知道，不用改本机 hosts。</p>
+<p>跟它类似的还有 <code>--connect-to</code>，语法不太一样但目的接近。以及 <code>-x</code> 指定代理，调试走网关的请求时用得上。</p>
+<p>顺着上面这块聊，如果这台机器上跑的是 Nginx，那配合 Nginx 的日志一起看会更快，我之前整理过一篇 <a href="https://feinterview.poetries.top/blog/review-nginx">Nginx 极简教程</a>，反向代理和 upstream 那部分能和这里的排查思路对上。</p>
+<h2 id="七、用-w-看各阶段耗时，排查慢请求"><a href="#七、用-w-看各阶段耗时，排查慢请求" class="headerlink" title="七、用 -w 看各阶段耗时，排查慢请求"></a>七、用 -w 看各阶段耗时，排查慢请求</h2><p>「这个接口好慢」是最难接的一类反馈，因为慢可以慢在很多地方：DNS 解析慢、TCP 建连慢、TLS 握手慢、服务端处理慢、下行传输慢。这五种原因的解决方向完全不同，先分清是哪一种，才谈得上优化。</p>
+<p><code>-w</code>（<code>--write-out</code>）能在请求结束后按你给的格式打印一批内部变量，其中就包括各阶段的时间戳。</p>
+<p>先准备一个格式文件，省得每次在命令行里写一长串。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># curl-format.txt</span><br><span class="line">    time_namelookup:  %&#123;time_namelookup&#125;s</span><br><span class="line">       time_connect:  %&#123;time_connect&#125;s</span><br><span class="line">    time_appconnect:  %&#123;time_appconnect&#125;s</span><br><span class="line">   time_pretransfer:  %&#123;time_pretransfer&#125;s</span><br><span class="line">      time_redirect:  %&#123;time_redirect&#125;s</span><br><span class="line"> time_starttransfer:  %&#123;time_starttransfer&#125;s</span><br><span class="line">                     ----------</span><br><span class="line">         time_total:  %&#123;time_total&#125;s</span><br><span class="line">          http_code:  %&#123;http_code&#125;</span><br><span class="line">      size_download:  %&#123;size_download&#125; bytes</span><br></pre></td></tr></table></figure>
+
+<p>然后这样调用。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -w &quot;@curl-format.txt&quot; -o /dev/null -s https://api.example.com/posts</span><br></pre></td></tr></table></figure>
+
+<p><code>-o /dev/null</code> 把响应体丢掉不打屏，<code>-s</code> 关掉进度条，这样输出里就只剩下你要的时间数据，干净。</p>
+<p>关键在于怎么读这几个数。这些时间点都是从命令发起算起的累计值，不是每一段单独的耗时，所以要靠相减来看。</p>
+<table>
+<thead>
+<tr>
+<th align="left">变量</th>
+<th align="left">含义</th>
+<th align="left">相减看什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>time_namelookup</code></td>
+<td align="left">DNS 解析完成的时刻</td>
+<td align="left">它本身就是 DNS 耗时</td>
+</tr>
+<tr>
+<td align="left"><code>time_connect</code></td>
+<td align="left">TCP 三次握手完成的时刻</td>
+<td align="left">减 <code>time_namelookup</code> 是建连耗时</td>
+</tr>
+<tr>
+<td align="left"><code>time_appconnect</code></td>
+<td align="left">TLS 握手完成的时刻</td>
+<td align="left">减 <code>time_connect</code> 是 TLS 握手耗时，HTTP 请求下这项是 0</td>
+</tr>
+<tr>
+<td align="left"><code>time_pretransfer</code></td>
+<td align="left">准备好开始传输的时刻</td>
+<td align="left">一般紧跟 appconnect，差值很小</td>
+</tr>
+<tr>
+<td align="left"><code>time_starttransfer</code></td>
+<td align="left">收到第一个字节的时刻</td>
+<td align="left">减 <code>time_pretransfer</code> 就是服务端处理耗时</td>
+</tr>
+<tr>
+<td align="left"><code>time_total</code></td>
+<td align="left">整个请求结束的时刻</td>
+<td align="left">减 <code>time_starttransfer</code> 是响应体下载耗时</td>
+</tr>
+</tbody></table>
+<p>判断规则其实很直白。</p>
+<p><code>time_namelookup</code> 大，问题在 DNS，换个解析服务或者上本地缓存。<code>time_connect</code> 减去它的差值大，问题在网络链路或者服务端连接队列满了。<code>time_appconnect</code> 那一段大，看看是不是证书链太长、或者用的是握手成本高的加密套件。<code>time_starttransfer</code> 减 <code>time_pretransfer</code> 大，那就是服务端自己慢，跟网络没关系，去查慢 SQL 和下游调用。最后一段大，那是响应体太大或者带宽不够，考虑压缩（curl 这边加 <code>--compressed</code> 试试）和分页。</p>
+<p>这套方法我自己在排查一个「首页偶尔要三四秒」的问题时用过一次，跑一圈下来发现大头在 <code>time_starttransfer</code>，网络那边完全是清白的，省掉了一整轮和运维互相甩锅的时间。</p>
+<p><code>-w</code> 还支持不少别的变量，<code>%&#123;url_effective&#125;</code> 看最终 URL、<code>%&#123;num_connects&#125;</code> 看建了几次连接、<code>%&#123;num_redirects&#125;</code> 看跳了几次，具体有哪些以官方文档为准，版本之间会有增减。</p>
+<h2 id="八、几个容易写错的地方"><a href="#八、几个容易写错的地方" class="headerlink" title="八、几个容易写错的地方"></a>八、几个容易写错的地方</h2><h3 id="8-1-重定向不会自动跟"><a href="#8-1-重定向不会自动跟" class="headerlink" title="8.1 重定向不会自动跟"></a>8.1 重定向不会自动跟</h3><p>curl 默认不跟随 302&#x2F;301。你打一个会重定向的地址，看到的是一个空 body 加一个 3xx 状态码，很容易误判成「接口挂了」。加 <code>-L</code>（<code>--location</code>）才会跟过去。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -L -i https://example.com/old-path</span><br></pre></td></tr></table></figure>
+
+<p>配合 <code>-v</code> 用，能看到完整的跳转链路，每一跳的 Location 头都会打出来。排查登录跳转、CDN 回源这类问题必备。要注意的是 <code>-L</code> 在跟随重定向时，默认不会把 <code>Authorization</code> 头带到不同的主机上，这是安全设计，遇到「加了 <code>-L</code> 反而 401」的情况可以往这个方向想。</p>
+<h3 id="8-2-引号在-shell-里的坑"><a href="#8-2-引号在-shell-里的坑" class="headerlink" title="8.2 引号在 shell 里的坑"></a>8.2 引号在 shell 里的坑</h3><p>JSON 请求体里全是双引号，外面就必须用单引号包住。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -d &#x27;&#123;&quot;name&quot;:&quot;zhangsan&quot;&#125;&#x27; -H &#x27;Content-Type: application/json&#x27; http://www.example.com/</span><br></pre></td></tr></table></figure>
+
+<p>反过来用双引号包 JSON 的话，里面的双引号得一个个转义，写起来很痛苦而且容易漏。另外单引号里的 <code>$</code> 不会被 shell 展开，双引号里会，请求体里恰好带 <code>$</code> 的时候这个区别会咬人。</p>
+<h3 id="8-3-从文件读请求体"><a href="#8-3-从文件读请求体" class="headerlink" title="8.3 从文件读请求体"></a>8.3 从文件读请求体</h3><p>数据量大或者是一个现成的 JSON 文件时，用 <code>@</code> 前缀让 curl 去读文件。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -H &#x27;content-type: application/json&#x27; -d @/apps/jsonfile.json http://www.example.com/</span><br></pre></td></tr></table></figure>
+
+<p>原文这里漏了 <code>@</code>，写成 <code>-d /apps/jsonfile.json</code>，那样 curl 会把这串路径本身当成请求体发出去。这个错误的表现是服务端报 JSON 解析失败，但你打开文件看又觉得内容没问题，很容易卡住。</p>
+<p>发 XML 也是一样的路子，改一下 Content-Type 就行。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -H &#x27;content-type:application/xml&#x27; -d &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;name&gt;zhangsan&lt;/name&gt;&#x27; http://www.example.com/</span><br></pre></td></tr></table></figure>
+
+<h3 id="8-4-超时和重试"><a href="#8-4-超时和重试" class="headerlink" title="8.4 超时和重试"></a>8.4 超时和重试</h3><p>写进监控脚本的 curl 命令，超时一定要加，不然接口卡死时你的脚本会跟着一起挂住。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl --connect-timeout 3 --max-time 10 --retry 2 https://api.example.com/health</span><br></pre></td></tr></table></figure>
+
+<p><code>--connect-timeout</code> 只管建连阶段，<code>--max-time</code>（<code>-m</code>）管整个请求的总时长。两个都设上，行为才是可预期的。</p>
+<p>关于 Linux 上这类命令行工具的更多用法，我另外整理过一篇 <a href="https://feinterview.poetries.top/blog/linux-summary">Linux 常用命令总结</a>，日志排查那部分和这篇是配套的。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>curl 值得记住的东西其实不多，把 HTTP 报文和参数的对应关系搞清楚，剩下的都是查文档就能解决的。</p>
+<p><code>-H</code> 对应请求头，<code>-d</code> 对应请求体并且会隐式把方法改成 POST，<code>-X</code> 显式指定方法，<code>-i</code> 让你看到响应头。这四个覆盖了日常八成的场景。</p>
+<p>再往上一层，<code>-v</code> 是你的眼睛，DNS、握手、请求头、响应头全在里面，遇事先加 <code>-v</code> 看一眼比猜快得多。<code>-k</code> 只是让证书报错闭嘴，真要定位问题得用 <code>--cacert</code> 指定根证书，或者从 <code>-v</code> 输出里读证书的签发者和有效期。</p>
+<p>最后两个是拉开差距的：<code>--resolve</code> 让你绕过 DNS 精准打到某一台后端机器，负载均衡后面某台机器出问题时就靠它揪出来；<code>-w</code> 把一次请求拆成 DNS、建连、TLS、服务端处理、下载五段耗时，慢请求的锅到底在谁身上，一条命令就分清了。</p>
+<p>这两个参数我是工作两三年后才用起来的，用上之后回头看，前面那些靠猜和加日志的排查方式确实浪费了不少时间。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://curl.se/docs/manpage.html">curl 官方手册</a></li>
+<li><a href="https://curl.se/docs/manpage.html#-w">curl –write-out 变量说明</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods">MDN HTTP 请求方法</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers">MDN HTTP 头字段索引</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -H &#x27;Content-Type:application/json&#x27; -X POST -d &#x27;&#123;&quot;name&quot;:&quot;zhangsan&quot;&#125;&#x27; http://www.baidu.com/</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -H &#x27;content-type: application/json&#x27;  -d /apps/jsonfile.json http://www.baidu.com/</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">curl -X POST -H &#x27;content-type:application/xml&#x27;  -d &#x27;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;name&gt;zhangsan&lt;/name&gt;&#x27; http://www.baidu.com/</span><br></pre></td></tr></table></figure>
-
 
       </div>
     

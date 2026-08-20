@@ -7,45 +7,48 @@
 <head>
   <meta charset="utf-8">
   
-  <title>前端面试之hybrid | 前端进阶之旅</title>
+  <title>前端面试之hybrid，webview 加载与通信机制全解析 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="面试,Hybird," />
+    <meta name="keywords" content="面试,Hybird,hybrid,webview,JSBridge," />
   
 
-  <meta name="description" content="一、hybrid 是什么，为何会用 hybrid1.1 hybrid 文字解释 hybrid 即“混合”，即前端和客户端的混合开发 需前端开发人员和客户端开发人员配合完成 某些环节也可能涉及到 server 端 PS：不要以为自己的前端就可以不理会客户端的知识   1.2 hybrid 存在价值 可以快速迭代更新【关键】（无需 app 审核，思考为何？） 体验流畅（和 NA 的体验基本类似） 减">
+  <meta name="description" content="从 hybrid 为什么存在讲到 webview 里 file 与 http 协议的取舍、zip 包版本更新上线流程，以及 schema 协议通信的封装思路，把前端面试里 hybrid 常考的几个点串成一条线。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="前端面试之hybrid">
+<meta property="og:title" content="前端面试之hybrid，webview 加载与通信机制全解析">
 <meta property="og:url" content="http://blog.poetries.top/2018/10/20/fe-interview-hybrid/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、hybrid 是什么，为何会用 hybrid1.1 hybrid 文字解释 hybrid 即“混合”，即前端和客户端的混合开发 需前端开发人员和客户端开发人员配合完成 某些环节也可能涉及到 server 端 PS：不要以为自己的前端就可以不理会客户端的知识   1.2 hybrid 存在价值 可以快速迭代更新【关键】（无需 app 审核，思考为何？） 体验流畅（和 NA 的体验基本类似） 减">
+<meta property="og:description" content="从 hybrid 为什么存在讲到 webview 里 file 与 http 协议的取舍、zip 包版本更新上线流程，以及 schema 协议通信的封装思路，把前端面试里 hybrid 常考的几个点串成一条线。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/72.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/73.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/74.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/75.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/76.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/77.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/78.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/79.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/80.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/81.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/82.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/83.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/84.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/85.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/86.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/87.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/88.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/72.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/73.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/74.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/75.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/76.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/77.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/78.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/79.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/80.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/81.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/82.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/83.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/84.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/85.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/86.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/87.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/88.png">
 <meta property="article:published_time" content="2018-10-20T17:13:10.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.659Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.930Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="面试">
 <meta property="article:tag" content="Hybird">
+<meta property="article:tag" content="hybrid">
+<meta property="article:tag" content="webview">
+<meta property="article:tag" content="JSBridge">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/72.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/72.png">
 
   
 
@@ -223,7 +226,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81hybrid-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%BA%E4%BD%95%E4%BC%9A%E7%94%A8-hybrid"><span class="toc-text">一、hybrid 是什么，为何会用 hybrid</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-hybrid-%E6%96%87%E5%AD%97%E8%A7%A3%E9%87%8A"><span class="toc-text">1.1 hybrid 文字解释</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-hybrid-%E5%AD%98%E5%9C%A8%E4%BB%B7%E5%80%BC"><span class="toc-text">1.2 hybrid 存在价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-webview"><span class="toc-text">1.3 webview</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-file-%E5%8D%8F%E8%AE%AE"><span class="toc-text">1.4 file 协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-http-s-%E5%8D%8F%E8%AE%AE"><span class="toc-text">1.5 http(s) 协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E4%B8%A4%E8%80%85%E5%8C%BA%E5%88%AB"><span class="toc-text">1.6 两者区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-7-%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="toc-text">1.7 具体实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81hybrid-%E6%9B%B4%E6%96%B0%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B"><span class="toc-text">二、hybrid 更新上线流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%85%B7%E4%BD%93%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-text">2.1 具体流程图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-text">2.2 完整流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81hybrid-%E5%92%8C-h5-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-text">三、hybrid 和 h5 的区别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%BC%98%E7%82%B9"><span class="toc-text">3.1 优点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%BC%BA%E7%82%B9"><span class="toc-text">3.2 缺点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%80%82%E7%94%A8%E7%9A%84%E5%9C%BA%E6%99%AF"><span class="toc-text">3.3 适用的场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%89%8D%E7%AB%AF%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%80%9A%E8%AE%AF"><span class="toc-text">四、前端和客户端通讯</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-JS-%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%80%9A%E8%AE%AF%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%BD%A2%E5%BC%8F"><span class="toc-text">4.1 JS 和客户端通讯的基本形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-schema-%E5%8D%8F%E8%AE%AE%E7%AE%80%E4%BB%8B%E5%92%8C%E4%BD%BF%E7%94%A8"><span class="toc-text">4.2 schema 协议简介和使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-schema-%E4%BD%BF%E7%94%A8%E7%9A%84%E5%B0%81%E8%A3%85"><span class="toc-text">4.3 schema 使用的封装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%86%85%E7%BD%AE%E4%B8%8A%E7%BA%BF"><span class="toc-text">4.4 内置上线</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81hybrid-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%9C%89%E5%AE%83"><span class="toc-text">一、hybrid 是什么，为什么会有它</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%85%88%E6%8A%8A%E3%80%8C%E6%B7%B7%E5%90%88%E3%80%8D%E4%B8%A4%E4%B8%AA%E5%AD%97%E6%8B%86%E5%BC%80"><span class="toc-text">1.1 先把「混合」两个字拆开</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%AD%98%E5%9C%A8%E4%BB%B7%E5%80%BC%EF%BC%8C%E6%A0%B8%E5%BF%83%E5%8F%AA%E6%9C%89%E4%B8%80%E6%9D%A1"><span class="toc-text">1.2 存在价值，核心只有一条</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-webview%EF%BC%8C%E4%B8%80%E4%B8%AA%E8%A3%85%E5%9C%A8-App-%E9%87%8C%E7%9A%84%E6%B5%8F%E8%A7%88%E5%99%A8%E5%86%85%E6%A0%B8"><span class="toc-text">1.3 webview，一个装在 App 里的浏览器内核</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-file-%E5%8D%8F%E8%AE%AE%EF%BC%8C%E5%85%B6%E5%AE%9E%E4%BD%A0%E6%97%A9%E5%B0%B1%E7%94%A8%E8%BF%87"><span class="toc-text">1.4 file 协议，其实你早就用过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-http-s-%E5%8D%8F%E8%AE%AE"><span class="toc-text">1.5 http(s) 协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-6-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8-hybrid%EF%BC%8C%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E4%B8%8D%E7%94%A8"><span class="toc-text">1.6 什么时候用 hybrid，什么时候不用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%9B%B4%E6%96%B0%E4%B8%8A%E7%BA%BF%E6%B5%81%E7%A8%8B%EF%BC%8Chybrid-%E6%9C%80%E9%9A%BE%E7%9A%84%E9%82%A3%E9%83%A8%E5%88%86"><span class="toc-text">二、更新上线流程，hybrid 最难的那部分</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%85%88%E6%83%B3%E6%B8%85%E6%A5%9A%E8%A6%81%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-text">2.1 先想清楚要解决什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-text">2.2 完整流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-hybrid-%E5%92%8C-h5-%E5%88%B0%E5%BA%95%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-text">2.3 hybrid 和 h5 到底差在哪</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%89%8D%E7%AB%AF%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%80%8E%E4%B9%88%E9%80%9A%E4%BF%A1"><span class="toc-text">三、前端和客户端怎么通信</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%9F%BA%E6%9C%AC%E5%BD%A2%E5%BC%8F"><span class="toc-text">3.1 基本形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-schema-%E5%8D%8F%E8%AE%AE"><span class="toc-text">3.2 schema 协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%B0%81%E8%A3%85"><span class="toc-text">3.3 为什么必须封装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%86%85%E7%BD%AE%E4%B8%8A%E7%BA%BF"><span class="toc-text">3.4 内置上线</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%812018-%E5%B9%B4%E7%9A%84%E8%BF%99%E5%A5%97%E6%96%B9%E6%A1%88%EF%BC%8C%E7%8E%B0%E5%9C%A8%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88"><span class="toc-text">四、2018 年的这套方案，现在还剩什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -246,13 +249,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-fe-interview-hybrid" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">前端面试之hybrid</h1>
+    <h1 class="post-title">前端面试之hybrid，webview 加载与通信机制全解析</h1>
 
     <div class="article-meta">
       <span>
@@ -288,12 +291,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 888字</span>
+            <span>字数统计 4.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 3分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -307,106 +310,157 @@
   <div class="article-content">
     
       <div id="container">
-        <p><img src="https://poetries1.gitee.io/img-repo/2019/10/72.png"></p>
-<h2 id="一、hybrid-是什么，为何会用-hybrid"><a href="#一、hybrid-是什么，为何会用-hybrid" class="headerlink" title="一、hybrid 是什么，为何会用 hybrid"></a>一、hybrid 是什么，为何会用 hybrid</h2><h3 id="1-1-hybrid-文字解释"><a href="#1-1-hybrid-文字解释" class="headerlink" title="1.1 hybrid 文字解释"></a>1.1 hybrid 文字解释</h3><ul>
-<li><code>hybrid</code> 即“混合”，即前端和客户端的混合开发</li>
-<li>需前端开发人员和客户端开发人员配合完成</li>
-<li>某些环节也可能涉及到 <code>server</code> 端</li>
-<li>PS：不要以为自己的前端就可以不理会客户端的知识</li>
+        <p>面 App 内嵌 H5 相关的岗位，hybrid 几乎是必问。问法也很固定，先问「hybrid 是什么」，再问「为什么不直接用 H5」，然后一路追到「静态资源怎么更新」「前端怎么调用客户端的相机」。我见过不少同学能背出「混合开发」四个字，但一到追问静态包怎么下发、schema 协议长什么样就卡住了。</p>
+<p>这篇按面试官的追问顺序把这条线走一遍。下面这张图是整篇的骨架，先扫一眼有个印象：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/72.png" alt="hybrid 知识体系脑图，涵盖概念、更新流程与通信机制"></p>
+<p>这张图值得先看的地方是它的分叉：左边是「怎么加载」，右边是「怎么通信」。hybrid 的所有问题基本都能归到这两类里，记住这个分法，面试时不至于把答案讲散。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>hybrid 到底混合了什么，它解决的是哪个具体痛点</li>
+<li>webview 是什么，它和普通浏览器的区别在哪</li>
+<li>file 协议和 http(s) 协议在 App 里各自的角色</li>
+<li>什么功能该用 NA，什么该用 hybrid，什么随便丢个 H5 就行</li>
+<li>静态资源 zip 包的版本更新上线全流程</li>
+<li>schema 协议的设计、调用和封装</li>
+<li>2018 年的这套方案，放到今天还剩多少能用</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/73.png"></p>
-<h3 id="1-2-hybrid-存在价值"><a href="#1-2-hybrid-存在价值" class="headerlink" title="1.2 hybrid 存在价值"></a>1.2 hybrid 存在价值</h3><ul>
+<h2 id="一、hybrid-是什么，为什么会有它"><a href="#一、hybrid-是什么，为什么会有它" class="headerlink" title="一、hybrid 是什么，为什么会有它"></a>一、hybrid 是什么，为什么会有它</h2><h3 id="1-1-先把「混合」两个字拆开"><a href="#1-1-先把「混合」两个字拆开" class="headerlink" title="1.1 先把「混合」两个字拆开"></a>1.1 先把「混合」两个字拆开</h3><p>hybrid 即「混合」，指的是前端和客户端的混合开发。它需要前端开发人员和客户端开发人员配合完成，某些环节也可能涉及到 server 端。</p>
+<p>这里提前说一句：不要以为自己是前端就可以不理会客户端的知识。hybrid 出问题的时候，一半的锅在两端的交界处，你不懂客户端那侧发生了什么，就只能干等着别人排查。</p>
+<p>下面这张图画的是 hybrid 在整个技术栈里的位置：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/73.png" alt="hybrid 在原生应用与纯 H5 之间的定位示意"></p>
+<p>看这张图要抓的重点是它夹在中间的位置。hybrid 不是一门新技术，它是一种妥协的产物，往左靠一点体验好、更新慢，往右靠一点更新快、体验糙。后面所有的取舍都是围着这条轴线转的。</p>
+<h3 id="1-2-存在价值，核心只有一条"><a href="#1-2-存在价值，核心只有一条" class="headerlink" title="1.2 存在价值，核心只有一条"></a>1.2 存在价值，核心只有一条</h3><p>hybrid 的价值通常被列成三条：</p>
+<ul>
 <li>可以快速迭代更新【关键】（无需 app 审核，思考为何？）</li>
 <li>体验流畅（和 NA 的体验基本类似）</li>
 <li>减少开发和沟通成本，双端公用一套代码</li>
 </ul>
-<h3 id="1-3-webview"><a href="#1-3-webview" class="headerlink" title="1.3 webview"></a>1.3 webview</h3><ul>
-<li>是 <code>app</code> 中的一个组件（ <code>app</code> 可以有 <code>webview</code> ，也可以没有）</li>
-<li>于加载 <code>h5</code> 页面，即一个小型的浏览器内核</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/74.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/75.png"></p>
-<h3 id="1-4-file-协议"><a href="#1-4-file-协议" class="headerlink" title="1.4 file 协议"></a>1.4 file 协议</h3><ul>
-<li>其实在一开始接触 <code>html </code>开发，就已经使用了 <code>file</code> 协议</li>
-<li>只不过你当时没有“协议”“标准”等这些概念</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/76.png"></p>
-<h3 id="1-5-http-s-协议"><a href="#1-5-http-s-协议" class="headerlink" title="1.5 http(s) 协议"></a>1.5 http(s) 协议</h3><p><img src="https://poetries1.gitee.io/img-repo/2019/10/77.png"></p>
-<h3 id="1-6-两者区别"><a href="#1-6-两者区别" class="headerlink" title="1.6 两者区别"></a>1.6 两者区别</h3><ul>
-<li><code>file</code> 协议：本地文件，快</li>
-<li><code>http(s)</code> 协议：网络加载，慢</li>
-</ul>
-<h3 id="1-7-具体实现"><a href="#1-7-具体实现" class="headerlink" title="1.7 具体实现"></a>1.7 具体实现</h3><ul>
-<li>不是所有场景都适合使用 <code>hybrid</code></li>
-<li>使用 <code>NA</code> ：体验要求极致，变化不频繁（无头条的首页）</li>
-<li>使用 <code>hybrid</code> ：体验要求高，变化频繁（如头条的新闻详情页）</li>
-<li>使用 <code>h5</code> ：体验无要求，不常用（如举报、反馈等页面）</li>
-</ul>
-<blockquote>
-<p>实现</p>
-</blockquote>
+<p>三条里真正的核心是第一条。</p>
+<p>App 发版要走应用商店审核，iOS 那边尤其慢，一个文案错别字都得等一轮。而 hybrid 页面的 HTML、JS、CSS 是可以被替换的，替换完客户端不用重新安装，用户下次打开就是新的。这就是那个「思考为何」的答案：审核管的是二进制包，不管你包里的静态文件被换成了什么。</p>
+<p>后面两条是顺带的好处，不是它诞生的原因。</p>
+<h3 id="1-3-webview，一个装在-App-里的浏览器内核"><a href="#1-3-webview，一个装在-App-里的浏览器内核" class="headerlink" title="1.3 webview，一个装在 App 里的浏览器内核"></a>1.3 webview，一个装在 App 里的浏览器内核</h3><p>webview 是 app 中的一个组件，app 可以有 webview，也可以没有。它用于加载 h5 页面，是一个小型的浏览器内核。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/74.png" alt="webview 作为原生应用中的一个组件承载 H5 页面"></p>
+<p>这张图要记的是 webview 和 App 的从属关系：webview 是 App 里的一块区域，不是反过来。所以 webview 能干什么、有什么限制，最终由客户端那侧的配置说了算。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/75.png" alt="webview 的能力边界与原生容器的关系"></p>
+<p>这张接着说 webview 的能力边界。容易记混的地方是把 webview 当成 Chrome，它确实是浏览器内核，但它没有地址栏、没有前进后退按钮、Cookie 策略和调试方式也和浏览器不一样。你在 Chrome 里跑得好好的页面，进了 webview 出问题，八成是这些差异导致的。</p>
+<h3 id="1-4-file-协议，其实你早就用过"><a href="#1-4-file-协议，其实你早就用过" class="headerlink" title="1.4 file 协议，其实你早就用过"></a>1.4 file 协议，其实你早就用过</h3><p>其实在一开始接触 html 开发，就已经使用了 file 协议，只不过你当时没有「协议」「标准」这些概念。双击一个本地 html 文件，浏览器地址栏出现的 <code>file://</code> 就是它。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/76.png" alt="file 协议加载本地文件的路径形式"></p>
+<p>这张图的重点是 file 协议读的是磁盘上的文件，没有网络请求这一步。所以它快，快得不是一星半点。代价是它没有域的概念，跨域策略、Cookie、Ajax 这些在 file 协议下的行为都和 http 不一样，这是最容易踩的坑。</p>
+<h3 id="1-5-http-s-协议"><a href="#1-5-http-s-协议" class="headerlink" title="1.5 http(s) 协议"></a>1.5 http(s) 协议</h3><p><img src="https://s.poetries.top/gitee/2019/10/77.png" alt="http(s) 协议通过网络加载远程页面"></p>
+<p>这张是对照组。http(s) 走网络，能力完整，但要经历 DNS、TCP、TLS、下载这一整套流程。弱网环境下白屏时间会非常难看，缓存这块可以配合 HTTP 缓存策略优化，具体规则我在 <a href="https://feinterview.poetries.top/blog/browser-cache">浏览器缓存机制详解</a> 里单独展开过。</p>
+<p>两者的区别一句话就能说完：</p>
 <ul>
-<li>前端做好静态页面（<code>html js css</code>），将文件交给客户端</li>
-<li>客户端拿到前端静态页面，以文件形式存储在 <code>app</code> 中</li>
-<li>客户端在一个 <code>webview</code> 中</li>
-<li>使用 <code>file</code> 协议加载静态页面</li>
+<li>file 协议：本地文件，快</li>
+<li>http(s) 协议：网络加载，慢</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/78.png"></p>
-<h2 id="二、hybrid-更新上线流程"><a href="#二、hybrid-更新上线流程" class="headerlink" title="二、hybrid 更新上线流程"></a>二、hybrid 更新上线流程</h2><h3 id="2-1-具体流程图"><a href="#2-1-具体流程图" class="headerlink" title="2.1 具体流程图"></a>2.1 具体流程图</h3><p><img src="https://poetries1.gitee.io/img-repo/2019/10/79.png"></p>
-<p><strong>思考（目的，可行途径）</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/80.png"></p>
+<h3 id="1-6-什么时候用-hybrid，什么时候不用"><a href="#1-6-什么时候用-hybrid，什么时候不用" class="headerlink" title="1.6 什么时候用 hybrid，什么时候不用"></a>1.6 什么时候用 hybrid，什么时候不用</h3><p>不是所有场景都适合使用 hybrid。判断标准是两个维度的组合，体验要求和变更频率：</p>
+<ul>
+<li>使用 NA：体验要求极致，变化不频繁（如头条的首页）</li>
+<li>使用 hybrid：体验要求高，变化频繁（如头条的新闻详情页）</li>
+<li>使用 h5：体验无要求，不常用（如举报、反馈等页面）</li>
+</ul>
+<p>你想想看，首页是用户每天都看的门面，卡一下就掉口碑，但它半年也改不了几次结构，那就值得用原生把体验做到顶。反过来，举报页面一年打开不了几次，为它单独走一遍发版流程不值当。</p>
+<p>具体实现的流程是这样的：</p>
+<ul>
+<li>前端做好静态页面（html js css），将文件交给客户端</li>
+<li>客户端拿到前端静态页面，以文件形式存储在 app 中</li>
+<li>客户端在一个 webview 中</li>
+<li>使用 file 协议加载静态页面</li>
+</ul>
+<p><img src="https://s.poetries.top/gitee/2019/10/78.png" alt="前端静态资源内置进 App 并由 webview 用 file 协议加载"></p>
+<p>这张图把上面四步画成了链路，重点在最后一环：加载用的是 file 协议，不是 http。这就是 hybrid 体验能接近原生的直接原因，页面根本没有网络加载这一步，打开就是本地文件。</p>
+<h2 id="二、更新上线流程，hybrid-最难的那部分"><a href="#二、更新上线流程，hybrid-最难的那部分" class="headerlink" title="二、更新上线流程，hybrid 最难的那部分"></a>二、更新上线流程，hybrid 最难的那部分</h2><h3 id="2-1-先想清楚要解决什么"><a href="#2-1-先想清楚要解决什么" class="headerlink" title="2.1 先想清楚要解决什么"></a>2.1 先想清楚要解决什么</h3><p>静态文件内置在 App 里，带来的新问题是：改一行代码，用户手机里那份文件怎么变？</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/79.png" alt="hybrid 静态资源更新的整体流程图"></p>
+<p>这张流程图要看的是箭头方向，从我们的构建产物一路流到用户设备。中间每多一个环节，就多一个可能失败的点，后面讲的版本号比对、下载、解压、覆盖，每一步都能出事。</p>
+<p>顺着这个思路往下推：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/80.png" alt="更新方案的推导过程，从目的反推可行途径"></p>
+<p>这张图讲的是推导过程，比结论本身更值得记。逻辑链是这样的：</p>
 <ul>
 <li>要替换每个客户端的静态文件</li>
 <li>只能客户端来做（客户端是我们开发的）</li>
 <li>客户端去 server 下载最新的静态文件</li>
 <li>我们维护 server 的静态文件</li>
 </ul>
-<h3 id="2-2-完整流程"><a href="#2-2-完整流程" class="headerlink" title="2.2 完整流程"></a>2.2 完整流程</h3><p><img src="https://poetries1.gitee.io/img-repo/2019/10/81.png"></p>
+<p>面试时能把这个推导讲出来，比直接背「用 zip 包更新」高一个档次，因为它说明你知道为什么必须是客户端来做这件事，浏览器侧根本没有写本地文件的权限。</p>
+<h3 id="2-2-完整流程"><a href="#2-2-完整流程" class="headerlink" title="2.2 完整流程"></a>2.2 完整流程</h3><p><img src="https://s.poetries.top/gitee/2019/10/81.png" alt="zip 包版本比对与下载覆盖的完整更新流程"></p>
+<p>这张是整篇最值得截下来的图。它对应的五个步骤是：</p>
 <ul>
 <li>分版本，有版本号，如 <code>201803211015</code></li>
-<li>将静态文件压缩成 <code>zip </code>包，上传到服务端</li>
+<li>将静态文件压缩成 zip 包，上传到服务端</li>
 <li>客户端每次启动，都去服务端检查版本号</li>
-<li>如果服务端版本号大于客户端版本号，就去下载最新的 <code>zip</code> 包</li>
+<li>如果服务端版本号大于客户端版本号，就去下载最新的 zip 包</li>
 <li>下载完之后解压包，然后将现有文件覆盖</li>
 </ul>
-<p><strong>要点总结</strong></p>
+<p>容易记混的是检查时机。它是在客户端启动时检查，不是每次打开页面都检查。所以用户这次冷启动拿到的还是旧版本，下次启动才生效，这个延迟是这套方案的固有特性，产品同学经常搞不清楚为什么改了内容不是马上就见效。</p>
+<p>要点归纳成三句话：</p>
 <ul>
-<li>要点1：服务端的版本和<code>zip</code>包维护</li>
-<li>要点2：更新<code> zip</code> 包之前，先对比版本号</li>
-<li>要点3：<code>zip</code> 下载解压和覆盖</li>
+<li>要点1：服务端的版本和 zip 包维护</li>
+<li>要点2：更新 zip 包之前，先对比版本号</li>
+<li>要点3：zip 下载解压和覆盖</li>
 </ul>
-<h2 id="三、hybrid-和-h5-的区别"><a href="#三、hybrid-和-h5-的区别" class="headerlink" title="三、hybrid 和 h5 的区别"></a>三、hybrid 和 h5 的区别</h2><h3 id="3-1-优点"><a href="#3-1-优点" class="headerlink" title="3.1 优点"></a>3.1 优点</h3><ul>
-<li>体验更好，跟 <code>NA </code>体验基本一致</li>
-<li>可快速迭代，无需 <code>app</code> 审核【关键】</li>
+<p>这里有个坑要注意，覆盖这一步不是原子操作。如果下载到一半断网，或者解压过程中 App 被杀掉，就可能出现新旧文件混在一起的状态，页面直接白屏。稳妥的做法是先解压到临时目录，校验完整性之后再整体切换目录指针，而不是边解压边覆盖原目录。这块我只在做过的一个内嵌活动项目里验证过，不同 App 的实现差异挺大。</p>
+<h3 id="2-3-hybrid-和-h5-到底差在哪"><a href="#2-3-hybrid-和-h5-到底差在哪" class="headerlink" title="2.3 hybrid 和 h5 到底差在哪"></a>2.3 hybrid 和 h5 到底差在哪</h3><p>优点：</p>
+<ul>
+<li>体验更好，跟 NA 体验基本一致</li>
+<li>可快速迭代，无需 app 审核【关键】</li>
 </ul>
-<h3 id="3-2-缺点"><a href="#3-2-缺点" class="headerlink" title="3.2 缺点"></a>3.2 缺点</h3><ul>
-<li>开发成本高。联调、测试、查 <code>bug</code> 都比较麻烦</li>
+<p>缺点：</p>
+<ul>
+<li>开发成本高。联调、测试、查 bug 都比较麻烦</li>
 <li>运维成本高。参考此前讲过的更新上线的流程</li>
 </ul>
-<h3 id="3-3-适用的场景"><a href="#3-3-适用的场景" class="headerlink" title="3.3 适用的场景"></a>3.3 适用的场景</h3><ul>
-<li><code>hybrid</code> ： 产品的稳定功能，体验要求高，迭代频繁</li>
-<li><code>h5</code> ： 单词的运营活动（如 <code>xx</code> 红包）或不常用功能</li>
+<p>适用场景：</p>
+<ul>
+<li>hybrid：产品的稳定功能，体验要求高，迭代频繁</li>
+<li>h5：单次的运营活动（如 xx 红包）或不常用功能</li>
 </ul>
-<h2 id="四、前端和客户端通讯"><a href="#四、前端和客户端通讯" class="headerlink" title="四、前端和客户端通讯"></a>四、前端和客户端通讯</h2><h3 id="4-1-JS-和客户端通讯的基本形式"><a href="#4-1-JS-和客户端通讯的基本形式" class="headerlink" title="4.1 JS 和客户端通讯的基本形式"></a>4.1 JS 和客户端通讯的基本形式</h3><ul>
-<li><code>JS</code> 访问客户端能力，传递参数和回调函数</li>
+<p>那两条缺点不是随口说的。联调麻烦是因为你改一行代码要重新打包、重新内置、重新装 App 才能看到效果；查 bug 麻烦是因为 webview 里没有 DevTools，得靠远程调试连上去，安卓和 iOS 的连法还不一样。真正做过一轮就知道，这两条成本比想象中高得多。</p>
+<h2 id="三、前端和客户端怎么通信"><a href="#三、前端和客户端怎么通信" class="headerlink" title="三、前端和客户端怎么通信"></a>三、前端和客户端怎么通信</h2><h3 id="3-1-基本形式"><a href="#3-1-基本形式" class="headerlink" title="3.1 基本形式"></a>3.1 基本形式</h3><p>到这里进入 hybrid 的第二条主线。页面跑在 webview 里，但相机、定位、通讯录这些能力在客户端那边，前端要用就得喊一声。</p>
+<p>基本形式是：</p>
+<ul>
+<li>JS 访问客户端能力，传递参数和回调函数</li>
 <li>客户端通过回调函数返回内容</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/82.png"></p>
-<h3 id="4-2-schema-协议简介和使用"><a href="#4-2-schema-协议简介和使用" class="headerlink" title="4.2 schema 协议简介和使用"></a>4.2 schema 协议简介和使用</h3><ul>
-<li>之前介绍了 <code>http(s)</code> 和 <code>file</code> 协议</li>
-<li><code>schema</code> 协议 —— 前端和客户端通讯的约定</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/83.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/84.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/85.png"></p>
-<h3 id="4-3-schema-使用的封装"><a href="#4-3-schema-使用的封装" class="headerlink" title="4.3 schema 使用的封装"></a>4.3 schema 使用的封装</h3><p><img src="https://poetries1.gitee.io/img-repo/2019/10/86.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/87.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/88.png"></p>
-<h3 id="4-4-内置上线"><a href="#4-4-内置上线" class="headerlink" title="4.4 内置上线"></a>4.4 内置上线</h3><ul>
+<p><img src="https://s.poetries.top/gitee/2019/10/82.png" alt="JS 调用客户端能力并通过回调函数接收结果"></p>
+<p>这张图的重点是回调函数这个设计。因为客户端拿数据是异步的，比如拍照要等用户按快门，所以不可能用同步返回值。这套「传参数 + 传回调」的形式，和你写 Node 早期 API 的感觉是一样的。</p>
+<h3 id="3-2-schema-协议"><a href="#3-2-schema-协议" class="headerlink" title="3.2 schema 协议"></a>3.2 schema 协议</h3><p>之前介绍了 http(s) 和 file 协议，schema 协议则是前端和客户端通讯的约定。它不是什么标准协议，就是双方商量出来的一套 URL 格式。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/83.png" alt="schema 协议的 URL 结构组成"></p>
+<p>这张图拆的是 schema 的 URL 结构，看的时候盯住协议名那一段。它不是 <code>http</code>，而是 App 自己注册的一个私有协议名，客户端拦截到这个协议名开头的请求就知道「这是自己人在喊我」。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/84.png" alt="schema 协议在实际业务中的调用示例"></p>
+<p>这张是具体调用的样子。容易记混的是参数怎么传，参数是拼在 URL 的 query 里的，所以有长度上限，也需要做编码。传一张 base64 图片过去这条路基本走不通，这个限制在设计接口时就要考虑进去。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/85.png" alt="客户端拦截 schema 请求并执行对应能力"></p>
+<p>这张讲的是客户端侧怎么接住。核心机制是拦截，客户端监听 webview 发起的跳转，发现协议名对得上就不真的去加载，转而执行对应的原生逻辑。</p>
+<h3 id="3-3-为什么必须封装"><a href="#3-3-为什么必须封装" class="headerlink" title="3.3 为什么必须封装"></a>3.3 为什么必须封装</h3><p>先说结论，裸着用 schema 是不能上生产的。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/86.png" alt="schema 调用的封装思路，统一入口与回调管理"></p>
+<p>这张图讲封装的第一层：统一入口。所有调用都从一个函数走，参数拼接、编码、协议名这些细节收在里面，业务代码只管传一个对象。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/87.png" alt="封装层内部的回调注册与命名管理"></p>
+<p>这张是封装里最关键的一块，回调的注册和命名。回调函数没法直接塞进 URL 里，所以做法是把它挂到全局对象上生成一个唯一的函数名，把这个名字作为参数传给客户端，客户端执行完再按名字回调回来。</p>
+<p>这里的坑是回调名冲突和内存泄漏。名字要带随机数或者自增序号，用完之后记得从全局对象上删掉，否则页面开久了全局对象会越挂越多。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/88.png" alt="封装后的调用方式与业务侧使用示例"></p>
+<p>这张是封装完之后业务代码长什么样，对比前面裸调用的写法能看出差别有多大。重点是业务层完全不知道 schema 的存在，将来协议改了也只需要动封装层，这就是封装真正的价值。</p>
+<h3 id="3-4-内置上线"><a href="#3-4-内置上线" class="headerlink" title="3.4 内置上线"></a>3.4 内置上线</h3><p>封装的代码最终会被打包成一个文件，叫做 <code>invoke.js</code>，内置到客户端：</p>
+<ul>
 <li>将以上封装的代码打包，叫做 <code>invoke.js</code>，内置到客户端</li>
-<li>客户端每次启动 <code>webview </code>，都默认执行 <code>invoke.js</code></li>
+<li>客户端每次启动 webview，都默认执行 <code>invoke.js</code></li>
 <li>本地加载，免去网络加载的时间，更快</li>
-<li>本地加载，没有网络请求，黑客看不到 <code>schema</code> 协议，更安全</li>
+<li>本地加载，没有网络请求，黑客看不到 schema 协议，更安全</li>
+</ul>
+<p>安全那条要客观看待。把 <code>invoke.js</code> 内置进去确实提高了抓包的门槛，但它挡不住反编译，也挡不住有人用调试工具直接在 webview 里执行 JS。真正的安全线还是要在客户端侧做，比如校验调用来源的域名白名单，只把敏感能力开放给自家域名的页面。</p>
+<h2 id="四、2018-年的这套方案，现在还剩什么"><a href="#四、2018-年的这套方案，现在还剩什么" class="headerlink" title="四、2018 年的这套方案，现在还剩什么"></a>四、2018 年的这套方案，现在还剩什么</h2><p>原文写在 2018 年，这套流程在当时的国内 App 里是主流。这几年变化不小，但变的多是实现细节，思路的骨架其实没动。</p>
+<p>webview 这一层变化最大。安卓侧的系统 WebView 早就从内核不一、版本碎片的状态，变成可以随 Google Play 服务独立更新的组件，很多大厂 App 还会内置自己的浏览器内核以求两端一致；iOS 侧则从 UIWebView 全面迁移到了 WKWebView。带来的实际影响是，那些为了绕开老内核 bug 写的 hack 代码，今天大部分可以删掉了。</p>
+<p>通信这一层，schema 拦截的写法仍然能用，但主流做法换了。现在更常见的是通过客户端注入的 JS 接口对象直接调用，安卓有对应的注入机制，iOS 侧 WKWebView 提供了消息处理器的方式。相比拼 URL，这条路没有长度限制，也不需要处理编码，传结构化数据方便得多。老写法作为兜底还留着，新代码一般不再首选它。</p>
+<p>静态资源更新这块基本没变，仍然是版本号比对加增量包下发，只是很多团队把「整包覆盖」换成了差分更新，只下发变化的文件，包体小很多。热更新在 iOS 侧有合规红线，改的必须是 Web 资源而不是可执行逻辑，这条线不能踩。</p>
+<p>还有一条更大的变化是，纯 hybrid 的地盘被小程序容器和 React Native、Flutter 这类方案分走了不少。但小程序容器的底子其实还是这一套：本地包 + 版本更新 + JS 与原生的桥接通信。所以这篇讲的东西不是过时的知识，它是理解那些新方案的地基。</p>
+<p>同系列的另外两篇也建议一起看，<a href="https://feinterview.poetries.top/blog/fe-interview-component">前端面试之组件化</a> 讲组件划分和通信，<a href="https://feinterview.poetries.top/blog/fe-interview-mvvm">前端面试之MVVM浅析</a> 讲响应式和模板编译，三篇凑齐正好是这套面试题的完整地图。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回过头看，hybrid 这套东西回答面试题时可以收成两条线。</p>
+<p>加载这条线：webview 是 App 里的浏览器内核，静态资源内置到本地用 file 协议加载所以快，要更新就靠版本号比对加 zip 包下发，检查时机在客户端启动时，覆盖过程不是原子的要小心。</p>
+<p>通信这条线：JS 传参数和回调给客户端，走 schema 协议的 URL 拦截，回调靠挂全局函数加唯一命名实现，封装成 <code>invoke.js</code> 内置到客户端，业务层不接触协议细节。</p>
+<p>如果只能记一句，那就记 hybrid 存在的唯一硬理由是绕开应用商店审核。其它所有设计，本地包也好、schema 也好，都是为了在「像原生一样快」和「像网页一样能改」这两个目标之间找平衡点。今天的方案换了实现，这个平衡点本身没变。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Tools/Remote_Debugging">MDN - WebView 与移动端调试</a></li>
+<li><a href="https://developer.apple.com/documentation/webkit/wkwebview">Apple - WKWebView 文档</a></li>
+<li><a href="https://developer.android.com/develop/ui/views/layout/webapps/webview">Android Developers - WebView 使用指南</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

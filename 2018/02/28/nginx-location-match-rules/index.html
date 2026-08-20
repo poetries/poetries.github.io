@@ -7,25 +7,27 @@
 <head>
   <meta charset="utf-8">
   
-  <title>nginx之location的匹配规则 | 前端进阶之旅</title>
+  <title>nginx之location的匹配规则与优先级排查 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Nginx," />
+    <meta name="keywords" content="运维,Nginx,location," />
   
 
-  <meta name="description" content="Nginx 配置文件在线生成: https:&#x2F;&#x2F;nginxconfig.io&#x2F;  一、语法规则location [&#x3D;|~|~*|^~] &#x2F;uri&#x2F; &#123; … &#125;     符号 含义    &#x3D; 开头表示精确匹配   ^~ 开头表示 uri 以某个常规字符串开头，理解为匹配 url 路径即可。nginx 不对 url 做编码，因此请求为&#x2F;static&#x2F;20%&#x2F;aa，可以被规则^~">
+  <meta name="description" content="讲透 Nginx location 的五种匹配符和真实优先级顺序，精确匹配、^~ 前缀、正则、通用匹配谁先谁后，配合一组可对照的示例说明常见的匹配误判和排查方法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="nginx之location的匹配规则">
+<meta property="og:title" content="nginx之location的匹配规则与优先级排查">
 <meta property="og:url" content="http://blog.poetries.top/2018/02/28/nginx-location-match-rules/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="Nginx 配置文件在线生成: https:&#x2F;&#x2F;nginxconfig.io&#x2F;  一、语法规则location [&#x3D;|~|~*|^~] &#x2F;uri&#x2F; &#123; … &#125;     符号 含义    &#x3D; 开头表示精确匹配   ^~ 开头表示 uri 以某个常规字符串开头，理解为匹配 url 路径即可。nginx 不对 url 做编码，因此请求为&#x2F;static&#x2F;20%&#x2F;aa，可以被规则^~">
+<meta property="og:description" content="讲透 Nginx location 的五种匹配符和真实优先级顺序，精确匹配、^~ 前缀、正则、通用匹配谁先谁后，配合一组可对照的示例说明常见的匹配误判和排查方法。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-02-28T05:01:42.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.680Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.946Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="运维">
 <meta property="article:tag" content="Nginx">
+<meta property="article:tag" content="location">
 <meta name="twitter:card" content="summary">
 
   
@@ -204,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%AF%AD%E6%B3%95%E8%A7%84%E5%88%99"><span class="toc-text">一、语法规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%BF%90%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">二、运用场景</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%AF%AD%E6%B3%95%E8%A7%84%E5%88%99%E5%92%8C%E4%BA%94%E7%A7%8D%E5%8C%B9%E9%85%8D%E7%AC%A6"><span class="toc-text">一、语法规则和五种匹配符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BC%98%E5%85%88%E7%BA%A7%E5%88%B0%E5%BA%95%E6%98%AF%E6%80%8E%E4%B9%88%E6%8E%92%E7%9A%84"><span class="toc-text">二、优先级到底是怎么排的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%80%E7%BB%84%E8%A7%84%E5%88%99%E8%B7%91%E4%B8%80%E9%81%8D"><span class="toc-text">三、一组规则跑一遍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%AE%9E%E9%99%85%E9%A1%B9%E7%9B%AE%E9%87%8C%E7%9A%84%E4%B8%89%E6%9D%A1%E5%BF%85%E5%A4%87%E8%A7%84%E5%88%99"><span class="toc-text">四、实际项目里的三条必备规则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%87%A0%E4%B8%AA%E5%AE%B9%E6%98%93%E8%AF%AF%E5%88%A4%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="toc-text">五、几个容易误判的地方</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -227,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-nginx-location-match-rules" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">nginx之location的匹配规则</h1>
+    <h1 class="post-title">nginx之location的匹配规则与优先级排查</h1>
 
     <div class="article-meta">
       <span>
@@ -269,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 697字</span>
+            <span>字数统计 3.3k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 12分</span>
           </span>
       
       
@@ -291,8 +293,21 @@
         <blockquote>
 <p>Nginx 配置文件在线生成: <a href="https://nginxconfig.io/">https://nginxconfig.io/</a></p>
 </blockquote>
-<h2 id="一、语法规则"><a href="#一、语法规则" class="headerlink" title="一、语法规则"></a>一、语法规则</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">location [=|~|~*|^~] /uri/ &#123; … &#125;</span><br></pre></td></tr></table></figure>
+<p>配置文件里写了七八个 <code>location</code>，改完 reload，页面还是走到了不该走的那个块。这种情况我遇到过好几次，第一反应总是「是不是我写的正则不对」，把正则改来改去，结果发现问题根本不在正则上，而在于 Nginx 压根没走到那一条。</p>
+<p><code>location</code> 的匹配不是从上往下第一个命中就用，它有一套固定的优先级。搞不清这套优先级，你写多少条规则都是碰运气。这篇只讲 <code>location</code> 这一件事，把五种匹配符、真实的优先级顺序、以及那几个最容易误判的场景说清楚，配置片段和实战场景我放在了另外几篇里，这篇专心啃匹配规则本身。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>location</code> 的五种匹配符分别是什么，各自匹配的是路径还是正则</li>
+<li>优先级的真实顺序，以及为什么它不是「从上往下」</li>
+<li>一组六条规则的完整对照表，每个 URL 落到哪一条</li>
+<li>静态资源被通用规则吃掉、正则抢走前缀匹配这两类典型误判</li>
+<li>实际项目里至少要有的三条 <code>location</code></li>
+<li><code>root</code> 和 <code>alias</code> 在 <code>location</code> 里的区别，以及查问题的顺序</li>
+</ul>
+<h2 id="一、语法规则和五种匹配符"><a href="#一、语法规则和五种匹配符" class="headerlink" title="一、语法规则和五种匹配符"></a>一、语法规则和五种匹配符</h2><p><code>location</code> 的完整语法就一行。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">location [=|~|~*|^~] /uri/ &#123; … &#125;</span><br></pre></td></tr></table></figure>
 
+<p>方括号里那个符号是整件事的关键，它决定了这条规则参与哪一轮比赛。五个符号的含义先摆出来。</p>
 <table>
 <thead>
 <tr>
@@ -302,18 +317,18 @@
 </thead>
 <tbody><tr>
 <td><code>=</code></td>
-<td>开头表示精确匹配</td>
+<td>开头表示精确匹配，请求路径必须和后面的字符串完全一致</td>
 </tr>
 <tr>
 <td><code>^~</code></td>
-<td>开头表示 uri 以某个常规字符串开头，理解为匹配 <code>url</code> 路径即可。<code>nginx</code> 不对 <code>url</code> 做编码，因此请求为<code>/static/20%/aa</code>，可以被规则<code>^~ /static/ /aa</code>匹配到（注意是空格）</td>
+<td>开头表示 uri 以某个常规字符串开头，理解为匹配 <code>url</code> 路径即可。注意 <code>nginx</code> 在匹配前会先对 <code>URI</code> 做规范化（把 <code>%XX</code> 解码、消解相对路径），所以你写的前缀比对的是解码之后的路径</td>
 </tr>
 <tr>
 <td><code>~</code></td>
 <td>开头表示区分大小写的正则匹配</td>
 </tr>
 <tr>
-<td><code>~</code>*</td>
+<td><code>~*</code></td>
 <td>开头表示不区分大小写的正则匹配</td>
 </tr>
 <tr>
@@ -321,9 +336,10 @@
 <td>通用匹配，任何请求都会匹配到</td>
 </tr>
 </tbody></table>
-<blockquote>
-<p>多个 <code>location</code> 配置的情况下匹配顺序为</p>
-</blockquote>
+<p>这里先说个原文里流传很广但不准确的说法。很多版本的这张表会写成「nginx 不对 url 做编码，因此请求为 <code>/static/20%/aa</code> 可以被 <code>^~ /static/ /aa</code> 匹配到」，这句话是错的，<code>location</code> 后面也不能跟两段路径。Nginx 官方文档写得很明确，匹配是在规范化之后的 URI 上做的，<code>%XX</code> 会先被解码，<code>.</code> 和 <code>..</code> 这类相对路径成分会先被消解。所以真实的行为是反过来的，请求里带 <code>%2F</code> 之类的编码，最终参与匹配的是解码后的那个字符。</p>
+<p>这个我踩过一次。前端把查询参数拼进了路径里，带了编码字符，我按编码后的原样写前缀，怎么都匹配不上，改成解码后的写法才通。</p>
+<p>五个符号里，<code>=</code> 和 <code>^~</code> 和不带符号的前缀写法比的是「路径开头」，<code>~</code> 和 <code>~*</code> 比的是正则。这两类是分开跑的，理解了这一点，下面的优先级就顺了。</p>
+<h2 id="二、优先级到底是怎么排的"><a href="#二、优先级到底是怎么排的" class="headerlink" title="二、优先级到底是怎么排的"></a>二、优先级到底是怎么排的</h2><p>多个 <code>location</code> 同时能匹配上的时候，顺序是这样的。</p>
 <ul>
 <li>首先匹配 <code>=</code></li>
 <li>其次匹配 <code>^~</code></li>
@@ -331,11 +347,17 @@
 <li>最后是交给 &#x2F; 通用匹配</li>
 <li>当有匹配成功时候，停止匹配，按当前匹配规则处理请求</li>
 </ul>
+<p>这五行是结论，但它省掉了中间一步，导致很多人记不牢。我把 Nginx 实际的执行过程拆开讲一遍。</p>
+<p>Nginx 拿到一个请求，第一步先在所有前缀型的 <code>location</code>（也就是 <code>=</code>、<code>^~</code> 和不带符号的那些）里找。找的方式是「最长前缀优先」，不是配置文件里的先后顺序。你把 <code>location /</code> 写在最上面，<code>location /static/</code> 写在最下面，请求 <code>/static/a.js</code> 照样命中 <code>/static/</code>，因为它前缀更长。</p>
+<p>配置文件的顺序对前缀匹配完全不起作用。</p>
+<p>第二步，如果这一轮里命中的是 <code>=</code> 精确匹配，直接结束，正则一条都不看。如果命中的最长前缀带了 <code>^~</code>，也直接结束，同样不看正则。这就是 <code>^~</code> 存在的全部意义，它是一个「到此为止，别去比正则了」的开关。</p>
+<p>第三步，如果最长前缀不带 <code>^~</code>，Nginx 会把这个结果先记在手里，然后从上往下逐条试正则。正则这一轮才是按配置文件顺序来的，第一个匹配上的就用它，后面的不再看。</p>
+<p>第四步，如果所有正则都没匹配上，才回过头用第二步记下来的那个前缀结果。</p>
+<p>所以「按文件中顺序」这句话只对正则成立，对前缀不成立。这是我认为最值得记住的一条，因为绝大多数「明明写了却不生效」的问题都卡在这里。</p>
+<h2 id="三、一组规则跑一遍"><a href="#三、一组规则跑一遍" class="headerlink" title="三、一组规则跑一遍"></a>三、一组规则跑一遍</h2><p>光讲流程容易忘，看一组具体的。下面这六条规则放在同一个 <code>server</code> 里。</p>
 <figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="section">location</span> = / &#123;</span><br><span class="line">   <span class="comment">#规则A</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="section">location</span> = /login &#123;</span><br><span class="line">   <span class="comment">#规则B</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="section">location</span><span class="regexp"> ^~</span> /static/ &#123;</span><br><span class="line">   <span class="comment">#规则C</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="section">location</span> <span class="regexp">~ \.(gif|jpg|png|js|css)$</span> &#123;</span><br><span class="line">   <span class="comment">#规则D</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="section">location</span> <span class="regexp">~* \.png$</span> &#123;</span><br><span class="line">   <span class="comment">#规则E</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="section">location</span> / &#123;</span><br><span class="line">   <span class="comment">#规则F</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>那么产生的效果如下</p>
-</blockquote>
+<p>那么产生的效果如下。</p>
 <ul>
 <li>访问根目录 <code>/</code>， 比如 <code>http://localhost/</code> 将匹配规则 <code>A</code></li>
 <li>访问 <code>http://localhost/login</code> 将匹配规则 <code>B</code>，<code>http://localhost/register</code> 则匹配规则 <code>F</code></li>
@@ -343,14 +365,41 @@
 <li>访问 <code>http://localhost/a.gif</code>, <code>http://localhost/b.jpg</code> 将匹配规则 <code>D </code>和规则 <code>E</code>，但是规则 <code>D</code> 顺序优先，规则 <code>E </code>不起作用，而 <code>http://localhost/static/c.png </code>则优先匹配到规则 <code>C</code></li>
 <li>访问 <code>http://localhost/a.PNG</code> 则匹配规则 <code>E</code>，而不会匹配规则 <code>D</code>，因为规则 <code>E</code> 不区分大小写</li>
 </ul>
-<blockquote>
-<p>访问 <code>http://localhost/category/id/1111</code> 则最终匹配到规则 <code>F</code>，因为以上规则都不匹配，这个时候应该是 <code>nginx</code> 转发请求给后端应用服务器，比如 <code>FastCGI（PHP</code>），<code>tomcat（jsp）</code>，<code>nginx</code> 作为反向代理服务器存在</p>
-</blockquote>
-<h2 id="二、运用场景"><a href="#二、运用场景" class="headerlink" title="二、运用场景"></a>二、运用场景</h2><blockquote>
-<p>实际使用中，至少有三个匹配规则定义，如下</p>
-</blockquote>
+<p>访问 <code>http://localhost/category/id/1111</code> 则最终匹配到规则 <code>F</code>，因为以上规则都不匹配，这个时候应该是 <code>nginx</code> 转发请求给后端应用服务器，比如 <code>FastCGI（PHP</code>），<code>tomcat（jsp）</code>，<code>nginx</code> 作为反向代理服务器存在。</p>
+<p>顺着上面聊几条最容易被绕进去的。</p>
+<p><code>/</code> 命中 A 而不是 F，是因为 <code>=</code> 精确匹配优先级最高，而 <code>/</code> 这个请求路径恰好和 <code>= /</code> 完全相等。注意 <code>= /</code> 只对根路径生效，<code>/index.html</code> 是命中不了它的。这也是官方推荐给首页单独写一条 <code>= /</code> 的原因，首页访问量大，精确匹配一步到位，省掉后面所有的比对。</p>
+<p><code>/static/c.png</code> 命中 C 而不是 E，是 <code>^~</code> 在起作用。如果把 C 的 <code>^~</code> 去掉写成 <code>location /static/</code>，那么 <code>/static/c.png</code> 就会被规则 D 抢走，因为前缀匹配虽然命中了但没有阻断，正则轮次照跑。这一条差别在真实项目里的表现是「静态目录的配置好像没生效，图片走到了另一套缓存策略上」，排查了一下午才发现少了两个字符。</p>
+<p><code>/a.gif</code> 同时符合 D 和 E 的形式，但 E 只匹配 <code>.png</code>，实际上只有 <code>.png</code> 结尾的才会两条都符合。真正两条都符合的是 <code>b.png</code> 这种，此时 D 写在前面，D 赢。而 <code>a.PNG</code> 大写，D 是区分大小写的正则匹配不上，落到 E。</p>
+<p><code>/category/id/1111</code> 什么都不沾，只能落到 F。前端 SPA 的路由几乎全长这样，所以 F 那一块通常要配 <code>try_files</code>，不然刷新就是 404。这个具体怎么配，我在 <a href="https://feinterview.poetries.top/blog/nginx-try-files">Nginx try_files 用法</a> 里单独写过一篇。</p>
+<h2 id="四、实际项目里的三条必备规则"><a href="#四、实际项目里的三条必备规则" class="headerlink" title="四、实际项目里的三条必备规则"></a>四、实际项目里的三条必备规则</h2><p>实际使用中，至少有三个匹配规则定义，如下。</p>
 <figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 直接匹配网站根，通过域名访问网站首页比较频繁，使用这个会加速处理，官网如是说。</span></span><br><span class="line"><span class="comment"># 这里是直接转发给后端应用服务器了，也可以是一个静态首页</span></span><br><span class="line"><span class="comment"># 第一个必选规则</span></span><br><span class="line"><span class="section">location</span> = / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://tomcat:8080/index</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二个必选规则是处理静态文件请求，这是 nginx 作为 http 服务器的强项</span></span><br><span class="line"><span class="comment"># 有两种配置模式，目录匹配或后缀匹配，任选其一或搭配使用</span></span><br><span class="line">location<span class="regexp"> ^~</span> /static/ &#123;</span><br><span class="line">    <span class="attribute">root</span> /webroot/static/;</span><br><span class="line">&#125;</span><br><span class="line"><span class="section">location</span> <span class="regexp">~* \.(gif|jpg|jpeg|png|css|js|ico)$</span> &#123;</span><br><span class="line">    <span class="attribute">root</span> /webroot/res/;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三个规则就是通用规则，用来转发动态请求到后端应用服务器</span></span><br><span class="line"><span class="comment"># 非静态文件请求就默认是动态请求，自己根据实际把握</span></span><br><span class="line"><span class="comment"># 毕竟目前的一些框架的流行，带.php、.jsp后缀的情况很少了</span></span><br><span class="line"><span class="section">location</span> / &#123;</span><br><span class="line">    <span class="attribute">proxy_pass</span> http://tomcat:8080/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这三条各自在解决一个具体问题。</p>
+<p>第一条是首页提速。首页是全站访问最集中的一个路径，用 <code>=</code> 让它一步命中，Nginx 不用再去跑后面的前缀比较和正则轮次。收益不大但零成本。</p>
+<p>第二条是把静态资源从应用服务器手里抢过来。静态文件让 Nginx 直接读磁盘返回，比转发给 Tomcat 再由 Tomcat 读文件快一个量级，而且不占应用服务器的线程。这里给了两种写法，目录匹配用 <code>^~</code> 保证不被后面的正则截胡，后缀匹配用 <code>~*</code> 兼容大小写。两种混用的时候要留神，<code>/static/a.png</code> 会被 <code>^~ /static/</code> 拿走，走不到后缀那条。</p>
+<p>第三条是兜底。所有动态请求最后都落到这里转发给后端。</p>
+<p>有个细节容易被忽略，上面第一条和第三条的 <code>proxy_pass</code> 一个是 <code>.../index</code> 没有结尾斜杠，一个是 <code>http://tomcat:8080/</code> 带斜杠，这两种写法转发出去的路径完全不同。带斜杠会把 <code>location</code> 匹配到的前缀剥掉，不带斜杠会把原始路径整段拼上去。这个坑我在 <a href="https://feinterview.poetries.top/blog/review-nginx">Nginx 反向代理与负载均衡常用配置</a> 里详细拆过。</p>
+<h2 id="五、几个容易误判的地方"><a href="#五、几个容易误判的地方" class="headerlink" title="五、几个容易误判的地方"></a>五、几个容易误判的地方</h2><p>先说结论，绝大多数 <code>location</code> 问题是这四类之一。</p>
+<p><strong>第一类是漏了 <code>^~</code>。</strong> 你写了 <code>location /static/</code>，同时又有一条 <code>location ~ \.js$</code>，结果 <code>/static/app.js</code> 走到了正则那条。表现是静态目录里某几类文件的表现和其它文件不一样。加上 <code>^~</code> 就好了。</p>
+<p><strong>第二类是正则的先后顺序写反了。</strong> 正则这一轮是严格按配置文件顺序的，范围窄的必须写在范围宽的前面。把 <code>~ \.(js|css)$</code> 写在 <code>~ \.(gif|jpg|png|js|css)$</code> 后面，前者永远不会被命中。这种情况 <code>nginx -t</code> 是不会报错的，语法完全合法，它只是永远匹配不到。</p>
+<p><strong>第三类是 <code>root</code> 和 <code>alias</code> 搞混了。</strong> 这两个在 <code>location</code> 里的行为不一样，<code>root</code> 是把 <code>location</code> 匹配的路径拼在后面，<code>alias</code> 是把 <code>location</code> 匹配的那段替换掉。</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="section">location</span> /img/ &#123;</span><br><span class="line">    <span class="attribute">alias</span> /var/www/image/;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># 请求 /img/a.png 实际找的是 /var/www/image/a.png</span></span><br><span class="line"></span><br><span class="line"><span class="section">location</span> /img/ &#123;</span><br><span class="line">    <span class="attribute">root</span> /var/www/image;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment"># 请求 /img/a.png 实际找的是 /var/www/image/img/a.png</span></span><br></pre></td></tr></table></figure>
+
+<p><code>alias</code> 有个额外规则，如果 <code>location</code> 是以 <code>/</code> 结尾的，<code>alias</code> 也必须以 <code>/</code> 结尾，少写一个斜杠会拼出 <code>/var/www/imagea.png</code> 这种路径，然后你就得到一个 404 而日志里的路径看着还挺正常。</p>
+<p><strong>第四类是把 <code>if</code> 塞进 <code>location</code> 里做分支。</strong> Nginx 的 <code>if</code> 在 <code>location</code> 上下文里行为很反直觉，官方 wiki 里那篇标题就叫 <code>If Is Evil</code>。能用 <code>location</code> 表达的分支就别用 <code>if</code>，实在要判断，优先用 <code>try_files</code> 或者 <code>map</code>。</p>
+<p>排查顺序我一般是这样。先 <code>nginx -t</code> 确认配置真的加载了，再把可疑的几条 <code>location</code> 里各加一句 <code>add_header X-Debug-Loc &quot;C&quot; always;</code>，然后打开浏览器看响应头里到底是哪个字母。这个办法比盯着配置文件猜快得多，两分钟就能定位。</p>
+<p>关于 <code>location</code> 之外的配置结构、上下文层级和常用指令，可以看 <a href="https://feinterview.poetries.top/blog/nginx-study">Nginx 安装与配置结构详解</a>；各类实战配置片段在 <a href="https://feinterview.poetries.top/blog/nginx-config">工作中常用的 Nginx 配置</a>；模块能力清单和选型在 <a href="https://feinterview.poetries.top/blog/nginx-module-summary">Nginx 常用模块整理</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>location</code> 这套规则真正需要记住的其实只有三句话。</p>
+<p>前缀匹配比的是长度不是顺序，正则匹配比的是顺序不是长度。<code>=</code> 和 <code>^~</code> 都是「命中即停」的开关，区别只在于 <code>=</code> 要求完全相等而 <code>^~</code> 只要求开头相同。所有正则都不命中的时候，才会回落到之前记下的最长前缀。</p>
+<p>写配置的时候有个习惯值得养成，静态目录一律加 <code>^~</code>，正则一律从窄到宽排，首页单独一条 <code>=</code>，最后一条 <code>location /</code> 兜底。按这个顺序码下来，基本不会出现匹配错乱。</p>
+<p>至于 <code>root</code> 和 <code>alias</code>、<code>proxy_pass</code> 结尾斜杠这两个坑，它们不属于 <code>location</code> 匹配本身，但排查的时候经常被误判成匹配问题，值得一起记住。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_core_module.html#location">Nginx ngx_http_core_module location 指令文档</a></li>
+<li><a href="https://nginx.org/en/docs/http/ngx_http_core_module.html#alias">Nginx ngx_http_core_module alias 指令文档</a></li>
+<li><a href="https://www.nginx.com/resources/wiki/start/topics/depth/ifisevil/">Nginx 官方 If Is Evil 说明</a></li>
+<li><a href="https://nginxconfig.io/">Nginx 配置文件在线生成</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     
@@ -506,7 +555,7 @@ $("#toc.toc-article").toggle(1000);
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2018/02/26/http-1/">
+    <a class="show pull-left" href="/2018/02/26/http-2/">
         <i class="icon icon-angle-left"></i>
     </a>
     <a class="show pull-right" href="/2018/03/22/Charles/">

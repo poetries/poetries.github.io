@@ -7,31 +7,33 @@
 <head>
   <meta charset="utf-8">
   
-  <title>React16.3新的生命周期详解 | 前端进阶之旅</title>
+  <title>React 16.3 新生命周期详解与旧钩子废弃原因 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="React,生命周期," />
+    <meta name="keywords" content="React,React 原理,生命周期,getDerivedStateFromProps," />
   
 
-  <meta name="description" content="一、React v16.0前的生命周期 1.1 第一个是组件初始化(initialization)阶段 也就是以下代码中类的构造方法( constructor() ),Test类继承了react Component这个基类，也就继承这个react的基类，才能有render(),生命周期等方法可以使用，这也说明为什么函数组件不能使用这些方法的原因  super(props)用来调用基类的构造方法(">
+  <meta name="description" content="从 React 16.0 之前的完整生命周期讲到 16.3、16.4 的调整，拆清楚 componentWillMount 这几个钩子为什么被废弃，getDerivedStateFromProps 和 getSnapshotBeforeUpdate 各自该怎么用。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="React16.3新的生命周期详解">
+<meta property="og:title" content="React 16.3 新生命周期详解与旧钩子废弃原因">
 <meta property="og:url" content="http://blog.poetries.top/2018/11/18/react-lifecircle/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、React v16.0前的生命周期 1.1 第一个是组件初始化(initialization)阶段 也就是以下代码中类的构造方法( constructor() ),Test类继承了react Component这个基类，也就继承这个react的基类，才能有render(),生命周期等方法可以使用，这也说明为什么函数组件不能使用这些方法的原因  super(props)用来调用基类的构造方法(">
+<meta property="og:description" content="从 React 16.0 之前的完整生命周期讲到 16.3、16.4 的调整，拆清楚 componentWillMount 这几个钩子为什么被废弃，getDerivedStateFromProps 和 getSnapshotBeforeUpdate 各自该怎么用。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/417.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/418.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/419.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/417.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/418.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/419.png">
 <meta property="article:published_time" content="2018-11-18T15:30:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.684Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.949Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="React">
+<meta property="article:tag" content="React 原理">
 <meta property="article:tag" content="生命周期">
+<meta property="article:tag" content="getDerivedStateFromProps">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/417.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/417.png">
 
   
 
@@ -209,7 +211,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81React-v16-0%E5%89%8D%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-text">一、React v16.0前的生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%AC%AC%E4%B8%80%E4%B8%AA%E6%98%AF%E7%BB%84%E4%BB%B6%E5%88%9D%E5%A7%8B%E5%8C%96-initialization-%E9%98%B6%E6%AE%B5"><span class="toc-text">1.1 第一个是组件初始化(initialization)阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%AC%AC%E4%BA%8C%E4%B8%AA%E6%98%AF%E7%BB%84%E4%BB%B6%E7%9A%84%E6%8C%82%E8%BD%BD-Mounting-%E9%98%B6%E6%AE%B5"><span class="toc-text">1.2 第二个是组件的挂载(Mounting)阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-componentWillMount"><span class="toc-text">1.2.1 componentWillMount</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-render"><span class="toc-text">1.2.2 render</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-3-componentDidMount"><span class="toc-text">1.2.3 componentDidMount</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E7%AC%AC%E4%B8%89%E4%B8%AA%E6%98%AF%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9B%B4%E6%96%B0-update-%E9%98%B6%E6%AE%B5"><span class="toc-text">1.3 第三个是组件的更新(update)阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-1-%E9%80%A0%E6%88%90%E7%BB%84%E4%BB%B6%E6%9B%B4%E6%96%B0%E6%9C%89%E4%B8%A4%E7%B1%BB%EF%BC%88%E4%B8%89%E7%A7%8D%EF%BC%89%E6%83%85%E5%86%B5"><span class="toc-text">1.3.1 造成组件更新有两类（三种）情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-2-componentWillReceiveProps-nextProps"><span class="toc-text">1.3.2 componentWillReceiveProps(nextProps)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-3-shouldComponentUpdate-nextProps-nextState"><span class="toc-text">1.3.3 shouldComponentUpdate(nextProps, nextState)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-4-componentWillUpdate-nextProps-nextState"><span class="toc-text">1.3.4 componentWillUpdate(nextProps, nextState)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-5-componentDidUpdate-prevProps-prevState"><span class="toc-text">1.3.5 componentDidUpdate(prevProps, prevState)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%8D%B8%E8%BD%BD%E9%98%B6%E6%AE%B5"><span class="toc-text">1.4 卸载阶段</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81React-v16-4-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-text">二、React v16.4 的生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8F%98%E6%9B%B4%E7%BC%98%E7%94%B1"><span class="toc-text">2.1 变更缘由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%BC%95%E5%85%A5%E4%BA%86%E4%B8%A4%E4%B8%AA%E6%96%B0%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%87%BD%E6%95%B0"><span class="toc-text">2.2 引入了两个新的生命周期函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-getDerivedStateFromProps"><span class="toc-text">2.2.1 getDerivedStateFromProps</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-getSnapshotBeforeUpdate"><span class="toc-text">2.2.2 getSnapshotBeforeUpdate</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%8F%82%E8%80%83"><span class="toc-text">三、参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81React-v16-0-%E5%89%8D%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-text">一、React v16.0 前的生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%AC%AC%E4%B8%80%E4%B8%AA%E6%98%AF%E7%BB%84%E4%BB%B6%E5%88%9D%E5%A7%8B%E5%8C%96-initialization-%E9%98%B6%E6%AE%B5"><span class="toc-text">1.1 第一个是组件初始化(initialization)阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E7%AC%AC%E4%BA%8C%E4%B8%AA%E6%98%AF%E7%BB%84%E4%BB%B6%E7%9A%84%E6%8C%82%E8%BD%BD-Mounting-%E9%98%B6%E6%AE%B5"><span class="toc-text">1.2 第二个是组件的挂载(Mounting)阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-componentWillMount"><span class="toc-text">1.2.1 componentWillMount</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-render"><span class="toc-text">1.2.2 render</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-3-componentDidMount"><span class="toc-text">1.2.3 componentDidMount</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E7%AC%AC%E4%B8%89%E4%B8%AA%E6%98%AF%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9B%B4%E6%96%B0-update-%E9%98%B6%E6%AE%B5"><span class="toc-text">1.3 第三个是组件的更新(update)阶段</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-1-%E9%80%A0%E6%88%90%E7%BB%84%E4%BB%B6%E6%9B%B4%E6%96%B0%E6%9C%89%E4%B8%A4%E7%B1%BB%EF%BC%88%E4%B8%89%E7%A7%8D%EF%BC%89%E6%83%85%E5%86%B5"><span class="toc-text">1.3.1 造成组件更新有两类（三种）情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-2-componentWillReceiveProps-nextProps"><span class="toc-text">1.3.2 componentWillReceiveProps(nextProps)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-3-shouldComponentUpdate-nextProps-nextState"><span class="toc-text">1.3.3 shouldComponentUpdate(nextProps, nextState)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-4-componentWillUpdate-nextProps-nextState"><span class="toc-text">1.3.4 componentWillUpdate(nextProps, nextState)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-5-componentDidUpdate-prevProps-prevState"><span class="toc-text">1.3.5 componentDidUpdate(prevProps, prevState)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E5%8D%B8%E8%BD%BD%E9%98%B6%E6%AE%B5"><span class="toc-text">1.4 卸载阶段</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81React-v16-4-%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-text">二、React v16.4 的生命周期</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8F%98%E6%9B%B4%E7%BC%98%E7%94%B1"><span class="toc-text">2.1 变更缘由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%BC%95%E5%85%A5%E4%BA%86%E4%B8%A4%E4%B8%AA%E6%96%B0%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%87%BD%E6%95%B0"><span class="toc-text">2.2 引入了两个新的生命周期函数</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-getDerivedStateFromProps"><span class="toc-text">2.2.1 getDerivedStateFromProps</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-getSnapshotBeforeUpdate"><span class="toc-text">2.2.2 getSnapshotBeforeUpdate</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B4%BE%E7%94%9F-state-%E8%BF%99%E4%BB%B6%E4%BA%8B%E6%9C%AC%E8%BA%AB%E5%B0%B1%E6%9C%89%E5%9D%91"><span class="toc-text">三、派生 state 这件事本身就有坑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%BF%99%E5%A5%97-API-%E5%88%B0%E4%BB%8A%E5%A4%A9%E8%BF%98%E6%88%90%E7%AB%8B%E5%90%97"><span class="toc-text">四、这套 API 到今天还成立吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -232,13 +234,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-lifecircle" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">React16.3新的生命周期详解</h1>
+    <h1 class="post-title">React 16.3 新生命周期详解与旧钩子废弃原因</h1>
 
     <div class="article-meta">
       <span>
@@ -274,12 +276,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.1k字</span>
+            <span>字数统计 5.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 19分</span>
           </span>
       
       
@@ -293,106 +295,123 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、React-v16-0前的生命周期"><a href="#一、React-v16-0前的生命周期" class="headerlink" title="一、React v16.0前的生命周期"></a>一、React v16.0前的生命周期</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/417.png"></p>
-<h3 id="1-1-第一个是组件初始化-initialization-阶段"><a href="#1-1-第一个是组件初始化-initialization-阶段" class="headerlink" title="1.1 第一个是组件初始化(initialization)阶段"></a>1.1 第一个是组件初始化(initialization)阶段</h3><blockquote>
-<p>也就是以下代码中类的构造方法( <code>constructor()</code> ),Test类继承了react <code>Component</code>这个基类，也就继承这个<code>react</code>的基类，才能有<code>render()</code>,生命周期等方法可以使用，这也说明为什么函数组件不能使用这些方法的原因</p>
-</blockquote>
-<p><code>super(props)</code>用来调用基类的构造方法( <code>constructor()</code> ), 也将父组件的props注入给子组件，功子组件读取(组件中<code>props</code>只读不可变，<code>state</code>可变)而<code>constructor()</code>用来做一些组件的初始化工作，如定义<code>this.state</code>的初始内容</p>
+        <p>接手一个老项目，<code>yarn start</code> 之后控制台刷一屏黄字，说 <code>componentWillReceiveProps</code> 已经改名成 <code>UNSAFE_componentWillReceiveProps</code>。当时最直接的反应是把名字改一下把警告压下去，改完发现还是有地方在报，而且顺着报错点进去看，那段逻辑是「拿到新 props 就发一次请求」。这个写法在 React 15 时代到处都是，凭什么现在就成了 unsafe 的？</p>
+<p>这篇就是顺着这个问题往下挖的记录。先把 React 16.0 之前那套完整的生命周期讲一遍，再讲 Fiber 之后为什么必须动刀，最后把 <code>getDerivedStateFromProps</code> 和 <code>getSnapshotBeforeUpdate</code> 这两个新钩子的适用边界说清楚。读完你应该能回答一个面试里很常见的问题：为什么 <code>shouldComponentUpdate</code> 活下来了，它旁边那三个却没有。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>React 16.0 之前完整的四个阶段和每个钩子的职责</li>
+<li>造成组件更新的两类三种情况，以及各自怎么优化</li>
+<li>Fiber 的可中断渲染为什么会让 render 之前的钩子变得危险</li>
+<li>React 16.3 和 16.4 的 <code>getDerivedStateFromProps</code> 有什么不一样</li>
+<li><code>getSnapshotBeforeUpdate</code> 解决的是哪一类问题</li>
+<li>派生 state 这件事本身的坑，以及官方推荐的替代写法</li>
+<li>这套 API 到今天（React 19 时代）的现状</li>
+</ul>
+<h2 id="一、React-v16-0-前的生命周期"><a href="#一、React-v16-0-前的生命周期" class="headerlink" title="一、React v16.0 前的生命周期"></a>一、React v16.0 前的生命周期</h2><p>先看这张全景图，后面所有讨论都会回到它上面。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/417.png" alt="React v16.0 之前的完整生命周期流程图"></p>
+<p>整张图分成四段，初始化、挂载、更新、卸载。挂载和卸载各走一次，更新这一段会反复走。</p>
+<h3 id="1-1-第一个是组件初始化-initialization-阶段"><a href="#1-1-第一个是组件初始化-initialization-阶段" class="headerlink" title="1.1 第一个是组件初始化(initialization)阶段"></a>1.1 第一个是组件初始化(initialization)阶段</h3><p>也就是以下代码中类的构造方法（<code>constructor()</code>）。<code>Test</code> 类继承了 react 的 <code>Component</code> 这个基类，正因为继承了这个基类，才能有 <code>render()</code>、生命周期等方法可以使用，这也说明了为什么函数组件不能使用这些方法。</p>
+<p><code>super(props)</code> 用来调用基类的构造方法，也将父组件的 props 注入给子组件供子组件读取（组件中 <code>props</code> 只读不可变，<code>state</code> 可变），而 <code>constructor()</code> 用来做一些组件的初始化工作，比如定义 <code>this.state</code> 的初始内容。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Test</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">props</span>) &#123;</span><br><span class="line">    <span class="variable language_">super</span>(props);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-2-第二个是组件的挂载-Mounting-阶段"><a href="#1-2-第二个是组件的挂载-Mounting-阶段" class="headerlink" title="1.2 第二个是组件的挂载(Mounting)阶段"></a>1.2 第二个是组件的挂载(Mounting)阶段</h3><p><strong>此阶段分为componentWillReceiveProps，shouldComponentUpdate，componentWillUpdate，render，componentDidUpdate</strong></p>
-<h4 id="1-2-1-componentWillMount"><a href="#1-2-1-componentWillMount" class="headerlink" title="1.2.1 componentWillMount"></a>1.2.1 componentWillMount</h4><blockquote>
-<p>在组件挂载到DOM前调用，且只会被调用一次，在这边调用<code>this.setState</code>不会引起组件重新渲染，也可以把写在这边的内容提前到<code>constructor()</code>中，所以项目中很少用</p>
-</blockquote>
-<h4 id="1-2-2-render"><a href="#1-2-2-render" class="headerlink" title="1.2.2 render"></a>1.2.2 render</h4><blockquote>
-<p>根据组件的<code>props</code>和<code>state</code>（无两者的重传递和重赋值，论值是否有变化，都可以引起组件重新<code>render</code>） ，<code>return</code> 一个<code>React</code>元素（描述组件，即<code>UI</code>），不负责组件实际渲染工作，之后由<code>React</code>自身根据此元素去渲染出页面<code>DOM</code>。<code>render</code>是纯函数（<code>Pure function</code>：函数的返回结果只依赖于它的参数；函数执行过程里面没有副作用），不能在里面执行<code>this.setState</code>，会有改变组件状态的副作用</p>
-</blockquote>
-<h4 id="1-2-3-componentDidMount"><a href="#1-2-3-componentDidMount" class="headerlink" title="1.2.3 componentDidMount"></a>1.2.3 componentDidMount</h4><blockquote>
-<p>组件挂载到<code>DOM</code>后调用，且只会被调用一次</p>
-</blockquote>
-<h3 id="1-3-第三个是组件的更新-update-阶段"><a href="#1-3-第三个是组件的更新-update-阶段" class="headerlink" title="1.3 第三个是组件的更新(update)阶段"></a>1.3 第三个是组件的更新(update)阶段</h3><blockquote>
-<p><code>setState</code>引起的<code>state</code>更新或父组件重新<code>render</code>引起的<code>props</code>更新，更新后的<code>state</code>和<code>props</code>相对之前无论是否有变化，都将引起子组件的重新<code>render</code></p>
-</blockquote>
-<h4 id="1-3-1-造成组件更新有两类（三种）情况"><a href="#1-3-1-造成组件更新有两类（三种）情况" class="headerlink" title="1.3.1 造成组件更新有两类（三种）情况"></a>1.3.1 造成组件更新有两类（三种）情况</h4><p><strong>1. 父组件重新render</strong></p>
-<blockquote>
-<p>父组件重新<code>render</code>引起子组件重新<code>render</code>的情况有两种</p>
-</blockquote>
-<ul>
-<li>a. 直接使用,每当父组件重新<code>render</code>导致的重传<code>props</code>，子组件将直接跟着重新渲染，无论<code>props</code>是否有变化。可通过<code>shouldComponentUpdate</code>方法优化</li>
-</ul>
+<p>这段代码本身没干什么活，但它是理解后面一切的起点。构造函数是整个组件生命里唯一一次「什么都还没有」的时刻，DOM 没有，props 的后续变化也还没发生。所以凡是「只需要算一次的初始值」，放这里最省事。</p>
+<p>顺带说一句，如果构造函数里只有 <code>super(props)</code> 这一行，那这个 <code>constructor</code> 可以整个删掉，ES6 class 会自动生成。ESLint 的 <code>no-useless-constructor</code> 规则就管这个。</p>
+<h3 id="1-2-第二个是组件的挂载-Mounting-阶段"><a href="#1-2-第二个是组件的挂载-Mounting-阶段" class="headerlink" title="1.2 第二个是组件的挂载(Mounting)阶段"></a>1.2 第二个是组件的挂载(Mounting)阶段</h3><p>这个阶段依次经过 <code>componentWillMount</code>、<code>render</code>、<code>componentDidMount</code> 三步。</p>
+<h4 id="1-2-1-componentWillMount"><a href="#1-2-1-componentWillMount" class="headerlink" title="1.2.1 componentWillMount"></a>1.2.1 componentWillMount</h4><p>在组件挂载到 DOM 前调用，且只会被调用一次。在这里调用 <code>this.setState</code> 不会引起组件重新渲染，也可以把写在这里的内容提前到 <code>constructor()</code> 中，所以项目中很少用。</p>
+<p>这条「可以提前到 constructor」的结论很关键，它其实已经暗示了这个钩子存在的必要性不强，后面 React 团队砍掉它的底气也在这里。</p>
+<h4 id="1-2-2-render"><a href="#1-2-2-render" class="headerlink" title="1.2.2 render"></a>1.2.2 render</h4><p>根据组件的 <code>props</code> 和 <code>state</code>（无两者的重传递和重赋值，无论值是否有变化，都可以引起组件重新 <code>render</code>），<code>return</code> 一个 React 元素（描述组件，即 UI），不负责组件实际渲染工作，之后由 React 自身根据此元素去渲染出页面 DOM。</p>
+<p><code>render</code> 是纯函数（Pure function，函数的返回结果只依赖于它的参数，函数执行过程里面没有副作用），不能在里面执行 <code>this.setState</code>，会有改变组件状态的副作用。</p>
+<p>这里的「纯」不是一句道德倡议，是硬约束。你在 <code>render</code> 里写一次埋点上报，Fiber 时代这段代码可能被跑两遍，埋点数就翻倍了。</p>
+<h4 id="1-2-3-componentDidMount"><a href="#1-2-3-componentDidMount" class="headerlink" title="1.2.3 componentDidMount"></a>1.2.3 componentDidMount</h4><p>组件挂载到 DOM 后调用，且只会被调用一次。</p>
+<p>这是发请求、加事件监听、初始化第三方图表实例的标准位置。原因很简单，走到这一步真实 DOM 已经在页面上了，<code>this.refs</code> 和 <code>ref</code> 都能拿到节点。</p>
+<h3 id="1-3-第三个是组件的更新-update-阶段"><a href="#1-3-第三个是组件的更新-update-阶段" class="headerlink" title="1.3 第三个是组件的更新(update)阶段"></a>1.3 第三个是组件的更新(update)阶段</h3><p><code>setState</code> 引起的 <code>state</code> 更新，或父组件重新 <code>render</code> 引起的 <code>props</code> 更新，更新后的 <code>state</code> 和 <code>props</code> 相对之前无论是否有变化，都将引起子组件的重新 <code>render</code>。</p>
+<p>那句「无论是否有变化」是很多性能问题的源头，下面拆开讲。</p>
+<h4 id="1-3-1-造成组件更新有两类（三种）情况"><a href="#1-3-1-造成组件更新有两类（三种）情况" class="headerlink" title="1.3.1 造成组件更新有两类（三种）情况"></a>1.3.1 造成组件更新有两类（三种）情况</h4><p><strong>1. 父组件重新 render</strong></p>
+<p>父组件重新 <code>render</code> 引起子组件重新 <code>render</code> 的情况有两种。</p>
+<p>a. 直接使用，每当父组件重新 <code>render</code> 导致的重传 <code>props</code>，子组件将直接跟着重新渲染，无论 <code>props</code> 是否有变化。可通过 <code>shouldComponentUpdate</code> 方法优化。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Child</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">   <span class="title function_">shouldComponentUpdate</span>(<span class="params">nextProps</span>)&#123; <span class="comment">// 应该使用这个方法，否则无论props是否有变化都将会导致组件跟着重新渲染</span></span><br><span class="line">        <span class="keyword">if</span>(nextProps.<span class="property">someThings</span> === <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">someThings</span>)&#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;this.props.someThings&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>b.在<code>componentWillReceiveProps</code>方法中，将<code>props</code>转换成自己的<code>state</code></li>
-</ul>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Child</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">    <span class="title function_">constructor</span>(<span class="params">props</span>) &#123;</span><br><span class="line">        <span class="variable language_">super</span>(props);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123;</span><br><span class="line">            <span class="attr">someThings</span>: props.<span class="property">someThings</span></span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">componentWillReceiveProps</span>(<span class="params">nextProps</span>) &#123; <span class="comment">// 父组件重传props时就会调用这个方法</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;<span class="attr">someThings</span>: nextProps.<span class="property">someThings</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;this.state.someThings&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>这段代码在解决的是「父组件动一下，子树全体陪跑」的问题。要注意这个示例只在相等时 <code>return false</code>，不相等时函数走到底返回 <code>undefined</code>，React 会当成真值继续渲染，行为上是对的，但更严谨的写法是显式 <code>return true</code>。生产代码里这类隐式返回很容易在后面加分支时出错。</p>
+<p>b. 在 <code>componentWillReceiveProps</code> 方法中，将 <code>props</code> 转换成自己的 <code>state</code>。</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Child</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">    <span class="title function_">constructor</span>(<span class="params">props</span>) &#123;</span><br><span class="line">        <span class="variable language_">super</span>(props);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123;</span><br><span class="line">            <span class="attr">someThings</span>: props.<span class="property">someThings</span></span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">componentWillReceiveProps</span>(<span class="params">nextProps</span>) &#123; <span class="comment">// 父组件重传props时就会调用这个方法</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;<span class="attr">someThings</span>: nextProps.<span class="property">someThings</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span>&#123;this.state.someThings&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在该函数(<code>componentWillReceiveProps</code>)中调用 <code>this.setState()</code> 将不会引起第二次渲染</p>
-</blockquote>
-<p>是因为<code>componentWillReceiveProps</code>中判断<code>props</code>是否变化了，若变化了，<code>this.setState</code>将引起<code>state</code>变化，从而引起<code>render</code>，此时就没必要再做第二次因重传<code>props</code>引起的<code>render</code>了，不然重复做一样的渲染了</p>
-<p><strong>2. 组件本身调用setState，无论state有没有变化。可通过shouldComponentUpdate方法优化</strong></p>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Child</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">   <span class="title function_">constructor</span>(<span class="params">props</span>) &#123;</span><br><span class="line">        <span class="variable language_">super</span>(props);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123;</span><br><span class="line">          <span class="attr">someThings</span>:<span class="number">1</span></span><br><span class="line">        &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="title function_">shouldComponentUpdate</span>(<span class="params">nextStates</span>)&#123; <span class="comment">// 应该使用这个方法，否则无论state是否有变化都将会导致组件重新渲染</span></span><br><span class="line">        <span class="keyword">if</span>(nextStates.<span class="property">someThings</span> === <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">someThings</span>)&#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">   handleClick = <span class="function">() =&gt;</span> &#123; <span class="comment">// 虽然调用了setState ，但state并无变化</span></span><br><span class="line">        <span class="keyword">const</span> preSomeThings = <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">someThings</span></span><br><span class="line">         <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">            <span class="attr">someThings</span>: preSomeThings</span><br><span class="line">         &#125;)</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">onClick</span> = <span class="string">&#123;this.handleClick&#125;</span>&gt;</span>&#123;this.state.someThings&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在该函数（<code>componentWillReceiveProps</code>）中调用 <code>this.setState()</code> 将不会引起第二次渲染。</p>
+<p>原因是 <code>componentWillReceiveProps</code> 中判断 <code>props</code> 是否变化了，若变化了，<code>this.setState</code> 将引起 <code>state</code> 变化，从而引起 <code>render</code>，此时就没必要再做第二次因重传 <code>props</code> 引起的 <code>render</code> 了，不然重复做一样的渲染了。</p>
+<p>这个写法有个正式名字叫「派生 state」，它是整篇文章里最值得警惕的一处，第四节会专门算这笔账。</p>
+<p><strong>2. 组件本身调用 setState，无论 state 有没有变化。可通过 shouldComponentUpdate 方法优化</strong></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Child</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">   <span class="title function_">constructor</span>(<span class="params">props</span>) &#123;</span><br><span class="line">        <span class="variable language_">super</span>(props);</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123;</span><br><span class="line">          <span class="attr">someThings</span>:<span class="number">1</span></span><br><span class="line">        &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="title function_">shouldComponentUpdate</span>(<span class="params">nextProps, nextState</span>)&#123; <span class="comment">// 应该使用这个方法，否则无论state是否有变化都将会导致组件重新渲染</span></span><br><span class="line">        <span class="keyword">if</span>(nextState.<span class="property">someThings</span> === <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">someThings</span>)&#123;</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">   handleClick = <span class="function">() =&gt;</span> &#123; <span class="comment">// 虽然调用了setState ，但state并无变化</span></span><br><span class="line">        <span class="keyword">const</span> preSomeThings = <span class="variable language_">this</span>.<span class="property">state</span>.<span class="property">someThings</span></span><br><span class="line">         <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">            <span class="attr">someThings</span>: preSomeThings</span><br><span class="line">         &#125;)</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">onClick</span> = <span class="string">&#123;this.handleClick&#125;</span>&gt;</span>&#123;this.state.someThings&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="1-3-2-componentWillReceiveProps-nextProps"><a href="#1-3-2-componentWillReceiveProps-nextProps" class="headerlink" title="1.3.2 componentWillReceiveProps(nextProps)"></a>1.3.2 componentWillReceiveProps(nextProps)</h4><blockquote>
-<p>此方法只调用于<code>props</code>引起的组件更新过程中，参数<code>nextProps</code>是父组件传给当前组件的新<code>props</code>。但父组件<code>render</code>方法的调用不能保证重传给当前组件的<code>props</code>是有变化的，所以在此方法中根据<code>nextProps</code>和<code>this.props</code>来查明重传的<code>props</code>是否改变，以及如果改变了要执行啥，比如根据新的<code>props</code>调用<code>this.setState</code>出发当前组件的重新<code>render</code></p>
-</blockquote>
-<h4 id="1-3-3-shouldComponentUpdate-nextProps-nextState"><a href="#1-3-3-shouldComponentUpdate-nextProps-nextState" class="headerlink" title="1.3.3 shouldComponentUpdate(nextProps, nextState)"></a>1.3.3 shouldComponentUpdate(nextProps, nextState)</h4><blockquote>
-<p>此方法通过比较<code>nextProps</code>，<code>nextState</code>及当前组件的<code>this.props</code>，<code>this.state</code>，返回<code>true</code>时当前组件将继续执行更新过程，返回<code>false</code>则当前组件更新停止，以此可用来减少组件的不必要渲染，优化组件性能。</p>
-</blockquote>
-<p>ps：这边也可以看出，就算<code>componentWillReceiveProps()</code>中执行了<code>this.setState</code>，更新了<code>state</code>，但在<code>render</code>前（如<code>shouldComponentUpdate</code>，<code>componentWillUpdate</code>），<code>this.state</code>依然指向更新前的<code>state</code>，不然<code>nextState</code>及当前组件的<code>this.state</code>的对比就一直是<code>true</code>了</p>
-<h4 id="1-3-4-componentWillUpdate-nextProps-nextState"><a href="#1-3-4-componentWillUpdate-nextProps-nextState" class="headerlink" title="1.3.4 componentWillUpdate(nextProps, nextState)"></a>1.3.4 componentWillUpdate(nextProps, nextState)</h4><blockquote>
-<p>此方法在调用<code>render</code>方法前执行，在这边可执行一些组件更新发生前的工作，一般较少用</p>
-</blockquote>
-<h4 id="1-3-5-componentDidUpdate-prevProps-prevState"><a href="#1-3-5-componentDidUpdate-prevProps-prevState" class="headerlink" title="1.3.5 componentDidUpdate(prevProps, prevState)"></a>1.3.5 componentDidUpdate(prevProps, prevState)</h4><blockquote>
-<p>此方法在组件更新后被调用，可以操作组件更新的<code>DOM</code>，<code>prevProps</code>和<code>prevState</code>这两个参数指的是组件更新前的<code>props</code>和<code>state</code></p>
-</blockquote>
-<h3 id="1-4-卸载阶段"><a href="#1-4-卸载阶段" class="headerlink" title="1.4 卸载阶段"></a>1.4 卸载阶段</h3><blockquote>
-<p>此阶段只有一个生命周期方法：<code>componentWillUnmount</code></p>
-</blockquote>
-<p>此方法在组件被卸载前调用，可以在这里执行一些清理工作，比如清楚组件中使用的定时器，清除<code>componentDidMount</code>中手动创建的<code>DOM</code>元素等，以避免引起内存泄漏</p>
-<h2 id="二、React-v16-4-的生命周期"><a href="#二、React-v16-4-的生命周期" class="headerlink" title="二、React v16.4 的生命周期"></a>二、React v16.4 的生命周期</h2><p><strong>React v16.4 的生命周期图</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/418.png"></p>
-<h3 id="2-1-变更缘由"><a href="#2-1-变更缘由" class="headerlink" title="2.1 变更缘由"></a>2.1 变更缘由</h3><blockquote>
-<p>原来（<code>React v16.0</code>前）的生命周期在<code>React v16</code>推出的<code>Fiber</code>之后就不合适了，因为如果要开启<code>async rendering</code>，在<code>render</code>函数之前的所有函数，都有可能被执行多次</p>
-</blockquote>
-<p><strong>原来（React v16.0前）的生命周期有哪些是在render前执行的呢？</strong></p>
+<p>这里我改了原文一处签名。<code>shouldComponentUpdate</code> 的形参顺序固定是 <code>(nextProps, nextState)</code>，原文写成了 <code>shouldComponentUpdate(nextStates)</code>，那样第一个参数拿到的其实是 props，比较永远为 false，<code>return false</code> 分支根本进不去。这是个很典型的坑，把它当反面教材记住就行。</p>
+<p>关于 <code>setState</code> 本身的批量合并、异步表现和更新队列，我在 <a href="https://feinterview.poetries.top/blog/react-setState">React setState 原理剖析</a> 里单独拆过，这里不重复。</p>
+<h4 id="1-3-2-componentWillReceiveProps-nextProps"><a href="#1-3-2-componentWillReceiveProps-nextProps" class="headerlink" title="1.3.2 componentWillReceiveProps(nextProps)"></a>1.3.2 componentWillReceiveProps(nextProps)</h4><p>此方法只调用于 <code>props</code> 引起的组件更新过程中，参数 <code>nextProps</code> 是父组件传给当前组件的新 <code>props</code>。但父组件 <code>render</code> 方法的调用不能保证重传给当前组件的 <code>props</code> 是有变化的，所以在此方法中要根据 <code>nextProps</code> 和 <code>this.props</code> 来查明重传的 <code>props</code> 是否改变，以及如果改变了要执行什么，比如根据新的 <code>props</code> 调用 <code>this.setState</code> 触发当前组件的重新 <code>render</code>。</p>
+<h4 id="1-3-3-shouldComponentUpdate-nextProps-nextState"><a href="#1-3-3-shouldComponentUpdate-nextProps-nextState" class="headerlink" title="1.3.3 shouldComponentUpdate(nextProps, nextState)"></a>1.3.3 shouldComponentUpdate(nextProps, nextState)</h4><p>此方法通过比较 <code>nextProps</code>、<code>nextState</code> 及当前组件的 <code>this.props</code>、<code>this.state</code>，返回 <code>true</code> 时当前组件将继续执行更新过程，返回 <code>false</code> 则当前组件更新停止，以此可用来减少组件的不必要渲染，优化组件性能。</p>
+<p>这边也可以看出，就算 <code>componentWillReceiveProps()</code> 中执行了 <code>this.setState</code> 更新了 <code>state</code>，但在 <code>render</code> 前（如 <code>shouldComponentUpdate</code>、<code>componentWillUpdate</code>），<code>this.state</code> 依然指向更新前的 <code>state</code>，不然 <code>nextState</code> 及当前组件的 <code>this.state</code> 的对比就一直是 <code>true</code> 了。</p>
+<h4 id="1-3-4-componentWillUpdate-nextProps-nextState"><a href="#1-3-4-componentWillUpdate-nextProps-nextState" class="headerlink" title="1.3.4 componentWillUpdate(nextProps, nextState)"></a>1.3.4 componentWillUpdate(nextProps, nextState)</h4><p>此方法在调用 <code>render</code> 方法前执行，在这里可执行一些组件更新发生前的工作，一般较少用。</p>
+<h4 id="1-3-5-componentDidUpdate-prevProps-prevState"><a href="#1-3-5-componentDidUpdate-prevProps-prevState" class="headerlink" title="1.3.5 componentDidUpdate(prevProps, prevState)"></a>1.3.5 componentDidUpdate(prevProps, prevState)</h4><p>此方法在组件更新后被调用，可以操作组件更新的 DOM，<code>prevProps</code> 和 <code>prevState</code> 这两个参数指的是组件更新前的 <code>props</code> 和 <code>state</code>。</p>
+<p>这里有个坑要注意，在 <code>componentDidUpdate</code> 里无条件调用 <code>setState</code> 会直接死循环，因为 <code>setState</code> 又会触发一次更新，更新完又进 <code>componentDidUpdate</code>。必须先做一次 <code>prevProps.x !== this.props.x</code> 之类的判断再决定要不要更新。</p>
+<h3 id="1-4-卸载阶段"><a href="#1-4-卸载阶段" class="headerlink" title="1.4 卸载阶段"></a>1.4 卸载阶段</h3><p>此阶段只有一个生命周期方法，<code>componentWillUnmount</code>。</p>
+<p>此方法在组件被卸载前调用，可以在这里执行一些清理工作，比如清除组件中使用的定时器，清除 <code>componentDidMount</code> 中手动创建的 DOM 元素等，以避免引起内存泄漏。</p>
+<p>清理这件事被漏掉的概率比想象中高。最常见的是组件里发了一个请求，请求还没回来组件就被卸载了，回调里的 <code>setState</code> 打在一个已卸载的实例上。老版本 React 会给你一个 memory leak 警告，新版本把这个警告去掉了，但泄漏的定时器和事件监听依然是泄漏。</p>
+<h2 id="二、React-v16-4-的生命周期"><a href="#二、React-v16-4-的生命周期" class="headerlink" title="二、React v16.4 的生命周期"></a>二、React v16.4 的生命周期</h2><p>先看新版全景图，和第一节那张对照着看差异最明显。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/418.png" alt="React v16.4 的生命周期流程图"></p>
+<h3 id="2-1-变更缘由"><a href="#2-1-变更缘由" class="headerlink" title="2.1 变更缘由"></a>2.1 变更缘由</h3><p>原来（React v16.0 前）的生命周期在 React v16 推出的 Fiber 之后就不合适了，因为如果要开启 async rendering，在 <code>render</code> 函数之前的所有函数，都有可能被执行多次。</p>
+<p>原来（React v16.0 前）的生命周期有哪些是在 render 前执行的呢？</p>
 <ul>
 <li><code>componentWillMount</code></li>
 <li><code>componentWillReceiveProps</code></li>
 <li><code>shouldComponentUpdate</code></li>
 <li><code>componentWillUpdate</code></li>
 </ul>
-<blockquote>
-<p>如果开发者开了<code>async rendering</code>，而且又在以上这些<code>render</code>前执行的生命周期方法做<code>AJAX</code>请求的话，那<code>AJAX</code>将被无谓地多次调用。而且在<code>componentWillMount</code>里发起<code>AJAX</code>，不管多快得到结果也赶不上首次<code>render</code>，而且<code>componentWillMount</code>在服务器端渲染也会被调用到</p>
-</blockquote>
-<ul>
-<li>所以除了<code>shouldComponentUpdate</code>，其他在<code>render</code>函数之前的所有函数（<code>componentWillMount</code>，<code>componentWillReceiveProps</code>，<code>componentWillUpdate</code>）都被<code>getDerivedStateFromProps</code>替代</li>
-<li>也就是用一个静态函数<code>getDerivedStateFromProps</code>来取代被<code>deprecate</code>的几个生命周期函数，就是强制开发者在<code>render</code>之前只做无副作用的操作，而且能做的操作局限在根据<code>props</code>和<code>state</code>决定新的<code>state</code></li>
-</ul>
-<blockquote>
-<p>React v16.0刚推出的时候，是增加了一个<code>componentDidCatch</code>生命周期函数，这只是一个增量式修改，完全不影响原有生命周期函数；但是，到了<code>React v16.3</code>，大改动来了，引入了两个新的生命周期函数</p>
-</blockquote>
-<h3 id="2-2-引入了两个新的生命周期函数"><a href="#2-2-引入了两个新的生命周期函数" class="headerlink" title="2.2 引入了两个新的生命周期函数"></a>2.2 引入了两个新的生命周期函数</h3><h4 id="2-2-1-getDerivedStateFromProps"><a href="#2-2-1-getDerivedStateFromProps" class="headerlink" title="2.2.1 getDerivedStateFromProps"></a>2.2.1 getDerivedStateFromProps</h4><blockquote>
-<p><code>getDerivedStateFromProps</code>本来（React v16.3中）是只在创建和更新（由父组件引发部分），也就是不是不由父组件引发，那么<code>getDerivedStateFromProps</code>也不会被调用，如自身<code>setState</code>引发或者<code>forceUpdate</code>引发</p>
-</blockquote>
-<p><strong>React v16.3 的生命周期图</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/419.png"></p>
-<blockquote>
-<p>这样的话理解起来有点乱，在<code>React v16.4</code>中改正了这一点，让<code>getDerivedStateFromProps</code>无论是<code>Mounting</code>还是<code>Updating</code>，也无论是因为什么引起的<code>Updating</code>，全部都会被调用，具体可看<code>React v16.4 </code>的生命周期图</p>
-</blockquote>
-<p><strong>React v16.4后的getDerivedStateFromProps</strong></p>
-<blockquote>
-<p><code>static getDerivedStateFromProps(props, state)</code> 在组件创建时和更新时的render方法之前调用，它应该返回一个对象来更新状态，或者返回<code>null</code>来不更新任何内容</p>
-</blockquote>
-<h4 id="2-2-2-getSnapshotBeforeUpdate"><a href="#2-2-2-getSnapshotBeforeUpdate" class="headerlink" title="2.2.2 getSnapshotBeforeUpdate"></a>2.2.2 getSnapshotBeforeUpdate</h4><blockquote>
-<p><code>getSnapshotBeforeUpdate()</code> 被调用于<code>render</code>之后，可以读取但无法使用DOM的时候。它使您的组件可以在可能更改之前从DOM捕获一些信息（例如滚动位置）。此生命周期返回的任何值都将作为参数传递给<code>componentDidUpdate（）</code></p>
-</blockquote>
-<p>官网给的例子</p>
+<p>如果开发者开了 async rendering，而且又在以上这些 render 前执行的生命周期方法里做 AJAX 请求的话，那 AJAX 将被无谓地多次调用。而且在 <code>componentWillMount</code> 里发起 AJAX，不管多快得到结果也赶不上首次 render，而且 <code>componentWillMount</code> 在服务器端渲染也会被调用到。</p>
+<p>这里值得多说两句，因为它是整件事的根。Fiber 把渲染拆成了 render 和 commit 两个阶段，render 阶段是可以被更高优先级任务打断的，打断之后这一轮的工作可能被整个丢弃，之后从头再来一次。丢弃重来意味着 render 之前的那几个钩子会被跑第二遍、第三遍。这套可中断渲染的机制我在 <a href="https://feinterview.poetries.top/blog/react-18-concurrency">React 18 并发机制深度解析</a> 里从 Fiber 链表遍历讲到时间切片，想看细节可以跳过去。</p>
+<p>回到这块。副作用被执行多次为什么这么要命？请求重复发只是浪费流量，真正难查的是那种「在 <code>componentWillMount</code> 里改了一个模块级变量」的代码，跑两遍结果就不对了，而且不稳定复现。</p>
+<p>所以除了 <code>shouldComponentUpdate</code>，其他在 <code>render</code> 函数之前的所有函数（<code>componentWillMount</code>、<code>componentWillReceiveProps</code>、<code>componentWillUpdate</code>）都被 <code>getDerivedStateFromProps</code> 替代。</p>
+<p>也就是用一个静态函数 <code>getDerivedStateFromProps</code> 来取代被 deprecate 的几个生命周期函数，就是强制开发者在 <code>render</code> 之前只做无副作用的操作，而且能做的操作局限在根据 <code>props</code> 和 <code>state</code> 决定新的 <code>state</code>。</p>
+<p>那 <code>shouldComponentUpdate</code> 凭什么留下来？因为它天生就被设计成纯函数，输入是 <code>nextProps</code> 和 <code>nextState</code>，输出是一个布尔值，不改任何东西。跑一遍和跑三遍结果一样，这就是安全的。这条判据可以直接用来回答面试题。</p>
+<p><code>getDerivedStateFromProps</code> 被写成 <code>static</code> 也是同一个思路。静态方法里拿不到 <code>this</code>，你想在里面 <code>this.setState</code> 或者读实例上的字段都做不到，React 用语言层面的限制把「写出有副作用的代码」这条路给堵死了。</p>
+<p>React v16.0 刚推出的时候，是增加了一个 <code>componentDidCatch</code> 生命周期函数，这只是一个增量式修改，完全不影响原有生命周期函数。但是到了 React v16.3，大改动来了，引入了两个新的生命周期函数。</p>
+<h3 id="2-2-引入了两个新的生命周期函数"><a href="#2-2-引入了两个新的生命周期函数" class="headerlink" title="2.2 引入了两个新的生命周期函数"></a>2.2 引入了两个新的生命周期函数</h3><h4 id="2-2-1-getDerivedStateFromProps"><a href="#2-2-1-getDerivedStateFromProps" class="headerlink" title="2.2.1 getDerivedStateFromProps"></a>2.2.1 getDerivedStateFromProps</h4><p><code>getDerivedStateFromProps</code> 本来（React v16.3 中）是只在创建和更新（由父组件引发的部分）时调用，也就是说如果不是由父组件引发的更新，那么 <code>getDerivedStateFromProps</code> 也不会被调用，比如自身 <code>setState</code> 引发或者 <code>forceUpdate</code> 引发。</p>
+<p>对比一下 16.3 这张图，注意 Updating 那一列的入口条件。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/419.png" alt="React v16.3 的生命周期流程图"></p>
+<p>这样的话理解起来有点乱，在 React v16.4 中改正了这一点，让 <code>getDerivedStateFromProps</code> 无论是 Mounting 还是 Updating，也无论是因为什么引起的 Updating，全部都会被调用，具体可看上面 React v16.4 的生命周期图。</p>
+<p>我一开始也觉得 16.4 这个改动是在给自己找麻烦，「明明只有 props 变了才需要派生 state」。后来想明白了，16.3 那套规则要求 React 内部区分「这次更新是谁触发的」，而在 Fiber 的批处理里，一次更新完全可能同时来自父组件重渲染和自身 <code>setState</code>，这个「谁触发的」根本没法给出唯一答案。与其定义一个模糊的规则，不如统一成「每次 render 前都调」，行为可预测得多。</p>
+<p>代价是你必须自己在函数里判断值到底变没变。</p>
+<p>React v16.4 后的 <code>getDerivedStateFromProps</code>：</p>
+<p><code>static getDerivedStateFromProps(props, state)</code> 在组件创建时和更新时的 render 方法之前调用，它应该返回一个对象来更新状态，或者返回 <code>null</code> 来不更新任何内容。</p>
+<h4 id="2-2-2-getSnapshotBeforeUpdate"><a href="#2-2-2-getSnapshotBeforeUpdate" class="headerlink" title="2.2.2 getSnapshotBeforeUpdate"></a>2.2.2 getSnapshotBeforeUpdate</h4><p><code>getSnapshotBeforeUpdate()</code> 被调用于 <code>render</code> 之后，可以读取但无法使用 DOM 的时候。它使你的组件可以在可能更改之前从 DOM 捕获一些信息（例如滚动位置）。此生命周期返回的任何值都将作为参数传递给 <code>componentDidUpdate()</code>。</p>
+<p>官网给的例子：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ScrollingList</span> <span class="keyword">extends</span> <span class="title class_ inherited__">React.Component</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">props</span>) &#123;</span><br><span class="line">    <span class="variable language_">super</span>(props);</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">listRef</span> = <span class="title class_">React</span>.<span class="title function_">createRef</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">getSnapshotBeforeUpdate</span>(<span class="params">prevProps, prevState</span>) &#123;</span><br><span class="line">    <span class="comment">//我们是否要添加新的 items 到列表?</span></span><br><span class="line">    <span class="comment">// 捕捉滚动位置，以便我们可以稍后调整滚动.</span></span><br><span class="line">    <span class="keyword">if</span> (prevProps.<span class="property">list</span>.<span class="property">length</span> &lt; <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">list</span>.<span class="property">length</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> list = <span class="variable language_">this</span>.<span class="property">listRef</span>.<span class="property">current</span>;</span><br><span class="line">      <span class="keyword">return</span> list.<span class="property">scrollHeight</span> - list.<span class="property">scrollTop</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">componentDidUpdate</span>(<span class="params">prevProps, prevState, snapshot</span>) &#123;</span><br><span class="line">    <span class="comment">//如果我们有snapshot值, 我们已经添加了 新的items.</span></span><br><span class="line">    <span class="comment">// 调整滚动以至于这些新的items 不会将旧items推出视图。</span></span><br><span class="line">    <span class="comment">// (这边的snapshot是 getSnapshotBeforeUpdate方法的返回值)</span></span><br><span class="line">    <span class="keyword">if</span> (snapshot !== <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> list = <span class="variable language_">this</span>.<span class="property">listRef</span>.<span class="property">current</span>;</span><br><span class="line">      list.<span class="property">scrollTop</span> = list.<span class="property">scrollHeight</span> - snapshot;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span> <span class="attr">ref</span>=<span class="string">&#123;this.listRef&#125;</span>&gt;</span>&#123;/* ...contents... */&#125;<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="三、参考"><a href="#三、参考" class="headerlink" title="三、参考"></a>三、参考</h2><ul>
-<li><a href="https://zhuanlan.zhihu.com/p/38030418">React v16.3之后的组件生命周期函数</a></li>
+<p>这个例子在解决一个很具体的场景：聊天窗口往顶部插历史消息，插完之后如果不管，浏览器会把你正在看的那条消息往下挤出视野。要修正它，你需要一个「DOM 已经算好了新内容、但还没画到屏幕上」的时机去读旧的 <code>scrollHeight</code>。</p>
+<p><code>componentWillUpdate</code> 以前干的就是这个活，但它在 render 之前，那时候 React 还没开始改 DOM，读到的值在异步渲染下可能已经过期了。<code>getSnapshotBeforeUpdate</code> 被放在 commit 阶段的开头，render 已经跑完、DOM 变更即将提交，这个位置读出来的值一定是准的，而且 commit 阶段不可中断，保证只跑一次。</p>
+<p>所以这两个新钩子的分工其实很清楚。<code>getDerivedStateFromProps</code> 管「渲染之前需要根据 props 算点东西」，被限制成纯函数；<code>getSnapshotBeforeUpdate</code> 管「DOM 提交之前需要抢救一点旧信息」，放在不可中断的阶段里。原来那三个 <code>componentWill*</code> 干的事，被拆进了这两个更安全的位置。</p>
+<h2 id="三、派生-state-这件事本身就有坑"><a href="#三、派生-state-这件事本身就有坑" class="headerlink" title="三、派生 state 这件事本身就有坑"></a>三、派生 state 这件事本身就有坑</h2><p>第一节里 1.3.1 的 b 写法（把 props 拷进 state）现在换成 <code>getDerivedStateFromProps</code> 之后，坑一点没少，只是换了个位置。</p>
+<p>最典型的是这样：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="title function_">getDerivedStateFromProps</span>(<span class="params">props, state</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">email</span>: props.<span class="property">email</span></span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看着人畜无害，实际后果是用户在输入框里改的内容会被冲掉。因为 16.4 之后每次 render 前都会调这个函数，你自己 <code>setState</code> 改了 <code>email</code>，下一次渲染立刻又被 <code>props.email</code> 覆盖回去。</p>
+<p>正确的写法要自己记住上一次的 props，只在真的变化时才同步：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="title function_">getDerivedStateFromProps</span>(<span class="params">props, state</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (props.<span class="property">email</span> !== state.<span class="property">prevEmail</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">email</span>: props.<span class="property">email</span>,</span><br><span class="line">      <span class="attr">prevEmail</span>: props.<span class="property">email</span></span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>多存一个 <code>prevEmail</code> 看着有点笨，但这是官方博客里给的标准解法，因为静态方法拿不到 <code>this.props</code>，比较基准只能自己存在 state 里。</p>
+<p>不过更值得问一句的是：这个 state 真的需要派生吗？</p>
+<p>官方给的判断标准是，只有当组件需要「记住」某个随时间变化的值，且这个值不能单纯由当前 props 算出来时，才需要派生。如果只是想根据 props 算个展示值，直接在 <code>render</code> 里算就行了，算得贵就用记忆化包一层。如果只是想在 props 变化时重置内部状态，给组件加一个 <code>key</code>，让 React 直接销毁重建，比写派生 state 干净得多。</p>
+<p>我自己的感受是，绝大部分 <code>getDerivedStateFromProps</code> 的使用都可以用 <code>key</code> 或者「直接在 render 里算」替掉，剩下真正需要它的场景一年碰不上几次。</p>
+<h2 id="四、这套-API-到今天还成立吗"><a href="#四、这套-API-到今天还成立吗" class="headerlink" title="四、这套 API 到今天还成立吗"></a>四、这套 API 到今天还成立吗</h2><p>这篇写于 2018 年，那会儿 React 刚到 16.4，上面所有内容在类组件里到今天依然是成立的。但有几件事变了，得补一下。</p>
+<p>关于旧钩子的现状，React 16.9 给 <code>componentWillMount</code>、<code>componentWillReceiveProps</code>、<code>componentWillUpdate</code> 加了 <code>UNSAFE_</code> 前缀的别名，同时让不带前缀的旧写法在控制台打废弃警告。React 官方也提供了 codemod 脚本 <code>rename-unsafe-lifecycles</code> 做批量重命名。至于这三个钩子在最新版本里是否已经彻底移除，我没有在最新版上逐个验证过，以官方文档为准。</p>
+<p>关于写法本身。今天写 React，类组件已经不是默认选择了，函数组件加 Hooks 才是。生命周期的思维模型也跟着换了，不再是「挂载做什么、更新做什么、卸载做什么」，而是「这段副作用依赖哪些值，值变了就重新同步一次」。<code>componentDidMount</code> 加 <code>componentDidUpdate</code> 加 <code>componentWillUnmount</code> 三个钩子干的事，在 <code>useEffect</code> 里是一个函数加一个依赖数组加一个清理函数。Hooks 这一套的用法和坑我写在 <a href="https://feinterview.poetries.top/blog/react-hooks">React Hooks 详解</a> 里。</p>
+<p>但类组件的生命周期还是得懂。一方面老项目里到处都是，另一方面 <code>getSnapshotBeforeUpdate</code> 和错误边界（<code>componentDidCatch</code>、<code>getDerivedStateFromError</code>）在函数组件里至今没有完全对等的 Hook 实现，真要写错误边界还是得落回类组件。这块请以官方文档的最新说明为准。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回过头看，React 16.3 这次改动的逻辑链条其实很短。Fiber 让 render 阶段变得可中断可重来，可重来就意味着 render 之前的代码会被执行多次，执行多次就要求这些代码必须没有副作用。</p>
+<p>于是 React 做了三件事。把有副作用风险的 <code>componentWillMount</code>、<code>componentWillReceiveProps</code>、<code>componentWillUpdate</code> 标记为不安全；用一个 <code>static</code> 的 <code>getDerivedStateFromProps</code> 顶上，用静态方法在语法层面禁止你碰 <code>this</code>；给「必须在 DOM 提交前读一次真实 DOM」这个刚需单独开了 <code>getSnapshotBeforeUpdate</code>，放在不可中断的 commit 阶段。</p>
+<p>留下 <code>shouldComponentUpdate</code> 的理由也是同一条：它本来就是纯的。</p>
+<p>一句话记忆点：render 前的钩子必须纯，因为它可能被跑很多次；commit 阶段的钩子可以有副作用，因为它保证只跑一次。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://legacy.reactjs.org/blog/2018/03/29/react-v-16-3.html">React v16.3.0 版本发布说明</a></li>
+<li><a href="https://legacy.reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html">You Probably Don’t Need Derived State</a></li>
+<li><a href="https://legacy.reactjs.org/blog/2018/03/27/update-on-async-rendering.html">Update on Async Rendering</a></li>
+<li><a href="https://legacy.reactjs.org/docs/react-component.html">React.Component 生命周期 API 参考</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/38030418">React v16.3 之后的组件生命周期函数</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

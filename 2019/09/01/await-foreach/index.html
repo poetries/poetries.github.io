@@ -7,25 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>await 在 forEach 中不生效解决方案 | 前端进阶之旅</title>
+  <title>await 在 forEach 中不生效的原因与四种替代写法 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript," />
+    <meta name="keywords" content="JavaScript,异步编程,async/await,Promise," />
   
 
-  <meta name="description" content="一、场景function test() &#123;	let arr &#x3D; [3, 2, 1]	arr.forEach(async item &#x3D;&gt; &#123;		const res &#x3D; await fetch(item)		console.log(res)	&#125;)	console.log(&#x27;end&#x27;)&#125;function fetch(x) &#123;	r">
+  <meta name="description" content="从 forEach 忽略回调返回值这个根因讲起，对比 for...of、Promise.all、for await...of、reduce 四种异步遍历写法的执行顺序、并发度和错误处理差异，并给出并发控制的实现。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="await 在 forEach 中不生效解决方案">
+<meta property="og:title" content="await 在 forEach 中不生效的原因与四种替代写法">
 <meta property="og:url" content="http://blog.poetries.top/2019/09/01/await-foreach/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、场景function test() &#123;	let arr &#x3D; [3, 2, 1]	arr.forEach(async item &#x3D;&gt; &#123;		const res &#x3D; await fetch(item)		console.log(res)	&#125;)	console.log(&#x27;end&#x27;)&#125;function fetch(x) &#123;	r">
+<meta property="og:description" content="从 forEach 忽略回调返回值这个根因讲起，对比 for...of、Promise.all、for await...of、reduce 四种异步遍历写法的执行顺序、并发度和错误处理差异，并给出并发控制的实现。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2019-09-01T08:20:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.653Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.924Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
+<meta property="article:tag" content="异步编程">
+<meta property="article:tag" content="async&#x2F;await">
+<meta property="article:tag" content="Promise">
 <meta name="twitter:card" content="summary">
 
   
@@ -204,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9C%BA%E6%99%AF"><span class="toc-text">一、场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="toc-text">二、解决办法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%AC%AC%E4%B8%80%E7%A7%8D%E6%98%AF%E4%BD%BF%E7%94%A8-Promise-all-%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-text">2.1 第一种是使用 Promise.all 的方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8F%A6%E4%B8%80%E7%A7%8D%E6%96%B9%E6%B3%95%E6%98%AF%E4%BD%BF%E7%94%A8-for%E2%80%A6of"><span class="toc-text">2.2 另一种方法是使用 for…of</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9C%BA%E6%99%AF"><span class="toc-text">一、场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B9%E5%9B%A0%EF%BC%8CforEach-%E6%8A%8A%E5%9B%9E%E8%B0%83%E7%9A%84%E8%BF%94%E5%9B%9E%E5%80%BC%E4%B8%A2%E6%8E%89%E4%BA%86"><span class="toc-text">二、根因，forEach 把回调的返回值丢掉了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><span class="toc-text">三、解决办法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%AC%AC%E4%B8%80%E7%A7%8D%E6%98%AF%E4%BD%BF%E7%94%A8-Promise-all-%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="toc-text">3.1 第一种是使用 Promise.all 的方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%8F%A6%E4%B8%80%E7%A7%8D%E6%96%B9%E6%B3%95%E6%98%AF%E4%BD%BF%E7%94%A8-for%E2%80%A6of"><span class="toc-text">3.2 另一种方法是使用 for…of</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-for-await%E2%80%A6of%EF%BC%8C%E7%94%A8%E6%9D%A5%E5%A4%84%E7%90%86%E5%BC%82%E6%AD%A5%E8%BF%AD%E4%BB%A3%E6%BA%90"><span class="toc-text">3.3 for await…of，用来处理异步迭代源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-reduce-%E4%B8%B2%E8%B5%B7%E6%9D%A5%E7%9A%84%E5%86%99%E6%B3%95"><span class="toc-text">3.4 reduce 串起来的写法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B9%B6%E5%8F%91%E5%BA%A6%E6%8E%A7%E5%88%B6"><span class="toc-text">四、并发度控制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%EF%BC%8C%E5%9B%9B%E7%A7%8D%E5%86%99%E6%B3%95%E5%B7%AE%E5%88%AB%E6%9C%80%E5%A4%A7%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="toc-text">五、错误处理，四种写法差别最大的地方</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-text">六、怎么选</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -227,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-await-foreach" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">await 在 forEach 中不生效解决方案</h1>
+    <h1 class="post-title">await 在 forEach 中不生效的原因与四种替代写法</h1>
 
     <div class="article-meta">
       <span>
@@ -269,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 461字</span>
+            <span>字数统计 3.4k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -288,33 +291,159 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、场景"><a href="#一、场景" class="headerlink" title="一、场景"></a>一、场景</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	arr.<span class="title function_">forEach</span>(<span class="keyword">async</span> item =&gt; &#123;</span><br><span class="line">		<span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">		<span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">fetch</span>(<span class="params">x</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">		<span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">			<span class="title function_">resolve</span>(x)</span><br><span class="line">		&#125;, <span class="number">500</span> * x)</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">test</span>()</span><br></pre></td></tr></table></figure>
+        <p>在 <code>forEach</code> 的回调里写了 <code>await</code>，代码看着一点问题没有，跑起来顺序全乱，<code>end</code> 还跑到了所有结果前面。更糟的是它不报错，本地数据量小的时候甚至看不出异常，等到线上批量处理几百条数据才发现结果对不上。</p>
+<p>这篇把这件事从根上讲一遍：为什么 <code>forEach</code> 接不住 <code>await</code>，四种替代写法各自的执行顺序和并发度是什么，错误处理上有什么区别，以及数据量大的时候怎么控制并发不把下游打挂。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>forEach</code> 里的 <code>await</code> 为什么不生效，根因是什么</li>
+<li><code>for...of</code>、<code>Promise.all</code>、<code>for await...of</code>、<code>reduce</code> 四种写法的执行顺序对比</li>
+<li>串行和并发怎么选，并发度失控会带来什么后果</li>
+<li>四种写法在错误处理上的差异，哪种会静默吞掉异常</li>
+<li>怎么手写一个带并发上限的批处理</li>
+<li>有哪些 lint 规则能在写代码的时候就拦住这类问题</li>
+</ul>
+<h2 id="一、场景"><a href="#一、场景" class="headerlink" title="一、场景"></a>一、场景</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	arr.<span class="title function_">forEach</span>(<span class="keyword">async</span> item =&gt; &#123;</span><br><span class="line">		<span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">		<span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">fetch</span>(<span class="params">x</span>) &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">		<span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">			<span class="title function_">resolve</span>(x)</span><br><span class="line">		&#125;, <span class="number">500</span> * x)</span><br><span class="line">	&#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">test</span>()</span><br></pre></td></tr></table></figure>
 
-<p>期望的打印顺序是</p>
+<p>期望的打印顺序是：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">3</span><br><span class="line">2</span><br><span class="line">1</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
 
-<p>结果打印顺序居然是</p>
+<p>结果打印顺序居然是：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">end</span><br><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td></tr></table></figure>
 
+<p>两处对不上。<code>end</code> 跑到了最前面，而三个结果的顺序按耗时从短到长排列，和数组里的顺序没关系。</p>
 <p><strong>原因</strong></p>
-<blockquote>
-<p>那就是 <code>forEach</code> 只支持同步代码。<code>forEach</code> 并不会去处理异步的情况</p>
-</blockquote>
-<h2 id="二、解决办法"><a href="#二、解决办法" class="headerlink" title="二、解决办法"></a>二、解决办法</h2><h3 id="2-1-第一种是使用-Promise-all-的方式"><a href="#2-1-第一种是使用-Promise-all-的方式" class="headerlink" title="2.1 第一种是使用 Promise.all 的方式"></a>2.1 第一种是使用 Promise.all 的方式</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	<span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(</span><br><span class="line">		arr.<span class="title function_">map</span>(<span class="keyword">async</span> item =&gt; &#123;</span><br><span class="line">			<span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">			<span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">		&#125;)</span><br><span class="line">	)</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>forEach</code> 只支持同步代码，它并不会去处理异步的情况。</p>
+<h2 id="二、根因，forEach-把回调的返回值丢掉了"><a href="#二、根因，forEach-把回调的返回值丢掉了" class="headerlink" title="二、根因，forEach 把回调的返回值丢掉了"></a>二、根因，forEach 把回调的返回值丢掉了</h2><p>先说结论：<code>forEach</code> 不是「不支持 await」，是它压根不看回调返回了什么。</p>
+<p><code>async</code> 函数被调用时会立即返回一个 Promise，函数体执行到第一个 <code>await</code> 就挂起，把控制权交回去。所以上面那段代码的真实执行过程是这样：</p>
+<p><code>forEach</code> 依次调用三次回调，每次调用都拿到一个 pending 的 Promise，然后<strong>直接扔掉</strong>，接着调下一次。三次调完，<code>forEach</code> 返回 <code>undefined</code>，同步执行 <code>console.log(&#39;end&#39;)</code>。这时候三个 <code>setTimeout</code> 都已经在跑了，各自到点了才 resolve，所以 500ms 的先打、1500ms 的最后打。</p>
+<p>规范里 <code>Array.prototype.forEach</code> 的定义就是一个纯粹的 for 循环加 <code>Call(callbackfn, ...)</code>，调用结果没有任何地方被使用。你可以理解成它长这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Array</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">myForEach</span> = <span class="keyword">function</span> (<span class="params">cb, thisArg</span>) &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="variable language_">this</span>.<span class="property">length</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (i <span class="keyword">in</span> <span class="variable language_">this</span>) &#123;</span><br><span class="line">      cb.<span class="title function_">call</span>(thisArg, <span class="variable language_">this</span>[i], i, <span class="variable language_">this</span>)  <span class="comment">// 返回值丢弃</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这样可以生效的原因是 <code>async</code> 函数肯定会返回一个 <code>Promise</code> 对象，调用 <code>map</code> 以后返回值就是一个存放了 <code>Promise</code> 的数组了，这样我们把数组传入 <code>Promise.all</code> 中就可以解决问题了。但是这种方式其实并不能达成我们要的效果，如果你希望内部的 <code>fetch</code> 是顺序完成的，可以选择第二种方式</p>
-</blockquote>
-<h3 id="2-2-另一种方法是使用-for…of"><a href="#2-2-另一种方法是使用-for…of" class="headerlink" title="2.2 另一种方法是使用 for…of"></a>2.2 另一种方法是使用 for…of</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">const</span> item <span class="keyword">of</span> arr) &#123;</span><br><span class="line">		<span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">		<span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>map</code> 就不一样，它会把每次调用的返回值收集进新数组。这个差别正是下面第一种解法能成立的原因。</p>
+<p>顺带说一句，这个坑不止 <code>forEach</code> 有。<code>filter</code>、<code>some</code>、<code>every</code>、<code>sort</code> 的回调传 <code>async</code> 函数一样出问题，而且更隐蔽：<code>filter(async x =&gt; ...)</code> 的回调永远返回一个 Promise 对象，Promise 对象恒为真值，所以过滤条件永远成立，一条都不会被过滤掉。这个我踩过，排查了半天才反应过来问题出在 <code>async</code> 上。</p>
+<h2 id="三、解决办法"><a href="#三、解决办法" class="headerlink" title="三、解决办法"></a>三、解决办法</h2><h3 id="3-1-第一种是使用-Promise-all-的方式"><a href="#3-1-第一种是使用-Promise-all-的方式" class="headerlink" title="3.1 第一种是使用 Promise.all 的方式"></a>3.1 第一种是使用 Promise.all 的方式</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	<span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(</span><br><span class="line">		arr.<span class="title function_">map</span>(<span class="keyword">async</span> item =&gt; &#123;</span><br><span class="line">			<span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">			<span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">		&#125;)</span><br><span class="line">	)</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样可以生效的原因是 <code>async</code> 函数肯定会返回一个 <code>Promise</code> 对象，调用 <code>map</code> 以后返回值就是一个存放了 <code>Promise</code> 的数组，把这个数组传入 <code>Promise.all</code> 就能等它们全部结束。</p>
+<p>但这种方式并不能达成我们要的效果。它保证的是「<code>end</code> 一定在所有请求完成之后打印」，不保证三个结果之间的顺序。三个 <code>fetch</code> 是同时发出去的，谁先回来谁先打印，所以还是 1、2、3。</p>
+<p>如果你要的是结果数组有序，那 <code>Promise.all</code> 反而是最合适的，因为它的 <code>resolve</code> 值严格按传入顺序排列，和完成先后无关：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> results = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(arr.<span class="title function_">map</span>(<span class="function"><span class="params">item</span> =&gt;</span> <span class="title function_">fetch</span>(item)))</span><br><span class="line"><span class="comment">// results 一定是 [3, 2, 1] 对应的结果，顺序不会乱</span></span><br></pre></td></tr></table></figure>
+
+<p>分清楚两件事：<strong>执行是并发的，结果是有序的</strong>。很多人把这两个混在一起想，才觉得 <code>Promise.all</code> 的行为反直觉。</p>
+<p>如果你希望内部的 <code>fetch</code> 是顺序完成的，可以选择第二种方式。</p>
+<h3 id="3-2-另一种方法是使用-for…of"><a href="#3-2-另一种方法是使用-for…of" class="headerlink" title="3.2 另一种方法是使用 for…of"></a>3.2 另一种方法是使用 for…of</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	<span class="keyword">for</span> (<span class="keyword">const</span> item <span class="keyword">of</span> arr) &#123;</span><br><span class="line">		<span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">		<span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>这种方式相比 <code>Promise.all</code> 要简洁的多，并且也可以实现开头我想要的输出顺序。</li>
-<li>但是这时候你是否又多了一个疑问？为啥 <code>for...of</code> 内部就能让 <code>await</code> 生效呢。</li>
-<li>因为 <code>for...of</code> 内部处理的机制和 f<code>orEach</code> 不同，<code>forEach</code> 是直接调用回调函数，<code>for...of</code> 是通过迭代器的方式去遍历。</li>
+<li>这种方式相比 <code>Promise.all</code> 要简洁得多，并且可以实现开头我想要的输出顺序</li>
+<li>但这时候你是否又多了一个疑问？为啥 <code>for...of</code> 内部就能让 <code>await</code> 生效呢</li>
+<li>因为 <code>for...of</code> 内部处理的机制和 <code>forEach</code> 不同，<code>forEach</code> 是直接调用回调函数，<code>for...of</code> 是通过迭代器的方式去遍历</li>
 </ul>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">	<span class="keyword">let</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">	<span class="keyword">const</span> iterator = arr[<span class="title class_">Symbol</span>.<span class="property">iterator</span>]()</span><br><span class="line">	<span class="keyword">let</span> res = iterator.<span class="title function_">next</span>()</span><br><span class="line">	<span class="keyword">while</span> (!res.<span class="property">done</span>) &#123;</span><br><span class="line">		<span class="keyword">const</span> value = res.<span class="property">value</span></span><br><span class="line">		<span class="keyword">const</span> res1 = <span class="keyword">await</span> <span class="title function_">fetch</span>(value)</span><br><span class="line">		<span class="variable language_">console</span>.<span class="title function_">log</span>(res1)</span><br><span class="line">		res = iterator.<span class="title function_">next</span>()</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>以上代码等价于 <code>for...of</code>，可以看成 <code>for...of</code> 是以上代码的语法糖</p>
+<p>以上代码等价于 <code>for...of</code>，可以看成 <code>for...of</code> 是以上代码的语法糖。</p>
+<p>关键在于 <code>await</code> 现在写在<strong>当前这个 async 函数体内</strong>，而不是写在另一个回调函数里。<code>await</code> 只能挂起它所在的那个 async 函数，<code>forEach</code> 的回调是一个独立的 async 函数，挂起的是回调自己，外层的 <code>forEach</code> 循环该转还是转。<code>for...of</code> 展开成 while 循环之后，<code>await</code> 挂起的是 <code>test</code> 本身，所以整个循环都停下来等。</p>
+<p>这条规则同样适用于 <code>for</code> 和 <code>while</code>。用 <code>for...of</code> 只是因为它写起来最顺手，普通 <code>for (let i = 0; ...)</code> 里 <code>await</code> 一样能生效。</p>
+<h3 id="3-3-for-await…of，用来处理异步迭代源"><a href="#3-3-for-await…of，用来处理异步迭代源" class="headerlink" title="3.3 for await…of，用来处理异步迭代源"></a>3.3 for await…of，用来处理异步迭代源</h3><p><code>for await...of</code> 是 ES2018 加的，它和 <code>for...of</code> 的区别在于会对每次迭代拿到的值做一次 <code>await</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">test</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> arr = [<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>]</span><br><span class="line">  <span class="keyword">for</span> <span class="title function_">await</span> (<span class="keyword">const</span> res <span class="keyword">of</span> arr.<span class="title function_">map</span>(<span class="function"><span class="params">item</span> =&gt;</span> <span class="title function_">fetch</span>(item))) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;end&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段的输出是 3、2、1、end，有序。但要看清楚一个细节：<code>arr.map(...)</code> 在进入循环之前就把三个 Promise 全部创建好了，也就是<strong>三个请求是同时发出去的</strong>，<code>for await...of</code> 只是按顺序去取结果。它和 <code>for...of</code> + <code>await</code> 的行为不一样，后者是发完一个等一个再发下一个。</p>
+<p>需要串行发请求就用 <code>for...of</code>，需要并发发但要按顺序消费结果就用 <code>for await...of</code>。</p>
+<p>它真正不可替代的场景是异步迭代器，比如读 Node 的可读流、消费分页接口、处理 <code>ReadableStream</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Node 里逐行读大文件，内存占用恒定</span></span><br><span class="line"><span class="keyword">for</span> <span class="title function_">await</span> (<span class="keyword">const</span> line <span class="keyword">of</span> rl) &#123;</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">handle</span>(line)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这类源的数据是一批批到的，总量事先不知道，没法先 <code>map</code> 成数组再 <code>Promise.all</code>。</p>
+<h3 id="3-4-reduce-串起来的写法"><a href="#3-4-reduce-串起来的写法" class="headerlink" title="3.4 reduce 串起来的写法"></a>3.4 reduce 串起来的写法</h3><p>还有一种写法，用 <code>reduce</code> 把 Promise 串成一条链：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">await</span> arr.<span class="title function_">reduce</span>(<span class="title function_">async</span> (prev, item) =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> prev</span><br><span class="line">  <span class="keyword">const</span> res = <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(res)</span><br><span class="line">&#125;, <span class="title class_">Promise</span>.<span class="title function_">resolve</span>())</span><br></pre></td></tr></table></figure>
+
+<p>效果和 <code>for...of</code> 一样是串行的。我把它列出来主要是因为面试里会问，实际项目里我不建议用，因为 <code>await prev</code> 这一行漏掉就静默变成并发，而且出错时的调用栈比 <code>for...of</code> 难看得多。能用 <code>for...of</code> 就用 <code>for...of</code>。</p>
+<h2 id="四、并发度控制"><a href="#四、并发度控制" class="headerlink" title="四、并发度控制"></a>四、并发度控制</h2><p>上面两个极端各有各的问题。<code>for...of</code> 串行最安全，但一百条数据就是一百个来回，慢得没法接受；<code>Promise.all</code> 全并发最快，但一百条数据同时打过去，下游接口大概率给你限流或者直接 502。</p>
+<p>实际项目里要的是中间态，比如「同时最多跑 5 个」。生产上我一般直接用 <code>p-limit</code> 这个包：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> pLimit <span class="keyword">from</span> <span class="string">&#x27;p-limit&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> limit = <span class="title function_">pLimit</span>(<span class="number">5</span>)</span><br><span class="line"><span class="keyword">const</span> results = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(</span><br><span class="line">  arr.<span class="title function_">map</span>(<span class="function"><span class="params">item</span> =&gt;</span> <span class="title function_">limit</span>(<span class="function">() =&gt;</span> <span class="title function_">fetch</span>(item)))</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>不想引依赖的话，手写一个 worker pool 也就十几行。思路是开固定数量的「工人」，每个工人从共享游标取下一个任务，取完为止：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">mapWithLimit</span>(<span class="params">list, limit, fn</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> results = <span class="keyword">new</span> <span class="title class_">Array</span>(list.<span class="property">length</span>)</span><br><span class="line">  <span class="keyword">let</span> cursor = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">worker</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">while</span> (cursor &lt; list.<span class="property">length</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> i = cursor++          <span class="comment">// 取任务并占位</span></span><br><span class="line">      results[i] = <span class="keyword">await</span> <span class="title function_">fn</span>(list[i], i)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> workers = <span class="title class_">Array</span>.<span class="title function_">from</span>(</span><br><span class="line">    &#123; <span class="attr">length</span>: <span class="title class_">Math</span>.<span class="title function_">min</span>(limit, list.<span class="property">length</span>) &#125;,</span><br><span class="line">    <span class="function">() =&gt;</span> <span class="title function_">worker</span>()</span><br><span class="line">  )</span><br><span class="line">  <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">all</span>(workers)</span><br><span class="line">  <span class="keyword">return</span> results</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>用起来是这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> results = <span class="keyword">await</span> <span class="title function_">mapWithLimit</span>(arr, <span class="number">5</span>, <span class="function"><span class="params">item</span> =&gt;</span> <span class="title function_">fetch</span>(item))</span><br></pre></td></tr></table></figure>
+
+<p><code>cursor++</code> 这一步是原子的，因为 JavaScript 单线程，两次 <code>await</code> 之间的同步代码不会被打断，所以不存在两个工人拿到同一个下标的情况。这个和事件循环的执行机制是同一件事，我在 <a href="https://feinterview.poetries.top/blog/JavaScript-event-loop">彻底弄懂 JavaScript 执行机制</a> 那篇里讲过任务是怎么排队的。</p>
+<p>并发数选多少没有标准答案。我的经验是先问下游接口的限流阈值，没有明确阈值就从 3 到 5 开始试，观察错误率和 P99 耗时，别一上来就开 50。</p>
+<h2 id="五、错误处理，四种写法差别最大的地方"><a href="#五、错误处理，四种写法差别最大的地方" class="headerlink" title="五、错误处理，四种写法差别最大的地方"></a>五、错误处理，四种写法差别最大的地方</h2><p>这块比执行顺序更容易出事，因为错误处理的差异是静默的。</p>
+<p><strong><code>forEach</code> + async 是最糟的。</strong> 回调抛出的错误变成一个 rejected Promise，而 <code>forEach</code> 把它丢掉了，没人 catch，直接触发 <code>unhandledRejection</code>。浏览器里表现为控制台一条 warning，Node 从 15 起默认会让进程崩溃。外层的 <code>try/catch</code> 完全接不住，因为错误是在 <code>forEach</code> 返回之后才发生的。</p>
+<p><strong><code>for...of</code> + <code>await</code> 最符合直觉。</strong> 抛错就中断循环，向外冒泡，外层 <code>try/catch</code> 能接住，后面的任务不再执行。想让单条失败不影响整体，就在循环体里单独 try：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> item <span class="keyword">of</span> arr) &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">fetch</span>(item)</span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;这条挂了，继续下一条&#x27;</span>, item, e)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>Promise.all</code> 是快速失败。</strong> 任意一个 reject，整个 <code>Promise.all</code> 立刻 reject，只把第一个错误抛出来。这里有两个容易误解的地方。一是其余任务<strong>不会被取消</strong>，它们还在跑，只是结果没人要了。二是其余任务后来的 reject 不会触发 <code>unhandledRejection</code>，因为 <code>Promise.all</code> 内部已经给每个 Promise 都挂了处理函数。我在 Node 22 上验证过这一点，控制台确实是干净的。</p>
+<p>想拿到全部结果、包括失败的那些，用 <code>Promise.allSettled</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> settled = <span class="keyword">await</span> <span class="title class_">Promise</span>.<span class="title function_">allSettled</span>(arr.<span class="title function_">map</span>(<span class="function"><span class="params">item</span> =&gt;</span> <span class="title function_">fetch</span>(item)))</span><br><span class="line"><span class="keyword">const</span> ok = settled.<span class="title function_">filter</span>(<span class="function"><span class="params">r</span> =&gt;</span> r.<span class="property">status</span> === <span class="string">&#x27;fulfilled&#x27;</span>).<span class="title function_">map</span>(<span class="function"><span class="params">r</span> =&gt;</span> r.<span class="property">value</span>)</span><br><span class="line"><span class="keyword">const</span> failed = settled.<span class="title function_">filter</span>(<span class="function"><span class="params">r</span> =&gt;</span> r.<span class="property">status</span> === <span class="string">&#x27;rejected&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>批量导入、批量推送这类场景基本都该用 <code>allSettled</code>，因为你需要的是「哪几条失败了」，而不是「第一条失败是什么」。</p>
+<h2 id="六、怎么选"><a href="#六、怎么选" class="headerlink" title="六、怎么选"></a>六、怎么选</h2><table>
+<thead>
+<tr>
+<th>写法</th>
+<th>执行方式</th>
+<th>结果顺序</th>
+<th>出错行为</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>forEach</code> + async</td>
+<td>并发，且不可等待</td>
+<td>不可控</td>
+<td>静默，触发 unhandledRejection</td>
+<td>别用</td>
+</tr>
+<tr>
+<td><code>for...of</code> + await</td>
+<td>串行</td>
+<td>有序</td>
+<td>中断循环，可 catch</td>
+<td>有前后依赖、需要限速、逐条重试</td>
+</tr>
+<tr>
+<td><code>map</code> + <code>Promise.all</code></td>
+<td>全并发</td>
+<td>有序</td>
+<td>快速失败，其余继续跑</td>
+<td>任务独立、数量可控、要全部成功</td>
+</tr>
+<tr>
+<td><code>map</code> + <code>Promise.allSettled</code></td>
+<td>全并发</td>
+<td>有序</td>
+<td>全部返回，逐条看状态</td>
+<td>批量操作，允许部分失败</td>
+</tr>
+<tr>
+<td><code>for await...of</code></td>
+<td>取决于迭代源</td>
+<td>有序</td>
+<td>中断循环，可 catch</td>
+<td>流、分页、异步迭代器</td>
+</tr>
+<tr>
+<td>并发池</td>
+<td>受控并发</td>
+<td>有序</td>
+<td>按池实现而定</td>
+<td>数据量大、下游有限流</td>
+</tr>
+</tbody></table>
+<p>有两条 lint 规则能在写代码的时候就把问题拦下来。TypeScript 项目开 <code>@typescript-eslint/no-misused-promises</code>，它会盯住「把返回 Promise 的函数传给期望返回 void 的参数」这种情况，<code>forEach(async ...)</code> 正好命中。另外 <code>no-await-in-loop</code> 会提示循环里的 <code>await</code> 可能是性能问题，这条要按场景判断，串行是刻意为之的时候直接禁用它就行。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>forEach</code> 里的 <code>await</code> 不生效，根因不在 <code>await</code> 而在 <code>forEach</code>。它调用回调之后不看返回值，async 回调返回的那个 Promise 被直接丢掉了，循环该转还是转。<code>filter</code>、<code>some</code>、<code>every</code> 也有同样的问题，其中 <code>filter</code> 最坑，因为 Promise 恒为真值，条件永远成立。</p>
+<p>替代写法按需求选。要串行、要前后依赖、要限速就用 <code>for...of</code> 加 <code>await</code>，<code>await</code> 挂起的是外层函数本身，循环才会真的停下来。要并发就用 <code>map</code> 加 <code>Promise.all</code>，记住它的执行是并发的但结果数组是有序的，这两件事别混。允许部分失败就换 <code>Promise.allSettled</code>。数据源是流或者分页接口，总量事先不知道，那就得用 <code>for await...of</code>。</p>
+<p>错误处理上差别最大。<code>forEach</code> 的异常没人接，会变成 unhandledRejection，Node 15 起默认让进程退出；<code>for...of</code> 直接中断循环并向外冒泡；<code>Promise.all</code> 快速失败但其余任务还在跑，只是结果没人要，而且不会额外报 unhandledRejection。</p>
+<p>数据量一大就别在串行和全并发之间二选一，加个并发池。用 <code>p-limit</code> 或者自己写十几行的 worker pool 都行，并发数从 3 到 5 起步，看着错误率和 P99 调。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach">Array.prototype.forEach - MDN</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/for-await...of">for await…of - MDN</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/all">Promise.all - MDN</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled">Promise.allSettled - MDN</a></li>
+<li><a href="https://typescript-eslint.io/rules/no-misused-promises/">no-misused-promises - typescript-eslint</a></li>
+<li><a href="https://github.com/sindresorhus/p-limit">p-limit</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

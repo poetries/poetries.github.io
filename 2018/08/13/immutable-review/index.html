@@ -7,35 +7,37 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Immutable之回顾 | 前端进阶之旅</title>
+  <title>Immutable之回顾 持久化数据结构与结构共享原理 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Immutable," />
+    <meta name="keywords" content="Immutable,不可变数据,结构共享," />
   
 
-  <meta name="description" content="一、Immutable几种数据结构 二、fromJS 三、toJS 四、Is 五、数据读取 六、数据修改 七、List中的各种删除与插入 八、关于merge">
+  <meta name="description" content="不只是背 API，把 Immutable.js 的设计思想讲清楚：共享引用带来的坑、持久化数据结构、结构共享怎么省内存、底层的 Trie 树长什么样，以及什么场景真的该用它。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Immutable之回顾">
+<meta property="og:title" content="Immutable之回顾 持久化数据结构与结构共享原理">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/13/immutable-review/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、Immutable几种数据结构 二、fromJS 三、toJS 四、Is 五、数据读取 六、数据修改 七、List中的各种删除与插入 八、关于merge">
+<meta property="og:description" content="不只是背 API，把 Immutable.js 的设计思想讲清楚：共享引用带来的坑、持久化数据结构、结构共享怎么省内存、底层的 Trie 树长什么样，以及什么场景真的该用它。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/227.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/228.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/229.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/230.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/231.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/232.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/233.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/234.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/227.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/228.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/229.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/230.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/231.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/232.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/233.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/234.png">
 <meta property="article:published_time" content="2018-08-13T12:00:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.672Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.941Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Immutable">
+<meta property="article:tag" content="不可变数据">
+<meta property="article:tag" content="结构共享">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/227.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/227.png">
 
   
 
@@ -213,7 +215,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Immutable%E5%87%A0%E7%A7%8D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-text">一、Immutable几种数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81fromJS"><span class="toc-text">二、fromJS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81toJS"><span class="toc-text">三、toJS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Is"><span class="toc-text">四、Is</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">五、数据读取</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%95%B0%E6%8D%AE%E4%BF%AE%E6%94%B9"><span class="toc-text">六、数据修改</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81List%E4%B8%AD%E7%9A%84%E5%90%84%E7%A7%8D%E5%88%A0%E9%99%A4%E4%B8%8E%E6%8F%92%E5%85%A5"><span class="toc-text">七、List中的各种删除与插入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%85%B3%E4%BA%8Emerge"><span class="toc-text">八、关于merge</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98%E7%9A%84%E8%B5%B7%E7%82%B9%EF%BC%8C%E5%85%B1%E4%BA%AB%E5%BC%95%E7%94%A8"><span class="toc-text">一、问题的起点，共享引用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8C%81%E4%B9%85%E5%8C%96%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-text">二、持久化数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%BB%93%E6%9E%84%E5%85%B1%E4%BA%AB"><span class="toc-text">三、结构共享</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%BA%95%E5%B1%82%E6%98%AF%E4%B8%80%E6%A3%B5-Trie-%E6%A0%91"><span class="toc-text">四、底层是一棵 Trie 树</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Immutable%E5%87%A0%E7%A7%8D%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-text">五、Immutable几种数据结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81fromJS"><span class="toc-text">六、fromJS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81toJS"><span class="toc-text">七、toJS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81Is"><span class="toc-text">八、Is</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E6%95%B0%E6%8D%AE%E8%AF%BB%E5%8F%96"><span class="toc-text">九、数据读取</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E6%95%B0%E6%8D%AE%E4%BF%AE%E6%94%B9"><span class="toc-text">十、数据修改</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81List%E4%B8%AD%E7%9A%84%E5%90%84%E7%A7%8D%E5%88%A0%E9%99%A4%E4%B8%8E%E6%8F%92%E5%85%A5"><span class="toc-text">十一、List中的各种删除与插入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E5%85%B3%E4%BA%8Emerge"><span class="toc-text">十二、关于merge</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%89%E3%80%81%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E8%AF%A5%E7%94%A8%EF%BC%8C%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E5%88%AB%E7%94%A8"><span class="toc-text">十三、什么场景该用，什么场景别用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E5%9B%9B%E3%80%81%E8%BF%99%E7%AF%87%E5%86%99%E4%BA%8E-2018-%E5%B9%B4%EF%BC%8C%E5%90%8E%E6%9D%A5%E5%8F%91%E7%94%9F%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">十四、这篇写于 2018 年，后来发生了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -236,13 +238,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-immutable-review" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Immutable之回顾</h1>
+    <h1 class="post-title">Immutable之回顾 持久化数据结构与结构共享原理</h1>
 
     <div class="article-meta">
       <span>
@@ -278,12 +280,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 39字</span>
+            <span>字数统计 4.3k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 1分</span>
+            <span>阅读时长 15分</span>
           </span>
       
       
@@ -297,14 +299,114 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、Immutable几种数据结构"><a href="#一、Immutable几种数据结构" class="headerlink" title="一、Immutable几种数据结构"></a>一、Immutable几种数据结构</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/227.png"></p>
-<h2 id="二、fromJS"><a href="#二、fromJS" class="headerlink" title="二、fromJS"></a>二、fromJS</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/228.png"></p>
-<h2 id="三、toJS"><a href="#三、toJS" class="headerlink" title="三、toJS"></a>三、toJS</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/229.png"></p>
-<h2 id="四、Is"><a href="#四、Is" class="headerlink" title="四、Is"></a>四、Is</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/230.png"></p>
-<h2 id="五、数据读取"><a href="#五、数据读取" class="headerlink" title="五、数据读取"></a>五、数据读取</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/231.png"></p>
-<h2 id="六、数据修改"><a href="#六、数据修改" class="headerlink" title="六、数据修改"></a>六、数据修改</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/232.png"></p>
-<h2 id="七、List中的各种删除与插入"><a href="#七、List中的各种删除与插入" class="headerlink" title="七、List中的各种删除与插入"></a>七、List中的各种删除与插入</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/233.png"></p>
-<h2 id="八、关于merge"><a href="#八、关于merge" class="headerlink" title="八、关于merge"></a>八、关于merge</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/234.png"></p>
+        <p>写 React 的人多半有过这种经历：给子组件传了一个对象，在 <code>shouldComponentUpdate</code> 里做浅比较，结果页面死活不更新。查半天发现是自己在父组件里直接 <code>this.state.list.push(item)</code> 改了原数组，引用没变，浅比较自然判定「没变化」。这类 bug 不报错、不崩溃，只是页面不动，最难查。Immutable.js 就是冲着这个问题来的。这篇不重复罗列 API，而是回头看它的设计思路：为什么要让数据不可变，每次返回新对象为什么不会把内存撑爆，底层那棵 Trie 树是怎么回事，以及什么项目真的值得引入它。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>共享引用会带来哪些具体的 bug，深拷贝为什么不是好的解法</li>
+<li>持久化数据结构是什么意思，「持久化」这个词容易被误解成什么</li>
+<li>结构共享怎么做到「返回新对象但只复制一条路径」</li>
+<li>底层的 Trie 树长什么样，为什么分支因子是 32</li>
+<li>Immutable 提供的几种数据结构各自对应什么场景</li>
+<li><code>fromJS</code> &#x2F; <code>toJS</code> &#x2F; <code>is</code> 这三个出入口的设计意图和使用边界</li>
+<li>读取、修改、合并这几类操作背后统一的规则</li>
+<li>什么项目该用它，什么项目用了反而是负担</li>
+</ul>
+<h2 id="一、问题的起点，共享引用"><a href="#一、问题的起点，共享引用" class="headerlink" title="一、问题的起点，共享引用"></a>一、问题的起点，共享引用</h2><p>JavaScript 里对象和数组是引用类型，这件事人人都知道，但它在状态管理里造成的麻烦被低估了。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> state = &#123; <span class="attr">list</span>: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>] &#125;;</span><br><span class="line"><span class="keyword">const</span> prev = state.<span class="property">list</span>;</span><br><span class="line"></span><br><span class="line">state.<span class="property">list</span>.<span class="title function_">push</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(prev === state.<span class="property">list</span>); <span class="comment">// true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(prev);                <span class="comment">// [1, 2, 3, 4]</span></span><br></pre></td></tr></table></figure>
+
+<p>你以为 <code>prev</code> 存的是「变化之前的样子」，其实它和 <code>state.list</code> 是同一个数组。想拿它做对比，一点用都没有。</p>
+<p>React 的 <code>PureComponent</code> 和 <code>React.memo</code> 做的是浅比较，Redux 判断 state 有没有变也是比引用。你在原地改了对象，引用没动，这些优化机制全部失效。反过来，如果你每次都造一个全新的对象，浅比较又会因为引用总是变而永远返回「变了」，优化同样失效。</p>
+<p>夹在中间的解法是深拷贝。改之前先把整棵状态树拷一份，然后在副本上改。逻辑是对的，代价太高：状态树有一万个节点，你只改了其中一个，却复制了一万个。深拷贝本身还有一堆边界要处理，循环引用、<code>Date</code>、<code>RegExp</code>、<code>Symbol</code> 键，这些我在 <a href="https://feinterview.poetries.top/blog/js-deep-copy">JS深拷贝的几种实现</a> 里单独写过。</p>
+<p>所以真正想要的是这样一种东西：<strong>改一个字段返回一个新对象，但没改的那部分不复制，直接复用。</strong></p>
+<p>这就是 Immutable.js 的全部出发点。</p>
+<h2 id="二、持久化数据结构"><a href="#二、持久化数据结构" class="headerlink" title="二、持久化数据结构"></a>二、持久化数据结构</h2><p>「持久化」这个词第一次看到很容易误会成存到磁盘或者 localStorage，其实完全没关系。它在数据结构里的意思是：<strong>修改操作不会破坏旧版本，旧版本在修改之后依然可用</strong>。</p>
+<p>普通数组是「短暂的」，<code>push</code> 之后原来那个版本就没了。持久化数组是每次操作都产出一个新版本，所有历史版本同时存在，谁都能继续访问。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> list1 = <span class="title class_">Immutable</span>.<span class="title class_">List</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);</span><br><span class="line"><span class="keyword">const</span> list2 = list1.<span class="title function_">push</span>(<span class="number">4</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(list1.<span class="title function_">toJS</span>()); <span class="comment">// [1, 2, 3]  旧版本还在</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(list2.<span class="title function_">toJS</span>()); <span class="comment">// [1, 2, 3, 4]</span></span><br></pre></td></tr></table></figure>
+
+<p>这个特性顺带解决了很多别的问题。撤销重做不用自己维护历史栈了，把每一步的引用存下来就行；时间旅行调试能实现，也是因为每一次 state 变化都留下了一个完整可访问的快照。</p>
+<p>代价当然存在，就是每次操作都要造新节点。所以关键问题变成了：造多少个新节点。</p>
+<h2 id="三、结构共享"><a href="#三、结构共享" class="headerlink" title="三、结构共享"></a>三、结构共享</h2><p>答案是只造被修改路径上的那几个。</p>
+<p>设想一棵状态树，根节点下面挂着 <code>user</code>、<code>list</code>、<code>config</code> 三个子树。现在你要改 <code>user.name</code>。结构共享的做法是：新建一个 <code>name</code> 已经改好的 <code>user</code> 对象，新建一个根对象让它指向新的 <code>user</code>，而 <code>list</code> 和 <code>config</code> 这两个子树的引用原样搬过去。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> oldState = <span class="title class_">Immutable</span>.<span class="title function_">fromJS</span>(&#123;</span><br><span class="line">  <span class="attr">user</span>: &#123; <span class="attr">name</span>: <span class="string">&#x27;a&#x27;</span>, <span class="attr">age</span>: <span class="number">18</span> &#125;,</span><br><span class="line">  <span class="attr">list</span>: [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>],</span><br><span class="line">  <span class="attr">config</span>: &#123; <span class="attr">theme</span>: <span class="string">&#x27;dark&#x27;</span> &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> newState = oldState.<span class="title function_">setIn</span>([<span class="string">&#x27;user&#x27;</span>, <span class="string">&#x27;name&#x27;</span>], <span class="string">&#x27;b&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(oldState.<span class="title function_">get</span>(<span class="string">&#x27;list&#x27;</span>) === newState.<span class="title function_">get</span>(<span class="string">&#x27;list&#x27;</span>));     <span class="comment">// true  没动，共享</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(oldState.<span class="title function_">get</span>(<span class="string">&#x27;user&#x27;</span>) === newState.<span class="title function_">get</span>(<span class="string">&#x27;user&#x27;</span>));     <span class="comment">// false 路径上，新建</span></span><br></pre></td></tr></table></figure>
+
+<p>一棵一万个节点的树，改一个叶子，新建的节点数量是从根到那个叶子的路径长度，也就是树的高度。剩下的九千多个节点一个都没碰。</p>
+<p>这一行是整个库最值得记住的一句话：新建的只有路径，其余全部复用。</p>
+<p>它同时解释了为什么用了 Immutable 之后 <code>===</code> 又变得可靠了。没改过的子树引用不变，<code>props.list === prevProps.list</code> 直接为 <code>true</code>，浅比较可以放心用；改过的子树引用必然变，也不会漏更新。</p>
+<h2 id="四、底层是一棵-Trie-树"><a href="#四、底层是一棵-Trie-树" class="headerlink" title="四、底层是一棵 Trie 树"></a>四、底层是一棵 Trie 树</h2><p>要让「树的高度」这个代价足够小，树就不能太深。Immutable.js 用的是分支因子为 32 的 Trie（前缀树）。</p>
+<p><code>List</code> 用的是位分区的向量 Trie：把下标的二进制位每 5 位切一段（2 的 5 次方等于 32），每一段决定在这一层走哪个分支。一万个元素的 List，深度是以 32 为底的对数，大概三层。所以改一个元素，新建的节点是个位数。</p>
+<p><code>Map</code> 用的是 HAMT（哈希数组映射 Trie）：先算 key 的哈希，同样按位切分来定位。查找和写入的复杂度在实践中接近常数时间。</p>
+<p>分支因子选 32 是一个权衡。分支越多树越矮，路径越短，复制的节点越少；但每个节点内部的数组越大，新建一个节点时要复制的数组元素也越多。32 是这两者之间比较舒服的位置，Clojure 的持久化数据结构最早用的也是这个值，Immutable.js 沿用了这套设计。</p>
+<p>这块我只在几千条数据的 demo 上量过，深度和理论值对得上，更大规模的实际表现没实测过，具体数字以官方 benchmark 为准。</p>
+<h2 id="五、Immutable几种数据结构"><a href="#五、Immutable几种数据结构" class="headerlink" title="五、Immutable几种数据结构"></a>五、Immutable几种数据结构</h2><p>理解了底层，再看它提供的这几种结构就顺了。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/227.png" alt="Immutable 提供的几种数据结构，List、Map、Set、OrderedMap 等"></p>
+<p>这张图里最常用的是 <code>List</code> 和 <code>Map</code>，对应原生的数组和对象。剩下的几个是补充：需要去重用 <code>Set</code>，需要保证遍历顺序用 <code>OrderedMap</code> 和 <code>OrderedSet</code>，字段固定的对象用 <code>Record</code> 能拿到默认值和更好的类型提示。</p>
+<p>有个易错点要提一句：<code>Map</code> 不保证遍历顺序。很多人拿它当 <code>Object</code> 用，然后在渲染列表时发现顺序会变。业务上依赖顺序的地方，要么用 <code>OrderedMap</code>，要么干脆用 <code>List</code> 存有序集合。</p>
+<p>另外 <code>Seq</code> 这一类是惰性的，链式调用 <code>map().filter().take(3)</code> 不会遍历整个集合，只在真正取值时按需计算。处理大集合又只要前几项的时候用它能省不少。</p>
+<h2 id="六、fromJS"><a href="#六、fromJS" class="headerlink" title="六、fromJS"></a>六、fromJS</h2><p><img src="https://s.poetries.top/gitee/2019/10/228.png" alt="fromJS 的用法与转换规则"></p>
+<p><code>fromJS</code> 是从原生世界进入 Immutable 世界的入口，默认把 <code>Array</code> 转成 <code>List</code>，<code>Object</code> 转成 <code>Map</code>，而且是深转换，嵌套多少层转多少层。</p>
+<p>这里的重点是它的代价：整棵结构都要遍历一遍并重建。所以它该出现在数据入口处，比如接口响应刚拿到的时候转一次，而不是在渲染函数或者 reducer 里反复调用。</p>
+<p>易错点是「转不彻底」。直接写 <code>Map(&#123; a: &#123; b: 1 &#125; &#125;)</code> 只转了最外层，里面那个 <code>&#123; b: 1 &#125;</code> 还是原生对象，你对它调 <code>get</code> 会报错。要整棵转就老老实实用 <code>fromJS</code>。</p>
+<h2 id="七、toJS"><a href="#七、toJS" class="headerlink" title="七、toJS"></a>七、toJS</h2><p><img src="https://s.poetries.top/gitee/2019/10/229.png" alt="toJS 的用法，把 Immutable 数据还原成原生 JS 结构"></p>
+<p><code>toJS</code> 是反方向的出口，同样是深转换。它的设计意图很明确，交给不认识 Immutable 的第三方库时用。</p>
+<p>这个方法是被滥用最严重的一个。在 React 里写 <code>this.props.data.toJS()</code> 取值，每次调用都会新建一整棵原生结构，引用必然是新的，<code>PureComponent</code> 的浅比较直接失效，你花力气引入 Immutable 换来的优化全被这一行抵消掉。</p>
+<p>正确的做法是一路用 <code>get</code> &#x2F; <code>getIn</code> 取值，只在数据要离开你的组件树时才 <code>toJS</code>。只想转一层的话有 <code>toObject()</code> 和 <code>toArray()</code>，它们不递归，便宜得多。</p>
+<h2 id="八、Is"><a href="#八、Is" class="headerlink" title="八、Is"></a>八、Is</h2><p><img src="https://s.poetries.top/gitee/2019/10/230.png" alt="is 方法用于比较两个 Immutable 对象的值是否相等"></p>
+<p><code>is(a, b)</code> 做的是值相等判断。它内部先试引用相等，不等再调用两边的 <code>equals</code> 方法递归比较内容。</p>
+<p>那既然有结构共享，<code>===</code> 已经够用了，为什么还需要 <code>is</code>？因为有些对象来源不同。两份从不同接口拿回来的数据，内容可能完全一样，但它们是分别 <code>fromJS</code> 出来的，引用不可能相同。这时候要判断「内容是不是一样」，只能用 <code>is</code>。</p>
+<p>易错点是别拿它跟原生对象比。<code>is(Map(&#123;a:1&#125;), &#123;a:1&#125;)</code> 是 <code>false</code>，两边类型都不一样。同理 <code>list.includes(&#123;a: 1&#125;)</code> 也永远是 <code>false</code>，因为 <code>includes</code> 内部用的就是 <code>is</code>。</p>
+<h2 id="九、数据读取"><a href="#九、数据读取" class="headerlink" title="九、数据读取"></a>九、数据读取</h2><p><img src="https://s.poetries.top/gitee/2019/10/231.png" alt="Immutable 的数据读取方法 get、getIn、has、includes 等"></p>
+<p>读取这一族的设计有个统一规律：不带 <code>In</code> 的取一层，带 <code>In</code> 的接一个路径数组走深层。<code>get</code> &#x2F; <code>getIn</code>、<code>has</code> &#x2F; <code>hasIn</code> 都是这个套路。</p>
+<p>这套设计有个原生对象比不了的好处，路径中间断了不会抛错。原生写 <code>state.a.b.c</code> 只要 <code>a</code> 是 <code>undefined</code> 就直接报 <code>Cannot read property</code>，而 <code>getIn([&#39;a&#39;,&#39;b&#39;,&#39;c&#39;])</code> 老老实实返回 <code>undefined</code>，还能传第二个参数当兜底值。可选链出现之前，这一点省了不少防御性代码。</p>
+<p>重点是要习惯「取值必须调方法」这件事。这也是 Immutable 侵入性最强的地方，一旦用了，整个项目所有取值点的写法都得改，TypeScript 的类型推导也跟着变弱。</p>
+<h2 id="十、数据修改"><a href="#十、数据修改" class="headerlink" title="十、数据修改"></a>十、数据修改</h2><p><img src="https://s.poetries.top/gitee/2019/10/232.png" alt="Immutable 的数据修改方法 set、setIn、update、delete 等"></p>
+<p>修改这一族的规则只有一条：全都返回新对象，原对象一个字节都不动。</p>
+<p>所以最常见的低级错误就是漏掉赋值。<code>list.push(4)</code> 这一行单独写等于什么都没干，必须写成 <code>list = list.push(4)</code> 或者接到新变量上。刚上手的时候这个错误我犯过不止一次，而且它不报错，只表现为「数据没更新」，得靠打印才发现。</p>
+<p><code>set</code> 和 <code>update</code> 的区别值得说一下。<code>set</code> 直接给新值，<code>update</code> 接一个函数并能拿到旧值。要写「计数加一」这类依赖旧值的更新，<code>update</code> 比先 <code>get</code> 再 <code>set</code> 干净。</p>
+<p>还有一个坑在 <code>List</code> 上：<code>set</code> 越界不会报错，会用 <code>undefined</code> 把中间的位置补齐，长度直接涨上去。<code>List([1,2,3]).set(5, 9)</code> 得到的是一个 size 为 6 的 List。</p>
+<h2 id="十一、List中的各种删除与插入"><a href="#十一、List中的各种删除与插入" class="headerlink" title="十一、List中的各种删除与插入"></a>十一、List中的各种删除与插入</h2><p><img src="https://s.poetries.top/gitee/2019/10/233.png" alt="List 的删除与插入方法 push、pop、shift、unshift、insert"></p>
+<p>这些方法名字和原生数组一样，行为却不一样，是最容易想当然的一块。</p>
+<p>原生的 <code>pop()</code> 返回被弹出的那个元素，Immutable 的 <code>pop()</code> 返回的是删掉末位之后的新 <code>List</code>。想同时拿到被删的元素，得先 <code>last()</code> 再 <code>pop()</code>。<code>shift()</code> 同理。</p>
+<p>从底层结构上还能推出一件事：往尾部 <code>push</code> 很便宜，只需要新建从根到尾部的那一条路径；往头部 <code>unshift</code> 要贵一些，因为后面所有元素的索引都得跟着挪。数据量大又频繁在头部插入的话，考虑倒着存再倒着渲染。</p>
+<h2 id="十二、关于merge"><a href="#十二、关于merge" class="headerlink" title="十二、关于merge"></a>十二、关于merge</h2><p><img src="https://s.poetries.top/gitee/2019/10/234.png" alt="merge、mergeDeep、mergeIn 等合并方法的区别"></p>
+<p>merge 这一族有六个方法，看着多，规则其实只有两个维度：深还是浅、在第一层还是沿路径走。</p>
+<p>重点在深浅的差别。<code>merge</code> 只在第一层合并，碰到两边都有的嵌套字段，直接拿新的整个替换旧的，旧的里面那些新数据没有的字段就丢了。<code>mergeDeep</code> 会继续往下递归，两边独有的字段都保留。</p>
+<p>这个差异是 Redux reducer 里的踩坑重灾区。你以为只是往 <code>state.user</code> 里补一个字段，用了 <code>merge</code>，结果把 <code>user</code> 里原有的字段全冲没了，页面上一堆 <code>undefined</code>。判断标准很简单：要合并的值只要是嵌套结构，就用 <code>mergeDeep</code>。</p>
+<p><code>mergeWith</code> 是自定义合并策略，回调签名是 <code>(oldValue, newValue, key)</code>，返回什么就用什么。想实现「数字相加而不是覆盖」这种规则，靠的就是它。带 <code>In</code> 后缀的两个是路径版本，等价于先 <code>getIn</code> 再合并再 <code>setIn</code> 回去。</p>
+<p>完整的 API 清单和每个方法的可运行示例，我整理在 <a href="https://feinterview.poetries.top/blog/immutable-api">梳理Immutable常用API</a> 那篇里，当速查表用就行。</p>
+<h2 id="十三、什么场景该用，什么场景别用"><a href="#十三、什么场景该用，什么场景别用" class="headerlink" title="十三、什么场景该用，什么场景别用"></a>十三、什么场景该用，什么场景别用</h2><p>理解了原理，选型就有依据了。</p>
+<p>值得用的场景有几个共同特征：状态树层级深且节点多，更新频繁但每次只改局部，需要靠引用比较来跳过渲染，或者业务上需要撤销重做和历史快照。协同编辑、复杂表单、可视化编辑器这类应用属于典型。</p>
+<p>不值得用的情况更常见。状态就那么几个字段的小应用，引入之后取值全部要改写，收益基本为零。团队里有人没转换习惯，原生对象和 Immutable 对象混在一起时会产生一类很难查的 bug：某个字段拿到的是 Map，你却当普通对象用，<code>obj.name</code> 返回 <code>undefined</code> 而不是报错。用 TypeScript 的项目也要掂量一下，Immutable 的类型推导在深层路径上帮不上什么忙。</p>
+<p>我自己的感受是，这个库最大的问题从来不是性能或者 API 设计，是侵入性。它要求整个项目统一，只要有一个边界没守住，收益就打折，成本还照付。</p>
+<h2 id="十四、这篇写于-2018-年，后来发生了什么"><a href="#十四、这篇写于-2018-年，后来发生了什么" class="headerlink" title="十四、这篇写于 2018 年，后来发生了什么"></a>十四、这篇写于 2018 年，后来发生了什么</h2><p>设计思想这部分到今天依然成立，但工具层面变了。</p>
+<p>Immutable.js 官方的维护活跃度这几年一直很低，issue 和 PR 堆积明显。社区的主流选择转向了 Immer，它基于 Proxy，让你照着可变的方式改一个草稿对象，背后产出不可变的新对象：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> produce <span class="keyword">from</span> <span class="string">&#x27;immer&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> nextState = <span class="title function_">produce</span>(state, <span class="function"><span class="params">draft</span> =&gt;</span> &#123;</span><br><span class="line">  draft.<span class="property">user</span>.<span class="property">name</span> = <span class="string">&#x27;poetry&#x27;</span></span><br><span class="line">  draft.<span class="property">list</span>.<span class="title function_">push</span>(<span class="number">4</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>关键在于，Immer 用的还是同一套结构共享思路。没被 <code>draft</code> 碰过的子树，在 <code>nextState</code> 里依然是原来的引用。它只是把「怎么写」这一层换掉了，数据还是普通的 JS 对象和数组，取值就是 <code>state.user.name</code>，类型推导天然可用，也不存在忘了 <code>toJS</code> 的问题。侵入性这个最大的痛点被解掉了。</p>
+<p>Redux Toolkit 已经把 Immer 内置，所以在 <code>createSlice</code> 的 reducer 里直接写 <code>state.value += 1</code> 是合法的，它并不是真的在改 state。第一次看到这个写法的人基本都会愣一下。</p>
+<p>那这篇讲的东西白学了吗？没有。持久化数据结构、结构共享、引用比较这几个概念是通用的，Immer 只是换了个更舒服的外壳。理解了底下这套，你才知道 Immer 里为什么不能用 <code>async</code> 回调、为什么不能在 <code>produce</code> 外面持有 draft 引用。至于状态管理整体怎么选，我在 <a href="https://feinterview.poetries.top/blog/react-state-management-comparison">React状态管理方案对比</a> 里写得更细。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回顾这一圈，真正要带走的是这几条：</p>
+<ul>
+<li>不可变数据解决的是共享引用问题，让「引用没变就是没改过」这条判断重新可靠</li>
+<li>深拷贝方向对但代价太高，改一个字段复制一整棵树</li>
+<li>持久化数据结构的意思是修改不破坏旧版本，历史快照全部可访问，撤销重做和时间旅行由此而来</li>
+<li>结构共享是核心：新建的只有从根到被改节点的那一条路径，其余子树全部复用引用</li>
+<li>底层是分支因子 32 的 Trie，<code>List</code> 用位分区向量 Trie，<code>Map</code> 用 HAMT，树高很矮所以路径很短</li>
+<li><code>fromJS</code> &#x2F; <code>toJS</code> 都是深转换，别在渲染路径上反复调用，<code>toJS()</code> 写在 <code>render</code> 里会让浅比较优化彻底失效</li>
+<li>所有修改方法都返回新对象，漏掉赋值是最常见也最难查的错误</li>
+<li><code>merge</code> 只合第一层，嵌套结构会被整个替换，要保留旧字段用 <code>mergeDeep</code></li>
+<li>该不该用取决于状态树的规模和团队能不能守住边界，小项目引入通常是负担</li>
+<li>新项目更推荐 Immer，思路一样，侵入性小得多</li>
+</ul>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://immutable-js.com/docs/latest@main/">Immutable.js 官方文档</a></li>
+<li><a href="https://github.com/immutable-js/immutable-js">Immutable.js - GitHub</a></li>
+<li><a href="https://immerjs.github.io/immer/">Immer 官方文档</a></li>
+<li><a href="https://redux-toolkit.js.org/usage/immer-reducers">Redux Toolkit - Writing Reducers with Immer</a></li>
+<li><a href="https://react.dev/learn/updating-objects-in-state">React 官方文档 - Updating Objects in State</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Persistent_data_structure">Wikipedia - Persistent data structure</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Hash_array_mapped_trie">Wikipedia - Hash array mapped trie</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Linux之scp传输文件 | 前端进阶之旅</title>
+  <title>Linux之scp传输文件，从基础用法到rsync取舍 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Linux,SCP," />
+    <meta name="keywords" content="Linux,SCP,rsync,文件传输," />
   
 
-  <meta name="description" content="一、基础使用 利用scp传输文件  1.1 从服务器下载文件在本地电脑上执行 scp username@servername:&#x2F;path&#x2F;filename &#x2F;tmp&#x2F;local_destination   例如scp root@192.168.0.101:&#x2F;home&#x2F;poetry&#x2F;test.txt  把192.168.0.101上的&#x2F;home&#x2F;kimi&#x2F;test.txt的文件下载到 ~&#x2F;Downl">
+  <meta name="description" content="scp 传输文件的完整用法笔记，讲清 -r 递归、-P 端口大小写坑、免密配置和常见报错排查，以及什么时候该换成 rsync 或 sftp。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Linux之scp传输文件">
+<meta property="og:title" content="Linux之scp传输文件，从基础用法到rsync取舍">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/03/linux-scp/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、基础使用 利用scp传输文件  1.1 从服务器下载文件在本地电脑上执行 scp username@servername:&#x2F;path&#x2F;filename &#x2F;tmp&#x2F;local_destination   例如scp root@192.168.0.101:&#x2F;home&#x2F;poetry&#x2F;test.txt  把192.168.0.101上的&#x2F;home&#x2F;kimi&#x2F;test.txt的文件下载到 ~&#x2F;Downl">
+<meta property="og:description" content="scp 传输文件的完整用法笔记，讲清 -r 递归、-P 端口大小写坑、免密配置和常见报错排查，以及什么时候该换成 rsync 或 sftp。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-12-03T10:32:41.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.676Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.944Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="SCP">
+<meta property="article:tag" content="rsync">
+<meta property="article:tag" content="文件传输">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8"><span class="toc-text">一、基础使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6"><span class="toc-text">1.1 从服务器下载文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%BC%A0%E7%9B%AE%E5%BD%95%E5%88%B0%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">1.2 传目录到服务器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%BF%9B%E9%98%B6"><span class="toc-text">二、进阶</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81scp-%E5%85%B6%E5%AE%9E%E5%B0%B1%E6%98%AF%E8%B7%91%E5%9C%A8-ssh-%E4%B8%8A%E7%9A%84-cp"><span class="toc-text">一、scp 其实就是跑在 ssh 上的 cp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%A4%E4%B8%AA%E6%96%B9%E5%90%91%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%86%99%E6%B3%95"><span class="toc-text">二、两个方向的基本写法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BB%8E%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6"><span class="toc-text">2.1 从服务器下载文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%80%92%E5%BD%92%E6%8B%B7%E8%B4%9D%E7%9B%AE%E5%BD%95"><span class="toc-text">2.2 递归拷贝目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BC%A0%E7%9B%AE%E5%BD%95%E5%88%B0%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-text">2.3 传目录到服务器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%A4%A7%E5%B0%8F%E5%86%99%E5%92%8C%E5%8F%82%E6%95%B0%E9%A1%BA%E5%BA%8F%E4%B8%8A%E7%9A%84%E5%87%A0%E4%B8%AA%E5%9D%91"><span class="toc-text">三、大小写和参数顺序上的几个坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-P-%E5%92%8C-p"><span class="toc-text">3.1 -P 和 -p</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%80%9A%E9%85%8D%E7%AC%A6%E6%98%AF%E6%9C%AC%E5%9C%B0-shell-%E5%B1%95%E5%BC%80%E7%9A%84"><span class="toc-text">3.2 通配符是本地 shell 展开的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-C-%E5%8E%8B%E7%BC%A9%E5%92%8C-l-%E9%99%90%E9%80%9F"><span class="toc-text">3.3 -C 压缩和 -l 限速</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E4%BA%94%E7%B1%BB%E5%B8%B8%E8%A7%81%E6%8A%A5%E9%94%99%E6%80%8E%E4%B9%88%E6%8E%92"><span class="toc-text">四、五类常见报错怎么排</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%85%8D%E5%AF%86%E9%85%8D%E7%BD%AE%EF%BC%8C%E4%BB%A5%E5%8F%8A-ssh-config-%E8%83%BD%E7%9C%81%E6%8E%89%E5%A4%9A%E5%B0%91%E4%BA%8B"><span class="toc-text">五、免密配置，以及 ssh config 能省掉多少事</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E6%8D%A2%E6%88%90-rsync"><span class="toc-text">六、什么时候该换成 rsync</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81sftp-%E7%9A%84%E4%BD%8D%E7%BD%AE%EF%BC%8C%E4%BB%A5%E5%8F%8A-scp-%E8%BF%99%E4%BA%9B%E5%B9%B4%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-text">七、sftp 的位置，以及 scp 这些年的变化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-linux-scp" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Linux之scp传输文件</h1>
+    <h1 class="post-title">Linux之scp传输文件，从基础用法到rsync取舍</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 177字</span>
+            <span>字数统计 3.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 1分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -289,31 +291,107 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、基础使用"><a href="#一、基础使用" class="headerlink" title="一、基础使用"></a>一、基础使用</h2><blockquote>
-<p>利用scp传输文件</p>
-</blockquote>
-<h3 id="1-1-从服务器下载文件"><a href="#1-1-从服务器下载文件" class="headerlink" title="1.1 从服务器下载文件"></a>1.1 从服务器下载文件</h3><p>在本地电脑上执行</p>
+        <p>构建产物打好了，要往测试机上放一份。你敲下 <code>scp -p 36000 -r dist user@1.2.3.4:/home/data/</code>，回车之后终端不动了，几十秒后报一个 <code>ssh: connect to host 1.2.3.4 port 22: Connection refused</code>。端口明明写了啊。</p>
+<p>这个错我踩过不止一次，问题出在 <code>p</code> 的大小写上。<code>scp</code> 指定端口用的是大写 <code>-P</code>，小写 <code>-p</code> 是保留文件的修改时间和权限位，跟端口一点关系没有。而 <code>ssh</code> 命令恰恰相反，它用的是小写 <code>-p</code>。两个天天一起用的命令，在同一个参数上约定相反。</p>
+<p>这篇把 <code>scp</code> 的用法从头理一遍，顺带把免密配置、常见报错的排查路径，以及什么时候该换成 <code>rsync</code> 说清楚。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>scp</code> 底层到底走的什么通道，为什么它天然是加密的</li>
+<li>上传和下载两个方向的写法，路径顺序怎么记</li>
+<li><code>-P</code> 和 <code>-p</code> 的大小写坑，以及 <code>-r</code> 递归的边界</li>
+<li>通配符在 <code>scp</code> 里由谁展开，为什么 <code>.next</code> 这类隐藏目录传不上去</li>
+<li>免密配置怎么做，<code>~/.ssh/config</code> 能帮你省掉多少参数</li>
+<li>五类常见报错的排查顺序</li>
+<li>传大目录、断点续传、增量同步这些场景为什么该换 <code>rsync</code></li>
+<li><code>sftp</code> 的取舍，以及新版 OpenSSH 对 <code>scp</code> 的态度变化</li>
+</ul>
+<h2 id="一、scp-其实就是跑在-ssh-上的-cp"><a href="#一、scp-其实就是跑在-ssh-上的-cp" class="headerlink" title="一、scp 其实就是跑在 ssh 上的 cp"></a>一、scp 其实就是跑在 ssh 上的 cp</h2><p><code>scp</code> 的全称是 secure copy，名字里的 secure 不是它自己实现的。它做的事情很简单，建立一条 ssh 连接，然后在这条连接上把文件内容送过去。</p>
+<p>所以你能 <code>ssh</code> 上去的机器，基本就能 <code>scp</code>；<code>ssh</code> 连不上的机器，<code>scp</code> 也一定连不上。这个关系很重要，排查问题的时候先用 <code>ssh</code> 试一次，能把一半的可能性直接排除掉。</p>
+<p>同样的道理，<code>ssh</code> 那套认证机制 <code>scp</code> 全部复用。你配了密钥登录，<code>scp</code> 就不用输密码；服务器改了 SSH 端口，<code>scp</code> 也得跟着改。传输过程是加密的，这一点跟 FTP 那种明文协议完全不同，往公网传东西的时候这是个硬性优势。</p>
+<p>理解了这层关系，<code>scp</code> 的参数就不用死记了，它无非是「ssh 的连接参数」加上「cp 的复制参数」拼起来的。</p>
+<h2 id="二、两个方向的基本写法"><a href="#二、两个方向的基本写法" class="headerlink" title="二、两个方向的基本写法"></a>二、两个方向的基本写法</h2><p><code>scp</code> 的参数顺序和 <code>cp</code> 一样，永远是「源在前，目标在后」。区别只是源和目标里可以有一个带上 <code>用户@主机:</code> 前缀。</p>
+<h3 id="2-1-从服务器下载文件"><a href="#2-1-从服务器下载文件" class="headerlink" title="2.1 从服务器下载文件"></a>2.1 从服务器下载文件</h3><p>在本地电脑上执行，注意最后要写清楚本地的落地路径。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp username@servername:/path/filename /tmp/local_destination</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>例如<code>scp root@192.168.0.101:/home/poetry/test.txt </code></li>
-<li>把<code>192.168.0.101</code>上的<code>/home/kimi/test.txt</code>的文件下载到 <code>~/Downloads/</code>本地</li>
-</ul>
-<p><strong>递归拷贝</strong></p>
-<blockquote>
-<p><code>-r</code>拷贝目录 <code>-P</code>服务器端口</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp  -P 36000 -r user_00@192.168.1.201:/usr/local/services/nginx/conf ~/Downloads/</span><br></pre></td></tr></table></figure>
+<p>比如把 <code>192.168.0.101</code> 上的 <code>/home/poetry/test.txt</code> 拉到本地的 <code>~/Downloads/</code>。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp root@192.168.0.101:/home/poetry/test.txt ~/Downloads/</span><br></pre></td></tr></table></figure>
 
-<h3 id="1-2-传目录到服务器"><a href="#1-2-传目录到服务器" class="headerlink" title="1.2 传目录到服务器"></a>1.2 传目录到服务器</h3><p>在本地电脑上执行</p>
+<p>原文这条命令只写了远端路径，把本地目标路径漏了。漏掉的话 <code>scp</code> 会报 usage 错误，不会默认下到当前目录，这点和 <code>wget</code> 不一样。想下到当前目录得显式写个 <code>.</code>。</p>
+<h3 id="2-2-递归拷贝目录"><a href="#2-2-递归拷贝目录" class="headerlink" title="2.2 递归拷贝目录"></a>2.2 递归拷贝目录</h3><p>传目录必须加 <code>-r</code>，不加的话 <code>scp</code> 会告诉你 <code>not a regular file</code> 然后什么都不做。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -P 36000 -r user_00@192.168.1.201:/usr/local/services/nginx/conf ~/Downloads/</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>-P 36000</code> 是远端 SSH 服务监听的端口，不是 22 的时候必须显式指定。</p>
+<h3 id="2-3-传目录到服务器"><a href="#2-3-传目录到服务器" class="headerlink" title="2.3 传目录到服务器"></a>2.3 传目录到服务器</h3><p>方向反过来，把带 <code>用户@主机:</code> 的那一侧挪到后面就行。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r /tmp/local_dir username@servername:remote_dir</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 注意：如`deployBuildFiles`下的 `.next`默认不上传到服务器</span></span><br><span class="line">scp -P36000  -r deployBuildFiles/** user_00@192.168.1.201:/home/data/services/goods-prev.yesdat.com/</span><br></pre></td></tr></table></figure>
+<p>远端路径不以 <code>/</code> 开头的话，是相对于该用户家目录的相对路径。生产脚本里我一律写绝对路径，相对路径在换了个部署账号之后会悄悄传到别的地方去，这种错很难发现。</p>
+<h2 id="三、大小写和参数顺序上的几个坑"><a href="#三、大小写和参数顺序上的几个坑" class="headerlink" title="三、大小写和参数顺序上的几个坑"></a>三、大小写和参数顺序上的几个坑</h2><h3 id="3-1-P-和-p"><a href="#3-1-P-和-p" class="headerlink" title="3.1 -P 和 -p"></a>3.1 -P 和 -p</h3><p>前面提过一次，这里单独拎出来说，因为它是最高频的翻车点。</p>
+<p><code>scp</code> 的 <code>-P</code> 大写才是端口，小写 <code>-p</code> 是 preserve，保留文件的 mtime、atime 和权限位。<code>ssh</code> 的端口参数则是小写 <code>-p</code>。真要说原因，<code>scp</code> 的小写 <code>-p</code> 是从 <code>cp -p</code> 继承过来的，端口只好让给大写。</p>
+<p>记不住的话有个笨办法，把端口写进 <code>~/.ssh/config</code> 里，之后两个命令都不用带端口参数了。第五节会讲怎么配。</p>
+<h3 id="3-2-通配符是本地-shell-展开的"><a href="#3-2-通配符是本地-shell-展开的" class="headerlink" title="3.2 通配符是本地 shell 展开的"></a>3.2 通配符是本地 shell 展开的</h3><p>原文里有这么一条命令，注释说 <code>deployBuildFiles</code> 下的 <code>.next</code> 默认不上传到服务器。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -P36000 -r deployBuildFiles/** user_00@192.168.1.201:/home/data/services/goods-prev.yesdat.com/</span><br></pre></td></tr></table></figure>
 
+<p>这个现象值得展开讲讲，因为它不是 <code>scp</code> 的行为，是 shell 的行为。</p>
+<p><code>deployBuildFiles/**</code> 这串东西在 <code>scp</code> 拿到之前，就已经被本地 shell 替换成一堆具体的路径了。而 bash 默认不启用 <code>globstar</code>，<code>**</code> 和 <code>*</code> 的效果完全一样，只匹配一层；更关键的是，glob 默认不匹配以 <code>.</code> 开头的文件名。所以 <code>.next</code>、<code>.env</code> 这类隐藏文件根本没进入参数列表，<code>scp</code> 压根不知道它们的存在。</p>
+<p>所以「<code>.next</code> 默认不上传」这句话，准确的说法是「<code>.next</code> 没被通配符匹配到」。</p>
+<p>想连隐藏文件一起传，最省事的做法是直接传目录本身而不是它下面的内容。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -P 36000 -r deployBuildFiles user_00@192.168.1.201:/home/data/services/goods-prev.yesdat.com/</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、进阶"><a href="#二、进阶" class="headerlink" title="二、进阶"></a>二、进阶</h2><blockquote>
-<p>12个scp传输文件的命令案例 <a href="https://www.cnblogs.com/voidy/p/4215891.html">https://www.cnblogs.com/voidy/p/4215891.html</a></p>
-</blockquote>
+<p>这样远端会多出一层 <code>deployBuildFiles</code> 目录，可以接受的话这是最不容易出错的写法。要是必须打平，<code>bash</code> 里可以 <code>shopt -s dotglob</code> 打开隐藏文件匹配，但这个开关会影响整个脚本的后续行为，我一般不推荐在部署脚本里随手开。</p>
+<p>顺着这块聊，通配符如果写在远端那一侧，展开的就不是本地 shell 而是远端 shell 了，路径里带空格和特殊字符的时候还得考虑两层引号转义。这也是 <code>scp</code> 在复杂场景下容易失控的地方之一。</p>
+<h3 id="3-3-C-压缩和-l-限速"><a href="#3-3-C-压缩和-l-限速" class="headerlink" title="3.3 -C 压缩和 -l 限速"></a>3.3 -C 压缩和 -l 限速</h3><p>传文本类的文件（日志、SQL 备份、前端产物里的 JS）加个 <code>-C</code> 开压缩，跨机房传的时候能省不少时间。传已经压缩过的东西（图片、视频、tar.gz）加 <code>-C</code> 是白费 CPU，甚至更慢。</p>
+<p><code>-l</code> 可以限带宽，单位是 Kbit&#x2F;s。白天在办公网传几个 G 的备份，不限速的话整个办公室的网都会被你吃掉。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -C -l 8000 -P 36000 backup.sql user_00@192.168.1.201:/data/backup/</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、五类常见报错怎么排"><a href="#四、五类常见报错怎么排" class="headerlink" title="四、五类常见报错怎么排"></a>四、五类常见报错怎么排</h2><p><code>scp</code> 的报错信息普遍比较简短，但对应的原因其实很好区分。</p>
+<p><strong>Permission denied (publickey,password)</strong>，这是认证没过。先单独 <code>ssh</code> 一次确认账号密码或者密钥对不对，如果 <code>ssh</code> 能上去 <code>scp</code> 却不行，看看是不是密钥有 passphrase 而脚本环境里没有 ssh-agent。</p>
+<p><strong>Permission denied 但发生在传输开始之后</strong>，那是远端目录的写权限问题，跟登录无关。<code>ssh</code> 上去 <code>ls -ld</code> 看一眼目标目录属主。</p>
+<p><strong>No such file or directory</strong>，<code>scp</code> 不会帮你创建中间目录，目标路径的父目录必须已经存在。这跟 <code>mkdir -p</code> 的习惯不一样，很多人在这卡住。</p>
+<p><strong>Host key verification failed</strong>，服务器重装或者 IP 复用之后，本机 <code>~/.ssh/known_hosts</code> 里存的指纹对不上了。正确做法是确认这台机器确实是你自己的，然后 <code>ssh-keygen -R 主机名</code> 把旧记录删掉，不要图省事全局关掉 host key 检查。</p>
+<p><strong>卡住不动没有任何输出</strong>，多半是网络层被防火墙 DROP 了（不是 REJECT，所以不返回 Connection refused，只能等超时）。加 <code>-v</code> 能看到卡在哪一步，是 TCP 建连还是 SSH 握手，一眼就分得清。</p>
+<p>排查顺序我一般是这样：先 <code>ssh</code> 一次看连通性和认证，再 <code>ls -ld</code> 看目标目录权限，最后才去看 <code>scp</code> 的参数写没写对。</p>
+<h2 id="五、免密配置，以及-ssh-config-能省掉多少事"><a href="#五、免密配置，以及-ssh-config-能省掉多少事" class="headerlink" title="五、免密配置，以及 ssh config 能省掉多少事"></a>五、免密配置，以及 ssh config 能省掉多少事</h2><p>每次传文件都输一遍密码，写进脚本更是没法自动化。密钥登录配一次就一劳永逸。</p>
+<p>本地生成密钥对，已经有 <code>~/.ssh/id_rsa.pub</code> 的话跳过这步。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t ed25519 -C <span class="string">&quot;deploy@laptop&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后把公钥推到服务器上。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh-copy-id -p 36000 user_00@192.168.1.201</span><br></pre></td></tr></table></figure>
+
+<p><code>ssh-copy-id</code> 做的事情就是把你的公钥追加到远端的 <code>~/.ssh/authorized_keys</code> 里，顺便把权限位设对。手工做也行，但权限位这块很容易错，<code>~/.ssh</code> 必须是 700，<code>authorized_keys</code> 必须是 600，权限太宽 sshd 会直接拒绝这个公钥，而且日志里不一定给你写清楚原因。这个我排查过一次，最后是看 <code>/var/log/secure</code> 才发现的。</p>
+<p>配好之后再进一步，把连接参数写进 <code>~/.ssh/config</code>。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Host prev</span><br><span class="line">    HostName 192.168.1.201</span><br><span class="line">    User user_00</span><br><span class="line">    Port 36000</span><br><span class="line">    IdentityFile ~/.ssh/id_ed25519</span><br></pre></td></tr></table></figure>
+
+<p>之后所有命令都可以只写 <code>prev</code> 这个别名。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r dist prev:/home/data/services/goods-prev.yesdat.com/</span><br><span class="line">ssh prev</span><br><span class="line">rsync -avz dist/ prev:/home/data/services/goods-prev.yesdat.com/</span><br></pre></td></tr></table></figure>
+
+<p>端口、用户名、密钥路径全都不用带了，前面说的 <code>-P</code> 大小写问题也就自然消失了。我自己的感受是，这个配置文件是提升 SSH 相关操作体验最划算的一件事，五分钟配好，后面几年都受益。</p>
+<h2 id="六、什么时候该换成-rsync"><a href="#六、什么时候该换成-rsync" class="headerlink" title="六、什么时候该换成 rsync"></a>六、什么时候该换成 rsync</h2><p><code>scp</code> 的模型是「把源文件从头到尾读一遍，全量写到目标」。这个模型简单可靠，但有两个硬伤。</p>
+<p>一是没有增量。前端项目 <code>dist</code> 目录几百个文件，你只改了一个 JS，<code>scp</code> 还是把几百个文件重传一遍。</p>
+<p>二是没有断点续传。传到 90% 网断了，重来一次还是从 0 开始。传几百兆的时候这很折磨。</p>
+<p><code>rsync</code> 就是来解决这两件事的。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rsync -avz --partial --progress dist/ prev:/home/data/services/goods-prev.yesdat.com/</span><br></pre></td></tr></table></figure>
+
+<p>拆开看这几个参数。<code>-a</code> 归档模式，等价于保留权限、时间戳、软链接、递归这一整套；<code>-v</code> 打印传了哪些文件；<code>-z</code> 传输时压缩；<code>--partial</code> 保留传了一半的临时文件，下次接着传；<code>--progress</code> 显示进度。</p>
+<p><code>rsync</code> 的增量判断默认看文件大小和修改时间，不一致才传。真正厉害的是跨机器传输时它会用滚动校验算法，只把文件里变化的那些块发过去，大文件小改动的场景能省掉绝大部分流量。</p>
+<p>这里有个坑要注意，<code>rsync</code> 源路径末尾的斜杠是有语义的。<code>dist/</code> 表示「把 dist 里的内容传过去」，<code>dist</code> 表示「把 dist 这个目录本身传过去」。少一个斜杠就会多套一层目录，这个我踩过，部署完页面 404，找了半天才发现产物躺在 <code>.../dist/dist/</code> 里。</p>
+<p>另外两个常用的参数。<code>--delete</code> 让目标端删掉源端已经不存在的文件，做「完全镜像」的时候需要，但它是把双刃剑，路径写错就是删库级别的事故，加之前务必先用 <code>-n</code>（dry-run）跑一遍看输出。<code>--exclude</code> 排除不想传的东西，比如 <code>--exclude &#39;node_modules&#39; --exclude &#39;.git&#39;</code>。</p>
+<p>我的经验是这样分工：一次性传单个文件，或者临时看一眼某个配置，用 <code>scp</code> 手快；只要是重复执行的部署流程、目录同步、大文件传输，一律上 <code>rsync</code>。前提是两端都装了 <code>rsync</code>，这是它唯一的门槛，容器镜像里经常没有。</p>
+<h2 id="七、sftp-的位置，以及-scp-这些年的变化"><a href="#七、sftp-的位置，以及-scp-这些年的变化" class="headerlink" title="七、sftp 的位置，以及 scp 这些年的变化"></a>七、sftp 的位置，以及 scp 这些年的变化</h2><p><code>sftp</code> 是第三个选项，它跑在同一条 SSH 通道上，但提供的是一个交互式会话，可以 <code>ls</code>、<code>cd</code>、<code>get</code>、<code>put</code>，像个命令行版的 FTP 客户端。</p>
+<p>什么时候它比 <code>scp</code> 顺手？你不确定远端目录结构，需要边看边传的时候。<code>scp</code> 得先 <code>ssh</code> 上去看一眼路径，退出来再拼命令，<code>sftp</code> 一个会话里就搞定了。它也支持非交互式的批处理模式，可以把一串命令写进文件里用 <code>-b</code> 执行。</p>
+<p>还有一点值得提。这些年 OpenSSH 对 <code>scp</code> 的态度有变化，<code>scp</code> 用的那个古老协议存在一些设计上的问题（比较有名的是远端可以影响本地写入哪些文件），较新的 OpenSSH 版本里 <code>scp</code> 底层已经改成走 SFTP 协议，官方也建议优先使用 <code>sftp</code> 或 <code>rsync</code>。</p>
+<p>这个变化带来的实际影响是，某些依赖旧协议行为的写法（比如远端通配符展开的一些细节）在新老版本上表现可能不一致。具体你手上这台机器是什么行为，以 <code>man scp</code> 和 OpenSSH 官方公告为准，我不建议按某个记忆里的版本号去推断。</p>
+<p>说实话我自己日常还是在敲 <code>scp</code>，肌肉记忆改不过来。但新写的部署脚本我已经全部换成 <code>rsync</code> 了，一方面是增量和断点续传确实需要，另一方面也是省得去纠结不同机器上 <code>scp</code> 的行为差异。</p>
+<p>服务器上的其他日常操作，我另外整理过一篇 <a href="https://feinterview.poetries.top/blog/linux-frequently-use-command">日常频繁使用的Linux命令</a>，传完文件之后的验证和排查可以接着那篇看。想把这些传输动作包成可复用的部署脚本，<a href="https://feinterview.poetries.top/blog/shell">shell入门</a> 那篇里的参数处理和错误处理部分正好配套。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>scp</code> 值得记的东西不多，核心就三件。</p>
+<p>它跑在 ssh 上，所以 <code>ssh</code> 连不上的机器 <code>scp</code> 一定也连不上，排查从 <code>ssh</code> 开始最快。参数顺序永远是源在前目标在后，传目录必须 <code>-r</code>，指定端口是大写 <code>-P</code>（小写 <code>-p</code> 是保留时间戳权限，那是 <code>cp</code> 的遗产）。目标路径的父目录必须已经存在，<code>scp</code> 不会帮你 <code>mkdir -p</code>。</p>
+<p>通配符是本地 shell 展开的，隐藏文件默认匹配不到，所以传整个目录比传 <code>目录/**</code> 更不容易出错。</p>
+<p>真正拉开效率差距的是后面两步。把连接参数写进 <code>~/.ssh/config</code>，端口用户密钥全都不用再敲；重复执行的同步换成 <code>rsync -avz --partial</code>，增量加断点续传，改一个文件不用重传整个目录，但记住源路径末尾那个斜杠的语义，还有 <code>--delete</code> 前先 dry-run。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.openssh.com/">OpenSSH 官方站点</a></li>
+<li><a href="https://rsync.samba.org/documentation.html">rsync 官方文档</a></li>
+<li><a href="https://www.cnblogs.com/voidy/p/4215891.html">12个scp传输文件的命令案例</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

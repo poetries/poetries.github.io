@@ -7,29 +7,30 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Git操作清单 | 前端进阶之旅</title>
+  <title>Git操作清单 从撤销到rebase的日常命令梳理 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Git," />
+    <meta name="keywords" content="Git,版本控制," />
   
 
-  <meta name="description" content="一、必备知识点   Remote: 远程主仓库 Repository&#x2F;History： 本地仓库 Stage&#x2F;Index： Git追踪树,暂存区 workspace： 本地工作区（即你编辑器的代码）  二、git add 提交到暂存区，出错怎么办 一般代码提交流程为：工作区 -&gt; git status 查看状态 -&gt; git add . 将所有修改加入暂存区-&gt; git comm">
+  <meta name="description" content="按「出错了怎么救」的思路梳理 Git 常用操作，覆盖工作区暂存区回退、commit 修补、reset 与 revert 的区别、pull --rebase 与 merge --no-ff、SSH 配置和 fork 同步。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Git操作清单">
+<meta property="og:title" content="Git操作清单 从撤销到rebase的日常命令梳理">
 <meta property="og:url" content="http://blog.poetries.top/2019/08/31/git-review/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、必备知识点   Remote: 远程主仓库 Repository&#x2F;History： 本地仓库 Stage&#x2F;Index： Git追踪树,暂存区 workspace： 本地工作区（即你编辑器的代码）  二、git add 提交到暂存区，出错怎么办 一般代码提交流程为：工作区 -&gt; git status 查看状态 -&gt; git add . 将所有修改加入暂存区-&gt; git comm">
+<meta property="og:description" content="按「出错了怎么救」的思路梳理 Git 常用操作，覆盖工作区暂存区回退、commit 修补、reset 与 revert 的区别、pull --rebase 与 merge --no-ff、SSH 配置和 fork 同步。">
 <meta property="og:locale">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-e53fe40cce1f8eeb.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-d907599b730fdeb0.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-140cfe6932a62a57.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-6d83bae1d4f45a86.png">
 <meta property="article:published_time" content="2019-08-31T11:50:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.660Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.931Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Git">
+<meta property="article:tag" content="版本控制">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/1480597-e53fe40cce1f8eeb.png">
 
@@ -209,7 +210,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="toc-text">一、必备知识点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81git-add-%E6%8F%90%E4%BA%A4%E5%88%B0%E6%9A%82%E5%AD%98%E5%8C%BA%EF%BC%8C%E5%87%BA%E9%94%99%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-text">二、git add 提交到暂存区，出错怎么办</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81git-commit-%E6%8F%90%E4%BA%A4%E5%88%B0%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93%EF%BC%8C%E5%87%BA%E9%94%99%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-text">三、git commit 提交到本地仓库，出错怎么办？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">四、常用命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%88%9D%E5%A7%8B%E5%BC%80%E5%8F%91-git-%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-text">4.1 初始开发 git 操作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-git-fetch"><span class="toc-text">4.2 git fetch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-git-pull"><span class="toc-text">4.3 git pull</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-git-push"><span class="toc-text">4.4 git push</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%88%86%E6%94%AF%E6%93%8D%E4%BD%9C"><span class="toc-text">4.5 分支操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BC%98%E5%8C%96%E6%93%8D%E4%BD%9C"><span class="toc-text">五、优化操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%8B%89%E5%8F%96%E4%BB%A3%E7%A0%81-pull-%E2%80%93rebase"><span class="toc-text">5.1 拉取代码 pull –rebase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%90%88%E4%BB%A3%E7%A0%81-merge-%E2%80%93no-ff"><span class="toc-text">5.2 合代码 merge –no-ff</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81SSH"><span class="toc-text">六、SSH</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9A%82%E5%AD%98"><span class="toc-text">七、暂存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%96%87%E4%BB%B6%E5%90%8D%E8%BF%87%E9%95%BF%E9%94%99%E8%AF%AF"><span class="toc-text">八、文件名过长错误</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E9%82%AE%E7%AE%B1%E5%92%8C%E7%94%A8%E6%88%B7%E5%90%8D"><span class="toc-text">九、邮箱和用户名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81-gitignore-%E6%9B%B4%E6%96%B0%E5%90%8E%E7%94%9F%E6%95%88%EF%BC%9A"><span class="toc-text">十、.gitignore 更新后生效：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%90%8C%E6%AD%A5Github-fork-%E5%87%BA%E6%9D%A5%E7%9A%84%E5%88%86%E6%94%AF"><span class="toc-text">十一、同步Github fork 出来的分支</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BF%85%E5%A4%87%E7%9F%A5%E8%AF%86%E7%82%B9"><span class="toc-text">一、必备知识点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81git-add-%E6%8F%90%E4%BA%A4%E5%88%B0%E6%9A%82%E5%AD%98%E5%8C%BA%EF%BC%8C%E5%87%BA%E9%94%99%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-text">二、git add 提交到暂存区，出错怎么办</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81git-commit-%E6%8F%90%E4%BA%A4%E5%88%B0%E6%9C%AC%E5%9C%B0%E4%BB%93%E5%BA%93%EF%BC%8C%E5%87%BA%E9%94%99%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-text">三、git commit 提交到本地仓库，出错怎么办</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%8F%90%E4%BA%A4%E4%BF%A1%E6%81%AF%E5%86%99%E9%94%99%E4%BA%86"><span class="toc-text">3.1 提交信息写错了</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%BC%8F%E6%8F%90%E4%BA%A4%E4%BA%86%E6%96%87%E4%BB%B6"><span class="toc-text">3.2 漏提交了文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%8F%90%E4%BA%A4%E4%BA%86%E9%94%99%E8%AF%AF%E6%96%87%E4%BB%B6%EF%BC%8C%E6%83%B3%E5%9B%9E%E9%80%80%E7%89%88%E6%9C%AC"><span class="toc-text">3.3 提交了错误文件，想回退版本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">四、常用命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%88%9D%E5%A7%8B%E5%BC%80%E5%8F%91%E7%9A%84-git-%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-text">4.1 初始开发的 git 操作流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-git-fetch"><span class="toc-text">4.2 git fetch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-git-pull"><span class="toc-text">4.3 git pull</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-git-push"><span class="toc-text">4.4 git push</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E5%88%86%E6%94%AF%E6%93%8D%E4%BD%9C"><span class="toc-text">4.5 分支操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BC%98%E5%8C%96%E6%93%8D%E4%BD%9C"><span class="toc-text">五、优化操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%8B%89%E5%8F%96%E4%BB%A3%E7%A0%81%E7%94%A8-pull-%E2%80%93rebase"><span class="toc-text">5.1 拉取代码用 pull –rebase</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%90%88%E4%BB%A3%E7%A0%81%E7%94%A8-merge-%E2%80%93no-ff"><span class="toc-text">5.2 合代码用 merge –no-ff</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81SSH-%E9%85%8D%E7%BD%AE"><span class="toc-text">六、SSH 配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9A%82%E5%AD%98"><span class="toc-text">七、暂存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%85%8B%E9%9A%86%E6%97%B6%E6%8F%90%E7%A4%BA%E6%96%87%E4%BB%B6%E5%90%8D%E8%BF%87%E9%95%BF"><span class="toc-text">八、克隆时提示文件名过长</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E9%82%AE%E7%AE%B1%E5%92%8C%E7%94%A8%E6%88%B7%E5%90%8D"><span class="toc-text">九、邮箱和用户名</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81-gitignore-%E6%9B%B4%E6%96%B0%E5%90%8E%E4%B8%8D%E7%94%9F%E6%95%88"><span class="toc-text">十、.gitignore 更新后不生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%90%8C%E6%AD%A5-GitHub-fork-%E5%87%BA%E6%9D%A5%E7%9A%84%E5%88%86%E6%94%AF"><span class="toc-text">十一、同步 GitHub fork 出来的分支</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -232,13 +233,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-git-review" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Git操作清单</h1>
+    <h1 class="post-title">Git操作清单 从撤销到rebase的日常命令梳理</h1>
 
     <div class="article-meta">
       <span>
@@ -274,12 +275,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 3.1k字</span>
+            <span>字数统计 5.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 12分</span>
+            <span>阅读时长 20分</span>
           </span>
       
       
@@ -293,197 +294,181 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、必备知识点"><a href="#一、必备知识点" class="headerlink" title="一、必备知识点"></a>一、必备知识点</h2><p><img src="https://upload-images.jianshu.io/upload_images/1480597-e53fe40cce1f8eeb.png"></p>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-d907599b730fdeb0.png"></p>
+        <p>Git 的命令我一直是「用到再查」的状态，直到有一次把改了一整天的代码 <code>git reset --hard</code> 掉，才认真坐下来把这些命令的边界搞清楚。后来发现绝大多数慌张的时刻，起因都是同一个问题：不知道自己现在这次改动躺在哪个区域里，是工作区、暂存区，还是已经进了本地仓库。</p>
+<p>搞清楚这四个区域之后，撤销操作就变成了一道选择题，选哪条命令看的是「我要退回到哪一层」。这篇按这个思路把日常会用到的 Git 命令过一遍，重点放在出错之后怎么救，以及 <code>rebase</code> 和 <code>merge</code> 这两条路各自适合什么场景。</p>
+<p>如果你想看的是分支模型层面的约定，可以配合<a href="https://feinterview.poetries.top/blog/git-flow-summary">Git Flow 工作流总结</a>一起看，那篇讲的是团队怎么分支，这篇讲的是命令怎么用。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>Remote</code>: 远程主仓库</li>
-<li><code>Repository/History</code>： 本地仓库</li>
-<li><code>Stage/Index</code>： Git追踪树,暂存区</li>
-<li><code>workspace</code>： 本地工作区（即你编辑器的代码）</li>
+<li>Git 的四个区域，以及每条命令在这四个区域之间怎么搬运数据</li>
+<li><code>git add</code> 之后反悔了，两种场景分别怎么退回去</li>
+<li>commit 信息写错、漏提交文件、提交了不该提交的东西，分别怎么补救</li>
+<li><code>git reset</code> 和 <code>git revert</code> 到底差在哪，什么时候不能用 reset</li>
+<li><code>git pull --rebase</code> 和 <code>git merge --no-ff</code> 这对相反的策略各自解决什么问题</li>
+<li>SSH 公钥的生成与配置</li>
+<li><code>git stash</code> 暂存现场的用法</li>
+<li><code>.gitignore</code> 改了不生效、克隆时文件名过长这类杂症</li>
+<li>怎么把 fork 出来的仓库同步上游更新</li>
 </ul>
-<h2 id="二、git-add-提交到暂存区，出错怎么办"><a href="#二、git-add-提交到暂存区，出错怎么办" class="headerlink" title="二、git add 提交到暂存区，出错怎么办"></a>二、git add 提交到暂存区，出错怎么办</h2><blockquote>
-<p>一般代码提交流程为：工作区 -&gt; <code>git status</code> 查看状态 -&gt; <code>git add .</code> 将所有修改加入暂存区-&gt; <code>git commit -m &quot;提交描述&quot;</code> 将代码提交到 本地仓库 -&gt; <code>git push</code> 将本地仓库代码更新到 远程仓库</p>
-</blockquote>
-<p><strong>场景1：</strong></p>
-<blockquote>
-<p>当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令 <code>git checkout -- file</code></p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 丢弃工作区的修改</span></span><br><span class="line">git checkout -- &lt;文件名&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="一、必备知识点"><a href="#一、必备知识点" class="headerlink" title="一、必备知识点"></a>一、必备知识点</h2><p>先把地图铺开。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-e53fe40cce1f8eeb.png" alt="Git 工作区、暂存区、本地仓库与远程仓库的关系"></p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-d907599b730fdeb0.png" alt="Git 常用命令在四个区域之间的流转"></p>
+<p>这两张图说的是同一件事，四个区域各自是什么：</p>
+<ul>
+<li><code>Remote</code>：远程主仓库</li>
+<li><code>Repository/History</code>：本地仓库</li>
+<li><code>Stage/Index</code>：Git 追踪树，也就是暂存区</li>
+<li><code>workspace</code>：本地工作区，即你编辑器里看到的代码</li>
+</ul>
+<p>代码从左到右走一遍就是完整的提交流程：在工作区改完，<code>git add</code> 送进暂存区，<code>git commit</code> 落到本地仓库，<code>git push</code> 推到远程。</p>
+<p>反过来，所有的「撤销」都是在问同一个问题：我要把改动从哪一层退回到哪一层。想通这一点，下面的命令就不用死记了。</p>
+<h2 id="二、git-add-提交到暂存区，出错怎么办"><a href="#二、git-add-提交到暂存区，出错怎么办" class="headerlink" title="二、git add 提交到暂存区，出错怎么办"></a>二、git add 提交到暂存区，出错怎么办</h2><p>一般的代码提交流程是这样：工作区改动，<code>git status</code> 查看状态，<code>git add .</code> 把所有修改加入暂存区，<code>git commit -m &quot;提交描述&quot;</code> 提交到本地仓库，<code>git push</code> 更新到远程仓库。</p>
+<p>在这条链路上反悔，分两种情况。</p>
+<p><strong>场景 1</strong></p>
+<p>改乱了工作区某个文件，还没 <code>add</code>，想直接丢弃修改：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 丢弃工作区的修改</span></span><br><span class="line">git checkout -- &lt;文件名&gt;</span><br></pre></td></tr></table></figure>
 
-<p><strong>场景2：</strong></p>
-<blockquote>
-<p>当你不但改乱了工作区某个文件的内容，还添加到了暂存时，想丢弃修改，分两步，第一步用命令 <code>git reset HEAD file</code>，就回到了场景1，第二步按场景1操作</p>
-</blockquote>
-<h2 id="三、git-commit-提交到本地仓库，出错怎么办？"><a href="#三、git-commit-提交到本地仓库，出错怎么办？" class="headerlink" title="三、git commit 提交到本地仓库，出错怎么办？"></a>三、git commit 提交到本地仓库，出错怎么办？</h2><p><strong>1.  提交信息出错</strong></p>
-<blockquote>
-<p>更改 commit 信息</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">git commit --amend -m“新提交消息”</span><br></pre></td></tr></table></figure>
+<p>这条命令是用暂存区（或者最近一次 commit）的版本覆盖工作区文件，被覆盖的内容 Git 从来没记录过，找不回来。所以执行之前一定要确认这些改动真的不要了。</p>
+<p><strong>场景 2</strong></p>
+<p>不但改乱了内容，还 <code>git add</code> 进了暂存区。这时候分两步：先用 <code>git reset HEAD &lt;文件名&gt;</code> 把它从暂存区退回工作区，就回到了场景 1；然后按场景 1 处理。</p>
+<p>这两条命令都用了 <code>checkout</code> 和 <code>reset</code> 这种一词多义的老接口，Git 2.23 之后提供了语义更清楚的替代写法：<code>git restore &lt;文件名&gt;</code> 对应场景 1，<code>git restore --staged &lt;文件名&gt;</code> 对应场景 2 的第一步。老命令仍然可用，新项目建议直接上新的，少一次「这个 checkout 到底在干嘛」的思考。</p>
+<h2 id="三、git-commit-提交到本地仓库，出错怎么办"><a href="#三、git-commit-提交到本地仓库，出错怎么办" class="headerlink" title="三、git commit 提交到本地仓库，出错怎么办"></a>三、git commit 提交到本地仓库，出错怎么办</h2><h3 id="3-1-提交信息写错了"><a href="#3-1-提交信息写错了" class="headerlink" title="3.1 提交信息写错了"></a>3.1 提交信息写错了</h3><p>改最近一次 commit 的信息：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git commit --amend -m <span class="string">&quot;新提交消息&quot;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>2. 漏提交</strong></p>
-<blockquote>
-<p><code>commit</code> 时，遗漏提交部分更新，有两种解决方案：</p>
-</blockquote>
-<ol>
-<li>方案一：再次 <code>commit</code></li>
-</ol>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">git commit -m“提交消息”</span><br></pre></td></tr></table></figure>
+<p><code>--amend</code> 是把这次提交重写一遍，生成的是一个全新的 commit 对象，哈希会变。只在还没 push 的时候用它，已经推到远程再 amend，别人拉下来就会冲突。</p>
+<h3 id="3-2-漏提交了文件"><a href="#3-2-漏提交了文件" class="headerlink" title="3.2 漏提交了文件"></a>3.2 漏提交了文件</h3><p>commit 完发现有个文件忘了带上，有两种解决方案。</p>
+<p>方案一，再提交一次：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git commit -m <span class="string">&quot;提交消息&quot;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>此时，<code>git</code> 上会出现两次 <code>commit</code></p>
-</blockquote>
-<ol start="2">
-<li>方案二：遗漏文件提交到之前 <code>commit</code> 上</li>
-</ol>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">git add missed-file <span class="comment">// missed-file 为遗漏提交文件</span></span><br><span class="line">git commit --amend --no-edit</span><br></pre></td></tr></table></figure>
+<p>代价是 Git 上会出现两次 commit，历史里多一条没什么信息量的记录。</p>
+<p>方案二，把遗漏的文件补到之前那次 commit 上：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git add missed-file    <span class="comment"># missed-file 为遗漏提交的文件</span></span><br><span class="line">git commit --amend --no-edit</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>--no-edit</code> 表示提交消息不会更改，在 <code>git</code> 上仅为一次提交</p>
-</blockquote>
-<p><strong>3. 提交错误文件，回退到上一个 commit 版本，再 commit</strong></p>
-<ol>
-<li><code>git reset</code></li>
-</ol>
-<blockquote>
-<p>删除指定的 <code>commit</code></p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 修改版本库，修改暂存区，修改工作区</span></span><br><span class="line"></span><br><span class="line">git reset <span class="variable constant_">HEAD</span> &lt;文件名&gt; <span class="comment">// 把暂存区的修改撤销掉（unstage），重新放回工作区。</span></span><br><span class="line"><span class="comment">// git版本回退，回退到特定的commit_id版本，可以通过git log查看提交历史，以便确定要回退到哪个版本(commit 之后的即为ID);</span></span><br><span class="line">git reset --hard commit_id </span><br><span class="line"><span class="comment">//将版本库回退1个版本，不仅仅是将本地版本库的头指针全部重置到指定版本，也会重置暂存区，并且会将工作区代码也回退到这个版本</span></span><br><span class="line">git reset --hard <span class="variable constant_">HEAD</span>~<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 修改版本库，保留暂存区，保留工作区</span></span><br><span class="line"><span class="comment">// 将版本库软回退1个版本，软回退表示将本地版本库的头指针全部重置到指定版本，且将这次提交之后的所有变更都移动到暂存区。</span></span><br><span class="line">git reset --soft <span class="variable constant_">HEAD</span>~<span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p><code>--no-edit</code> 表示提交消息保持不变，不弹编辑器。最终在 Git 上仅为一次提交，历史干净。</p>
+<p>小改动我基本都走方案二，但同样受前面那条限制，push 之前用。</p>
+<h3 id="3-3-提交了错误文件，想回退版本"><a href="#3-3-提交了错误文件，想回退版本" class="headerlink" title="3.3 提交了错误文件，想回退版本"></a>3.3 提交了错误文件，想回退版本</h3><p>这里有两条路，<code>reset</code> 和 <code>revert</code>，它们的差别是这一节的重点。</p>
+<p><strong><code>git reset</code> 删除指定的 commit</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 修改版本库，修改暂存区，修改工作区</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 把暂存区的修改撤销掉（unstage），重新放回工作区</span></span><br><span class="line">git reset HEAD &lt;文件名&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 版本回退，回退到特定的 commit_id 版本</span></span><br><span class="line"><span class="comment"># 可以通过 git log 查看提交历史，确定要回退到哪个版本（commit 之后的即为 ID）</span></span><br><span class="line">git reset --hard commit_id</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将版本库回退 1 个版本</span></span><br><span class="line"><span class="comment"># 不仅把本地版本库的头指针重置到指定版本，也会重置暂存区，并把工作区代码一起回退</span></span><br><span class="line">git reset --hard HEAD~1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改版本库，保留暂存区，保留工作区</span></span><br><span class="line"><span class="comment"># 软回退 1 个版本，头指针重置到指定版本，且把这次提交之后的所有变更移动到暂存区</span></span><br><span class="line">git reset --soft HEAD~1</span><br></pre></td></tr></table></figure>
 
-<ol start="2">
-<li><code>git revert</code></li>
-</ol>
-<blockquote>
-<p>撤销某次操作，此次操作之前和之后的<code>commit</code>和<code>history</code>都会保留，并且把这次撤销</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 撤销前一次 commit</span></span><br><span class="line">git revert <span class="variable constant_">HEAD</span></span><br><span class="line"><span class="comment">// 撤销前前一次 commit</span></span><br><span class="line">git revert <span class="variable constant_">HEAD</span>^</span><br><span class="line"><span class="comment">// (比如：fa042ce57ebbe5bb9c8db709f719cec2c58ee7ff）撤销指定的版本，撤销也会作为一次提交进行保存。</span></span><br><span class="line">git revert commit</span><br></pre></td></tr></table></figure>
+<p>三个参数的区别记住一句话就行：<code>--soft</code> 只动版本库，<code>--mixed</code>（默认值）动版本库和暂存区，<code>--hard</code> 三个区域全动。</p>
+<p><code>--hard</code> 是这份清单里最危险的一条，它会直接抹掉工作区的未提交改动。这个我踩过，当时以为只是回退提交记录，结果一天的活没了。真的执行错了也别急着放弃，<code>git reflog</code> 里还留着 HEAD 的移动记录，能找回刚才那个 commit 的哈希再 <code>reset</code> 回去，前提是那些改动至少 commit 过一次。没 commit 过的工作区内容，谁也救不了。</p>
+<p><strong><code>git revert</code> 撤销某次操作</strong></p>
+<p>这次操作之前和之后的 commit 和 history 都会保留，撤销动作本身也会作为一次新的提交记录下来。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 撤销前一次 commit</span></span><br><span class="line">git revert HEAD</span><br><span class="line"></span><br><span class="line"><span class="comment"># 撤销前前一次 commit</span></span><br><span class="line">git revert HEAD^</span><br><span class="line"></span><br><span class="line"><span class="comment"># 撤销指定的版本（比如 fa042ce57ebbe5bb9c8db709f719cec2c58ee7ff）</span></span><br><span class="line"><span class="comment"># 撤销也会作为一次提交进行保存</span></span><br><span class="line">git revert commit</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>git revert</code> 是提交一个新的版本，将需要<code>revert</code>的版本的内容再反向修改回去，版本会递增，不影响之前提交的内容</p>
-</blockquote>
+<p><code>git revert</code> 是提交一个新的版本，把需要 revert 的那个版本的内容反向修改回去，版本号继续递增，不影响之前提交的内容。</p>
 <p><strong>git revert 和 git reset 的区别</strong></p>
 <ul>
-<li><code>git revert</code>是用一次新的<code>commit</code>来回滚之前的<code>commit</code>，<code>git reset</code>是直接删除指定的<code>commit</code></li>
-<li>在回滚这一操作上看，效果差不多。但是在日后继续merge以前的老版本时有区别。因为<code>git revert</code>是用一次逆向的commit“中和”之前的提交，因此日后合并老的<code>branch</code>时，导致这部分改变不会再次出现，但是<code>git reset</code>是之间把某些<code>commit</code>在某个<code>branch</code>上删除，因而和老的<code>branch</code>再次<code>merge</code>时，这些被回滚的<code>commit</code>应该还会被引入</li>
-<li><code>git reset</code> 是把HEAD向后移动了一下，而<code>git revert</code>是HEAD继续前进，只是新的<code>commit</code>的内容和要<code>revert</code>的内容正好相反，能够抵消要被<code>revert</code>的内容</li>
+<li><code>git revert</code> 是用一次新的 commit 来回滚之前的 commit，<code>git reset</code> 是直接删除指定的 commit</li>
+<li>单看回滚这一步，两者效果差不多。区别出现在日后 merge 老分支的时候。<code>git revert</code> 是用一次逆向的 commit 中和之前的提交，日后合并老 branch 时，这部分改变不会再次出现；而 <code>git reset</code> 是直接把某些 commit 在某个 branch 上删掉，再和老 branch 合并时，这些被回滚的 commit 还会被引入</li>
+<li><code>git reset</code> 是把 HEAD 往后移，<code>git revert</code> 是 HEAD 继续往前走，只是新 commit 的内容和要 revert 的内容正好相反，能够抵消掉被 revert 的部分</li>
 </ul>
-<h2 id="四、常用命令"><a href="#四、常用命令" class="headerlink" title="四、常用命令"></a>四、常用命令</h2><h3 id="4-1-初始开发-git-操作流程"><a href="#4-1-初始开发-git-操作流程" class="headerlink" title="4.1 初始开发 git 操作流程"></a>4.1 初始开发 git 操作流程</h3><ul>
+<p>实际用的时候有一条简单的判断：<strong>改动已经 push 到共享分支上了，就只能用 revert</strong>。因为 reset 会改写历史，你本地删掉的那些 commit 在别人的仓库里还在，下次同步会互相打架。只在自己本地没推出去的分支上，才可以放心 reset。</p>
+<h2 id="四、常用命令"><a href="#四、常用命令" class="headerlink" title="四、常用命令"></a>四、常用命令</h2><h3 id="4-1-初始开发的-git-操作流程"><a href="#4-1-初始开发的-git-操作流程" class="headerlink" title="4.1 初始开发的 git 操作流程"></a>4.1 初始开发的 git 操作流程</h3><p>新进项目时基本就是这一串：</p>
+<ul>
 <li>克隆最新主分支项目代码 <code>git clone 地址</code></li>
 <li>创建本地分支 <code>git branch 分支名</code></li>
 <li>查看本地分支 <code>git branch</code></li>
 <li>查看远程分支 <code>git branch -a</code></li>
-<li>切换分支  <code>git checkout 分支名 </code>(一般修改未提交则无法切换，大小写问题经常会有，可强制切换  <code>git checkout 分支名 -f</code>  非必须慎用)</li>
+<li>切换分支 <code>git checkout 分支名</code>（一般修改未提交则无法切换，大小写问题经常会有，可强制切换 <code>git checkout 分支名 -f</code>，非必须慎用）</li>
 <li>将本地分支推送到远程分支 <code>git push &lt;远程仓库&gt; &lt;本地分支&gt;:&lt;远程分支&gt;</code></li>
 </ul>
-<h3 id="4-2-git-fetch"><a href="#4-2-git-fetch" class="headerlink" title="4.2 git fetch"></a>4.2 git fetch</h3><blockquote>
-<p>将某个远程主机的更新，全部&#x2F;分支 取回本地（此时之更新了Repository）它取回的代码对你本地的开发代码没有影响，如需彻底更新需合并或使用<code>git pull</code></p>
-</blockquote>
-<h3 id="4-3-git-pull"><a href="#4-3-git-pull" class="headerlink" title="4.3 git pull"></a>4.3 git pull</h3><blockquote>
-<p>拉取远程主机某分支的更新，再与本地的指定分支合并（相当与<code>fetch</code>加上了合并分支功能的操作）</p>
-</blockquote>
-<h3 id="4-4-git-push"><a href="#4-4-git-push" class="headerlink" title="4.4 git push"></a>4.4 git push</h3><blockquote>
-<p>将本地分支的更新，推送到远程主机，其命令格式与<code>git pull</code>相似</p>
-</blockquote>
-<h3 id="4-5-分支操作"><a href="#4-5-分支操作" class="headerlink" title="4.5 分支操作"></a>4.5 分支操作</h3><ul>
-<li>使用 <code>Git</code> 下载指定分支命令为：<code>git clone -b 分支名仓库地址</code></li>
-<li>拉取远程新分支 <code>git checkout -b serverfix origin/serverfix</code></li>
-<li>合并本地分支 <code>git merge hotfix</code>：(将 <code>hotfix</code> 分支合并到当前分支)</li>
-<li>合并远程分支 <code>git merge origin/serverfix</code></li>
-<li>删除本地分支 <code>git branch -d hotfix</code>：(删除本地 <code>hotfix</code> 分支)</li>
-<li>删除远程分支 <code>git push origin --delete serverfix</code></li>
-<li>上传新命名的本地分支：<code>git push origin newName;</code></li>
-<li>创建新分支：<code>git branch branchName</code>：(创建名为 <code>branchName</code> 的本地分支)</li>
-<li>切换到新分支：<code>git checkout branchName</code>：(切换到 <code>branchName</code> 分支)</li>
-<li>创建并切换分支：<code>git checkout -b branchName</code>：(相当于以上两条命令的合并)</li>
+<p>强制切换那条要格外小心，<code>-f</code> 会丢掉未提交的改动。有改动又想切分支，正确做法是先 <code>git stash</code> 收起来，后面第七节会讲。</p>
+<h3 id="4-2-git-fetch"><a href="#4-2-git-fetch" class="headerlink" title="4.2 git fetch"></a>4.2 git fetch</h3><p>把某个远程主机的更新全部或按分支取回本地，此时只更新了 Repository，取回的代码对你本地的开发代码没有影响。想彻底更新还需要手动合并，或者直接用 <code>git pull</code>。</p>
+<p>平时想看看远程有什么新东西又不想动自己的代码，<code>fetch</code> 是最安全的选择。</p>
+<h3 id="4-3-git-pull"><a href="#4-3-git-pull" class="headerlink" title="4.3 git pull"></a>4.3 git pull</h3><p>拉取远程主机某分支的更新，再与本地的指定分支合并，相当于 <code>fetch</code> 加上了合并分支的操作。</p>
+<h3 id="4-4-git-push"><a href="#4-4-git-push" class="headerlink" title="4.4 git push"></a>4.4 git push</h3><p>将本地分支的更新推送到远程主机，命令格式与 <code>git pull</code> 相似。</p>
+<h3 id="4-5-分支操作"><a href="#4-5-分支操作" class="headerlink" title="4.5 分支操作"></a>4.5 分支操作</h3><p>这一段是纯清单，用到查一下就行：</p>
+<ul>
+<li>下载指定分支：<code>git clone -b &lt;分支名&gt; &lt;仓库地址&gt;</code></li>
+<li>拉取远程新分支：<code>git checkout -b serverfix origin/serverfix</code></li>
+<li>合并本地分支：<code>git merge hotfix</code>（将 <code>hotfix</code> 分支合并到当前分支）</li>
+<li>合并远程分支：<code>git merge origin/serverfix</code></li>
+<li>删除本地分支：<code>git branch -d hotfix</code></li>
+<li>删除远程分支：<code>git push origin --delete serverfix</code></li>
+<li>上传新命名的本地分支：<code>git push origin newName</code></li>
+<li>创建新分支：<code>git branch branchName</code></li>
+<li>切换到新分支：<code>git checkout branchName</code></li>
+<li>创建并切换分支：<code>git checkout -b branchName</code>（相当于以上两条命令的合并）</li>
 <li>查看本地分支：<code>git branch</code></li>
 <li>查看远程仓库所有分支：<code>git branch -a</code></li>
 <li>本地分支重命名：<code>git branch -m oldName newName</code></li>
-<li>重命名远程分支对应的本地分支：<code>git branch -m oldName newName</code></li>
 <li>把修改后的本地分支与远程分支关联：<code>git branch --set-upstream-to origin/newName</code></li>
 </ul>
-<h2 id="五、优化操作"><a href="#五、优化操作" class="headerlink" title="五、优化操作"></a>五、优化操作</h2><h3 id="5-1-拉取代码-pull-–rebase"><a href="#5-1-拉取代码-pull-–rebase" class="headerlink" title="5.1 拉取代码 pull –rebase"></a>5.1 拉取代码 pull –rebase</h3><ul>
-<li>在团队协作过程中，假设你和你的同伴在本地中分别有各自的新提交，而你的同伴先于你 <code>push</code> 了代码到远程分支上，所以你必须先执行 <code>git pull</code> 来获取同伴的提交，然后才能<code>push</code> 自己的提交到远程分支。</li>
-<li>而按照 <code>Git</code> 的默认策略，如果远程分支和本地分支之间的提交线图有分叉的话（即不是 fast-forwarded），<code>Git</code> 会执行一次 <code>merge</code> 操作，因此产生一次没意义的提交记录，从而造成了像上图那样的混乱。</li>
-<li>其实在 <code>pull</code> 操作的时候，，使用 <code>git pull --rebase</code>选项即可很好地解决上述问题。加上 <code>--rebase</code> 参数的作用是，提交线图有分叉的话，<code>Git</code> 会 <code>rebase</code> 策略来代替默认的 <code>merge</code> 策略。</li>
-</ul>
-<p>假设提交线图在执行 <code>pull</code> 前是这样的</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">    A---B---C  remotes/origin/master</span><br><span class="line">    /</span><br><span class="line">D---E---F---G  master</span><br></pre></td></tr></table></figure>
-<p> 如果是执行 git pull 后，提交线图会变成这样：</p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">    A---B---C remotes/origin/master</span><br><span class="line">    /         \</span><br><span class="line">D---E---F---G---H master</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>结果多出了 H 这个没必要的提交记录。如果是执行 <code>git pull --rebase</code> 的话，提交线图就会变成这样</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">remotes/origin/master</span><br><span class="line">   |</span><br><span class="line">D---E---A---B---C---F&#x27;---G&#x27;  master</span><br></pre></td></tr></table></figure>
+<p>删除本地分支时 <code>-d</code> 会检查这个分支是否已经合并过，没合并会拒绝删除，这是一道保护。确实要删没合并的分支才用 <code>-D</code>。</p>
+<p>同样地，Git 2.23 之后 <code>git switch &lt;分支名&gt;</code> 和 <code>git switch -c &lt;新分支&gt;</code> 是更清楚的写法，把「切分支」从 <code>checkout</code> 里独立了出来。</p>
+<h2 id="五、优化操作"><a href="#五、优化操作" class="headerlink" title="五、优化操作"></a>五、优化操作</h2><h3 id="5-1-拉取代码用-pull-–rebase"><a href="#5-1-拉取代码用-pull-–rebase" class="headerlink" title="5.1 拉取代码用 pull –rebase"></a>5.1 拉取代码用 pull –rebase</h3><p>团队协作时，假设你和同伴在本地分别有各自的新提交，而同伴先于你 push 了代码到远程分支，所以你必须先执行 <code>git pull</code> 获取同伴的提交，然后才能 push 自己的提交。</p>
+<p>按照 Git 的默认策略，如果远程分支和本地分支之间的提交线图有分叉（即不是 fast-forwarded），Git 会执行一次 merge 操作，因此产生一次没意义的提交记录，把线图搞得很乱。</p>
+<p>其实在 pull 的时候加上 <code>--rebase</code> 就能很好地解决这个问题。加上这个参数的作用是，提交线图有分叉的话，Git 会用 rebase 策略代替默认的 merge 策略。</p>
+<p>假设提交线图在执行 pull 前是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">        A---B---C  remotes/origin/master</span><br><span class="line">       /</span><br><span class="line">D---E---F---G  master</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>F G 两个提交通过 <code>rebase</code> 方式重新拼接在 C 之后，多余的分叉去掉了，目的达到。</p>
-</blockquote>
-<ul>
-<li>大多数时候，使用 <code>git pull --rebase</code>是为了使提交线图更好看，从而方便 <code>code review</code></li>
-<li>不过，如果你对使用 <code>git</code> 还不是十分熟练的话，我的建议是 <code>git pull --rebase</code>多练习几次之后再使用，因为 <code>rebase</code> 在 <code>git</code> 中，算得上是『危险行为』</li>
-<li>另外，还需注意的是，使用 <code>git pull --rebase</code>比直接 <code>pull</code> 容易导致冲突的产生，如果预期冲突比较多的话，建议还是直接 <code>pull</code></li>
-</ul>
-<p><strong>注意：</strong></p>
-<blockquote>
-<ul>
-<li><code>git pull = git fetch + git merge</code></li>
-<li><code>git pull --rebase = git fetch + git rebase</code></li>
-</ul>
-</blockquote>
-<h3 id="5-2-合代码-merge-–no-ff"><a href="#5-2-合代码-merge-–no-ff" class="headerlink" title="5.2 合代码 merge –no-ff"></a>5.2 合代码 merge –no-ff</h3><ul>
-<li>上述的 <code>git pull --rebase</code> 策略目的是修整提交线图，使其形成一条直线，而即将要用到的 <code>git merge --no-ff &lt;branch-name&gt; </code>策略偏偏是反行其道，刻意地弄出提交线图分叉出来。</li>
-<li>假设你在本地准备合并两个分支，而刚好这两个分支是 <code>fast-forwarded</code> 的，那么直接合并后你得到一个直线的提交线图，当然这样没什么坏处，但如果你想更清晰地告诉你同伴：这一系列的提交都是为了实现同一个目的，那么你可以刻意地将这次提交内容弄成一次提交线图分叉。</li>
-<li>执行 <code>git merge --no-ff &lt;branch-name&gt;</code> 的结果大概会是这样的：</li>
-</ul>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-140cfe6932a62a57.png"></p>
-<p>中间的分叉线路图很清晰的显示这些提交都是为了实现 complete adjusting user domains and tags</p>
-<blockquote>
-<p>在合并分支之前（假设要在本地将 <code>feature</code> 分支合并到 <code>dev</code> 分支），会先检查 <code>feature</code> 分支是否『部分落后』于远程 <code>dev</code> 分支</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git checkout dev</span><br><span class="line">git pull # 更新 dev 分支</span><br><span class="line">git log feature..dev</span><br></pre></td></tr></table></figure>
+<p>如果是执行 <code>git pull</code> 后，提交线图会变成这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">        A---B---C  remotes/origin/master</span><br><span class="line">       /         \</span><br><span class="line">D---E---F---G------H  master</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>如果没有输出任何提交信息的话，即表示 <code>feature</code> 对于 <code>dev</code> 分支是 <code>up-to-date</code> 的。如果有输出的话而马上执行了 <code>git merge --no-ff</code> 的话，提交线图会变成这样</p>
-</blockquote>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-6d83bae1d4f45a86.png"></p>
-<p>所以这时在合并前，通常我会先执行</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git checkout feature</span><br><span class="line">git rebase dev</span><br></pre></td></tr></table></figure>
+<p>结果多出了 H 这个没必要的提交记录。如果是执行 <code>git pull --rebase</code> 的话，提交线图就会变成这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">                remotes/origin/master</span><br><span class="line">                    |</span><br><span class="line">D---E---A---B---C---F&#x27;---G&#x27;  master</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>这样就可以将 <code>feature</code> 重新拼接到更新了的 <code>dev</code> 之后，然后就可以合并了，最终得到一个干净舒服的提交线图。</li>
-<li>再次提醒：像之前提到的，<code>rebase</code> 是『危险行为』，建议你足够熟悉 <code>git</code> 时才这么做，否则的话是得不偿失啊。</li>
-</ul>
-<p><strong>总结</strong></p>
-<ul>
-<li>使用 <code>git pull --rebase</code> 和 <code>git merge --no-ff</code> 其实和直接使用 <code>git pull git merge</code> 得到的代码应该是一样。</li>
-<li>使用 <code>git pull --rebase</code> 主要是为是将提交约线图平坦化，而 <code>git merge --no-ff</code> 则是刻意制造分叉</li>
-</ul>
-<h2 id="六、SSH"><a href="#六、SSH" class="headerlink" title="六、SSH"></a>六、SSH</h2><p><strong>1. 查看是否生成了 SSH 公钥</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cd ~/.ssh</span><br><span class="line">$ ls</span><br><span class="line">id_rsa      id_rsa.pub      known_hosts</span><br></pre></td></tr></table></figure>
+<p>F、G 两个提交通过 rebase 方式重新拼接在 C 之后，多余的分叉去掉了，目的达到。</p>
+<p>多数时候使用 <code>git pull --rebase</code> 是为了让提交线图更好看，方便 code review。</p>
+<p>不过如果你对 Git 还不是十分熟练，我的建议是多练几次再用，因为 rebase 在 Git 里算得上是「危险行为」，它改写的是提交历史。另外还要注意，<code>git pull --rebase</code> 比直接 pull 更容易产生冲突，而且是逐个 commit 地冲突，如果预期冲突比较多的话，建议还是直接 pull。</p>
+<p>两条等式记一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git pull = git fetch + git merge</span><br><span class="line">git pull --rebase = git fetch + git rebase</span><br></pre></td></tr></table></figure>
 
-<p>其中 id_rsa 是私钥，id_rsa.pub 是公钥</p>
-<p><strong>2. 如果没有那就开始生成，设置全局的user.name与user.email</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">git config --list <span class="comment">// 查看是否设置了user.name与user.email，没有的话，去设置</span></span><br><span class="line"><span class="comment">// 设置全局的user.name与user.email</span></span><br><span class="line">git config --<span class="variable language_">global</span> user.<span class="property">name</span> <span class="string">&quot;XX&quot;</span></span><br><span class="line">git config --<span class="variable language_">global</span> user.<span class="property">email</span> <span class="string">&quot;XX&quot;</span></span><br></pre></td></tr></table></figure>
+<p>想每次都默认走 rebase，可以配一次 <code>git config --global pull.rebase true</code>，省得每回都加参数。</p>
+<h3 id="5-2-合代码用-merge-–no-ff"><a href="#5-2-合代码用-merge-–no-ff" class="headerlink" title="5.2 合代码用 merge –no-ff"></a>5.2 合代码用 merge –no-ff</h3><p>上面的 <code>git pull --rebase</code> 目的是修整提交线图，让它形成一条直线；而 <code>git merge --no-ff &lt;branch-name&gt;</code> 偏偏是反行其道，刻意弄出分叉。</p>
+<p>那这两个策略不是自相矛盾吗？</p>
+<p>其实针对的场景不一样。前者处理的是「同一条线上的并行开发」，那些分叉纯属噪声；后者处理的是「一个功能分支的合入」，这个分叉是有信息量的，它告诉别人这一串提交是为了同一件事。</p>
+<p>假设你在本地准备合并两个分支，而刚好这两个分支是 fast-forwarded 的，直接合并后你得到一条直线，这样没什么坏处，但如果你想更清晰地告诉同伴这一系列提交都是为了实现同一个目的，就可以刻意制造一次分叉。</p>
+<p>执行 <code>git merge --no-ff &lt;branch-name&gt;</code> 的结果大概是这样：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-140cfe6932a62a57.png" alt="使用 merge --no-ff 之后清晰的分叉提交线图"></p>
+<p>中间的分叉线路很清晰地显示这些提交都是为了实现 complete adjusting user domains and tags 这件事。</p>
+<p>在合并分支之前（假设要在本地把 <code>feature</code> 合并到 <code>dev</code>），先检查 <code>feature</code> 是否「部分落后」于远程 <code>dev</code>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout dev</span><br><span class="line">git pull            <span class="comment"># 更新 dev 分支</span></span><br><span class="line">git <span class="built_in">log</span> feature..dev</span><br></pre></td></tr></table></figure>
 
-<p><strong>3. 输入 ssh-keygen 即可（或<code>ssh-keygen -t rsa -C &quot;email&quot;</code>）</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">$ ssh-keygen</span><br><span class="line"><span class="title class_">Generating</span> public/private rsa key pair.</span><br><span class="line"><span class="title class_">Enter</span> file <span class="keyword">in</span> which to save the <span class="title function_">key</span> (<span class="regexp">/Users/</span>schacon/.<span class="property">ssh</span>/id_rsa):</span><br><span class="line"><span class="title class_">Enter</span> <span class="title function_">passphrase</span> (empty <span class="keyword">for</span> no passphrase):</span><br><span class="line"><span class="title class_">Enter</span> same passphrase <span class="attr">again</span>:</span><br><span class="line"><span class="title class_">Your</span> identification has been saved <span class="keyword">in</span> /<span class="title class_">Users</span>/schacon/.<span class="property">ssh</span>/id_rsa.</span><br><span class="line"><span class="title class_">Your</span> public key has been saved <span class="keyword">in</span> /<span class="title class_">Users</span>/schacon/.<span class="property">ssh</span>/id_rsa.<span class="property">pub</span>.</span><br><span class="line"><span class="title class_">The</span> key fingerprint <span class="attr">is</span>:</span><br></pre></td></tr></table></figure>
+<p>如果没有输出任何提交信息，表示 <code>feature</code> 对于 <code>dev</code> 是 up-to-date 的。如果有输出，却马上执行了 <code>git merge --no-ff</code>，提交线图会变成这样：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-6d83bae1d4f45a86.png" alt="feature 落后于 dev 时直接 merge 产生的混乱线图"></p>
+<p>所以这时在合并前，我通常会先执行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout feature</span><br><span class="line">git rebase dev</span><br></pre></td></tr></table></figure>
 
-<p><strong>4. 生成之后获取公钥内容，输入 cat ~&#x2F;.ssh&#x2F;id_rsa.pub 即可， 复制 ssh-rsa 一直到 .local这一整段内容</strong></p>
+<p>这样就可以把 <code>feature</code> 重新拼接到更新后的 <code>dev</code> 之后，然后再合并，最终得到一个干净舒服的提交线图。</p>
+<p>再提醒一次，rebase 是「危险行为」，建议你足够熟悉 Git 时才这么做，否则得不偿失。判断标准很实用：只 rebase 那些还没推给别人的提交。</p>
+<p><strong>这一节的结论</strong></p>
+<p>使用 <code>git pull --rebase</code> 和 <code>git merge --no-ff</code>，跟直接使用 <code>git pull</code>、<code>git merge</code> 得到的代码内容应该是一样的，差别只在提交历史的形状上。<code>git pull --rebase</code> 是把提交线图平坦化，<code>git merge --no-ff</code> 则是刻意制造分叉。</p>
+<h2 id="六、SSH-配置"><a href="#六、SSH-配置" class="headerlink" title="六、SSH 配置"></a>六、SSH 配置</h2><p><strong>1. 查看是否生成了 SSH 公钥</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.ssh</span><br><span class="line"><span class="built_in">ls</span></span><br><span class="line"><span class="comment"># id_rsa      id_rsa.pub      known_hosts</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>id_rsa</code> 是私钥，<code>id_rsa.pub</code> 是公钥。私钥不要外传，也别提交进任何仓库。</p>
+<p><strong>2. 如果没有那就开始生成，先设置全局的 user.name 与 user.email</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git config --list    <span class="comment"># 查看是否设置了 user.name 与 user.email，没有的话去设置</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置全局的 user.name 与 user.email</span></span><br><span class="line">git config --global user.name <span class="string">&quot;XX&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;XX&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 输入 ssh-keygen 即可</strong></p>
+<p>也可以写成 <code>ssh-keygen -t rsa -C &quot;email&quot;</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ ssh-keygen</span><br><span class="line">Generating public/private rsa key pair.</span><br><span class="line">Enter file in which to save the key (/Users/schacon/.ssh/id_rsa):</span><br><span class="line">Enter passphrase (empty for no passphrase):</span><br><span class="line">Enter same passphrase again:</span><br><span class="line">Your identification has been saved in /Users/schacon/.ssh/id_rsa.</span><br><span class="line">Your public key has been saved in /Users/schacon/.ssh/id_rsa.pub.</span><br><span class="line">The key fingerprint is:</span><br></pre></td></tr></table></figure>
+
+<p>补一句现在的推荐做法。RSA 密钥仍然能用，但 GitHub 官方文档现在推荐 <code>ssh-keygen -t ed25519 -C &quot;your_email@example.com&quot;</code>，密钥更短、生成更快、安全性也更好。旧机器上如果 OpenSSH 版本太老不支持 ed25519，再退回 RSA 并把长度指定为 4096。</p>
+<p><strong>4. 生成之后获取公钥内容</strong></p>
+<p>输入 <code>cat ~/.ssh/id_rsa.pub</code> 即可，复制从 <code>ssh-rsa</code> 一直到结尾这一整段内容：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ cat ~/.ssh/id_rsa.pub</span><br><span class="line">ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAklOUpkDHrfHY17SbrmTIpNLTGK9Tjom/BWDSU</span><br><span class="line">GPl+nafzlHDTYW7hdI4yZ5ew18JH4JW9jbhUFrviQzM7xlELEVf4h9lFX5QVkbPppSwg0cda3</span><br><span class="line">Pbv7kOdJ/MTyBlWXFCR+HAo3FXRitBqxiX1nKhXpHAZsMciLq8V6RjsNAQwdsdMFvSlVK/7XA</span><br><span class="line">t3FaoJoAsncM1Q9x5+3V0Ww68/eIFmb1zuUFljQJKprrX88XypNDvjYNby6vw/Pb0rwert/En</span><br><span class="line">mZ+AW4OZPnTPI89ZPmVMLuayrD2cE86Z/il8b+gw3r3+1nKatmIkjn2so1d01QraTlMqVSsbx</span><br><span class="line">NrRFi9wrf+M7Q== schacon@agadorlaptop.local</span><br></pre></td></tr></table></figure>
 
 <p><strong>5. 打开 GitLab 或者 GitHub，点击头像，找到设置页</strong></p>
 <p><strong>6. 左侧找到 SSH keys 按钮并点击，输入刚刚复制的公钥即可</strong></p>
-<h2 id="七、暂存"><a href="#七、暂存" class="headerlink" title="七、暂存"></a>七、暂存</h2><blockquote>
-<p><code>git stash</code> 可用来暂存当前正在进行的工作，比如想 <code>pull</code> 最新代码又不想 <code>commit</code> ， 或者另为了修改一个紧急的 <code>bug</code> ，先 <code>stash</code>，使返回到自己上一个 <code>commit</code>,，改完 <code>bug</code> 之后再 <code>stash pop</code> , 继续原来的工作；</p>
-</blockquote>
+<p>配完可以用 <code>ssh -T git@github.com</code> 验证一下，看到欢迎信息就说明通了。</p>
+<h2 id="七、暂存"><a href="#七、暂存" class="headerlink" title="七、暂存"></a>七、暂存</h2><p><code>git stash</code> 用来暂存当前正在进行的工作。比如想 pull 最新代码又不想 commit，或者为了修一个紧急 bug，先 stash 让工作区回到上一个 commit 的状态，改完 bug 之后再 <code>stash pop</code> 继续原来的活。</p>
 <ul>
-<li>添加缓存栈：<code>git stash</code> ;</li>
-<li>查看缓存栈：<code>git stash list</code> ;</li>
-<li>推出缓存栈：<code>git stash pop</code> ;</li>
-<li>取出特定缓存内容：<code>git stash apply stash@&#123;1&#125;</code> ;</li>
+<li>添加缓存栈：<code>git stash</code></li>
+<li>查看缓存栈：<code>git stash list</code></li>
+<li>弹出缓存栈：<code>git stash pop</code></li>
+<li>取出特定缓存内容：<code>git stash apply stash@&#123;1&#125;</code></li>
 </ul>
-<h2 id="八、文件名过长错误"><a href="#八、文件名过长错误" class="headerlink" title="八、文件名过长错误"></a>八、文件名过长错误</h2><p>Filename too long warning: Clone succeeded, but checkout failed.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git config --system core.longpaths true</span><br></pre></td></tr></table></figure>
+<p><code>pop</code> 和 <code>apply</code> 的区别是前者取出后会把这条记录从栈里删掉，后者会保留。不确定能不能干净还原的时候先用 <code>apply</code>，稳妥一些。</p>
+<p>还有一个容易忽略的点，<code>git stash</code> 默认不会收走未被 Git 跟踪的新文件，得加 <code>-u</code>。新建了文件又 stash 之后发现它还躺在工作区，原因就在这。</p>
+<h2 id="八、克隆时提示文件名过长"><a href="#八、克隆时提示文件名过长" class="headerlink" title="八、克隆时提示文件名过长"></a>八、克隆时提示文件名过长</h2><p>在 Windows 上克隆某些仓库会报：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Filename too long warning: Clone succeeded, but checkout failed.</span><br></pre></td></tr></table></figure>
 
+<p>打开长路径支持即可：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git config --system core.longpaths <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>这是 Windows 路径长度限制导致的，macOS 和 Linux 上遇不到。<code>--system</code> 需要管理员权限。</p>
 <h2 id="九、邮箱和用户名"><a href="#九、邮箱和用户名" class="headerlink" title="九、邮箱和用户名"></a>九、邮箱和用户名</h2><p><strong>查看</strong></p>
 <ul>
 <li><code>git config user.name</code></li>
@@ -494,23 +479,44 @@
 <li><code>git config --global user.name &quot;username&quot;</code></li>
 <li><code>git config --global user.email &quot;email&quot;</code></li>
 </ul>
-<h2 id="十、-gitignore-更新后生效："><a href="#十、-gitignore-更新后生效：" class="headerlink" title="十、.gitignore 更新后生效："></a>十、.gitignore 更新后生效：</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git rm -r --cached .</span><br><span class="line">git add .</span><br><span class="line">git commit -m &quot;.gitignore is now working”</span><br></pre></td></tr></table></figure>
+<p><code>--global</code> 是全局配置。如果你的公司仓库和个人仓库要用不同的邮箱，就在具体仓库目录下去掉 <code>--global</code> 单独设一次，仓库级配置优先级更高。提交记录里的邮箱对不上，GitHub 的贡献图不会亮，很多人排查半天其实是这个原因。</p>
+<h2 id="十、-gitignore-更新后不生效"><a href="#十、-gitignore-更新后不生效" class="headerlink" title="十、.gitignore 更新后不生效"></a>十、.gitignore 更新后不生效</h2><p><code>.gitignore</code> 只对未被跟踪的文件起作用。已经被 Git 跟踪过的文件，你事后再加进 <code>.gitignore</code> 是没用的，得先把它们从索引里清掉：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">rm</span> -r --cached .</span><br><span class="line">git add .</span><br><span class="line">git commit -m <span class="string">&quot;.gitignore is now working&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="十一、同步Github-fork-出来的分支"><a href="#十一、同步Github-fork-出来的分支" class="headerlink" title="十一、同步Github fork 出来的分支"></a>十一、同步Github fork 出来的分支</h2><p><strong>1. 配置remote，指向原始仓库</strong></p>
-<blockquote>
-<p>git remote add upstream <a href="https://github.com/InterviewMap/InterviewMap.git">https://github.com/InterviewMap/InterviewMap.git</a></p>
-</blockquote>
-<p><strong>2. 上游仓库获取到分支，及相关的提交信息，它们将被保存在本地的 upstream&#x2F;master 分支</strong></p>
+<p><code>--cached</code> 表示只从 Git 的索引里移除，磁盘上的文件不动，这一点很关键，写成 <code>git rm -r .</code> 就是真删文件了。</p>
+<h2 id="十一、同步-GitHub-fork-出来的分支"><a href="#十一、同步-GitHub-fork-出来的分支" class="headerlink" title="十一、同步 GitHub fork 出来的分支"></a>十一、同步 GitHub fork 出来的分支</h2><p>fork 别人的仓库之后，上游有了新提交，你的 fork 不会自动跟着更新，得手动同步。</p>
+<p><strong>1. 配置 remote，指向原始仓库</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git remote add upstream https://github.com/InterviewMap/InterviewMap.git</span><br></pre></td></tr></table></figure>
+
+<p><code>upstream</code> 只是个约定俗成的名字，你的 fork 本身叫 <code>origin</code>。</p>
+<p><strong>2. 从上游仓库获取分支及相关的提交信息</strong></p>
+<p>它们将被保存在本地的 <code>upstream/master</code> 分支：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git fetch upstream</span><br><span class="line"><span class="comment"># remote: Counting objects: 75, done.</span></span><br><span class="line"><span class="comment"># remote: Compressing objects: 100% (53/53), done.</span></span><br><span class="line"><span class="comment"># remote: Total 62 (delta 27), reused 44 (delta 9)</span></span><br><span class="line"><span class="comment"># Unpacking objects: 100% (62/62), done.</span></span><br><span class="line"><span class="comment"># From https://github.com/ORIGINAL_OWNER/ORIGINAL_REPOSITORY</span></span><br><span class="line"><span class="comment"># * [new branch] master -&gt; upstream/master</span></span><br></pre></td></tr></table></figure>
 
 <p><strong>3. 切换到本地的 master 分支</strong></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git checkout master</span><br><span class="line"><span class="comment"># Switched to branch &#x27;master&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>4. 把 upstream&#x2F;master 分支合并到本地的 master 分支，本地的 master 分支便跟上游仓库保持同步了，并且没有丢失本地的修改</strong></p>
+<p><strong>4. 把 upstream&#x2F;master 合并到本地 master</strong></p>
+<p>这样本地的 master 分支就跟上游仓库保持同步了，并且没有丢失本地的修改：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git merge upstream/master</span><br><span class="line"><span class="comment"># Updating a422352..5fdff0f</span></span><br><span class="line"><span class="comment"># Fast-forward</span></span><br><span class="line"><span class="comment"># README | 9 -------</span></span><br><span class="line"><span class="comment"># README.md | 7 ++++++</span></span><br><span class="line"><span class="comment"># 2 files changed, 7 insertions(+), 9 deletions(-)</span></span><br><span class="line"><span class="comment"># delete mode 100644 README</span></span><br><span class="line"><span class="comment"># create mode 100644 README.md</span></span><br></pre></td></tr></table></figure>
 
 <p><strong>5. 上传到自己的远程仓库中</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git push </span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git push</span><br></pre></td></tr></table></figure>
+
+<p>顺便提一句，新仓库的默认分支名现在多数是 <code>main</code> 而不是 <code>master</code>，上面的命令按你实际的分支名改。GitHub 网页端也提供了 Sync fork 按钮，简单场景点一下就行，命令行这套主要用在需要处理冲突的时候。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这份清单真正需要记住的其实不多。</p>
+<p>四个区域是所有撤销操作的坐标系，先问自己改动现在在哪一层，再选命令。工作区用 <code>git checkout --</code> 或 <code>git restore</code>，暂存区用 <code>git reset HEAD</code> 或 <code>git restore --staged</code>，本地仓库用 <code>git reset</code>，已经推出去的用 <code>git revert</code>。</p>
+<p><code>reset</code> 和 <code>revert</code> 的分界线是「有没有 push 过」。没推出去随便 reset，推出去了只能 revert，这条规则能挡掉团队协作里绝大多数的历史冲突。</p>
+<p><code>--hard</code> 是唯一会真正吃掉工作区改动的参数，执行前确认一遍。真出事了先想起 <code>git reflog</code>，它能救回已经 commit 过的东西。</p>
+<p><code>pull --rebase</code> 和 <code>merge --no-ff</code> 看着矛盾，其实分工明确：前者清理并行开发带来的无意义分叉，后者保留一个功能分支的完整轮廓。rebase 的使用边界只有一条，别去 rebase 已经推给别人的提交。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://git-scm.com/book/zh/v2">Pro Git 中文版</a></li>
+<li><a href="https://git-scm.com/docs">Git 官方命令参考</a></li>
+<li><a href="https://git-scm.com/docs/git-restore">git-restore 与 git-switch 的引入说明</a></li>
+<li><a href="https://docs.github.com/zh/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent">GitHub 文档 生成新的 SSH 密钥</a></li>
+<li><a href="https://docs.github.com/zh/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork">GitHub 文档 同步 fork</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

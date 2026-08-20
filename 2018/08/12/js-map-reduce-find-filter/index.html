@@ -12,21 +12,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,API," />
+    <meta name="keywords" content="JavaScript,API,数组方法," />
   
 
-  <meta name="description" content="一、由map、filter、reduce、find展开filter  filter方法可以筛除数组和类似结构中不满足条件的元素，并返回满足条件的元素组成的数组。  const integers &#x3D; [1, 2, 3, 4, 6, 7];const evenIntegers &#x3D; integers.filter(i &#x3D;&gt; i%2 &#x3D;&#x3D;&#x3D; 0);&#x2F;&#x2F; evenIntegers的值为[2, 4, 6">
+  <meta name="description" content="从后台列表页的真实需求出发，讲清 map、filter、find、reduce、some、every 在业务里怎么选、怎么组合，附不可变更新的固定套路、reduce 写出 O(n²) 的坑，以及 flatMap、Object.groupBy 这些新写法。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="业务中处理数据结构常用的JS方法">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/12/js-map-reduce-find-filter/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、由map、filter、reduce、find展开filter  filter方法可以筛除数组和类似结构中不满足条件的元素，并返回满足条件的元素组成的数组。  const integers &#x3D; [1, 2, 3, 4, 6, 7];const evenIntegers &#x3D; integers.filter(i &#x3D;&gt; i%2 &#x3D;&#x3D;&#x3D; 0);&#x2F;&#x2F; evenIntegers的值为[2, 4, 6">
+<meta property="og:description" content="从后台列表页的真实需求出发，讲清 map、filter、find、reduce、some、every 在业务里怎么选、怎么组合，附不可变更新的固定套路、reduce 写出 O(n²) 的坑，以及 flatMap、Object.groupBy 这些新写法。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-08-12T11:11:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.674Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.943Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="API">
+<meta property="article:tag" content="数组方法">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%94%B1map%E3%80%81filter%E3%80%81reduce%E3%80%81find%E5%B1%95%E5%BC%80"><span class="toc-text">一、由map、filter、reduce、find展开</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%90%91%E5%AF%B9%E8%B1%A1%E6%95%B0%E7%BB%84%E6%B7%BB%E5%8A%A0%E6%96%B0%E5%85%83%E7%B4%A0"><span class="toc-text">二、向对象数组添加新元素</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%B8%80%E4%B8%AA%E6%95%B0%E7%BB%84%E5%88%9B%E5%BB%BA%E8%A7%86%E5%9B%BE"><span class="toc-text">三、为一个数组创建视图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%90%91%E6%95%B0%E7%BB%84%E4%B8%AD%E6%96%B0%E5%A2%9E%E5%85%83%E7%B4%A0"><span class="toc-text">四、向数组中新增元素</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%B8%BA%E5%AF%B9%E8%B1%A1%E6%96%B0%E5%A2%9E%E4%B8%80%E7%BB%84%E9%94%AE%E5%80%BC%E5%AF%B9"><span class="toc-text">五、为对象新增一组键值对</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E4%BD%BF%E7%94%A8%E5%8F%98%E9%87%8F%E4%BD%9C%E4%B8%BA%E9%94%AE%E5%90%8D%E4%B8%BA%E5%AF%B9%E8%B1%A1%E6%B7%BB%E5%8A%A0%E9%94%AE%E5%80%BC%E5%AF%B9"><span class="toc-text">六、使用变量作为键名为对象添加键值对</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E4%BF%AE%E6%94%B9%E6%95%B0%E7%BB%84%E4%B8%AD%E6%BB%A1%E8%B6%B3%E6%9D%A1%E4%BB%B6%E7%9A%84%E5%85%83%E7%B4%A0%E5%AF%B9%E8%B1%A1"><span class="toc-text">七、修改数组中满足条件的元素对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%89%BE%E5%87%BA%E6%95%B0%E7%BB%84%E4%B8%AD%E6%BB%A1%E8%B6%B3%E6%9D%A1%E4%BB%B6%E7%9A%84%E5%85%83%E7%B4%A0"><span class="toc-text">八、找出数组中满足条件的元素</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%88%A0%E9%99%A4%E7%9B%AE%E6%A0%87%E5%AF%B9%E8%B1%A1%E7%9A%84%E4%B8%80%E7%BB%84%E5%B1%9E%E6%80%A7"><span class="toc-text">九、删除目标对象的一组属性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%B0%86%E5%AF%B9%E8%B1%A1%E8%BD%AC%E5%8C%96%E6%88%90%E8%AF%B7%E6%B1%82%E4%B8%B2"><span class="toc-text">十、将对象转化成请求串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E8%8E%B7%E5%8F%96%E6%95%B0%E7%BB%84%E4%B8%AD%E6%9F%90%E4%B8%80%E5%AF%B9%E8%B1%A1%E7%9A%84%E4%B8%8B%E6%A0%87"><span class="toc-text">十一、获取数组中某一对象的下标</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9B%9B%E4%B8%AA%E6%96%B9%E6%B3%95%EF%BC%8C%E5%90%84%E7%AE%A1%E4%B8%80%E4%BB%B6%E4%BA%8B"><span class="toc-text">一、四个方法，各管一件事</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-filter-%E8%B4%9F%E8%B4%A3%E7%AD%9B"><span class="toc-text">1.1 filter 负责筛</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-find-%E8%B4%9F%E8%B4%A3%E6%89%BE%E4%B8%80%E4%B8%AA"><span class="toc-text">1.2 find 负责找一个</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-map-%E8%B4%9F%E8%B4%A3%E6%95%B4%E6%89%B9%E6%8D%A2%E4%B8%80%E9%81%8D"><span class="toc-text">1.3 map 负责整批换一遍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-reduce-%E8%B4%9F%E8%B4%A3%E5%90%88%E6%88%90%E4%B8%80%E4%B8%AA"><span class="toc-text">1.4 reduce 负责合成一个</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5-some-%E5%92%8C-every-%E8%B4%9F%E8%B4%A3%E5%9B%9E%E7%AD%94%E6%98%AF%E9%9D%9E%E9%A2%98"><span class="toc-text">1.5 some 和 every 负责回答是非题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%8B%BF%E5%88%B0%E9%9C%80%E6%B1%82%E5%85%88%E9%97%AE%E4%B8%89%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-text">二、拿到需求先问三个问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%9A%E5%8A%A1%E9%87%8C%E9%AB%98%E9%A2%91%E7%9A%84%E4%B8%8D%E5%8F%AF%E5%8F%98%E6%9B%B4%E6%96%B0%E5%A5%97%E8%B7%AF"><span class="toc-text">三、业务里高频的不可变更新套路</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%90%91%E5%AF%B9%E8%B1%A1%E6%95%B0%E7%BB%84%E6%B7%BB%E5%8A%A0%E6%96%B0%E5%85%83%E7%B4%A0"><span class="toc-text">3.1 向对象数组添加新元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%BA%E4%B8%80%E4%B8%AA%E6%95%B0%E7%BB%84%E5%88%9B%E5%BB%BA%E8%A7%86%E5%9B%BE"><span class="toc-text">3.2 为一个数组创建视图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%90%91%E6%95%B0%E7%BB%84%E4%B8%AD%E6%96%B0%E5%A2%9E%E5%85%83%E7%B4%A0"><span class="toc-text">3.3 向数组中新增元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E4%B8%BA%E5%AF%B9%E8%B1%A1%E6%96%B0%E5%A2%9E%E4%B8%80%E7%BB%84%E9%94%AE%E5%80%BC%E5%AF%B9"><span class="toc-text">3.4 为对象新增一组键值对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E4%BD%BF%E7%94%A8%E5%8F%98%E9%87%8F%E4%BD%9C%E4%B8%BA%E9%94%AE%E5%90%8D%E4%B8%BA%E5%AF%B9%E8%B1%A1%E6%B7%BB%E5%8A%A0%E9%94%AE%E5%80%BC%E5%AF%B9"><span class="toc-text">3.5 使用变量作为键名为对象添加键值对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E4%BF%AE%E6%94%B9%E6%95%B0%E7%BB%84%E4%B8%AD%E6%BB%A1%E8%B6%B3%E6%9D%A1%E4%BB%B6%E7%9A%84%E5%85%83%E7%B4%A0%E5%AF%B9%E8%B1%A1"><span class="toc-text">3.6 修改数组中满足条件的元素对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E6%89%BE%E5%87%BA%E6%95%B0%E7%BB%84%E4%B8%AD%E6%BB%A1%E8%B6%B3%E6%9D%A1%E4%BB%B6%E7%9A%84%E5%85%83%E7%B4%A0"><span class="toc-text">3.7 找出数组中满足条件的元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-8-%E8%8E%B7%E5%8F%96%E6%95%B0%E7%BB%84%E4%B8%AD%E6%9F%90%E4%B8%80%E5%AF%B9%E8%B1%A1%E7%9A%84%E4%B8%8B%E6%A0%87"><span class="toc-text">3.8 获取数组中某一对象的下标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-9-%E5%88%A0%E9%99%A4%E7%9B%AE%E6%A0%87%E5%AF%B9%E8%B1%A1%E7%9A%84%E4%B8%80%E7%BB%84%E5%B1%9E%E6%80%A7"><span class="toc-text">3.9 删除目标对象的一组属性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-10-%E5%B0%86%E5%AF%B9%E8%B1%A1%E8%BD%AC%E5%8C%96%E6%88%90%E8%AF%B7%E6%B1%82%E4%B8%B2"><span class="toc-text">3.10 将对象转化成请求串</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81reduce-%E9%87%8C%E7%94%A8%E5%B1%95%E5%BC%80%E8%BF%90%E7%AE%97%E7%AC%A6%EF%BC%8C%E5%B0%8F%E5%BF%83-O-n%C2%B2"><span class="toc-text">四、reduce 里用展开运算符，小心 O(n²)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%93%BE%E5%BC%8F%E8%B0%83%E7%94%A8%E9%81%8D%E5%8E%86%E5%87%A0%E9%81%8D%EF%BC%8C%E8%A6%81%E4%B8%8D%E8%A6%81%E5%90%88%E5%B9%B6"><span class="toc-text">五、链式调用遍历几遍，要不要合并</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%812018-%E4%B9%8B%E5%90%8E%EF%BC%8C%E8%BF%99%E4%BA%9B%E6%B4%BB%E4%B8%8D%E7%94%A8%E8%87%AA%E5%B7%B1%E5%86%99%E4%BA%86"><span class="toc-text">六、2018 之后，这些活不用自己写了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,7 +229,7 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
@@ -270,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.1k字</span>
+            <span>字数统计 4.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 5分</span>
+            <span>阅读时长 18分</span>
           </span>
       
       
@@ -289,69 +290,193 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、由map、filter、reduce、find展开"><a href="#一、由map、filter、reduce、find展开" class="headerlink" title="一、由map、filter、reduce、find展开"></a>一、由map、filter、reduce、find展开</h2><p><strong>filter</strong></p>
-<blockquote>
-<p>filter方法可以筛除数组和类似结构中不满足条件的元素，并返回满足条件的元素组成的数组。</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> integers = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">7</span>];</span><br><span class="line"><span class="keyword">const</span> evenIntegers = integers.<span class="title function_">filter</span>(<span class="function"><span class="params">i</span> =&gt;</span> i%<span class="number">2</span> === <span class="number">0</span>);</span><br><span class="line"><span class="comment">// evenIntegers的值为[2, 4, 6]</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>find</strong></p>
-<blockquote>
-<p>find返回数组或类似结构中满足条件的第一个元素</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 1&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 2&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="comment">// 找出id为1的posts</span></span><br><span class="line"><span class="keyword">const</span> title = posts.<span class="title function_">find</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> === <span class="number">1</span>).<span class="property">title</span>;</span><br></pre></td></tr></table></figure>
-
-<p><strong>map</strong></p>
-<blockquote>
-<p>map方法的作用在于处理流式数据，比如数组。我们可以把它想象成所有元素都要经过的一个转换器。</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> integers = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">7</span>];</span><br><span class="line"><span class="keyword">const</span> twoXIntegers = integers.<span class="title function_">map</span>(<span class="function"><span class="params">i</span> =&gt;</span> i*<span class="number">2</span>);</span><br><span class="line"><span class="comment">// twoXIntegers现在是 [2, 4, 6, 8, 12, 14]，而integers不发生变化。</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>reduce</strong></p>
-<blockquote>
-<p>当你想要将多个数据放进一个实例中时，你可以使用一个reducer</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">upVotes</span>: <span class="number">2</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">upVotes</span>: <span class="number">89</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">3</span>, <span class="attr">upVotes</span>: <span class="number">1</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="keyword">const</span> totalUpvotes = posts.<span class="title function_">reduce</span>(<span class="function">(<span class="params">totalUpvotes, currentPost</span>) =&gt;</span>     </span><br><span class="line">  totalUpvotes + currentPost.<span class="property">upVotes</span>, <span class="comment">//reducer函数</span></span><br><span class="line">  <span class="number">0</span> <span class="comment">// 初始化投票数为0</span></span><br><span class="line">);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(totalUpvotes)<span class="comment">//输出投票总数：92</span></span><br></pre></td></tr></table></figure>
-
+        <p>接一个后台列表页，接口丢回来一坨数据，产品的需求是：先按状态过滤掉已作废的，再把 <code>user_name</code> 改成 <code>userName</code> 交给表格组件，右上角还要显示一个合计数字，点某一行的时候要根据 id 把那条记录捞出来。我刚工作那会儿的写法是一路 <code>for</code> 循环加临时变量，写到第三个需求的时候自己都读不下去了。</p>
+<p>后来把这几件事拆给 <code>filter</code>、<code>map</code>、<code>reduce</code>、<code>find</code>，代码从二十多行缩到五行，更重要的是每一行在干什么一眼就能看出来。这篇不打算逐个抄 API 签名，重点放在：遇到一个具体需求该挑哪个方法、几个方法怎么串起来、以及哪些写法看着优雅其实藏着性能坑。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>传给<code>reduce</code>的第一个参数函数还可以增加2个参数：</li>
-<li>第三个参数：每个元素在原数据结构中的位置，比如数组下标。</li>
-<li>第四个参数：调用reduce方法的数据集合，比如例子中的posts</li>
+<li><code>filter</code>、<code>find</code>、<code>map</code>、<code>reduce</code>、<code>some</code>、<code>every</code> 各自负责的那一件事</li>
+<li>拿到需求怎么在三十秒内选出该用哪个方法</li>
+<li>业务里高频出现的不可变更新套路，新增、删除、改某一项、动态键</li>
+<li><code>reduce</code> 里用展开运算符累加为什么会退化成 O(n²)</li>
+<li>链式调用遍历多遍，到底要不要合并成一次 <code>reduce</code></li>
+<li>2018 之后新增的 <code>flatMap</code>、<code>Object.fromEntries</code>、<code>Object.groupBy</code> 能省掉哪些手写代码</li>
 </ul>
-<p><strong>some</strong></p>
-<blockquote>
-<p>some找到数组中符合条件的一项就不会在找，类似于<code>find</code>只找第一项</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[1,2,3,4,5].some(v=&gt;v&gt;4) // true 符合有某一项满足条件</span><br></pre></td></tr></table></figure>
+<p>数组方法的完整清单（包括哪些会改原数组、各自的返回值边界）我另开了一篇 <a href="https://feinterview.poetries.top/blog/javaScript-arr-summary">JavaScript数组方法总结</a> 讲，这篇只聊业务里怎么用。</p>
+<h2 id="一、四个方法，各管一件事"><a href="#一、四个方法，各管一件事" class="headerlink" title="一、四个方法，各管一件事"></a>一、四个方法，各管一件事</h2><p>先把职责划清楚，后面选型就不用犹豫了。</p>
+<h3 id="1-1-filter-负责筛"><a href="#1-1-filter-负责筛" class="headerlink" title="1.1 filter 负责筛"></a>1.1 filter 负责筛</h3><p><code>filter</code> 可以筛除数组和类似结构中不满足条件的元素，并返回满足条件的元素组成的数组。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> integers = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">7</span>];</span><br><span class="line"><span class="keyword">const</span> evenIntegers = integers.<span class="title function_">filter</span>(<span class="function"><span class="params">i</span> =&gt;</span> i % <span class="number">2</span> === <span class="number">0</span>);</span><br><span class="line"><span class="comment">// evenIntegers 的值为 [2, 4, 6]</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>every</strong></p>
-<blockquote>
-<p><code>every</code>数组中每个条件都为真才会返回真</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[1,2,3,4,5].every(v=&gt;v&gt;1) // false 数组中每一项都大于1才会返回true </span><br></pre></td></tr></table></figure>
+<p>它的返回值一定是数组，最坏情况是空数组，不会是 <code>undefined</code>。这一点很关键，业务里拿到 <code>filter</code> 的结果可以直接 <code>.length</code> 或者直接丢给 <code>v-for</code>，不用先判空。</p>
+<h3 id="1-2-find-负责找一个"><a href="#1-2-find-负责找一个" class="headerlink" title="1.2 find 负责找一个"></a>1.2 find 负责找一个</h3><p><code>find</code> 返回数组或类似结构中满足条件的第一个元素。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 1&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 2&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="comment">// 找出 id 为 1 的 post</span></span><br><span class="line"><span class="keyword">const</span> title = posts.<span class="title function_">find</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> === <span class="number">1</span>).<span class="property">title</span>;</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、向对象数组添加新元素"><a href="#二、向对象数组添加新元素" class="headerlink" title="二、向对象数组添加新元素"></a>二、向对象数组添加新元素</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> books = [];</span><br><span class="line"><span class="keyword">const</span> newBook = &#123;<span class="attr">title</span>: <span class="string">&#x27;Alice in wonderland&#x27;</span>, <span class="attr">id</span>: <span class="number">1</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> updatedBooks = [...books, newBook];</span><br><span class="line"><span class="comment">//updatedBooks的值为[&#123;title: &#x27;Alice in wonderland&#x27;, id: 1&#125;]</span></span><br></pre></td></tr></table></figure>
+<p>这里有个坑要注意，<code>find</code> 找不到的时候返回 <code>undefined</code>，上面这行 <code>.title</code> 就会直接抛 <code>Cannot read properties of undefined</code>。这是我在列表页点击详情那一步最常见的线上报错来源，尤其是列表已经刷新过、用户点的是一条已经被删掉的记录。稳妥的写法是加可选链：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> title = posts.<span class="title function_">find</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> === <span class="number">1</span>)?.<span class="property">title</span> ?? <span class="string">&#x27;&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-<h2 id="三、为一个数组创建视图"><a href="#三、为一个数组创建视图" class="headerlink" title="三、为一个数组创建视图"></a>三、为一个数组创建视图</h2><blockquote>
-<p>如果需要实现用户从购物车中删除物品，但是又不想破坏原来的购物车列表，可以使用filter方法</p>
-</blockquote>
+<p><code>?.</code> 和 <code>??</code> 是 ES2020 才有的，2018 年那会儿只能写 <code>const post = posts.find(...); const title = post ? post.title : &#39;&#39;</code>。现在直接用新语法就行。</p>
+<h3 id="1-3-map-负责整批换一遍"><a href="#1-3-map-负责整批换一遍" class="headerlink" title="1.3 map 负责整批换一遍"></a>1.3 map 负责整批换一遍</h3><p><code>map</code> 的作用在于处理流式数据，比如数组。可以把它想象成所有元素都要经过的一个转换器。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> integers = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">7</span>];</span><br><span class="line"><span class="keyword">const</span> twoXIntegers = integers.<span class="title function_">map</span>(<span class="function"><span class="params">i</span> =&gt;</span> i * <span class="number">2</span>);</span><br><span class="line"><span class="comment">// twoXIntegers 现在是 [2, 4, 6, 8, 12, 14]，而 integers 不发生变化</span></span><br></pre></td></tr></table></figure>
+
+<p><code>map</code> 的返回数组长度和原数组严格一致，这是它和 <code>filter</code> 最根本的差别。想边转换边过滤，正规做法是 <code>filter</code> 之后再 <code>map</code>，别指望在 <code>map</code> 里 <code>return</code> 一个 <code>undefined</code> 就能把那一项去掉，那样只会得到一个塞满 <code>undefined</code> 的等长数组。</p>
+<h3 id="1-4-reduce-负责合成一个"><a href="#1-4-reduce-负责合成一个" class="headerlink" title="1.4 reduce 负责合成一个"></a>1.4 reduce 负责合成一个</h3><p>当你想要把多个数据揉进一个结果里时，就该用 reducer 了。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">upVotes</span>: <span class="number">2</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">upVotes</span>: <span class="number">89</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">3</span>, <span class="attr">upVotes</span>: <span class="number">1</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="keyword">const</span> totalUpvotes = posts.<span class="title function_">reduce</span>(<span class="function">(<span class="params">totalUpvotes, currentPost</span>) =&gt;</span></span><br><span class="line">  totalUpvotes + currentPost.<span class="property">upVotes</span>, <span class="comment">// reducer 函数</span></span><br><span class="line">  <span class="number">0</span> <span class="comment">// 初始化投票数为 0</span></span><br><span class="line">);</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(totalUpvotes) <span class="comment">// 输出投票总数：92</span></span><br></pre></td></tr></table></figure>
+
+<p>传给 <code>reduce</code> 的回调函数除了累加值和当前值，还可以再接两个参数。第三个参数是每个元素在原数据结构中的位置，比如数组下标。第四个参数是调用 <code>reduce</code> 方法的数据集合，比如例子中的 <code>posts</code>。</p>
+<p>第二个参数那个初始值别省。数组为空且没给初始值的时候，<code>reduce</code> 会直接抛 <code>TypeError: Reduce of empty array with no initial value</code>。接口返回空列表在业务里太常见了，这个错我踩过不止一次。</p>
+<h3 id="1-5-some-和-every-负责回答是非题"><a href="#1-5-some-和-every-负责回答是非题" class="headerlink" title="1.5 some 和 every 负责回答是非题"></a>1.5 some 和 every 负责回答是非题</h3><p><code>some</code> 找到数组中符合条件的一项就不会再往下找，跟 <code>find</code> 一样只关心第一个命中的。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>].<span class="title function_">some</span>(<span class="function"><span class="params">v</span> =&gt;</span> v &gt; <span class="number">4</span>) <span class="comment">// true，有某一项满足条件即为真</span></span><br></pre></td></tr></table></figure>
+
+<p><code>every</code> 则是数组中每个元素都为真才会返回真。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>].<span class="title function_">every</span>(<span class="function"><span class="params">v</span> =&gt;</span> v &gt; <span class="number">1</span>) <span class="comment">// false，每一项都大于 1 才会返回 true</span></span><br></pre></td></tr></table></figure>
+
+<p>这两个都是短路的，<code>some</code> 一旦拿到 <code>true</code> 就停，<code>every</code> 一旦拿到 <code>false</code> 就停。所以「判断列表里有没有勾选项」这种需求，写 <code>list.some(i =&gt; i.checked)</code> 比 <code>list.filter(i =&gt; i.checked).length &gt; 0</code> 更省，后者会把整个数组走完还额外造一个新数组。</p>
+<p>有个反直觉的地方：空数组调用 <code>every</code> 返回 <code>true</code>，调用 <code>some</code> 返回 <code>false</code>。逻辑上讲得通，空集合里「所有元素都满足条件」这句话是空真，但表单校验里如果用户一项都没填，<code>every</code> 直接放行，这个我踩过。</p>
+<h2 id="二、拿到需求先问三个问题"><a href="#二、拿到需求先问三个问题" class="headerlink" title="二、拿到需求先问三个问题"></a>二、拿到需求先问三个问题</h2><p>选型其实不复杂，问三句就够了。</p>
+<p>第一，我要的结果是什么形状？一个布尔值、一个元素、一个新数组，还是一个别的东西。</p>
+<p>第二，结果的长度和原数组一样吗？</p>
+<p>第三，我需要提前退出吗？</p>
+<p>对着下面这张表落座就行：</p>
+<table>
+<thead>
+<tr>
+<th>我想要的结果</th>
+<th>用它</th>
+<th>找不到 &#x2F; 空数组时</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>满足条件的全部元素</td>
+<td><code>filter</code></td>
+<td>返回 <code>[]</code></td>
+</tr>
+<tr>
+<td>满足条件的第一个元素</td>
+<td><code>find</code></td>
+<td>返回 <code>undefined</code></td>
+</tr>
+<tr>
+<td>满足条件的第一个下标</td>
+<td><code>findIndex</code></td>
+<td>返回 <code>-1</code></td>
+</tr>
+<tr>
+<td>长度不变、内容换一遍</td>
+<td><code>map</code></td>
+<td>返回等长数组</td>
+</tr>
+<tr>
+<td>有没有任意一个满足</td>
+<td><code>some</code></td>
+<td>空数组返回 <code>false</code></td>
+</tr>
+<tr>
+<td>是不是全部都满足</td>
+<td><code>every</code></td>
+<td>空数组返回 <code>true</code></td>
+</tr>
+<tr>
+<td>一个汇总值、一个对象、一个 Map</td>
+<td><code>reduce</code></td>
+<td>空数组且无初始值会抛错</td>
+</tr>
+<tr>
+<td>只想执行副作用，不要返回值</td>
+<td><code>forEach</code></td>
+<td>无法中途 <code>break</code></td>
+</tr>
+</tbody></table>
+<p>最后一行值得多说一句。<code>forEach</code> 里 <code>return</code> 只能结束当前这次回调，跳不出整个循环，<code>break</code> 更是直接语法错误。真需要提前跳出的场景，要么用 <code>some</code> 当伪 <code>break</code>，要么老老实实写 <code>for...of</code>。为了跳出循环去 <code>throw</code> 一个异常再 <code>catch</code>，这种写法我见过，但不建议。</p>
+<h2 id="三、业务里高频的不可变更新套路"><a href="#三、业务里高频的不可变更新套路" class="headerlink" title="三、业务里高频的不可变更新套路"></a>三、业务里高频的不可变更新套路</h2><p>React 的 <code>setState</code>、Redux 的 reducer、Vue 3 的 <code>ref</code> 替换，都要求你造一个新对象而不是原地改。下面这几段是我几乎每个项目都会写一遍的模板。</p>
+<h3 id="3-1-向对象数组添加新元素"><a href="#3-1-向对象数组添加新元素" class="headerlink" title="3.1 向对象数组添加新元素"></a>3.1 向对象数组添加新元素</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> books = [];</span><br><span class="line"><span class="keyword">const</span> newBook = &#123;<span class="attr">title</span>: <span class="string">&#x27;Alice in wonderland&#x27;</span>, <span class="attr">id</span>: <span class="number">1</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> updatedBooks = [...books, newBook];</span><br><span class="line"><span class="comment">// updatedBooks 的值为 [&#123;title: &#x27;Alice in wonderland&#x27;, id: 1&#125;]</span></span><br></pre></td></tr></table></figure>
+
+<p><code>[...books, newBook]</code> 而不是 <code>books.push(newBook)</code>，差别在于前者产生新引用，React 的浅比较能看出变化，后者改的还是同一个数组，组件不会重渲染。</p>
+<h3 id="3-2-为一个数组创建视图"><a href="#3-2-为一个数组创建视图" class="headerlink" title="3.2 为一个数组创建视图"></a>3.2 为一个数组创建视图</h3><p>如果需要实现用户从购物车中删除物品，但是又不想破坏原来的购物车列表，可以用 <code>filter</code>。</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> myId = <span class="number">6</span>;</span><br><span class="line"><span class="keyword">const</span> userIds = [<span class="number">1</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">3</span>, <span class="number">6</span>];</span><br><span class="line"><span class="keyword">const</span> allButMe = userIds.<span class="title function_">filter</span>(<span class="function"><span class="params">id</span> =&gt;</span> id !== myId);</span><br><span class="line"><span class="comment">// allButMe is [1, 5, 7, 3]</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="四、向数组中新增元素"><a href="#四、向数组中新增元素" class="headerlink" title="四、向数组中新增元素"></a>四、向数组中新增元素</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> books = [<span class="string">&#x27;Positioning by Trout&#x27;</span>, <span class="string">&#x27;War by Green&#x27;</span>];</span><br><span class="line"><span class="keyword">const</span> newBooks = [...books, <span class="string">&#x27;HWFIF by Carnegie&#x27;</span>];</span><br><span class="line"><span class="comment">// newBooks are now [&#x27;Positioning by Trout&#x27;, &#x27;War by Green&#x27;, &#x27;HWFIF // by Carnegie&#x27;]</span></span><br></pre></td></tr></table></figure>
+<p>这里其实是「删除」的不可变实现。用 <code>splice</code> 也能删，但 <code>splice</code> 改的是原数组，而且要先 <code>indexOf</code> 找下标，两步操作中间数组一变就容易出错。</p>
+<h3 id="3-3-向数组中新增元素"><a href="#3-3-向数组中新增元素" class="headerlink" title="3.3 向数组中新增元素"></a>3.3 向数组中新增元素</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> books = [<span class="string">&#x27;Positioning by Trout&#x27;</span>, <span class="string">&#x27;War by Green&#x27;</span>];</span><br><span class="line"><span class="keyword">const</span> newBooks = [...books, <span class="string">&#x27;HWFIF by Carnegie&#x27;</span>];</span><br><span class="line"><span class="comment">// newBooks 现在是 [&#x27;Positioning by Trout&#x27;, &#x27;War by Green&#x27;, &#x27;HWFIF by Carnegie&#x27;]</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="五、为对象新增一组键值对"><a href="#五、为对象新增一组键值对" class="headerlink" title="五、为对象新增一组键值对"></a>五、为对象新增一组键值对</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> updatedUser = &#123;...user, <span class="attr">age</span>: <span class="number">23</span>&#125;;</span><br><span class="line"><span class="comment">//updatedUser的值为：&#123;name: &#x27;Shivek Khurana&#x27;, age: 23&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-4-为对象新增一组键值对"><a href="#3-4-为对象新增一组键值对" class="headerlink" title="3.4 为对象新增一组键值对"></a>3.4 为对象新增一组键值对</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> updatedUser = &#123;...user, <span class="attr">age</span>: <span class="number">23</span>&#125;;</span><br><span class="line"><span class="comment">// updatedUser 的值为：&#123;name: &#x27;Shivek Khurana&#x27;, age: 23&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="六、使用变量作为键名为对象添加键值对"><a href="#六、使用变量作为键名为对象添加键值对" class="headerlink" title="六、使用变量作为键名为对象添加键值对"></a>六、使用变量作为键名为对象添加键值对</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> dynamicKey = <span class="string">&#x27;wearsSpectacles&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> updatedUser = &#123;...user, [dynamicKey]: <span class="literal">true</span>&#125;;</span><br><span class="line"><span class="comment">// updatedUser is &#123;name: &#x27;Shivek Khurana&#x27;, wearsSpectacles: true&#125;</span></span><br></pre></td></tr></table></figure>
+<p>对象展开运算符是 ES2018 才进标准的，数组展开是 ES2015。2018 年写这段的时候还得靠 babel 转译，现在所有现代浏览器和 Node 18 以上都直接支持。</p>
+<h3 id="3-5-使用变量作为键名为对象添加键值对"><a href="#3-5-使用变量作为键名为对象添加键值对" class="headerlink" title="3.5 使用变量作为键名为对象添加键值对"></a>3.5 使用变量作为键名为对象添加键值对</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> dynamicKey = <span class="string">&#x27;wearsSpectacles&#x27;</span>;</span><br><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> updatedUser = &#123;...user, [dynamicKey]: <span class="literal">true</span>&#125;;</span><br><span class="line"><span class="comment">// updatedUser is &#123;name: &#x27;Shivek Khurana&#x27;, wearsSpectacles: true&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="七、修改数组中满足条件的元素对象"><a href="#七、修改数组中满足条件的元素对象" class="headerlink" title="七、修改数组中满足条件的元素对象"></a>七、修改数组中满足条件的元素对象</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 1&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 2&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="keyword">const</span> updatedPosts = posts.<span class="title function_">map</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> !== <span class="number">1</span> ?</span><br><span class="line">  p : &#123;...p, <span class="attr">title</span>: <span class="string">&#x27;Updated Title 1&#x27;</span>&#125;</span><br><span class="line">);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">updatedPosts is now </span></span><br><span class="line"><span class="comment">[</span></span><br><span class="line"><span class="comment">  &#123;id: 1, title: &#x27;Updated Title 1&#x27;&#125;,</span></span><br><span class="line"><span class="comment">  &#123;id: 2, title: &#x27;Title 2&#x27;&#125;</span></span><br><span class="line"><span class="comment">];</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>方括号里放变量叫计算属性名。表单那种字段名由配置决定的场景全靠它，写 <code>&#123; [field.key]: value &#125;</code> 就能动态拼出来。</p>
+<h3 id="3-6-修改数组中满足条件的元素对象"><a href="#3-6-修改数组中满足条件的元素对象" class="headerlink" title="3.6 修改数组中满足条件的元素对象"></a>3.6 修改数组中满足条件的元素对象</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 1&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 2&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="keyword">const</span> updatedPosts = posts.<span class="title function_">map</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> !== <span class="number">1</span> ?</span><br><span class="line">  p : &#123;...p, <span class="attr">title</span>: <span class="string">&#x27;Updated Title 1&#x27;</span>&#125;</span><br><span class="line">);</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">updatedPosts is now</span></span><br><span class="line"><span class="comment">[</span></span><br><span class="line"><span class="comment">  &#123;id: 1, title: &#x27;Updated Title 1&#x27;&#125;,</span></span><br><span class="line"><span class="comment">  &#123;id: 2, title: &#x27;Title 2&#x27;&#125;</span></span><br><span class="line"><span class="comment">];</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="八、找出数组中满足条件的元素"><a href="#八、找出数组中满足条件的元素" class="headerlink" title="八、找出数组中满足条件的元素"></a>八、找出数组中满足条件的元素</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 1&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 2&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="keyword">const</span> postInQuestion = posts.<span class="title function_">find</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> === <span class="number">2</span>);</span><br><span class="line"><span class="comment">// postInQuestion now holds &#123;id: 2, title: &#x27;Title 2&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
+<p>这段是我用得最多的一个模板，改列表里某一项。注意不匹配的那些项直接把 <code>p</code> 原样返回了，引用没变。这个设计是真的舒服，React 里配合 <code>memo</code> 用，没被改的行一次都不会重渲染。要是图省事写成 <code>posts.map(p =&gt; (&#123;...p&#125;))</code>，每一项都成了新对象，整张表全部重渲染。</p>
+<h3 id="3-7-找出数组中满足条件的元素"><a href="#3-7-找出数组中满足条件的元素" class="headerlink" title="3.7 找出数组中满足条件的元素"></a>3.7 找出数组中满足条件的元素</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">1</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 1&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">2</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 2&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="keyword">const</span> postInQuestion = posts.<span class="title function_">find</span>(<span class="function"><span class="params">p</span> =&gt;</span> p.<span class="property">id</span> === <span class="number">2</span>);</span><br><span class="line"><span class="comment">// postInQuestion now holds &#123;id: 2, title: &#x27;Title 2&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="九、删除目标对象的一组属性"><a href="#九、删除目标对象的一组属性" class="headerlink" title="九、删除目标对象的一组属性"></a>九、删除目标对象的一组属性</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">//方法一</span></span><br><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>, <span class="attr">age</span>: <span class="number">23</span>, <span class="attr">password</span>: <span class="string">&#x27;SantaCl@use&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> userWithoutPassword = <span class="title class_">Object</span>.<span class="title function_">keys</span>(user)</span><br><span class="line">  .<span class="title function_">filter</span>(<span class="function"><span class="params">key</span> =&gt;</span> key !== <span class="string">&#x27;password&#x27;</span>)</span><br><span class="line">  .<span class="title function_">map</span>(<span class="function"><span class="params">key</span> =&gt;</span> &#123;[key]: user[key]&#125;)</span><br><span class="line">  .<span class="title function_">reduce</span>(<span class="function">(<span class="params">accumulator, current</span>) =&gt;</span> </span><br><span class="line">    (&#123;...accumulator, ...current&#125;),</span><br><span class="line">    &#123;&#125;</span><br><span class="line">  )</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方法二</span></span><br><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>, <span class="attr">age</span>: <span class="number">23</span>, <span class="attr">password</span>: <span class="string">&#x27;SantaCl@use&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> userWithoutPassword = (<span class="function">(<span class="params">&#123;name, age&#125;</span>) =&gt;</span> (&#123;name, age&#125;))(user);</span><br><span class="line"></span><br><span class="line"><span class="comment">// userWithoutPassword becomes &#123;name: &#x27;Shivek Khurana&#x27;, age: 23&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-8-获取数组中某一对象的下标"><a href="#3-8-获取数组中某一对象的下标" class="headerlink" title="3.8 获取数组中某一对象的下标"></a>3.8 获取数组中某一对象的下标</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">13</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 221&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">5</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 102&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">131</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 18&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">55</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 234&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="comment">// 找到 id 为 131 的元素下标</span></span><br><span class="line"><span class="keyword">const</span> requiredIndex = posts.<span class="title function_">findIndex</span>(<span class="function"><span class="params">obj</span> =&gt;</span> obj.<span class="property">id</span> === <span class="number">131</span>);</span><br></pre></td></tr></table></figure>
 
-<h2 id="十、将对象转化成请求串"><a href="#十、将对象转化成请求串" class="headerlink" title="十、将对象转化成请求串"></a>十、将对象转化成请求串</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> params = &#123;<span class="attr">color</span>: <span class="string">&#x27;red&#x27;</span>, <span class="attr">minPrice</span>: <span class="number">8000</span>, <span class="attr">maxPrice</span>: <span class="number">10000</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> query = <span class="string">&#x27;?&#x27;</span> + <span class="title class_">Object</span>.<span class="title function_">keys</span>(params)</span><br><span class="line">  .<span class="title function_">map</span>(<span class="function"><span class="params">k</span> =&gt;</span>   </span><br><span class="line">    <span class="built_in">encodeURIComponent</span>(k) + <span class="string">&#x27;=&#x27;</span> + <span class="built_in">encodeURIComponent</span>(params[k])</span><br><span class="line">  )</span><br><span class="line">  .<span class="title function_">join</span>(<span class="string">&#x27;&amp;&#x27;</span>)</span><br><span class="line">;</span><br><span class="line"><span class="comment">// encodeURIComponent将对特殊字符进行编码。</span></span><br><span class="line"><span class="comment">// query is now &quot;color=red&amp;minPrice=8000&amp;maxPrice=10000&quot;</span></span><br></pre></td></tr></table></figure>
+<p><code>findIndex</code> 和 <code>indexOf</code> 的区别在于前者接受一个判定函数，后者只能按 <code>===</code> 比对整个值。数组里装的是对象的时候，<code>indexOf</code> 基本没用，因为你手里那个对象字面量和数组里的不是同一个引用。</p>
+<h3 id="3-9-删除目标对象的一组属性"><a href="#3-9-删除目标对象的一组属性" class="headerlink" title="3.9 删除目标对象的一组属性"></a>3.9 删除目标对象的一组属性</h3><p>原文这里给了两个方法，第一个方法有处笔误，先把正确版本贴出来：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方法一：filter 掉不要的 key，再 reduce 合回一个对象</span></span><br><span class="line"><span class="keyword">const</span> user = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>, <span class="attr">age</span>: <span class="number">23</span>, <span class="attr">password</span>: <span class="string">&#x27;SantaCl@use&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> userWithoutPassword = <span class="title class_">Object</span>.<span class="title function_">keys</span>(user)</span><br><span class="line">  .<span class="title function_">filter</span>(<span class="function"><span class="params">key</span> =&gt;</span> key !== <span class="string">&#x27;password&#x27;</span>)</span><br><span class="line">  .<span class="title function_">map</span>(<span class="function"><span class="params">key</span> =&gt;</span> (&#123; [key]: user[key] &#125;))</span><br><span class="line">  .<span class="title function_">reduce</span>(<span class="function">(<span class="params">accumulator, current</span>) =&gt;</span></span><br><span class="line">    (&#123;...accumulator, ...current&#125;),</span><br><span class="line">    &#123;&#125;</span><br><span class="line">  );</span><br><span class="line"><span class="comment">// userWithoutPassword becomes &#123;name: &#x27;Shivek Khurana&#x27;, age: 23&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="十一、获取数组中某一对象的下标"><a href="#十一、获取数组中某一对象的下标" class="headerlink" title="十一、获取数组中某一对象的下标"></a>十一、获取数组中某一对象的下标</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> posts = [</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">13</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 221&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">5</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 102&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">131</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 18&#x27;</span>&#125;,</span><br><span class="line">  &#123;<span class="attr">id</span>: <span class="number">55</span>, <span class="attr">title</span>: <span class="string">&#x27;Title 234&#x27;</span>&#125;</span><br><span class="line">];</span><br><span class="line"><span class="comment">// 找到id为131的元素</span></span><br><span class="line"><span class="keyword">const</span> requiredIndex = posts.<span class="title function_">findIndex</span>(<span class="function"><span class="params">obj</span>=&gt;</span>obj.<span class="property">id</span>===<span class="number">131</span>);</span><br></pre></td></tr></table></figure>
+<p>原文这里写的是 <code>.map(key =&gt; &#123;[key]: user[key]&#125;)</code>，少了一对包裹的圆括号。箭头函数后面直接跟 <code>&#123;</code> 会被解析成函数体而不是对象字面量，里面的 <code>[key]:</code> 就成了一个带标签的语句，跑起来要么报错要么返回一堆 <code>undefined</code>。要返回对象字面量，必须写成 <code>(&#123; ... &#125;)</code>。</p>
+<p>方法二用解构，短得多：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方法二：解构出想留的字段</span></span><br><span class="line"><span class="keyword">const</span> account = &#123;<span class="attr">name</span>: <span class="string">&#x27;Shivek Khurana&#x27;</span>, <span class="attr">age</span>: <span class="number">23</span>, <span class="attr">password</span>: <span class="string">&#x27;SantaCl@use&#x27;</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> userWithoutPassword = (<span class="function">(<span class="params">&#123;name, age&#125;</span>) =&gt;</span> (&#123;name, age&#125;))(account);</span><br><span class="line"><span class="comment">// userWithoutPassword becomes &#123;name: &#x27;Shivek Khurana&#x27;, age: 23&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>原文两段示例都用了 <code>const user</code>，写在同一个作用域里会直接报重复声明，所以第二段这里换了个变量名。</p>
+<p>要是字段很多、只想剔掉一两个，rest 解构更直接：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; password, ...userWithoutPassword &#125; = account;</span><br></pre></td></tr></table></figure>
+
+<p>一行搞定，代价是留下一个用不到的 <code>password</code> 变量，ESLint 的 <code>no-unused-vars</code> 会告警，配置里加个 <code>ignoreRestSiblings: true</code> 就好。</p>
+<h3 id="3-10-将对象转化成请求串"><a href="#3-10-将对象转化成请求串" class="headerlink" title="3.10 将对象转化成请求串"></a>3.10 将对象转化成请求串</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> params = &#123;<span class="attr">color</span>: <span class="string">&#x27;red&#x27;</span>, <span class="attr">minPrice</span>: <span class="number">8000</span>, <span class="attr">maxPrice</span>: <span class="number">10000</span>&#125;;</span><br><span class="line"><span class="keyword">const</span> query = <span class="string">&#x27;?&#x27;</span> + <span class="title class_">Object</span>.<span class="title function_">keys</span>(params)</span><br><span class="line">  .<span class="title function_">map</span>(<span class="function"><span class="params">k</span> =&gt;</span></span><br><span class="line">    <span class="built_in">encodeURIComponent</span>(k) + <span class="string">&#x27;=&#x27;</span> + <span class="built_in">encodeURIComponent</span>(params[k])</span><br><span class="line">  )</span><br><span class="line">  .<span class="title function_">join</span>(<span class="string">&#x27;&amp;&#x27;</span>);</span><br><span class="line"><span class="comment">// encodeURIComponent 将对特殊字符进行编码</span></span><br><span class="line"><span class="comment">// query is now &quot;?color=red&amp;minPrice=8000&amp;maxPrice=10000&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>原文的注释漏了开头那个问号，实际结果是带 <code>?</code> 的。</p>
+<p><code>encodeURIComponent</code> 这一步千万别省。搜索框里用户输个 <code>&amp;</code> 或者 <code>#</code>，不编码的话整个 query 就断在那儿了，后端拿到的参数是残的。</p>
+<p>不过现在有更省事的写法，<code>URLSearchParams</code> 是浏览器和 Node 都内置的：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> query = <span class="string">&#x27;?&#x27;</span> + <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(params).<span class="title function_">toString</span>();</span><br></pre></td></tr></table></figure>
+
+<p>它会自动做编码，还能处理数组和重复 key。有一个差异要知道，<code>URLSearchParams</code> 把空格编码成 <code>+</code>，<code>encodeURIComponent</code> 编码成 <code>%20</code>。绝大多数后端框架两种都认，但如果你的后端是自己手写的解析，这里可能会不一致。</p>
+<h2 id="四、reduce-里用展开运算符，小心-O-n²"><a href="#四、reduce-里用展开运算符，小心-O-n²" class="headerlink" title="四、reduce 里用展开运算符，小心 O(n²)"></a>四、reduce 里用展开运算符，小心 O(n²)</h2><p>上面 3.9 的方法一，我当年觉得写得很漂亮，函数式味道很足。后来在一个几千条数据的导出功能里用了类似写法，页面直接卡住了。</p>
+<p>问题出在这一行：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">reduce</span>(<span class="function">(<span class="params">accumulator, current</span>) =&gt;</span> (&#123;...accumulator, ...current&#125;), &#123;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>每一轮迭代都在把累加器整个展开一遍造新对象。数组长度是 n，第 k 轮要复制 k 个属性，加起来就是 n(n+1)&#x2F;2 次属性复制。n 是 10 的时候无所谓，n 到了 5000 就是两千多万次操作。</p>
+<p>写成直接改累加器就是线性的：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="title function_">reduce</span>(<span class="function">(<span class="params">acc, current</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="title class_">Object</span>.<span class="title function_">assign</span>(acc, current);</span><br><span class="line">  <span class="keyword">return</span> acc;</span><br><span class="line">&#125;, &#123;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>累加器本身是 <code>reduce</code> 内部创建的临时对象，从头到尾没有暴露出去，原地改它不违反不可变原则。同样的道理也适用于数组累加，<code>(acc, x) =&gt; [...acc, x]</code> 是 O(n²)，<code>(acc, x) =&gt; &#123; acc.push(x); return acc; &#125;</code> 是 O(n)。</p>
+<p>先说结论，不可变的边界在函数的输入和输出，不在函数内部的临时变量。这个区分清楚了，很多性能问题自己就没了。</p>
+<h2 id="五、链式调用遍历几遍，要不要合并"><a href="#五、链式调用遍历几遍，要不要合并" class="headerlink" title="五、链式调用遍历几遍，要不要合并"></a>五、链式调用遍历几遍，要不要合并</h2><p><code>list.filter(...).map(...).reduce(...)</code> 这种写法会把数组走三遍，还会造两个中间数组。很多人第一反应是合并成一次 <code>reduce</code>。</p>
+<p>我一开始也是这么想的，后来基本不这么干了。</p>
+<p>原因有两个。一是现代 JS 引擎对这些方法的优化很好，几千条数据的量级下，三次遍历和一次遍历的差距在几毫秒以内，用户完全感知不到。二是合并之后的 <code>reduce</code> 可读性会掉一大截，回调里同时混着过滤条件、转换逻辑和累加逻辑，三个月后回来改需求就是灾难。</p>
+<p>真正需要合并的情况我只遇到过两类：数据量到十万级别以上（这时候更应该考虑分页或者虚拟列表），或者每一步的回调里有昂贵计算（比如正则、日期格式化），这时候中间数组的内存开销和重复计算才真的值钱。</p>
+<p>回到这块，我的默认选择是链式写法，遇到实测卡顿再合并，别提前优化。</p>
+<h2 id="六、2018-之后，这些活不用自己写了"><a href="#六、2018-之后，这些活不用自己写了" class="headerlink" title="六、2018 之后，这些活不用自己写了"></a>六、2018 之后，这些活不用自己写了</h2><p>原文写于 2018 年，那时候标准里还没有下面这些方法。有几个能直接替掉上面的手写代码。</p>
+<p><code>flatMap</code>（ES2019）等价于 <code>map</code> 之后 <code>flat(1)</code>，但只遍历一次。想在转换的同时顺便过滤，它比 <code>filter().map()</code> 更顺手，因为回调里返回空数组就等于把这一项丢掉：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> activeNames = users.<span class="title function_">flatMap</span>(<span class="function"><span class="params">u</span> =&gt;</span> u.<span class="property">active</span> ? [u.<span class="property">name</span>] : []);</span><br></pre></td></tr></table></figure>
+
+<p><code>Object.fromEntries</code>（ES2019）是 <code>Object.entries</code> 的逆运算，3.9 那段 <code>map</code> 加 <code>reduce</code> 拼对象的代码可以整个换掉：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> userWithoutPassword = <span class="title class_">Object</span>.<span class="title function_">fromEntries</span>(</span><br><span class="line">  <span class="title class_">Object</span>.<span class="title function_">entries</span>(user).<span class="title function_">filter</span>(<span class="function">(<span class="params">[key]</span>) =&gt;</span> key !== <span class="string">&#x27;password&#x27;</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>一行，而且没有 O(n²) 的问题。</p>
+<p><code>Object.groupBy</code> 和 <code>Map.groupBy</code>（ES2024）把「按某个字段分组」这个需求标准化了。以前这是 <code>reduce</code> 最经典的用法，现在直接：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> byStatus = <span class="title class_">Object</span>.<span class="title function_">groupBy</span>(orders, <span class="function"><span class="params">o</span> =&gt;</span> o.<span class="property">status</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这个方法比较新，用之前查一下你的目标浏览器和 Node 版本，具体支持范围以 MDN 为准。项目里要兼容老环境的话，还是老老实实用 <code>reduce</code> 或者 lodash 的 <code>_.groupBy</code>。</p>
+<p><code>findLast</code> 和 <code>findLastIndex</code>（ES2023）从后往前找，以前得写 <code>[...arr].reverse().find(...)</code>，又拷贝又反转。</p>
+<p><code>at</code>（ES2022）支持负索引，<code>arr.at(-1)</code> 取最后一项，比 <code>arr[arr.length - 1]</code> 干净。</p>
+<p><code>toSorted</code>、<code>toReversed</code>、<code>toSpliced</code>、<code>with</code>（ES2023）是 <code>sort</code>、<code>reverse</code>、<code>splice</code> 和下标赋值的不可变版本，返回新数组不动原数组。3.6 那段改某一项的代码，用 <code>with</code> 一行就够：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> updatedPosts = posts.<span class="title function_">with</span>(<span class="number">0</span>, &#123;...posts[<span class="number">0</span>], <span class="attr">title</span>: <span class="string">&#x27;Updated Title 1&#x27;</span>&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>前提是你知道下标。要按条件匹配还是得用 <code>map</code>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这几个方法真正要记的不是签名，是各自的返回值形状。<code>filter</code> 给数组，<code>find</code> 给元素或 <code>undefined</code>，<code>map</code> 给等长数组，<code>reduce</code> 给任意东西。想清楚要什么形状的结果，选哪个方法就是自动的。</p>
+<p><code>find</code> 的返回值必须防空，直接 <code>.title</code> 是列表页最高频的线上报错来源，用 <code>?.</code> 挡一下成本几乎为零。</p>
+<p>不可变更新的套路就那么几个，新增用展开、删除用 <code>filter</code> 或 rest 解构、改某一项用 <code>map</code> 加三元、动态键用计算属性名。这几个模板背下来，Redux reducer 和 React 的 <code>setState</code> 基本不用再想。</p>
+<p><code>reduce</code> 里别对累加器用展开运算符，那是 O(n²)。累加器是内部临时变量，原地改它不脏。</p>
+<p>链式调用遍历多遍这件事，绝大多数业务量级下不用管。可读性比那几毫秒值钱得多。</p>
+<p>数组方法的完整清单和「改不改原数组」的分类，可以接着看 <a href="https://feinterview.poetries.top/blog/javaScript-arr-summary">JavaScript数组方法总结</a>；字符串和对象那一侧的常用方法在 <a href="https://feinterview.poetries.top/blog/js-string-arr-object-api">JavaScript字符串、对象、数组常用方法速查</a>。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce">MDN Array.prototype.reduce</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap">MDN Array.prototype.flatMap</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries">MDN Object.fromEntries</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/groupBy">MDN Object.groupBy</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/URLSearchParams">MDN URLSearchParams</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

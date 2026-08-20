@@ -7,32 +7,34 @@
 <head>
   <meta charset="utf-8">
   
-  <title>vue过滤器（八） | 前端进阶之旅</title>
+  <title>Vue 过滤器 filters 全局与局部注册用法（八） | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="Vue,过滤器,filters," />
   
 
-  <meta name="description" content="一、全局过滤器&#x2F;&#x2F; 第一个参数表示：过滤器的名称&#x2F;&#x2F; 第二个参数表示：函数，使用过滤器的时候，这个函数中的代码会被执行Vue.filter(&#x27;filterName&#x27;, function (value) &#123;  &#x2F;&#x2F; value 表示要过滤的内容&#125;)  例子 Vue.filter(&#x27;date&#x27;, function (input, format">
+  <meta name="description" content="讲清 Vue 2 过滤器的注册方式、参数传递规则、串联写法和适用边界，附一套可复用的 filters 目录组织方案，以及 Vue 3 移除过滤器后用计算属性和方法替代的迁移思路。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="vue过滤器（八）">
+<meta property="og:title" content="Vue 过滤器 filters 全局与局部注册用法（八）">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/27/vue-filters/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、全局过滤器&#x2F;&#x2F; 第一个参数表示：过滤器的名称&#x2F;&#x2F; 第二个参数表示：函数，使用过滤器的时候，这个函数中的代码会被执行Vue.filter(&#x27;filterName&#x27;, function (value) &#123;  &#x2F;&#x2F; value 表示要过滤的内容&#125;)  例子 Vue.filter(&#x27;date&#x27;, function (input, format">
+<meta property="og:description" content="讲清 Vue 2 过滤器的注册方式、参数传递规则、串联写法和适用边界，附一套可复用的 filters 目录组织方案，以及 Vue 3 移除过滤器后用计算属性和方法替代的迁移思路。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/622.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/623.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/624.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/625.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/626.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/622.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/623.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/624.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/625.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/626.png">
 <meta property="article:published_time" content="2018-08-27T02:20:32.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.694Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.959Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="过滤器">
+<meta property="article:tag" content="filters">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/622.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/622.png">
 
   
 
@@ -210,7 +212,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%A8%E5%B1%80%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-text">一、全局过滤器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%B1%80%E9%83%A8%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-text">二、局部过滤器</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%BF%87%E6%BB%A4%E5%99%A8%E5%9C%A8%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-text">一、过滤器在解决什么问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%A8%E5%B1%80%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-text">二、全局过滤器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%B3%A8%E5%86%8C%E8%AF%AD%E6%B3%95"><span class="toc-text">2.1 注册语法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-text">2.2 一个完整的例子</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%8F%82%E6%95%B0%E6%98%AF%E6%80%8E%E4%B9%88%E4%BC%A0%E7%9A%84"><span class="toc-text">2.3 参数是怎么传的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E8%BF%87%E6%BB%A4%E5%99%A8%E5%8F%AF%E4%BB%A5%E4%B8%B2%E8%81%94"><span class="toc-text">2.4 过滤器可以串联</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%8A%8A%E8%BF%87%E6%BB%A4%E5%99%A8%E9%9B%86%E4%B8%AD%E7%AE%A1%E8%B5%B7%E6%9D%A5"><span class="toc-text">三、把过滤器集中管起来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B1%80%E9%83%A8%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-text">四、局部过滤器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%87%E6%BB%A4%E5%99%A8%E5%8F%AA%E8%83%BD%E7%94%A8%E5%9C%A8%E4%B8%A4%E4%B8%AA%E5%9C%B0%E6%96%B9"><span class="toc-text">五、过滤器只能用在两个地方</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Vue-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8A%8A%E8%BF%87%E6%BB%A4%E5%99%A8%E5%88%A0%E4%BA%86"><span class="toc-text">六、Vue 3 为什么把过滤器删了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -233,13 +235,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-filters" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">vue过滤器（八）</h1>
+    <h1 class="post-title">Vue 过滤器 filters 全局与局部注册用法（八）</h1>
 
     <div class="article-meta">
       <span>
@@ -275,12 +277,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 441字</span>
+            <span>字数统计 3.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 1分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -294,39 +296,110 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、全局过滤器"><a href="#一、全局过滤器" class="headerlink" title="一、全局过滤器"></a>一、全局过滤器</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一个参数表示：过滤器的名称</span></span><br><span class="line"><span class="comment">// 第二个参数表示：函数，使用过滤器的时候，这个函数中的代码会被执行</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">filter</span>(<span class="string">&#x27;filterName&#x27;</span>, <span class="keyword">function</span> (<span class="params">value</span>) &#123;</span><br><span class="line">  <span class="comment">// value 表示要过滤的内容</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+        <p>后端返回的时间戳是 <code>1535337632</code>，页面上要显示成 <code>2018-08-27 10:20:32</code>；金额字段是 <code>1234567</code>，要显示成 <code>1,234,567</code>；状态码是 <code>2</code>，要显示成「已发货」。这类「数据是一套，展示是另一套」的转换，几乎每个列表页都要来一遍。要是每个组件都写一个 <code>formatTime</code> 方法，同一段逻辑很快就散落到十几个文件里。Vue 2 给这类场景准备了过滤器，一个竖线就能把值管道式地丢进转换函数。这篇讲清楚过滤器怎么注册、参数怎么传、能用在哪不能用在哪，最后说说 Vue 3 为什么把它整个删掉了。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>过滤器要解决的到底是什么问题，它和方法、计算属性的分工</li>
+<li>全局过滤器 <code>Vue.filter</code> 的注册方式和参数传递规则</li>
+<li>一套能直接抄走的 filters 目录组织方案</li>
+<li>局部过滤器 <code>filters</code> 选项，以及它和全局过滤器的优先级</li>
+<li>过滤器串联，以及只能用在插值和 <code>v-bind</code> 两个位置的限制</li>
+<li>Vue 3 为什么移除了过滤器，老项目怎么迁</li>
+</ul>
+<h2 id="一、过滤器在解决什么问题"><a href="#一、过滤器在解决什么问题" class="headerlink" title="一、过滤器在解决什么问题"></a>一、过滤器在解决什么问题</h2><p>过滤器的定位很窄，它只做一件事，把一个值转成另一个值用来显示。</p>
+<p>它不改数据，不发请求，不碰组件状态。你传进去一个时间戳，它吐出来一个格式化字符串，原来的 data 一点没动。这个特性决定了它天然适合放在模板层，因为模板本来就是「展示」的地方。</p>
+<p>那为什么不直接写在模板里？比如这样：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123; new Date(item.time).getFullYear() + &#x27;-&#x27; + (new Date(item.time).getMonth() + 1) &#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>例子</strong></p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Vue</span>.<span class="title function_">filter</span>(<span class="string">&#x27;date&#x27;</span>, <span class="keyword">function</span> (<span class="params">input, format = <span class="string">&#x27;yyyy-MM-dd hh:mm:ss&#x27;</span>）&#123;</span></span><br><span class="line"><span class="params">      <span class="keyword">var</span> o = &#123;</span></span><br><span class="line"><span class="params">        <span class="string">&quot;M+&quot;</span>: input.getMonth() + <span class="number">1</span>, //月份 </span></span><br><span class="line"><span class="params">        <span class="string">&quot;d+&quot;</span>: input.getDate(), //日 </span></span><br><span class="line"><span class="params">        <span class="string">&quot;h+&quot;</span>: input.getHours(), //小时 </span></span><br><span class="line"><span class="params">        <span class="string">&quot;m+&quot;</span>: input.getMinutes(), //分 </span></span><br><span class="line"><span class="params">        <span class="string">&quot;s+&quot;</span>: input.getSeconds(), //秒 </span></span><br><span class="line"><span class="params">        <span class="string">&quot;q+&quot;</span>: <span class="built_in">Math</span>.floor((input.getMonth() + <span class="number">3</span>) / <span class="number">3</span>), //季度 </span></span><br><span class="line"><span class="params">        <span class="string">&quot;S&quot;</span>: input.getMilliseconds() //毫秒 </span></span><br><span class="line"><span class="params">      &#125;;</span></span><br><span class="line"><span class="params"></span></span><br><span class="line"><span class="params">      <span class="keyword">if</span> (/(y+)/.test(format)) format = format.replace(<span class="built_in">RegExp</span>.$1, (input.getFullYear() + <span class="string">&quot;&quot;</span>).substr(<span class="number">4</span> - <span class="built_in">RegExp</span>.$1.length));</span></span><br><span class="line"><span class="params">      // 不够<span class="number">2</span>位的前面补<span class="number">0</span></span></span><br><span class="line"><span class="params">      <span class="keyword">for</span> (<span class="keyword">var</span> k <span class="keyword">in</span> o)</span></span><br><span class="line"><span class="params">        <span class="keyword">if</span> (<span class="keyword">new</span> <span class="built_in">RegExp</span>(<span class="string">&quot;(&quot;</span> + k + <span class="string">&quot;)&quot;</span>).test(format)) </span></span><br><span class="line"><span class="params">        format = format.replace(<span class="built_in">RegExp</span>.$1, (<span class="built_in">RegExp</span>.$1.length == <span class="number">1</span>) ? (o[k]) : ((<span class="string">&quot;00&quot;</span> + o[k]).substr((<span class="string">&quot;&quot;</span> + o[k]).length)));</span></span><br><span class="line"><span class="params">      <span class="keyword">return</span> format;</span></span><br><span class="line"><span class="params">    &#125;</span>)</span><br></pre></td></tr></table></figure>
+<p>能跑，但模板一下子就脏了。模板里的表达式设计初衷是做简单运算，塞进去一堆逻辑之后，谁都不想再动它。过滤器把这段逻辑挪出去，模板恢复成一行 <code>item.time | date</code>，可读性差别很大。</p>
+<p>和方法比呢？<code>methods</code> 里写一个 <code>formatDate</code> 当然也行，写法是 <code>formatDate(item.time)</code>。区别在于过滤器是全局可复用的，注册一次全项目都能用，而 <code>methods</code> 绑在组件实例上，换个组件就得重新引一遍。</p>
+<p>和计算属性比，计算属性有缓存，过滤器没有。过滤器每次重新渲染都会执行一遍。所以过滤器只适合放轻量的字符串转换，遇到要遍历大数组、做大量计算的场景，请用计算属性。这块在 <a href="https://feinterview.poetries.top/blog/vue-computed-watch">Vue 计算属性与数据监听</a> 里有更细的对比。</p>
+<h2 id="二、全局过滤器"><a href="#二、全局过滤器" class="headerlink" title="二、全局过滤器"></a>二、全局过滤器</h2><h3 id="2-1-注册语法"><a href="#2-1-注册语法" class="headerlink" title="2.1 注册语法"></a>2.1 注册语法</h3><p><code>Vue.filter</code> 接两个参数，名字和函数：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一个参数表示：过滤器的名称</span></span><br><span class="line"><span class="comment">// 第二个参数表示：函数，使用过滤器的时候，这个函数中的代码会被执行</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">filter</span>(<span class="string">&#x27;filterName&#x27;</span>, <span class="keyword">function</span> (<span class="params">value</span>) &#123;</span><br><span class="line">  <span class="comment">// value 表示要过滤的内容</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<p>使用</p>
+<p>注册必须在创建 Vue 实例之前，也就是在 <code>new Vue()</code> 上面。放到后面注册，先渲染的那些组件是找不到这个过滤器的，控制台会报 <code>Failed to resolve filter</code>。</p>
+<p>函数的第一个参数是固定的，永远是竖线左边那个值。这一点是过滤器最容易搞错的地方，后面单独讲。</p>
+<h3 id="2-2-一个完整的例子"><a href="#2-2-一个完整的例子" class="headerlink" title="2.2 一个完整的例子"></a>2.2 一个完整的例子</h3><p>下面这个日期格式化过滤器，是老项目里出镜率最高的一个：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Vue</span>.<span class="title function_">filter</span>(<span class="string">&#x27;date&#x27;</span>, <span class="keyword">function</span> (<span class="params">input, format = <span class="string">&#x27;yyyy-MM-dd hh:mm:ss&#x27;</span></span>) &#123;</span><br><span class="line">      <span class="keyword">var</span> o = &#123;</span><br><span class="line">        <span class="string">&quot;M+&quot;</span>: input.<span class="title function_">getMonth</span>() + <span class="number">1</span>, <span class="comment">//月份 </span></span><br><span class="line">        <span class="string">&quot;d+&quot;</span>: input.<span class="title function_">getDate</span>(), <span class="comment">//日 </span></span><br><span class="line">        <span class="string">&quot;h+&quot;</span>: input.<span class="title function_">getHours</span>(), <span class="comment">//小时 </span></span><br><span class="line">        <span class="string">&quot;m+&quot;</span>: input.<span class="title function_">getMinutes</span>(), <span class="comment">//分 </span></span><br><span class="line">        <span class="string">&quot;s+&quot;</span>: input.<span class="title function_">getSeconds</span>(), <span class="comment">//秒 </span></span><br><span class="line">        <span class="string">&quot;q+&quot;</span>: <span class="title class_">Math</span>.<span class="title function_">floor</span>((input.<span class="title function_">getMonth</span>() + <span class="number">3</span>) / <span class="number">3</span>), <span class="comment">//季度 </span></span><br><span class="line">        <span class="string">&quot;S&quot;</span>: input.<span class="title function_">getMilliseconds</span>() <span class="comment">//毫秒 </span></span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (<span class="regexp">/(y+)/</span>.<span class="title function_">test</span>(format)) format = format.<span class="title function_">replace</span>(<span class="title class_">RegExp</span>.<span class="property">$1</span>, (input.<span class="title function_">getFullYear</span>() + <span class="string">&quot;&quot;</span>).<span class="title function_">substr</span>(<span class="number">4</span> - <span class="title class_">RegExp</span>.<span class="property">$1</span>.<span class="property">length</span>));</span><br><span class="line">      <span class="comment">// 不够2位的前面补0</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">var</span> k <span class="keyword">in</span> o)</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">new</span> <span class="title class_">RegExp</span>(<span class="string">&quot;(&quot;</span> + k + <span class="string">&quot;)&quot;</span>).<span class="title function_">test</span>(format)) </span><br><span class="line">        format = format.<span class="title function_">replace</span>(<span class="title class_">RegExp</span>.<span class="property">$1</span>, (<span class="title class_">RegExp</span>.<span class="property">$1</span>.<span class="property">length</span> == <span class="number">1</span>) ? (o[k]) : ((<span class="string">&quot;00&quot;</span> + o[k]).<span class="title function_">substr</span>((<span class="string">&quot;&quot;</span> + o[k]).<span class="property">length</span>)));</span><br><span class="line">      <span class="keyword">return</span> format;</span><br><span class="line">    &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>原文这段的函数参数列表结尾误用了全角右括号，直接复制会报语法错误，这里换成了半角的 <code>)</code>。</p>
+<p>代码本身的思路是先建一张占位符到实际值的映射表，年份单独处理是因为它可能要截取后两位（<code>yy</code> 和 <code>yyyy</code> 都要支持），其余字段统一走「前面补两个零再从后往前截」的补位技巧。</p>
+<p>有个隐藏前提要注意，这个函数假设 <code>input</code> 已经是 <code>Date</code> 对象了，直接调 <code>getMonth()</code>。要是后端给的是秒级时间戳，你得先 <code>new Date(ts * 1000)</code>。生产环境里更稳妥的做法是在函数开头加一层判断，字符串和数字都先转成 <code>Date</code>，转不出来就原样返回。</p>
+<p>使用的时候这样写：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">h1</span>&gt;</span>&#123;&#123;item.time | date(&#x27;yyyy-MM-dd hh:mm:ss&#x27;)&#125;&#125;<span class="tag">&lt;/<span class="name">h1</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>一个项目中，可能要用到很多过滤器来处理数据，多个组件公用的，可以注册全局过滤器。单个组件使用的，就挂载到实例<code>filters</code>中。项目做的多了以后，可以整理一套常用的<code>filters</code>，不用反复的写。比如：时间等各种操作，数据格式转化，单位换算，部分数据的<code>md5</code>加密等…</p>
-</blockquote>
-<p><strong>创建一个filters专门放各种过滤器</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/622.png"></p>
-<blockquote>
-<p>filter.js</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/623.png"></p>
-<blockquote>
-<p> main.js</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/624.png"></p>
-<blockquote>
-<p>页面上直接用 ’｜过滤器名‘ 即可</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/625.png"></p>
-<blockquote>
-<p>或者直接在<code>main.js</code>中直接自定义全局过滤器</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/626.png"></p>
-<h2 id="二、局部过滤器"><a href="#二、局部过滤器" class="headerlink" title="二、局部过滤器"></a>二、局部过滤器</h2><blockquote>
-<p>在某一个vue实例的内创建的，只在当前实例中起作用</p>
-</blockquote>
+<h3 id="2-3-参数是怎么传的"><a href="#2-3-参数是怎么传的" class="headerlink" title="2.3 参数是怎么传的"></a>2.3 参数是怎么传的</h3><p>这里是过滤器最反直觉的一处。看上面这行调用，<code>date</code> 接了一个参数，但函数定义里是两个形参。</p>
+<p>规则是这样的：竖线左边的值自动作为第一个参数，括号里写的参数从第二个开始往后排。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 模板里写：value | myFilter(&#x27;a&#x27;, &#x27;b&#x27;)</span></span><br><span class="line"><span class="comment">// 实际调用：myFilter(value, &#x27;a&#x27;, &#x27;b&#x27;)</span></span><br></pre></td></tr></table></figure>
+
+<p>所以你定义过滤器时，第一个形参名字叫什么都行，但位置是被占死的，只能是待过滤的值。很多人第一次写会把格式串放在第一个参数，结果拿到的是时间对象，然后一脸疑惑。</p>
+<p>括号里的参数是 JavaScript 表达式，可以传变量、可以传对象。<code>item.time | date(userFormat)</code> 里的 <code>userFormat</code> 会从当前组件作用域取值。</p>
+<h3 id="2-4-过滤器可以串联"><a href="#2-4-过滤器可以串联" class="headerlink" title="2.4 过滤器可以串联"></a>2.4 过滤器可以串联</h3><p>竖线能一路接下去，前一个的返回值就是后一个的输入：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>&#123;&#123; money | toFixed2 | thousands | prefixYuan &#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>执行顺序是从左到右，等价于 <code>prefixYuan(thousands(toFixed2(money)))</code>。串联的好处是每个过滤器只做一件小事，组合起来解决复杂问题；坏处是链子长了之后，中间某一环出错很难定位，因为报错栈里看不到是哪个过滤器抛的。我自己的经验是串到三个就该考虑合并成一个了。</p>
+<h2 id="三、把过滤器集中管起来"><a href="#三、把过滤器集中管起来" class="headerlink" title="三、把过滤器集中管起来"></a>三、把过滤器集中管起来</h2><p>一个项目里可能要用到很多过滤器来处理数据。多个组件公用的，注册成全局过滤器；单个组件使用的，挂到实例的 <code>filters</code> 里。项目做得多了以后，可以整理一套常用的 filters 反复复用，比如时间格式化、数据格式转换、单位换算、部分字段的 <code>md5</code> 加密等等。</p>
+<p>下面这几张图是一个实际项目里的组织方式，从建目录到页面使用走一遍。</p>
+<p>先在 <code>src</code> 下建一个 <code>filters</code> 目录，专门放各种过滤器，和 <code>utils</code>、<code>api</code> 这些平级：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/622.png" alt="在 src 目录下新建 filters 文件夹集中存放过滤器"></p>
+<p>重点是别把过滤器散在各个组件里。集中一个目录之后，新人接手时搜「这个格式是哪来的」只要看这一处。</p>
+<p><code>filter.js</code> 里逐个导出过滤器函数。注意这里导出的是纯函数，不带 Vue 的任何依赖：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/623.png" alt="filter.js 中以具名导出的方式定义各个过滤器函数"></p>
+<p>这一步的关键是「纯函数」三个字。函数不依赖 Vue，就意味着它能被单元测试直接调用，也能在非模板场景下当普通工具函数用。这是后面迁移到 Vue 3 时最省事的一点，因为函数本身不用改，只是调用方式换了。</p>
+<p><code>main.js</code> 里遍历这些导出，批量注册成全局过滤器：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/624.png" alt="main.js 中遍历 filters 对象批量调用 Vue.filter 完成全局注册"></p>
+<p>批量注册用的是 <code>Object.keys(filters).forEach(key =&gt; Vue.filter(key, filters[key]))</code> 这个套路。易错点在于顺序，这段代码必须在 <code>new Vue()</code> 之前执行，写反了首屏渲染的组件就用不上。</p>
+<p>注册完之后，页面上直接用「竖线 + 过滤器名」就能用：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/625.png" alt="页面模板中用竖线加过滤器名的方式调用已注册的全局过滤器"></p>
+<p>这里要留意的是过滤器名不要和组件里的方法重名。过滤器和 <code>methods</code> 在两套命名空间里，重名不会报错，但读代码的人会分不清那个竖线后面到底调的是谁。</p>
+<p>如果项目小，懒得单开目录，也可以直接在 <code>main.js</code> 里自定义全局过滤器：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/626.png" alt="在 main.js 中直接调用 Vue.filter 定义全局过滤器"></p>
+<p>这种写法适合过滤器只有两三个的情况。超过五个就别这么干了，<code>main.js</code> 会迅速膨胀成一个什么都往里塞的杂物间，这个我见过太多次。</p>
+<h2 id="四、局部过滤器"><a href="#四、局部过滤器" class="headerlink" title="四、局部过滤器"></a>四、局部过滤器</h2><p>在某一个 Vue 实例内部创建的过滤器，只在当前实例中起作用：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  <span class="attr">data</span>:&#123;</span><br><span class="line">      </span><br><span class="line">  &#125;,</span><br><span class="line">   <span class="comment">// 通过 filters 属性创建局部过滤器</span></span><br><span class="line">   <span class="comment">// 注意：此处为 filters</span></span><br><span class="line">  <span class="attr">filters</span>: &#123;</span><br><span class="line">    <span class="attr">filterName</span>: <span class="keyword">function</span>(<span class="params">value, format</span>) &#123;&#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>注意选项名是复数的 <code>filters</code>，全局注册的方法是单数的 <code>Vue.filter</code>。这两个名字差一个字母，写错了不会有明显报错，只是过滤器死活不生效，找起来挺费劲的。</p>
+<p>局部和全局同名时，局部优先。Vue 查找过滤器的顺序是先看组件自己的 <code>filters</code> 选项，找不到再往全局找。利用这一点可以做局部覆盖，比如某个页面的时间格式要特殊处理，不用改全局的，在这个组件里同名定义一份就行。</p>
+<p>什么时候用局部？判断标准很简单，只有这一个组件用得上的，就放局部。比如某个后台管理页面里「审核状态码转文字」这种业务性极强的映射，放全局就是污染。</p>
+<h2 id="五、过滤器只能用在两个地方"><a href="#五、过滤器只能用在两个地方" class="headerlink" title="五、过滤器只能用在两个地方"></a>五、过滤器只能用在两个地方</h2><p>这是过滤器一个很硬的限制，很多人可能没注意到。</p>
+<p>Vue 2.1 之前，过滤器只能用在插值表达式里。2.1 之后扩展到了 <code>v-bind</code>：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 插值 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;&#123; message | capitalize &#125;&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- v-bind --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">v-bind:id</span>=<span class="string">&quot;rawId | formatId&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>除此之外的地方都不行。<code>v-if=&quot;status | isActive&quot;</code> 不行，<code>v-for</code> 的表达式里不行，<code>@click=&quot;handler | wrap&quot;</code> 更不行。碰到这些场景只能老老实实用 <code>methods</code> 或者计算属性。</p>
+<p>原因在于过滤器是 Vue 模板编译器在解析插值和绑定表达式时做的特殊处理，它把竖线语法翻译成了 <code>_f(&quot;filterName&quot;)(value)</code> 这样的函数调用。指令的表达式走的是另一条编译路径，那条路上根本没有处理竖线的逻辑，竖线在那里会被当成 JavaScript 的按位或运算符。</p>
+<p>这也解释了为什么过滤器语法看着像 Unix 管道，实际上完全是 Vue 自己发明的一套东西，和 JavaScript 语言本身没有任何关系。</p>
+<h2 id="六、Vue-3-为什么把过滤器删了"><a href="#六、Vue-3-为什么把过滤器删了" class="headerlink" title="六、Vue 3 为什么把过滤器删了"></a>六、Vue 3 为什么把过滤器删了</h2><p>Vue 3 移除了过滤器，官方迁移指南里写得很直接，建议用方法调用或者计算属性替代。</p>
+<p>我一开始也觉得可惜，用了这么多年的语法说没就没。后来看了 RFC 里的讨论，理由确实站得住：</p>
+<p>第一条是竖线和 JavaScript 的按位或运算符冲突。在模板里 <code>a | b</code> 到底是过滤器还是位运算，只能靠 Vue 自己的解析规则去猜，这让模板表达式不再是合法的 JavaScript 子集。对工具链来说这是个大麻烦，IDE 没法用标准 JS 解析器分析模板，类型推导也做不了。</p>
+<p>第二条是过滤器引入了一套额外的语法概念。同样是「调一个函数」，模板里却有两种写法，新人要多学一套东西，收益却只是少打一对括号。</p>
+<p>第三条是过滤器有自己的解析和作用域查找逻辑，编译器要为它单独维护一条路径，运行时也要多一个 <code>resolveFilter</code> 的查找过程。删掉之后编译产物更小，行为也更好预测。</p>
+<p>迁移办法有两种。全局过滤器改成挂在 <code>app.config.globalProperties</code> 上：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Vue 2</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">filter</span>(<span class="string">&#x27;date&#x27;</span>, dateFilter)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Vue 3</span></span><br><span class="line">app.<span class="property">config</span>.<span class="property">globalProperties</span>.<span class="property">$filters</span> = &#123;</span><br><span class="line">  <span class="attr">date</span>: dateFilter</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>模板里的调用从竖线换成函数调用：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Vue 2 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;&#123; item.time | date(&#x27;yyyy-MM-dd&#x27;) &#125;&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- Vue 3 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;&#123; $filters.date(item.time, &#x27;yyyy-MM-dd&#x27;) &#125;&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>组合式 API 下更省事，直接 import 那个函数就能在模板里用：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; date &#125; <span class="keyword">from</span> <span class="string">&#x27;@/filters/filter&#x27;</span></span><br><span class="line"><span class="comment">// script setup 里 import 进来的变量，模板里可以直接访问</span></span><br></pre></td></tr></table></figure>
+
+<p>这也是前面强调「过滤器函数要写成纯函数」的原因。函数体一个字不用改，改的只是注册和调用方式。</p>
+<p>要是转换逻辑依赖组件内的响应式数据，并且在同一次渲染里被多次用到，那更好的选择是计算属性，因为它有缓存。这套取舍我在 <a href="https://feinterview.poetries.top/blog/vue-computed-watch">Vue 计算属性与数据监听</a> 里展开讲过。至于组件内部怎么组织这些方法和属性，可以看 <a href="https://feinterview.poetries.top/blog/vue-$vm-method-props">Vue 实例方法与属性</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>过滤器这个东西，用起来爽，代价是引入了一套非标准语法。回头看它的几条要点：</p>
+<ul>
+<li>第一个参数被待过滤的值占死了，括号里的参数从第二位开始排，这是最容易写错的地方</li>
+<li>全局用 <code>Vue.filter</code>（单数），局部用 <code>filters</code> 选项（复数），同名时局部优先</li>
+<li>只能用在插值和 <code>v-bind</code> 两处，<code>v-if</code>、<code>v-for</code>、事件绑定里都不行</li>
+<li>没有缓存，每次重渲染都跑一遍，重计算请用计算属性</li>
+<li>注册必须在 <code>new Vue()</code> 之前</li>
+</ul>
+<p>Vue 3 移除它不是因为它不好用，是因为它让模板表达式不再是合法 JavaScript，工具链的代价太高。如果你现在维护的还是 Vue 2 项目，过滤器该用就用，但把函数写成不依赖 Vue 的纯函数，将来迁移时能少改很多东西。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://v2.cn.vuejs.org/v2/guide/filters.html">Vue 2 官方文档 - 过滤器</a></li>
+<li><a href="https://v3-migration.vuejs.org/breaking-changes/filters.html">Vue 3 迁移指南 - 过滤器</a></li>
+<li><a href="https://github.com/vuejs/rfcs/blob/master/active-rfcs/0015-remove-filters.md">Vue RFCs - Drop support for filters</a></li>
+<li><a href="https://cn.vuejs.org/guide/essentials/computed.html">Vue 3 官方文档 - 计算属性</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

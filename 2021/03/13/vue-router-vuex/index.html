@@ -7,25 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Vue Router、Vuex原理实践 | 前端进阶之旅</title>
+  <title>Vue Router与Vuex原理解析及手写实现 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="Vue,源码,vue-router,Vuex," />
   
 
-  <meta name="description" content="vue-router Vue Router 是 Vue.js 官方的路由管理器。它和 Vue.js 的核心深度集成，让构建单⻚面应用变得易如反 掌。  安装: vue add router 核心步骤:  步骤一:使用vue-router插件，router.js  import Router from &#x27;vue-router&#x27; Vue.use(Router)   步骤二:创建Ro">
+  <meta name="description" content="从插件机制讲起，逐段拆解手写 vue-router 与 vuex 的实现，讲清响应式 current、install 混入挂载、借鸡生蛋的 state，以及 mutation 为什么必须同步。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vue Router、Vuex原理实践">
+<meta property="og:title" content="Vue Router与Vuex原理解析及手写实现">
 <meta property="og:url" content="http://blog.poetries.top/2021/03/13/vue-router-vuex/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="vue-router Vue Router 是 Vue.js 官方的路由管理器。它和 Vue.js 的核心深度集成，让构建单⻚面应用变得易如反 掌。  安装: vue add router 核心步骤:  步骤一:使用vue-router插件，router.js  import Router from &#x27;vue-router&#x27; Vue.use(Router)   步骤二:创建Ro">
+<meta property="og:description" content="从插件机制讲起，逐段拆解手写 vue-router 与 vuex 的实现，讲清响应式 current、install 混入挂载、借鸡生蛋的 state，以及 mutation 为什么必须同步。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2021-03-13T07:12:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.695Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.960Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="vue-router">
+<meta property="article:tag" content="Vuex">
 <meta name="twitter:card" content="summary">
 
   
@@ -204,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#vue-router"><span class="toc-text">vue-router</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#vue-router%E6%BA%90%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-text">vue-router源码实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vuex"><span class="toc-text">Vuex</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B4%E5%90%88vuex"><span class="toc-text">整合vuex</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#vuex%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90"><span class="toc-text">vuex原理解析</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81vue-router-%E7%9A%84%E6%8E%A5%E5%85%A5%E5%9B%9B%E6%AD%A5"><span class="toc-text">一、vue-router 的接入四步</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Vue-use-%E5%88%B0%E5%BA%95%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88"><span class="toc-text">二、Vue.use 到底做了什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81hash-%E6%A8%A1%E5%BC%8F%E5%92%8C-history-%E6%A8%A1%E5%BC%8F"><span class="toc-text">三、hash 模式和 history 模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%89%8B%E5%86%99-vue-router"><span class="toc-text">四、手写 vue-router</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-VueRouter-%E7%B1%BB"><span class="toc-text">4.1 VueRouter 类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-install-%E6%96%B9%E6%B3%95%E4%B8%8E%E6%B7%B7%E5%85%A5%E6%8C%82%E8%BD%BD"><span class="toc-text">4.2 install 方法与混入挂载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%A4%E4%B8%AA%E5%85%A8%E5%B1%80%E7%BB%84%E4%BB%B6"><span class="toc-text">4.3 两个全局组件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E8%BF%99%E4%B8%AA%E7%B2%BE%E7%AE%80%E7%89%88%E8%BF%98%E5%B7%AE%E4%BB%80%E4%B9%88"><span class="toc-text">4.4 这个精简版还差什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Vuex-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-text">五、Vuex 的核心概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%89%8B%E5%86%99-vuex"><span class="toc-text">六、手写 vuex</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%80%9F%E9%B8%A1%E7%94%9F%E8%9B%8B%E7%9A%84%E5%93%8D%E5%BA%94%E5%BC%8F-state"><span class="toc-text">6.1 借鸡生蛋的响应式 state</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-state-%E7%9A%84%E5%8F%AA%E8%AF%BB%E4%BF%9D%E6%8A%A4%E4%B8%8E-commit%E3%80%81dispatch"><span class="toc-text">6.2 state 的只读保护与 commit、dispatch</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-install-%E4%B8%8E%E4%B8%BA%E4%BB%80%E4%B9%88-mutation-%E5%BF%85%E9%A1%BB%E5%90%8C%E6%AD%A5"><span class="toc-text">6.3 install 与为什么 mutation 必须同步</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%BF%99%E4%B8%A4%E4%B8%AA%E5%BA%93%E7%8E%B0%E5%9C%A8%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-text">七、这两个库现在长什么样</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -227,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-router-vuex" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Vue Router、Vuex原理实践</h1>
+    <h1 class="post-title">Vue Router与Vuex原理解析及手写实现</h1>
 
     <div class="article-meta">
       <span>
@@ -269,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.3k字</span>
+            <span>字数统计 4.4k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 17分</span>
           </span>
       
       
@@ -288,93 +291,188 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="vue-router"><a href="#vue-router" class="headerlink" title="vue-router"></a>vue-router</h2><blockquote>
-<p>Vue Router 是 Vue.js 官方的路由管理器。它和 Vue.js 的核心深度集成，让构建单⻚面应用变得易如反 掌。</p>
-</blockquote>
-<p>安装: vue add router 核心步骤:</p>
-<ol>
-<li>步骤一:使用vue-router插件，router.js</li>
-</ol>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Router</span> <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span> </span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Router</span>)</span><br></pre></td></tr></table></figure>
+        <p>面试里问「说说 vue-router 的原理」，很多人会答监听 <code>hashchange</code>。这个答案不能算错，但只答到了一半。真正让页面在 URL 变化时重新渲染的，不是那个事件监听，而是一个被做成响应式的变量。</p>
+<p>Vuex 也一样。「集中式状态管理」这句定义谁都会背，但为什么 <code>mutation</code> 必须是同步的、<code>state</code> 的响应式是怎么来的、<code>commit</code> 和 <code>dispatch</code> 的区别到底在哪，这些才是能拉开差距的地方。</p>
+<p>这篇把 vue-router 和 vuex 各手写一遍，代码不长，每一段都拆开讲清楚它在解决什么问题。两个库的实现思路其实高度一致，看完一个再看另一个会顺很多。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>vue-router 接入的四个步骤分别做了什么</li>
+<li>Vue 的插件机制，<code>Vue.use</code> 背后发生了什么</li>
+<li>hash 模式和 history 模式监听的事件不同，部署要求也不同</li>
+<li>手写 vue-router：install 混入、响应式 current、两个全局组件</li>
+<li>精简版实现和真实的 vue-router 差在哪些地方</li>
+<li>Vuex 的四个核心概念以及各自的定位</li>
+<li>手写 vuex：借 Vue 实例实现响应式 state</li>
+<li><code>commit</code> 与 <code>dispatch</code> 的实现差异，以及 mutation 为什么必须同步</li>
+</ul>
+<h2 id="一、vue-router-的接入四步"><a href="#一、vue-router-的接入四步" class="headerlink" title="一、vue-router 的接入四步"></a>一、vue-router 的接入四步</h2><p>Vue Router 是 Vue.js 官方的路由管理器。它和 Vue.js 的核心深度集成，让构建单页面应用变得容易很多。</p>
+<p>安装用 <code>vue add router</code>，接入分成四个步骤。</p>
+<p><strong>第一步，注册插件。</strong></p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Router</span> <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Router</span>)</span><br></pre></td></tr></table></figure>
 
-<ol start="2">
-<li>步骤二:创建Router实例，router.js</li>
-</ol>
+<p><strong>第二步，创建 Router 实例，在 router.js 里。</strong></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Router</span>(&#123;...&#125;)</span><br></pre></td></tr></table></figure>
 
-<ol start="3">
-<li>步骤三:在根组件上添加该实例，main.js</li>
-</ol>
+<p><strong>第三步，在根组件上挂载这个实例，在 main.js 里。</strong></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">&#x27;./router&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">    router,</span><br><span class="line">&#125;).$mount(<span class="string">&quot;#app&quot;</span>);</span><br></pre></td></tr></table></figure>
 
-<ol start="4">
-<li>步骤四:添加路由视图，<code>App.vue</code></li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;router-view&gt;&lt;/router-view&gt;</span><br></pre></td></tr></table></figure>
+<p><strong>第四步，在 App.vue 里添加路由视图。</strong></p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">router-view</span>&gt;</span><span class="tag">&lt;/<span class="name">router-view</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p>导航</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&lt;router-link to=<span class="string">&quot;/&quot;</span>&gt;<span class="title class_">Home</span>&lt;/router-link&gt; </span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">router-link</span> <span class="attr">to</span>=<span class="string">&quot;/about&quot;</span>&gt;</span>About<span class="tag">&lt;/<span class="name">router-link</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>导航用 <code>router-link</code>：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">router-link</span> <span class="attr">to</span>=<span class="string">&quot;/&quot;</span>&gt;</span>Home<span class="tag">&lt;/<span class="name">router-link</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">router-link</span> <span class="attr">to</span>=<span class="string">&quot;/about&quot;</span>&gt;</span>About<span class="tag">&lt;/<span class="name">router-link</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="vue-router源码实现"><a href="#vue-router源码实现" class="headerlink" title="vue-router源码实现"></a>vue-router源码实现</h3><ul>
-<li>作为一个插件存在:实现<code>VueRouter</code>类和<code>install</code>方法 </li>
-<li>实现两个全局组件:<code>router-view</code>用于显示匹配组件内容，<code>router-link</code>用于跳转 </li>
-<li>监控<code>url</code>变化:监听<code>hashchange</code>或<code>popstate</code>事件 </li>
-<li>响应最新<code>url</code>:创建一个响应式的属性<code>current</code>，当它改变时获取对应组件并显示</li>
-</ul>
-<p>创建kvue-router.js</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 我们的插件：</span></span><br><span class="line"><span class="comment">// 1.实现一个Router类并挂载期实例</span></span><br><span class="line"><span class="comment">// 2.实现两个全局组件router-link和router-view</span></span><br><span class="line"><span class="keyword">let</span> <span class="title class_">Vue</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">VueRouter</span> &#123;</span><br><span class="line">  <span class="comment">// 核心任务：</span></span><br><span class="line">  <span class="comment">// 1.监听url变化</span></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">options</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">$options</span> = options;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 缓存path和route映射关系</span></span><br><span class="line">    <span class="comment">// 这样找组件更快</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">routeMap</span> = &#123;&#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">routes</span>.<span class="title function_">forEach</span>(<span class="function"><span class="params">route</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">routeMap</span>[route.<span class="property">path</span>] = route</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 数据响应式</span></span><br><span class="line">    <span class="comment">// 定义一个响应式的current，则如果他变了，那么使用它的组件会rerender</span></span><br><span class="line">    <span class="title class_">Vue</span>.<span class="property">util</span>.<span class="title function_">defineReactive</span>(<span class="variable language_">this</span>, <span class="string">&#x27;current&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 请确保onHashChange中this指向当前实例</span></span><br><span class="line">    <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;hashchange&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onHashChange</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>))</span><br><span class="line">    <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;load&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onHashChange</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onHashChange</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// console.log(window.location.hash);</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">current</span> = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>) || <span class="string">&#x27;/&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 插件需要实现install方法</span></span><br><span class="line"><span class="comment">// 接收一个参数，Vue构造函数，主要用于数据响应式</span></span><br><span class="line"><span class="title class_">VueRouter</span>.<span class="property">install</span> = <span class="keyword">function</span> (<span class="params">_Vue</span>) &#123;</span><br><span class="line">  <span class="comment">// 保存Vue构造函数在VueRouter中使用</span></span><br><span class="line">  <span class="title class_">Vue</span> = _Vue</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 任务1：使用混入来做router挂载这件事情</span></span><br><span class="line">  <span class="title class_">Vue</span>.<span class="title function_">mixin</span>(&#123;</span><br><span class="line">    <span class="title function_">beforeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 只有根实例才有router选项</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">router</span>) &#123;</span><br><span class="line">        <span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$router</span> = <span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">router</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 任务2：实现两个全局组件</span></span><br><span class="line">  <span class="comment">// router-link: 生成一个a标签，在url后面添加#</span></span><br><span class="line">  <span class="comment">// &lt;a href=&quot;#/about&quot;&gt;aaaa&lt;/a&gt;</span></span><br><span class="line">  <span class="comment">// &lt;router-link to=&quot;/about&quot;&gt;aaa&lt;/router-link&gt;</span></span><br><span class="line">  <span class="title class_">Vue</span>.<span class="title function_">component</span>(<span class="string">&#x27;router-link&#x27;</span>, &#123;</span><br><span class="line">    <span class="attr">props</span>: &#123;</span><br><span class="line">      <span class="attr">to</span>: &#123;</span><br><span class="line">        <span class="attr">type</span>: <span class="title class_">String</span>,</span><br><span class="line">        <span class="attr">required</span>: <span class="literal">true</span></span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="title function_">render</span>(<span class="params">h</span>) &#123;</span><br><span class="line">      <span class="comment">// h(tag, props, children)</span></span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">h</span>(<span class="string">&#x27;a&#x27;</span>,</span><br><span class="line">        &#123; <span class="attr">attrs</span>: &#123; <span class="attr">href</span>: <span class="string">&#x27;#&#x27;</span> + <span class="variable language_">this</span>.<span class="property">to</span> &#125; &#125;,</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">$slots</span>.<span class="property">default</span></span><br><span class="line">      )</span><br><span class="line">      <span class="comment">// 使用jsx</span></span><br><span class="line">      <span class="comment">// return &lt;a href=&#123;&#x27;#&#x27;+this.to&#125;&gt;&#123;this.$slots.default&#125;&lt;/a&gt;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="title class_">Vue</span>.<span class="title function_">component</span>(<span class="string">&#x27;router-view&#x27;</span>, &#123;</span><br><span class="line">    <span class="title function_">render</span>(<span class="params">h</span>) &#123;</span><br><span class="line">      <span class="comment">// 根据current获取组件并render</span></span><br><span class="line">      <span class="comment">// current怎么获取?</span></span><br><span class="line">      <span class="comment">// console.log(&#x27;render&#x27;,this.$router.current);</span></span><br><span class="line">      <span class="comment">// 获取要渲染的组件</span></span><br><span class="line">      <span class="keyword">let</span> component = <span class="literal">null</span></span><br><span class="line">      <span class="keyword">const</span> &#123; routeMap, current &#125; = <span class="variable language_">this</span>.<span class="property">$router</span></span><br><span class="line">      <span class="keyword">if</span> (routeMap[current]) &#123;</span><br><span class="line">        component = routeMap[current].<span class="property">component</span></span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">h</span>(component)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">VueRouter</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Vuex"><a href="#Vuex" class="headerlink" title="Vuex"></a>Vuex</h2><blockquote>
-<p>Vuex 集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以可预测的方式发生变化</p>
-</blockquote>
-<h3 id="整合vuex"><a href="#整合vuex" class="headerlink" title="整合vuex"></a>整合<strong>vuex</strong></h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">vue add vuex</span><br></pre></td></tr></table></figure>
-
-<p>核心概念</p>
+<p>这四步看着是流程，其实每一步都对应实现里的一块逻辑。第一步触发 <code>install</code>，第二步构造实例并开始监听 URL，第三步通过混入把实例挂到每个组件上，第四步用两个全局组件消费前面的成果。</p>
+<p>把这个对应关系记住，后面看实现会轻松很多。</p>
+<h2 id="二、Vue-use-到底做了什么"><a href="#二、Vue-use-到底做了什么" class="headerlink" title="二、Vue.use 到底做了什么"></a>二、Vue.use 到底做了什么</h2><p><code>Vue.use</code> 的逻辑非常简单，它接收一个插件对象，调用这个对象上的 <code>install</code> 方法，并把 Vue 构造函数作为第一个参数传进去。同一个插件重复 <code>use</code> 只会执行一次。</p>
+<p>为什么要把 Vue 传进去，而不是让插件自己 <code>import Vue</code>？</p>
+<p>因为插件如果自己 import，打包时 Vue 会被打进插件的产物里，用户的项目里就有两份 Vue 代码，两套响应式系统互不相认，出的 bug 极其诡异。把构造函数当参数传进来，插件就可以声明 Vue 为 <code>peerDependencies</code>，永远用宿主项目那一份。</p>
+<p>这个设计在几乎所有 Vue 生态的库里都能看到，理解它比记住 <code>Vue.use</code> 的用法重要得多。</p>
+<h2 id="三、hash-模式和-history-模式"><a href="#三、hash-模式和-history-模式" class="headerlink" title="三、hash 模式和 history 模式"></a>三、hash 模式和 history 模式</h2><p>vue-router 支持两种模式，实现方式和部署要求都不一样。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>hash 模式</th>
+<th>history 模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>URL 形态</td>
+<td><code>example.com/#/about</code></td>
+<td><code>example.com/about</code></td>
+</tr>
+<tr>
+<td>监听事件</td>
+<td><code>hashchange</code></td>
+<td><code>popstate</code></td>
+</tr>
+<tr>
+<td>跳转 API</td>
+<td>改 <code>location.hash</code></td>
+<td><code>history.pushState</code></td>
+</tr>
+<tr>
+<td>是否发请求</td>
+<td>不会，<code>#</code> 后的内容不发给服务器</td>
+<td>直接访问会真的请求这个路径</td>
+</tr>
+<tr>
+<td>服务器配置</td>
+<td>不需要</td>
+<td>必须配置回退</td>
+</tr>
+</tbody></table>
+<p>history 模式那个「必须配置回退」是踩坑重灾区。前端跳转走的是 <code>pushState</code>，压根没发请求所以一切正常；但用户在 <code>/about</code> 上按一下刷新，浏览器会老老实实向服务器要这个路径，服务器上没有这个文件，直接 404。</p>
+<p>解决办法是让服务器在找不到文件时统一返回 <code>index.html</code>。Nginx 上就是那行 <code>try_files $uri $uri/ /index.html;</code>，具体可以看 <a href="https://feinterview.poetries.top/blog/nginx-try-files">Nginx try_files 指令详解</a>。</p>
+<p>下面的手写实现走的是 hash 模式，因为它不需要任何服务端配合，本地打开就能跑。</p>
+<h2 id="四、手写-vue-router"><a href="#四、手写-vue-router" class="headerlink" title="四、手写 vue-router"></a>四、手写 vue-router</h2><p>先把要做的事列清楚：</p>
 <ul>
-<li>state 状态、数据 </li>
-<li>mutations 更改状态的函数 </li>
-<li>actions 异步操作</li>
-<li>store 包含以上概念的容器</li>
+<li>作为一个插件存在，实现 <code>VueRouter</code> 类和 <code>install</code> 方法</li>
+<li>实现两个全局组件，<code>router-view</code> 用于显示匹配的组件内容，<code>router-link</code> 用于跳转</li>
+<li>监控 URL 变化，监听 <code>hashchange</code> 或 <code>popstate</code> 事件</li>
+<li>响应最新 URL，创建一个响应式的属性 <code>current</code>，当它改变时获取对应组件并显示</li>
 </ul>
-<ol>
-<li>状态 <strong>- state</strong></li>
-</ol>
-<p>state保存应用状态</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> </span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123; <span class="attr">state</span>: &#123; <span class="attr">counter</span>:<span class="number">0</span> &#125;,&#125;)</span><br></pre></td></tr></table></figure>
+<p>第四条是整个实现的胜负手，下面会重点讲。</p>
+<h3 id="4-1-VueRouter-类"><a href="#4-1-VueRouter-类" class="headerlink" title="4.1 VueRouter 类"></a>4.1 VueRouter 类</h3><p>创建 <code>kvue-router.js</code>，先写类本身。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 我们的插件：</span></span><br><span class="line"><span class="comment">// 1. 实现一个 Router 类并挂载其实例</span></span><br><span class="line"><span class="comment">// 2. 实现两个全局组件 router-link 和 router-view</span></span><br><span class="line"><span class="keyword">let</span> <span class="title class_">Vue</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">VueRouter</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">options</span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">$options</span> = options;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 缓存 path 和 route 的映射关系，这样找组件更快</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">routeMap</span> = &#123;&#125;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">routes</span>.<span class="title function_">forEach</span>(<span class="function"><span class="params">route</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">routeMap</span>[route.<span class="property">path</span>] = route</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 数据响应式</span></span><br><span class="line">    <span class="comment">// 定义一个响应式的 current，它变了，使用它的组件会 rerender</span></span><br><span class="line">    <span class="title class_">Vue</span>.<span class="property">util</span>.<span class="title function_">defineReactive</span>(<span class="variable language_">this</span>, <span class="string">&#x27;current&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 请确保 onHashChange 中 this 指向当前实例</span></span><br><span class="line">    <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;hashchange&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onHashChange</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>))</span><br><span class="line">    <span class="variable language_">window</span>.<span class="title function_">addEventListener</span>(<span class="string">&#x27;load&#x27;</span>, <span class="variable language_">this</span>.<span class="property">onHashChange</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>))</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">onHashChange</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">current</span> = <span class="variable language_">window</span>.<span class="property">location</span>.<span class="property">hash</span>.<span class="title function_">slice</span>(<span class="number">1</span>) || <span class="string">&#x27;/&#x27;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ol start="2">
-<li>状态变更 <strong>- mutations</strong></li>
-</ol>
-<p>mutations用于修改状态，store.js</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">    <span class="attr">mutations</span>:</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="title function_">add</span>(<span class="params">state</span>) &#123;</span><br><span class="line">        state.<span class="property">counter</span>++</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+<p>这段里有三处值得单独说。</p>
+<p><code>routeMap</code> 是一个空间换时间的优化。路由表是一个数组，每次匹配都遍历一遍，路由多了就是线性开销。转成以 path 为 key 的对象之后，匹配变成一次哈希查找。真实的 vue-router 因为要支持动态路由和嵌套路由，做的是路径解析加正则匹配，比这复杂得多，但缓存映射这个思路是一样的。</p>
+<p><code>Vue.util.defineReactive</code> 是整个实现的核心。它把 <code>current</code> 变成一个带 getter&#x2F;setter 的响应式属性。<code>router-view</code> 的 render 函数里读了 <code>current</code>，就完成了依赖收集；<code>onHashChange</code> 里给 <code>current</code> 赋值，setter 触发通知，<code>router-view</code> 自动重新渲染。</p>
+<p>没有这一行，你监听到 <code>hashchange</code> 之后只能手动去操作 DOM，那就不是 Vue 的玩法了。顺带提一句，<code>Vue.util</code> 属于内部 API，官方文档里没有承诺稳定，教学用没问题，生产代码里别依赖它。</p>
+<p>第三处是 <code>bind(this)</code>。事件回调里的 <code>this</code> 默认指向触发事件的对象（这里是 <code>window</code>），不绑定的话 <code>this.current</code> 会直接报错。同时监听 <code>load</code> 是为了处理首次进入页面的情况，此时不会触发 <code>hashchange</code>，需要主动初始化一次。</p>
+<h3 id="4-2-install-方法与混入挂载"><a href="#4-2-install-方法与混入挂载" class="headerlink" title="4.2 install 方法与混入挂载"></a>4.2 install 方法与混入挂载</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 插件需要实现 install 方法</span></span><br><span class="line"><span class="comment">// 接收 Vue 构造函数，主要用于数据响应式</span></span><br><span class="line"><span class="title class_">VueRouter</span>.<span class="property">install</span> = <span class="keyword">function</span> (<span class="params">_Vue</span>) &#123;</span><br><span class="line">  <span class="comment">// 保存 Vue 构造函数，供 VueRouter 内部使用</span></span><br><span class="line">  <span class="title class_">Vue</span> = _Vue</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 任务 1：使用混入来做 router 挂载这件事</span></span><br><span class="line">  <span class="title class_">Vue</span>.<span class="title function_">mixin</span>(&#123;</span><br><span class="line">    <span class="title function_">beforeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="comment">// 只有根实例才有 router 选项</span></span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">router</span>) &#123;</span><br><span class="line">        <span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$router</span> = <span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">router</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ol start="3">
-<li>派生状态 <strong>- getters</strong></li>
-</ol>
-<p>从state派生出新状态，类似计算属性</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">    <span class="attr">getters</span>:</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="title function_">doubleCounter</span>(<span class="params">state</span>) &#123; <span class="comment">// 计算剩余数量 return state.counter * 2;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+<p>这里为什么要用 <code>mixin</code> 而不是直接赋值？</p>
+<p>因为 <code>install</code> 执行的时候，用户还没有创建 router 实例，拿不到它。<code>Vue.mixin</code> 注册的 <code>beforeCreate</code> 会在每个组件初始化时执行，等根实例创建的那一刻，<code>this.$options.router</code> 才真正存在。用 <code>beforeCreate</code> 而不是 <code>created</code>，是为了保证在任何组件用到 <code>$router</code> 之前就挂好。</p>
+<p>判断 <code>this.$options.router</code> 是为了只在根实例上执行一次，子组件的 <code>$options</code> 上没有这个字段。挂到 <code>Vue.prototype</code> 上之后，所有组件实例都能通过原型链访问到 <code>this.$router</code>。</p>
+<h3 id="4-3-两个全局组件"><a href="#4-3-两个全局组件" class="headerlink" title="4.3 两个全局组件"></a>4.3 两个全局组件</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// router-link: 生成一个 a 标签，在 url 后面添加 #</span></span><br><span class="line"><span class="comment">// &lt;router-link to=&quot;/about&quot;&gt;aaa&lt;/router-link&gt; 渲染成 &lt;a href=&quot;#/about&quot;&gt;aaa&lt;/a&gt;</span></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">component</span>(<span class="string">&#x27;router-link&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">props</span>: &#123;</span><br><span class="line">    <span class="attr">to</span>: &#123;</span><br><span class="line">      <span class="attr">type</span>: <span class="title class_">String</span>,</span><br><span class="line">      <span class="attr">required</span>: <span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="title function_">render</span>(<span class="params">h</span>) &#123;</span><br><span class="line">    <span class="comment">// h(tag, props, children)</span></span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">h</span>(<span class="string">&#x27;a&#x27;</span>,</span><br><span class="line">      &#123; <span class="attr">attrs</span>: &#123; <span class="attr">href</span>: <span class="string">&#x27;#&#x27;</span> + <span class="variable language_">this</span>.<span class="property">to</span> &#125; &#125;,</span><br><span class="line">      <span class="variable language_">this</span>.<span class="property">$slots</span>.<span class="property">default</span></span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">component</span>(<span class="string">&#x27;router-view&#x27;</span>, &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params">h</span>) &#123;</span><br><span class="line">    <span class="comment">// 根据 current 获取组件并 render</span></span><br><span class="line">    <span class="keyword">let</span> component = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">const</span> &#123; routeMap, current &#125; = <span class="variable language_">this</span>.<span class="property">$router</span></span><br><span class="line">    <span class="keyword">if</span> (routeMap[current]) &#123;</span><br><span class="line">      component = routeMap[current].<span class="property">component</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">h</span>(component)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<ol start="4">
-<li>动作 <strong>- actions</strong></li>
-</ol>
-<p>加业务逻辑，类似于controller</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">    <span class="attr">actions</span>:</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="title function_">add</span>(<span class="params">&#123;</span></span><br><span class="line"><span class="params">        commit</span></span><br><span class="line"><span class="params">      &#125;</span>) &#123;</span><br><span class="line">        <span class="built_in">setTimeout</span>(() = &gt;&#123;&#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br></pre></td></tr></table></figure>
+<p>最后别忘了导出：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title class_">VueRouter</span></span><br></pre></td></tr></table></figure>
 
-<p>测试代码:</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"> </span><br><span class="line">&lt;p @click=<span class="string">&quot;$store.commit(&#x27;add&#x27;)&quot;</span>&gt;<span class="attr">counter</span>: &#123;&#123;$store.<span class="property">state</span>.<span class="property">counter</span>&#125;&#125;&lt;/p&gt;</span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">p</span> @<span class="attr">click</span>=<span class="string">&quot;$store.dispatch(&#x27;add&#x27;)&quot;</span>&gt;</span>async counter: &#123;&#123;$store.state.counter&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>double:&#123;&#123;$store.getters.doubleCounter&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
-
-<h3 id="vuex原理解析"><a href="#vuex原理解析" class="headerlink" title="vuex原理解析"></a><strong>vuex</strong>原理解析</h3><ul>
-<li>实现一个插件:声明Store类，挂载$store </li>
-<li>Store具体实现:<ul>
-<li>创建响应式的state，保存mutations、actions和getters </li>
-<li>实现commit根据用户传入type执行对应mutation </li>
-<li>实现dispatch根据用户传入type执行对应action，同时传递上下文 </li>
-<li>实现getters，按照getters定义对state做派生</li>
+<p><code>router-link</code> 就是一个 <code>a</code> 标签加上 <code>#</code> 前缀，点击后浏览器改变 hash，触发 <code>hashchange</code>，链路闭上了。用 render 函数而不是模板，是因为这是一个库，不能假设用户的构建环境带了模板编译器。</p>
+<p><code>router-view</code> 那句 <code>const &#123; routeMap, current &#125; = this.$router</code> 是关键。解构这个动作读取了 <code>current</code>，这次读取发生在 render 函数执行期间，于是 <code>router-view</code> 的渲染 Watcher 被 <code>current</code> 的 dep 收集了进去。后面 <code>current</code> 一变，这个组件就重新渲染。</p>
+<p>整条链路串起来是这样：点击 link 改 hash，触发 hashchange 回调，回调给 current 赋值，setter 通知 router-view 的 Watcher，router-view 重新 render，从 routeMap 里取出新组件挂上去。</p>
+<h3 id="4-4-这个精简版还差什么"><a href="#4-4-这个精简版还差什么" class="headerlink" title="4.4 这个精简版还差什么"></a>4.4 这个精简版还差什么</h3><p>这一百行左右的实现能跑通基本流程，但离生产可用还差不少：</p>
+<ul>
+<li>只支持一级路由，没有嵌套路由和 <code>children</code></li>
+<li>不支持动态路由 <code>/user/:id</code>，因为用的是精确匹配而不是路径解析</li>
+<li>没有导航守卫，<code>beforeEach</code>、<code>beforeEnter</code>、<code>beforeRouteLeave</code> 全都没有</li>
+<li>没有 <code>$route</code> 对象，拿不到 <code>params</code>、<code>query</code>、<code>meta</code></li>
+<li>没有编程式导航 <code>push</code>、<code>replace</code>、<code>go</code></li>
+<li>只有 hash 模式，没有 history 模式</li>
 </ul>
-</li>
+<p>真实的 vue-router 里，路径匹配用的是 <code>path-to-regexp</code> 把 <code>/user/:id</code> 编译成正则并提取参数名，导航守卫是一条由多个钩子串成的队列，靠一个递归的 <code>runQueue</code> 依次执行。感兴趣可以顺着这条线去读源码，有了上面的骨架再看会清晰很多。更完整的 vue-router 用法整理可以看 <a href="https://feinterview.poetries.top/blog/vue-router">Vue Router 使用总结</a>。</p>
+<h2 id="五、Vuex-的核心概念"><a href="#五、Vuex-的核心概念" class="headerlink" title="五、Vuex 的核心概念"></a>五、Vuex 的核心概念</h2><p>Vuex 集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以可预测的方式发生变化。</p>
+<p>安装用 <code>vue add vuex</code>。核心概念有四个：</p>
+<ul>
+<li><code>state</code> 状态、数据</li>
+<li><code>mutations</code> 更改状态的函数</li>
+<li><code>actions</code> 异步操作</li>
+<li><code>store</code> 包含以上概念的容器</li>
 </ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 目标1：实现Store类，管理state（响应式的），commit方法和dispatch方法</span></span><br><span class="line"><span class="comment">// 目标2：封装一个插件，使用更容易使用</span></span><br><span class="line"><span class="keyword">let</span> <span class="title class_">Vue</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Store</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">options</span>) &#123;</span><br><span class="line">    <span class="comment">// 定义响应式的state</span></span><br><span class="line">    <span class="comment">// this.$store.state.xx</span></span><br><span class="line">    <span class="comment">// 借鸡生蛋</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_vm</span> = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">      <span class="attr">data</span>: &#123;</span><br><span class="line">        <span class="attr">$$state</span>: options.<span class="property">state</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    </span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_mutations</span> = options.<span class="property">mutations</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_actions</span> = options.<span class="property">actions</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绑定this指向</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">commit</span> = <span class="variable language_">this</span>.<span class="property">commit</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">dispatch</span> = <span class="variable language_">this</span>.<span class="property">dispatch</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 只读</span></span><br><span class="line">  <span class="keyword">get</span> <span class="title function_">state</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">_vm</span>.<span class="property">_data</span>.<span class="property">$$state</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> <span class="title function_">state</span>(<span class="params">val</span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;不能直接赋值呀，请换别的方式！！天王盖地虎！！&#x27;</span>);</span><br><span class="line">    </span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 实现commit方法，可以修改state</span></span><br><span class="line">  <span class="title function_">commit</span>(<span class="params">type, payload</span>) &#123;</span><br><span class="line">    <span class="comment">// 拿出mutations中的处理函数执行它</span></span><br><span class="line">    <span class="keyword">const</span> entry = <span class="variable language_">this</span>.<span class="property">_mutations</span>[type]</span><br><span class="line">    <span class="keyword">if</span> (!entry) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;未知mutaion类型&#x27;</span>);</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">entry</span>(<span class="variable language_">this</span>.<span class="property">state</span>, payload)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">dispatch</span>(<span class="params">type, payload</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> entry = <span class="variable language_">this</span>.<span class="property">_actions</span>[type]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!entry) &#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;未知action类型&#x27;</span>);</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 上下文可以传递当前store实例进去即可</span></span><br><span class="line">    <span class="title function_">entry</span>(<span class="variable language_">this</span>, payload)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">install</span>(<span class="params">_Vue</span>)&#123;</span><br><span class="line">  <span class="title class_">Vue</span> = _Vue</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 混入store实例</span></span><br><span class="line">  <span class="title class_">Vue</span>.<span class="title function_">mixin</span>(&#123;</span><br><span class="line">    <span class="title function_">beforeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">store</span>) &#123;</span><br><span class="line">        <span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$store</span> = <span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">store</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// &#123; Store, install &#125;相当于Vuex</span></span><br><span class="line"><span class="comment">// 它必须实现install方法</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123; <span class="title class_">Store</span>, install &#125;</span><br></pre></td></tr></table></figure>
+<p>再加上一个从 state 派生的 <code>getters</code>，一共是五块。</p>
+<p><strong>状态 state</strong>，保存应用状态。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">  <span class="attr">state</span>: &#123;</span><br><span class="line">    <span class="attr">counter</span>: <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
+<p><strong>状态变更 mutations</strong>，用于修改状态。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">  <span class="attr">mutations</span>: &#123;</span><br><span class="line">    <span class="title function_">add</span>(<span class="params">state</span>) &#123;</span><br><span class="line">      state.<span class="property">counter</span>++</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>派生状态 getters</strong>，从 state 派生出新状态，类似计算属性。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">  <span class="attr">getters</span>: &#123;</span><br><span class="line">    <span class="comment">// 计算翻倍后的数量</span></span><br><span class="line">    <span class="title function_">doubleCounter</span>(<span class="params">state</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> state.<span class="property">counter</span> * <span class="number">2</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>动作 actions</strong>，加业务逻辑，类似于 controller。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">new</span> <span class="title class_">Vuex</span>.<span class="title class_">Store</span>(&#123;</span><br><span class="line">  <span class="attr">actions</span>: &#123;</span><br><span class="line">    <span class="title function_">add</span>(<span class="params">&#123; commit &#125;</span>) &#123;</span><br><span class="line">      <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="title function_">commit</span>(<span class="string">&#x27;add&#x27;</span>)</span><br><span class="line">      &#125;, <span class="number">1000</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>测试代码：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span> @<span class="attr">click</span>=<span class="string">&quot;$store.commit(&#x27;add&#x27;)&quot;</span>&gt;</span>counter: &#123;&#123;$store.state.counter&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span> @<span class="attr">click</span>=<span class="string">&quot;$store.dispatch(&#x27;add&#x27;)&quot;</span>&gt;</span>async counter: &#123;&#123;$store.state.counter&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">p</span>&gt;</span>double: &#123;&#123;$store.getters.doubleCounter&#125;&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里插一句，原文里 getters 和 actions 两段示例的括号是错的，<code>return</code> 被写进了注释、箭头函数写成了 <code>= &gt;</code>，直接复制会报语法错误。上面这两段是改正后的版本。</p>
+<h2 id="六、手写-vuex"><a href="#六、手写-vuex" class="headerlink" title="六、手写 vuex"></a>六、手写 vuex</h2><p>要做的事和 router 高度相似：</p>
+<ul>
+<li>实现一个插件，声明 <code>Store</code> 类，挂载 <code>$store</code></li>
+<li>创建响应式的 state，保存 mutations、actions 和 getters</li>
+<li>实现 <code>commit</code>，根据用户传入的 type 执行对应 mutation</li>
+<li>实现 <code>dispatch</code>，根据用户传入的 type 执行对应 action，同时传递上下文</li>
+<li>实现 getters，按照 getters 定义对 state 做派生</li>
+</ul>
+<h3 id="6-1-借鸡生蛋的响应式-state"><a href="#6-1-借鸡生蛋的响应式-state" class="headerlink" title="6.1 借鸡生蛋的响应式 state"></a>6.1 借鸡生蛋的响应式 state</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 目标 1：实现 Store 类，管理响应式的 state、commit 方法和 dispatch 方法</span></span><br><span class="line"><span class="comment">// 目标 2：封装成插件，使用更方便</span></span><br><span class="line"><span class="keyword">let</span> <span class="title class_">Vue</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Store</span> &#123;</span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params">options</span>) &#123;</span><br><span class="line">    <span class="comment">// 定义响应式的 state，借鸡生蛋</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_vm</span> = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">      <span class="attr">data</span>: &#123;</span><br><span class="line">        <span class="attr">$$state</span>: options.<span class="property">state</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_mutations</span> = options.<span class="property">mutations</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">_actions</span> = options.<span class="property">actions</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 绑定 this 指向</span></span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">commit</span> = <span class="variable language_">this</span>.<span class="property">commit</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>)</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">dispatch</span> = <span class="variable language_">this</span>.<span class="property">dispatch</span>.<span class="title function_">bind</span>(<span class="variable language_">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>_vm</code> 那几行是整段代码里最巧妙的地方。</p>
+<p>Vuex 自己并不实现响应式，它直接 <code>new</code> 了一个 Vue 实例，把用户的 state 塞进这个实例的 <code>data</code> 里。Vue 在初始化 <code>data</code> 时会自动把它变成响应式的，Vuex 白捡了一整套依赖收集和派发更新的机制。这就是注释里说的「借鸡生蛋」。</p>
+<p>属性名用 <code>$$state</code> 也有讲究。Vue 在做代理时会跳过以 <code>$</code> 或 <code>_</code> 开头的属性，不把它们代理到实例本身上，所以外部没法通过 <code>this._vm.$$state</code> 直接拿到，必须走下面定义的 <code>state</code> 访问器。</p>
+<p><code>commit</code> 和 <code>dispatch</code> 的 <code>bind</code> 是为了支持解构写法。action 里写 <code>add(&#123; commit &#125;)</code> 把 commit 解构出来单独调用时，如果不提前绑好 this，函数体里的 <code>this._mutations</code> 就会是 undefined。</p>
+<h3 id="6-2-state-的只读保护与-commit、dispatch"><a href="#6-2-state-的只读保护与-commit、dispatch" class="headerlink" title="6.2 state 的只读保护与 commit、dispatch"></a>6.2 state 的只读保护与 commit、dispatch</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 只读</span></span><br><span class="line"><span class="keyword">get</span> <span class="title function_">state</span>() &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">_vm</span>.<span class="property">_data</span>.<span class="property">$$state</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> <span class="title function_">state</span>(<span class="params">val</span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;不能直接赋值呀，请换别的方式！！&#x27;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实现 commit 方法，可以修改 state</span></span><br><span class="line"><span class="title function_">commit</span>(<span class="params">type, payload</span>) &#123;</span><br><span class="line">  <span class="comment">// 拿出 mutations 中的处理函数执行它</span></span><br><span class="line">  <span class="keyword">const</span> entry = <span class="variable language_">this</span>.<span class="property">_mutations</span>[type]</span><br><span class="line">  <span class="keyword">if</span> (!entry) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;未知 mutation 类型&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">entry</span>(<span class="variable language_">this</span>.<span class="property">state</span>, payload)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">dispatch</span>(<span class="params">type, payload</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> entry = <span class="variable language_">this</span>.<span class="property">_actions</span>[type]</span><br><span class="line">  <span class="keyword">if</span> (!entry) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">error</span>(<span class="string">&#x27;未知 action 类型&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 上下文传当前 store 实例进去即可</span></span><br><span class="line">  <span class="title function_">entry</span>(<span class="variable language_">this</span>, payload)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>get state</code> 和 <code>set state</code> 这一对访问器实现了「只读」的约束。你写 <code>this.$store.state = &#123;&#125;</code> 不会真的替换掉 state，只会在控制台看到一条报错。真实的 Vuex 在严格模式下走得更远，它用 <code>$watch</code> 深度监听 state，一旦发现不是通过 mutation 改的就直接抛异常。</p>
+<p><code>commit</code> 和 <code>dispatch</code> 的实现几乎一模一样，唯一的区别在传给回调的第一个参数上。<code>commit</code> 传的是 <code>this.state</code>，所以 mutation 里第一个参数就是 state；<code>dispatch</code> 传的是 <code>this</code>，也就是整个 store 实例，所以 action 里可以解构出 <code>commit</code>、<code>dispatch</code>、<code>state</code>。</p>
+<p>这一行代码的差别，就是这两个概念在使用体验上的全部差别。</p>
+<h3 id="6-3-install-与为什么-mutation-必须同步"><a href="#6-3-install-与为什么-mutation-必须同步" class="headerlink" title="6.3 install 与为什么 mutation 必须同步"></a>6.3 install 与为什么 mutation 必须同步</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">install</span>(<span class="params">_Vue</span>) &#123;</span><br><span class="line">  <span class="title class_">Vue</span> = _Vue</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 混入 store 实例</span></span><br><span class="line">  <span class="title class_">Vue</span>.<span class="title function_">mixin</span>(&#123;</span><br><span class="line">    <span class="title function_">beforeCreate</span>(<span class="params"></span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">store</span>) &#123;</span><br><span class="line">        <span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$store</span> = <span class="variable language_">this</span>.<span class="property">$options</span>.<span class="property">store</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// &#123; Store, install &#125; 相当于 Vuex，它必须实现 install 方法</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123; <span class="title class_">Store</span>, install &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段和 router 的 install 是一个套路，不再重复。</p>
+<p>回到那个高频面试题，mutation 为什么必须同步？</p>
+<p>看上面 <code>commit</code> 的实现就明白了，它是同步调用 <code>entry(this.state, payload)</code> 的。如果你在 mutation 里写了 <code>setTimeout</code> 再改 state，那么 <code>commit</code> 这个函数返回的时候 state 还没变。</p>
+<p>对代码本身没什么影响，真正受影响的是 devtools。Vuex devtools 的工作方式是在每次 commit 前后各记录一次 state 快照，用来做时间旅行调试。mutation 里塞了异步代码，devtools 记下的「变更后快照」拿到的是旧值，整个调试记录就对不上了，你会看到一条 mutation 记录显示 state 完全没变。</p>
+<p>所以这不是技术限制，是为了让状态变更可追踪而立的规矩。异步的部分统一放到 action 里，action 里再 commit 一个同步的 mutation，这样每一次 state 变更都精确对应一条 devtools 记录。</p>
+<p>更多 Vuex 的实际用法可以看 <a href="https://feinterview.poetries.top/blog/vue-vuex">Vuex 使用总结</a>。</p>
+<h2 id="七、这两个库现在长什么样"><a href="#七、这两个库现在长什么样" class="headerlink" title="七、这两个库现在长什么样"></a>七、这两个库现在长什么样</h2><p>上面这套写法对应的是 Vue 2 时代的 vue-router 3 和 vuex 3。Vue 3 出来之后变化不小。</p>
+<p>vue-router 4 用 <code>createRouter</code> 加 <code>createWebHistory</code> 或 <code>createWebHashHistory</code> 替代了 <code>new VueRouter(&#123; mode &#125;)</code>，模式从配置项变成了独立的工厂函数，好处是没用到的那部分代码可以被 tree-shaking 掉。组合式 API 里用 <code>useRouter</code> 和 <code>useRoute</code> 取代 <code>this.$router</code>。</p>
+<p>Vuex 4 主要是适配 Vue 3，API 基本没变。但官方现在推荐的是 Pinia，它去掉了 mutations 这一层，只保留 state、getters、actions，action 里可以直接改 state。少了一层转发之后 TypeScript 的类型推导顺畅很多，这也是 Pinia 最主要的动机。</p>
+<p>不是说 Vuex 不行，而是 mutation 那一层的收益在 devtools 能力增强之后被摊薄了。老项目继续用 Vuex 完全没问题，新项目从 Pinia 起步会省事一些。原理上它们仍然是同一套东西，响应式的容器加上受控的修改入口。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>vue-router 和 vuex 的实现骨架是同一个。都通过 <code>install</code> 加 <code>Vue.mixin</code> 在 <code>beforeCreate</code> 时把实例挂到 <code>Vue.prototype</code> 上，都依赖 Vue 自身的响应式系统来驱动更新。</p>
+<p>vue-router 的核心是那个响应式的 <code>current</code>。<code>router-view</code> 在 render 时读它完成依赖收集，<code>hashchange</code> 回调改它触发重新渲染，中间不需要任何手动的 DOM 操作。理解了这一点，「vue-router 靠 hashchange 实现」这个答案就可以升级成完整的链路描述了。</p>
+<p>vuex 的核心是那个借来的 Vue 实例。它没有自己实现响应式，而是 <code>new Vue(&#123; data: &#123; $$state &#125; &#125;)</code> 白捡了一套。<code>commit</code> 和 <code>dispatch</code> 的区别只有一行，前者给回调传 state，后者传整个 store。</p>
+<p>mutation 必须同步这条规矩不是技术限制，是为了让 devtools 的前后快照能一一对应，保住时间旅行调试的能力。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://router.vuejs.org/zh/">Vue Router 官方文档</a></li>
+<li><a href="https://vuex.vuejs.org/zh/">Vuex 官方文档</a></li>
+<li><a href="https://v2.cn.vuejs.org/v2/guide/plugins.html">Vue 2 官方文档 插件</a></li>
+<li><a href="https://pinia.vuejs.org/zh/">Pinia 官方文档</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/History_API">MDN History API</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

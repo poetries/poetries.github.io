@@ -7,30 +7,32 @@
 <head>
   <meta charset="utf-8">
   
-  <title>webpack打包结果依赖分析 | 前端进阶之旅</title>
+  <title>webpack 打包结果依赖分析，找出产物里的体积大头 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="优化,webpack," />
+    <meta name="keywords" content="性能优化,webpack,优化,打包分析," />
   
 
-  <meta name="description" content="一、使用webpack-bundle-analyzer插件分析安装插件  https:&#x2F;&#x2F;www.npmjs.com&#x2F;package&#x2F;webpack-bundle-analyzer  npm install webpack-bundle-analyzer –save-dev  配置  在package.json中  传入环境变量ANALYZE，最后process.env.ANALYZE来读取 &amp;q">
+  <meta name="description" content="用 webpack-bundle-analyzer 把打包结果画成可视化矩形树图，讲清 stat &#x2F; parsed &#x2F; gzip 三种体积口径、常见的体积黑洞和对应改法，以及官方在线分析工具的用法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="webpack打包结果依赖分析">
+<meta property="og:title" content="webpack 打包结果依赖分析，找出产物里的体积大头">
 <meta property="og:url" content="http://blog.poetries.top/2018/11/20/webpack-bundleAnalyzer/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、使用webpack-bundle-analyzer插件分析安装插件  https:&#x2F;&#x2F;www.npmjs.com&#x2F;package&#x2F;webpack-bundle-analyzer  npm install webpack-bundle-analyzer –save-dev  配置  在package.json中  传入环境变量ANALYZE，最后process.env.ANALYZE来读取 &amp;q">
+<meta property="og:description" content="用 webpack-bundle-analyzer 把打包结果画成可视化矩形树图，讲清 stat &#x2F; parsed &#x2F; gzip 三种体积口径、常见的体积黑洞和对应改法，以及官方在线分析工具的用法。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/636.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/637.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/636.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/637.png">
 <meta property="article:published_time" content="2018-11-20T09:40:08.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.696Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.960Z">
 <meta property="article:author" content="Poetry">
-<meta property="article:tag" content="优化">
+<meta property="article:tag" content="性能优化">
 <meta property="article:tag" content="webpack">
+<meta property="article:tag" content="优化">
+<meta property="article:tag" content="打包分析">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/636.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/636.png">
 
   
 
@@ -208,7 +210,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BD%BF%E7%94%A8webpack-bundle-analyzer%E6%8F%92%E4%BB%B6%E5%88%86%E6%9E%90"><span class="toc-text">一、使用webpack-bundle-analyzer插件分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8%E5%AE%98%E6%96%B9%E6%8F%90%E4%BE%9B%E7%9A%84%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7"><span class="toc-text">二、使用官方提供的在线工具</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E5%BC%84%E6%B8%85%E6%A5%9A%E4%B8%89%E7%A7%8D%E4%BD%93%E7%A7%AF%E5%8F%A3%E5%BE%84"><span class="toc-text">一、先弄清楚三种体积口径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%BD%BF%E7%94%A8-webpack-bundle-analyzer-%E6%8F%92%E4%BB%B6%E5%88%86%E6%9E%90"><span class="toc-text">二、使用 webpack-bundle-analyzer 插件分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%89%E8%A3%85%E6%8F%92%E4%BB%B6"><span class="toc-text">2.1 安装插件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8C%89%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%BC%80%E5%85%B3%EF%BC%8C%E4%B8%8D%E8%A6%81%E5%B8%B8%E9%A9%BB"><span class="toc-text">2.2 按环境变量开关，不要常驻</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%90%AF%E5%8A%A8"><span class="toc-text">2.3 启动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%BF%99%E5%BC%A0%E5%9B%BE%E8%AF%A5%E6%80%8E%E4%B9%88%E8%AF%BB"><span class="toc-text">三、这张图该怎么读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8F%92%E4%BB%B6%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-text">四、插件的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%BD%BF%E7%94%A8%E5%AE%98%E6%96%B9%E6%8F%90%E4%BE%9B%E7%9A%84%E5%9C%A8%E7%BA%BF%E5%B7%A5%E5%85%B7"><span class="toc-text">五、使用官方提供的在线工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%9C%8B%E5%AE%8C%E5%9B%BE%E4%B9%8B%E5%90%8E%E5%8F%AF%E4%BB%A5%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-text">六、看完图之后可以做什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -231,13 +233,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-webpack-bundleAnalyzer" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">webpack打包结果依赖分析</h1>
+    <h1 class="post-title">webpack 打包结果依赖分析，找出产物里的体积大头</h1>
 
     <div class="article-meta">
       <span>
@@ -273,12 +275,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 545字</span>
+            <span>字数统计 2.9k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 10分</span>
           </span>
       
       
@@ -292,36 +294,78 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、使用webpack-bundle-analyzer插件分析"><a href="#一、使用webpack-bundle-analyzer插件分析" class="headerlink" title="一、使用webpack-bundle-analyzer插件分析"></a>一、使用webpack-bundle-analyzer插件分析</h2><p><strong>安装插件</strong></p>
-<blockquote>
-<p><a href="https://www.npmjs.com/package/webpack-bundle-analyzer">https://www.npmjs.com/package/webpack-bundle-analyzer</a></p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install webpack-bundle-analyzer –save-dev</span><br></pre></td></tr></table></figure>
+        <p>产物 3MB，首屏白屏两秒多，领导问你「大在哪」。这时候如果只能回答「可能是第三方库比较多」，那基本没法往下推。构建优化和性能优化都一样，先量清楚，再动手，凭感觉加插件多半是白忙。</p>
+<p>这篇讲怎么把 webpack 的打包结果画成一张能点进去的图，谁占了多少一目了然。工具就一个 <code>webpack-bundle-analyzer</code>，配置十行以内，但真正值钱的是怎么读这张图，以及看完之后该改什么。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>stat</code>、<code>parsed</code>、<code>gzip</code> 三种体积口径的区别，以及该盯哪一个</li>
+<li><code>webpack-bundle-analyzer</code> 的安装、按需启用和各配置项的含义</li>
+<li>这张矩形树图怎么读，常见的几个体积黑洞长什么样</li>
+<li>插件的原理，它的数据是从哪来的</li>
+<li>官方在线分析工具 <code>webpack/analyse</code> 的用法和适用场景</li>
+<li>看完图之后可以落地的几种改法</li>
+</ul>
+<h2 id="一、先弄清楚三种体积口径"><a href="#一、先弄清楚三种体积口径" class="headerlink" title="一、先弄清楚三种体积口径"></a>一、先弄清楚三种体积口径</h2><p>打开报告你会看到右上角有个下拉框，三个选项 <code>stat</code>、<code>parsed</code>、<code>gzip</code>。很多人第一次看会被数字吓一跳，其实是口径没选对。</p>
+<p><code>stat</code> 是模块的原始体积，也就是 webpack 从磁盘读进来那份源码的大小，没经过任何处理。这个数一般最大，参考价值最低。</p>
+<p><code>parsed</code> 是经过 loader 转译、Tree shaking、压缩之后，真正写进产物文件的体积。这才是用户下载的那份 JS 的大小，也是日常最该盯的那个。</p>
+<p><code>gzip</code> 是 <code>parsed</code> 再过一遍 gzip 压缩的结果。如果你的服务器或者 CDN 开了 gzip（大多数都开了），用户实际消耗的流量是这个数。JS 文本的 gzip 压缩率通常在三分之一左右，所以这个数会比 <code>parsed</code> 小不少。</p>
+<p>先说结论，日常排查看 <code>parsed</code>，跟别人汇报或者定优化目标用 <code>gzip</code>。看 <code>stat</code> 唯一的用处是判断某个库有没有被 Tree shaking 摇掉，<code>stat</code> 大但 <code>parsed</code> 小，说明摇掉了。</p>
+<h2 id="二、使用-webpack-bundle-analyzer-插件分析"><a href="#二、使用-webpack-bundle-analyzer-插件分析" class="headerlink" title="二、使用 webpack-bundle-analyzer 插件分析"></a>二、使用 webpack-bundle-analyzer 插件分析</h2><h3 id="2-1-安装插件"><a href="#2-1-安装插件" class="headerlink" title="2.1 安装插件"></a>2.1 安装插件</h3><p>包地址在 <a href="https://www.npmjs.com/package/webpack-bundle-analyzer">https://www.npmjs.com/package/webpack-bundle-analyzer</a> 。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install webpack-bundle-analyzer --save-dev</span><br></pre></td></tr></table></figure>
 
-<p><strong>配置</strong></p>
-<blockquote>
-<p>在<code>package.json中</code></p>
-</blockquote>
-<p>传入环境变量<code>ANALYZE</code>，最后<code>process.env.ANALYZE</code>来读取</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">  &quot;build&quot;: &quot;node scripts/build.js&quot;,</span><br><span class="line">  &quot;analyze&quot;: &quot;cross-env ANALYZE=1 npm run build&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它是个开发依赖，装到 <code>devDependencies</code> 就够了，不要装进 <code>dependencies</code>。</p>
+<h3 id="2-2-按环境变量开关，不要常驻"><a href="#2-2-按环境变量开关，不要常驻" class="headerlink" title="2.2 按环境变量开关，不要常驻"></a>2.2 按环境变量开关，不要常驻</h3><p>这个插件每次构建都要跑一遍统计并起一个服务，日常构建根本不需要。所以正确的接法是按需开启，靠一个环境变量控制。</p>
+<p>先在 <code>package.json</code> 里加一条命令，传入环境变量 <code>ANALYZE</code>，配置里再用 <code>process.env.ANALYZE</code> 去读：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="attr">&quot;scripts&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;build&quot;</span><span class="punctuation">:</span> <span class="string">&quot;node scripts/build.js&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;analyze&quot;</span><span class="punctuation">:</span> <span class="string">&quot;cross-env ANALYZE=1 npm run build&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在<code>build/webpack.prod.config.js</code>的<code>plugin</code>后面加上判断</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">plugins.<span class="title function_">concat</span>(process.<span class="property">env</span>.<span class="property">ANALYZE</span>?[</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">BundleAnalyzerPlugin</span>(&#123;</span><br><span class="line">    <span class="comment">//  可以是`server`，`static`或`disabled`。</span></span><br><span class="line">    <span class="comment">//  在`server`模式下，分析器将启动HTTP服务器来显示软件包报告。</span></span><br><span class="line">    <span class="comment">//  在“静态”模式下，会生成带有报告的单个HTML文件。</span></span><br><span class="line">    <span class="comment">//  在`disabled`模式下，你可以使用这个插件来将`generateStatsFile`设置为`true`来生成Webpack Stats JSON文件。</span></span><br><span class="line">    <span class="attr">analyzerMode</span>: <span class="string">&#x27;server&#x27;</span>,</span><br><span class="line">    <span class="comment">//  将在“服务器”模式下使用的主机启动HTTP服务器。</span></span><br><span class="line">    <span class="attr">analyzerHost</span>: <span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">    <span class="comment">//  将在“服务器”模式下使用的端口启动HTTP服务器。</span></span><br><span class="line">    <span class="attr">analyzerPort</span>: <span class="number">8888</span>,</span><br><span class="line">    <span class="comment">//  路径捆绑，将在`static`模式下生成的报告文件。</span></span><br><span class="line">    <span class="comment">//  相对于捆绑输出目录。</span></span><br><span class="line">    <span class="attr">reportFilename</span>: <span class="string">&#x27;report.html&#x27;</span>,</span><br><span class="line">    <span class="comment">//  模块大小默认显示在报告中。</span></span><br><span class="line">    <span class="comment">//  应该是`stat`，`parsed`或者`gzip`中的一个。</span></span><br><span class="line">    <span class="comment">//  有关更多信息，请参见“定义”一节。</span></span><br><span class="line">    <span class="attr">defaultSizes</span>: <span class="string">&#x27;parsed&#x27;</span>,</span><br><span class="line">    <span class="comment">//  在默认浏览器中自动打开报告</span></span><br><span class="line">    <span class="attr">openAnalyzer</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="comment">//  如果为true，则Webpack Stats JSON文件将在bundle输出目录中生成</span></span><br><span class="line">    <span class="attr">generateStatsFile</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="comment">//  如果`generateStatsFile`为`true`，将会生成Webpack Stats JSON文件的名字。</span></span><br><span class="line">    <span class="comment">//  相对于捆绑输出目录。</span></span><br><span class="line">    <span class="attr">statsFilename</span>: <span class="string">&#x27;stats.json&#x27;</span>,</span><br><span class="line">    <span class="comment">//  stats.toJson（）方法的选项。</span></span><br><span class="line">    <span class="comment">//  例如，您可以使用`source：false`选项排除统计文件中模块的来源。</span></span><br><span class="line">    <span class="comment">//  在这里查看更多选项：https：  //github.com/webpack/webpack/blob/webpack-1/lib/Stats.js#L21</span></span><br><span class="line">    <span class="attr">statsOptions</span>: <span class="literal">null</span>,</span><br><span class="line">    <span class="attr">logLevel</span>: <span class="string">&#x27;info&#x27;</span> <span class="comment">// 日志级别。可以是&#x27;信息&#x27;，&#x27;警告&#x27;，&#x27;错误&#x27;或&#x27;沉默&#x27;。</span></span><br><span class="line">  	&#125;)</span><br><span class="line">  ]:[])</span><br></pre></td></tr></table></figure>
-<p> <strong>启动</strong></p>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm run analyze</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>在对应地址后面添加端口<code>8888</code>，即可得到一个可视化模块大小界面</p>
-</blockquote>
-<p> <img src="https://poetries1.gitee.io/img-repo/2019/10/636.png"></p>
-<blockquote>
-<p>这个插件就是从<code>stats.json</code>中获取<code>chunks</code>然后最终使用<code>Canvas</code>画图。具体代码位于<code>analyzer.js</code>中的<code>getViewerData</code>方法</p>
-</blockquote>
-<h2 id="二、使用官方提供的在线工具"><a href="#二、使用官方提供的在线工具" class="headerlink" title="二、使用官方提供的在线工具"></a>二、使用官方提供的在线工具</h2><blockquote>
-<p><code>webpack --proile --json &gt; stats.json</code> 生成一份<code>json</code>文件上传到<a href="http://webpack.github.io/analyse">http://webpack.github.io/analyse</a> 分析</p>
-</blockquote>
-<p> <img src="https://poetries1.gitee.io/img-repo/2019/10/637.png"></p>
+<p>用 <code>cross-env</code> 是为了兼容 Windows。直接写 <code>ANALYZE=1 npm run build</code> 在 Windows 的 cmd 下是跑不通的，团队里有人用 Windows 就一定会踩这个。</p>
+<p>然后在 <code>build/webpack.prod.config.js</code> 的 <code>plugins</code> 后面加上判断：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">plugins.<span class="title function_">concat</span>(process.<span class="property">env</span>.<span class="property">ANALYZE</span>?[</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">BundleAnalyzerPlugin</span>(&#123;</span><br><span class="line">    <span class="comment">//  可以是`server`，`static`或`disabled`。</span></span><br><span class="line">    <span class="comment">//  在`server`模式下，分析器将启动HTTP服务器来显示软件包报告。</span></span><br><span class="line">    <span class="comment">//  在`static`模式下，会生成带有报告的单个HTML文件。</span></span><br><span class="line">    <span class="comment">//  在`disabled`模式下，你可以使用这个插件来将`generateStatsFile`设置为`true`来生成Webpack Stats JSON文件。</span></span><br><span class="line">    <span class="attr">analyzerMode</span>: <span class="string">&#x27;server&#x27;</span>,</span><br><span class="line">    <span class="comment">//  将在`server`模式下使用的主机启动HTTP服务器。</span></span><br><span class="line">    <span class="attr">analyzerHost</span>: <span class="string">&#x27;127.0.0.1&#x27;</span>,</span><br><span class="line">    <span class="comment">//  将在`server`模式下使用的端口启动HTTP服务器。</span></span><br><span class="line">    <span class="attr">analyzerPort</span>: <span class="number">8888</span>,</span><br><span class="line">    <span class="comment">//  路径捆绑，将在`static`模式下生成的报告文件。</span></span><br><span class="line">    <span class="comment">//  相对于捆绑输出目录。</span></span><br><span class="line">    <span class="attr">reportFilename</span>: <span class="string">&#x27;report.html&#x27;</span>,</span><br><span class="line">    <span class="comment">//  模块大小默认显示在报告中。</span></span><br><span class="line">    <span class="comment">//  应该是`stat`，`parsed`或者`gzip`中的一个。</span></span><br><span class="line">    <span class="comment">//  有关更多信息，请参见「定义」一节。</span></span><br><span class="line">    <span class="attr">defaultSizes</span>: <span class="string">&#x27;parsed&#x27;</span>,</span><br><span class="line">    <span class="comment">//  在默认浏览器中自动打开报告</span></span><br><span class="line">    <span class="attr">openAnalyzer</span>: <span class="literal">true</span>,</span><br><span class="line">    <span class="comment">//  如果为true，则Webpack Stats JSON文件将在bundle输出目录中生成</span></span><br><span class="line">    <span class="attr">generateStatsFile</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="comment">//  如果`generateStatsFile`为`true`，将会生成Webpack Stats JSON文件的名字。</span></span><br><span class="line">    <span class="comment">//  相对于捆绑输出目录。</span></span><br><span class="line">    <span class="attr">statsFilename</span>: <span class="string">&#x27;stats.json&#x27;</span>,</span><br><span class="line">    <span class="comment">//  stats.toJson() 方法的选项。</span></span><br><span class="line">    <span class="comment">//  例如，您可以使用 source: false 选项排除统计文件中模块的来源。</span></span><br><span class="line">    <span class="comment">//  在这里查看更多选项：https://github.com/webpack/webpack/blob/webpack-1/lib/Stats.js#L21</span></span><br><span class="line">    <span class="attr">statsOptions</span>: <span class="literal">null</span>,</span><br><span class="line">    <span class="attr">logLevel</span>: <span class="string">&#x27;info&#x27;</span> <span class="comment">// 日志级别。可以是&#x27;info&#x27;，&#x27;warn&#x27;，&#x27;error&#x27;或&#x27;silent&#x27;。</span></span><br><span class="line">  	&#125;)</span><br><span class="line">  ]:[])</span><br></pre></td></tr></table></figure>
+
+<p>配置项里真正要挑的只有 <code>analyzerMode</code> 这一个。</p>
+<p><code>server</code> 模式会起一个本地服务，浏览器里能交互，适合本地排查。<code>static</code> 模式生成一个单独的 <code>report.html</code>，适合在 CI 里跑完之后当产物存下来，或者发给同事看。<code>disabled</code> 配合 <code>generateStatsFile: true</code> 只吐一份 <code>stats.json</code>，不出界面，适合接自己的分析脚本或者做体积门禁。</p>
+<p><code>defaultSizes: &#39;parsed&#39;</code> 建议保留，理由上一节说过了。</p>
+<h3 id="2-3-启动"><a href="#2-3-启动" class="headerlink" title="2.3 启动"></a>2.3 启动</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm run analyze</span><br></pre></td></tr></table></figure>
+
+<p>在对应地址后面加上端口 <code>8888</code>，就能得到一个可视化的模块体积界面。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/636.png" alt="webpack-bundle-analyzer 生成的模块体积矩形树图"></p>
+<p>图里每个矩形代表一个模块或者一个目录，面积和体积成正比，可以一层层点进去。鼠标悬停会同时显示三种口径的数值。</p>
+<h2 id="三、这张图该怎么读"><a href="#三、这张图该怎么读" class="headerlink" title="三、这张图该怎么读"></a>三、这张图该怎么读</h2><p>图打开了不代表问题就找到了。我一般按这个顺序看。</p>
+<p>先看最外层有几个大块，确认分包策略生不生效。如果整张图就是一个巨大的 <code>main.js</code>，说明 <code>splitChunks</code> 压根没配或者没起作用，那这一步就该先去补分包，别急着抠单个库。</p>
+<p>然后找面积最大的那几个 <code>node_modules</code> 子块。这里最常见的几个坑，几乎每个项目都能撞上一两个。</p>
+<p><code>moment</code> 是重灾区。它默认会把全部 locale 语言包打进去，一个几十 KB 的库能撑到两百多 KB，而你大概率只用中文。解决办法是用 <code>IgnorePlugin</code> 把 locale 目录忽略掉，或者干脆换成 <code>day.js</code>，API 基本兼容而体积只有几 KB。</p>
+<p><code>lodash</code> 整包引入是第二常见的。写 <code>import _ from &#39;lodash&#39;</code> 会把整个库打进来，改成 <code>import debounce from &#39;lodash/debounce&#39;</code> 或者上 <code>babel-plugin-lodash</code> 就能只留用到的那几个函数。</p>
+<p>组件库没走按需加载排第三。<code>antd</code>、<code>element-ui</code> 这类库整包引入动辄几百 KB，配上对应的按需引入插件之后通常能砍掉一大半。</p>
+<p>还有一类比较隐蔽，同一个库出现了两个不同版本。图里会看到两个同名的块分别躺在不同的路径下，通常是某个依赖锁定了旧版本导致的。<code>npm ls &lt;包名&gt;</code> 能看出依赖树里谁引了哪个版本，用 <code>resolutions</code> 或者升级依赖去收敛。</p>
+<p>最后看一眼有没有本该异步加载的东西被打进了首屏包。富文本编辑器、图表库、Excel 导出这类只在特定页面用的东西，出现在初始 chunk 里就说明按需加载没生效，多半是 <code>import()</code> 写成了静态 <code>import</code>。</p>
+<p>我自己的感受是，第一次跑这个工具基本都能找出至少两处可以砍的地方，而且改起来都不难。真正难的是坚持每次发版前跑一遍，不然过两个月又会长回去。</p>
+<h2 id="四、插件的原理"><a href="#四、插件的原理" class="headerlink" title="四、插件的原理"></a>四、插件的原理</h2><p>这个插件的做法其实不复杂。webpack 构建结束时会产出一份 <code>stats</code> 对象，里面记录了每个 chunk 包含哪些模块、每个模块多大、依赖关系是什么。插件从 <code>stats.json</code> 里取出 <code>chunks</code> 数据，算好每个模块的三种体积，最后用 <code>Canvas</code> 把矩形树图画出来。具体代码在 <code>analyzer.js</code> 的 <code>getViewerData</code> 方法里。</p>
+<p>知道这一点有个实际好处，<code>stats.json</code> 是标准产物，你可以自己写脚本读它，做一些插件没提供的事，比如在 CI 里比对两次构建的体积差异，超过阈值就让流水线失败。</p>
+<h2 id="五、使用官方提供的在线工具"><a href="#五、使用官方提供的在线工具" class="headerlink" title="五、使用官方提供的在线工具"></a>五、使用官方提供的在线工具</h2><p>除了插件，webpack 官方还提供了一个在线分析页面。先生成一份 stats 文件：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">webpack --profile --json &gt; stats.json</span><br></pre></td></tr></table></figure>
+
+<p>然后把这份 <code>stats.json</code> 上传到 <a href="http://webpack.github.io/analyse">http://webpack.github.io/analyse</a> 就能看到分析结果。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/637.png" alt="webpack 官方在线分析工具的界面"></p>
+<p>顺带说一句，原文这条命令里的 <code>--proile</code> 是个笔误，正确写法是 <code>--profile</code>。</p>
+<p>这个在线工具和 <code>webpack-bundle-analyzer</code> 的侧重点不同。analyzer 强在体积，一眼看出谁大；官方这个强在结构，能看到模块之间的依赖关系、chunk 的父子关系、警告和错误的详细信息。想搞清楚「这个模块到底是被谁引进来的」，用它更合适。</p>
+<p>它的缺点也很明显，界面比较老，大项目的 <code>stats.json</code> 动辄几十 MB，上传和渲染都慢。而且 stats 文件里包含你的模块路径信息，公司项目往上传之前想清楚。这块我自己用得不多，多数时候 analyzer 就够了。</p>
+<h2 id="六、看完图之后可以做什么"><a href="#六、看完图之后可以做什么" class="headerlink" title="六、看完图之后可以做什么"></a>六、看完图之后可以做什么</h2><p>分析只是第一步，落地的改法大致分三类。</p>
+<p>第一类是换或者裁。<code>moment</code> 换 <code>day.js</code>，<code>lodash</code> 改按需，组件库配按需引入插件，<code>IgnorePlugin</code> 干掉用不上的语言包目录。这类改动收益最直接，风险也最低。</p>
+<p>第二类是拆。用 <code>optimization.splitChunks</code> 把第三方库和业务代码分开，把超稳定的核心库（React 这类）再单独分一组，配合 <code>[contenthash]</code> 做长期缓存。首屏用不到的路由和重组件改成 <code>import()</code> 动态加载。这部分的完整配置我写在 <a href="https://feinterview.poetries.top/blog/webpack-5-build-optimization">Webpack 5 构建性能优化实战</a> 里了。</p>
+<p>第三类是压。生产构建确认开了压缩（webpack 4 之后 <code>mode: &#39;production&#39;</code> 默认就开），服务端或 CDN 打开 gzip 或者 brotli。这一步通常已经做了，但值得确认一遍，我见过配置里手动关掉了 <code>minimize</code> 却没人发现的情况。</p>
+<p>顺带提一下时效性。这篇写的时候基线是 webpack 3 &#x2F; 4，<code>webpack-bundle-analyzer</code> 到现在还在维护，webpack 5 上照样用，配置项也基本没变。变化的是周边：<code>webpack --profile --json</code> 在 webpack 5 里推荐写成 <code>webpack --json=stats.json</code>，<code>--profile</code> 现在主要用来输出各阶段耗时。另外 webpack 5 内置了更好用的 <code>stats</code> 配置，以及 <code>performance.hints</code> 可以在产物超过阈值时直接报警，做体积门禁比自己写脚本省事。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>分析产物这件事，工具本身十分钟就能配完，难的是养成习惯和会读图。</p>
+<p>三种体积口径先分清楚，日常盯 <code>parsed</code>，对外说 <code>gzip</code>。插件一定要用环境变量控制开关，别让它常驻在每次构建里。读图按「先看分包生不生效，再找最大的几个 node_modules 块，最后确认有没有该异步的东西被打进首屏」这个顺序走。</p>
+<p><code>moment</code> 的 locale、<code>lodash</code> 整包、组件库没按需、同一个库多版本，这四个是最高频的体积黑洞，第一次跑基本都能中一两个。</p>
+<p>想看更多插件的用法，可以翻 <a href="https://feinterview.poetries.top/blog/webpack-config-optize">webpack 常用插件总结</a>；构建速度那一侧的优化手段在 <a href="https://feinterview.poetries.top/blog/webpack-dll">dll 预编译提高 webpack 打包速度</a>；配置项的全景梳理在 <a href="https://feinterview.poetries.top/blog/webpack-review">webpack 回顾篇</a>。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.npmjs.com/package/webpack-bundle-analyzer">webpack-bundle-analyzer</a></li>
+<li><a href="http://webpack.github.io/analyse">webpack 官方在线分析工具</a></li>
+<li><a href="https://webpack.js.org/configuration/stats/">webpack Stats 配置</a></li>
+<li><a href="https://webpack.js.org/guides/code-splitting/">webpack 代码分离指南</a></li>
+<li><a href="https://day.js.org/">day.js</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>React之connect组件 | 前端进阶之旅</title>
+  <title>React Redux 之 connect 高阶组件原理与源码拆解 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="React,Javascript," />
+    <meta name="keywords" content="React,Redux,Javascript,react-redux," />
   
 
-  <meta name="description" content="一、connect用法 作用：连接React组件与 Redux store  connect([mapStateToProps], [mapDispatchToProps], [mergeProps],[options])  &#x2F;&#x2F; 这个函数允许我们将 store 中的数据作为 props 绑定到组件上const mapStateToProps &#x3D; (state) &#x3D;&gt; &#123;  ret">
+  <meta name="description" content="拆解 react-redux 的 connect 高阶组件，讲清 mapStateToProps、mapDispatchToProps、mergeProps 各自的职责和调用时机，配合 Provider 的 context 传递、store 订阅与浅比较的源码骨架，以及 hooks 时代它的现状。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="React之connect组件">
+<meta property="og:title" content="React Redux 之 connect 高阶组件原理与源码拆解">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/20/react-redux-connect/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、connect用法 作用：连接React组件与 Redux store  connect([mapStateToProps], [mapDispatchToProps], [mergeProps],[options])  &#x2F;&#x2F; 这个函数允许我们将 store 中的数据作为 props 绑定到组件上const mapStateToProps &#x3D; (state) &#x3D;&gt; &#123;  ret">
+<meta property="og:description" content="拆解 react-redux 的 connect 高阶组件，讲清 mapStateToProps、mapDispatchToProps、mergeProps 各自的职责和调用时机，配合 Provider 的 context 传递、store 订阅与浅比较的源码骨架，以及 hooks 时代它的现状。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-12-20T09:50:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.685Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.950Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="React">
+<meta property="article:tag" content="Redux">
 <meta property="article:tag" content="Javascript">
+<meta property="article:tag" content="react-redux">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81connect%E7%94%A8%E6%B3%95"><span class="toc-text">一、connect用法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90"><span class="toc-text">二、原理解析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%BA%90%E7%A0%81"><span class="toc-text">三、源码</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81connect-%E5%88%B0%E5%BA%95%E5%9C%A8%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-text">一、connect 到底在做什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81mapStateToProps-%E8%B4%9F%E8%B4%A3%E8%AF%BB"><span class="toc-text">二、mapStateToProps 负责读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%BB%8E-state-%E9%87%8C%E6%8C%91%E5%87%BA%E7%BB%84%E4%BB%B6%E8%A6%81%E7%9A%84%E9%82%A3%E9%83%A8%E5%88%86"><span class="toc-text">2.1 从 state 里挑出组件要的那部分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%8F%82%E6%95%B0-ownProps"><span class="toc-text">2.2 第二个参数 ownProps</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%BC%95%E7%94%A8%E7%9B%B8%E7%AD%89%E8%BF%99%E4%B8%AA%E5%A4%A7%E5%9D%91"><span class="toc-text">2.3 引用相等这个大坑</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81mapDispatchToProps-%E8%B4%9F%E8%B4%A3%E5%86%99"><span class="toc-text">三、mapDispatchToProps 负责写</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%87%BD%E6%95%B0%E5%BD%A2%E5%BC%8F"><span class="toc-text">3.1 函数形式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AF%B9%E8%B1%A1%E7%AE%80%E5%86%99"><span class="toc-text">3.2 对象简写</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81mergeProps-%E5%92%8C-options"><span class="toc-text">四、mergeProps 和 options</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Provider-%E6%98%AF%E8%BF%99%E4%B8%80%E5%88%87%E7%9A%84%E5%89%8D%E6%8F%90"><span class="toc-text">五、Provider 是这一切的前提</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81connect-%E6%BA%90%E7%A0%81%E9%AA%A8%E6%9E%B6"><span class="toc-text">六、connect 源码骨架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%9B%B4%E6%96%B0%E9%93%BE%E8%B7%AF%E8%B5%B0%E4%B8%80%E9%81%8D"><span class="toc-text">6.1 更新链路走一遍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%85%B3%E4%BA%8E%E8%BF%99%E4%BB%BD%E6%BA%90%E7%A0%81%E7%9A%84%E6%97%B6%E6%95%88%E6%80%A7"><span class="toc-text">6.2 关于这份源码的时效性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81hooks-%E6%97%B6%E4%BB%A3%E8%BF%99%E5%A5%97%E4%B8%9C%E8%A5%BF%E8%BF%98%E5%89%A9%E4%BB%80%E4%B9%88"><span class="toc-text">七、hooks 时代这套东西还剩什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-react-redux-connect" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">React之connect组件</h1>
+    <h1 class="post-title">React Redux 之 connect 高阶组件原理与源码拆解</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 647字</span>
+            <span>字数统计 4k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 15分</span>
           </span>
       
       
@@ -289,46 +291,117 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、connect用法"><a href="#一、connect用法" class="headerlink" title="一、connect用法"></a>一、connect用法</h2><blockquote>
-<p>作用：连接<code>React</code>组件与 <code>Redux store</code></p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">connect</span>([mapStateToProps], [mapDispatchToProps], [mergeProps],[options])</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 这个函数允许我们将 store 中的数据作为 props 绑定到组件上</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">mapStateToProps</span> = (<span class="params">state</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">count</span>: state.<span class="property">count</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
+        <p>第一次用 <code>react-redux</code> 的时候我有个很实在的疑惑：组件里明明没写任何订阅代码，只是在导出的时候套了一层 <code>connect(mapStateToProps)(MyComp)</code>，为什么 store 一变它就重渲了？后来项目里出了个更奇怪的问题，某个组件死活不更新，reducer 里打印能看到新 state，组件的 props 就是老的。排查了一下午，最后发现是 <code>mapStateToProps</code> 返回的引用没变。</p>
+<p>那次之后我把 <code>connect</code> 的实现翻了一遍，才算真正理解它在干什么。这篇就把这层壳拆开：<code>connect</code> 的四个参数各管什么，<code>Provider</code> 为什么必须存在，订阅和更新的链路是怎么走的，以及为什么「返回同一个引用」会让组件不更新。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>这个函数的第一个参数就是 <code>Redux</code> 的 <code>store</code>，我们从中摘取了 <code>count</code> 属性。你不必将 <code>state</code> 中的数据原封不动地传入组件，可以根据 <code>state</code> 中的数据，动态地输出组件需要的（最小）属性</li>
-<li>函数的第二个参数 <code>ownProps</code>，是组件自己的 <code>props</code></li>
+<li><code>connect</code> 的四个参数 <code>mapStateToProps</code> &#x2F; <code>mapDispatchToProps</code> &#x2F; <code>mergeProps</code> &#x2F; <code>options</code> 各自的职责</li>
+<li><code>mapStateToProps</code> 的两个形参，以及它什么时候会被重新调用</li>
+<li><code>mapDispatchToProps</code> 的函数形式和对象简写，各自适合什么场景</li>
+<li><code>Provider</code> 通过 context 往下传 store 的这条链路</li>
+<li><code>connect</code> 源码骨架：两层高阶函数、订阅、浅比较、卸载清理</li>
+<li>为什么「不更新」的问题九成出在引用相等上</li>
+<li>hooks 时代 <code>useSelector</code> &#x2F; <code>useDispatch</code> 取代它之后，这套原理还剩下什么价值</li>
 </ul>
-<blockquote>
-<p>当 <code>state</code> 变化，或者 <code>ownProps</code> 变化的时候，<code>mapStateToProps</code> 都会被调用，计算出一个新的 <code>stateProps</code>，（在与 <code>ownProps merge</code> 后）更新给组件</p>
-</blockquote>
+<h2 id="一、connect-到底在做什么"><a href="#一、connect-到底在做什么" class="headerlink" title="一、connect 到底在做什么"></a>一、connect 到底在做什么</h2><p>一句话说，<code>connect</code> 负责把 <code>React</code> 组件和 <code>Redux store</code> 连起来。</p>
+<p>它的完整签名长这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">connect</span>([mapStateToProps], [mapDispatchToProps], [mergeProps], [options])</span><br></pre></td></tr></table></figure>
+
+<p>四个参数全是可选的。前两个最常用，一个负责「读」，一个负责「写」。第三个 <code>mergeProps</code> 决定读到的、写出的、组件自己的三部分 props 怎么合并，第四个 <code>options</code> 调优化行为。</p>
+<p>注意 <code>connect(...)</code> 的返回值不是组件，而是一个函数。你得再调用一次，把真正的组件传进去，才拿到最终那个被包裹的组件：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 第一步：传配置，拿到一个「组件生产函数」</span></span><br><span class="line"><span class="keyword">const</span> enhancer = <span class="title function_">connect</span>(mapStateToProps, mapDispatchToProps)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 第二步：传组件，拿到被包裹后的组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">ConnectedComp</span> = <span class="title function_">enhancer</span>(<span class="title class_">MyComp</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 平时都是连起来写</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">connect</span>(mapStateToProps, mapDispatchToProps)(<span class="title class_">MyComp</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这个两层调用的结构就是高阶组件的典型写法。分成两层的好处是配置可以复用，同一份 <code>mapStateToProps</code> 能套给多个组件，也方便和别的 HOC 组合。</p>
+<p>被包裹出来的这个组件，<code>react-redux</code> 内部叫 <code>Connect</code>。它自己不渲染任何 UI，只干四件事：从上层拿到 store，算出要传下去的 props，订阅 store 的变化，在合适的时机决定要不要重渲。你的业务组件被它包在里面，对这一切毫无感知，收到的就是一堆普通 props。</p>
+<p>这种「容器组件负责取数据、展示组件只管渲染」的拆法，就是当年很流行的 container &#x2F; presentational 分层。</p>
+<h2 id="二、mapStateToProps-负责读"><a href="#二、mapStateToProps-负责读" class="headerlink" title="二、mapStateToProps 负责读"></a>二、mapStateToProps 负责读</h2><h3 id="2-1-从-state-里挑出组件要的那部分"><a href="#2-1-从-state-里挑出组件要的那部分" class="headerlink" title="2.1 从 state 里挑出组件要的那部分"></a>2.1 从 state 里挑出组件要的那部分</h3><p>这个函数允许我们把 store 中的数据作为 props 绑定到组件上：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">mapStateToProps</span> = (<span class="params">state</span>) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="attr">count</span>: state.<span class="property">count</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一个参数就是 <code>Redux</code> 的 <code>state</code>，我们从中摘出了 <code>count</code> 属性。</p>
+<p>这里有个原则要强调：你不必把 <code>state</code> 原封不动地传进组件，而应该根据 <code>state</code> 里的数据，动态算出组件需要的那个最小属性集。这不是洁癖，是性能问题。传得越多，组件被无关变化牵连重渲的概率就越大。</p>
+<p>举个具体的，一个订单列表页只需要列表和加载状态，那就别把整个 <code>state.order</code> 塞进去：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 不推荐：把整个 slice 摊进来，slice 里任何字段变了都会重新计算</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">mapStateToProps</span> = (<span class="params">state</span>) =&gt; (&#123;</span><br><span class="line">  <span class="attr">order</span>: state.<span class="property">order</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 推荐：只挑要用的</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">mapStateToProps</span> = (<span class="params">state</span>) =&gt; (&#123;</span><br><span class="line">  <span class="attr">list</span>: state.<span class="property">order</span>.<span class="property">list</span>,</span><br><span class="line">  <span class="attr">loading</span>: state.<span class="property">order</span>.<span class="property">loading</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-第二个参数-ownProps"><a href="#2-2-第二个参数-ownProps" class="headerlink" title="2.2 第二个参数 ownProps"></a>2.2 第二个参数 ownProps</h3><p><code>mapStateToProps</code> 还能接第二个参数 <code>ownProps</code>，指的是组件自己身上的 props，也就是父组件传给 <code>ConnectedComp</code> 的那些。</p>
+<p>它的用处是根据组件自身的属性去 state 里做筛选：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// &lt;UserCard userId=&quot;42&quot; /&gt; 这样用的时候</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">mapStateToProps</span> = (<span class="params">state, ownProps</span>) =&gt; (&#123;</span><br><span class="line">  <span class="attr">user</span>: state.<span class="property">users</span>.<span class="property">byId</span>[ownProps.<span class="property">userId</span>]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这里有个坑要注意。一旦你声明了第二个形参，<code>mapStateToProps</code> 的调用时机就变了：不光 state 变化时会调，<code>ownProps</code> 变化时也会调一次。如果你写的是 <code>(state) =&gt; (&#123;...&#125;)</code>，<code>react-redux</code> 检测到函数只有一个形参，就会跳过 <code>ownProps</code> 变化触发的那次重算。这个行为是靠 <code>Function.length</code> 判断的，所以别为了「统一风格」给用不到的地方硬加第二个参数。</p>
+<p>state 变化或者 <code>ownProps</code> 变化的时候，<code>mapStateToProps</code> 都会被调用，算出一个新的 <code>stateProps</code>，和 <code>ownProps</code> 合并之后更新给组件。</p>
+<h3 id="2-3-引用相等这个大坑"><a href="#2-3-引用相等这个大坑" class="headerlink" title="2.3 引用相等这个大坑"></a>2.3 引用相等这个大坑</h3><p>回到开头那个「组件死活不更新」的问题。</p>
+<p><code>connect</code> 判断要不要重渲，用的是浅比较：拿新算出的 <code>stateProps</code> 和上一次的逐个字段比引用。所以下面这种写法会出事：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 有坑：每次调用都产生一个新数组，浅比较永远认为「变了」</span></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">mapStateToProps</span> = (<span class="params">state</span>) =&gt; (&#123;</span><br><span class="line">  <span class="attr">activeList</span>: state.<span class="property">list</span>.<span class="title function_">filter</span>(<span class="function"><span class="params">item</span> =&gt;</span> item.<span class="property">active</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>filter</code> 每次都返回新数组，引用必然不同，结果是 store 里任何无关的字段变化都会导致这个组件重渲。反过来，如果你在 reducer 里直接 <code>state.list.push(item)</code> 然后 <code>return state</code>，引用没变，<code>connect</code> 就认为什么都没发生，组件不更新。</p>
+<p>我当年踩的正是后面这个。reducer 里改了数组又把原对象返回出去，<code>console.log</code> 打印的确实是新数据，因为打印的就是那个被改过的对象，但引用从头到尾是同一个。</p>
+<p>这两个坑其实是同一条规则的两面：Redux 靠引用变化判断状态变化。前者的解法是用 <code>reselect</code> 这类库给派生数据做缓存，后者的解法是老老实实返回新对象。关于状态只读和纯函数修改这两条为什么必须守住，我在 <a href="https://feinterview.poetries.top/blog/react-redux-analyse">Redux 原理与三大原则</a> 里单独展开过。</p>
+<h2 id="三、mapDispatchToProps-负责写"><a href="#三、mapDispatchToProps-负责写" class="headerlink" title="三、mapDispatchToProps 负责写"></a>三、mapDispatchToProps 负责写</h2><p><code>connect</code> 的第二个参数是 <code>mapDispatchToProps</code>，它的功能是把 <code>action</code> 作为 props 绑定到组件上，同样会成为被包裹组件的 props。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">mapDispatchToProps</span>(dispatch, ownProps): dispatchProps</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>connect</code> 的第二个参数是 <code>mapDispatchToProps</code>，它的功能是，将 <code>action</code> 作为 <code>props </code>绑定到组件上，也会成为 <code>MyComp</code> 的 <code>props</code></p>
-</blockquote>
-<h2 id="二、原理解析"><a href="#二、原理解析" class="headerlink" title="二、原理解析"></a>二、原理解析</h2><blockquote>
-<p>首先<code>connect</code>之所以会成功，是因为<code>Provider</code>组件</p>
-</blockquote>
+<h3 id="3-1-函数形式"><a href="#3-1-函数形式" class="headerlink" title="3.1 函数形式"></a>3.1 函数形式</h3><p>写成函数时，第一个参数是 <code>dispatch</code>，你自己决定往下传什么：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">mapDispatchToProps</span> = (<span class="params">dispatch</span>) =&gt; (&#123;</span><br><span class="line">  <span class="attr">increase</span>: <span class="function">() =&gt;</span> <span class="title function_">dispatch</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;INCREMENT&#x27;</span> &#125;),</span><br><span class="line">  <span class="attr">setName</span>: <span class="function">(<span class="params">name</span>) =&gt;</span> <span class="title function_">dispatch</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;SET_NAME&#x27;</span>, <span class="attr">payload</span>: name &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>组件里就可以直接 <code>this.props.increase()</code>，完全不用知道 <code>dispatch</code> 的存在。这是 <code>connect</code> 设计里我觉得最舒服的一点，展示组件对 Redux 零依赖，单独拿去测试或者换状态管理方案都不用改。</p>
+<p>同样支持 <code>ownProps</code> 作为第二个参数，行为和 <code>mapStateToProps</code> 一致，形参写了才会在 props 变化时重算。</p>
+<h3 id="3-2-对象简写"><a href="#3-2-对象简写" class="headerlink" title="3.2 对象简写"></a>3.2 对象简写</h3><p>如果你的 action creator 本来就返回 action 对象，可以直接传一个对象，<code>react-redux</code> 会自动用 <code>bindActionCreators</code> 包一层：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; increase, setName &#125; <span class="keyword">from</span> <span class="string">&#x27;./actions&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">connect</span>(mapStateToProps, &#123; increase, setName &#125;)(<span class="title class_">MyComp</span>)</span><br></pre></td></tr></table></figure>
+
+<p>日常我几乎只用这个写法，短、不容易写错。函数形式留给需要在 dispatch 前后做点别的事情的场景，比如合并多个 action、或者根据 <code>ownProps</code> 决定 dispatch 什么。</p>
+<p>还有个细节：如果你完全不传第二个参数，<code>connect</code> 会把 <code>dispatch</code> 本身作为 prop 传给组件。所以有些老代码里能看到组件里直接 <code>this.props.dispatch(&#123; type: &#39;XXX&#39; &#125;)</code>，那不是魔法，就是这个默认行为。</p>
+<h2 id="四、mergeProps-和-options"><a href="#四、mergeProps-和-options" class="headerlink" title="四、mergeProps 和 options"></a>四、mergeProps 和 options</h2><p>这两个参数用得少，但知道它们存在有好处。</p>
+<p><code>mergeProps(stateProps, dispatchProps, ownProps)</code> 决定最终传给组件的 props 长什么样。不传的话默认就是 <code>&#123; ...ownProps, ...stateProps, ...dispatchProps &#125;</code>。需要自定义的典型场景是让 dispatch 函数能拿到 state：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">mergeProps</span> = (<span class="params">stateProps, dispatchProps, ownProps</span>) =&gt; (&#123;</span><br><span class="line">  ...ownProps,</span><br><span class="line">  ...stateProps,</span><br><span class="line">  ...dispatchProps,</span><br><span class="line">  <span class="comment">// 提交时自动带上当前表单里的值</span></span><br><span class="line">  <span class="attr">submit</span>: <span class="function">() =&gt;</span> dispatchProps.<span class="title function_">submitForm</span>(stateProps.<span class="property">formValues</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>options</code> 里比较有用的是 <code>areStatePropsEqual</code> 这类比较函数，可以把默认的浅比较换成自定义逻辑。不到有明确性能问题的时候不建议动它，自定义比较函数本身也有开销，而且写错了就是「该更新的不更新」，比多渲染几次难查得多。</p>
+<h2 id="五、Provider-是这一切的前提"><a href="#五、Provider-是这一切的前提" class="headerlink" title="五、Provider 是这一切的前提"></a>五、Provider 是这一切的前提</h2><p><code>connect</code> 之所以能拿到 store，是因为外面还有一层 <code>Provider</code>。</p>
+<p>它做的事就两件：在原应用组件上包裹一层，让整个应用成为 <code>Provider</code> 的子组件；接收 <code>Redux</code> 的 <code>store</code> 作为 props，通过 <code>context</code> 对象传递给子孙组件上的 <code>connect</code>。</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Provider</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react-redux&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="title class_">ReactDOM</span>.<span class="title function_">render</span>(</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">Provider</span> <span class="attr">store</span>=<span class="string">&#123;store&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;<span class="name">App</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">Provider</span>&gt;</span></span>,</span><br><span class="line">  <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;root&#x27;</span>)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>为什么非得走 context？因为 store 要给任意深度的组件用，一层层往下传 props 显然不现实。context 就是 React 官方给的跨层级传值通道，<code>Provider</code> 在顶上放一份，<code>Connect</code> 在任意位置取一份。</p>
+<p>顺着上面聊，<code>connect</code> 真正连接 <code>Redux</code> 和 <code>React</code> 的动作就发生在这儿：它包在容器组件外面一层，接收 <code>Provider</code> 提供的 <code>store</code> 里的 <code>state</code> 和 <code>dispatch</code>，交给前面那几个 map 函数处理，返回一个对象，以属性形式传给容器组件。</p>
+<p>这也解释了一个常见报错。忘了套 <code>Provider</code> 就用 <code>connect</code>，控制台会告诉你找不到 store，因为 context 里压根没有。</p>
+<h2 id="六、connect-源码骨架"><a href="#六、connect-源码骨架" class="headerlink" title="六、connect 源码骨架"></a>六、connect 源码骨架</h2><p><code>connect</code> 是一个高阶函数。先传入 <code>mapStateToProps</code>、<code>mapDispatchToProps</code>，返回一个生产 <code>Component</code> 的函数（<code>wrapWithConnect</code>），再把真正的 <code>Component</code> 作为参数传进去，就生产出一个包裹后的 <code>Connect</code> 组件。</p>
+<p>这个组件有四个特点：</p>
 <ul>
-<li>在原应用组件上包裹一层，使原来整个应用成为<code>Provider</code>的子组件</li>
-<li>接收<code>Redux</code>的<code>store</code>作为<code>props</code>，通过<code>context</code>对象传递给子孙组件上的<code>connect</code></li>
+<li>通过 <code>props.store</code> 或者祖先组件的 context 获取 store，把 <code>stateProps</code>、<code>dispatchProps</code>、<code>parentProps</code> 合并成 <code>nextState</code>，作为 props 传给真正的 <code>Component</code></li>
+<li><code>componentDidMount</code> 时调用 <code>this.store.subscribe(this.handleChange)</code> 注册监听，实现页面交互</li>
+<li><code>shouldComponentUpdate</code> 时判断能否跳过渲染，提升页面性能，并算出新的 <code>nextState</code></li>
+<li><code>componentWillUnmount</code> 时移除注册的监听，避免内存泄漏</li>
 </ul>
-<p><strong>connect做了些什么</strong></p>
-<blockquote>
-<p>它真正连接 <code>Redux</code> 和 <code>React</code>，它包在我们的容器组件的外一层，它接收上面 <code>Provider </code>提供的 <code>store</code> 里面的 <code>state </code>和 <code>dispatch</code>，传给一个构造函数，返回一个对象，以属性形式传给我们的容器组件</p>
-</blockquote>
-<h2 id="三、源码"><a href="#三、源码" class="headerlink" title="三、源码"></a>三、源码</h2><blockquote>
-<p><code>connect</code>是一个高阶函数，首先传入<code>mapStateToProps</code>、<code>mapDispatchToProps</code>，然后返回一个生产<code>Component</code>的函数(<code>wrapWithConnect</code>)，然后再将真正的<code>Component</code>作为参数传入<code>wrapWithConnect</code>，这样就生产出一个经过包裹的<code>Connect</code>组件，该组件具有如下特点</p>
-</blockquote>
-<ul>
-<li>通过<code>props.store</code>获取祖先<code>Component</code>的<code>store props</code>包括<code>stateProps</code>、<code>dispatchProps</code>、<code>parentProps</code>,合并在一起得到<code>nextState</code>，作为<code>props</code>传给真正的<code>Component</code></li>
-<li><code>componentDidMount</code>时，添加事件<code>this.store.subscribe(this.handleChange)</code>，实现页面交互</li>
-<li><code>shouldComponentUpdate</code>时判断是否有避免进行渲染，提升页面性能，并得到<code>nextState</code></li>
-<li><code>componentWillUnmount</code>时移除注册的事件<code>this.handleChange</code></li>
+<p>主要逻辑简化之后是这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">connect</span>(<span class="params">mapStateToProps, mapDispatchToProps, mergeProps, options = &#123;&#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> <span class="title function_">wrapWithConnect</span>(<span class="params">WrappedComponent</span>) &#123;</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Connect</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">      <span class="title function_">constructor</span>(<span class="params">props, context</span>) &#123;</span><br><span class="line">        <span class="variable language_">super</span>(props, context)</span><br><span class="line">        <span class="comment">// 从祖先 Component 处获得 store</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">store</span> = props.<span class="property">store</span> || context.<span class="property">store</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">stateProps</span> = <span class="title function_">computeStateProps</span>(<span class="variable language_">this</span>.<span class="property">store</span>, props)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">dispatchProps</span> = <span class="title function_">computeDispatchProps</span>(<span class="variable language_">this</span>.<span class="property">store</span>, props)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123; <span class="attr">storeState</span>: <span class="literal">null</span> &#125;</span><br><span class="line">        <span class="comment">// 对 stateProps、dispatchProps、parentProps 进行合并</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">updateState</span>()</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="title function_">componentDidMount</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="comment">// 订阅 store，变化时改变 Connect 自身的 state 以触发重渲</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">unsubscribe</span> = <span class="variable language_">this</span>.<span class="property">store</span>.<span class="title function_">subscribe</span>(<span class="variable language_">this</span>.<span class="property">handleChange</span>)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="title function_">componentWillUnmount</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="comment">// 组件卸载时取消订阅</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">unsubscribe</span> &amp;&amp; <span class="variable language_">this</span>.<span class="title function_">unsubscribe</span>()</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      handleChange = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123; <span class="attr">storeState</span>: <span class="variable language_">this</span>.<span class="property">store</span>.<span class="title function_">getState</span>() &#125;)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="title function_">shouldComponentUpdate</span>(<span class="params">nextProps, nextState</span>) &#123;</span><br><span class="line">        <span class="comment">// 浅比较，只有真正变化时才让 Component 重新渲染</span></span><br><span class="line">        <span class="keyword">if</span> (propsChanged || mapStateProducedChange || dispatchPropsChanged) &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">updateState</span>(nextProps)</span><br><span class="line">          <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">WrappedComponent</span> &#123;<span class="attr">...this.nextState</span>&#125; /&gt;</span></span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="title class_">Connect</span>.<span class="property">contextTypes</span> = &#123; <span class="attr">store</span>: storeShape &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="title class_">Connect</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段是从原文那版整理来的，我顺手修了三处问题：原来 <code>constructor</code> 里漏了 <code>super(props, context)</code>，React 类组件不调这句直接就报错；<code>this.store.subscribe(() = &#123;</code> 少了一个 <code>&gt;</code>，是个 typo；另外原版只说了「<code>componentWillUnmount</code> 时移除事件」，代码里却没写，订阅之后不取消就是标准的内存泄漏，这里补上了 <code>unsubscribe</code>。</p>
+<h3 id="6-1-更新链路走一遍"><a href="#6-1-更新链路走一遍" class="headerlink" title="6.1 更新链路走一遍"></a>6.1 更新链路走一遍</h3><p>把上面这段串起来看，一次 dispatch 之后发生的事是这样的：</p>
+<p>Step 1，reducer 算出新的 state，store 通知所有订阅者。</p>
+<p>Step 2，<code>Connect</code> 的 <code>handleChange</code> 被调用，<code>setState(&#123; storeState &#125;)</code>。注意它存的这个字段本身没人用，纯粹是为了触发一次 React 的更新流程。</p>
+<p>Step 3，<code>shouldComponentUpdate</code> 里重新跑 <code>mapStateToProps</code>，把结果和上次浅比较。</p>
+<p>Step 4，有变化就返回 <code>true</code>，<code>render</code> 把新的 <code>nextState</code> 摊给业务组件；没变化返回 <code>false</code>，业务组件的 <code>render</code> 根本不会执行。</p>
+<p>第三步和第四步就是 <code>connect</code> 性能优化的全部秘密。它不是让更新变快，是让大多数更新根本不发生。</p>
+<h3 id="6-2-关于这份源码的时效性"><a href="#6-2-关于这份源码的时效性" class="headerlink" title="6.2 关于这份源码的时效性"></a>6.2 关于这份源码的时效性</h3><p>这里得说清楚一件事，上面这个骨架对应的是 <code>react-redux</code> 早期版本，用的是 <code>contextTypes</code> 这套 legacy context API。React 16.3 之后官方推出了新的 Context API，<code>react-redux</code> 从 v6 开始改用它；v7 又调整为在 <code>Connect</code> 内部用 <code>useContext</code> 加自己的订阅机制；到了 v8 则接入了 React 18 的 <code>useSyncExternalStore</code> 来解决并发渲染下的撕裂问题。</p>
+<p>具体到某个版本的实现细节，建议直接看仓库源码，我这里不敢照着记忆写。但心智模型这些年是稳的：从 context 拿 store、订阅、算 props、浅比较、决定要不要重渲，这五步一直没变。</p>
+<h2 id="七、hooks-时代这套东西还剩什么"><a href="#七、hooks-时代这套东西还剩什么" class="headerlink" title="七、hooks 时代这套东西还剩什么"></a>七、hooks 时代这套东西还剩什么</h2><p>先说结论：新写的代码基本不用 <code>connect</code> 了。</p>
+<p><code>react-redux</code> v7.1 引入 hooks 之后，官方文档推荐的默认写法变成了 <code>useSelector</code> 和 <code>useDispatch</code>：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; useSelector, useDispatch &#125; <span class="keyword">from</span> <span class="string">&#x27;react-redux&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">Counter</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> count = <span class="title function_">useSelector</span>(<span class="function"><span class="params">state</span> =&gt;</span> state.<span class="property">count</span>)</span><br><span class="line">  <span class="keyword">const</span> dispatch = <span class="title function_">useDispatch</span>()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;()</span> =&gt;</span> dispatch(&#123; type: &#x27;INCREMENT&#x27; &#125;)&#125;&gt;</span></span><br><span class="line"><span class="language-xml">      &#123;count&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对比一下就知道为什么它赢了。<code>connect</code> 要写两个 map 函数、要多一层组件嵌套、TypeScript 下的类型推导写起来相当啰嗦；hooks 版本一行一个，读什么写什么直接摆在组件里。</p>
+<p>不是说 <code>connect</code> 不行，它现在仍然是被维护的 API，老项目照用不误，类组件也只能用它。但如果你在起新项目，没有理由再选它。</p>
+<p>有意思的是那个引用相等的坑并没有消失，只是换了个位置。<code>useSelector</code> 默认也用引用相等（<code>===</code>）判断要不要重渲，所以下面这种写法照样每次都触发更新：</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 有坑：每次返回新对象</span></span><br><span class="line"><span class="keyword">const</span> &#123; list, loading &#125; = <span class="title function_">useSelector</span>(<span class="function"><span class="params">state</span> =&gt;</span> (&#123;</span><br><span class="line">  <span class="attr">list</span>: state.<span class="property">order</span>.<span class="property">list</span>,</span><br><span class="line">  <span class="attr">loading</span>: state.<span class="property">order</span>.<span class="property">loading</span></span><br><span class="line">&#125;))</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解法一：拆成两次 useSelector</span></span><br><span class="line"><span class="keyword">const</span> list = <span class="title function_">useSelector</span>(<span class="function"><span class="params">state</span> =&gt;</span> state.<span class="property">order</span>.<span class="property">list</span>)</span><br><span class="line"><span class="keyword">const</span> loading = <span class="title function_">useSelector</span>(<span class="function"><span class="params">state</span> =&gt;</span> state.<span class="property">order</span>.<span class="property">loading</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 解法二：传 shallowEqual 作为第二个参数</span></span><br><span class="line"><span class="keyword">import</span> &#123; shallowEqual &#125; <span class="keyword">from</span> <span class="string">&#x27;react-redux&#x27;</span></span><br><span class="line"><span class="keyword">const</span> &#123; list, loading &#125; = <span class="title function_">useSelector</span>(<span class="function"><span class="params">state</span> =&gt;</span> (&#123; ... &#125;), shallowEqual)</span><br></pre></td></tr></table></figure>
+
+<p>你看，理解 <code>connect</code> 的意义就在这儿。它是把「订阅 + 派生 + 浅比较」这三件事显式写出来的版本，搞懂了它，<code>useSelector</code> 的行为你不用查文档也能猜到。</p>
+<p>另外 Redux 官方现在推荐的是 Redux Toolkit，<code>createSlice</code> 一把梭，手写 action types 和 switch reducer 那套模板已经不是推荐做法了。至于 Redux 本身在今天还该不该选，以及和 Zustand、Jotai、MobX 这些方案怎么比，我另外写过一篇 <a href="https://feinterview.poetries.top/blog/react-state-management-comparison">React 状态管理方案对比</a>。想从更底层理解 store 和 dispatch 是怎么实现的，可以看 <a href="https://feinterview.poetries.top/blog/react-redux">手写一个迷你版 Redux</a>。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>connect</code> 的四个参数分工很清楚：<code>mapStateToProps</code> 负责从 store 挑出组件要的最小数据集，<code>mapDispatchToProps</code> 负责把 action 包成能直接调的函数，<code>mergeProps</code> 决定三份 props 怎么合并，<code>options</code> 用来微调比较行为。前两个函数都支持 <code>ownProps</code> 作为第二形参，但形参写了才会在 props 变化时重算，这是靠 <code>Function.length</code> 判断的。</p>
+<p><code>Provider</code> 把 store 放进 context，<code>Connect</code> 从 context 取出来，订阅变化，每次通知就重跑 <code>mapStateToProps</code> 做一次浅比较，比出差异才让业务组件重渲。所有「组件不更新」和「组件疯狂重渲」的问题，最后都能归到浅比较和引用相等这一条规则上。</p>
+<p>新项目直接用 <code>useSelector</code> &#x2F; <code>useDispatch</code> 加 Redux Toolkit，<code>connect</code> 留给类组件和存量代码。但它的实现思路值得看一遍，因为 hooks 版本只是把同一套逻辑换了个入口，坑一个没少。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://react-redux.js.org/api/connect">React Redux connect 官方文档</a></li>
+<li><a href="https://react-redux.js.org/api/hooks">React Redux Hooks 官方文档</a></li>
+<li><a href="https://react-redux.js.org/api/provider">React Redux Provider 官方文档</a></li>
+<li><a href="https://redux-toolkit.js.org/">Redux Toolkit 官方文档</a></li>
+<li><a href="https://react.dev/reference/react/createContext">React Context 官方文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 主要逻辑</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">connect</span>(<span class="params">mapStateToProps, mapDispatchToProps, mergeProps, options = &#123;&#125;</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> <span class="title function_">wrapWithConnect</span>(<span class="params">WrappedComponent</span>) &#123;</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Connect</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">      <span class="title function_">constructor</span>(<span class="params">props, context</span>) &#123;</span><br><span class="line">        <span class="comment">// 从祖先Component处获得store</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">store</span> = props.<span class="property">store</span> || context.<span class="property">store</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">stateProps</span> = <span class="title function_">computeStateProps</span>(<span class="variable language_">this</span>.<span class="property">store</span>, props)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">dispatchProps</span> = <span class="title function_">computeDispatchProps</span>(<span class="variable language_">this</span>.<span class="property">store</span>, props)</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = &#123; <span class="attr">storeState</span>: <span class="literal">null</span> &#125;</span><br><span class="line">        <span class="comment">// 对stateProps、dispatchProps、parentProps进行合并</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="title function_">updateState</span>()</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="title function_">shouldComponentUpdate</span>(<span class="params">nextProps, nextState</span>) &#123;</span><br><span class="line">        <span class="comment">// 进行判断，当数据发生改变时，Component重新渲染</span></span><br><span class="line">        <span class="keyword">if</span> (propsChanged || mapStateProducedChange || dispatchPropsChanged) &#123;</span><br><span class="line">          <span class="variable language_">this</span>.<span class="title function_">updateState</span>(nextProps)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title function_">componentDidMount</span>(<span class="params"></span>) &#123;</span><br><span class="line">          <span class="comment">// 改变Component的state</span></span><br><span class="line">          <span class="variable language_">this</span>.<span class="property">store</span>.<span class="title function_">subscribe</span>(() = &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;</span><br><span class="line">              <span class="attr">storeState</span>: <span class="variable language_">this</span>.<span class="property">store</span>.<span class="title function_">getState</span>()</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">          <span class="comment">// 生成包裹组件Connect</span></span><br><span class="line">          <span class="keyword">return</span> (</span><br><span class="line">            <span class="language-xml"><span class="tag">&lt;<span class="name">WrappedComponent</span> &#123;<span class="attr">...this.nextState</span>&#125; /&gt;</span></span></span><br><span class="line">          )</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="title class_">Connect</span>.<span class="property">contextTypes</span> = &#123;</span><br><span class="line">        <span class="attr">store</span>: storeShape</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="title class_">Connect</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
       </div>
     

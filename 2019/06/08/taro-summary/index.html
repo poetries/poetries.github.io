@@ -7,51 +7,53 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Taro跨平台开发实践 | 前端进阶之旅</title>
+  <title>Taro跨平台开发实践 多端编译原理与踩坑总结 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Taro," />
+    <meta name="keywords" content="Taro,小程序,跨平台," />
   
 
-  <meta name="description" content="一、小程序开发框架 Vue-like、React-like 代码，如何在小程序中运行?  1.1 基本原理 编译时处理（转译成小程序语法） 运行时适配（管理生命周期、数据，处理事件等）  编译原理  源代码-&gt;词法&#x2F;语法&#x2F;语义分析-&gt;抽象语法树-&gt;转换-&gt;目标代码   抽象语法树 AST  1.2 小程序框架多端支持情况 二、Taro原理 Taro: 多">
+  <meta name="description" content="从编译原理讲清 Taro 怎么把 React-like 代码转成小程序，再复盘多端开发里的样式差异、端能力差异、React Native 限制和条件编译技巧。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Taro跨平台开发实践">
+<meta property="og:title" content="Taro跨平台开发实践 多端编译原理与踩坑总结">
 <meta property="og:url" content="http://blog.poetries.top/2019/06/08/taro-summary/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、小程序开发框架 Vue-like、React-like 代码，如何在小程序中运行?  1.1 基本原理 编译时处理（转译成小程序语法） 运行时适配（管理生命周期、数据，处理事件等）  编译原理  源代码-&gt;词法&#x2F;语法&#x2F;语义分析-&gt;抽象语法树-&gt;转换-&gt;目标代码   抽象语法树 AST  1.2 小程序框架多端支持情况 二、Taro原理 Taro: 多">
+<meta property="og:description" content="从编译原理讲清 Taro 怎么把 React-like 代码转成小程序，再复盘多端开发里的样式差异、端能力差异、React Native 限制和条件编译技巧。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/1.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/2.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/3.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/4.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/5.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/6.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/7.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/8.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/9.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/10.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/11.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/12.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/13.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/14.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/15.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/16.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/17.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/18.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/19.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/20.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/21.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20190930/22.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/1.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/2.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/3.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/4.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/5.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/6.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/7.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/8.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/9.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/10.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/11.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/12.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/13.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/14.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/15.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/16.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/17.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/18.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/19.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/20.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/21.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20190930/22.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-4032f18cd94f7871.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-58be0cdf0230802f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="article:published_time" content="2019-06-08T07:30:21.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.690Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.955Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Taro">
+<meta property="article:tag" content="小程序">
+<meta property="article:tag" content="跨平台">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/20190930/1.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/20190930/1.png">
 
   
 
@@ -229,7 +231,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6"><span class="toc-text">一、小程序开发框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-text">1.1 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%B0%8F%E7%A8%8B%E5%BA%8F%E6%A1%86%E6%9E%B6%E5%A4%9A%E7%AB%AF%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-text">1.2 小程序框架多端支持情况</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Taro%E5%8E%9F%E7%90%86"><span class="toc-text">二、Taro原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Taro%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91"><span class="toc-text">三、Taro项目中遇到的坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%80%E4%BA%9B%E5%9D%91"><span class="toc-text">3.1 一些坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">3.2 注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8A%80%E5%B7%A7"><span class="toc-text">四、技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B7%E5%BC%8F%E6%96%87%E4%BB%B6%E6%9D%A1%E4%BB%B6%E7%BC%96%E8%AF%91"><span class="toc-text">4.1 样式文件条件编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%86%85%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-text">4.2 内置环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E7%BB%9F%E4%B8%80%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%A4%9A%E7%AB%AF%E6%96%87%E4%BB%B6"><span class="toc-text">4.3 统一接口的多端文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81React-Native%E7%AB%AF%E7%9A%84%E5%AE%9E%E8%B7%B5"><span class="toc-text">五、React Native端的实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Taro%E8%BF%90%E8%A1%8CRN%E6%AD%A5%E9%AA%A4"><span class="toc-text">5.1 Taro运行RN步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%A0%B7%E5%BC%8F"><span class="toc-text">5.2 样式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E9%97%AE%E9%A2%98"><span class="toc-text">5.3 问题</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%BC%80%E5%8F%91%E6%A1%86%E6%9E%B6%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-text">一、小程序开发框架解决的是什么问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-text">1.1 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%84%E5%AE%B6%E6%A1%86%E6%9E%B6%E7%9A%84%E5%A4%9A%E7%AB%AF%E6%94%AF%E6%8C%81%E6%83%85%E5%86%B5"><span class="toc-text">1.2 各家框架的多端支持情况</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Taro-%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-text">二、Taro 的原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Taro-%E9%A1%B9%E7%9B%AE%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91"><span class="toc-text">三、Taro 项目中遇到的坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E9%82%A3%E4%BA%9B%E7%9C%9F%E4%BC%9A%E7%BB%8A%E5%88%B0%E4%BA%BA%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="toc-text">3.1 那些真会绊到人的地方</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%AE%B0%E5%9C%A8%E6%9C%AC%E5%AD%90%E4%B8%8A%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">3.2 记在本子上的注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%87%A0%E4%B8%AA%E7%9C%9F%E6%AD%A3%E7%9C%81%E4%BA%8B%E7%9A%84%E6%8A%80%E5%B7%A7"><span class="toc-text">四、几个真正省事的技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B7%E5%BC%8F%E6%96%87%E4%BB%B6%E6%9D%A1%E4%BB%B6%E7%BC%96%E8%AF%91"><span class="toc-text">4.1 样式文件条件编译</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%86%85%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F-process-env-TARO-ENV"><span class="toc-text">4.2 内置环境变量 process.env.TARO_ENV</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E7%BB%9F%E4%B8%80%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%A4%9A%E7%AB%AF%E6%96%87%E4%BB%B6"><span class="toc-text">4.3 统一接口的多端文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81React-Native-%E7%AB%AF%E7%9A%84%E5%AE%9E%E8%B7%B5"><span class="toc-text">五、React Native 端的实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%8A%8A-Taro-%E9%A1%B9%E7%9B%AE%E8%B7%91%E5%88%B0-RN-%E4%B8%8A"><span class="toc-text">5.1 把 Taro 项目跑到 RN 上</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%A0%B7%E5%BC%8F%EF%BC%8C%E4%BB%A5-RN-%E7%9A%84%E7%BA%A6%E6%9D%9F%E4%B8%BA%E5%87%86"><span class="toc-text">5.2 样式，以 RN 的约束为准</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%A4%E4%B8%AA%E5%AE%B9%E6%98%93%E5%86%99%E5%87%BA%E6%9D%A5%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98"><span class="toc-text">5.3 两个容易写出来的性能问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E8%BF%99%E7%AF%87%E5%86%99%E4%BA%8E-2019-%E5%B9%B4%EF%BC%8C%E7%8E%B0%E5%9C%A8%E7%9A%84-Taro-%E5%B7%B2%E7%BB%8F%E4%B8%8D%E4%B8%80%E6%A0%B7%E4%BA%86"><span class="toc-text">六、这篇写于 2019 年，现在的 Taro 已经不一样了</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -252,13 +254,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-taro-summary" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Taro跨平台开发实践</h1>
+    <h1 class="post-title">Taro跨平台开发实践 多端编译原理与踩坑总结</h1>
 
     <div class="article-meta">
       <span>
@@ -294,12 +296,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2k字</span>
+            <span>字数统计 5.8k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 21分</span>
           </span>
       
       
@@ -313,186 +315,227 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、小程序开发框架"><a href="#一、小程序开发框架" class="headerlink" title="一、小程序开发框架"></a>一、小程序开发框架</h2><p><img src="https://poetries1.gitee.io/img-repo/20190930/1.png" alt="image.png"></p>
-<p><strong>Vue-like、React-like 代码，如何在小程序中运行?</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/2.png" alt="image.png"></p>
-<h3 id="1-1-基本原理"><a href="#1-1-基本原理" class="headerlink" title="1.1 基本原理"></a>1.1 基本原理</h3><ul>
-<li>编译时处理（转译成小程序语法）</li>
-<li>运行时适配（管理生命周期、数据，处理事件等）</li>
+        <p>老板给的需求是「小程序、H5、App 都要有，人只有这几个」。这种时候多端框架就成了必选项。我们那阵子用 Taro 做了一个三端并行的项目，写一套 React-like 代码同时出微信小程序、H5 和 React Native 包。真跑起来才发现，「一套代码多端运行」这句话里，省掉的是重复的业务逻辑，省不掉的是对每个端的了解。样式在哪一端会失效、哪个 API 只有小程序有、RN 为什么点不动 View，这些都得自己踩。这篇把 Taro 的编译原理先讲清楚，再把当时记下来的坑和技巧归拢成几类，方便你上手前先有个心理预期。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>Vue-like、React-like 的代码凭什么能在小程序里跑起来</li>
+<li>编译时处理和运行时适配各自负责什么，AST 在中间起什么作用</li>
+<li>Taro 的多端能力是怎么拼出来的，runtime、组件、redux、router 分别对应什么</li>
+<li>React-like 不等于 React，具体差在哪些地方</li>
+<li>样式、端能力、UI 组件库这三类差异怎么填坑</li>
+<li>条件编译、<code>process.env.TARO_ENV</code>、多端同名文件这三个技巧怎么用</li>
+<li>React Native 端的启动流程和样式限制</li>
+<li>2019 年的 Taro 1.x 和现在的版本差在哪，哪些结论已经过期</li>
 </ul>
-<p><strong>编译原理</strong></p>
+<h2 id="一、小程序开发框架解决的是什么问题"><a href="#一、小程序开发框架解决的是什么问题" class="headerlink" title="一、小程序开发框架解决的是什么问题"></a>一、小程序开发框架解决的是什么问题</h2><p>小程序有自己的一套 DSL，<code>wxml</code> 加 <code>wxss</code> 加 <code>js</code>，跟你熟悉的 React 或者 Vue 都不一样。业务方要的是同一套页面在多个端上跑，开发者想用的是自己顺手的语法，中间这道鸿沟就是多端框架存在的理由。</p>
+<p><img src="https://s.poetries.top/gitee/20190930/1.png" alt="小程序多端开发框架的整体格局"></p>
+<p>那么问题来了，Vue-like、React-like 的代码，凭什么能在小程序里运行？</p>
+<p><img src="https://s.poetries.top/gitee/20190930/2.png" alt="Vue-like 与 React-like 代码在小程序中运行的原理示意"></p>
+<h3 id="1-1-基本原理"><a href="#1-1-基本原理" class="headerlink" title="1.1 基本原理"></a>1.1 基本原理</h3><p>答案拆开只有两句话：</p>
+<ul>
+<li>编译时处理，把你写的语法转译成小程序语法</li>
+<li>运行时适配，管理生命周期、数据，处理事件等</li>
+</ul>
+<p>这两件事缺一不可。光有编译，转出来的模板没有数据驱动和生命周期，就是一堆死页面；光有运行时，你写的 JSX 小程序根本不认。Taro 走的是编译加运行时的组合路线，重活压在编译期，运行期只留必要的适配层。</p>
+<p>编译这一步的流程，就是编译原理课上那条链路：</p>
 <blockquote>
 <p>源代码-&gt;词法&#x2F;语法&#x2F;语义分析-&gt;抽象语法树-&gt;转换-&gt;目标代码</p>
 </blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/3.png" alt="image.png"></p>
-<p><strong>抽象语法树 AST</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/4.png" alt="image.png"></p>
-<h3 id="1-2-小程序框架多端支持情况"><a href="#1-2-小程序框架多端支持情况" class="headerlink" title="1.2 小程序框架多端支持情况"></a>1.2 小程序框架多端支持情况</h3><p><img src="https://poetries1.gitee.io/img-repo/20190930/5.png" alt="image.png"></p>
-<h2 id="二、Taro原理"><a href="#二、Taro原理" class="headerlink" title="二、Taro原理"></a>二、Taro原理</h2><blockquote>
-<p>Taro: 多端统一开发框架，支持用 React 的开发方式编写一次代<br>码，生成能运行在微信小程序、H5、React Native 等的应用</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/6.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/7.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/8.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/9.png" alt="image.png"></p>
-<p><strong>多端能力：提供对应端的runtime、组件、redux、router等实现</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/10.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/11.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/12.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/13.png" alt="image.png"></p>
+<p><img src="https://s.poetries.top/gitee/20190930/3.png" alt="编译流程从源代码到目标代码的完整链路"></p>
+<p>中间那个「抽象语法树」是整套方案的支点。源码被解析成一棵结构化的树之后，改代码这件事就从「字符串替换」变成了「操作树节点」。把 JSX 里的 <code>&lt;View&gt;</code> 节点换成 <code>&lt;view&gt;</code>，把 <code>onClick</code> 属性换成 <code>bindtap</code>，都是在树上做增删改，改完再打印回目标语法。</p>
+<p><img src="https://s.poetries.top/gitee/20190930/4.png" alt="抽象语法树 AST 的结构示意"></p>
+<p>这也解释了后面会讲到的一堆限制。既然是静态分析代码再改写，那你写得越动态，编译器就越猜不到你想干什么。小程序端不支持在 <code>render()</code> 之外定义 JSX、JSX 里必须用单引号这些规矩，根子都在这儿。</p>
+<h3 id="1-2-各家框架的多端支持情况"><a href="#1-2-各家框架的多端支持情况" class="headerlink" title="1.2 各家框架的多端支持情况"></a>1.2 各家框架的多端支持情况</h3><p>那几年多端框架扎堆出现，各自支持的端不一样，选型的时候这张对比得先看：</p>
+<p><img src="https://s.poetries.top/gitee/20190930/5.png" alt="各小程序框架的多端支持情况对比"></p>
+<p>选型这事我的经验是，别只看支持的端多不多，要看你真正要发的那两三个端做得深不深。支持十个端但每个端都半残，不如支持三个端每个都能上线。</p>
+<h2 id="二、Taro-的原理"><a href="#二、Taro-的原理" class="headerlink" title="二、Taro 的原理"></a>二、Taro 的原理</h2><p>Taro 是一套多端统一开发框架，支持用 React 的开发方式编写一次代码，生成能运行在微信小程序、H5、React Native 等平台的应用。</p>
+<p>它的整体架构分成编译和运行两条线，下面这几张图把这两条线拆开了：</p>
+<p><img src="https://s.poetries.top/gitee/20190930/6.png" alt="Taro 整体架构，编译时与运行时两条主线"><br><img src="https://s.poetries.top/gitee/20190930/7.png" alt="Taro 编译流程的详细拆解"><br><img src="https://s.poetries.top/gitee/20190930/8.png" alt="Taro 把 JSX 转换成小程序模板的过程"><br><img src="https://s.poetries.top/gitee/20190930/9.png" alt="Taro 编译产物与小程序原生结构的对应关系"></p>
+<p>编译这条线做的事，是把 React-like 的写法拆成小程序认识的两部分，模板结构进 <code>wxml</code>，状态和逻辑进 <code>js</code>。JSX 里的表达式、条件渲染、列表渲染都要在这一步翻译成 <code>wx:if</code>、<code>wx:for</code> 这类指令。</p>
+<p>光有编译还不够，跑起来还需要每个端各自的一套底座。</p>
+<p><img src="https://s.poetries.top/gitee/20190930/10.png" alt="Taro 的多端能力，各端提供各自的 runtime 实现"><br><img src="https://s.poetries.top/gitee/20190930/11.png" alt="各端组件库的对应实现"><br><img src="https://s.poetries.top/gitee/20190930/12.png" alt="Taro 对 redux 等状态管理方案的多端适配"><br><img src="https://s.poetries.top/gitee/20190930/13.png" alt="Taro 路由在各端的实现差异"></p>
+<p>所谓多端能力，落到实处就是两句：</p>
 <ul>
 <li>提供相应端的 <code>Runtime</code> 实现，具备适配 <code>API</code> 的能力</li>
 <li>提供统一的基础组件，编译时替换为相应端的组件实现</li>
 </ul>
-<h2 id="三、Taro项目中遇到的坑"><a href="#三、Taro项目中遇到的坑" class="headerlink" title="三、Taro项目中遇到的坑"></a>三、Taro项目中遇到的坑</h2><h3 id="3-1-一些坑"><a href="#3-1-一些坑" class="headerlink" title="3.1 一些坑"></a>3.1 一些坑</h3><p><strong>1、React-like，不完全等同 React</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/14.png" alt="image.png"></p>
-<p><strong>2、端能力差异不可避免：某些功能在相应端上没有支持</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/15.png" alt="image.png"></p>
+<p>前一句管 API。你调 <code>Taro.request</code>，在小程序端它转成 <code>wx.request</code>，在 H5 端它转成 <code>fetch</code> 或者 <code>XMLHttpRequest</code>，在 RN 端又是另一套。后一句管组件。你写 <code>&lt;View&gt;</code>，编译到小程序变 <code>&lt;view&gt;</code>，编译到 H5 变 <code>&lt;div&gt;</code>，编译到 RN 变 RN 的 <code>View</code>。</p>
+<p>理解了这两句，后面所有的坑就都好解释了：只要某个端底下没有对应的实现，这层抽象就漏了。</p>
+<h2 id="三、Taro-项目中遇到的坑"><a href="#三、Taro-项目中遇到的坑" class="headerlink" title="三、Taro 项目中遇到的坑"></a>三、Taro 项目中遇到的坑</h2><h3 id="3-1-那些真会绊到人的地方"><a href="#3-1-那些真会绊到人的地方" class="headerlink" title="3.1 那些真会绊到人的地方"></a>3.1 那些真会绊到人的地方</h3><p><strong>1、React-like，不完全等同 React</strong></p>
+<p><img src="https://s.poetries.top/gitee/20190930/14.png" alt="React-like 与标准 React 的差异清单"></p>
+<p>这是最容易掉进去的一个。因为语法长得一模一样，你会下意识按 React 的习惯写，然后在编译期收到一条看不懂的报错。原因前面说过，Taro 1.x 靠静态分析改写代码，凡是它分析不出来的动态写法都会被拒绝。</p>
+<p><strong>2、端能力差异不可避免，某些功能在相应端上没有支持</strong></p>
+<p><img src="https://s.poetries.top/gitee/20190930/15.png" alt="不同端之间能力差异的对照"></p>
+<p>框架能抹平的是写法，抹不平的是能力。小程序有的原生能力，浏览器里根本不存在；RN 有的原生模块，小程序里也调不到。碰到这类差异，只能自己在业务层做分支。</p>
 <p><strong>3、样式支持、写法上存在差异</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/16.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/17.png" alt="image.png"><br><img src="https://poetries1.gitee.io/img-repo/20190930/18.png" alt="image.png"></p>
+<p><img src="https://s.poetries.top/gitee/20190930/16.png" alt="三端样式支持的差异对照之一"><br><img src="https://s.poetries.top/gitee/20190930/17.png" alt="三端样式支持的差异对照之二"><br><img src="https://s.poetries.top/gitee/20190930/18.png" alt="三端样式支持的差异对照之三"></p>
+<p>样式是多端项目里返工最多的部分。H5 最灵活，小程序次之，RN 最弱。你按 H5 的习惯写一版，到 RN 上会发现选择器全被忽略了。</p>
 <p><strong>4、还没有真正支持多端的 UI 组件库能在 Taro 上使用</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/19.png" alt="image.png"></p>
+<p><img src="https://s.poetries.top/gitee/20190930/19.png" alt="当时可选的 UI 组件库及其多端支持情况"></p>
+<p>这条是 2019 年的现状，当时组件库生态确实很薄，多数只覆盖小程序端。后面会讲现在的情况。</p>
 <p><strong>5、React Native 的 view 不支持 click 事件，需要用 Touchable 组件</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/20.png" alt="image.png"></p>
-<p><strong>6、React Native 不支持 text-overflow，而是提供原生支持（Text 组件传入 numberOfLines&#x3D;{num} 属性）</strong></p>
-<blockquote>
-<p><code>Taro</code> 目前没有暴露原生 <code>RN</code> T<code>ext</code> 组件的 <code>numberOfLines</code> 属性。因此目前通过 <code>Text</code> 基础组件没法实现多端统一的文本截断</p>
-</blockquote>
-<p><strong>H5情况较为乐观</strong></p>
-<ul>
-<li>主要差异1: 小程序的页面、组件样式都是独立的，H5会受同名样式影响</li>
-<li>主要差异2: 小程序的组件多了一层标签</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/21.png" alt="image.png"></p>
+<p><img src="https://s.poetries.top/gitee/20190930/20.png" alt="React Native 中点击事件需要用 Touchable 系列组件包裹"></p>
+<p>第一次遇到这个会很懵，代码没报错，样式也对，就是点不动。RN 里的 <code>View</code> 本来就不是可交互元素，要响应点击得用 <code>Touchable</code> 系列组件包一层。</p>
+<p><strong>6、React Native 不支持 text-overflow，而是提供原生支持</strong></p>
+<p>RN 的做法是给 <code>Text</code> 组件传入 <code>numberOfLines=&#123;num&#125;</code> 属性来控制行数。问题在于 <code>Taro</code> 当时没有暴露原生 <code>RN</code> <code>Text</code> 组件的 <code>numberOfLines</code> 属性，所以通过 <code>Text</code> 基础组件没法实现多端统一的文本截断。</p>
+<p>（原文这里的组件名被反引号截断成了两截，这里按 <code>Text</code> 改正了。）</p>
+<p>H5 端的情况相对乐观，主要差异集中在两点：小程序的页面、组件样式都是独立的，H5 会受同名样式影响；小程序的组件会多出一层标签。</p>
+<p><img src="https://s.poetries.top/gitee/20190930/21.png" alt="小程序组件与 H5 组件在 DOM 结构上的层级差异"></p>
+<p>第一条尤其要当心。你在小程序上验证过没问题的样式，搬到 H5 上可能被别的页面的同名 class 覆盖掉，因为小程序天然是样式隔离的，H5 不是。这个差异不会报错，只会让你在某个页面上看到一个诡异的边距。</p>
 <p><strong>7、多端要求较高</strong></p>
+<p>用多端框架并不等于可以不懂各个端，实际要求反而更高：</p>
 <ul>
 <li>对不同端的具体差异有所了解</li>
 <li>样式实现较为苛刻，需兼顾多端、有所取舍</li>
 <li>端能力差异可能需要自己填坑</li>
 </ul>
 <p><strong>8、多端填坑方式</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/20190930/22.png" alt="image.png"></p>
-<p><strong>多端实践经验</strong></p>
+<p><img src="https://s.poetries.top/gitee/20190930/22.png" alt="多端差异的封装与填坑思路"></p>
+<p>我们当时摸出来的实践就四条：</p>
 <ul>
 <li>对多端差异做好封装</li>
 <li>采用 BEM 命名方式管理样式</li>
-<li>采用全局样式维护基础组件 <code>@taro/components</code> 的样式</li>
-<li>基于 <code>@taro/components</code> 自行封装组件库</li>
+<li>采用全局样式维护基础组件 <code>@tarojs/components</code> 的样式</li>
+<li>基于 <code>@tarojs/components</code> 自行封装组件库</li>
 </ul>
-<h3 id="3-2-注意事项"><a href="#3-2-注意事项" class="headerlink" title="3.2 注意事项"></a>3.2 注意事项</h3><ul>
-<li>函数需要<code>on+函数名</code>来规范命名</li>
-<li>子组件中接收的<code>props</code>需要定义<code>defaultProps</code>。否则小程序端报错</li>
+<p>（原文这两条里包名写的是 <code>@taro/components</code>，实际的包名是 <code>@tarojs/components</code>，这里改正了。）</p>
+<p>前两条是重点。差异封装的意思是，别在业务组件里到处写 <code>if (端 === &#39;weapp&#39;)</code>，而是把这类判断收进一层工具函数或者一层适配组件，业务代码只调统一接口。BEM 则是为了兼容 RN 只支持类选择器这条硬限制，你不可能在 RN 上写嵌套选择器，那就干脆从命名上把层级表达出来。</p>
+<h3 id="3-2-记在本子上的注意事项"><a href="#3-2-记在本子上的注意事项" class="headerlink" title="3.2 记在本子上的注意事项"></a>3.2 记在本子上的注意事项</h3><p>下面这些是当时一条条撞出来的，按类别归了一下：</p>
+<p><strong>命名和写法约束</strong></p>
+<ul>
+<li>函数需要 <code>on+函数名</code> 来规范命名</li>
 <li>在 <code>Taro</code> 中，<code>JS</code> 代码里必须书写单引号，特别是 JSX 中，如果出现双引号，可能会导致编译错误</li>
-<li><code>css</code>样式单位写<code>PX</code>大写会转成<code>rem</code>单位</li>
-<li>根据环境变量引入不同平台组件、编译到对应平台</li>
-<li>小程序端不支持在<code>render()</code>之外定义jsx。比如在外面<code>renderForm()</code></li>
-<li>页面布局：拆分组件方法–由上到下，由左到右拆分</li>
-<li>Taro 目前还没有支持 <code>React.Fragment</code> 语法</li>
-<li>运行时 报缺少包，需要要在 <code>.rn_temp</code> 目录里面安装</li>
-<li>文字要包在 <code>Text</code> 组件里面，否则不显示</li>
-<li><code>position:fixed</code> <code>React Native</code> 不支持</li>
-<li><code>Animation</code> 和 <code>transform</code> <code>React Native</code> 动画不支持</li>
-<li>状态更新一定是异步的。React的状态更新不一定是异步</li>
+<li>小程序端不支持在 <code>render()</code> 之外定义 JSX，比如在外面写 <code>renderForm()</code></li>
+<li>Taro 当时还没有支持 <code>React.Fragment</code> 语法</li>
 </ul>
-<h2 id="四、技巧"><a href="#四、技巧" class="headerlink" title="四、技巧"></a>四、技巧</h2><h3 id="4-1-样式文件条件编译"><a href="#4-1-样式文件条件编译" class="headerlink" title="4.1 样式文件条件编译"></a>4.1 样式文件条件编译</h3><blockquote>
-<p>假设目录中同时存在以下文件：</p>
-</blockquote>
+<p>这几条都是编译期静态分析带来的约束，前面讲原理时提过。单引号那条最玄学，报错信息经常指不到真正的位置，排查了一下午才发现是某个属性里混了双引号。</p>
+<p><strong>组件与数据</strong></p>
+<ul>
+<li>子组件中接收的 <code>props</code> 需要定义 <code>defaultProps</code>，否则小程序端报错</li>
+<li>状态更新一定是异步的，React 的状态更新不一定是异步</li>
+<li>根据环境变量引入不同平台组件、编译到对应平台</li>
+<li>页面布局拆分组件的方法，由上到下、由左到右拆分</li>
+</ul>
+<p><code>defaultProps</code> 那条是因为小程序的自定义组件要求属性有明确的类型和默认值，编译期需要据此生成 <code>properties</code> 声明，缺了它生成不出来。</p>
+<p><strong>样式与 RN 限制</strong></p>
+<ul>
+<li><code>css</code> 样式单位写 <code>PX</code> 大写会转成 <code>rem</code> 单位</li>
+<li>文字要包在 <code>Text</code> 组件里面，否则不显示</li>
+<li><code>position:fixed</code> 在 <code>React Native</code> 不支持</li>
+<li><code>Animation</code> 和 <code>transform</code> 在 <code>React Native</code> 动画不支持</li>
+</ul>
+<p><strong>环境相关</strong></p>
+<ul>
+<li>运行时报缺少包，需要在 <code>.rn_temp</code> 目录里面安装</li>
+</ul>
+<h2 id="四、几个真正省事的技巧"><a href="#四、几个真正省事的技巧" class="headerlink" title="四、几个真正省事的技巧"></a>四、几个真正省事的技巧</h2><p>坑说完了，说点好用的。Taro 处理多端差异的思路很统一，都是「同名不同后缀」，编译时按目标端挑文件。理解了这一条，下面三个技巧就是同一个套路的三种用法。</p>
+<h3 id="4-1-样式文件条件编译"><a href="#4-1-样式文件条件编译" class="headerlink" title="4.1 样式文件条件编译"></a>4.1 样式文件条件编译</h3><p>假设目录中同时存在以下两个文件：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">- index.scss</span><br><span class="line">- index.rn.scss</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>当在 <code>JS </code>文件中引用样式文件：<code>import &#39;./index.scss&#39;</code> 时，<code>RN</code> 平台会找到并引入 <code>index.rn.scss</code>，其他平台会引入：<code>index.scss</code>，方便大家书写跨端样式，更好地兼容 <code>RN</code></p>
-</blockquote>
-<h3 id="4-2-内置环境变量"><a href="#4-2-内置环境变量" class="headerlink" title="4.2 内置环境变量"></a>4.2 内置环境变量</h3><p><strong>process.env.TARO_ENV</strong></p>
-<blockquote>
-<p>用于判断当前编译类型，目前有 <code>weapp / swan / alipay / h5 / rn / tt </code>六个取值，可以通过这个变量来书写对应一些不同环境下的代码，在编译时会将不属于当前编译类型的代码去掉，只保留当前编译类型下的代码，例如想在微信小程序和 H5 端分别引用不同资源</p>
-</blockquote>
+<p>当在 <code>JS</code> 文件中引用样式文件写 <code>import &#39;./index.scss&#39;</code> 时，<code>RN</code> 平台会找到并引入 <code>index.rn.scss</code>，其他平台会引入 <code>index.scss</code>。</p>
+<p>这招解决的是前面那条最难受的限制：RN 不支持组合选择器，也不支持一堆 CSS 属性。你不可能为了迁就 RN 把所有端的样式都写成扁平的类选择器，那 H5 端的表达力就废了一半。有了这个机制，公共样式留在 <code>index.scss</code> 里正常写，RN 那份单独降级，两边互不干扰。</p>
+<h3 id="4-2-内置环境变量-process-env-TARO-ENV"><a href="#4-2-内置环境变量-process-env-TARO-ENV" class="headerlink" title="4.2 内置环境变量 process.env.TARO_ENV"></a>4.2 内置环境变量 process.env.TARO_ENV</h3><p><code>process.env.TARO_ENV</code> 用于判断当前编译类型，当时有 <code>weapp / swan / alipay / h5 / rn / tt</code> 六个取值。可以通过这个变量来书写不同环境下的代码，编译时会将不属于当前编译类型的代码去掉，只保留当前编译类型下的代码。</p>
+<p>关键在「编译时去掉」这几个字。这不是运行时的 <code>if</code> 判断，而是构建阶段就把另一个分支整段删掉。所以你在小程序包里不会带上 H5 的那份代码，包体积不会因为多端而膨胀。</p>
+<p>比如想在微信小程序和 H5 端分别引用不同资源：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">TARO_ENV</span> === <span class="string">&#x27;weapp&#x27;</span>) &#123;</span><br><span class="line">  <span class="built_in">require</span>(<span class="string">&#x27;path/to/weapp/name&#x27;</span>)</span><br><span class="line">&#125; <span class="keyword">else</span> <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">TARO_ENV</span> === <span class="string">&#x27;h5&#x27;</span>) &#123;</span><br><span class="line">  <span class="built_in">require</span>(<span class="string">&#x27;path/to/h5/name&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>同时也可以在 <code>JSX</code> 中使用，决定不同端要加载的组件</p>
-</blockquote>
+<p>同时也可以在 <code>JSX</code> 中使用，用来决定不同端要加载的组件：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title function_">render</span> () &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">View</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123;process.env.TARO_ENV === &#x27;weapp&#x27; &amp;&amp; <span class="tag">&lt;<span class="name">ScrollViewWeapp</span> /&gt;</span>&#125;</span></span><br><span class="line"><span class="language-xml">      &#123;process.env.TARO_ENV === &#x27;h5&#x27; &amp;&amp; <span class="tag">&lt;<span class="name">ScrollViewH5</span> /&gt;</span>&#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">View</span>&gt;</span></span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-3-统一接口的多端文件"><a href="#4-3-统一接口的多端文件" class="headerlink" title="4.3 统一接口的多端文件"></a>4.3 统一接口的多端文件</h3><p><strong>多端组件</strong></p>
+<p>这里有个坑要注意，判断必须写成能被静态分析出来的形式。把 <code>process.env.TARO_ENV</code> 先赋值给一个变量再判断，编译器就认不出来了，两个分支都会被打进包里。</p>
+<p>新版本的 Taro 支持的端比这六个多，取值列表也扩充了，具体有哪些以你装的版本文档为准，别照抄这个列表。</p>
+<h3 id="4-3-统一接口的多端文件"><a href="#4-3-统一接口的多端文件" class="headerlink" title="4.3 统一接口的多端文件"></a>4.3 统一接口的多端文件</h3><p>这是同一套思路的完整版，适合封装差异比较大的组件和工具。</p>
+<p>假如有一个 Test 组件存在微信小程序、百度小程序和 H5 三个不同版本，那么就可以像下面这样组织代码：</p>
 <ul>
-<li>假如有一个 Test 组件存在微信小程序、百度小程序和 H5 三个不同版本，那么就可以像如下组织代码</li>
-<li><code>test.js</code> 文件，这是 <code>Test</code> 组件默认的形式，编译到微信小程序、百度小程序和 H5 三端之外的端使用的版本</li>
-<li><code>test.h5.js</code> 文件，这是 <code>Test</code> 组件的 <code>H5</code> 版本</li>
-<li><code>test.weapp.js</code> 文件，这是 <code>Test </code>组件的 微信小程序 版本</li>
-<li><code>test.swan.js</code> 文件，这是 <code>Test</code> 组件的 百度小程序 版本</li>
-<li>四个文件，对外暴露的是统一的接口，它们接受一致的参数，只是内部有针对各自平台的代码实现</li>
-<li>而我们使用 <code>Test</code> 组件的时候，引用的方式依然和之前保持一致，<code>import</code> 的是不带端类型的文件名，在编译的时候会自动识别并添加端类型后缀</li>
+<li><code>test.js</code> 文件，这是 <code>Test</code> 组件默认的形式，编译到上述三端之外的端时使用的版本</li>
+<li><code>test.h5.js</code> 文件，<code>Test</code> 组件的 <code>H5</code> 版本</li>
+<li><code>test.weapp.js</code> 文件，<code>Test</code> 组件的微信小程序版本</li>
+<li><code>test.swan.js</code> 文件，<code>Test</code> 组件的百度小程序版本</li>
 </ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import Test from &#x27;../../components/test&#x27;</span><br><span class="line"></span><br><span class="line">&lt;Test argA=&#123;1&#125; argA=&#123;2&#125; /&gt;</span><br></pre></td></tr></table></figure>
+<p>这四个文件对外暴露的是统一的接口，接受一致的参数，只是内部有针对各自平台的代码实现。使用 <code>Test</code> 组件的时候，引用方式和之前保持一致，<code>import</code> 的是不带端类型的文件名，编译时会自动识别并添加端类型后缀：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import Test from &#x27;../../components/test&#x27;</span><br><span class="line"></span><br><span class="line">&lt;Test argA=&#123;1&#125; argB=&#123;2&#125; /&gt;</span><br></pre></td></tr></table></figure>
 
-<p><strong>多端脚本逻辑</strong></p>
-<blockquote>
-<p>例如微信小程序上使用 <code>Taro.setNavigationBarTitle</code> 来设置页面标题，H5 使用 <code>document.title</code>，那么可以封装一个 <code>setTitle</code> 方法来抹平两个平台的差异</p>
-</blockquote>
-<p>增加 <code>set_title.h5.js</code>，代码如下</p>
+<p>（原文这行示例里两个属性都写成了 <code>argA</code>，同名属性后一个会覆盖前一个，这里改成 <code>argA</code> 和 <code>argB</code>。）</p>
+<p>同样的做法也适用于纯逻辑。例如微信小程序上使用 <code>Taro.setNavigationBarTitle</code> 来设置页面标题，H5 使用 <code>document.title</code>，那么可以封装一个 <code>setTitle</code> 方法来抹平两个平台的差异。</p>
+<p>增加 <code>set_title.h5.js</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">setTitle</span> (<span class="params">title</span>) &#123;</span><br><span class="line">  <span class="variable language_">document</span>.<span class="property">title</span> = title</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>增加 <code>set_title.weapp.js</code>，代码如下</p>
-</blockquote>
+<p>增加 <code>set_title.weapp.js</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Taro</span> <span class="keyword">from</span> <span class="string">&#x27;@tarojs/taro&#x27;</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">setTitle</span> (<span class="params">title</span>) &#123;</span><br><span class="line">  <span class="title class_">Taro</span>.<span class="title function_">setNavigationBarTitle</span>(&#123;</span><br><span class="line">    title</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>调用的时候，如下使用</p>
-</blockquote>
+<p>调用的时候就当它是一个普通模块：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import setTitle from &#x27;../utils/set_title&#x27;</span><br><span class="line"></span><br><span class="line">setTitle(&#x27;页面标题&#x27;)</span><br></pre></td></tr></table></figure>
 
-<h2 id="五、React-Native端的实践"><a href="#五、React-Native端的实践" class="headerlink" title="五、React Native端的实践"></a>五、React Native端的实践</h2><blockquote>
+<p>对比一下前面那种在业务代码里写 <code>process.env.TARO_ENV</code> 判断的做法，差别在于这套方案把差异挡在了模块边界上。业务代码只认识 <code>setTitle</code> 这一个名字，将来多支持一个端，只需要多加一个文件，一行业务代码都不用改。项目一旦超过三个端，这套写法的收益就很明显了。</p>
+<h2 id="五、React-Native-端的实践"><a href="#五、React-Native-端的实践" class="headerlink" title="五、React Native 端的实践"></a>五、React Native 端的实践</h2><p>RN 是三个端里最折腾的一个，因为它不只是编译问题，还牵扯原生环境。当时参考的是这份文档：</p>
+<blockquote>
 <p><a href="https://nervjs.github.io/taro/docs/react-native.html">https://nervjs.github.io/taro/docs/react-native.html</a></p>
 </blockquote>
-<h3 id="5-1-Taro运行RN步骤"><a href="#5-1-Taro运行RN步骤" class="headerlink" title="5.1 Taro运行RN步骤"></a>5.1 Taro运行RN步骤</h3><p><strong>1. 运行 yarn dev:rn</strong></p>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-4032f18cd94f7871.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
-<blockquote>
-<p>打开 <a href="http://127.0.0.1:8081/index.bundle?platform=ios&dev=true%E6%BF%80%E6%B4%BB%E7%BC%96%E8%AF%91">http://127.0.0.1:8081/index.bundle?platform=ios&amp;dev=true激活编译</a></p>
-</blockquote>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-58be0cdf0230802f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
-<p><strong>2. 下载react-native运行壳子</strong></p>
+<h3 id="5-1-把-Taro-项目跑到-RN-上"><a href="#5-1-把-Taro-项目跑到-RN-上" class="headerlink" title="5.1 把 Taro 项目跑到 RN 上"></a>5.1 把 Taro 项目跑到 RN 上</h3><p><strong>1. 运行 yarn dev:rn</strong></p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-4032f18cd94f7871.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="执行 yarn dev:rn 后的编译输出"></p>
+<p>这一步会把项目编译到 <code>.rn_temp</code> 目录，同时起一个 Metro 打包服务。打开 <a href="http://127.0.0.1:8081/index.bundle?platform=ios&dev=true">http://127.0.0.1:8081/index.bundle?platform=ios&amp;dev=true</a> 可以激活编译，看到 bundle 内容说明打包服务是通的：</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-58be0cdf0230802f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="访问 index.bundle 地址激活编译，返回打包后的内容"></p>
+<p>先确认这一步再往下走，能省很多事。后面模拟器白屏的时候，先回来看这个地址通不通，八成问题出在打包服务而不是原生工程。</p>
+<p><strong>2. 下载 react-native 运行壳子</strong></p>
 <blockquote>
 <p><a href="https://github.com/poetries/react-native-shell">https://github.com/poetries/react-native-shell</a></p>
 </blockquote>
-<p><strong>3. 打开gemotion安卓模拟器</strong></p>
+<p>Taro 编译出来的是 JS 产物，不含原生工程，所以需要一个壳来承载它。这个壳放在哪都可以，建议放到项目根目录。</p>
+<p><strong>3. 打开 genymotion 安卓模拟器</strong></p>
 <blockquote>
 <ul>
 <li><a href="http://blog.poetries.top/2019/06/08/rn-summary/#1-1-2-%E5%AE%89%E5%8D%93%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA">参考文章</a> </li>
 <li><code>adb devices</code> 查看是否有设备在运行</li>
 </ul>
 </blockquote>
+<p><code>adb devices</code> 这条命令要养成习惯，跑之前先敲一遍。设备列表是空的就别急着看代码，先解决连接问题。</p>
 <p><strong>4. 启动安卓</strong></p>
-<blockquote>
-<p>在壳子中启动命令。<code>react-native-shell</code> 放在哪里都可以，建议放到项目根目录即可</p>
-</blockquote>
+<p>在壳子中执行启动命令：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">react-native run-android</span><br></pre></td></tr></table></figure>
 
-<p><strong>5. 打包apk</strong></p>
-<p>把<code>react-native-shell</code>中的<code>android</code>文件加拷贝到<code>.rn_temp</code>文件中，<code>cd android</code> 执行打包命令即可</p>
+<p><strong>5. 打包 apk</strong></p>
+<p>把 <code>react-native-shell</code> 中的 <code>android</code> 文件夹拷贝到 <code>.rn_temp</code> 文件夹中，<code>cd android</code> 执行打包命令即可。</p>
 <blockquote>
 <p><a href="http://blog.poetries.top/2019/06/08/rn-summary/#%E5%85%AB%E3%80%81%E6%89%93%E5%8C%85">参考文章</a></p>
 </blockquote>
-<h3 id="5-2-样式"><a href="#5-2-样式" class="headerlink" title="5.2 样式"></a>5.2 样式</h3><blockquote>
-<p>Note：如果要支持 <code>React Native</code> 端，必须采用 Flex 布局，并且样式选择器仅支持类选择器，且不 支持 组合器</p>
-</blockquote>
-<p>以下选择器的写法都是不支持的，在样式转换时会自动忽略</p>
+<p>React Native 本身的环境搭建和打包细节，我在 <a href="https://feinterview.poetries.top/blog/rn-summary">React Native 开发总结</a> 那篇里写得更细，这里就不重复了。</p>
+<h3 id="5-2-样式，以-RN-的约束为准"><a href="#5-2-样式，以-RN-的约束为准" class="headerlink" title="5.2 样式，以 RN 的约束为准"></a>5.2 样式，以 RN 的约束为准</h3><p>如果要支持 <code>React Native</code> 端，必须采用 Flex 布局，并且样式选择器仅支持类选择器，不支持组合器。</p>
+<p>以下选择器的写法都是不支持的，在样式转换时会被自动忽略：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.button.button_theme_islands&#123;</span><br><span class="line">  font-style: bold;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">img + p &#123;</span><br><span class="line">  font-style: bold;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">p ~ span &#123;</span><br><span class="line">  color: red;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">div &gt; span &#123;</span><br><span class="line">  background-color: DodgerBlue;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">div span &#123; background-color: DodgerBlue; &#125;</span><br></pre></td></tr></table></figure>
 
-<p>样式上 <code>H5</code> 最为灵活，小程序次之，<code>RN</code> 最弱，统一多端样式即是对齐短板，也就是要以 <code>RN</code> 的约束来管理样式，同时兼顾小程序的限制，核心可以用三点来概括</p>
+<p>注意「自动忽略」这四个字，它不报错。你写了一条 <code>div &gt; span</code> 的样式，编译能过，RN 上就是不生效，控制台也不会提醒你。所以多端项目的样式最好从一开始就按 RN 的规矩写，而不是等 RN 端出问题了再回来改。</p>
+<p>样式上 <code>H5</code> 最为灵活，小程序次之，<code>RN</code> 最弱。统一多端样式就是对齐短板，也就是要以 <code>RN</code> 的约束来管理样式，同时兼顾小程序的限制，核心可以用三点来概括：</p>
 <ul>
 <li>使用 <code>Flex</code> 布局</li>
 <li>基于 <code>BEM</code> 写样式</li>
 <li>采用 <code>style</code> 属性覆盖组件样式</li>
 </ul>
-<blockquote>
-<p><code>RN</code> 中 <code>View</code> 标签默认主轴方向是 <code>column</code>，如果不将其他端改成与 RN 一致，就需要在所有用到 <code>display: flex</code> 的地方都显式声明主轴方向</p>
-</blockquote>
-<h3 id="5-3-问题"><a href="#5-3-问题" class="headerlink" title="5.3 问题"></a>5.3 问题</h3><p><strong>尽量避免在 componentDidMount 中调用 this.setState</strong></p>
-<blockquote>
-<p>因为在 <code>componentDidMount</code> 中调用 <code>this.setState</code> 会导致触发更新</p>
-</blockquote>
+<p>还有个默认值的差异要记住：<code>RN</code> 中 <code>View</code> 标签默认主轴方向是 <code>column</code>，跟浏览器里 <code>flex-direction</code> 默认 <code>row</code> 正好相反。如果不把其他端改成与 RN 一致，就需要在所有用到 <code>display: flex</code> 的地方都显式声明主轴方向。</p>
+<p>我的建议是选后者，处处显式写 <code>flex-direction</code>。多敲几个字，换来的是三个端上布局行为完全一致，不用在脑子里维护两套默认值。</p>
+<h3 id="5-3-两个容易写出来的性能问题"><a href="#5-3-两个容易写出来的性能问题" class="headerlink" title="5.3 两个容易写出来的性能问题"></a>5.3 两个容易写出来的性能问题</h3><p><strong>尽量避免在 componentDidMount 中调用 this.setState</strong></p>
+<p>因为在 <code>componentDidMount</code> 中调用 <code>this.setState</code> 会触发一次额外的更新，组件刚挂载完就再渲染一遍：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Taro</span>, &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@tarojs/taro&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">View</span>, <span class="title class_">Input</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@tarojs/components&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyComponent</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  state = &#123;</span><br><span class="line">    <span class="attr">myTime</span>: <span class="number">12</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">componentDidMount</span> () &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="title function_">setState</span>(&#123;     <span class="comment">// ✗ 尽量避免，可以在 componentWillMount 中处理</span></span><br><span class="line">      <span class="attr">name</span>: <span class="number">1</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">render</span> () &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; isEnable &#125; = <span class="variable language_">this</span>.<span class="property">props</span></span><br><span class="line">    <span class="keyword">const</span> &#123; myTime &#125; = <span class="variable language_">this</span>.<span class="property">state</span></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">View</span> <span class="attr">className</span>=<span class="string">&#x27;test&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;isEnable &amp;&amp; <span class="tag">&lt;<span class="name">Text</span> <span class="attr">className</span>=<span class="string">&#x27;test_text&#x27;</span>&gt;</span>&#123;myTime&#125;<span class="tag">&lt;/<span class="name">Text</span>&gt;</span>&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">View</span>&gt;</span></span></span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>单个组件多渲染一次感知不到，但列表里几十个组件同时这么干，进页面就会有一次明显的卡顿。初始状态能在构造阶段确定的，就别放到挂载后再设。</p>
 <p><strong>不要定义没有用到的 state</strong></p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">Taro</span>, &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@tarojs/taro&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">View</span>, <span class="title class_">Input</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;@tarojs/components&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyComponent</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  state = &#123;</span><br><span class="line">    <span class="attr">myTime</span>: <span class="number">12</span>,</span><br><span class="line">    <span class="attr">noUsed</span>: <span class="literal">true</span>   <span class="comment">// ✗ 没有用到</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="title function_">render</span> () &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; myTime &#125; = <span class="variable language_">this</span>.<span class="property">state</span></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">View</span> <span class="attr">className</span>=<span class="string">&#x27;test&#x27;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">Text</span> <span class="attr">className</span>=<span class="string">&#x27;test_text&#x27;</span>&gt;</span>&#123;myTime&#125;<span class="tag">&lt;/<span class="name">Text</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">View</span>&gt;</span></span></span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-
+<p>这条在小程序端的代价比在 Web 上大得多。小程序的逻辑层和视图层是分开的，<code>setData</code> 要跨线程传数据，state 里挂着的每个字段都可能被序列化传一遍。没用到的字段等于白付这份成本。</p>
+<h2 id="六、这篇写于-2019-年，现在的-Taro-已经不一样了"><a href="#六、这篇写于-2019-年，现在的-Taro-已经不一样了" class="headerlink" title="六、这篇写于 2019 年，现在的 Taro 已经不一样了"></a>六、这篇写于 2019 年，现在的 Taro 已经不一样了</h2><p>上面所有内容都基于当时的 Taro 1.x，有几个结论已经过期了，得单独说清楚，免得你照着踩。</p>
+<p>最大的变化是架构路线。1.x 和 2.x 走的是重编译路线，靠静态分析把 React-like 的 JSX 转成小程序模板，这也是前面那一堆写法限制的来源，不能在 <code>render</code> 外写 JSX、必须用单引号、不支持 <code>Fragment</code>，都是编译器分析不动导致的。从 Taro 3 开始，官方改成了运行时方案，在小程序里模拟出一套 DOM 和 BOM 接口，让 React 或 Vue 的运行时直接跑在上面。既然不再依赖静态分析，那些语法限制自然大部分就没了。</p>
+<p>同时带来的是框架选择的放开。1.x 时代只能用 React-like 的写法，Taro 3 之后官方支持了 React 和 Vue 等多种框架，你可以按团队习惯选。现在版本已经到了 Taro 4，编译工具链也从单一的 webpack 扩展到支持 Vite，支持的端也比当时那六个多。</p>
+<p>所以这篇里哪些还有效？原理那部分的编译加运行时两条线、AST 的作用、多端能力靠 runtime 加组件替换来实现，这些底层思路没变。样式那部分基本也还有效，因为 RN 的样式限制来自 RN 本身，不是 Taro 造成的。多端条件编译和同名文件那套机制也还在。</p>
+<p>失效的主要是这几条：React-like 的语法限制、<code>React.Fragment</code> 不支持、UI 组件库生态薄弱，还有那个具体的六端取值列表。具体到你要用的版本，还是要以官方文档为准，我这边只在 1.x 上完整跑过项目，Taro 3 之后的版本没有在生产上验证过。</p>
+<p>图表相关的多端实践，我另外写过一篇 <a href="https://feinterview.poetries.top/blog/taro-echarts">Taro 中使用 ECharts 小结</a>，那篇专门讲怎么把 <code>echarts-for-weixin</code> 接进 Taro 并封装成一个能在小程序和 H5 两端复用的图表组件，跟这篇的通用踩坑正好互补。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>用一句话概括多端框架的价值：它帮你省掉的是重复的业务代码，不是对各个端的了解。</p>
+<p>真要落地，我会按这个顺序推进。开工前先定死目标端，只发小程序和 H5 的项目，和要带 RN 的项目，复杂度不在一个量级；然后按最弱的那个端定样式规范，也就是 Flex 加 BEM 加类选择器，别等 RN 端跑起来了再回头改；接着把所有端差异收进一层适配模块，用同名不同后缀的文件承载，业务层只认统一接口。</p>
+<p>最后留一句提醒。多端框架适合的是「三端页面结构和交互高度一致」的项目。如果产品经理给三个端画了三套完全不同的交互稿，那多端框架反而会拖慢你，因为你要同时对付框架的限制和产品的差异。这种情况下老老实实分开写，可能更快。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.taro.zone/docs/">Taro 官方文档</a></li>
+<li><a href="https://github.com/NervJS/taro">Taro GitHub 仓库</a></li>
+<li><a href="https://reactnative.dev/">React Native 官方文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

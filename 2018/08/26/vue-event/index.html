@@ -7,25 +7,27 @@
 <head>
   <meta charset="utf-8">
   
-  <title>vue事件（六） | 前端进阶之旅</title>
+  <title>Vue 事件处理与事件修饰符详解（六） | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="Vue,事件处理,事件修饰符," />
   
 
-  <meta name="description" content="一、方法传参&lt;div id&#x3D;&quot;test&quot;&gt;    &lt;button @click&#x3D;&quot;sayHi(&#x27;你好&#x27;)&quot;&gt;说你好&lt;&#x2F;button&gt; &lt;!--这里使用@--&gt;    &lt;button @click&#x3D;&quot;sayHi(&#x27;我被点击了&#x27;)&quot;&gt;说我被点击">
+  <meta name="description" content="讲清 Vue 里事件传参、$event 拿原生事件对象的写法，以及 stop、prevent、capture、self、once、passive 六个事件修饰符和按键修饰符的用法与顺序陷阱。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="vue事件（六）">
+<meta property="og:title" content="Vue 事件处理与事件修饰符详解（六）">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/26/vue-event/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、方法传参&lt;div id&#x3D;&quot;test&quot;&gt;    &lt;button @click&#x3D;&quot;sayHi(&#x27;你好&#x27;)&quot;&gt;说你好&lt;&#x2F;button&gt; &lt;!--这里使用@--&gt;    &lt;button @click&#x3D;&quot;sayHi(&#x27;我被点击了&#x27;)&quot;&gt;说我被点击">
+<meta property="og:description" content="讲清 Vue 里事件传参、$event 拿原生事件对象的写法，以及 stop、prevent、capture、self、once、passive 六个事件修饰符和按键修饰符的用法与顺序陷阱。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-08-26T16:10:32.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.694Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.959Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="事件处理">
+<meta property="article:tag" content="事件修饰符">
 <meta name="twitter:card" content="summary">
 
   
@@ -204,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%96%B9%E6%B3%95%E4%BC%A0%E5%8F%82"><span class="toc-text">一、方法传参</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81vue%E8%AE%BF%E9%97%AE%E5%8E%9F%E7%94%9F-DOM-%E4%BA%8B%E4%BB%B6"><span class="toc-text">二、vue访问原生 DOM 事件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BA%8B%E4%BB%B6%E4%BF%AE%E9%A5%B0%E7%AC%A6"><span class="toc-text">三、事件修饰符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%94%AE%E5%80%BC%E4%BF%AE%E9%A5%B0%E7%AC%A6"><span class="toc-text">四、键值修饰符</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%96%B9%E6%B3%95%E4%BC%A0%E5%8F%82"><span class="toc-text">一、方法传参</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%AE%BF%E9%97%AE%E5%8E%9F%E7%94%9F-DOM-%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1"><span class="toc-text">二、访问原生 DOM 事件对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BA%8B%E4%BB%B6%E4%BF%AE%E9%A5%B0%E7%AC%A6"><span class="toc-text">三、事件修饰符</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-stop-%E9%98%BB%E6%AD%A2%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1"><span class="toc-text">3.1 .stop 阻止事件冒泡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-prevent-%E9%98%BB%E6%AD%A2%E9%BB%98%E8%AE%A4%E4%BA%8B%E4%BB%B6"><span class="toc-text">3.2 .prevent 阻止默认事件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-capture-%E4%BD%BF%E7%94%A8%E4%BA%8B%E4%BB%B6%E6%8D%95%E8%8E%B7%E6%A8%A1%E5%BC%8F"><span class="toc-text">3.3 .capture 使用事件捕获模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-self-%E5%8F%AA%E5%9C%A8%E5%85%83%E7%B4%A0%E8%87%AA%E8%BA%AB%E8%A7%A6%E5%8F%91%E6%97%B6%E5%9B%9E%E8%B0%83"><span class="toc-text">3.4 .self 只在元素自身触发时回调</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-once-%E4%BA%8B%E4%BB%B6%E5%8F%AA%E8%A7%A6%E5%8F%91%E4%B8%80%E6%AC%A1"><span class="toc-text">3.5 .once 事件只触发一次</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-passive-%E6%89%BF%E8%AF%BA%E4%B8%8D%E9%98%BB%E6%AD%A2%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA"><span class="toc-text">3.6 .passive 承诺不阻止默认行为</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-7-%E9%A1%BA%E5%BA%8F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%87%8D%E8%A6%81"><span class="toc-text">3.7 顺序为什么重要</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%8C%89%E9%94%AE%E4%BF%AE%E9%A5%B0%E7%AC%A6"><span class="toc-text">四、按键修饰符</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%B3%BB%E7%BB%9F%E4%BF%AE%E9%A5%B0%E9%94%AE%E5%92%8C-exact"><span class="toc-text">4.1 系统修饰键和 .exact</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E7%BB%84%E4%BB%B6%E4%B8%8A%E7%9A%84%E4%BA%8B%E4%BB%B6%E5%92%8C-native"><span class="toc-text">五、组件上的事件和 .native</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Vue-3-%E9%87%8C%E4%BA%8B%E4%BB%B6%E8%BF%99%E5%9D%97%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-text">六、Vue 3 里事件这块的变化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -227,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-event" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">vue事件（六）</h1>
+    <h1 class="post-title">Vue 事件处理与事件修饰符详解（六）</h1>
 
     <div class="article-meta">
       <span>
@@ -269,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 619字</span>
+            <span>字数统计 3.1k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 3分</span>
+            <span>阅读时长 12分</span>
           </span>
       
       
@@ -288,57 +290,102 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、方法传参"><a href="#一、方法传参" class="headerlink" title="一、方法传参"></a>一、方法传参</h2><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;test&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;sayHi(&#x27;你好&#x27;)&quot;</span>&gt;</span>说你好<span class="tag">&lt;/<span class="name">button</span>&gt;</span> <span class="comment">&lt;!--这里使用@--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;sayHi(&#x27;我被点击了&#x27;)&quot;</span>&gt;</span>说我被点击了<span class="tag">&lt;/<span class="name">button</span>&gt;</span> <span class="comment">&lt;!--这里使用@--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> myVue = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>: <span class="string">&#x27;#test&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>: &#123;      <span class="comment">//这里使用methods</span></span></span><br><span class="line"><span class="language-javascript">            <span class="attr">sayHi</span>: <span class="keyword">function</span> (<span class="params">message</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="title function_">alert</span>(message)</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h2 id="二、vue访问原生-DOM-事件"><a href="#二、vue访问原生-DOM-事件" class="headerlink" title="二、vue访问原生 DOM 事件"></a>二、vue访问原生 DOM 事件</h2><blockquote>
-<p>用<code>$event</code>获取</p>
-</blockquote>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;changeColor(&#x27;你好&#x27;,$event)&quot;</span>&gt;</span>点击我<span class="tag">&lt;/<span class="name">button</span>&gt;</span> <span class="comment">&lt;!--这里使用@--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;height: 100px;width: 100px;background-color: red;&quot;</span> @<span class="attr">mouseover</span>=<span class="string">&quot;over(&#x27;鼠标从我上面滑过&#x27;,$event)&quot;</span>&gt;</span></span><br><span class="line">    鼠标从我上面滑过试试</span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">           </span><br><span class="line">            </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> myVue = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>: <span class="string">&#x27;#test&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>: &#123;      <span class="comment">//这里使用methods</span></span></span><br><span class="line"><span class="language-javascript">            <span class="attr">changeColor</span>: <span class="keyword">function</span> (<span class="params">message, event</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="title function_">alert</span>(message+event);    <span class="comment">//弹出我被点击了,事件是[object MouseEvent]</span></span></span><br><span class="line"><span class="language-javascript">            &#125;,</span></span><br><span class="line"><span class="language-javascript">            over :<span class="keyword">function</span> (<span class="params">message, event</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="title function_">alert</span>(message+event);   <span class="comment">//弹出鼠标从我上面滑过,事件是[object MouseEvent]</span></span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h2 id="三、事件修饰符"><a href="#三、事件修饰符" class="headerlink" title="三、事件修饰符"></a>三、事件修饰符</h2><blockquote>
-<p>事件修饰符有基本的6种</p>
-</blockquote>
-<p><strong>.stop阻止事件冒泡</strong></p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">v-on:click.stop</span>=<span class="string">&quot;doThis&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>.prevent阻止默认事件</strong></p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">v-on:submit.prevent</span>=<span class="string">&quot;onSubmit&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>.capture时间捕获（从上到下）</strong></p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">v-on:click.capture</span>=<span class="string">&quot;doThis&quot;</span>&gt;</span>...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>.self只在元素自身回调</strong></p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">v-on:click.self</span>=<span class="string">&quot;doThat&quot;</span>&gt;</span>...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>.once只触发一次</strong></p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">v-on:click.once</span>=<span class="string">&quot;doThis&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>使用修饰符时，顺序很重要；相应的代码会以同样的顺序产生。因此，用 <code>@click.prevent.self</code> 会阻止所有的点击，而 <code>@click.self.prevent</code> 只会阻止元素上的点击</p>
-</blockquote>
-<h2 id="四、键值修饰符"><a href="#四、键值修饰符" class="headerlink" title="四、键值修饰符"></a>四、键值修饰符</h2><blockquote>
-<p>在监听键盘事件时，我们经常需要监测常见的键值。 Vue 允许为 v-on 在监听键盘事件时添加关键修饰符</p>
-</blockquote>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line">    &#123;&#123;msg&#125;&#125;</span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">v-on:keydown</span>=<span class="string">&quot;ke&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">var</span> app = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>:<span class="string">&quot;#app&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">msg</span>:<span class="string">&quot;事件处理&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">counter</span>:<span class="number">0</span></span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">ke</span>:<span class="keyword">function</span>(<span class="params">e</span>)&#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="keyword">if</span>(e.<span class="property">keyCode</span> == <span class="number">13</span>)&#123;</span></span><br><span class="line"><span class="language-javascript">                    <span class="variable language_">this</span>.<span class="property">msg</span> = e.<span class="property">target</span>.<span class="property">value</span>;</span></span><br><span class="line"><span class="language-javascript">                    e.<span class="property">target</span>.<span class="property">value</span> = <span class="string">&quot;&quot;</span>;</span></span><br><span class="line"><span class="language-javascript">                &#125;</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">&#125;);</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
+        <p>绑事件这件事，用 jQuery 的时候是 <code>$(&#39;#btn&#39;).on(&#39;click&#39;, fn)</code>，逻辑和 DOM 是分开的，改一处得两边找。Vue 把事件绑定挪回了模板上，<code>@click=&quot;fn&quot;</code> 一眼就能看出这个按钮点了会走哪个方法。但挪回来之后冒出几个新问题：传了参数就拿不到事件对象了，阻止冒泡该写在方法里还是模板上，修饰符串起来写顺序有没有讲究。这篇把这些一个个说清楚，顺便把原文里少列的那个修饰符补上。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>enter</code>(回车)</li>
-<li><code>tab</code>（tab切换）</li>
-<li><code>delete</code> (捕获 “删除” 和 “退格” 键)</li>
-<li><code>esc</code>（esc键）</li>
-<li><code>space</code>（退档键）</li>
-<li><code>up</code>（上键）</li>
-<li><code>down</code>（下键）</li>
-<li><code>left</code>（左键）</li>
-<li><code>right</code>（右键）</li>
+<li>事件绑定的两种写法，带括号和不带括号的区别</li>
+<li>传参之后怎么用 <code>$event</code> 拿回原生事件对象</li>
+<li>六个事件修饰符各自解决什么问题，为什么顺序会影响结果</li>
+<li><code>.passive</code> 这个容易被漏掉的修饰符，它和滚动性能的关系</li>
+<li>按键修饰符、系统修饰键和 <code>.exact</code> 的用法</li>
+<li>组件上绑原生事件为什么要加 <code>.native</code></li>
+<li>Vue 3 里事件这块变了什么</li>
 </ul>
-<blockquote>
-<p>我们也可以通过全局<code> config.keyCodes</code> 对象自定义键值修饰符别名</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Vue.config.keyCodes.f1 = 112</span><br></pre></td></tr></table></figure>
+<h2 id="一、方法传参"><a href="#一、方法传参" class="headerlink" title="一、方法传参"></a>一、方法传参</h2><p>最基础的一种，<code>@</code> 是 <code>v-on:</code> 的缩写，绑定的方法从 <code>methods</code> 里取：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;test&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;sayHi(&#x27;你好&#x27;)&quot;</span>&gt;</span>说你好<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;sayHi(&#x27;我被点击了&#x27;)&quot;</span>&gt;</span>说我被点击了<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> myVue = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>: <span class="string">&#x27;#test&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>: &#123;      <span class="comment">// 这里使用 methods</span></span></span><br><span class="line"><span class="language-javascript">            <span class="attr">sayHi</span>: <span class="keyword">function</span> (<span class="params">message</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="title function_">alert</span>(message)</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
+<p>这里有个规则要先立住：模板里写的 <code>sayHi(&#39;你好&#39;)</code> 不是「立即调用」，Vue 编译的时候会把它包成一个函数，点击时才执行。所以别担心页面一渲染 alert 就弹出来。</p>
+<p>反过来，如果你写 <code>@click=&quot;sayHi()&quot;</code> 但 <code>sayHi</code> 返回的是另一个函数，那也不会自动继续调用。想传参又想复用逻辑，老老实实用箭头函数或者在方法内部判断。</p>
+<p>不带括号和带括号，Vue 的处理是两条路。不带括号时，Vue 把方法本身作为事件监听器，原生事件对象会作为第一个参数传进去。带括号时，Vue 生成一个内联的包装函数，你传什么它就收什么，事件对象没地方进来。</p>
+<h2 id="二、访问原生-DOM-事件对象"><a href="#二、访问原生-DOM-事件对象" class="headerlink" title="二、访问原生 DOM 事件对象"></a>二、访问原生 DOM 事件对象</h2><p>传了参数还想要事件对象，用 <code>$event</code> 这个特殊变量：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">button</span> @<span class="attr">click</span>=<span class="string">&quot;changeColor(&#x27;你好&#x27;,$event)&quot;</span>&gt;</span>点击我<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;height: 100px;width: 100px;background-color: red;&quot;</span> @<span class="attr">mouseover</span>=<span class="string">&quot;over(&#x27;鼠标从我上面滑过&#x27;,$event)&quot;</span>&gt;</span></span><br><span class="line">    鼠标从我上面滑过试试</span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript">    <span class="keyword">var</span> myVue = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>: <span class="string">&#x27;#test&#x27;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>: &#123;      <span class="comment">// 这里使用 methods</span></span></span><br><span class="line"><span class="language-javascript">            <span class="attr">changeColor</span>: <span class="keyword">function</span> (<span class="params">message, event</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="title function_">alert</span>(message + event);    <span class="comment">// 弹出 你好[object MouseEvent]</span></span></span><br><span class="line"><span class="language-javascript">            &#125;,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">over</span>: <span class="keyword">function</span> (<span class="params">message, event</span>) &#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="title function_">alert</span>(message + event);   <span class="comment">// 弹出 鼠标从我上面滑过[object MouseEvent]</span></span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">    &#125;)</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p>、</p>
+<p><code>$event</code> 只在模板里有效，是 Vue 提供的编译期变量，方法内部是没有这个东西的。参数位置随便放，写 <code>sayHi($event, &#39;你好&#39;)</code> 也行，只要方法签名对得上。</p>
+<p>拿到事件对象之后能做的事和原生一模一样，<code>event.target</code> 拿触发元素，<code>event.currentTarget</code> 拿绑定元素，<code>event.clientX</code> 拿坐标。这里顺带提醒一句，<code>target</code> 和 <code>currentTarget</code> 在有子元素的情况下不是一回事，点在按钮里的 <code>span</code> 上，<code>target</code> 是那个 <code>span</code>，<code>currentTarget</code> 才是按钮。这个坑跟 Vue 无关，是原生事件模型自带的，但在 Vue 里因为绑定写得太顺手，反而更容易踩。</p>
+<h2 id="三、事件修饰符"><a href="#三、事件修饰符" class="headerlink" title="三、事件修饰符"></a>三、事件修饰符</h2><p>原文写的是「事件修饰符有基本的 6 种」，但下面只列了 5 个。漏掉的那个是 <code>.passive</code>，Vue 2.3 才加进来的，下面一并补上。</p>
+<h3 id="3-1-stop-阻止事件冒泡"><a href="#3-1-stop-阻止事件冒泡" class="headerlink" title="3.1 .stop 阻止事件冒泡"></a>3.1 .stop 阻止事件冒泡</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">v-on:click.stop</span>=<span class="string">&quot;doThis&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>等价于在方法里调用 <code>event.stopPropagation()</code>。</p>
+<h3 id="3-2-prevent-阻止默认事件"><a href="#3-2-prevent-阻止默认事件" class="headerlink" title="3.2 .prevent 阻止默认事件"></a>3.2 .prevent 阻止默认事件</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">v-on:submit.prevent</span>=<span class="string">&quot;onSubmit&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>等价于 <code>event.preventDefault()</code>。表单提交、<code>a</code> 标签跳转这两个场景用得最多。</p>
+<h3 id="3-3-capture-使用事件捕获模式"><a href="#3-3-capture-使用事件捕获模式" class="headerlink" title="3.3 .capture 使用事件捕获模式"></a>3.3 .capture 使用事件捕获模式</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">v-on:click.capture</span>=<span class="string">&quot;doThis&quot;</span>&gt;</span>...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>原生事件有捕获和冒泡两个阶段，默认监听的是冒泡阶段（从内向外）。加了 <code>.capture</code> 就改成捕获阶段（从外向内），父元素会比子元素先收到事件。原文这里把「事件捕获」写成了「时间捕获」，是个笔误。</p>
+<h3 id="3-4-self-只在元素自身触发时回调"><a href="#3-4-self-只在元素自身触发时回调" class="headerlink" title="3.4 .self 只在元素自身触发时回调"></a>3.4 .self 只在元素自身触发时回调</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">v-on:click.self</span>=<span class="string">&quot;doThat&quot;</span>&gt;</span>...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>它和 <code>.stop</code> 经常被搞混。<code>.stop</code> 是「我收到了，但不往上传」，<code>.self</code> 是「只有点的正好是我本人才算，点在子元素上冒泡过来的我不管」。做遮罩层点击关闭弹窗最合适的就是 <code>.self</code>，点遮罩关闭，点弹窗内容区不关闭，一个修饰符解决，不用在方法里判断 <code>event.target === event.currentTarget</code>。</p>
+<h3 id="3-5-once-事件只触发一次"><a href="#3-5-once-事件只触发一次" class="headerlink" title="3.5 .once 事件只触发一次"></a>3.5 .once 事件只触发一次</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">v-on:click.once</span>=<span class="string">&quot;doThis&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>触发一次之后 Vue 会自动把监听器移除。防止表单重复提交的场景可以用，但要注意它是彻底移除，不是禁用一段时间，需要「点一次冷却三秒」这种逻辑还是得自己写节流。</p>
+<h3 id="3-6-passive-承诺不阻止默认行为"><a href="#3-6-passive-承诺不阻止默认行为" class="headerlink" title="3.6 .passive 承诺不阻止默认行为"></a>3.6 .passive 承诺不阻止默认行为</h3><figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">v-on:scroll.passive</span>=<span class="string">&quot;onScroll&quot;</span>&gt;</span>...<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个修饰符对应原生的 <code>&#123; passive: true &#125;</code> 监听选项，它告诉浏览器「这个监听器里绝对不会调用 <code>preventDefault()</code>」。为什么要专门告诉浏览器一声？因为浏览器在触发滚动、触摸这类事件时，如果不知道监听器会不会阻止默认行为，就得先把监听器跑完再决定滚不滚，这一等就可能掉帧。加上 <code>.passive</code> 之后浏览器可以直接滚，不必等。</p>
+<p>移动端的 <code>touchmove</code>、长列表的 <code>scroll</code> 加上它对流畅度提升是实打实的。但有一条硬约束：<code>.passive</code> 和 <code>.prevent</code> 不能一起用，它俩说的是相反的事，一起写 Vue 会警告，而且 <code>.prevent</code> 会被忽略。</p>
+<h3 id="3-7-顺序为什么重要"><a href="#3-7-顺序为什么重要" class="headerlink" title="3.7 顺序为什么重要"></a>3.7 顺序为什么重要</h3><p>使用修饰符时，顺序很重要，相应的代码会以同样的顺序产生。用 <code>@click.prevent.self</code> 会阻止所有的点击，而 <code>@click.self.prevent</code> 只会阻止元素上的点击。</p>
+<p>理解方式是把修饰符当成一层层包裹在真正处理函数外面的中间件，从左到右依次执行。<code>.prevent.self</code> 是先无条件执行 <code>preventDefault()</code>，再判断是不是自身触发；<code>.self.prevent</code> 是先判断，判断通过了才执行 <code>preventDefault()</code>。所以前者对冒泡上来的子元素点击也生效，后者不生效。</p>
+<p>我一开始也是随手写的，直到有次遮罩层里的链接怎么都点不动，排查了一下午才发现是修饰符顺序写反了，把子元素的默认行为一起给拦了。</p>
+<h2 id="四、按键修饰符"><a href="#四、按键修饰符" class="headerlink" title="四、按键修饰符"></a>四、按键修饰符</h2><p>监听键盘事件时，经常需要判断按的是哪个键。不用修饰符的原始写法长这样：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;app&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">v-on:keydown</span>=<span class="string">&quot;ke&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="language-javascript"></span></span><br><span class="line"><span class="language-javascript"><span class="keyword">var</span> app = <span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">el</span>:<span class="string">&quot;#app&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">data</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">msg</span>:<span class="string">&quot;事件处理&quot;</span>,</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">counter</span>:<span class="number">0</span></span></span><br><span class="line"><span class="language-javascript">        &#125;,</span></span><br><span class="line"><span class="language-javascript">        <span class="attr">methods</span>:&#123;</span></span><br><span class="line"><span class="language-javascript">            <span class="attr">ke</span>:<span class="keyword">function</span>(<span class="params">e</span>)&#123;</span></span><br><span class="line"><span class="language-javascript">                <span class="keyword">if</span>(e.<span class="property">keyCode</span> == <span class="number">13</span>)&#123;</span></span><br><span class="line"><span class="language-javascript">                    <span class="variable language_">this</span>.<span class="property">msg</span> = e.<span class="property">target</span>.<span class="property">value</span>;</span></span><br><span class="line"><span class="language-javascript">                    e.<span class="property">target</span>.<span class="property">value</span> = <span class="string">&quot;&quot;</span>;</span></span><br><span class="line"><span class="language-javascript">                &#125;</span></span><br><span class="line"><span class="language-javascript">            &#125;</span></span><br><span class="line"><span class="language-javascript">        &#125;</span></span><br><span class="line"><span class="language-javascript">&#125;);</span></span><br><span class="line"><span class="language-javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>方法里判断 <code>keyCode == 13</code> 能跑，但可读性很差，谁记得住 13 是回车、27 是 Esc。Vue 允许为 <code>v-on</code> 在监听键盘事件时添加按键修饰符，直接写名字：</p>
+<ul>
+<li><code>enter</code>（回车）</li>
+<li><code>tab</code>（Tab 切换）</li>
+<li><code>delete</code>（捕获「删除」和「退格」两个键）</li>
+<li><code>esc</code>（Esc 键）</li>
+<li><code>space</code>（空格键）</li>
+<li><code>up</code>（上方向键）</li>
+<li><code>down</code>（下方向键）</li>
+<li><code>left</code>（左方向键）</li>
+<li><code>right</code>（右方向键）</li>
+</ul>
+<p>上面那段代码用修饰符改写，方法体能砍掉一半：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> @<span class="attr">keydown.enter</span>=<span class="string">&quot;ke&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>原文把 <code>space</code> 注成了「退档键」，应该是空格键，这里改过来了。</p>
+<p>对于没被 Vue 内置的按键，可以通过全局的 <code>config.keyCodes</code> 对象自定义按键修饰符别名：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Vue</span>.<span class="property">config</span>.<span class="property">keyCodes</span>.<span class="property">f1</span> = <span class="number">112</span></span><br></pre></td></tr></table></figure>
+
+<p>配好之后模板里就能写 <code>@keyup.f1=&quot;handler&quot;</code>。</p>
+<h3 id="4-1-系统修饰键和-exact"><a href="#4-1-系统修饰键和-exact" class="headerlink" title="4.1 系统修饰键和 .exact"></a>4.1 系统修饰键和 .exact</h3><p>Vue 2.1 之后还有一组系统修饰键，用来监听组合键：<code>.ctrl</code>、<code>.alt</code>、<code>.shift</code>、<code>.meta</code>（在 Mac 上是 Command 键，在 Windows 上是 Win 键）。</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Ctrl + Enter 发送，聊天框的标配 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">textarea</span> @<span class="attr">keyup.ctrl.enter</span>=<span class="string">&quot;send&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">textarea</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里有个坑要注意。<code>@keyup.ctrl</code> 的含义是「松开某个键的时候 Ctrl 处于按下状态」，所以按住 Ctrl 再按 Alt 也会触发，因为 Ctrl 确实按着。想要严格匹配，Vue 2.5 加了 <code>.exact</code> 修饰符：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 有且只有 Ctrl 被按下的时候才触发 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> @<span class="attr">click.ctrl.exact</span>=<span class="string">&quot;onCtrlClick&quot;</span>&gt;</span>A<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 没有任何系统修饰键被按下的时候才触发 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">button</span> @<span class="attr">click.exact</span>=<span class="string">&quot;onClick&quot;</span>&gt;</span>A<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>另外还有三个鼠标按键修饰符 <code>.left</code>、<code>.right</code>、<code>.middle</code>，限定只有特定的鼠标键触发时才回调，做右键菜单的时候用得上。</p>
+<h2 id="五、组件上的事件和-native"><a href="#五、组件上的事件和-native" class="headerlink" title="五、组件上的事件和 .native"></a>五、组件上的事件和 .native</h2><p>上面讲的都是绑在原生元素上的。绑到自定义组件上时，<code>@click=&quot;handler&quot;</code> 监听的是组件用 <code>$emit(&#39;click&#39;)</code> 抛出的自定义事件，不是这个组件根元素上的原生点击。两者名字一样但完全不是一条链路，这是新手最容易懵的地方。</p>
+<p>Vue 2 的解法是加 <code>.native</code> 修饰符：</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">my-component</span> <span class="attr">v-on:click.native</span>=<span class="string">&quot;doTheThing&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">my-component</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>加了之后事件会绑到组件的根元素上，走原生那条路。组件之间通过 <code>$emit</code> 通信的完整机制，我在 <a href="https://feinterview.poetries.top/blog/vue-component">Vue 组件</a> 那篇里从 props 和 events 两个方向都拆过。</p>
+<h2 id="六、Vue-3-里事件这块的变化"><a href="#六、Vue-3-里事件这块的变化" class="headerlink" title="六、Vue 3 里事件这块的变化"></a>六、Vue 3 里事件这块的变化</h2><p>老代码迁到 Vue 3，事件这块要动三处。</p>
+<p><code>.native</code> 修饰符被移除了。Vue 3 引入了 <code>emits</code> 选项，组件显式声明自己会抛出哪些事件；没有被声明的监听器会自动落到组件根元素上，也就是原来 <code>.native</code> 的效果。所以大部分情况下把 <code>.native</code> 直接删掉就行，但组件如果声明了同名的自定义事件，行为会不一样，迁移时得逐个确认。</p>
+<p>按键修饰符里的数字形式没了。<code>@keyup.13</code> 这种写法和 <code>Vue.config.keyCodes</code> 全局配置在 Vue 3 里都被移除，统一用按键名，比如 <code>@keyup.enter</code>、<code>@keyup.page-down</code>。名字取自原生事件的 <code>key</code> 属性，转成短横线形式。</p>
+<p><code>v-on</code> 的对象语法（不带参数直接绑一个事件名到处理函数的映射）依然支持，但不再支持修饰符。</p>
+<p>除此之外，<code>.stop</code>、<code>.prevent</code>、<code>.self</code>、<code>.once</code>、<code>.capture</code>、<code>.passive</code>、<code>.exact</code> 这些都原样保留，六个基本修饰符一个没少。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Vue 的事件系统看着是给模板加了点糖，实际解决的是两类问题。</p>
+<p>一类是把事件对象和业务参数的传递理顺了。不带括号自动收事件对象，带括号用 <code>$event</code> 显式取，两种写法覆盖全部场景。</p>
+<p>另一类是把「DOM 事件细节」从方法体里挪了出来。阻止冒泡、阻止默认行为、限定触发条件、监听特定按键，这些和业务无关的判断全部收进修饰符，方法只留纯粹的业务逻辑。这个设计是真的舒服，写多了之后回头看 jQuery 那种方法体开头三行 <code>event.xxx()</code> 的写法会觉得很吵。</p>
+<p>几个容易翻车的点值得单独记：修饰符顺序从左到右依次生效，<code>.prevent.self</code> 和 <code>.self.prevent</code> 不等价；<code>.passive</code> 和 <code>.prevent</code> 互斥；<code>.self</code> 适合遮罩层，<code>.stop</code> 适合阻断冒泡链，别混用；组件上绑原生事件 Vue 2 要 <code>.native</code>，Vue 3 已经不需要了。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://cn.vuejs.org/guide/essentials/event-handling.html">Vue 3 官方文档 - 事件处理</a></li>
+<li><a href="https://cn.vuejs.org/guide/components/events.html">Vue 3 官方文档 - 组件事件</a></li>
+<li><a href="https://v3-migration.vuejs.org/breaking-changes/keycode-modifiers.html">Vue 3 迁移指南 - 按键修饰符</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener">MDN - EventTarget.addEventListener 的 passive 选项</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

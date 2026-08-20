@@ -7,26 +7,27 @@
 <head>
   <meta charset="utf-8">
   
-  <title>常用命令之wget使用记录 | 前端进阶之旅</title>
+  <title>常用命令之wget使用记录，断点续传与整站镜像 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Linux,wget," />
+    <meta name="keywords" content="Linux,wget,下载," />
   
 
-  <meta name="description" content="一、基础使用 Wget主要用于下载文件，在安装软件时会经常用到，以下对wget做简单说明   下载单个文件：wget http:&#x2F;&#x2F;www.baidu.com。命令会直接在当前目录下载一个index.html的文件 将下载的文件存放到指定的文件夹下，同时重命名下载的文件，利用-O：wget -O &#x2F;home&#x2F;index http:&#x2F;&#x2F;www.baidu.com 下载多个文件：首先，创建一个file">
+  <meta name="description" content="wget 下载命令的实战笔记，讲清 -c 断点续传的前提条件、-O 与 -P 的区别、递归抓站的四个参数配合、限速配额，以及 wget 和 curl 该怎么分工。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="常用命令之wget使用记录">
+<meta property="og:title" content="常用命令之wget使用记录，断点续传与整站镜像">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/04/linux-wget/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、基础使用 Wget主要用于下载文件，在安装软件时会经常用到，以下对wget做简单说明   下载单个文件：wget http:&#x2F;&#x2F;www.baidu.com。命令会直接在当前目录下载一个index.html的文件 将下载的文件存放到指定的文件夹下，同时重命名下载的文件，利用-O：wget -O &#x2F;home&#x2F;index http:&#x2F;&#x2F;www.baidu.com 下载多个文件：首先，创建一个file">
+<meta property="og:description" content="wget 下载命令的实战笔记，讲清 -c 断点续传的前提条件、-O 与 -P 的区别、递归抓站的四个参数配合、限速配额，以及 wget 和 curl 该怎么分工。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2018-12-04T03:00:45.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.677Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.944Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="wget">
+<meta property="article:tag" content="下载">
 <meta name="twitter:card" content="summary">
 
   
@@ -205,7 +206,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%9F%BA%E7%A1%80%E4%BD%BF%E7%94%A8"><span class="toc-text">一、基础使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%9B%B4%E5%A4%9A%E5%8F%82%E8%80%83"><span class="toc-text">二、更多参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E8%AF%B4%E7%BB%93%E8%AE%BA%EF%BC%8Cwget-%E5%92%8C-curl-%E6%80%8E%E4%B9%88%E5%88%86%E5%B7%A5"><span class="toc-text">一、先说结论，wget 和 curl 怎么分工</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%8B%E8%BD%BD%E5%8D%95%E4%B8%AA%E6%96%87%E4%BB%B6%EF%BC%8C%E4%BB%A5%E5%8F%8A-O-%E5%92%8C-P-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-text">二、下载单个文件，以及 -O 和 -P 的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%89%B9%E9%87%8F%E4%B8%8B%E8%BD%BD%E3%80%81%E5%90%8E%E5%8F%B0%E4%B8%8B%E8%BD%BD%E5%92%8C%E6%97%A5%E5%BF%97"><span class="toc-text">三、批量下载、后台下载和日志</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0%EF%BC%8C%E4%BB%A5%E5%8F%8A%E5%AE%83%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%97%B6%E5%80%99%E4%B8%8D%E7%94%9F%E6%95%88"><span class="toc-text">四、断点续传，以及它为什么有时候不生效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%99%90%E9%80%9F%E5%92%8C%E9%85%8D%E9%A2%9D%EF%BC%8C%E5%88%AB%E6%8A%8A%E5%B8%A6%E5%AE%BD%E5%90%83%E6%BB%A1"><span class="toc-text">五、限速和配额，别把带宽吃满</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E9%80%92%E5%BD%92%E4%B8%8B%E8%BD%BD%E5%92%8C%E6%95%B4%E7%AB%99%E9%95%9C%E5%83%8F"><span class="toc-text">六、递归下载和整站镜像</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E8%AE%BF%E9%97%AE%E4%B8%8D%E9%80%9A%E7%9A%84%E5%87%A0%E7%A7%8D%E6%83%85%E5%86%B5"><span class="toc-text">七、访问不通的几种情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E8%AF%81%E4%B9%A6%E6%8A%A5%E9%94%99"><span class="toc-text">7.1 证书报错</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E8%A2%AB%E5%BD%93%E6%88%90%E7%88%AC%E8%99%AB%E6%8B%A6%E4%B8%8B%E6%9D%A5"><span class="toc-text">7.2 被当成爬虫拦下来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%85%88%E6%8E%A2%E4%B8%80%E4%B8%8B%E9%80%9A%E4%B8%8D%E9%80%9A"><span class="toc-text">7.3 先探一下通不通</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-FTP-%E4%B8%8B%E8%BD%BD"><span class="toc-text">7.4 FTP 下载</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E5%86%99%E8%BF%9B%E8%84%9A%E6%9C%AC%E6%97%B6%E8%AF%A5%E5%8A%A0%E4%BB%80%E4%B9%88"><span class="toc-text">八、写进脚本时该加什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -228,13 +229,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-linux-wget" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">常用命令之wget使用记录</h1>
+    <h1 class="post-title">常用命令之wget使用记录，断点续传与整站镜像</h1>
 
     <div class="article-meta">
       <span>
@@ -270,12 +271,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 558字</span>
+            <span>字数统计 3.6k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 2分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -289,34 +290,129 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、基础使用"><a href="#一、基础使用" class="headerlink" title="一、基础使用"></a>一、基础使用</h2><blockquote>
-<p><code>Wget</code>主要用于下载文件，在安装软件时会经常用到，以下对<code>wget</code>做简单说明</p>
-</blockquote>
+        <p>在服务器上装东西的时候，十有八九第一条命令就是 <code>wget</code>。下一个 tar 包、拉一份安装脚本、把某个域名下的静态资源整个扒下来，都靠它。但真用起来会发现几个别扭的地方：明明加了 <code>-c</code> 却还是从头下；<code>-O</code> 和 <code>-P</code> 长得像却完全不是一回事；抓整站的时候一不留神把半个互联网都爬下来了。</p>
+<p>这些坑背后都有具体的原因，不是 <code>wget</code> 在为难你。这篇把 <code>wget</code> 的常用参数按使用场景理一遍，重点讲清楚参数背后在做什么，以及它和 <code>curl</code> 各自适合的活。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li>下载单个文件：<code>wget http://www.baidu.com</code>。命令会直接在当前目录下载一个<code>index.html</code>的文件</li>
-<li>将下载的文件存放到指定的文件夹下，同时重命名下载的文件，利用<code>-O</code>：<code>wget -O /home/index http://www.baidu.com</code></li>
-<li>下载多个文件：首先，创建一个<code>file.txt</code>文件，写入两个<code>url</code>（换行），如<code>http://www.baidu.com</code>;然后，<code>wget -i file.txt</code>;命令执行后会下载两个两个文件。</li>
-<li>下载时，不显示详细信息，即在后台下载：<code>wget -b http://www.baidu.com</code>。命令执行后会，下载的详细信息不会显示在终端，会在当前目录下生成一个<code>web-log</code>记录下载的详细信息。</li>
-<li>下载时，不显示详细信息，同时将下载信息保存到执行的文件中（同4）：<code>wget -o dw.txt http://www.baidu.com</code></li>
-<li>断点续传：<code>wget -c http://www.baidu.com</code></li>
-<li>限制下载的的速度：<code>wget --limit-rate=100k -O zfj.html http://www.baidu.com</code></li>
-<li>测试是否能正常访问：<code>wget --spider http://www.baidu.com</code></li>
-<li>设置下载重试的次数：<code>wget --tries=3 http://www.baidu.com</code></li>
-<li>下载一个完整的网站，即当前页面所依赖的所有文件：<code>wget --mirror -p --convert-links -P./test http://localhost</code><ul>
-<li><code>--mirror</code>:打开镜像选项</li>
-<li><code>-p</code>:下载所有用于显示给定网址所必须的文件</li>
-<li><code>--convert-links</code>：下载以后，转换链接用于本地显示</li>
-<li><code>-P LOCAL_DIR</code>：保存所有的文件或目录到指定的目录下</li>
+<li><code>wget</code> 和 <code>curl</code> 的分工，什么时候该用哪个</li>
+<li>下载单个文件，<code>-O</code> 和 <code>-P</code> 到底差在哪</li>
+<li>批量下载 <code>-i</code>、后台下载 <code>-b</code> 和日志文件去了哪</li>
+<li>断点续传 <code>-c</code> 的前提条件，为什么有时候它不生效</li>
+<li>限速 <code>--limit-rate</code> 和配额 <code>-Q</code>，别把带宽吃满</li>
+<li>递归下载和整站镜像，<code>--mirror</code>、<code>-p</code>、<code>--convert-links</code>、<code>--no-parent</code> 怎么配合</li>
+<li>证书报错、被反爬拦截、FTP 下载这几种情况怎么处理</li>
+<li>写进脚本时必须加的超时和重试</li>
 </ul>
-</li>
-<li>下载的过程中拒绝下载指定类型的文件:<code>wget --reject=png --mirror -p --convert-links -P./test http://localhost</code></li>
-<li>多文件下载中拒绝下载超过设置大小的文件：<code>wget -Q5m -i file.txt</code> 注意：此选项只能在下载多个文件时有用，当你下载一个文件时没用。</li>
-<li>从指定网站中下载所有指定类型的文件：<code>wget -r -A .png http://www.baidu.com</code></li>
-<li><code>wget</code>下载时，某些资源必须使用<code>--no-check-certificate http://www.baidu.com·</code></li>
-<li>使用<code>wget</code>实现<code>FTP</code>下载：<code>wget --file-user=USERNAME --file-password=PASSWORD url</code></li>
+<h2 id="一、先说结论，wget-和-curl-怎么分工"><a href="#一、先说结论，wget-和-curl-怎么分工" class="headerlink" title="一、先说结论，wget 和 curl 怎么分工"></a>一、先说结论，wget 和 curl 怎么分工</h2><p>这两个命令功能有重叠，但设计目标完全不同。</p>
+<p><code>wget</code> 是个下载器。它默认把内容存成文件，天然支持递归、断点续传、后台运行、失败重试。你要的是「把东西弄到本地」，<code>wget</code> 一条命令就够。</p>
+<p><code>curl</code> 是个数据传输工具，更准确说是个 HTTP 客户端瑞士军刀。它默认把响应打到标准输出，强项是构造请求（自定义方法、请求头、请求体、认证），以及看清楚一次请求的每个环节。你要的是「调这个接口」或者「搞清楚这个请求哪一步慢」，那是 <code>curl</code> 的活。我之前写过一篇 <a href="https://feinterview.poetries.top/blog/linux-curl">学会用Curl调试接口，从常用参数到耗时排查</a>，接口调试那一侧的细节都在那边。</p>
+<p>一句话记：下载用 <code>wget</code>，调试用 <code>curl</code>。</p>
+<p>还有个实际差别，<code>curl</code> 几乎所有系统都自带（macOS、各种 Linux 发行版、Windows 10 之后），<code>wget</code> 在 macOS 和一些精简的容器镜像里需要自己装。写通用脚本的时候这点得考虑进去。</p>
+<h2 id="二、下载单个文件，以及-O-和-P-的区别"><a href="#二、下载单个文件，以及-O-和-P-的区别" class="headerlink" title="二、下载单个文件，以及 -O 和 -P 的区别"></a>二、下载单个文件，以及 -O 和 -P 的区别</h2><p>最基础的用法，什么参数都不带。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p>这条命令会在当前目录下生成一个 <code>index.html</code>。文件名是 <code>wget</code> 根据 URL 推出来的，URL 末尾没有具体文件名时它就用 <code>index.html</code> 兜底。</p>
+<p>想指定存到哪、叫什么名字，用 <code>-O</code>（大写字母 O，不是数字 0）。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -O /home/index http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>-O</code> 是 output document，它给的是<strong>完整的输出路径加文件名</strong>，不是目录。写成 <code>-O /home/</code> 会直接报错。</p>
+<p>想只指定目录、文件名保持服务器给的那个，用的是 <code>-P</code>。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -P /home/downloads/ http://example.com/pkg/app-1.2.3.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>这两个参数搞混是很常见的事。我的记法是，<code>-O</code> 里的 O 是 output file，<code>-P</code> 里的 P 是 prefix（目录前缀）。</p>
+<p><code>-O -</code> 这个写法值得单独提一句，把文件内容输出到标准输出，可以直接接管道。安装脚本经常这么写。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -qO- https://example.com/install.sh | bash</span><br></pre></td></tr></table></figure>
+
+<p><code>-q</code> 是安静模式，不打印进度条，不然进度信息会污染管道。顺带说一句，这种「下载即执行」的写法方便归方便，但你等于把机器交给了那个 URL，公司内网的脚本还好，来路不明的地址建议先下下来看一眼再跑。</p>
+<h2 id="三、批量下载、后台下载和日志"><a href="#三、批量下载、后台下载和日志" class="headerlink" title="三、批量下载、后台下载和日志"></a>三、批量下载、后台下载和日志</h2><p>URL 多的时候，一条条敲太累。把它们写进一个文本文件，一行一个，然后用 <code>-i</code>。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -i file.txt</span><br></pre></td></tr></table></figure>
+
+<p><code>file.txt</code> 里每行一个 URL，<code>wget</code> 会按顺序挨个下。原文这段写成了「会下载两个两个文件」，是个笔误，意思是文件里写几个 URL 就下几个。</p>
+<p>下载大文件时终端不能一直占着，用 <code>-b</code> 转后台。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -b http://example.com/big.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>执行之后终端立刻返回，下载在后台继续。这时候进度信息去哪了？<code>wget</code> 会在当前目录生成一个 <code>wget-log</code> 文件，所有输出都写在里面。原文写的是 <code>web-log</code>，实际的默认文件名是 <code>wget-log</code>（同名文件已存在时会依次生成 <code>wget-log.1</code>、<code>wget-log.2</code>）。想看进度的话 <code>tail -f wget-log</code> 就行。</p>
+<p>自己指定日志文件名用 <code>-o</code>（小写 o）。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -o dw.txt http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p>注意 <code>-o</code> 是覆盖写，同一个日志文件跑第二次前一次的记录就没了。想追加用 <code>-a</code>。</p>
+<p>到这里已经有三个长得很像的参数了，<code>-O</code> 输出文件、<code>-o</code> 日志文件、<code>-P</code> 目录前缀。大小写在 <code>wget</code> 里是硬语义，这点跟 <code>scp</code> 的 <code>-P</code>&#x2F;<code>-p</code> 是一个性质。</p>
+<h2 id="四、断点续传，以及它为什么有时候不生效"><a href="#四、断点续传，以及它为什么有时候不生效" class="headerlink" title="四、断点续传，以及它为什么有时候不生效"></a>四、断点续传，以及它为什么有时候不生效</h2><p><code>-c</code> 是 <code>wget</code> 最实用的参数，尤其在网络不稳的机器上。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -c http://example.com/big.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>它的原理是这样：<code>wget</code> 看到本地已经有个同名文件且大小是 N 字节，就在请求里带上 <code>Range: bytes=N-</code> 这个头，请求服务端只发 N 之后的部分。服务端支持的话返回 206 Partial Content，接着写；不支持的话返回完整的 200，那就只能从头下。</p>
+<p>所以 <code>-c</code> 能不能生效，取决于服务端支不支持 Range 请求。这不是你能控制的。判断方法也简单，用 <code>curl -I</code> 看一眼响应头里有没有 <code>Accept-Ranges: bytes</code>。</p>
+<p>这里有个坑要注意，<code>-c</code> 和 <code>-O</code> 一起用容易出问题。<code>-c</code> 靠的是「本地文件大小」推断续传起点，而 <code>-O</code> 改了文件名之后，续传逻辑在某些情况下会判断失误，甚至把已有内容截断。要断点续传就别自作聪明改名，让 <code>wget</code> 用服务器给的文件名，下完了再 <code>mv</code>。</p>
+<p>配合重试参数一起用效果更好。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -c --tries=5 --waitretry=10 -T 30 http://example.com/big.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p><code>--tries=5</code> 最多重试 5 次（原文写的是 <code>--tries=3</code>，含义一样），<code>--waitretry=10</code> 每次重试前的等待秒数，<code>-T 30</code> 是超时时间。三个配上之后，网络抖一下不会直接失败退出。</p>
+<p><code>--tries=0</code> 或者 <code>--tries=inf</code> 是无限重试。写在无人值守的脚本里要谨慎，服务端要是永久性 404，你的脚本就会一直转下去。</p>
+<h2 id="五、限速和配额，别把带宽吃满"><a href="#五、限速和配额，别把带宽吃满" class="headerlink" title="五、限速和配额，别把带宽吃满"></a>五、限速和配额，别把带宽吃满</h2><p>在共用的机器或者办公网上下大文件，不限速是不礼貌的行为，严重的时候会把整条链路打满。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --limit-rate=100k -O zfj.html http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p><code>--limit-rate</code> 的单位可以是 <code>k</code> 或者 <code>m</code>。要说明的是，它限制的是平均速度而不是瞬时速度，<code>wget</code> 的做法是下一小段就停一会儿，所以刚开始那几秒可能会冲得比较高，之后才稳定下来。</p>
+<p>多文件下载时还可以设总配额。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -Q5m -i file.txt</span><br></pre></td></tr></table></figure>
+
+<p>下满 5MB 就停。这个参数只在下载多个文件时有效，单个文件下到一半不会被它掐断，<code>wget</code> 的策略是不做残缺文件。这一点原文有提到，是对的。</p>
+<p>还有个 <code>--wait=秒数</code>，控制每个文件之间的间隔。抓一批资源的时候加上，对目标站客气一点，也降低被限流的概率。<code>--random-wait</code> 会在这个值上下随机浮动。</p>
+<h2 id="六、递归下载和整站镜像"><a href="#六、递归下载和整站镜像" class="headerlink" title="六、递归下载和整站镜像"></a>六、递归下载和整站镜像</h2><p>这块是 <code>wget</code> 相对 <code>curl</code> 最大的优势，<code>curl</code> 完全没有递归能力。</p>
+<p>先说最常见的诉求，把一个页面连同它依赖的 CSS、JS、图片一起存下来，离线也能打开。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --mirror -p --convert-links -P ./test http://localhost</span><br></pre></td></tr></table></figure>
+
+<p>拆开看这四个参数各自在干什么。</p>
+<ul>
+<li><code>--mirror</code> 打开镜像模式，它是一组参数的简写，相当于开启递归、不限递归深度、保留时间戳、保留目录列表</li>
+<li><code>-p</code> 下载显示这个页面所必需的全部文件，也就是图片、样式表、脚本这些</li>
+<li><code>--convert-links</code> 下载完成后把 HTML 里的链接改写成本地相对路径，这样双击打开也能正常跳转</li>
+<li><code>-P ./test</code> 所有内容存到 <code>./test</code> 目录下</li>
 </ul>
-<h2 id="二、更多参考"><a href="#二、更多参考" class="headerlink" title="二、更多参考"></a>二、更多参考</h2><ul>
+<p>不加 <code>--convert-links</code> 的话，你本地打开那个 HTML，里面的链接还是指向原站，断网就是一片白板。这个参数是「离线可用」的关键。</p>
+<p><strong>这里必须提醒一句，<code>--mirror</code> 是不限深度的，用它之前一定要想清楚边界在哪。</strong></p>
+<p>站点有外链的话，理论上它会顺着爬到别人家去。控制范围主要靠这两个参数：<code>--no-parent</code>（简写 <code>-np</code>）禁止往上级目录爬，<code>--domains</code> 限定只在指定域名内递归。抓某个文档目录的时候，我一般是这么写的。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -r -np -p --convert-links --domains example.com -P ./docs https://example.com/guide/</span><br></pre></td></tr></table></figure>
+
+<p>按类型筛选用 <code>-A</code>（accept）和 <code>-R</code>（reject）。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -r -A .png http://www.baidu.com</span><br><span class="line">wget --reject=png --mirror -p --convert-links -P ./test http://localhost</span><br></pre></td></tr></table></figure>
+
+<p>第一条只要 PNG，第二条是把 PNG 排除在外。注意这两个参数过滤的是最终要保存的文件，<code>wget</code> 还是得先把 HTML 页面下下来解析链接，所以它并不能减少请求数，只能减少落盘的文件。</p>
+<p>递归下载还有个 <code>-l</code> 参数控制深度，<code>-l 2</code> 就是只往下两层。不确定站点结构的时候，先用小的深度试一次，看看抓下来多少东西再放大，比直接 <code>--mirror</code> 稳妥得多。</p>
+<h2 id="七、访问不通的几种情况"><a href="#七、访问不通的几种情况" class="headerlink" title="七、访问不通的几种情况"></a>七、访问不通的几种情况</h2><h3 id="7-1-证书报错"><a href="#7-1-证书报错" class="headerlink" title="7.1 证书报错"></a>7.1 证书报错</h3><p>老服务器上 <code>wget</code> 链接的 CA 证书包过期，或者对方用了自签证书，会直接报证书验证失败。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --no-check-certificate https://example.com/pkg.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>原文这条命令末尾多了个全角的 <code>·</code>，是个手误，我一并去掉了。</p>
+<p>这个参数的代价要说清楚，加上它等于把 TLS 的身份校验整个关掉，中间人可以随便替换你下载的内容。装软件包的场景下这尤其危险，你以为下的是官方包，实际可能是被掉包过的。临时应急可以，长期方案应该是更新系统的 CA 证书包，或者用 <code>--ca-certificate</code> 把对方的根证书指给 <code>wget</code>。</p>
+<h3 id="7-2-被当成爬虫拦下来"><a href="#7-2-被当成爬虫拦下来" class="headerlink" title="7.2 被当成爬虫拦下来"></a>7.2 被当成爬虫拦下来</h3><p>不少站点会看 User-Agent，<code>wget</code> 的默认 UA 里明晃晃写着自己是 wget，容易被 403。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --user-agent=<span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36&quot;</span> https://example.com/file.zip</span><br></pre></td></tr></table></figure>
+
+<p>有些站还会校验 Referer，那就再加 <code>--referer=</code>。需要登录态的资源用 <code>--load-cookies cookies.txt</code> 带 cookie。</p>
+<p>要说明的是，这些参数是用来处理「正常访问但被误判」的情况的。对方明确不希望被抓的内容，绕过去是另一回事了，自己掂量。</p>
+<h3 id="7-3-先探一下通不通"><a href="#7-3-先探一下通不通" class="headerlink" title="7.3 先探一下通不通"></a>7.3 先探一下通不通</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --spider http://www.baidu.com</span><br></pre></td></tr></table></figure>
+
+<p><code>--spider</code> 只发请求不下载内容，用来确认链接是不是有效。批量检查一批 URL 有没有失效的时候挺好用，配合 <code>-i</code> 一起。</p>
+<p>不过做服务健康检查的话我更倾向用 <code>curl -f -s -o /dev/null -w &#39;%&#123;http_code&#125;&#39;</code>，状态码拿得更直接，也更容易接后续判断。</p>
+<h3 id="7-4-FTP-下载"><a href="#7-4-FTP-下载" class="headerlink" title="7.4 FTP 下载"></a>7.4 FTP 下载</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget --ftp-user=USERNAME --ftp-password=PASSWORD ftp://example.com/path/file.zip</span><br></pre></td></tr></table></figure>
+
+<p>原文这里写的是 <code>--file-user</code> 和 <code>--file-password</code>，这两个参数并不存在，正确的是 <code>--ftp-user</code> 和 <code>--ftp-password</code>，我改过来了。</p>
+<p>密码写在命令行里会进 shell history，也会出现在 <code>ps</code> 的输出里被同机器的其他用户看到。更稳妥的做法是写进 <code>~/.wgetrc</code> 或者 <code>~/.netrc</code>，并且把文件权限设成 600。</p>
+<h2 id="八、写进脚本时该加什么"><a href="#八、写进脚本时该加什么" class="headerlink" title="八、写进脚本时该加什么"></a>八、写进脚本时该加什么</h2><p>手敲和写脚本是两种要求。手敲错了重来一次就行，脚本里一个没设超时的 <code>wget</code> 可能让整条 CI 流水线挂住几个小时。</p>
+<p>我自己脚本里的固定写法大概是这样。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget -q \</span><br><span class="line">  --tries=3 \</span><br><span class="line">  --waitretry=5 \</span><br><span class="line">  --<span class="built_in">timeout</span>=30 \</span><br><span class="line">  --no-verbose \</span><br><span class="line">  -O /tmp/app.tar.gz \</span><br><span class="line">  https://example.com/releases/app-1.2.3.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p><code>--timeout</code> 一定要给，它同时覆盖 DNS 解析、连接和读取三个阶段（也可以用 <code>--dns-timeout</code>、<code>--connect-timeout</code>、<code>--read-timeout</code> 分别设）。<code>--tries</code> 限定重试上限，避免无限重试。<code>-O</code> 指定固定路径，这样后续步骤不用去猜文件名。</p>
+<p>另外记得判断退出码。<code>wget</code> 下载失败时退出码非 0，脚本里配合 <code>set -e</code> 或者显式判断，不然你会拿到一个空文件继续往下跑，错误在更后面的步骤才暴露出来，排查起来绕远路。关于脚本的健壮性写法，<a href="https://feinterview.poetries.top/blog/shell">shell入门</a> 那篇里讲得更细一些。</p>
+<p>校验也别省。下载后跑一次 <code>sha256sum -c</code> 对一下官方给的校验值，这一步能挡掉传输损坏和被掉包两类问题，成本只有一行。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>wget</code> 的参数看着多，按场景归拢之后其实没几个需要背。</p>
+<p>下载落盘这块，<code>-O</code> 是完整输出路径，<code>-P</code> 是目录前缀，<code>-o</code> 是日志文件，大小写别搞混。<code>-i</code> 批量读 URL 列表，<code>-b</code> 转后台并把日志写进 <code>wget-log</code>。</p>
+<p>断点续传 <code>-c</code> 是最值钱的一个，但它依赖服务端支持 Range 请求，用 <code>curl -I</code> 看 <code>Accept-Ranges</code> 就能提前判断，另外别和 <code>-O</code> 混用。配合 <code>--tries</code> 和 <code>--waitretry</code>，弱网环境下能省掉大量手工重来。</p>
+<p>递归是 <code>wget</code> 独有的能力，<code>--mirror -p --convert-links</code> 三件套做离线镜像，但一定要用 <code>-np</code> 和 <code>--domains</code> 把范围框住，不然它真的会一直爬下去。</p>
+<p>最后是分工。要文件用 <code>wget</code>，要看请求细节、调接口、量各阶段耗时用 <code>curl</code>。写进脚本的每一条 <code>wget</code> 都补上超时、重试上限和退出码判断，这三样是脚本能不能无人值守的分界线。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.gnu.org/software/wget/manual/wget.html">GNU Wget 官方手册</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Range_requests">MDN HTTP Range 请求</a></li>
 <li><a href="https://blog.csdn.net/freeking101/article/details/53691481/">linux wget 命令用法详解(附实例说明)</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

@@ -7,33 +7,34 @@
 <head>
   <meta charset="utf-8">
   
-  <title>JavaScript原型链回顾 | 前端进阶之旅</title>
+  <title>JavaScript原型链回顾与new的实现原理 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,原型链," />
+    <meta name="keywords" content="JavaScript,原型链,new," />
   
 
-  <meta name="description" content="一、JS内置对象 所谓的内置对象 指的是：JavaScript本身就自己有的对象 可以直接拿来就用。例如Array String 等等。JavaScript一共有12内置对象  函数类型(10个)  String Number Boolean Array Function Date RegExp Error Object Event   函数类型 有 __proto__和 prototype 属性">
+  <meta name="description" content="从 JS 内置对象讲起，理清 prototype 与 __proto__ 的分工、constructor 的作用、new 操作符做了哪四件事，并手写一个 new，顺带说清 JSON 和 Math 为什么不能实例化。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JavaScript原型链回顾">
+<meta property="og:title" content="JavaScript原型链回顾与new的实现原理">
 <meta property="og:url" content="http://blog.poetries.top/2018/12/22/js-prototype-review/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、JS内置对象 所谓的内置对象 指的是：JavaScript本身就自己有的对象 可以直接拿来就用。例如Array String 等等。JavaScript一共有12内置对象  函数类型(10个)  String Number Boolean Array Function Date RegExp Error Object Event   函数类型 有 __proto__和 prototype 属性">
+<meta property="og:description" content="从 JS 内置对象讲起，理清 prototype 与 __proto__ 的分工、constructor 的作用、new 操作符做了哪四件事，并手写一个 new，顺带说清 JSON 和 Math 为什么不能实例化。">
 <meta property="og:locale">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-9b6c5ca4a84f967c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-86427eafb257f868.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/343.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/343.png">
 <meta property="og:image" content="https://upload-images.jianshu.io/upload_images/1480597-e4a91031a78eb153.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="https://github.com/mqyqingfeng/Blog/raw/master/Images/prototype5.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/344.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/345.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/344.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/345.png">
 <meta property="article:published_time" content="2018-12-22T04:13:53.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.675Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.943Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="原型链">
+<meta property="article:tag" content="new">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/1480597-9b6c5ca4a84f967c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
@@ -213,7 +214,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81JS%E5%86%85%E7%BD%AE%E5%AF%B9%E8%B1%A1"><span class="toc-text">一、JS内置对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81JS%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-text">二、JS原型链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A6%82%E8%BF%B0"><span class="toc-text">2.1 概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-prototype"><span class="toc-text">2.2 prototype</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-prototype-%E5%A6%82%E4%BD%95%E4%BA%A7%E7%94%9F%E7%9A%84"><span class="toc-text">2.2.1 prototype 如何产生的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-constructor"><span class="toc-text">2.2.2 constructor</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-proto"><span class="toc-text">2.3 __proto__</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E5%AE%9E%E4%BE%8B%E5%AF%B9%E8%B1%A1%E7%9A%84-proto-%E5%A6%82%E4%BD%95%E4%BA%A7%E7%94%9F%E7%9A%84"><span class="toc-text">2.3.1 实例对象的 _proto_ 如何产生的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-new-%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">2.3.2 new 的过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%80%BB%E7%BB%93"><span class="toc-text">2.4 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81JSON%E5%92%8CMath"><span class="toc-text">三、JSON和Math</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E6%9B%B4%E5%A4%9A%E5%8F%82%E8%80%83"><span class="toc-text">四、更多参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81JS%E5%86%85%E7%BD%AE%E5%AF%B9%E8%B1%A1"><span class="toc-text">一、JS内置对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81JS%E5%8E%9F%E5%9E%8B%E9%93%BE"><span class="toc-text">二、JS原型链</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%A6%82%E8%BF%B0"><span class="toc-text">2.1 概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-prototype"><span class="toc-text">2.2 prototype</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-prototype-%E5%A6%82%E4%BD%95%E4%BA%A7%E7%94%9F%E7%9A%84"><span class="toc-text">2.2.1 prototype 如何产生的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-constructor"><span class="toc-text">2.2.2 constructor</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-proto"><span class="toc-text">2.3 __proto__</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E5%AE%9E%E4%BE%8B%E5%AF%B9%E8%B1%A1%E7%9A%84-proto-%E5%A6%82%E4%BD%95%E4%BA%A7%E7%94%9F%E7%9A%84"><span class="toc-text">2.3.1 实例对象的 __proto__ 如何产生的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-new-%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">2.3.2 new 的过程</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%80%BB%E7%BB%93"><span class="toc-text">2.4 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81JSON%E5%92%8CMath"><span class="toc-text">三、JSON和Math</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -236,13 +237,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-js-prototype-review" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">JavaScript原型链回顾</h1>
+    <h1 class="post-title">JavaScript原型链回顾与new的实现原理</h1>
 
     <div class="article-meta">
       <span>
@@ -278,12 +279,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.9k字</span>
+            <span>字数统计 3.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 6分</span>
+            <span>阅读时长 13分</span>
           </span>
       
       
@@ -297,10 +298,20 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、JS内置对象"><a href="#一、JS内置对象" class="headerlink" title="一、JS内置对象"></a>一、JS内置对象</h2><blockquote>
-<p>所谓的内置对象 指的是：<code>JavaScript</code>本身就自己有的对象 可以直接拿来就用。例如<code>Array</code> <code>String</code> 等等。<code>JavaScript</code>一共有12内置对象</p>
-</blockquote>
-<p><strong>函数类型(10个)</strong></p>
+        <p>面试问原型链，很多人能背出「每个对象都有 <code>__proto__</code>，指向构造函数的 <code>prototype</code>」，但再追问一句「那 <code>Function.__proto__</code> 指向谁」就卡住了。我一开始也是这样，图看过好几遍，一到具体的某条线上就理不清方向。</p>
+<p>后来发现问题出在把 <code>prototype</code> 和 <code>__proto__</code> 当成一回事了。这两个属性长得像，挂的对象不一样，指的方向也不一样。这篇从内置对象开始把这两条线分开走一遍，再顺着 <code>new</code> 的过程看这些连接是什么时候建立起来的。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>JS 内置对象里，哪些是函数哪些只是普通对象</li>
+<li><code>prototype</code> 是谁的属性，什么时候被创建</li>
+<li><code>constructor</code> 到底有什么用，它为什么算历史遗留</li>
+<li><code>__proto__</code> 和 <code>[[Prototype]]</code> 的关系</li>
+<li><code>new</code> 操作符做了哪四件事，手写一个 <code>new</code></li>
+<li>原型链的终点在哪里</li>
+<li><code>JSON</code> 和 <code>Math</code> 为什么不能 <code>new</code></li>
+</ul>
+<h2 id="一、JS内置对象"><a href="#一、JS内置对象" class="headerlink" title="一、JS内置对象"></a>一、JS内置对象</h2><p>所谓的内置对象指的是，JavaScript 本身就自己有的对象，可以直接拿来就用，例如 <code>Array</code>、<code>String</code> 等等。按老的教材分法，JavaScript 一共有 12 个内置对象。</p>
+<p>函数类型有 10 个：</p>
 <ul>
 <li><code>String</code></li>
 <li><code>Number</code></li>
@@ -313,100 +324,90 @@
 <li><code>Object</code></li>
 <li><code>Event</code></li>
 </ul>
-<blockquote>
-<p>函数类型 有 <code>__proto__</code>和 <code>prototype</code> 属性</p>
-</blockquote>
-<p><strong>对象类型(2个)</strong></p>
+<p>函数类型有 <code>__proto__</code> 和 <code>prototype</code> 属性。</p>
+<p>对象类型有 2 个：</p>
 <ul>
 <li><code>Math</code></li>
 <li><code>JSON</code></li>
 </ul>
-<blockquote>
-<p>对象类型只有<code>__proto__</code>属性</p>
-</blockquote>
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-9b6c5ca4a84f967c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
-<h2 id="二、JS原型链"><a href="#二、JS原型链" class="headerlink" title="二、JS原型链"></a>二、JS原型链</h2><h3 id="2-1-概述"><a href="#2-1-概述" class="headerlink" title="2.1 概述"></a>2.1 概述</h3><p><img src="https://upload-images.jianshu.io/upload_images/1480597-86427eafb257f868.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+<p>对象类型只有 <code>__proto__</code> 属性。</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-9b6c5ca4a84f967c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="JS 内置对象分类示意图，函数类型与对象类型的属性差别"></p>
+<p>这个「12 个」的说法是当年教材里的分法，拿来入门够用，但别当成规范。ECMAScript 现在的内置对象远不止这些，<code>Map</code>、<code>Set</code>、<code>Promise</code>、<code>Symbol</code>、<code>Proxy</code>、<code>Reflect</code>、<code>WeakMap</code> 都是。而且列表里的 <code>Event</code> 严格说不属于 ECMAScript，它是浏览器提供的宿主对象，在 Node 里就没有这个全局变量。</p>
+<p>真正要记住的不是数字，而是那条分界线，能不能被 <code>new</code> 调用。能的是构造函数，身上有 <code>prototype</code>；不能的就是个普通对象，只有 <code>__proto__</code>。</p>
+<h2 id="二、JS原型链"><a href="#二、JS原型链" class="headerlink" title="二、JS原型链"></a>二、JS原型链</h2><h3 id="2-1-概述"><a href="#2-1-概述" class="headerlink" title="2.1 概述"></a>2.1 概述</h3><p><img src="https://upload-images.jianshu.io/upload_images/1480597-86427eafb257f868.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="prototype 与 __proto__ 组成原型链的整体关系图"></p>
+<p>三条基本规则先摆在这儿：</p>
 <ul>
-<li>每个函数都有 <code>prototype</code> 属性，除了 <code>Function.prototype.bind()</code>，该属性指向原型。</li>
-<li>每个对象都有 <code>__proto__</code> 属性，指向了创建该对象的构造函数的原型。其实这个属性指向了 <code>[[prototype]]</code>，但是 <code>[[prototype]]</code> 是内部属性，我们并不能访问到，所以使用 <code>__proto__</code> 来访问</li>
-<li>对象可以通过 <strong>proto</strong> 来寻找不属于该对象的属性，<code>__proto__</code> 将对象连接起来组成了原型链</li>
+<li>每个函数都有 <code>prototype</code> 属性，该属性指向原型</li>
+<li>每个对象都有 <code>__proto__</code> 属性，指向了创建该对象的构造函数的原型。其实这个属性指向了 <code>[[Prototype]]</code>，但是 <code>[[Prototype]]</code> 是内部属性，我们并不能访问到，所以使用 <code>__proto__</code> 来访问</li>
+<li>对象可以通过 <code>__proto__</code> 来寻找不属于该对象的属性，<code>__proto__</code> 将对象连接起来组成了原型链</li>
 </ul>
-<blockquote>
-<p>打开浏览器的控制面板，随便输入一个<code>JS</code>内置的构造器函数，比如<code>Array</code>，控制台输出的是一个名为<code>Array</code>的函数体，这好像并没有什么稀奇的，但是，当你接着输入<code>Array.prototype</code>，控制面板输出了一堆我们经常用到的<code>Array</code>构造器的方法，把目光转移到最下方，有一个叫<code>__proto__</code>的属性，好奇的点开。列表列出的不是<code>Object</code>构造器的方法么，里边有我们非常熟悉的<code>hasOwnProperty</code>还有<code>toString</code>等方法。如果<code>Array</code>是构造器，那么控制面板输出的<code>Array.prototype</code>的所有属性中<code>constructor</code>又是什么构造器？点开看看，之后就像身处德罗斯特效应中一样，<code>__proto__</code>和<code>constructor</code>，还有<code>Array</code>构造器中常用的方法名不断的出现，一层套一层，一层层展开，没有尽头</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/343.png"></p>
-<blockquote>
-<p>拿<code>Array</code>举例，<code>Array.prototype</code>中有一个<code>constructor</code>属性，这个属性的值就是<code>Array</code>构造器自己</p>
-</blockquote>
+<p>打开浏览器的控制面板，随便输入一个 JS 内置的构造器函数，比如 <code>Array</code>，控制台输出的是一个名为 <code>Array</code> 的函数体，这好像并没有什么稀奇的。但是当你接着输入 <code>Array.prototype</code>，控制面板输出了一堆我们经常用到的 <code>Array</code> 构造器的方法。把目光转移到最下方，有一个叫 <code>__proto__</code> 的属性，好奇的点开，列表列出的不是 <code>Object</code> 构造器的方法么，里边有我们非常熟悉的 <code>hasOwnProperty</code> 还有 <code>toString</code> 等方法。</p>
+<p>如果 <code>Array</code> 是构造器，那么控制面板输出的 <code>Array.prototype</code> 的所有属性中 <code>constructor</code> 又是什么构造器？点开看看，之后就像身处德罗斯特效应中一样，<code>__proto__</code> 和 <code>constructor</code>，还有 <code>Array</code> 构造器中常用的方法名不断地出现，一层套一层，一层层展开，没有尽头。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/343.png" alt="控制台展开 Array.prototype 时层层嵌套的 __proto__ 与 constructor"></p>
+<p>拿 <code>Array</code> 举例，<code>Array.prototype</code> 中有一个 <code>constructor</code> 属性，这个属性的值就是 <code>Array</code> 构造器自己。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Array.prototype.constructor === Array //true</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-2-prototype"><a href="#2-2-prototype" class="headerlink" title="2.2 prototype"></a>2.2 prototype</h3><blockquote>
-<p>这是一个显式原型属性，只有函数才拥有该属性。基本上所有函数都有这个属性，但是也有一个例外</p>
-</blockquote>
+<p>看起来没有尽头，其实是有的。展开的过程之所以像无限循环，是因为原型对象上的 <code>constructor</code> 指回构造函数，构造函数又能点出 <code>prototype</code>，两者互相引用形成了一个环。DevTools 只是老实地把这个环一层层渲染出来而已，真正的原型链本身是有终点的，后面会讲到。</p>
+<h3 id="2-2-prototype"><a href="#2-2-prototype" class="headerlink" title="2.2 prototype"></a>2.2 prototype</h3><p>这是一个显式原型属性，只有函数才拥有该属性。基本上所有函数都有这个属性，但是也有例外。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> fun = <span class="title class_">Function</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="title function_">bind</span>()</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>如果你以上述方法创建一个函数，那么可以发现这个函数是不具有 <code>prototype</code> 属性的</p>
-</blockquote>
-<h4 id="2-2-1-prototype-如何产生的"><a href="#2-2-1-prototype-如何产生的" class="headerlink" title="2.2.1 prototype 如何产生的"></a>2.2.1 prototype 如何产生的</h4><blockquote>
-<p>当我们声明一个函数时，这个属性就被自动创建了</p>
-</blockquote>
+<p>如果你以上述方法创建一个函数，那么可以发现这个函数是不具有 <code>prototype</code> 属性的。</p>
+<p>原文只提了 <code>bind</code> 这一种例外，其实没有 <code>prototype</code> 的函数还有几类，顺手补全：</p>
+<ul>
+<li><code>bind</code> 返回的绑定函数</li>
+<li>箭头函数，所以箭头函数不能用 <code>new</code> 调用</li>
+<li>对象字面量里的方法简写 <code>&#123; foo() &#123;&#125; &#125;</code></li>
+<li><code>Math.max</code> 这类内置的非构造函数</li>
+</ul>
+<p>它们的共同点是「设计上就不打算被 <code>new</code>」。没有 <code>prototype</code>，<code>new</code> 出来的实例就没有原型可以挂，语言干脆直接禁止这么用。</p>
+<h4 id="2-2-1-prototype-如何产生的"><a href="#2-2-1-prototype-如何产生的" class="headerlink" title="2.2.1 prototype 如何产生的"></a>2.2.1 prototype 如何产生的</h4><p>当我们声明一个函数时，这个属性就被自动创建了。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">function Foo() &#123;&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>并且这个属性的值是一个对象（也就是原型），只有一个属性 <code>constructor</code></p>
-</blockquote>
-<ul>
-<li><code>constructor</code> 对应着构造函数，也就是 <code>Foo</code></li>
-</ul>
-<h4 id="2-2-2-constructor"><a href="#2-2-2-constructor" class="headerlink" title="2.2.2 constructor"></a>2.2.2 constructor</h4><blockquote>
-<p><code>constructor </code>是一个公有且不可枚举的属性。一旦我们改变了函数的 <code>prototype</code> ，那么新对象就没有这个属性了（当然可以通过原型链取到 <code>constructor</code>）</p>
-</blockquote>
-<p>那么你肯定也有一个疑问，这个属性到底有什么用呢？其实这个属性可以说是一个历史遗留问题，在大部分情况下是没用的，在我的理解里，我认为他有两个作用：</p>
+<p>并且这个属性的值是一个对象（也就是原型），只有一个属性 <code>constructor</code>，<code>constructor</code> 对应着构造函数，也就是 <code>Foo</code>。</p>
+<h4 id="2-2-2-constructor"><a href="#2-2-2-constructor" class="headerlink" title="2.2.2 constructor"></a>2.2.2 constructor</h4><p><code>constructor</code> 是一个公有且不可枚举的属性。一旦我们改变了函数的 <code>prototype</code>，那么新对象就没有这个属性了（当然可以通过原型链取到 <code>constructor</code>）。</p>
+<p>那么你肯定也有一个疑问，这个属性到底有什么用呢？它可以说是一个历史遗留问题，在大部分情况下是没用的。按我的理解它有两个作用：</p>
 <ul>
 <li>让实例对象知道是什么函数构造了它</li>
 <li>如果想给某些类库中的构造函数增加一些自定义的方法，就可以通过 <code>xx.constructor.method</code> 来扩展</li>
 </ul>
-<h3 id="2-3-proto"><a href="#2-3-proto" class="headerlink" title="2.3 __proto__"></a>2.3 <code>__proto__</code></h3><blockquote>
-<p>这是每个对象都有的隐式原型属性，指向了创建该对象的构造函数的原型。其实这个属性指向了 <code>[[prototype]]</code>，但是 <code>[[prototype]]</code> 是内部属性，我们并不能访问到，所以使用 <code>__proto__</code> 来访问</p>
-</blockquote>
-<ul>
-<li>因为在 <code>JS</code> 中是没有类的概念的，为了实现类似继承的方式，通过 <code>__proto__</code> 将对象和原型联系起来组成原型链，得以让对象可以访问到不属于自己的属性</li>
-</ul>
-<h4 id="2-3-1-实例对象的-proto-如何产生的"><a href="#2-3-1-实例对象的-proto-如何产生的" class="headerlink" title="2.3.1 实例对象的 _proto_ 如何产生的"></a>2.3.1 实例对象的 <code>_proto_</code> 如何产生的</h4><blockquote>
-<p>当我们使用 <code>new</code> 操作符时，生成的实例对象拥有了 <code>__proto__</code>属性</p>
-</blockquote>
+<p>这里有个坑要注意。老式的继承写法会直接覆盖 <code>prototype</code>：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Child</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line"><span class="title class_">Child</span>.<span class="property"><span class="keyword">prototype</span></span> = <span class="keyword">new</span> <span class="title class_">Parent</span>(); <span class="comment">// constructor 丢了</span></span><br><span class="line"><span class="title class_">Child</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">constructor</span> = <span class="title class_">Child</span>; <span class="comment">// 手动补回来</span></span><br></pre></td></tr></table></figure>
+
+<p>不补这一行的话，<code>new Child().constructor</code> 会顺着原型链找到 <code>Parent</code>，判断类型的代码就会拿到错的结果。所以老代码里经常能看到这么一行看起来莫名其妙的赋值。</p>
+<p>顺带说一句，<code>constructor</code> 之所以是不可枚举的，靠的就是属性描述符里的 <code>enumerable: false</code>。这也是为什么 <code>for...in</code> 遍历实例时不会把它列出来。</p>
+<h3 id="2-3-proto"><a href="#2-3-proto" class="headerlink" title="2.3 __proto__"></a>2.3 <code>__proto__</code></h3><p>这是每个对象都有的隐式原型属性，指向了创建该对象的构造函数的原型。其实这个属性指向了 <code>[[Prototype]]</code>，但是 <code>[[Prototype]]</code> 是内部属性，我们并不能访问到，所以使用 <code>__proto__</code> 来访问。</p>
+<p>因为在 JS 中是没有类的概念的（<code>class</code> 是语法糖），为了实现类似继承的方式，通过 <code>__proto__</code> 将对象和原型联系起来组成原型链，得以让对象可以访问到不属于自己的属性。</p>
+<p>有一点要说明，<code>__proto__</code> 本身是浏览器厂商各自实现之后才被写进规范附录的遗留特性，规范推荐的标准写法是 <code>Object.getPrototypeOf(obj)</code> 和 <code>Object.setPrototypeOf(obj, proto)</code>。日常调试用 <code>__proto__</code> 方便，写进代码库建议用标准 API。另外 <code>Object.setPrototypeOf</code> 性能很差，会让引擎放弃已有的内联缓存优化，能在创建时用 <code>Object.create</code> 定好就别后面改。</p>
+<h4 id="2-3-1-实例对象的-proto-如何产生的"><a href="#2-3-1-实例对象的-proto-如何产生的" class="headerlink" title="2.3.1 实例对象的 __proto__ 如何产生的"></a>2.3.1 实例对象的 <code>__proto__</code> 如何产生的</h4><p>当我们使用 <code>new</code> 操作符时，生成的实例对象拥有了 <code>__proto__</code> 属性。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">Foo</span>(<span class="params"></span>) &#123;&#125;</span><br><span class="line"><span class="comment">// 这个函数是 Function 的实例对象</span></span><br><span class="line"><span class="comment">// function 就是一个语法糖</span></span><br><span class="line"><span class="comment">// 内部调用了 new Function(...)</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>所以可以说，在 <code>new</code> 的过程中，新对象被添加了 <code>__proto__</code> 并且链接到构造函数的原型上</p>
-</blockquote>
-<h4 id="2-3-2-new-的过程"><a href="#2-3-2-new-的过程" class="headerlink" title="2.3.2 new 的过程"></a>2.3.2 new 的过程</h4><ul>
+<p>所以可以说，在 <code>new</code> 的过程中，新对象被添加了 <code>__proto__</code> 并且链接到构造函数的原型上。</p>
+<p>有一个例外要记住，<code>Object.create(null)</code> 创建出来的对象没有原型，它的 <code>__proto__</code> 是 <code>undefined</code>。用它当纯粹的字典结构很合适，因为不用担心 <code>hasOwnProperty</code>、<code>toString</code> 这些名字跟你的键撞车。</p>
+<h4 id="2-3-2-new-的过程"><a href="#2-3-2-new-的过程" class="headerlink" title="2.3.2 new 的过程"></a>2.3.2 new 的过程</h4><p>调用 <code>new</code> 的过程中会发生四件事情：</p>
+<ul>
 <li>新生成了一个对象</li>
 <li>链接到原型</li>
 <li>绑定 <code>this</code></li>
 <li>返回新对象</li>
 </ul>
-<blockquote>
-<p>在调用 <code>new</code> 的过程中会发生以上四件事情，我们也可以试着来自己实现一个 <code>new</code></p>
-</blockquote>
+<p>我们也可以试着来自己实现一个 <code>new</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">create</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 创建一个空的对象</span></span><br><span class="line">    <span class="keyword">let</span> obj = <span class="keyword">new</span> <span class="title class_">Object</span>()</span><br><span class="line">    <span class="comment">// 获得构造函数</span></span><br><span class="line">    <span class="keyword">let</span> <span class="title class_">Con</span> = [].<span class="property">shift</span>.<span class="title function_">call</span>(<span class="variable language_">arguments</span>)</span><br><span class="line">    <span class="comment">// 链接到原型</span></span><br><span class="line">	obj.<span class="property">__proto__</span> = <span class="title class_">Con</span>.<span class="property"><span class="keyword">prototype</span></span></span><br><span class="line">    <span class="comment">// 绑定 this，执行构造函数</span></span><br><span class="line">    <span class="keyword">let</span> result = <span class="title class_">Con</span>.<span class="title function_">apply</span>(obj, <span class="variable language_">arguments</span>)</span><br><span class="line">    <span class="comment">// 确保 new 出来的是个对象</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">typeof</span> result === <span class="string">&#x27;object&#x27;</span> ? result : obj</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>对于实例对象来说，都是通过 <code>new</code> 产生的，无论是 <code>function Foo()</code> 还是 <code>let a = &#123; b : 1 &#125;</code></li>
-<li>对于创建一个对象来说，更推荐使用字面量的方式创建对象。因为你使用 <code>new Object() </code>的方式创建对象需要通过作用域链一层层找到 <code>Object</code>，但是你使用字面量的方式就没这个问题。</li>
-</ul>
+<p>这版能说明思路，但最后那行判断有个漏洞。<code>typeof null</code> 的结果也是 <code>&#39;object&#39;</code>，所以构造函数里显式 <code>return null</code> 的话，这个实现会把 <code>null</code> 返回出去，而真正的 <code>new</code> 在这种情况下返回的是新建的那个对象。另外构造函数返回一个函数时，<code>new</code> 也是以返回值为准的。修正后的判断应该是这样：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">create</span>(<span class="params">Con, ...args</span>) &#123;</span><br><span class="line">  <span class="comment">// 用标准 API 建对象并链接原型，比赋值 __proto__ 更规范</span></span><br><span class="line">  <span class="keyword">const</span> obj = <span class="title class_">Object</span>.<span class="title function_">create</span>(<span class="title class_">Con</span>.<span class="property"><span class="keyword">prototype</span></span>)</span><br><span class="line">  <span class="keyword">const</span> result = <span class="title class_">Con</span>.<span class="title function_">apply</span>(obj, args)</span><br><span class="line">  <span class="comment">// 只有返回值是对象或函数时才采用它，null 要排除掉</span></span><br><span class="line">  <span class="keyword">const</span> isObj = result !== <span class="literal">null</span> &amp;&amp; (<span class="keyword">typeof</span> result === <span class="string">&#x27;object&#x27;</span> || <span class="keyword">typeof</span> result === <span class="string">&#x27;function&#x27;</span>)</span><br><span class="line">  <span class="keyword">return</span> isObj ? result : obj</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于实例对象来说，都是通过 <code>new</code> 产生的，无论是 <code>function Foo()</code> 还是 <code>let a = &#123; b : 1 &#125;</code>。</p>
+<p>对于创建一个对象来说，更推荐使用字面量的方式创建对象。因为你使用 <code>new Object()</code> 的方式创建对象需要通过作用域链一层层找到 <code>Object</code>，但是你使用字面量的方式就没这个问题。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// function 就是个语法糖</span></span><br><span class="line"><span class="comment">// 内部等同于 new Function()</span></span><br><span class="line"><span class="keyword">let</span> a = &#123; <span class="attr">b</span>: <span class="number">1</span> &#125;</span><br><span class="line"><span class="comment">// 这个字面量内部也是使用了 new Object()</span></span><br></pre></td></tr></table></figure>
 
+<p><img src="https://upload-images.jianshu.io/upload_images/1480597-e4a91031a78eb153.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Array 的 __proto__ 指向 Function.prototype，再往上是 Object.prototype，终点是 null"></p>
+<p>这里 <code>Array</code> 是内置对象且是函数类型，所以 <code>Array</code> 有 <code>__proto__</code> 属性，指向的是函数类型的原型。当我们输出 <code>Array.__proto__.__proto__</code> 时，就会返回对象类型的原型，但是再向上就是 <code>null</code> 了，因为 <code>Object.prototype</code> 是这条链的顶端，所有对象最终都继承自它。</p>
+<p>原文这里写成了 <code>Array.__proto__.proto__</code>，少了两个下划线，是个笔误，正确写法是 <code>Array.__proto__.__proto__</code>。</p>
+<p>用代码验证一下这条链更直观：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Array</span>.<span class="property">__proto__</span> === <span class="title class_">Function</span>.<span class="property"><span class="keyword">prototype</span></span>        <span class="comment">// true</span></span><br><span class="line"><span class="title class_">Function</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">__proto__</span> === <span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span> <span class="comment">// true</span></span><br><span class="line"><span class="title class_">Object</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">__proto__</span> === <span class="literal">null</span>           <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 
-
-<p><img src="https://upload-images.jianshu.io/upload_images/1480597-e4a91031a78eb153.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
-<blockquote>
-<p>这里<code>Array</code> 内置对象 且是函数类型。所以<code>Array</code>有<code>__proto__</code>属性 指向的是函数类型 <code>(function（）&#123;&#125;)</code>。所以当我们在输出<code>Array.__proto__.proto__</code>;就会返回对象类型<code>(Object&#123;&#125;)</code>.但是再向上就<code>null</code>。因为<code>Object</code>就是父类了。所有的继承自<code>Object</code>。</p>
-</blockquote>
-<ul>
-<li><code>JS</code>内置构造器其中之一的<code>Array</code>原本就是一个函数，而这个函数就是<code>Function</code>的<code>prototype</code>，所以<code>Function.prototype</code>有的方法，<code>JS</code>内置构造器都有，比如<code>call()</code>、<code>apply()</code>、<code>bind()</code>等（其实我们自定义的函数也是继承自<code>Function.prototype</code>，所以我们自己也可以定义构造器）。而<code>Function.prototype</code>的进化链指针又指向了<code>Object.prototype</code></li>
-</ul>
+<p>JS 内置构造器其中之一的 <code>Array</code> 原本就是一个函数，而所有函数的 <code>__proto__</code> 都指向 <code>Function.prototype</code>，所以 <code>Function.prototype</code> 上有的方法，JS 内置构造器都有，比如 <code>call()</code>、<code>apply()</code>、<code>bind()</code> 等。我们自定义的函数也一样继承自 <code>Function.prototype</code>，所以我们自己也可以定义构造器。而 <code>Function.prototype</code> 的原型指针又指向了 <code>Object.prototype</code>。</p>
+<p>原文这段把「<code>Array</code> 这个函数就是 <code>Function</code> 的 <code>prototype</code>」写混了，准确的说法是 <code>Array.__proto__ === Function.prototype</code>，<code>Array</code> 本身不是 <code>Function.prototype</code>。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 数组实例的__proto__指向构造器的原型</span></span><br><span class="line"></span><br><span class="line">[].<span class="property">__proto__</span> === <span class="title class_">Array</span>.<span class="property"><span class="keyword">prototype</span></span> </span><br></pre></td></tr></table></figure>
 
 <h3 id="2-4-总结"><a href="#2-4-总结" class="headerlink" title="2.4 总结"></a>2.4 总结</h3><ul>
@@ -415,34 +416,38 @@
 <li><code>Function.prototype</code> 和 <code>Object.prototype</code> 是两个特殊的对象，他们由引擎来创建</li>
 <li>除了以上两个特殊对象，其他对象都是通过构造器 <code>new</code> 出来的</li>
 <li>函数的 <code>prototype</code> 是一个对象，也就是原型</li>
-<li>对象的 <code>__proto__</code> 指向原型， <code>__proto__ </code>将对象和原型连接起来组成了原型链</li>
+<li>对象的 <code>__proto__</code> 指向原型，<code>__proto__</code> 将对象和原型连接起来组成了原型链</li>
 </ul>
-<p><strong>关于原型有3个相关的概</strong>念:</p>
+<p>关于原型有 3 个相关的概念：</p>
 <ul>
-<li>函数对象的<code>prototype</code>属性, 可以称之为显式原型属性(简称: 显式原型)</li>
-<li>实例对象的<code>__proto__</code>属性, 可以称之为隐式原型属性(简称: 隐式原型)</li>
-<li>原型对象: 也就是<code>prototype</code>属性和<code>_proto__</code>属性指向的对象</li>
+<li>函数对象的 <code>prototype</code> 属性，可以称之为显式原型属性（简称显式原型）</li>
+<li>实例对象的 <code>__proto__</code> 属性，可以称之为隐式原型属性（简称隐式原型）</li>
+<li>原型对象，也就是 <code>prototype</code> 属性和 <code>__proto__</code> 属性指向的对象</li>
 </ul>
-<p><img src="https://github.com/mqyqingfeng/Blog/raw/master/Images/prototype5.png"></p>
-<blockquote>
-<p>图中由相互关联的原型组成的链状结构就是原型链，也就是蓝色的这条线</p>
-</blockquote>
-<h2 id="三、JSON和Math"><a href="#三、JSON和Math" class="headerlink" title="三、JSON和Math"></a>三、JSON和Math</h2><blockquote>
-<p><code>JS</code>内置的构造器函数都可以使用<code>new</code>关键字实例化一个对象，我们称实例化后的这个对象就是某某构造器的一个实例</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/344.png"></p>
-<blockquote>
-<p>我们试试<code>JSON</code> 和<code>Math</code> 能不能实例化对象</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/345.png"></p>
-<blockquote>
-<p><code>JSON</code>和<code>Math</code>不是构造器函数，他们是普通的对象。只有构造器函数才能使用<code>new </code>关键字实例化一个对象，而<code>JSON</code>和<code>Math</code>已经是对象了，所以我们可以不用实例化直接使用<code>JSON</code>和<code>Math</code>中的属性和方法</p>
-</blockquote>
-<ul>
-<li>所以<code>JSON</code>和<code>Math</code>不属于<code>10</code>个构造器函数，但他们<code>12</code>个共同属于<code>Javascript</code>的内置对象</li>
-</ul>
-<h2 id="四、更多参考"><a href="#四、更多参考" class="headerlink" title="四、更多参考"></a>四、更多参考</h2><ul>
+<p><img src="https://github.com/mqyqingfeng/Blog/raw/master/Images/prototype5.png" alt="原型链关系全图，蓝色线条即为原型链"></p>
+<p>图中由相互关联的原型组成的链状结构就是原型链，也就是蓝色的这条线。</p>
+<p>看这张图的时候有两条最绕的线值得单独盯一下。一条是 <code>Function.__proto__ === Function.prototype</code>，<code>Function</code> 自己是自己的实例，这是引擎为了让规则自洽做的特殊处理。另一条是 <code>Object.__proto__ === Function.prototype</code>，因为 <code>Object</code> 本身也是个函数。</p>
+<p>顺带提一句，正因为原型是靠引用连接的，深拷贝默认不会保留这条链。<code>structuredClone</code> 拷完 class 实例会变成普通对象，就是这个原因，具体在 <a href="https://feinterview.poetries.top/blog/js-deep-copy">JavaScript深浅拷贝原理与手写实现</a> 里讲过。</p>
+<h2 id="三、JSON和Math"><a href="#三、JSON和Math" class="headerlink" title="三、JSON和Math"></a>三、JSON和Math</h2><p>JS 内置的构造器函数都可以使用 <code>new</code> 关键字实例化一个对象，我们称实例化后的这个对象就是某某构造器的一个实例。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/344.png" alt="使用 new 实例化内置构造器函数的控制台输出"></p>
+<p>我们试试 <code>JSON</code> 和 <code>Math</code> 能不能实例化对象。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/345.png" alt="对 JSON 和 Math 使用 new 时控制台抛出的类型错误"></p>
+<p><code>JSON</code> 和 <code>Math</code> 不是构造器函数，他们是普通的对象。只有构造器函数才能使用 <code>new</code> 关键字实例化一个对象，而 <code>JSON</code> 和 <code>Math</code> 已经是对象了，所以我们可以不用实例化，直接使用 <code>JSON</code> 和 <code>Math</code> 中的属性和方法。</p>
+<p>所以 <code>JSON</code> 和 <code>Math</code> 不属于那 10 个构造器函数，但他们 12 个共同属于 JavaScript 的内置对象。</p>
+<p>为什么设计成这样？因为这两个东西压根没有实例状态。<code>Math.PI</code>、<code>Math.max</code> 全都是静态数据和纯函数，造一百个 <code>Math</code> 实例出来没有任何意义。同类的还有后来加的 <code>Reflect</code>，也是一个纯粹的静态方法容器。</p>
+<p>判断某个东西能不能 <code>new</code>，最直接的办法是看 <code>typeof</code>。<code>typeof Math</code> 是 <code>&#39;object&#39;</code>，<code>typeof Array</code> 是 <code>&#39;function&#39;</code>，只有后者才有可能被 <code>new</code> 调用。当然前面说过，是 <code>function</code> 也不一定能 <code>new</code>，箭头函数就不行。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>prototype</code> 和 <code>__proto__</code> 的分工是这块的入口。<code>prototype</code> 只挂在函数上，是「我 <code>new</code> 出来的实例应该长什么样」的模板；<code>__proto__</code> 挂在每个对象上，是「我实际继承自谁」的指针。两者通过 <code>new</code> 建立连接，<code>obj.__proto__ === Con.prototype</code>。</p>
+<p>原型链的终点是 <code>Object.prototype.__proto__ === null</code>。查找一个属性时引擎顺着 <code>__proto__</code> 一路往上走，走到 <code>null</code> 还没找到就返回 <code>undefined</code>。链越长查找越慢，这也是不建议随便加深继承层次的原因。</p>
+<p>手写 <code>new</code> 的四步里，最容易写错的是最后那步返回值判断。<code>typeof null === &#39;object&#39;</code> 这个历史遗留 bug 会让简化版实现在构造函数返回 <code>null</code> 时给出错误结果，正确的判断要把 <code>null</code> 排除掉，同时把函数也算进「对象」。</p>
+<p><code>constructor</code> 大部分时候用不上，但改写 <code>prototype</code> 之后一定要手动补回来，否则实例的类型判断会指向错误的构造函数。</p>
+<p>最后，<code>__proto__</code> 是遗留写法，代码里请用 <code>Object.getPrototypeOf</code>；创建对象时想指定原型，用 <code>Object.create</code> 而不是事后 <code>setPrototypeOf</code>，后者会让引擎的优化全部失效。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a href="https://github.com/mqyqingfeng/Blog/issues/2">JavaScript深入之从原型到原型链</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain">MDN 继承与原型链</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/create">MDN Object.create</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf">MDN Object.getPrototypeOf</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/new">MDN new 运算符</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

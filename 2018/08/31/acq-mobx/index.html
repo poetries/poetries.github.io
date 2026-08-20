@@ -7,31 +7,32 @@
 <head>
   <meta charset="utf-8">
   
-  <title>初识MobX | 前端进阶之旅</title>
+  <title>初识 MobX，从核心 API 到计数器实战 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="JavaScript,MobX," />
+    <meta name="keywords" content="JavaScript,MobX,状态管理," />
   
 
-  <meta name="description" content="一、认识MobX 打印mobx，看看mobx中有什么    MobX的整个流程   MobX 和 Redux 的比较  Redux 是单一数据源，而 MobX 往往是多个 store。MobX 可以根据应用的 UI、数据或业务逻辑来组织 store，具体如何进行需要你自己进行权衡 Redux store 使用普通的 JavaScript 对象结构，MobX 将常规 JavaScript 对象包裹，">
+  <meta name="description" content="MobX 入门梳理，讲清 observable、computed、action、observer、autorun、reaction、flow 七个核心 API 的职责边界，配一个能跑的计数器示例，并对比 Redux 说明各自适合什么场景。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="初识MobX">
+<meta property="og:title" content="初识 MobX，从核心 API 到计数器实战">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/31/acq-mobx/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、认识MobX 打印mobx，看看mobx中有什么    MobX的整个流程   MobX 和 Redux 的比较  Redux 是单一数据源，而 MobX 往往是多个 store。MobX 可以根据应用的 UI、数据或业务逻辑来组织 store，具体如何进行需要你自己进行权衡 Redux store 使用普通的 JavaScript 对象结构，MobX 将常规 JavaScript 对象包裹，">
+<meta property="og:description" content="MobX 入门梳理，讲清 observable、computed、action、observer、autorun、reaction、flow 七个核心 API 的职责边界，配一个能跑的计数器示例，并对比 Redux 说明各自适合什么场景。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20191001/8.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20191001/9.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/20191001/10.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20191001/8.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20191001/9.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/20191001/10.png">
 <meta property="article:published_time" content="2018-08-31T08:25:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.652Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.923Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="MobX">
+<meta property="article:tag" content="状态管理">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/20191001/8.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/20191001/8.png">
 
   
 
@@ -209,7 +210,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%AE%A4%E8%AF%86MobX"><span class="toc-text">一、认识MobX</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83API"><span class="toc-text">二、核心API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-observable"><span class="toc-text">2.1 @observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-observer"><span class="toc-text">2.2 observer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-computed"><span class="toc-text">2.3 @computed</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-actions"><span class="toc-text">2.4 @actions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-autorun"><span class="toc-text">2.5 autorun</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-reactions"><span class="toc-text">2.6 reactions</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-Flow"><span class="toc-text">2.7 Flow</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%AE%A1%E6%95%B0%E5%99%A8%E4%BE%8B%E5%AD%90"><span class="toc-text">三、计数器例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="toc-text">四、应用案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8F%82%E8%80%83"><span class="toc-text">五、参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E8%AE%A4%E8%AF%86-MobX"><span class="toc-text">一、认识 MobX</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%85%88%E7%9C%8B%E7%9C%8B-MobX-%E9%87%8C%E6%9C%89%E4%BB%80%E4%B9%88"><span class="toc-text">1.1 先看看 MobX 里有什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-MobX-%E5%92%8C-Redux-%E7%9A%84%E6%AF%94%E8%BE%83"><span class="toc-text">1.2 MobX 和 Redux 的比较</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BC%98%E7%82%B9"><span class="toc-text">1.3 优点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E7%BC%BA%E7%82%B9"><span class="toc-text">1.4 缺点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%A0%B8%E5%BF%83-API"><span class="toc-text">二、核心 API</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-observable"><span class="toc-text">2.1 observable</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-observer"><span class="toc-text">2.2 observer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-computed"><span class="toc-text">2.3 computed</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-action"><span class="toc-text">2.4 action</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-autorun"><span class="toc-text">2.5 autorun</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-reaction"><span class="toc-text">2.6 reaction</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-flow"><span class="toc-text">2.7 flow</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%AE%A1%E6%95%B0%E5%99%A8%E4%BE%8B%E5%AD%90"><span class="toc-text">三、计数器例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%A3%85%E9%A5%B0%E5%99%A8%E5%86%99%E6%B3%95%E5%9C%A8%E4%BB%8A%E5%A4%A9%E7%9A%84%E5%A4%84%E5%A2%83"><span class="toc-text">四、装饰器写法在今天的处境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%BA%94%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="toc-text">五、应用案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -232,13 +233,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-acq-mobx" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">初识MobX</h1>
+    <h1 class="post-title">初识 MobX，从核心 API 到计数器实战</h1>
 
     <div class="article-meta">
       <span>
@@ -274,12 +275,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2k字</span>
+            <span>字数统计 5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 7分</span>
+            <span>阅读时长 19分</span>
           </span>
       
       
@@ -293,107 +294,118 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、认识MobX"><a href="#一、认识MobX" class="headerlink" title="一、认识MobX"></a>一、认识MobX</h2><blockquote>
-<p>打印<code>mobx</code>，看看<code>mobx</code>中有什么</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20191001/8.png" alt="mobx"></p>
-<blockquote>
-<p><code>MobX</code>的整个流程</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/20191001/9.png" alt="mobx"></p>
-<p><strong>MobX 和 Redux 的比较</strong></p>
+        <p>那阵子团队里 Redux 写得有点疲。加一个「购物车商品数量」这么小的功能，要动 <code>actionTypes.js</code>、<code>actions/cart.js</code>、<code>reducers/cart.js</code> 三个文件，再回组件里补 <code>mapStateToProps</code>，实际干活的逻辑就是 <code>state.count += 1</code>。后来看到 MobX 的示例，一个 <code>@observable count = 0</code> 加一个 <code>@observer</code>，页面就跟着变了，当时的第一反应是这也太省事了，第二反应是它凭什么能做到。</p>
+<p>这篇是我把 MobX 摸一遍之后的笔记。从它和 Redux 的差别聊起，逐个拆七个核心 API，最后串一个完整的计数器。文章写于 2018 年，用的是当时主流的装饰器写法，我把原样保留了，另外补了几段说明现在 MobX 6 之后该怎么写，两边不混着看。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
 <ul>
-<li><code>Redux</code> 是单一数据源，而 <code>MobX</code> 往往是多个 <code>store</code>。<code>MobX</code> 可以根据应用的 <code>UI</code>、数据或业务逻辑来组织 <code>store</code>，具体如何进行需要你自己进行权衡</li>
-<li><code>Redux store</code> 使用普通的 <code>JavaScript</code> 对象结构，<code>MobX</code> 将常规 <code>JavaScript</code> 对象包裹，赋予 <code>observable</code> 的能力，通过隐式订阅，自动跟踪 <code>observable</code> 的变化。<code>MobX</code> 是观察引用的，在跟踪函数中（例如：<code>computed value</code>、<code>reactions</code>等等），任何被引用的 <code>observable</code> 的属性都会被记录，一旦引用改变，<code>MobX</code> 将作出反应。注意，不在跟踪函数中的属性将不会被跟踪，在异步中访问的属性也不会被跟踪</li>
-<li><code>Redux</code> 的 <code>state</code> 是只读的，只能通过将之前的 <code>state</code> 与触发的 <code>action</code> 结合，产生新的 <code>state</code>，因此是纯净的（<code>pure</code>）。而 <code>MobX</code> 的 <code>state</code> 即可读又可写，<code>action</code> 是非必须的，可以直接赋值改变，因此是不纯净的（Impure）</li>
-<li><code>Redux</code> 需要你去规范化你的 <code>state</code>，<code>Immutable</code> 数据使 <code>Reducer</code> 在更新时需要将状态树的祖先数据进行复制和更新，新的对象会导致与之 <code>connect </code>的所有 <code>UI</code> 组件都重复渲染。因此<code>Redux state</code> 不建议进行深层嵌套，或者需要我们在组件中用 <code>shouldComponentUpdate</code> 优化。而 <code>MobX</code> 只自动更新你所关心的，不必担心嵌套带来的重渲染问题</li>
+<li>MobX 的整体流程，以及它和 Redux 在数据流上的根本差别</li>
+<li>MobX 的优点和缺点各在哪，什么场景下用它更划算</li>
+<li><code>observable</code> &#x2F; <code>computed</code> &#x2F; <code>action</code> 三块基石的职责边界</li>
+<li><code>observer</code> 怎么让 React 组件自动跟着数据重渲</li>
+<li><code>autorun</code>、<code>reaction</code>、<code>flow</code> 分别解决什么问题，怎么选</li>
+<li>一个完整可跑的计数器示例，把上面的概念全串起来</li>
+<li>装饰器写法在 MobX 6 之后的变化，以及现在的推荐入口</li>
 </ul>
-<blockquote>
-<p><code>redux</code> 管理的是 (<code>STORE</code> -&gt; <code>VIEW</code> -&gt; <code>ACTION</code>) 的整个闭环，而 <code>mobx</code> 只关心 <code>STORE</code> -&gt; <code>VIEW</code> 的部分</p>
-</blockquote>
-<p><strong>优点</strong></p>
-<ul>
-<li><strong>基于运行时的数据订阅</strong> <code>mobx</code> 的数据依赖始终保持了最小，而且还是基于运行时。而如果用 <code>redux</code>，可能一不小心就多订阅或者少订阅了数据。所以为了达到高性能，我们需要借助 <code>PureRenderMixin</code> 以及 <code>reselect</code> 对 <code>selector</code> 做缓存</li>
-<li><strong>通过 OOP 的方式组织领域模型 (domain model)</strong>  <code>OOP</code> 的方式在某些场景下会比较方便，尤其是容易抽取 <code>domain model</code> 的时候。进而由于 <code>mobx</code> 支持引用的方式引用数据，所以可以非常容易得形成模型图 (model graph )，这样可以更好地理解我们的应用。</li>
-<li><strong>修改数据方便自然</strong>  <code>mobx</code> 是基于原生的 <code>JavaScript</code> 对象、数组和 <code>Class</code>实现的。所以修改数据不需要额外语法成本，也不需要始终返回一个新的数据，而是直接操作数据</li>
-</ul>
-<p><strong>缺点</strong></p>
-<ul>
-<li><strong>缺最佳实践和社区</strong>  mobx 比较新，遇到的问题可能社区都没有遇到过。并且，mobx 并没有很好的扩展&#x2F;插件机制</li>
-<li><strong>随意修改 store</strong> 我们都知道 redux 里唯一可以改数据的地方是 reducer，这样可以保证应用的安全稳定；而 mobx 可以随意修改数据，触发更新，给人一种不安全的感觉<ul>
-<li>最新的<code> mobx 2.2</code> 加入了 <code>action</code> 的支持。并且在开启 <code>strict mode</code> 之后，就只有 <code>action</code> 可以对数据进行修改，限制数据的修改入口。可以解决这个问题</li>
-</ul>
-</li>
-<li><strong>逻辑层的限制</strong><ul>
-<li>如果更新逻辑不能很好地封装在 <code>domain class</code> 里，用 <code>redux</code> 会更合适。另外，<code>mobx </code>缺类 <code>redux-saga</code> 的库，业务逻辑的整合不知道放哪合适</li>
-</ul>
-</li>
-</ul>
-<h2 id="二、核心API"><a href="#二、核心API" class="headerlink" title="二、核心API"></a>二、核心API</h2><p><img src="https://poetries1.gitee.io/img-repo/20191001/10.png" alt="mobx"></p>
-<h3 id="2-1-observable"><a href="#2-1-observable" class="headerlink" title="2.1 @observable"></a>2.1 @observable</h3><blockquote>
-<p><code>Observable</code> 值可以是JS基本数据类型、引用类型、普通对象、类实例、数组和映射。其修饰的state会暴露出来供观察者使用</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Observable 值可以是JS基本数据类型、引用类型、普通对象、类实例、数组和映射</span></span><br><span class="line">@observable title = <span class="string">&#x27;this is about page&#x27;</span></span><br><span class="line">@observable num = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算值(computed values)是可以根据现有的状态或其它计算值衍生出的值</span></span><br><span class="line">@computed <span class="keyword">get</span> <span class="title function_">getUserInfo</span>()&#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="string">`我是computed经过计算的getter,currenct num:<span class="subst">$&#123;<span class="variable language_">this</span>.num&#125;</span>`</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 注意：当你使用装饰器模式时，@action 中的 this 没有绑定在当前这个实例上，要用过 @action.bound 来绑定 使得 this 绑定在实例对象上</span></span><br><span class="line">@action.<span class="property">bound</span> <span class="title function_">add</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">num</span> ++</span><br><span class="line">&#125;</span><br><span class="line">@action.<span class="property">bound</span> <span class="title function_">reduce</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">num</span> --</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="一、认识-MobX"><a href="#一、认识-MobX" class="headerlink" title="一、认识 MobX"></a>一、认识 MobX</h2><h3 id="1-1-先看看-MobX-里有什么"><a href="#1-1-先看看-MobX-里有什么" class="headerlink" title="1.1 先看看 MobX 里有什么"></a>1.1 先看看 MobX 里有什么</h3><p>理解一个库最直接的办法是把它打印出来看看导出了哪些东西。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> mobx <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(mobx)</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-2-observer"><a href="#2-2-observer" class="headerlink" title="2.2 observer"></a>2.2 observer</h3><blockquote>
-<p>可以用作包裹 <code>React</code> 组件的高阶组件。 在组件的 <code>render</code> 函数中的任何已使用的 <code>observable</code> 发生变化时，组件都会自动重新渲染。 注意 <code>observer</code> 是由 <code>&quot;mobx-react&quot;</code> 包提供的，而不是 <code>mobx</code> 本身</p>
-</blockquote>
-<ul>
-<li><code>@Observer</code> 是一个注解，本质上是用 <code>mobx.autorun</code> 包装了组件的 <code>render</code> 函数以确保任何组件渲染中使用的数据变化时都可以强制刷新组件</li>
-</ul>
-<h3 id="2-3-computed"><a href="#2-3-computed" class="headerlink" title="2.3 @computed"></a>2.3 @computed</h3><ul>
-<li>计算值(<code>computed values</code>)是可以根据现有的状态或其它计算值衍生出的值</li>
-<li>用于获取由基础 <code>state </code>衍生出来的值。如果基础值没有变，获取衍生值时就会走缓存，这样就不会引起虚拟 DOM 的重新渲染</li>
-</ul>
-<blockquote>
-<ul>
-<li><code>getter</code>：获得计算得到的新<code>state</code>并返回。</li>
-<li><code>setter</code>： 不能用来直接改变计算属性的值，但是它们可以用来作“逆向”衍生。</li>
-</ul>
-</blockquote>
-<blockquote>
-<p>通过 <code>@computed + getter</code>函数来定义衍生值</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    @observable length = <span class="number">2</span>;</span><br><span class="line">    @computed <span class="keyword">get</span> <span class="title function_">squared</span>() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">length</span> * <span class="variable language_">this</span>.<span class="property">length</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">set</span> <span class="title function_">squared</span>(<span class="params">value</span>) &#123; <span class="comment">// 这是一个自动的动作，不需要注解</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">length</span> = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.top/gitee/20191001/8.png" alt="打印 mobx 对象查看导出的 API 列表"></p>
+<p>从这张图能看出来，MobX 的 API 面并不大，核心就是 <code>observable</code>、<code>computed</code>、<code>action</code>、<code>autorun</code>、<code>reaction</code>、<code>when</code>、<code>configure</code> 这些。真正需要理解的概念比 API 数量还少。</p>
+<p>再看它的整个流程：</p>
+<p><img src="https://s.poetries.top/gitee/20191001/9.png" alt="MobX 的数据流转流程图，从 action 到 state 再到 computed 和 reaction"></p>
+<p>这条链路是 MobX 的骨架。事件触发 action，action 修改 state，state 是 observable 的，它一变就会通知依赖它的 computed 重新计算，再通知 reaction 执行副作用，而 React 组件本身就是最重要的那个 reaction。</p>
+<p>注意这里没有「派发到某个中心再分发下去」的环节。谁读了什么，MobX 在运行时就记着，改了就直接通知那几个人。这是它和 Redux 最大的结构性差别。</p>
+<h3 id="1-2-MobX-和-Redux-的比较"><a href="#1-2-MobX-和-Redux-的比较" class="headerlink" title="1.2 MobX 和 Redux 的比较"></a>1.2 MobX 和 Redux 的比较</h3><p>摆开来看有四条差别。</p>
+<p><code>Redux</code> 是单一数据源，而 <code>MobX</code> 往往是多个 <code>store</code>。<code>MobX</code> 可以根据应用的 <code>UI</code>、数据或业务逻辑来组织 <code>store</code>，具体怎么分需要你自己权衡。这个自由度是双刃剑，小项目很爽，大项目没有约定就容易乱。</p>
+<p><code>Redux store</code> 使用普通的 <code>JavaScript</code> 对象结构，<code>MobX</code> 则把常规 <code>JavaScript</code> 对象包裹起来，赋予 <code>observable</code> 的能力，通过隐式订阅自动跟踪 <code>observable</code> 的变化。<code>MobX</code> 是观察引用的，在跟踪函数中（比如 <code>computed value</code>、<code>reactions</code> 这些）任何被引用的 <code>observable</code> 属性都会被记录，一旦引用改变，<code>MobX</code> 就会作出反应。</p>
+<p>这里有个坑要注意：不在跟踪函数中的属性不会被跟踪，在异步中访问的属性也不会被跟踪。很多「明明改了数据但组件不更新」的问题，根子都在这条上。</p>
+<p><code>Redux</code> 的 <code>state</code> 是只读的，只能通过把之前的 <code>state</code> 与触发的 <code>action</code> 结合产生新的 <code>state</code>，因此是纯净的（pure）。而 <code>MobX</code> 的 <code>state</code> 既可读又可写，<code>action</code> 是非必须的，可以直接赋值改变，因此是不纯净的（impure）。</p>
+<p><code>Redux</code> 需要你去规范化你的 <code>state</code>。<code>Immutable</code> 数据使得 <code>Reducer</code> 在更新时需要把状态树的祖先数据复制并更新，新的对象会导致与之 <code>connect</code> 的所有 <code>UI</code> 组件都重复渲染。所以 <code>Redux state</code> 不建议做深层嵌套，或者需要在组件里用 <code>shouldComponentUpdate</code> 优化。而 <code>MobX</code> 只自动更新你所关心的那部分，不必担心嵌套带来的重渲染问题。</p>
+<p>用一句话概括覆盖范围：<code>redux</code> 管理的是 <code>STORE</code> -&gt; <code>VIEW</code> -&gt; <code>ACTION</code> 的整个闭合流程，而 <code>mobx</code> 只关心 <code>STORE</code> -&gt; <code>VIEW</code> 这一段。</p>
+<p>Redux 的三大原则和它为什么要主动给状态修改加约束，我在 <a href="https://feinterview.poetries.top/blog/react-redux-analyse">Redux 原理与三大原则</a> 里单独写过，对照着看差别会更清楚。</p>
+<h3 id="1-3-优点"><a href="#1-3-优点" class="headerlink" title="1.3 优点"></a>1.3 优点</h3><p><strong>基于运行时的数据订阅。</strong> <code>mobx</code> 的数据依赖始终保持最小，而且是运行时自动追踪的。如果用 <code>redux</code>，可能一不小心就多订阅或者少订阅了数据，多了性能差，少了不更新。为了达到高性能，得借助 <code>PureRenderMixin</code> 以及 <code>reselect</code> 对 <code>selector</code> 做缓存，这是额外的心智负担。</p>
+<p><strong>通过 OOP 的方式组织领域模型（domain model）。</strong> <code>OOP</code> 的方式在某些场景下会比较方便，尤其是容易抽取 <code>domain model</code> 的时候。而且 <code>mobx</code> 支持用引用的方式引用数据，很容易形成模型图（model graph）。一个订单对象能直接拿到它的用户对象，而不是拿一个 <code>userId</code> 再去别的 slice 里查。</p>
+<p><strong>修改数据方便自然。</strong> <code>mobx</code> 是基于原生的 <code>JavaScript</code> 对象、数组和 <code>Class</code> 实现的，修改数据不需要额外语法成本，也不需要始终返回一个新的数据，直接操作就行。</p>
+<h3 id="1-4-缺点"><a href="#1-4-缺点" class="headerlink" title="1.4 缺点"></a>1.4 缺点</h3><p><strong>缺最佳实践和社区积累。</strong> <code>mobx</code> 出现得比较晚，遇到的问题可能社区都没有遇到过。并且它没有很好的扩展和插件机制。</p>
+<p><strong>可以随意修改 store。</strong> <code>redux</code> 里唯一能改数据的地方是 reducer，这保证了应用的可预测性；而 <code>mobx</code> 可以在任何地方修改数据触发更新，给人一种不太安全的感觉。这个问题后来是有解的，<code>mobx 2.2</code> 加入了 <code>action</code> 的支持，开启 <code>strict mode</code> 之后就只有 <code>action</code> 可以对数据进行修改，修改入口重新收敛了。</p>
+<p><strong>逻辑层的限制。</strong> 如果更新逻辑不能很好地封装在 <code>domain class</code> 里，用 <code>redux</code> 会更合适。另外 <code>mobx</code> 缺少类似 <code>redux-saga</code> 的库，复杂业务流程的编排不知道放哪合适。</p>
+<p>这条我自己的感受是最真实的。做一个多步骤的下单流程，Redux 那边有 saga 可以把流程写成一条线，MobX 这边你得自己找地方放。</p>
+<h2 id="二、核心-API"><a href="#二、核心-API" class="headerlink" title="二、核心 API"></a>二、核心 API</h2><p>七个 API 的关系可以先看这张全景图：</p>
+<p><img src="https://s.poetries.top/gitee/20191001/10.png" alt="MobX 核心 API 的关系图，observable 与 computed、action、reaction 的关联"></p>
+<p>读法是这样的：<code>observable</code> 是源头，<code>action</code> 是唯一推荐的修改入口，<code>computed</code> 是从源头派生出的值，<code>autorun</code> &#x2F; <code>reaction</code> &#x2F; <code>observer</code> 都属于副作用，负责在数据变化时做点什么。</p>
+<h3 id="2-1-observable"><a href="#2-1-observable" class="headerlink" title="2.1 observable"></a>2.1 observable</h3><p><code>Observable</code> 值可以是 JS 基本数据类型、引用类型、普通对象、类实例、数组和映射。被它修饰的 state 会暴露出来供观察者使用。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Observable 值可以是JS基本数据类型、引用类型、普通对象、类实例、数组和映射</span></span><br><span class="line">@observable title = <span class="string">&#x27;this is about page&#x27;</span></span><br><span class="line">@observable num = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算值(computed values)是可以根据现有的状态或其它计算值衍生出的值</span></span><br><span class="line">@computed <span class="keyword">get</span> <span class="title function_">getUserInfo</span>()&#123;</span><br><span class="line">   <span class="keyword">return</span> <span class="string">`我是computed经过计算的getter,current num:<span class="subst">$&#123;<span class="variable language_">this</span>.num&#125;</span>`</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 注意：当你使用装饰器模式时，@action 中的 this 没有绑定在当前这个实例上，要通过 @action.bound 来绑定 使得 this 绑定在实例对象上</span></span><br><span class="line">@action.<span class="property">bound</span> <span class="title function_">add</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">num</span> ++</span><br><span class="line">&#125;</span><br><span class="line">@action.<span class="property">bound</span> <span class="title function_">reduce</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">num</span> --</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>这段把三个基石一次性演示完了，值得逐行看一下。<code>@observable</code> 标记的两个字段是数据源；<code>@computed</code> 修饰的 getter 是派生值，读它的时候才计算；<code>@action.bound</code> 里的 <code>.bound</code> 是把方法绑到实例上，这样你可以直接写 <code>onClick=&#123;store.add&#125;</code> 而不用包一层箭头函数。</p>
+<p>顺带说一句，这里的 <code>@observable num = 0</code> 是类属性写法，需要 babel 的装饰器插件加类属性插件才能编译，两个都得配，少一个就报语法错误。</p>
+<h3 id="2-2-observer"><a href="#2-2-observer" class="headerlink" title="2.2 observer"></a>2.2 observer</h3><p><code>observer</code> 可以用作包裹 <code>React</code> 组件的高阶组件。在组件的 <code>render</code> 函数中任何已使用的 <code>observable</code> 发生变化时，组件都会自动重新渲染。注意 <code>observer</code> 是由 <code>mobx-react</code> 包提供的，而不是 <code>mobx</code> 本身。</p>
+<p>它的原理，用一句话说就是用 <code>mobx.autorun</code> 包装了组件的 <code>render</code> 函数，确保任何组件渲染中使用的数据变化时都能强制刷新组件。</p>
+<p>那为什么有时候数据明明变了组件却没反应呢？</p>
+<p>因为「已使用」这三个字是严格的。<code>observer</code> 建立的订阅只覆盖本次 <code>render</code> 期间真正被读取过的字段。在组件外面提前解构好再传进来，读取动作发生在 <code>observer</code> 的追踪范围之外，订阅就没建立起来。</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 失效：props 已经在父组件里被读出来了，这里拿到的是一个死值</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Bad</span> = <span class="title function_">observer</span>(<span class="function">(<span class="params">&#123; count &#125;</span>) =&gt;</span> <span class="language-xml"><span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;count&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确：在 observer 内部读 store 上的属性</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">Good</span> = <span class="title function_">observer</span>(<span class="function">(<span class="params">&#123; store &#125;</span>) =&gt;</span> <span class="language-xml"><span class="tag">&lt;<span class="name">span</span>&gt;</span>&#123;store.count&#125;<span class="tag">&lt;/<span class="name">span</span>&gt;</span></span>)</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-4-actions"><a href="#2-4-actions" class="headerlink" title="2.4 @actions"></a>2.4 @actions</h3><blockquote>
-<ul>
-<li>只有在 <code>actions</code> 中，才可以修改 <code>Mobx</code> 中 <code>state</code> 的值</li>
-<li>注意：当你使用装饰器模式时，<code>@action</code> 中的 <code>this</code> 没有绑定在当前这个实例上，要用过 <code>@action.bound</code> 来绑定 使得 <code>this</code> 绑定在实例对象上</li>
-</ul>
-</blockquote>
-<ul>
-<li>通过引入 <code>mobx</code> 定义的严格模式，强制使用 <code>action</code> 来修改状态</li>
-</ul>
+<p>我一开始也以为 <code>observer</code> 是给组件装了个全局监听器，想通「读了才订阅」这一点之后，很多诡异问题就自己解释了。</p>
+<h3 id="2-3-computed"><a href="#2-3-computed" class="headerlink" title="2.3 computed"></a>2.3 computed</h3><p>计算值（<code>computed values</code>）是可以根据现有的状态或其它计算值衍生出的值，用于获取由基础 <code>state</code> 衍生出来的值。如果基础值没有变，获取衍生值时就会走缓存，这样就不会引起虚拟 DOM 的重新渲染。</p>
+<p>它有两个入口：<code>getter</code> 负责获得计算得到的新 state 并返回；<code>setter</code> 不能用来直接改变计算属性的值，但可以用来做「逆向」衍生。</p>
+<p>通过 <code>@computed</code> 加 getter 函数来定义衍生值：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;</span><br><span class="line">    @observable length = <span class="number">2</span>;</span><br><span class="line">    @computed <span class="keyword">get</span> <span class="title function_">squared</span>() &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">length</span> * <span class="variable language_">this</span>.<span class="property">length</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">set</span> <span class="title function_">squared</span>(<span class="params">value</span>) &#123; <span class="comment">// 这是一个自动的动作，不需要注解</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">length</span> = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 setter 的用法看着有点绕，它的实际场景是「双向换算」。摄氏度和华氏度两个输入框，改哪一个另一个都要跟着变，用 computed 的 setter 写就很自然。</p>
+<p>这里有个坑要注意：computed 的缓存只在它被某个 reaction 观察时才生效。如果你在组件外面直接读一个没人观察的 computed，MobX 每次都会重新计算。表现就是「明明加了 computed 却没变快」，在写单元测试或者在事件回调里直接读 store 的时候容易遇到。</p>
+<h3 id="2-4-action"><a href="#2-4-action" class="headerlink" title="2.4 action"></a>2.4 action</h3><p>只有在 <code>action</code> 中，才可以修改 MobX 中 state 的值。当你使用装饰器模式时，<code>@action</code> 中的 <code>this</code> 没有绑定在当前实例上，要通过 <code>@action.bound</code> 来绑定。</p>
+<p>不过这条规则默认是不强制的，得靠严格模式打开：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;configure&#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title function_">configure</span>(&#123; <span class="attr">enforceActions</span>: <span class="string">&#x27;always&#x27;</span> &#125;) <span class="comment">// 开启严格模式</span></span><br></pre></td></tr></table></figure>
 
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">@action.<span class="property">bound</span> <span class="title function_">add</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">num</span> ++</span><br><span class="line">&#125;</span><br><span class="line">@action.<span class="property">bound</span> <span class="title function_">reduce</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">num</span> --</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="2-5-autorun"><a href="#2-5-autorun" class="headerlink" title="2.5 autorun"></a>2.5 autorun</h3><ul>
-<li>当可观察对象中保存的值发生变化时，可以在<code>mobx.autorun</code>中被观察到。<code>observable</code> 的值初始化或改变时，自动运行</li>
-<li>如果你想响应式的产生一个可以被其它 <code>observer</code> 使用的值，请使用 <code>@computed</code>，如果你不想产生一个新值，而想要达到一个效果，请使用 <code>autorun</code>。 举例来说，效果是像打印日志、发起网络请求等这样命令式的副作用</li>
+<p><code>enforceActions</code> 现在接收的是字符串：<code>&#39;always&#39;</code> 表示所有状态修改都必须在 action 里，<code>&#39;observed&#39;</code> 只对被观察的状态强制这条规则，<code>&#39;never&#39;</code> 是关闭。老代码里能看到 <code>enforceActions: true</code> 这种布尔写法，那是早期版本的形式，新版本请按字符串写。</p>
+<p>新项目我一般直接开 <code>&#39;always&#39;</code>，把修改入口收死，不然 MobX「哪里都能改」的自由度用不了多久就会变成负担。</p>
+<h3 id="2-5-autorun"><a href="#2-5-autorun" class="headerlink" title="2.5 autorun"></a>2.5 autorun</h3><p>当可观察对象中保存的值发生变化时，可以在 <code>mobx.autorun</code> 中被观察到。<code>observable</code> 的值初始化或改变时，回调自动运行。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; autorun, observable &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span> &#123;</span><br><span class="line">  @observable name = <span class="string">&#x27;&#x27;</span></span><br><span class="line">  @observable age = <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> person = <span class="keyword">new</span> <span class="title class_">Person</span>()</span><br><span class="line"></span><br><span class="line"><span class="title function_">autorun</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">`姓名: <span class="subst">$&#123;person.name&#125;</span>, 年龄: <span class="subst">$&#123;person.age&#125;</span>`</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">person.<span class="property">name</span> = <span class="string">&#x27;张三&#x27;</span> <span class="comment">// 输出: 姓名: 张三, 年龄: 0</span></span><br><span class="line">person.<span class="property">age</span> = <span class="number">25</span>      <span class="comment">// 输出: 姓名: 张三, 年龄: 25</span></span><br></pre></td></tr></table></figure>
+
+<p>选择标准很清楚。如果你想响应式地产生一个可以被其它 <code>observer</code> 使用的值，用 <code>@computed</code>；如果你不想产生新值，只想达到某个效果，用 <code>autorun</code>。效果指的是打印日志、发起网络请求、写 localStorage 这类命令式的副作用。</p>
+<p><code>autorun</code> 会返回一个 disposer 函数，用完记得调它清理。在组件里创建却忘了清理，就是一个持续订阅的内存泄漏，这个我踩过。</p>
+<h3 id="2-6-reaction"><a href="#2-6-reaction" class="headerlink" title="2.6 reaction"></a>2.6 reaction</h3><p><code>Reactions</code> 和计算值很像，但它不是产生一个新的值，而是会产生一些副作用，比如打印到控制台、发网络请求、递增地更新 <code>React</code> 组件树以修补 DOM 等等。<code>reactions</code> 在响应式编程和命令式编程之间建立了沟通的桥梁。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; reaction &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> disposer = <span class="title function_">reaction</span>(</span><br><span class="line">  <span class="comment">// 第一个函数：追踪哪些数据</span></span><br><span class="line">  <span class="function">() =&gt;</span> store.<span class="property">keyword</span>,</span><br><span class="line">  <span class="comment">// 第二个函数：数据变化后做什么</span></span><br><span class="line">  <span class="function">(<span class="params">keyword, prevKeyword</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;关键词从&#x27;</span>, prevKeyword, <span class="string">&#x27;变成了&#x27;</span>, keyword)</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>它和 <code>autorun</code> 的差别就一点：<code>autorun</code> 创建时会立刻执行一次，<code>reaction</code> 不会，只有追踪的数据真的变了才跑。想在初始化时也执行，可以传 <code>&#123; fireImmediately: true &#125;</code>。</p>
+<p>还有个位置问题值得提醒。<code>reaction</code> 一定要注册在只会执行一次的地方，比如 <code>constructor</code>。写在某个会被反复调用的方法里，调几次就有几个 reaction 在监听同一份数据，日志打好几遍，而且没人清理。</p>
+<h3 id="2-7-flow"><a href="#2-7-flow" class="headerlink" title="2.7 flow"></a>2.7 flow</h3><p>用法是 <code>flow(function* (args) &#123; &#125;)</code>，<code>flow()</code> 接收 <code>generator</code> 函数作为它唯一的输入。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; configure, flow, observable &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不允许在动作外部修改状态</span></span><br><span class="line"><span class="title function_">configure</span>(&#123; <span class="attr">enforceActions</span>: <span class="string">&#x27;always&#x27;</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Store</span> &#123;</span><br><span class="line">    @observable githubProjects = [];</span><br><span class="line">    @observable state = <span class="string">&quot;pending&quot;</span>; <span class="comment">// &quot;pending&quot; / &quot;done&quot; / &quot;error&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    fetchProjects = <span class="title function_">flow</span>(<span class="keyword">function</span>* <span class="title function_">fetchProjects</span>(<span class="params"></span>) &#123; <span class="comment">// &lt;- 注意*号，这是生成器函数！</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">githubProjects</span> = [];</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = <span class="string">&quot;pending&quot;</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> projects = <span class="keyword">yield</span> <span class="title function_">fetchGithubProjectsSomehow</span>(); <span class="comment">// 用 yield 代替 await</span></span><br><span class="line">            <span class="keyword">const</span> filteredProjects = <span class="title function_">somePreprocessing</span>(projects);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 异步代码自动会被 `action` 包装</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">state</span> = <span class="string">&quot;done&quot;</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">githubProjects</span> = filteredProjects;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">state</span> = <span class="string">&quot;error&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为什么异步这块需要专门搞一个 <code>flow</code> 出来？因为 action 的边界是同步函数体。<code>await</code> 之后的代码已经跑在另一个微任务里了，不再处于 action 的作用范围内，严格模式下改状态会直接报错。你得手动用 <code>runInAction</code> 把每一段 <code>await</code> 之后的赋值包起来，写多了很烦。</p>
+<p><code>flow</code> 把这件事自动化了，<code>yield</code> 之后的赋值会自动被当成 action 处理。它还有个不太被提到的好处，返回的 promise 带 <code>cancel()</code> 方法，能取消进行中的流程，做搜索联想这种连续触发的场景很有用。</p>
+<p>代价是 generator 语法对新人有门槛。我自己的做法是简单异步用 <code>async</code> 加 <code>runInAction</code>，需要取消能力的才上 <code>flow</code>。</p>
+<h2 id="三、计数器例子"><a href="#三、计数器例子" class="headerlink" title="三、计数器例子"></a>三、计数器例子</h2><p>把上面的概念串成一个能跑的完整例子：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">ReactDOM</span> <span class="keyword">from</span> <span class="string">&#x27;react-dom&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx-react&#x27;</span>; <span class="comment">// 结合 react</span></span><br><span class="line"><span class="keyword">import</span> &#123; observable, computed, action &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义数据 store</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Counter</span> &#123;</span><br><span class="line">  @observable number = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">  @computed <span class="keyword">get</span> <span class="title function_">msg</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;number:&#x27;</span> + <span class="variable language_">this</span>.<span class="property">number</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 用 action 改变数据，避免混乱</span></span><br><span class="line">  @action.<span class="property">bound</span> <span class="title function_">increment</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">number</span>++;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  @action.<span class="property">bound</span> <span class="title function_">decrement</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">number</span>--;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> store = <span class="keyword">new</span> <span class="title class_">Counter</span>();</span><br></pre></td></tr></table></figure>
+
+<p>Store 这部分三个概念都用上了：<code>number</code> 是 observable 数据源，<code>msg</code> 是从它派生出来的 computed，两个 <code>@action.bound</code> 是仅有的两个修改入口。</p>
+<p>视图部分只做一件事，把 store 里的字段读出来渲染，加上 <code>@observer</code> 就自动跟着变：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 把属性注入 react 组件</span></span><br><span class="line">@observer</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">App</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  handleInc = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    store.<span class="title function_">increment</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  handleDec = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    store.<span class="title function_">decrement</span>();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">      <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123; store.msg &#125; <span class="tag">&lt;<span class="name">br</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleInc&#125;</span>&gt;</span> + <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleDec&#125;</span>&gt;</span> - <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">ReactDOM</span>.<span class="title function_">render</span>(<span class="language-xml"><span class="tag">&lt;<span class="name">App</span> /&gt;</span></span>, <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;root&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>原文这段代码我修了几处问题，说明一下免得你照抄踩坑。一是 <code>@action decrement: () =&gt; &#123;&#125;</code> 这种写法把方法定义和属性赋值混在了一起，语法上过不去，改成了和 <code>increment</code> 一致的方法形式。二是 <code>import</code> 里少了 <code>action</code> 和 <code>ReactDOM</code>，只导入 <code>observable, autorun, computed</code> 是跑不起来的，而 <code>autorun</code> 在这个例子里又用不上。三是 <code>handleInc</code> 原来是普通类方法，<code>onClick=&#123;this.handleInc&#125;</code> 传过去之后 <code>this</code> 会丢，改成了类属性箭头函数。</p>
+<p><code>render</code> 里读的是 <code>store.msg</code> 这个 computed，<code>msg</code> 依赖 <code>store.number</code>，所以点击按钮改了 <code>number</code> 之后，链路是 action 改数据、computed 失效重算、<code>observer</code> 收到通知重渲。整条链没有一行订阅代码是你写的。</p>
+<p>最后那句 <code>ReactDOM.render</code> 是 React 17 及以前的写法。React 18 之后要换成 <code>createRoot</code>，不换的话应用跑在 legacy 模式下，自动批处理和并发能力都不生效。</p>
+<h2 id="四、装饰器写法在今天的处境"><a href="#四、装饰器写法在今天的处境" class="headerlink" title="四、装饰器写法在今天的处境"></a>四、装饰器写法在今天的处境</h2><p>上面全篇用的都是 <code>@observable</code> &#x2F; <code>@action</code> 这套装饰器写法，这是 2018 年 MobX 4&#x2F;5 时代的主流。这里得补一句现状，免得你照着配半天 babel 还是跑不通。</p>
+<p>从 MobX 6 开始，装饰器不再是默认路径。原因是 JS 的装饰器提案长期没有定稿，各家实现互不兼容，MobX 索性把 <code>makeObservable</code> 和 <code>makeAutoObservable</code> 提为主入口，装饰器降级成可选的语法糖。而且就算你继续用装饰器，也仍然要在构造函数里调一次 <code>makeObservable(this)</code>，不然不生效。</p>
+<p>现在推荐的写法是这样：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; makeAutoObservable &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Counter</span> &#123;</span><br><span class="line">  number = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="title function_">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="title function_">makeAutoObservable</span>(<span class="variable language_">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> <span class="title function_">msg</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;number:&#x27;</span> + <span class="variable language_">this</span>.<span class="property">number</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">increment</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">number</span>++</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="title function_">decrement</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">number</span>--</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>makeAutoObservable</code> 的推断规则很直白：普通属性变成 <code>observable</code>，getter 变成 <code>computed</code>，普通方法变成 <code>action</code>，generator 方法变成 <code>flow</code>。整个类里一个装饰器都不用写，babel 配置也能省掉一整套。</p>
+<p>不是说装饰器写法不行，存量项目照跑不误，只是新写的代码没必要再背那套配置负担。MobX 6 之后的完整用法、React 18 并发渲染下的适配，还有它在 RSC 时代的处境，我在 <a href="https://feinterview.poetries.top/blog/mobx-react-best-practices">MobX 核心概念解析与 React 协同最佳实践</a> 里写得更细。至于今天从零起一个项目该选 MobX、Zustand 还是 Redux Toolkit，可以看 <a href="https://feinterview.poetries.top/blog/react-state-management-comparison">React 状态管理方案对比</a>。</p>
+<h2 id="五、应用案例"><a href="#五、应用案例" class="headerlink" title="五、应用案例"></a>五、应用案例</h2><p>一个可以直接跑起来的模板项目：<a href="https://github.com/poetries/react-mobx-template">https://github.com/poetries/react-mobx-template</a></p>
+<p>建议的读法是先把 store 目录翻一遍，看清楚它怎么按业务模块拆 store，再看组件里 <code>observer</code> 挂在哪一层。MobX 项目的可维护性，八成取决于 store 拆得合不合理，而不是 API 用得熟不熟。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>MobX 的核心其实就四个概念：用 <code>observable</code> 标记数据源，用 <code>computed</code> 声明派生值，用 <code>action</code> 收口所有修改，用 <code>observer</code> 让组件自动订阅它读到的字段。剩下三个 API 是补充，<code>autorun</code> 管无条件的副作用，<code>reaction</code> 管有条件触发的副作用，<code>flow</code> 管可取消的异步流程。</p>
+<p>它和 Redux 的差别不在语法糖多少，而在数据流的形状。Redux 是「所有变化走同一条管道，可回溯」，MobX 是「谁读了谁被通知，最小更新」。前者用约束换可预测性，后者用自由换开发效率。领域模型清晰、对象引用密集的应用（可视化编辑器、复杂表单）用 MobX 会很顺手；需要强流程约束和完整审计链路的场景，Redux 那套仍然更稳。</p>
+<p>最后记住三条最容易踩的：<code>observer</code> 只订阅本次 render 里真正读过的字段；computed 的缓存要有人观察才生效；<code>autorun</code> 和 <code>reaction</code> 返回的 disposer 一定要清理。装饰器写法现在换成 <code>makeAutoObservable</code> 就好，心智模型完全没变。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://cn.mobx.js.org/">MobX 中文文档</a></li>
+<li><a href="https://mobx.js.org/">MobX 官方文档</a></li>
+<li><a href="https://mobx.js.org/migrating-from-4-or-5.html">MobX 6 迁移指南</a></li>
+<li><a href="https://mobx-react.js.org/">mobx-react 官方文档</a></li>
+<li><a href="https://github.com/poetries/react-mobx-template">react-mobx-template 示例项目</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
-<h3 id="2-6-reactions"><a href="#2-6-reactions" class="headerlink" title="2.6 reactions"></a>2.6 reactions</h3><blockquote>
-<p><code>Reactions </code>和计算值很像，但它不是产生一个新的值，而是会产生一些副作用，比如打印到控制台、网络请求、递增地更新 <code>React </code>组件树以修补<code>DOM</code>、等等。 简而言之，<code>reactions</code> 在 响应式编程和命令式编程之间建立沟通的桥梁</p>
-</blockquote>
-<h3 id="2-7-Flow"><a href="#2-7-Flow" class="headerlink" title="2.7 Flow"></a>2.7 Flow</h3><blockquote>
-<p>用法: <code>flow(function* (args) &#123; &#125;)</code></p>
-</blockquote>
-<ul>
-<li><code>flow()</code> 接收 <code>generator</code> 函数作为它唯一的输入</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; configure &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不允许在动作外部修改状态</span></span><br><span class="line"><span class="title function_">configure</span>(&#123; <span class="attr">enforceActions</span>: <span class="literal">true</span> &#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Store</span> &#123;</span><br><span class="line">    @observable githubProjects = [];</span><br><span class="line">    @observable state = <span class="string">&quot;pending&quot;</span>; <span class="comment">// &quot;pending&quot; / &quot;done&quot; / &quot;error&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    fetchProjects = <span class="title function_">flow</span>(<span class="keyword">function</span>* <span class="title function_">fetchProjects</span>(<span class="params"></span>) &#123; <span class="comment">// &lt;- 注意*号，这是生成器函数！</span></span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">githubProjects</span> = [];</span><br><span class="line">        <span class="variable language_">this</span>.<span class="property">state</span> = <span class="string">&quot;pending&quot;</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">const</span> projects = <span class="keyword">yield</span> <span class="title function_">fetchGithubProjectsSomehow</span>(); <span class="comment">// 用 yield 代替 await</span></span><br><span class="line">            <span class="keyword">const</span> filteredProjects = <span class="title function_">somePreprocessing</span>(projects);</span><br><span class="line"></span><br><span class="line">            <span class="comment">// 异步代码自动会被 `action` 包装</span></span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">state</span> = <span class="string">&quot;done&quot;</span>;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">githubProjects</span> = filteredProjects;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">            <span class="variable language_">this</span>.<span class="property">state</span> = <span class="string">&quot;error&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="三、计数器例子"><a href="#三、计数器例子" class="headerlink" title="三、计数器例子"></a>三、计数器例子</h2><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">React</span>, &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; observer &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx-react&#x27;</span>;<span class="comment">//结合react</span></span><br><span class="line"><span class="keyword">import</span> &#123; observable, autorun,computed &#125; <span class="keyword">from</span> <span class="string">&#x27;mobx&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义数据store</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Counter</span> &#123;</span><br><span class="line">  @observable number = <span class="number">0</span>;</span><br><span class="line">  @computed <span class="keyword">get</span> <span class="title function_">msg</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&#x27;number:&#x27;</span> + <span class="variable language_">this</span>.<span class="property">number</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 用action改变数据，避免混乱</span></span><br><span class="line">  @action <span class="title function_">increment</span>(<span class="params"></span>)&#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">number</span> ++</span><br><span class="line">  &#125;</span><br><span class="line">  @action <span class="attr">decrement</span>: <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    <span class="variable language_">this</span>.<span class="property">number</span> --</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> store = <span class="keyword">new</span> <span class="title class_">Counter</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 把属性注入react组件</span></span><br><span class="line">@observer</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">App</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> (<span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123; store.msg &#125; <span class="tag">&lt;<span class="name">br</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleInc&#125;</span>&gt;</span> + <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">button</span> <span class="attr">onClick</span>=<span class="string">&#123;this.handleDec&#125;</span>&gt;</span> - <span class="tag">&lt;/<span class="name">button</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">handleInc</span>(<span class="params"></span>) &#123;</span><br><span class="line">    store.<span class="title function_">increment</span>();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">handleDec</span>(<span class="params"></span>) &#123;</span><br><span class="line">    store.<span class="title function_">decrement</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title class_">ReactDOM</span>.<span class="title function_">render</span>(<span class="language-xml"><span class="tag">&lt;<span class="name">App</span> /&gt;</span></span>, <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&#x27;root&#x27;</span>));</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="四、应用案例"><a href="#四、应用案例" class="headerlink" title="四、应用案例"></a>四、应用案例</h2><blockquote>
-<p><a href="https://github.com/poetries/react-mobx-template">https://github.com/poetries/react-mobx-template</a></p>
-</blockquote>
-<h2 id="五、参考"><a href="#五、参考" class="headerlink" title="五、参考"></a>五、参考</h2><blockquote>
-<p>文档学习 <a href="https://cn.mobx.js.org/">https://cn.mobx.js.org/</a></p>
-</blockquote>
 
       </div>
     

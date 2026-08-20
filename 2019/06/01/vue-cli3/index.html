@@ -7,31 +7,29 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Vue CLI 3 项目构建基础 | 前端进阶之旅</title>
+  <title>Vue CLI 3 项目构建基础 vue.config.js 配置详解 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Vue," />
+    <meta name="keywords" content="前端工程化,Vue,webpack,Vue CLI," />
   
 
-  <meta name="description" content="一、依赖工具# 查看 node 版本node -v# 查看 npm 版本npm -v  二、脚手架vue-cli# 安装 Vue CLI 3.xnpm i -g @vue&#x2F;cli   安装完 vue-cli 后，我们在你想要创建的项目目录地址下执行构建命令  # my-project 是你的项目名称vue create my-project  目录结构 ├── node_modules     #">
+  <meta name="description" content="从零搭一个 Vue CLI 3 项目，讲清它为什么看不到 webpack 配置文件，逐项拆解 vue.config.js 里的 publicPath、outputDir、chainWebpack、configureWebpack、devServer，并附默认插件清单与迁移到 Vite 的对照。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Vue CLI 3 项目构建基础">
+<meta property="og:title" content="Vue CLI 3 项目构建基础 vue.config.js 配置详解">
 <meta property="og:url" content="http://blog.poetries.top/2019/06/01/vue-cli3/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、依赖工具# 查看 node 版本node -v# 查看 npm 版本npm -v  二、脚手架vue-cli# 安装 Vue CLI 3.xnpm i -g @vue&#x2F;cli   安装完 vue-cli 后，我们在你想要创建的项目目录地址下执行构建命令  # my-project 是你的项目名称vue create my-project  目录结构 ├── node_modules     #">
+<meta property="og:description" content="从零搭一个 Vue CLI 3 项目，讲清它为什么看不到 webpack 配置文件，逐项拆解 vue.config.js 里的 publicPath、outputDir、chainWebpack、configureWebpack、devServer，并附默认插件清单与迁移到 Vite 的对照。">
 <meta property="og:locale">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/6/26/1643ca037f818a81">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/6/26/1643ca8799bb4491">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/7/22/164c05d8ad965059">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/7/22/164c15d1f97432b5">
 <meta property="article:published_time" content="2019-06-01T16:12:32.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.693Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.958Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="前端工程化">
 <meta property="article:tag" content="Vue">
+<meta property="article:tag" content="webpack">
+<meta property="article:tag" content="Vue CLI">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/6/26/1643ca037f818a81">
 
   
 
@@ -209,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E4%BE%9D%E8%B5%96%E5%B7%A5%E5%85%B7"><span class="toc-text">一、依赖工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%84%9A%E6%89%8B%E6%9E%B6vue-cli"><span class="toc-text">二、脚手架vue-cli</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81webpack-%E5%9C%A8-CLI-3-%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-text">三、webpack 在 CLI 3 中的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%8E-vue-cli-2-x-%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="toc-text">3.1 与 vue-cli 2.x 的差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-vue-config-js-%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-text">3.2 vue.config.js 的配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E9%BB%98%E8%AE%A4%E6%8F%92%E4%BB%B6%E7%AE%80%E4%BB%8B"><span class="toc-text">3.3 默认插件简介</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8A%8A%E7%8E%AF%E5%A2%83%E5%92%8C%E8%84%9A%E6%89%8B%E6%9E%B6%E8%A3%85%E5%A5%BD"><span class="toc-text">一、先把环境和脚手架装好</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%E5%92%8C%E5%8F%AF%E8%A7%86%E5%8C%96%E7%95%8C%E9%9D%A2"><span class="toc-text">二、目录结构和可视化界面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81CLI-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9C%8B%E4%B8%8D%E5%88%B0-webpack-%E9%85%8D%E7%BD%AE"><span class="toc-text">三、CLI 3 为什么看不到 webpack 配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81vue-config-js-%E9%80%90%E9%A1%B9%E6%8B%86%E8%A7%A3"><span class="toc-text">四、vue.config.js 逐项拆解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-baseUrl-%E4%B8%8E%E7%8E%B0%E5%9C%A8%E7%9A%84-publicPath"><span class="toc-text">1. baseUrl 与现在的 publicPath</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-outputDir"><span class="toc-text">2. outputDir</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-productionSourceMap"><span class="toc-text">3. productionSourceMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-chainWebpack"><span class="toc-text">4. chainWebpack</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-configureWebpack"><span class="toc-text">5. configureWebpack</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-devServer"><span class="toc-text">6. devServer</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%BB%98%E8%AE%A4%E8%A3%85%E4%BA%86%E5%93%AA%E4%BA%9B-webpack-%E6%8F%92%E4%BB%B6"><span class="toc-text">五、默认装了哪些 webpack 插件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Vue-CLI-%E4%B9%8B%E5%90%8E%EF%BC%8C%E7%8E%B0%E5%9C%A8%E8%AF%A5%E7%94%A8%E4%BB%80%E4%B9%88"><span class="toc-text">六、Vue CLI 之后，现在该用什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -232,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-vue-cli3" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">Vue CLI 3 项目构建基础</h1>
+    <h1 class="post-title">Vue CLI 3 项目构建基础 vue.config.js 配置详解</h1>
 
     <div class="article-meta">
       <span>
@@ -274,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2k字</span>
+            <span>字数统计 4.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 17分</span>
           </span>
       
       
@@ -293,104 +291,153 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、依赖工具"><a href="#一、依赖工具" class="headerlink" title="一、依赖工具"></a>一、依赖工具</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看 node 版本</span></span><br><span class="line">node -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 npm 版本</span></span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+        <p>用 Vue CLI 3 建完项目，很多人第一反应是懵的：<code>build</code> 目录呢？<code>webpack.base.conf.js</code> 呢？CLI 2 时代那一堆能随便改的配置文件全没了，根目录干净得只剩一个 <code>package.json</code>。想改个图片打包阈值、加个二级目录、配个代理，无从下手。这篇就顺着这条线走一遍，先把项目跑起来，再讲清 CLI 3 把 webpack 藏到哪去了，然后把 <code>vue.config.js</code> 里每一项配置对应改的是 webpack 的哪个字段讲明白，最后附上默认插件清单和现在该怎么选型。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>安装 Vue CLI 3 并创建项目，看懂生成的目录结构</li>
+<li>CLI 3 到底把 webpack 配置藏在了哪里，为什么要这么做</li>
+<li><code>vue.config.js</code> 六个常用配置项各自改的是 webpack 的什么</li>
+<li><code>chainWebpack</code> 和 <code>configureWebpack</code> 的区别，什么时候用哪个</li>
+<li>用 <code>vue inspect</code> 反查最终生效的完整配置</li>
+<li>CLI 3 默认给你装了哪些 webpack 插件，各自干什么</li>
+<li>Vue CLI 进入维护状态之后，新项目该怎么办</li>
+</ul>
+<h2 id="一、先把环境和脚手架装好"><a href="#一、先把环境和脚手架装好" class="headerlink" title="一、先把环境和脚手架装好"></a>一、先把环境和脚手架装好</h2><p>先确认本地 Node 环境。CLI 3 官方要求的 Node 版本是 8.9 及以上，太老的版本装不上：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看 node 版本</span></span><br><span class="line">node -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 npm 版本</span></span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、脚手架vue-cli"><a href="#二、脚手架vue-cli" class="headerlink" title="二、脚手架vue-cli"></a>二、脚手架vue-cli</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 Vue CLI 3.x</span></span><br><span class="line">npm i -g @vue/cli</span><br></pre></td></tr></table></figure>
+<p>然后全局装脚手架：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 Vue CLI 3.x</span></span><br><span class="line">npm i -g @vue/cli</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>安装完 <code>vue-cli</code> 后，我们在你想要创建的项目目录地址下执行构建命令</p>
-</blockquote>
+<p>这里有个新旧包名的坑。CLI 2 的包名是 <code>vue-cli</code>，CLI 3 换成了带 scope 的 <code>@vue/cli</code>，两者是两个独立的 npm 包。如果你机器上以前装过 <code>vue-cli</code>，<code>vue -V</code> 打出来还是 2.x，先把老的卸干净再装新的，不然命令会打架。</p>
+<p>装完之后，在你想要放项目的目录下执行创建命令：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># my-project 是你的项目名称</span></span><br><span class="line">vue create my-project</span><br></pre></td></tr></table></figure>
 
-<p><strong>目录结构</strong></p>
+<p>它会先问你选预设还是手动选特性，手动模式下可以勾 Router、Vuex、CSS 预处理器、ESLint、单元测试这些。这一步选完之后配置会记在本地，下次建项目可以直接复用预设，不用再点一遍。</p>
+<h2 id="二、目录结构和可视化界面"><a href="#二、目录结构和可视化界面" class="headerlink" title="二、目录结构和可视化界面"></a>二、目录结构和可视化界面</h2><p>创建完成后的目录长这样：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">├── node_modules     <span class="comment"># 项目依赖包目录</span></span><br><span class="line">├── public</span><br><span class="line">│   ├── favicon.ico  <span class="comment"># ico图标</span></span><br><span class="line">│   └── index.html   <span class="comment"># 首页模板</span></span><br><span class="line">├── src </span><br><span class="line">│   ├── assets       <span class="comment"># 样式图片目录</span></span><br><span class="line">│   ├── components   <span class="comment"># 组件目录</span></span><br><span class="line">│   ├── views        <span class="comment"># 页面目录</span></span><br><span class="line">│   ├── App.vue      <span class="comment"># 父组件</span></span><br><span class="line">│   ├── main.js      <span class="comment"># 入口文件</span></span><br><span class="line">│   ├── router.js    <span class="comment"># 路由配置文件</span></span><br><span class="line">│   └── store.js     <span class="comment"># vuex状态管理文件</span></span><br><span class="line">├── .gitignore       <span class="comment"># git忽略文件</span></span><br><span class="line">├── .postcssrc.js    <span class="comment"># postcss配置文件</span></span><br><span class="line">├── babel.config.js  <span class="comment"># babel配置文件</span></span><br><span class="line">├── package.json     <span class="comment"># 包管理文件</span></span><br><span class="line">└── yarn.lock        <span class="comment"># yarn依赖信息文件</span></span><br></pre></td></tr></table></figure>
 
-
-<p><strong>可视化界面</strong></p>
-<blockquote>
-<p>除了使用上述命令行构建外，<code>vue-cli 3.x</code> 还提供了可视化的操作界面，在项目目录下我们运行如下命令开启图形化界面：</p>
-</blockquote>
+<p>几个点值得留意。<code>public</code> 目录里的东西是原样拷贝到构建产物里的，不走 webpack 处理，所以那些必须保持固定文件名的资源（第三方 SDK、静态 JSON）放这儿最省事。<code>index.html</code> 是模板，里面可以用 <code>htmlWebpackPlugin.options</code> 的变量。</p>
+<p><code>components</code> 和 <code>views</code> 的分工是 CLI 给的一个约定：<code>views</code> 放路由级别的页面，<code>components</code> 放可复用的组件。这条约定挺重要，它其实对应的是容器组件和展示组件的划分，我在 <a href="https://feinterview.poetries.top/blog/vue-comp">Vue组件化实践详解</a> 里把组件之间怎么通信讲得比较细，配合着看会更清楚为什么要这么分。</p>
+<p>还有一点，<code>router.js</code> 和 <code>store.js</code> 是 CLI 3 早期版本生成的单文件形式。后来的版本改成了 <code>router/index.js</code> 和 <code>store/index.js</code> 目录形式，方便把路由拆成多个模块。你手上的版本生成哪种以实际为准，两种都能跑。</p>
+<p>除了命令行，CLI 3 还提供了一个图形化界面，在项目目录下运行：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vue ui</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://user-gold-cdn.xitu.io/2018/6/26/1643ca037f818a81"></p>
-<p><img src="https://user-gold-cdn.xitu.io/2018/6/26/1643ca8799bb4491"></p>
-<h2 id="三、webpack-在-CLI-3-中的应用"><a href="#三、webpack-在-CLI-3-中的应用" class="headerlink" title="三、webpack 在 CLI 3 中的应用"></a>三、webpack 在 CLI 3 中的应用</h2><h3 id="3-1-与-vue-cli-2-x-的差异"><a href="#3-1-与-vue-cli-2-x-的差异" class="headerlink" title="3.1 与 vue-cli 2.x 的差异"></a>3.1 与 vue-cli 2.x 的差异</h3><blockquote>
-<p>如果你使用过 <code>vue-cli 2.x</code>，那么你应该了解其构建出的目录会包含相应的 <code>webpack </code>配置文件，但是在 <code>vue-cli 3.x</code> 中你却见不到一份关于 webpack 的配置文件，难道 <code>3.x</code> 抛弃了 webpack？其实不然，<code>3.x</code> 提供了一种开箱即用的模式，即你无需配置 <code>webpack</code> 就可以运行项目，并且它提供了一个 <code>vue.config.js</code> 文件来满足开发者对其封装的 <code>webpack</code> 默认配置的修改</p>
-</blockquote>
-<p><img src="https://user-gold-cdn.xitu.io/2018/7/22/164c05d8ad965059"></p>
-<h3 id="3-2-vue-config-js-的配置"><a href="#3-2-vue-config-js-的配置" class="headerlink" title="3.2 vue.config.js 的配置"></a>3.2 vue.config.js 的配置</h3><p><strong>a. baseurl</strong></p>
-<blockquote>
-<p>你想要将项目地址加一个二级目录，比如：<code>http://localhost:8080/vue/</code>，那么我们需要在 <code>vue.config.js</code> 里配置 <code>baseurl</code> 这一项</p>
-</blockquote>
+<p>它会起一个本地服务，浏览器里能看到依赖列表、可用的 task、插件管理。日常我用得不多，但有两个场景挺顺手：一是给非前端同学演示怎么跑构建，二是下面要讲的查看 webpack 完整配置。</p>
+<h2 id="三、CLI-3-为什么看不到-webpack-配置"><a href="#三、CLI-3-为什么看不到-webpack-配置" class="headerlink" title="三、CLI 3 为什么看不到 webpack 配置"></a>三、CLI 3 为什么看不到 webpack 配置</h2><p>用过 CLI 2 的人都知道，它生成的项目里有一整套 webpack 配置文件摊在 <code>build</code> 目录下，想改什么直接进去改。CLI 3 里这些文件一个都没有，那它是抛弃 webpack 了吗？</p>
+<p>当然不是。CLI 3 用的还是 webpack，只是把配置封装进了 <code>@vue/cli-service</code> 这个包里，对外只暴露一个 <code>vue.config.js</code> 作为修改入口。</p>
+<p>这个改动当年争议不小，我一开始也觉得别扭，配置摸不着心里没底。用久了才体会到好处：项目里那份 webpack 配置一旦落地成文件，就跟项目绑死了，升级 webpack、升级 loader 全靠人肉改，几十个项目就是几十份需要各自维护的配置。封装进依赖之后，升级 CLI 版本就等于升级了整套构建配置，成本从 N 降到 1。</p>
+<p>代价是灵活性。你想做的事如果超出了 <code>vue.config.js</code> 暴露的范围，就得靠 <code>chainWebpack</code> 去改内部结构，得先知道 CLI 给每条规则、每个插件起的名字是什么。这也是为什么 <code>vue inspect</code> 这个命令后面会反复出现。</p>
+<h2 id="四、vue-config-js-逐项拆解"><a href="#四、vue-config-js-逐项拆解" class="headerlink" title="四、vue.config.js 逐项拆解"></a>四、vue.config.js 逐项拆解</h2><p><code>vue.config.js</code> 放在项目根目录，导出一个对象。下面这几项是最常改的。</p>
+<h3 id="1-baseUrl-与现在的-publicPath"><a href="#1-baseUrl-与现在的-publicPath" class="headerlink" title="1. baseUrl 与现在的 publicPath"></a>1. baseUrl 与现在的 publicPath</h3><p>如果你想把项目部署在一个二级目录下，比如 <code>http://localhost:8080/vue/</code>，需要配置这一项：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">baseUrl</span>: <span class="string">&#x27;vue&#x27;</span>,</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>其改变的其实是 <code>webpack</code> 配置文件中 <code>output</code> 的 <code>publicPath</code> 项，这时候你重启终端再次打开页面的时候我们首页的<code> url</code> 就会变成带二级目录的形式。</p>
-</blockquote>
-<p><strong>b. outputDir</strong></p>
-<blockquote>
-<p>如果你想将构建好的文件打包输出到 <code>output</code> 文件夹下（默认是 <code>dist</code> 文件夹），你可以配置</p>
-</blockquote>
+<p>它改的是 webpack 配置里 <code>output.publicPath</code>，重启服务之后首页 URL 就带上二级目录了。</p>
+<p>这里要补两个更正。第一，<code>baseUrl</code> 这个名字从 Vue CLI 3.3 起就废弃了，改名叫 <code>publicPath</code>，新版本里写 <code>baseUrl</code> 会给你一条警告，功能还在但别再用。第二，值本身建议写成 <code>&#39;/vue/&#39;</code> 这种前后都带斜杠的形式，只写 <code>&#39;vue&#39;</code> 在部分资源路径拼接时容易出问题。所以现在的写法是：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">publicPath</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span> ? <span class="string">&#x27;/vue/&#x27;</span> : <span class="string">&#x27;/&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>按环境区分是因为本地开发一般在根路径下跑，生产才有二级目录。如果部署到 CDN，这里直接填完整的 CDN 域名也行。</p>
+<h3 id="2-outputDir"><a href="#2-outputDir" class="headerlink" title="2. outputDir"></a>2. outputDir</h3><p>想把构建产物输出到别的文件夹（默认是 <code>dist</code>）：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">outputDir</span>: <span class="string">&#x27;output&#x27;</span>,</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>然后运行命令 <code>yarn build</code> 进行打包输出，你会发现项目跟目录会创建 <code>output</code> 文件夹， 这其实改变了 <code>webpack</code> 配置中 <code>output</code> 下的 <code>path </code>项，修改了文件的输出路径</p>
-</blockquote>
-<p><strong>c. productionSourceMap</strong></p>
-<blockquote>
-<p>该配置项用于设置是否为生产环境构建生成 <code>source map</code>，一般在生产环境下为了快速定位错误信息，我们都会开启 <code>source map</code>：</p>
-</blockquote>
+<p>跑 <code>yarn build</code> 之后项目根目录会出现 <code>output</code> 文件夹。它改的是 webpack <code>output.path</code>。</p>
+<p>顺带说个相关的：<code>assetsDir</code> 控制的是产物内部静态资源的子目录名（默认是空，资源直接散在根下）。如果后端同学要求 js、css、图片必须归到 <code>static</code> 下，配 <code>assetsDir: &#39;static&#39;</code> 就行，不用去动 webpack。</p>
+<h3 id="3-productionSourceMap"><a href="#3-productionSourceMap" class="headerlink" title="3. productionSourceMap"></a>3. productionSourceMap</h3><p>这一项控制生产构建要不要生成 source map：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">productionSourceMap</span>: <span class="literal">true</span>,</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>该配置会修改 <code>webpack</code> 中 <code>devtool</code> 项的值为 <code>source-map</code></p>
-</blockquote>
-<p><strong>d. chainWebpack</strong></p>
-<blockquote>
-<p><code>chainWebpack</code> 配置项允许我们更细粒度的控制 <code>webpack </code>的内部配置，其集成的是 <code>webpack-chain</code> 这一插件，该插件可以让我们能够使用链式操作来修改配置，比如</p>
-</blockquote>
+<p>它对应 webpack 里 <code>devtool</code> 的值。开启后线上报错能还原到源码行号，定位问题快很多。</p>
+<p>但这条现在得加个前提。生产环境直接把 <code>.map</code> 文件传上服务器，等于把源码原封不动交出去了，任何人打开 DevTools 都能看到你的业务逻辑。现在通行的做法是关掉 <code>productionSourceMap</code>，改成在构建流程里单独生成 map 文件、上传给 Sentry 这类错误监控平台，然后从部署产物里删掉。既保留了还原能力，又不把源码挂到公网上。</p>
+<p>顺手一提，<code>productionSourceMap: false</code> 还能明显缩短构建时间，大项目上能省掉不少。</p>
+<h3 id="4-chainWebpack"><a href="#4-chainWebpack" class="headerlink" title="4. chainWebpack"></a>4. chainWebpack</h3><p><code>chainWebpack</code> 允许我们用链式操作细致地修改 webpack 内部配置，底层集成的是 <code>webpack-chain</code> 这个库。比如要把图片的 base64 内联阈值改大：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 用于做相应的合并处理</span></span><br><span class="line"><span class="keyword">const</span> merge = <span class="built_in">require</span>(<span class="string">&#x27;webpack-merge&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// config 参数为已经解析好的 webpack 配置</span></span><br><span class="line">    <span class="attr">chainWebpack</span>: <span class="function"><span class="params">config</span> =&gt;</span> &#123;</span><br><span class="line">        config.<span class="property">module</span></span><br><span class="line">            .<span class="title function_">rule</span>(<span class="string">&#x27;images&#x27;</span>)</span><br><span class="line">            .<span class="title function_">use</span>(<span class="string">&#x27;url-loader&#x27;</span>)</span><br><span class="line">            .<span class="title function_">tap</span>(<span class="function"><span class="params">options</span> =&gt;</span></span><br><span class="line">                <span class="title function_">merge</span>(options, &#123;</span><br><span class="line">                  <span class="attr">limit</span>: <span class="number">5120</span>,</span><br><span class="line">                &#125;)</span><br><span class="line">            )</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>以上操作我们可以成功修改 webpack 中 module 项里配置 rules 规则为图片下的 url-loader 值，将其 limit 限制改为 5M，修改后的 webpack 配置代码如下：</p>
-</blockquote>
+<p><code>rule(&#39;images&#39;)</code> 和 <code>use(&#39;url-loader&#39;)</code> 里的字符串不是随便写的，是 CLI 给这条规则和这个 loader 起的名字，得先用 <code>vue inspect</code> 查出来才能对得上。<code>tap</code> 拿到的是这个 loader 当前的 options，返回值就是新的 options，这里用 <code>webpack-merge</code> 做合并而不是直接覆盖，是为了保住 CLI 原本设的其他字段。</p>
+<p>改完之后，webpack 里对应的这段配置变成：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">module</span>: &#123;</span><br><span class="line">        <span class="attr">rules</span>: [</span><br><span class="line">            &#123;   </span><br><span class="line">                <span class="comment">/* config.module.rule(&#x27;images&#x27;) */</span></span><br><span class="line">                <span class="attr">test</span>: <span class="regexp">/\.(png|jpe?g|gif|webp)(\?.*)?$/</span>,</span><br><span class="line">                <span class="attr">use</span>: [</span><br><span class="line">                    <span class="comment">/* config.module.rule(&#x27;images&#x27;).use(&#x27;url-loader&#x27;) */</span></span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">loader</span>: <span class="string">&#x27;url-loader&#x27;</span>,</span><br><span class="line">                        <span class="attr">options</span>: &#123;</span><br><span class="line">                            <span class="attr">limit</span>: <span class="number">5120</span>,</span><br><span class="line">                            <span class="attr">name</span>: <span class="string">&#x27;img/[name].[hash:8].[ext]&#x27;</span></span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        ]</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><strong>e. configureWebpack</strong></p>
-<blockquote>
-<p>除了上述使用 <code>chainWebpack</code> 来改变 <code>webpack</code> 内部配置外，我们还可以使用 <code>configureWebpack</code> 来进行修改，两者的不同点在于 <code>chainWebpack</code> 是链式修改，而 <code>configureWebpack</code> 更倾向于整体替换和修改。示例代码如下</p>
-</blockquote>
+<p>注意 <code>limit: 5120</code> 的单位是字节，也就是 5KB，不是 5MB。这个数字调大要慎重，内联进 JS 的 base64 会变大三分之一左右，而且没法被浏览器单独缓存，阈值设太大反而拖慢首屏。我的经验是 4KB 到 10KB 之间，专门给图标类小图用。</p>
+<h3 id="5-configureWebpack"><a href="#5-configureWebpack" class="headerlink" title="5. configureWebpack"></a>5. configureWebpack</h3><p>除了链式修改，还可以用 <code>configureWebpack</code> 改配置。两者的区别在于 <code>chainWebpack</code> 是精细的链式操作，<code>configureWebpack</code> 更倾向于整体替换和合并：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// config 参数为已经解析好的 webpack 配置</span></span><br><span class="line">    <span class="attr">configureWebpack</span>: <span class="function"><span class="params">config</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// config.plugins = []; // 这样会直接将 plugins 置空</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 使用 return 一个对象会通过 webpack-merge 进行合并，plugins 不会置空</span></span><br><span class="line">        <span class="keyword">return</span> &#123;</span><br><span class="line">            <span class="attr">plugins</span>: []</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>configureWebpack</code> 可以直接是一个对象，也可以是一个函数，如果是对象它会直接使用 <code>webpack-merge</code> 对其进行合并处理，如果是函数，你可以直接使用其 <code>config </code>参数来修改 <code>webpack</code> 中的配置，或者返回一个对象来进行 merge 处理</p>
-</blockquote>
-<p>你可以在项目目录下运行 <code>vue inspect</code> 来查看你修改后的 <code>webpack</code> 完整配置，当然你也可以缩小审查范围，比如</p>
+<p><code>configureWebpack</code> 可以直接是一个对象，也可以是一个函数。是对象时 CLI 会用 <code>webpack-merge</code> 把它并进去；是函数时，你既可以直接改传入的 <code>config</code> 参数（改的是原对象，返回值不用管），也可以返回一个新对象交给 merge 处理。这两种用法千万别混着写，函数里既改 <code>config</code> 又 <code>return</code> 一个对象，很容易搞不清最终生效的是哪份。</p>
+<p>选哪个的判断很简单：加插件、改 <code>externals</code>、加 <code>resolve.alias</code> 这类「往上叠东西」的需求用 <code>configureWebpack</code>；要改某条已有 loader 规则的参数、要删掉某个默认插件、要调整插件的构造参数，这类「动内部结构」的需求只能用 <code>chainWebpack</code>，因为你需要按名字定位。</p>
+<p>改完怎么确认生效了？在项目目录下运行 <code>vue inspect</code> 就能看到最终解析出来的完整 webpack 配置，也可以缩小范围：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 只查看 plugins 的内容</span></span><br><span class="line">vue inspect plugins</span><br></pre></td></tr></table></figure>
 
-<p><strong>f. devServer</strong></p>
-<blockquote>
-<p><code>vue.config.js</code> 还提供了 <code>devServer</code> 项用于配置 <code>webpack-dev-server</code> 的行为，使得我们可以对本地服务器进行相应配置，我们在命令行中运行的 <code>yarn serve</code> 对应的命令 <code>vue-cli-service serve</code> 其实便是基于 <code>webpack-dev-server</code> 开启的一个本地服务器，其常用配置参数如下</p>
-</blockquote>
+<p>这个命令是排查构建问题的第一手段。配置没生效、loader 顺序不对、插件被重复注册，<code>vue inspect</code> 一跑基本都能看出来。输出很长，建议重定向到文件里再慢慢看。</p>
+<h3 id="6-devServer"><a href="#6-devServer" class="headerlink" title="6. devServer"></a>6. devServer</h3><p><code>devServer</code> 用于配置本地开发服务器的行为。我们跑的 <code>yarn serve</code> 对应的是 <code>vue-cli-service serve</code>，底层就是 <code>webpack-dev-server</code>：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="attr">devServer</span>: &#123;</span><br><span class="line">        <span class="attr">open</span>: <span class="literal">true</span>, <span class="comment">// 是否自动打开浏览器页面</span></span><br><span class="line">        <span class="attr">host</span>: <span class="string">&#x27;0.0.0.0&#x27;</span>, <span class="comment">// 指定使用一个 host。默认是 localhost</span></span><br><span class="line">        <span class="attr">port</span>: <span class="number">8080</span>, <span class="comment">// 端口地址</span></span><br><span class="line">        <span class="attr">https</span>: <span class="literal">false</span>, <span class="comment">// 使用https提供服务</span></span><br><span class="line">        <span class="attr">proxy</span>: <span class="literal">null</span>, <span class="comment">// string | Object 代理设置</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 提供在服务器内部的其他中间件之前执行自定义中间件的能力</span></span><br><span class="line">        <span class="attr">before</span>: <span class="function"><span class="params">app</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// `app` 是一个 express 实例</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>当然除了以上参数，其支持所有的 <code>webpack-dev-server </code>中的选项，比如 <code>historyApiFallback</code> 用于重写路由（会在后续的多页应用配置中讲解）、progress 将运行进度输出到控制台等</p>
-</blockquote>
-<h3 id="3-3-默认插件简介"><a href="#3-3-默认插件简介" class="headerlink" title="3.3 默认插件简介"></a>3.3 默认插件简介</h3><blockquote>
-<p>通过对 <code>vue.config.js</code> 的了解，我们知道了 <code>vue-cli 3.x </code>为我们默认封装了项目运行的常用 <code>webpack</code> 配置，那么它给我们提供了哪些默认插件，每一个 <code>plugin</code> 又有着怎样的用途呢？除了使用 <code>vue inspect plugins</code> 我们还可以通过运行 <code>vue ui</code> 进入可视化页面查看，步骤如下</p>
-</blockquote>
+<p>日常用得最多的是 <code>proxy</code>。前端本地 8080，后端接口在另一个域名上，直接请求会被跨域拦下来，配个代理把 <code>/api</code> 开头的请求转发过去就绕开了。要注意 <code>changeOrigin: true</code> 一般是必须的，不然后端拿到的 Host 头还是 <code>localhost:8080</code>，有些网关会因此拒绝。</p>
+<p><code>host: &#39;0.0.0.0&#39;</code> 的作用是让局域网内其他设备也能访问，手机上调试移动端页面时必须这么设。</p>
+<p>除了以上参数，它支持所有 <code>webpack-dev-server</code> 的选项，比如 <code>historyApiFallback</code> 用于重写路由（history 模式下刷新页面 404 就靠它）。</p>
+<p>这里有个需要更新的点：<code>before</code> 这个字段在 <code>webpack-dev-server</code> 4 之后经历过几次改名，最终统一到 <code>setupMiddlewares</code> 上。你手上的 CLI 版本用的是哪一版 dev-server，决定了该写哪个名字，以对应版本的官方文档为准，别照着老文章硬抄。</p>
+<h2 id="五、默认装了哪些-webpack-插件"><a href="#五、默认装了哪些-webpack-插件" class="headerlink" title="五、默认装了哪些 webpack 插件"></a>五、默认装了哪些 webpack 插件</h2><p>既然 CLI 把配置封装起来了，那它默认给我们塞了哪些插件？除了 <code>vue inspect plugins</code>，也可以走图形界面看：</p>
 <ul>
 <li>打开可视化页面，点击对应项目进入管理页面（如果没有对应项目，需要导入或新建）</li>
 <li>点击侧边栏 <code>Tasks</code> 选项，再点击二级栏 <code>inspect</code> 选项</li>
 <li>点击 <code>Run task</code> 按钮执行审查命令</li>
 </ul>
-<p><img src="https://user-gold-cdn.xitu.io/2018/7/22/164c15d1f97432b5"></p>
-<blockquote>
-<p>最后我们从输出的内容中找到 <code>plugins</code> 数组，其包含了如下插件（配置项已经省略，增加了定义插件的代码）：</p>
-</blockquote>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue-loader是 webpack 的加载器，允许你以单文件组件的格式编写 Vue 组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">VueLoaderPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;vue-loader/lib/plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// webpack 内置插件，用于创建在编译时可以配置的全局常量</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">DefinePlugin</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于强制所有模块的完整路径必需与磁盘上实际路径的确切大小写相匹配</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CaseSensitivePathsPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;case-sensitive-paths-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 识别某些类型的 webpack 错误并整理，以提供开发人员更好的体验。</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">FriendlyErrorsPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;friendly-errors-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 CSS 提取到单独的文件中，为每个包含 CSS 的 JS 文件创建一个 CSS 文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">MiniCssExtractPlugin</span> = <span class="built_in">require</span>(<span class="string">&quot;mini-css-extract-plugin&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于在 webpack 构建期间优化、最小化 CSS文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">OptimizeCssnanoPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;optimize-css-assets-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// webpack 内置插件，用于根据模块的相对路径生成 hash 作为模块 id, 一般用于生产环境</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">HashedModuleIdsPlugin</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于根据模板或使用加载器生成 HTML 文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">HtmlWebpackPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;html-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于在使用 html-webpack-plugin 生成的 html 中添加 &lt;link rel =&#x27;preload&#x27;&gt; 或 &lt;link rel =&#x27;prefetch&#x27;&gt;，有助于异步加载</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">PreloadPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;preload-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于将单个文件或整个目录复制到构建目录</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CopyWebpackPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;copy-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">plugins</span>: [</span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;vue-loader&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">VueLoaderPlugin</span>(), </span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;define&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">DefinePlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;case-sensitive-paths&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">CaseSensitivePathsPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;friendly-errors&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">FriendlyErrorsWebpackPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;extract-css&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">MiniCssExtractPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;optimize-css&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">OptimizeCssnanoPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;hash-module-ids&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">HashedModuleIdsPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;html&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">HtmlWebpackPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;preload&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">PreloadPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;copy&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">CopyWebpackPlugin</span>()</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从输出里找到 <code>plugins</code> 数组，大致是下面这些（配置项已省略，补上了定义插件的代码）：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue-loader是 webpack 的加载器，允许你以单文件组件的格式编写 Vue 组件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">VueLoaderPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;vue-loader/lib/plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// webpack 内置插件，用于创建在编译时可以配置的全局常量</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">DefinePlugin</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于强制所有模块的完整路径必需与磁盘上实际路径的确切大小写相匹配</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CaseSensitivePathsPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;case-sensitive-paths-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 识别某些类型的 webpack 错误并整理，以提供开发人员更好的体验。</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">FriendlyErrorsPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;friendly-errors-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 CSS 提取到单独的文件中，为每个包含 CSS 的 JS 文件创建一个 CSS 文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">MiniCssExtractPlugin</span> = <span class="built_in">require</span>(<span class="string">&quot;mini-css-extract-plugin&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于在 webpack 构建期间优化、最小化 CSS文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">OptimizeCssnanoPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;optimize-css-assets-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// webpack 内置插件，用于根据模块的相对路径生成 hash 作为模块 id, 一般用于生产环境</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">HashedModuleIdsPlugin</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;webpack&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于根据模板或使用加载器生成 HTML 文件</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">HtmlWebpackPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;html-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于在使用 html-webpack-plugin 生成的 html 中添加 &lt;link rel =&#x27;preload&#x27;&gt; 或 &lt;link rel =&#x27;prefetch&#x27;&gt;，有助于异步加载</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">PreloadPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;preload-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用于将单个文件或整个目录复制到构建目录</span></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">CopyWebpackPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;copy-webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">    <span class="attr">plugins</span>: [</span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;vue-loader&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">VueLoaderPlugin</span>(), </span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;define&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">DefinePlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;case-sensitive-paths&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">CaseSensitivePathsPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;friendly-errors&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">FriendlyErrorsPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;extract-css&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">MiniCssExtractPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;optimize-css&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">OptimizeCssnanoPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;hash-module-ids&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">HashedModuleIdsPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;html&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">HtmlWebpackPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;preload&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">PreloadPlugin</span>(),</span><br><span class="line">        </span><br><span class="line">        <span class="comment">/* config.plugin(&#x27;copy&#x27;) */</span></span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">CopyWebpackPlugin</span>()</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>原文这段代码里插件变量声明成了 <code>FriendlyErrorsPlugin</code>，实例化时却写成 <code>new FriendlyErrorsWebpackPlugin()</code>，两个名字对不上，直接跑会报未定义，上面已经统一了。另外 <code>OptimizeCssnanoPlugin</code> 这个变量名和它 require 的 <code>optimize-css-assets-webpack-plugin</code> 也对不上，不同 CLI 版本用的 CSS 压缩插件不完全一样，你本地实际用的是哪个，以 <code>vue inspect plugins</code> 的输出为准。</p>
+<p>注释里那句 <code>/* config.plugin(&#39;xxx&#39;) */</code> 是重点，那就是 <code>chainWebpack</code> 里定位插件要用的名字。想删掉 preload 插件，<code>config.plugins.delete(&#39;preload&#39;)</code> 一行就够了。</p>
+<p>这份清单本身也有几处随时代变了。<code>vue-loader/lib/plugin</code> 是 vue-loader 15 的引入路径，配 Vue 3 的 vue-loader 16 及以上直接从 <code>vue-loader</code> 主入口导出 <code>VueLoaderPlugin</code>。<code>HashedModuleIdsPlugin</code> 在 webpack 5 里被移除了，等价能力内置成了 <code>optimization.moduleIds: &#39;deterministic&#39;</code>。真要照着改配置，还是以你项目里 webpack 的实际版本为准。</p>
+<h2 id="六、Vue-CLI-之后，现在该用什么"><a href="#六、Vue-CLI-之后，现在该用什么" class="headerlink" title="六、Vue CLI 之后，现在该用什么"></a>六、Vue CLI 之后，现在该用什么</h2><p>这篇写的是 2019 年的 Vue CLI 3。到今天，情况变了：Vue CLI 官方已经把它置为维护状态，新项目官方推荐的脚手架是 <code>create-vue</code>，底层跑的是 Vite 而不是 webpack。Vue 2 本身的官方维护也已经停止。</p>
+<p>不是说 CLI 3 这套东西不能用了，存量项目该跑还是跑得好好的。但如果你现在从零开一个项目，用 <code>npm create vue@latest</code> 起会顺手得多，开发环境冷启动是秒级的，热更新也几乎没有等待。</p>
+<p>从 <code>vue.config.js</code> 迁到 <code>vite.config.js</code>，上面讲的几项大致能对上：</p>
+<table>
+<thead>
+<tr>
+<th>Vue CLI</th>
+<th>Vite</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>publicPath</code></td>
+<td><code>base</code></td>
+<td>部署基础路径</td>
+</tr>
+<tr>
+<td><code>outputDir</code></td>
+<td><code>build.outDir</code></td>
+<td>产物输出目录</td>
+</tr>
+<tr>
+<td><code>productionSourceMap</code></td>
+<td><code>build.sourcemap</code></td>
+<td>生产 source map</td>
+</tr>
+<tr>
+<td><code>devServer.proxy</code></td>
+<td><code>server.proxy</code></td>
+<td>开发代理</td>
+</tr>
+<tr>
+<td><code>devServer.port</code></td>
+<td><code>server.port</code></td>
+<td>端口</td>
+</tr>
+<tr>
+<td><code>chainWebpack</code> &#x2F; <code>configureWebpack</code></td>
+<td>Vite 插件 &#x2F; Rollup 配置</td>
+<td>概念不对等，需要重写</td>
+</tr>
+</tbody></table>
+<p>前五项基本是改个名字的事，最后一行是真正的迁移成本所在。webpack 的 loader 生态和 Vite 的插件生态不通用，自定义构建逻辑得按 Vite 插件的写法重来一遍。项目里 loader 改得越多，迁移越贵。具体字段以 Vite 官方文档为准，它更新得比较快。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回到开头那个「配置文件去哪了」的疑问。CLI 3 把整套 webpack 配置封进了 <code>@vue/cli-service</code>，换来的是升级成本从每个项目各改一遍降到改一个依赖版本，代价是你必须通过 <code>vue.config.js</code> 这个受限入口去改，而改之前得先用 <code>vue inspect</code> 搞清楚内部结构长什么样。</p>
+<p>几条实操结论：<code>baseUrl</code> 已经改名 <code>publicPath</code>，值写成前后带斜杠的形式；<code>productionSourceMap</code> 在今天默认应该关掉，map 单独传给监控平台；往上叠东西用 <code>configureWebpack</code>，动内部规则用 <code>chainWebpack</code>，后者的字符串名字全部来自 <code>vue inspect</code> 的输出；<code>devServer.proxy</code> 配 <code>changeOrigin: true</code>，<code>host</code> 设 <code>0.0.0.0</code> 才能局域网调试。</p>
+<p>最后是选型。Vue CLI 已进入维护状态，社区主流是 Vite，新项目直接用 <code>create-vue</code> 起。老项目不必为了迁而迁，但要清楚 CLI 不会再有大的功能更新了，这一点在做技术规划时得算进去。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://cli.vuejs.org/zh/config/">Vue CLI 官方文档 - 配置参考</a></li>
+<li><a href="https://cli.vuejs.org/zh/guide/webpack.html">Vue CLI 官方文档 - webpack 相关配置</a></li>
+<li><a href="https://github.com/neutrinojs/webpack-chain">webpack-chain - GitHub</a></li>
+<li><a href="https://webpack.js.org/configuration/dev-server/">webpack 官方文档 - DevServer</a></li>
+<li><a href="https://cn.vitejs.dev/config/">Vite 官方文档 - 配置</a></li>
+<li><a href="https://github.com/vuejs/create-vue">create-vue - GitHub</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

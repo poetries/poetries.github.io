@@ -7,25 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>pm2 ecosystem部署应用以及日志管理pm2-logrotate | 前端进阶之旅</title>
+  <title>pm2 ecosystem部署Node应用与pm2-logrotate日志切割实战 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Docker," />
+    <meta name="keywords" content="Node.js,部署,Docker,PM2," />
   
 
-  <meta name="description" content="本文记录了使用ecosystem部署应用，并且处理因PM2日志文件过大导致服务器磁盘空间耗尽的问题解决过程。通过安装并配置pm2-logrotate插件实现了日志文件的自动化管理，确保了服务器的稳定运行。  ecosystem配置&#x2F;&#x2F; 在nodejs&#x2F;nextjs项目根目录创建 ecosystem.config.jsmodule.exports &#x3D; &#123;  apps: [    &amp;#12">
+  <meta name="description" content="用 ecosystem.config.js 管理 PM2 进程配置，cluster 模式多实例部署 Node&#x2F;Next.js 应用，并通过 pm2-logrotate 做日志自动切割与保留，避免日志文件撑爆服务器磁盘，附完整 Dockerfile 写法。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="pm2 ecosystem部署应用以及日志管理pm2-logrotate">
+<meta property="og:title" content="pm2 ecosystem部署Node应用与pm2-logrotate日志切割实战">
 <meta property="og:url" content="http://blog.poetries.top/2025/11/12/pm2-docker-node-deploy/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="本文记录了使用ecosystem部署应用，并且处理因PM2日志文件过大导致服务器磁盘空间耗尽的问题解决过程。通过安装并配置pm2-logrotate插件实现了日志文件的自动化管理，确保了服务器的稳定运行。  ecosystem配置&#x2F;&#x2F; 在nodejs&#x2F;nextjs项目根目录创建 ecosystem.config.jsmodule.exports &#x3D; &#123;  apps: [    &amp;#12">
+<meta property="og:description" content="用 ecosystem.config.js 管理 PM2 进程配置，cluster 模式多实例部署 Node&#x2F;Next.js 应用，并通过 pm2-logrotate 做日志自动切割与保留，避免日志文件撑爆服务器磁盘，附完整 Dockerfile 写法。">
 <meta property="og:locale">
 <meta property="article:published_time" content="2025-11-12T06:40:12.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.681Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.947Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Node.js">
+<meta property="article:tag" content="部署">
 <meta property="article:tag" content="Docker">
+<meta property="article:tag" content="PM2">
 <meta name="twitter:card" content="summary">
 
   
@@ -204,7 +207,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#ecosystem%E9%85%8D%E7%BD%AE"><span class="toc-text">ecosystem配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pm2%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86logrotate"><span class="toc-text">pm2日志管理logrotate</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E5%90%88Dockerfile%E9%83%A8%E7%BD%B2Nextjs"><span class="toc-text">结合Dockerfile部署Nextjs</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E8%AF%B4%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8-ecosystem-%E6%96%87%E4%BB%B6"><span class="toc-text">一、先说为什么要用 ecosystem 文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81ecosystem-%E6%AF%8F%E4%B8%AA%E5%AD%97%E6%AE%B5%E5%9C%A8%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-text">二、ecosystem 每个字段在做什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%97%A5%E5%BF%97%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E6%8A%8A%E7%A3%81%E7%9B%98%E6%92%91%E7%88%86"><span class="toc-text">三、日志为什么会把磁盘撑爆</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%94%A8-pm2-logrotate-%E5%81%9A%E8%87%AA%E5%8A%A8%E5%88%87%E5%89%B2"><span class="toc-text">四、用 pm2-logrotate 做自动切割</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%8A%8A%E8%BF%99%E4%B8%80%E5%A5%97%E5%A1%9E%E8%BF%9B-Dockerfile"><span class="toc-text">五、把这一套塞进 Dockerfile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81pm2-runtime-%E5%92%8C-pm2-start-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-text">六、pm2-runtime 和 pm2 start 的区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%83%A8%E7%BD%B2%E5%90%8E%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81"><span class="toc-text">七、部署后怎么验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -227,13 +230,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-pm2-docker-node-deploy" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">pm2 ecosystem部署应用以及日志管理pm2-logrotate</h1>
+    <h1 class="post-title">pm2 ecosystem部署Node应用与pm2-logrotate日志切割实战</h1>
 
     <div class="article-meta">
       <span>
@@ -269,12 +272,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.7k字</span>
+            <span>字数统计 5.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 8分</span>
+            <span>阅读时长 22分</span>
           </span>
       
       
@@ -288,22 +291,58 @@
   <div class="article-content">
     
       <div id="container">
-        <blockquote>
-<p>本文记录了使用ecosystem部署应用，并且处理因PM2日志文件过大导致服务器磁盘空间耗尽的问题解决过程。通过安装并配置pm2-logrotate插件实现了日志文件的自动化管理，确保了服务器的稳定运行。</p>
-</blockquote>
-<h2 id="ecosystem配置"><a href="#ecosystem配置" class="headerlink" title="ecosystem配置"></a>ecosystem配置</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在nodejs/nextjs项目根目录创建 ecosystem.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">apps</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;my-app-name&#x27;</span>,</span><br><span class="line">      <span class="attr">script</span>: <span class="string">&#x27;./server.js&#x27;</span>, <span class="comment">// 服务启动脚本</span></span><br><span class="line">      <span class="attr">watch</span>: <span class="literal">false</span>, <span class="comment">// 禁用文件监视，提高性能</span></span><br><span class="line">      <span class="attr">instances</span>: <span class="number">2</span>, <span class="comment">// 指定要启动的实例数量 // 0 和 max 同义</span></span><br><span class="line">      <span class="attr">exec_mode</span>: <span class="string">&#x27;cluster&#x27;</span>, <span class="comment">// 启用集群模式，指定要启动的实例数量</span></span><br><span class="line">      <span class="comment">// 启用文件日志记录</span></span><br><span class="line">      <span class="attr">output</span>: <span class="string">&#x27;./logs/app-out.log&#x27;</span>, <span class="comment">// 标准输出日志文件</span></span><br><span class="line">      <span class="attr">error</span>: <span class="string">&#x27;./logs/app-error.log&#x27;</span>, <span class="comment">// 错误日志文件</span></span><br><span class="line">      <span class="comment">// log: &#x27;./logs/combined.log&#x27;,        // 合并日志文件（可选）</span></span><br><span class="line">      <span class="comment">// 日志配置</span></span><br><span class="line">      <span class="attr">log_date_format</span>: <span class="string">&#x27;YYYY-MM-DD HH:mm Z&#x27;</span>,</span><br><span class="line">      <span class="attr">merge_logs</span>: <span class="literal">false</span>, <span class="comment">// 为每个实例单独日志</span></span><br><span class="line">      <span class="attr">time</span>: <span class="literal">true</span>, <span class="comment">// 在日志中添加时间戳</span></span><br><span class="line">      <span class="attr">env</span>: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        <p>服务器磁盘告警，登上去 <code>df -h</code> 一看根分区 100%，服务已经因为写不进文件挂了。一层层 <code>du -sh</code> 找过去，最后定位到应用目录下的 <code>app-error.log</code>，单个文件几个 G。这个文件从部署那天起就没被清理过，一直在往后追加。</p>
+<p>这篇把 PM2 的两件事写清楚。一件是用 <code>ecosystem.config.js</code> 管理进程配置，替代那种在命令行敲一长串 <code>pm2 start</code> 参数的做法；另一件是用 <code>pm2-logrotate</code> 做日志切割，让日志按大小和时间自动滚动、自动淘汰旧文件。最后把这一整套塞进 Dockerfile，Next.js standalone 产物加 PM2 cluster 模式，容器起来就是多实例带日志管理的状态。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>为什么要用 ecosystem 配置文件，而不是在命令行传参数</li>
+<li><code>ecosystem.config.js</code> 每个字段的作用与取值建议</li>
+<li>cluster 模式下实例数怎么定，日志文件为什么会带编号</li>
+<li>日志撑爆磁盘的真正原因，以及 <code>pm2 flush</code> 为什么只能救急</li>
+<li>pm2-logrotate 的安装、参数含义与推荐配置</li>
+<li>把 PM2 塞进 Docker 镜像的完整 Dockerfile 与注意事项</li>
+<li><code>pm2-runtime</code> 和 <code>pm2 start</code> 的区别，为什么容器里必须用前者</li>
+<li>部署后怎么验证日志确实在按规则切割</li>
+</ul>
+<h2 id="一、先说为什么要用-ecosystem-文件"><a href="#一、先说为什么要用-ecosystem-文件" class="headerlink" title="一、先说为什么要用 ecosystem 文件"></a>一、先说为什么要用 ecosystem 文件</h2><p>很多人第一次用 PM2 都是这么启动的。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pm2 start server.js --name my-app -i 2 --output ./logs/out.log --error ./logs/err.log</span><br></pre></td></tr></table></figure>
 
-<p>一级部署应用</p>
+<p>能跑，但有几个问题。参数写在命令行里，没进版本控制，换台机器部署得靠翻历史命令；实例数、日志路径这些东西改一次就要把整条命令重敲一遍；团队里两个人敲的参数不一样，线上跑的配置和你以为的不是一回事。</p>
+<p>ecosystem 文件解决的就是这个。它是一份普通的 JS 模块，跟着代码一起进仓库，谁部署都是同一份配置。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在nodejs/nextjs项目根目录创建 ecosystem.config.js</span></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="attr">apps</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;my-app-name&#x27;</span>,</span><br><span class="line">      <span class="attr">script</span>: <span class="string">&#x27;./server.js&#x27;</span>, <span class="comment">// 服务启动脚本</span></span><br><span class="line">      <span class="attr">watch</span>: <span class="literal">false</span>, <span class="comment">// 禁用文件监视，提高性能</span></span><br><span class="line">      <span class="attr">instances</span>: <span class="number">2</span>, <span class="comment">// 指定要启动的实例数量 // 0 和 max 同义</span></span><br><span class="line">      <span class="attr">exec_mode</span>: <span class="string">&#x27;cluster&#x27;</span>, <span class="comment">// 启用集群模式，指定要启动的实例数量</span></span><br><span class="line">      <span class="comment">// 启用文件日志记录</span></span><br><span class="line">      <span class="attr">output</span>: <span class="string">&#x27;./logs/app-out.log&#x27;</span>, <span class="comment">// 标准输出日志文件</span></span><br><span class="line">      <span class="attr">error</span>: <span class="string">&#x27;./logs/app-error.log&#x27;</span>, <span class="comment">// 错误日志文件</span></span><br><span class="line">      <span class="comment">// log: &#x27;./logs/combined.log&#x27;,        // 合并日志文件（可选）</span></span><br><span class="line">      <span class="comment">// 日志配置</span></span><br><span class="line">      <span class="attr">log_date_format</span>: <span class="string">&#x27;YYYY-MM-DD HH:mm Z&#x27;</span>,</span><br><span class="line">      <span class="attr">merge_logs</span>: <span class="literal">false</span>, <span class="comment">// 为每个实例单独日志</span></span><br><span class="line">      <span class="attr">time</span>: <span class="literal">true</span>, <span class="comment">// 在日志中添加时间戳</span></span><br><span class="line">      <span class="attr">env</span>: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动就是一行。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pm2-runtime ecosystem.config.js</span><br></pre></td></tr></table></figure>
 
-<h2 id="pm2日志管理logrotate"><a href="#pm2日志管理logrotate" class="headerlink" title="pm2日志管理logrotate"></a>pm2日志管理logrotate</h2><p>永久解决日志文件过大，使用日志管理用的插件 <code>pm2-logrotate</code></p>
-<p><strong>安装插件pm2-logrotate</strong></p>
+<p><code>apps</code> 是数组，一个文件里可以描述多个应用。做微服务或者一台机器上跑好几个 Node 服务的时候，一份 ecosystem 就能把它们全管起来，<code>pm2 start ecosystem.config.js --only my-app-name</code> 还能单独启其中一个。</p>
+<h2 id="二、ecosystem-每个字段在做什么"><a href="#二、ecosystem-每个字段在做什么" class="headerlink" title="二、ecosystem 每个字段在做什么"></a>二、ecosystem 每个字段在做什么</h2><p>上面那份配置看着简单，几个字段背后的行为差别不小，逐个说一下。</p>
+<p><code>script</code> 指向启动入口。Next.js 用 standalone 输出模式的时候，构建产物里会生成一个 <code>server.js</code>，路径就是它。这一点后面 Dockerfile 那节还会再提，因为 <code>COPY --from=builder /app/.next/standalone ./</code> 之后 <code>server.js</code> 正好落在工作目录根下，和这里的 <code>./server.js</code> 对得上。</p>
+<p><code>watch: false</code> 是生产环境必须的。开着 watch，PM2 会监听文件变化自动重启，本地开发方便，线上就是灾难，一次误操作 <code>touch</code> 了某个文件，整个服务重启。而且监听本身在文件多的项目里会持续占 CPU。</p>
+<p><code>instances</code> 和 <code>exec_mode</code> 是一对。<code>exec_mode: &#39;cluster&#39;</code> 让 PM2 用 Node 的 cluster 模块起多个进程，共享同一个端口，请求由主进程分发。<code>instances: 2</code> 就是起两个。写 <code>0</code> 或者 <code>&#39;max&#39;</code> 表示按 CPU 核心数来，写 <code>-1</code> 表示核心数减一，留一个核给系统。</p>
+<p>那实例数到底该写几。我的经验是先看容器分到多少 CPU。如果是 Docker 里跑并且限了 <code>--cpus=1</code>，起再多实例也没用，反而每个进程都要单独占一份内存，Next.js 一个实例常驻内存两三百兆，起四个就快 1G 了。写死 <code>2</code> 而不是 <code>max</code>，很大程度上就是为了防止容器里 <code>os.cpus()</code> 读到的是宿主机核心数，一下起了十几个进程把内存打满。</p>
+<p>这个坑我踩过，宿主机 16 核，容器限了 1 核，<code>instances: &#39;max&#39;</code> 直接起了 16 个进程，OOM 被 kill 掉，PM2 又自动拉起来，反复循环。</p>
+<p><code>output</code> 和 <code>error</code> 分别是标准输出和错误输出的落盘路径。PM2 的配置 schema 里这两个是 <code>out_file</code> 和 <code>error_file</code> 的别名，两种写法都认，看老项目配置的时候别被这两组名字搞混。注释掉的 <code>log</code> 字段是合并日志，开了它 out 和 error 会写到同一个文件里，排查时序问题方便，但 error 会被淹没在正常日志里，我一般不开。</p>
+<p><code>merge_logs: false</code> 这条决定了日志文件名长什么样。cluster 模式下每个实例都在写日志，如果合并成一个文件，多进程同时追加会出现内容交错。设成 <code>false</code> 之后 PM2 会给每个实例的日志文件加上实例编号，也就是后面会看到的 <code>app-out-1.log</code> 和 <code>app-out-2.log</code>。排查问题时能直接定位是哪个实例出的错，这个设计是真的舒服。</p>
+<p><code>time: true</code> 和 <code>log_date_format</code> 是一对。前者开启时间戳前缀，后者定义格式。<code>&#39;YYYY-MM-DD HH:mm Z&#39;</code> 里的 <code>Z</code> 是时区偏移，服务器和容器时区不一致的时候，这个字段能救你一命，不然你看到的日志时间和用户反馈的时间对不上，白排查半天。</p>
+<p><code>env: &#123;&#125;</code> 是注入给进程的环境变量。空对象表示不额外注入，走容器或者宿主机的环境。真要用的话可以写成 <code>env: &#123; NODE_ENV: &#39;production&#39;, PORT: 3000 &#125;</code>，另外 PM2 还支持 <code>env_production</code> 这种带后缀的写法，配合 <code>--env production</code> 切换。</p>
+<h2 id="三、日志为什么会把磁盘撑爆"><a href="#三、日志为什么会把磁盘撑爆" class="headerlink" title="三、日志为什么会把磁盘撑爆"></a>三、日志为什么会把磁盘撑爆</h2><p>回到开头那个磁盘满的问题。</p>
+<p>PM2 默认的日志行为是纯追加，写满了不会停，也不会自己删。只要进程一直在跑，日志文件就一直在长。Next.js 这类应用每个请求可能都会打几行日志，一天几十万请求，几个 G 是很正常的量。</p>
+<p>更麻烦的是这个增长完全没有反馈。磁盘从 60% 涨到 90% 的过程中没有任何人会注意到，直到写不进去，服务开始报 <code>ENOSPC</code>，才有人上去看。</p>
+<p>有人会说手动清一下不就行了。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pm2 flush</span><br><span class="line">[PM2] Flushing /root/.pm2/pm2.<span class="built_in">log</span></span><br><span class="line">[PM2] Flushing:</span><br><span class="line">[PM2] /root/.pm2/logs/pm2-logrotate-out.log</span><br><span class="line">[PM2] /root/.pm2/logs/pm2-logrotate-error.log</span><br><span class="line">[PM2] Flushing:</span><br><span class="line">[PM2] /app/logs/app-out-1.<span class="built_in">log</span></span><br><span class="line">[PM2] /app/logs/app-error-1.<span class="built_in">log</span></span><br><span class="line">[PM2] Flushing:</span><br><span class="line">[PM2] /app/logs/app-out-2.<span class="built_in">log</span></span><br><span class="line">[PM2] /app/logs/app-error-2.<span class="built_in">log</span></span><br><span class="line">[PM2] Logs flushed</span><br></pre></td></tr></table></figure>
+
+<p><code>pm2 flush</code> 会把所有日志文件清空。它确实能立刻腾出空间，但这是救急手段，不是方案。一是它清得太干净，出问题时你想回看昨天的日志已经没了；二是它得有人记得去执行，靠人记事情就等于没有保障。</p>
+<p>真正要做的是让日志自己滚动。</p>
+<h2 id="四、用-pm2-logrotate-做自动切割"><a href="#四、用-pm2-logrotate-做自动切割" class="headerlink" title="四、用 pm2-logrotate 做自动切割"></a>四、用 pm2-logrotate 做自动切割</h2><p>PM2 有个官方模块叫 <code>pm2-logrotate</code>，专门干这件事。它会起一个常驻的工作进程，定时检查日志文件大小，超过阈值就把当前文件改名归档、重新开一个空文件写，同时按保留数量删掉最老的归档。</p>
+<p>安装是一行命令。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">pm2 install pm2-logrotate</span><br></pre></td></tr></table></figure>
 
-<p>查看日志配置</p>
+<p>注意这里是 <code>pm2 install</code> 不是 <code>npm install</code>。PM2 的模块系统和 npm 包不是一回事，装完之后模块本体在 <code>~/.pm2/module_conf.json</code> 有一份配置记录，<code>pm2 list</code> 里也能看到它作为一个进程在跑。</p>
+<p>装完先看看默认配置。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pm2 conf pm2-logrotate</span><br><span class="line"></span><br><span class="line">Module: pm2-logrotate</span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:max_size 10M</span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:retain 50</span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:compress <span class="literal">false</span></span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss</span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:workerInterval 1</span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:rotateInterval 0 0 * * *</span><br><span class="line">$ pm2 <span class="built_in">set</span> pm2-logrotate:rotateModule <span class="literal">true</span></span><br><span class="line">Module: module-db-v2</span><br><span class="line">$ pm2 <span class="built_in">set</span> module-db-v2:pm2-logrotate [object Object]</span><br></pre></td></tr></table></figure>
 
-<p><strong>pm2-logrotate具体参数配置</strong></p>
+<p><code>pm2 conf</code> 的输出很贴心，它直接把每一项打印成可以复制执行的 <code>pm2 set</code> 命令，想改哪项就复制哪行改个值。</p>
+<p>各参数的含义整理一下。</p>
 <table>
 <thead>
 <tr>
@@ -340,19 +379,71 @@
 <td align="left">设置强制分割，默认值是0 0 * * *，意思是每天晚上0点分割，这个足够了个人觉得</td>
 </tr>
 </tbody></table>
-<p><strong>设置pm2-logrotat</strong></p>
+<p>有两个参数容易理解错，单独说一下。</p>
+<p><code>max_size</code> 不是精确阈值。工作进程是按 <code>workerInterval</code> 的间隔去检查文件大小的，检查的那一刻发现超了才动手，所以两次检查之间写进去的内容都算在这个文件里。设 10M 实际切出来 10.3M 是正常的，别为这零点几兆去调参数。</p>
+<p><code>workerInterval</code> 的单位是秒，值是检查间隔而不是进程数量。设成 <code>1</code> 表示每秒检查一次，日志量大的服务建议就用 1，反应快一点。这个字段名确实容易让人以为是 worker 的个数。</p>
+<p><code>rotateInterval</code> 用的是 cron 表达式，<code>0 0 * * *</code> 是每天零点。它和 <code>max_size</code> 是并行生效的，任何一个条件满足都会触发切割。所以即使一天写不满 10M，零点也会切一次，按天归档在排查问题时很方便，你知道某天的日志一定在某个文件里。</p>
+<p>我实际用的配置是这样。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置单个文件的大小</span></span><br><span class="line">pm2 <span class="built_in">set</span> pm2-logrotate:max_size 10M</span><br><span class="line"><span class="comment"># 保留的日志文件个数，比如设置为10,那么在日志文件达到10个后会将最早的日志文件删除掉</span></span><br><span class="line">pm2 <span class="built_in">set</span> pm2-logrotate:retain 50</span><br><span class="line"><span class="comment"># dateFormat	日志文件名中的日期格式，默认是YYYY-MM-DD_HH-mm-ss，注意是设置的日志名+这个格式，如设置的日志名为abc.log，那就会生成abc_YYYY-MM-DD_HH-mm-ss.log名字的日志文件</span></span><br><span class="line">pm2 <span class="built_in">set</span> pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss</span><br><span class="line"><span class="comment"># 是否通过gzip压缩日志</span></span><br><span class="line">pm2 <span class="built_in">set</span> pm2-logrotate:compress <span class="literal">true</span></span><br><span class="line"><span class="comment"># workerInterval 设置启动几个工作进程监控日志尺寸，最小为1</span></span><br><span class="line">pm2 <span class="built_in">set</span> pm2-logrotate:workerInterval 1</span><br><span class="line"><span class="comment"># rotateInterval	设置强制分割，默认值是0 0 * * *，意思是每天晚上0点分割，这个足够了个人觉得</span></span><br><span class="line">pm2 <span class="built_in">set</span> pm2-logrotate:rotateInterval 0 0 * * *</span><br></pre></td></tr></table></figure>
 
+<p><code>retain 50</code> 配 <code>max_size 10M</code>，最坏情况下单个日志类型占 500M。乘以 out 和 error 两种、再乘以实例数，两个实例大概是 2G 的上限。定这个数之前先算一下，别配完发现上限比磁盘还大。</p>
+<p><code>compress</code> 我开成了 <code>true</code>。gzip 之后文本日志一般能压到十分之一以下，代价是想看历史日志得先解压。磁盘紧张就开，磁盘富裕、需要频繁 <code>grep</code> 历史日志就关。</p>
 <blockquote>
 <p>如果想后面直接看配置，也可以通过指令<code>pm2 conf pm2-logrotate</code>来查看详细的配置</p>
 </blockquote>
-<h2 id="结合Dockerfile部署Nextjs"><a href="#结合Dockerfile部署Nextjs" class="headerlink" title="结合Dockerfile部署Nextjs"></a>结合Dockerfile部署Nextjs</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">FROM node:22-alpine AS base</span><br><span class="line"></span><br><span class="line"><span class="comment"># Install dependencies only when needed</span></span><br><span class="line">FROM base AS deps</span><br><span class="line"><span class="comment"># Install build dependencies for native modules including USB support</span></span><br><span class="line">RUN apk add --no-cache \</span><br><span class="line">    libc6-compat \</span><br><span class="line">    python3 \</span><br><span class="line">    make \</span><br><span class="line">    g++ \</span><br><span class="line">    linux-headers \</span><br><span class="line">    eudev-dev \</span><br><span class="line">    libusb-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置时区为北京时间</span></span><br><span class="line">RUN apk add --no-cache tzdata &amp;&amp; \</span><br><span class="line"><span class="built_in">cp</span> /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp; \</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone</span><br><span class="line"></span><br><span class="line">RUN yarn config <span class="built_in">set</span> registry https://registry.npmjs.org/</span><br><span class="line"></span><br><span class="line">WORKDIR /app</span><br><span class="line"></span><br><span class="line"><span class="comment"># Install dependencies based on the preferred package manager</span></span><br><span class="line">COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./</span><br><span class="line">RUN \</span><br><span class="line">  <span class="keyword">if</span> [ -f yarn.lock ]; <span class="keyword">then</span> yarn --frozen-lockfile; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f package-lock.json ]; <span class="keyword">then</span> npm ci; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f pnpm-lock.yaml ]; <span class="keyword">then</span> corepack <span class="built_in">enable</span> pnpm &amp;&amp; pnpm i --frozen-lockfile; \</span><br><span class="line">  <span class="keyword">else</span> <span class="built_in">echo</span> <span class="string">&quot;Lockfile not found.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1; \</span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Rebuild the source code only when needed</span></span><br><span class="line">FROM base AS builder</span><br><span class="line">WORKDIR /app</span><br><span class="line">COPY --from=deps /app/node_modules ./node_modules/</span><br><span class="line">COPY . .</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add memory limit and disable telemetry</span></span><br><span class="line">ENV NEXT_TELEMETRY_DISABLED=1 \</span><br><span class="line">    NODE_OPTIONS=<span class="string">&quot;--max-old-space-size=4096&quot;</span></span><br><span class="line"></span><br><span class="line">RUN \</span><br><span class="line">  <span class="keyword">if</span> [ -f yarn.lock ]; <span class="keyword">then</span> yarn build:feinterview-poetries-top; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f package-lock.json ]; <span class="keyword">then</span> npm run build:feinterview-poetries-top; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f pnpm-lock.yaml ]; <span class="keyword">then</span> corepack <span class="built_in">enable</span> pnpm &amp;&amp; pnpm run build:feinterview-poetries-top; \</span><br><span class="line">  <span class="keyword">else</span> <span class="built_in">echo</span> <span class="string">&quot;Lockfile not found.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1; \</span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Production image, copy all the files and run next</span></span><br><span class="line">FROM base AS runner</span><br><span class="line">WORKDIR /app</span><br><span class="line"></span><br><span class="line">ENV NODE_ENV=production \</span><br><span class="line">    NEXT_PUBLIC_NAMESPACE=prod \</span><br><span class="line">    PORT=3000 \</span><br><span class="line">    NEXT_TELEMETRY_DISABLED=1 \</span><br><span class="line">    HOSTNAME=<span class="string">&quot;0.0.0.0&quot;</span></span><br><span class="line"></span><br><span class="line">COPY --from=builder /app/public ./public</span><br><span class="line"></span><br><span class="line">RUN <span class="built_in">mkdir</span> .next</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制构建产物</span></span><br><span class="line">COPY --from=builder /app/.next/standalone ./</span><br><span class="line">COPY --from=builder /app/.next/static ./.next/static</span><br><span class="line"><span class="comment"># 拷贝pm2部署文件</span></span><br><span class="line">COPY ecosystem.config.js ./</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 PM2</span></span><br><span class="line">RUN npm install -g pm2</span><br><span class="line">RUN pm2 install pm2-logrotate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置pm2-logrotate配置 后面直接看配置，也可以通过指令pm2 conf pm2-logrotate来查看详细的配置</span></span><br><span class="line"><span class="comment"># 单个日志文件的大小</span></span><br><span class="line">RUN pm2 <span class="built_in">set</span> pm2-logrotate:max_size 10M</span><br><span class="line"><span class="comment"># 保留的日志文件个数，比如设置为10,那么在日志文件达到10个后会将最早的日志文件删除掉</span></span><br><span class="line">RUN pm2 <span class="built_in">set</span> pm2-logrotate:retain 50</span><br><span class="line"><span class="comment"># dateFormat	日志文件名中的日期格式，默认是YYYY-MM-DD_HH-mm-ss，注意是设置的日志名+这个格式，如设置的日志名为abc.log，那就会生成abc_YYYY-MM-DD_HH-mm-ss.log名字的日志文件</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss</span></span><br><span class="line"><span class="comment"># 是否通过gzip压缩日志</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:compress true</span></span><br><span class="line"><span class="comment"># workerInterval 设置启动几个工作进程监控日志尺寸，最小为1</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:workerInterval 1</span></span><br><span class="line"><span class="comment"># rotateInterval	设置强制分割，默认值是0 0 * * *，意思是每天晚上0点分割，这个足够了个人觉得</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:rotateInterval 0 0 * * *</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 服务运行在3000端口</span></span><br><span class="line">EXPOSE 3000</span><br><span class="line"></span><br><span class="line"><span class="comment"># pm2-runtime 是 PM2 的一个命令，专门用于在生产环境中运行应用程序</span></span><br><span class="line">CMD [<span class="string">&quot;pm2-runtime&quot;</span>, <span class="string">&quot;ecosystem.config.js&quot;</span>]</span><br></pre></td></tr></table></figure>
+<h2 id="五、把这一套塞进-Dockerfile"><a href="#五、把这一套塞进-Dockerfile" class="headerlink" title="五、把这一套塞进 Dockerfile"></a>五、把这一套塞进 Dockerfile</h2><p>上面都是在裸机上的操作。放到容器里还有几个额外的问题要处理，最主要的是 <code>pm2 install</code> 和 <code>pm2 set</code> 这些命令是在构建阶段执行的，配置得能持久化到镜像层里。</p>
+<p>先看完整的 Dockerfile，是一份 Next.js standalone 加 PM2 的多阶段构建。第一段是依赖安装阶段。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">FROM node:22-alpine AS base</span><br><span class="line"></span><br><span class="line"><span class="comment"># Install dependencies only when needed</span></span><br><span class="line">FROM base AS deps</span><br><span class="line"><span class="comment"># Install build dependencies for native modules including USB support</span></span><br><span class="line">RUN apk add --no-cache \</span><br><span class="line">    libc6-compat \</span><br><span class="line">    python3 \</span><br><span class="line">    make \</span><br><span class="line">    g++ \</span><br><span class="line">    linux-headers \</span><br><span class="line">    eudev-dev \</span><br><span class="line">    libusb-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置时区为北京时间</span></span><br><span class="line">RUN apk add --no-cache tzdata &amp;&amp; \</span><br><span class="line"><span class="built_in">cp</span> /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp; \</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone</span><br><span class="line"></span><br><span class="line">RUN yarn config <span class="built_in">set</span> registry https://registry.npmjs.org/</span><br><span class="line"></span><br><span class="line">WORKDIR /app</span><br><span class="line"></span><br><span class="line"><span class="comment"># Install dependencies based on the preferred package manager</span></span><br><span class="line">COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./</span><br><span class="line">RUN \</span><br><span class="line">  <span class="keyword">if</span> [ -f yarn.lock ]; <span class="keyword">then</span> yarn --frozen-lockfile; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f package-lock.json ]; <span class="keyword">then</span> npm ci; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f pnpm-lock.yaml ]; <span class="keyword">then</span> corepack <span class="built_in">enable</span> pnpm &amp;&amp; pnpm i --frozen-lockfile; \</span><br><span class="line">  <span class="keyword">else</span> <span class="built_in">echo</span> <span class="string">&quot;Lockfile not found.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1; \</span><br><span class="line">  <span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
 
-<p>部署后查看日志形式以指定的方式分割存储，再也不用担心日志文件过大导致磁盘空间不足</p>
+<p><code>libc6-compat</code> 是 Alpine 上跑 Node 原生模块的常见依赖，Alpine 用的是 musl libc，很多预编译的二进制是按 glibc 编的，装这个包做兼容。后面那一串 <code>python3</code> <code>make</code> <code>g++</code> 是给需要现场编译的原生模块用的，<code>eudev-dev</code> 和 <code>libusb-dev</code> 则是这个项目里用到 USB 设备才装的，你的项目大概率不需要，删掉能让镜像小一大截。</p>
+<p>时区那三行很关键。Node 官方镜像默认是 UTC，容器里打出来的日志时间比北京时间早 8 小时。前面 ecosystem 里配了 <code>log_date_format</code>，如果时区不改，格式再好看时间也是错的。</p>
+<p>只 COPY 两个 lock 文件再装依赖，是为了利用 Docker 的层缓存。业务代码改了但依赖没变的时候，这一层直接命中缓存，构建能快好几分钟。</p>
+<p>第二段是构建阶段。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Rebuild the source code only when needed</span></span><br><span class="line">FROM base AS builder</span><br><span class="line">WORKDIR /app</span><br><span class="line">COPY --from=deps /app/node_modules ./node_modules/</span><br><span class="line">COPY . .</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add memory limit and disable telemetry</span></span><br><span class="line">ENV NEXT_TELEMETRY_DISABLED=1 \</span><br><span class="line">    NODE_OPTIONS=<span class="string">&quot;--max-old-space-size=4096&quot;</span></span><br><span class="line"></span><br><span class="line">RUN \</span><br><span class="line">  <span class="keyword">if</span> [ -f yarn.lock ]; <span class="keyword">then</span> yarn build:feinterview-poetries-top; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f package-lock.json ]; <span class="keyword">then</span> npm run build:feinterview-poetries-top; \</span><br><span class="line">  <span class="keyword">elif</span> [ -f pnpm-lock.yaml ]; <span class="keyword">then</span> corepack <span class="built_in">enable</span> pnpm &amp;&amp; pnpm run build:feinterview-poetries-top; \</span><br><span class="line">  <span class="keyword">else</span> <span class="built_in">echo</span> <span class="string">&quot;Lockfile not found.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 1; \</span><br><span class="line">  <span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p><code>--max-old-space-size=4096</code> 这条不是可选项。Next.js 构建大项目时 V8 默认堆上限很容易被打爆，报出来的错是 <code>JavaScript heap out of memory</code>，CI 上尤其常见。把上限提到 4G 基本能覆盖大多数场景，但前提是构建机器真有那么多内存，否则会变成被系统 OOM killer 干掉。</p>
+<p>第三段是运行阶段，也是 PM2 登场的地方。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Production image, copy all the files and run next</span></span><br><span class="line">FROM base AS runner</span><br><span class="line">WORKDIR /app</span><br><span class="line"></span><br><span class="line">ENV NODE_ENV=production \</span><br><span class="line">    NEXT_PUBLIC_NAMESPACE=prod \</span><br><span class="line">    PORT=3000 \</span><br><span class="line">    NEXT_TELEMETRY_DISABLED=1 \</span><br><span class="line">    HOSTNAME=<span class="string">&quot;0.0.0.0&quot;</span></span><br><span class="line"></span><br><span class="line">COPY --from=builder /app/public ./public</span><br><span class="line"></span><br><span class="line">RUN <span class="built_in">mkdir</span> .next</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制构建产物</span></span><br><span class="line">COPY --from=builder /app/.next/standalone ./</span><br><span class="line">COPY --from=builder /app/.next/static ./.next/static</span><br><span class="line"><span class="comment"># 拷贝pm2部署文件</span></span><br><span class="line">COPY ecosystem.config.js ./</span><br></pre></td></tr></table></figure>
+
+<p><code>HOSTNAME=&quot;0.0.0.0&quot;</code> 少不得。Next.js standalone 的 server 默认可能只监听 localhost，容器内监听 127.0.0.1 的话，宿主机的端口映射根本转发不进去，表现是端口映射看着正常但访问就是超时。</p>
+<p>standalone 产物只包含运行时真正用到的依赖，体积比整个 <code>node_modules</code> 小非常多，但 <code>public</code> 和 <code>.next/static</code> 不在里面，得单独 COPY。漏掉 static 那一行的话，页面能打开但样式和 JS 全 404。</p>
+<p>再看 PM2 这部分。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 PM2</span></span><br><span class="line">RUN npm install -g pm2</span><br><span class="line">RUN pm2 install pm2-logrotate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置pm2-logrotate配置 后面直接看配置，也可以通过指令pm2 conf pm2-logrotate来查看详细的配置</span></span><br><span class="line"><span class="comment"># 单个日志文件的大小</span></span><br><span class="line">RUN pm2 <span class="built_in">set</span> pm2-logrotate:max_size 10M</span><br><span class="line"><span class="comment"># 保留的日志文件个数，比如设置为10,那么在日志文件达到10个后会将最早的日志文件删除掉</span></span><br><span class="line">RUN pm2 <span class="built_in">set</span> pm2-logrotate:retain 50</span><br><span class="line"><span class="comment"># dateFormat	日志文件名中的日期格式，默认是YYYY-MM-DD_HH-mm-ss，注意是设置的日志名+这个格式，如设置的日志名为abc.log，那就会生成abc_YYYY-MM-DD_HH-mm-ss.log名字的日志文件</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:dateFormat YYYY-MM-DD_HH-mm-ss</span></span><br><span class="line"><span class="comment"># 是否通过gzip压缩日志</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:compress true</span></span><br><span class="line"><span class="comment"># workerInterval 设置启动几个工作进程监控日志尺寸，最小为1</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:workerInterval 1</span></span><br><span class="line"><span class="comment"># rotateInterval	设置强制分割，默认值是0 0 * * *，意思是每天晚上0点分割，这个足够了个人觉得</span></span><br><span class="line"><span class="comment"># RUN pm2 set pm2-logrotate:rotateInterval 0 0 * * *</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 服务运行在3000端口</span></span><br><span class="line">EXPOSE 3000</span><br><span class="line"></span><br><span class="line"><span class="comment"># pm2-runtime 是 PM2 的一个命令，专门用于在生产环境中运行应用程序</span></span><br><span class="line">CMD [<span class="string">&quot;pm2-runtime&quot;</span>, <span class="string">&quot;ecosystem.config.js&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>这里有个点值得说清楚。<code>pm2 install</code> 和 <code>pm2 set</code> 会把模块本体和配置写进 PM2 的家目录，也就是 <code>$HOME/.pm2</code> 下面。构建阶段执行这些命令时，这些文件被固化进了镜像层，容器启动后 <code>pm2-runtime</code> 读的还是同一份配置，所以配置能生效。前提是构建和运行用的是同一个用户，通常都是 root。如果你在 Dockerfile 里加了 <code>USER nextjs</code> 之类的非 root 用户切换，<code>$HOME</code> 变了，之前 root 下装的模块和配置就读不到了，这个坑要留意。</p>
+<p>只有 <code>max_size</code> 和 <code>retain</code> 两行是打开的，其余都注释掉了，走默认值。默认的 <code>dateFormat</code> 和 <code>rotateInterval</code> 本来就够用，<code>compress</code> 默认关着，想开的话把注释去掉重新构建就行。</p>
+<p>还有一件事原文没写但我建议加上，<code>./logs</code> 这个目录最好在构建时先创建出来。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">RUN <span class="built_in">mkdir</span> -p logs</span><br></pre></td></tr></table></figure>
+
+<p>不同 PM2 版本对日志目录不存在的处理不太一样，有的会自动建，有的直接报错写不进去。提前建一下不花什么成本。</p>
+<h2 id="六、pm2-runtime-和-pm2-start-的区别"><a href="#六、pm2-runtime-和-pm2-start-的区别" class="headerlink" title="六、pm2-runtime 和 pm2 start 的区别"></a>六、pm2-runtime 和 pm2 start 的区别</h2><p><code>CMD [&quot;pm2-runtime&quot;, &quot;ecosystem.config.js&quot;]</code> 这一行不能随便换成 <code>pm2 start</code>，这是容器里最容易犯的错。</p>
+<p><code>pm2 start</code> 是守护模式，它会在后台起一个 PM2 daemon，然后前台命令立刻退出。放到容器里，Docker 看到 PID 1 的进程退出了，就认为容器跑完了，直接把容器停掉，应用跟着一起没了。</p>
+<p><code>pm2-runtime</code> 是专门为容器设计的前台模式。它自己作为 PID 1 常驻，把子进程的日志转发到标准输出，还能正确处理 <code>SIGTERM</code> 信号做优雅退出。<code>docker stop</code> 的时候，PM2 会先通知每个实例关闭，等待现有请求处理完再退出，而不是被直接 kill。</p>
+<p>顺带说一句，容器里再套一层 PM2 其实是有争议的。Kubernetes 那套编排本身就有多副本和重启策略，PM2 的进程守护职责会重复。我自己选择保留 PM2 的原因是单机 Docker 部署的场景下，cluster 模式能让一个容器吃满多核，比起为了多进程去起多个容器要简单。要是你已经在用 K8s，直接单进程加 HPA 可能更合适。</p>
+<p>关于整条部署链路怎么串起来，我之前写过一篇用 GitHub Actions 构建镜像推到私有仓库再自动部署的文章，可以配合看 <a href="https://feinterview.poetries.top/blog/github-actions-tencent-docker-registry">基于 GitHub Actions 构建 Docker 镜像部署到腾讯云私有仓库</a>。</p>
+<h2 id="七、部署后怎么验证"><a href="#七、部署后怎么验证" class="headerlink" title="七、部署后怎么验证"></a>七、部署后怎么验证</h2><p>镜像跑起来之后进容器看一眼日志目录，切割生效的话会是这样。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">/app/logs <span class="comment"># ls -lh</span></span><br><span class="line">total 240K   </span><br><span class="line">-rw-r--r--    1 root     root        2.8K Mar  1 01:53 app-error-1.log</span><br><span class="line">-rw-r--r--    1 root     root       41.5K Feb 28 00:00 app-error-1__2026-02-28_00-00-00.log</span><br><span class="line">-rw-r--r--    1 root     root       48.2K Mar  1 00:00 app-error-1__2026-03-01_00-00-00.log</span><br><span class="line">-rw-r--r--    1 root     root      113.3K Mar  1 00:43 app-error-2.log</span><br><span class="line">-rw-r--r--    1 root     root        1.3K Mar  1 02:37 app-out-1.log</span><br><span class="line">-rw-r--r--    1 root     root        1.4K Feb 28 00:00 app-out-1__2026-02-28_00-00-00.log</span><br><span class="line">-rw-r--r--    1 root     root        2.5K Mar  1 00:00 app-out-1__2026-03-01_00-00-00.log</span><br><span class="line">-rw-r--r--    1 root     root        4.4K Mar  1 02:37 app-out-2.log</span><br></pre></td></tr></table></figure>
 
-<p>可以输入<code>pm2 flush</code>删除日志</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pm2 flush</span><br><span class="line">[PM2] Flushing /root/.pm2/pm2.<span class="built_in">log</span></span><br><span class="line">[PM2] Flushing:</span><br><span class="line">[PM2] /root/.pm2/logs/pm2-logrotate-out.log</span><br><span class="line">[PM2] /root/.pm2/logs/pm2-logrotate-error.log</span><br><span class="line">[PM2] Flushing:</span><br><span class="line">[PM2] /app/logs/app-out-1.<span class="built_in">log</span></span><br><span class="line">[PM2] /app/logs/app-error-1.<span class="built_in">log</span></span><br><span class="line">[PM2] Flushing:</span><br><span class="line">[PM2] /app/logs/app-out-2.<span class="built_in">log</span></span><br><span class="line">[PM2] /app/logs/app-error-2.<span class="built_in">log</span></span><br><span class="line">[PM2] Logs flushed</span><br></pre></td></tr></table></figure>
+<p>这个输出信息量很大，逐条对照一下就知道前面的配置有没有生效。</p>
+<p>文件名里的 <code>-1</code> 和 <code>-2</code> 是实例编号，说明 <code>merge_logs: false</code> 和 <code>instances: 2</code> 生效了，两个实例在写各自的日志。带 <code>__2026-02-28_00-00-00</code> 后缀的是归档文件，时间戳全是 <code>00-00-00</code>，说明触发切割的是 <code>rotateInterval</code> 的每天零点，而不是 <code>max_size</code>，也就是这个服务一天的日志量还没到 10M。不带时间戳的是当前正在写入的文件。</p>
+<p><code>app-error-2.log</code> 有 113K 而 <code>app-error-1.log</code> 只有 2.8K，两个实例的错误量差这么多，这种情况值得点进去看看，一般是某个实例上有个特定的请求在反复报错。</p>
+<p>再补两个容器场景下的注意事项。容器内的日志文件在容器被删除时会一起消失，所以 <code>/app/logs</code> 建议挂一个 volume 出来，<code>-v /www/logs/my-app:/app/logs</code>，这样重新部署也能回看历史日志。另外 Docker 自己的 json-file 日志驱动也会无限增长，<code>pm2-runtime</code> 把日志转发到标准输出之后 Docker 会再记一份，记得在启动参数里限制一下。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  --log-opt max-size=10m \</span><br><span class="line">  --log-opt max-file=3 \</span><br><span class="line">  -v /www/logs/my-app:/app/logs \</span><br><span class="line">  -p 3000:3000 --name my-app my-app:latest</span><br></pre></td></tr></table></figure>
+
+<p>日志这件事管住了容器内的 PM2 却漏了 Docker 这一层，磁盘照样会满，这个我也是吃过亏才补上的。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>PM2 这套东西真正需要想清楚的只有两件事。</p>
+<p>配置要进版本控制，ecosystem 文件的价值不在于少敲几个参数，而在于线上跑的配置和仓库里写的是同一份，任何人在任何机器上部署结果都一致。日志要有自动淘汰机制，<code>pm2 flush</code> 是救火，<code>pm2-logrotate</code> 才是消防系统，装完设两个参数就能一劳永逸。</p>
+<p>容器场景下额外记住三条。<code>CMD</code> 必须用 <code>pm2-runtime</code> 而不是 <code>pm2 start</code>，否则容器起来就退出。<code>instances</code> 不要写 <code>max</code>，容器读到的核心数可能是宿主机的。日志目录挂 volume，同时用 <code>--log-opt</code> 限制住 Docker 自己那一层。</p>
+<p>至于 <code>max_size</code> 和 <code>retain</code> 具体填多少，先拿磁盘容量除以日志类型数和实例数算个上限，再往下留一半余量，比抄别人的配置靠谱。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://pm2.keymetrics.io/docs/usage/application-declaration/">PM2 Ecosystem File 配置文档</a></li>
+<li><a href="https://pm2.keymetrics.io/docs/usage/cluster-mode/">PM2 Cluster Mode 说明</a></li>
+<li><a href="https://github.com/keymetrics/pm2-logrotate">pm2-logrotate 模块仓库</a></li>
+<li><a href="https://pm2.keymetrics.io/docs/usage/docker-pm2-nodejs/">PM2 Docker 集成指南</a></li>
+<li><a href="https://nextjs.org/docs/app/api-reference/config/next-config-js/output">Next.js standalone 输出模式</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
+
       </div>
     
   </div>

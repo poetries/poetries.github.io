@@ -7,43 +7,44 @@
 <head>
   <meta charset="utf-8">
   
-  <title>重新认识Koa2 | 前端进阶之旅</title>
+  <title>重新认识Koa2，洋葱模型与ctx到底是怎么实现的 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Node,Koa," />
+    <meta name="keywords" content="Node,Koa,洋葱模型," />
   
 
-  <meta name="description" content="一、Koa框架介绍以及Koa环境搭建1.1 Koa 框架介绍 Node.js 是一个异步的世界，官方 API 支持的都是 callback 形式的异步编程模型，这 会带来许多问题，例如:   callback 嵌套问题  异步函数中可能同步调用 callback 返回 数据，带来不一致性。为了解决以上问题 Koa 出现了  Koa – 基于 Node.js 平台的下一代 web 开发框架  koa">
+  <meta name="description" content="从 Koa2 的中间件洋葱模型讲到 koa-compose 的十几行源码，说清 ctx 的属性委托机制、与 Express 中间件模型的本质差异，并覆盖路由、模板引擎、Cookie、Session 等常用配套模块。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="重新认识Koa2">
+<meta property="og:title" content="重新认识Koa2，洋葱模型与ctx到底是怎么实现的">
 <meta property="og:url" content="http://blog.poetries.top/2019/03/09/relearn-koa/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、Koa框架介绍以及Koa环境搭建1.1 Koa 框架介绍 Node.js 是一个异步的世界，官方 API 支持的都是 callback 形式的异步编程模型，这 会带来许多问题，例如:   callback 嵌套问题  异步函数中可能同步调用 callback 返回 数据，带来不一致性。为了解决以上问题 Koa 出现了  Koa – 基于 Node.js 平台的下一代 web 开发框架  koa">
+<meta property="og:description" content="从 Koa2 的中间件洋葱模型讲到 koa-compose 的十几行源码，说清 ctx 的属性委托机制、与 Express 中间件模型的本质差异，并覆盖路由、模板引擎、Cookie、Session 等常用配套模块。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/494.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/495.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/496.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/497.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/498.gif">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/499.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/500.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/501.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/502.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/503.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/504.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/505.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/506.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/507.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/508.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/494.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/498.gif">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/503.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/495.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/496.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/497.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/499.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/500.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/501.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/502.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/504.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/505.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/506.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/507.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/508.png">
 <meta property="article:published_time" content="2019-03-09T11:30:10.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.687Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.952Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Node">
 <meta property="article:tag" content="Koa">
+<meta property="article:tag" content="洋葱模型">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/494.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/494.png">
 
   
 
@@ -221,7 +222,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Koa%E6%A1%86%E6%9E%B6%E4%BB%8B%E7%BB%8D%E4%BB%A5%E5%8F%8AKoa%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">一、Koa框架介绍以及Koa环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-Koa-%E6%A1%86%E6%9E%B6%E4%BB%8B%E7%BB%8D"><span class="toc-text">1.1 Koa 框架介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Koa2-x-%E6%A1%86%E6%9E%B6%E7%9A%84%E5%AE%89%E8%A3%85%E4%BD%BF%E7%94%A8"><span class="toc-text">1.2 Koa2.x 框架的安装使用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81koa-%E8%B7%AF%E7%94%B1-get%E4%BC%A0%E5%80%BC%E3%80%81%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">二、koa 路由 get传值、动态路由</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-Koa-%E8%B7%AF%E7%94%B1"><span class="toc-text">2.1 Koa 路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-Koa-%E8%B7%AF%E7%94%B1-get-%E4%BC%A0%E5%80%BC"><span class="toc-text">2.2 Koa 路由 get 传值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-Koa-%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">2.3 Koa 动态路由</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81koa-%E4%B8%AD%E9%97%B4%E4%BB%B6%E5%8F%8A%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-text">三、koa 中间件及执行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-koa%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%9A%84%E6%B4%8B%E8%91%B1%E5%9B%BE%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-text">3.1 koa中间件的洋葱图执行流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-koa-%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">3.2 koa 中间件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-%E4%BB%80%E4%B9%88%E6%98%AF-Koa-%E7%9A%84%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">3.2.1 什么是 Koa 的中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-Koa-%E5%BA%94%E7%94%A8%E5%8F%AF%E4%BD%BF%E7%94%A8%E5%A6%82%E4%B8%8B%E5%87%A0%E7%A7%8D%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">3.2.2 Koa 应用可使用如下几种中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-3-Koa-%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%9A%84%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F"><span class="toc-text">3.2.3 Koa 中间件的执行顺序</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81koa-ejs%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E%E4%BD%BF%E7%94%A8-%E4%BB%A5%E5%8F%8Aejs%E9%85%8D%E7%BD%AE%E5%85%A8%E5%B1%80%E6%95%B0%E6%8D%AE"><span class="toc-text">四、koa ejs模板引擎使用 以及ejs配置全局数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81koa-post-%E6%8F%90%E4%BA%A4%E6%95%B0%E6%8D%AE-koa-bodyparser-%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">五、koa post 提交数据 koa-bodyparser 中间件的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-%E5%8E%9F%E7%94%9F-Nodejs-%E8%8E%B7%E5%8F%96-post-%E6%8F%90%E4%BA%A4%E6%95%B0%E6%8D%AE"><span class="toc-text">5.1 原生 Nodejs 获取 post 提交数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-Koa-%E4%B8%AD-koa-bodyparser-%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">5.2 Koa 中 koa-bodyparser 中间件的使用</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81koa-static%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">六、koa-static静态资源中间件</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81koa-art-template%E9%AB%98%E6%80%A7%E8%83%BD%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">七、koa art-template高性能模板引擎的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#7-1-%E5%B8%B8%E8%A7%81%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E%E7%9A%84%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-text">7.1 常见模板引擎的性能对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-2-%E5%9C%A8-Koa-%E4%B8%AD%E4%BD%BF%E7%94%A8-art-template-%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E"><span class="toc-text">7.2 在 Koa 中使用 art-template 模板引擎</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-3-art-template-%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E%E8%AF%AD%E6%B3%95"><span class="toc-text">7.3 art-template 模板引擎语法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81koa-Cookie%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">八、koa Cookie的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#8-1-Koa-Cookie-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">8.1 Koa Cookie 的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-2-Koa-%E4%B8%AD%E8%AE%BE%E7%BD%AE%E4%B8%AD%E6%96%87-Cookie"><span class="toc-text">8.2 Koa 中设置中文 Cookie</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81koa-Session-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">九、koa Session 的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#9-1-Session-%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D"><span class="toc-text">9.1 Session 简单介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-2-Session-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-text">9.2 Session 的工作流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-3-koa-session-%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">9.3 koa-session 的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-4-Cookie-%E5%92%8C-Session-%E5%8C%BA%E5%88%AB"><span class="toc-text">9.4 Cookie 和 Session 区别</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81Koa-%E6%93%8D%E4%BD%9C-Mongodb-%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-text">十、Koa 操作 Mongodb 数据库</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81Koa-%E5%BA%94%E7%94%A8%E7%94%9F%E6%88%90%E5%99%A8%E4%BB%A5%E5%8F%8A-Koa-%E8%B7%AF%E7%94%B1%E6%A8%A1-%E5%9D%97%E5%8C%96"><span class="toc-text">十一、Koa 应用生成器以及 Koa 路由模 块化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#11-1-koa-%E5%BA%94%E7%94%A8%E7%94%9F%E6%88%90%E5%99%A8"><span class="toc-text">11.1 koa 应用生成器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-2-koa-%E6%90%AD%E5%BB%BA%E6%A8%A1%E5%9D%97%E5%8C%96%E8%B7%AF%E7%94%B1-%E5%B1%82%E7%BA%A7%E8%B7%AF%E7%94%B1"><span class="toc-text">11.2 koa 搭建模块化路由&#x2F;层级路由</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Koa-%E5%87%BA%E7%8E%B0%E6%98%AF%E4%B8%BA%E4%BA%86%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-text">一、Koa 出现是为了解决什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">二、环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Node-%E7%89%88%E6%9C%AC%E8%A6%81%E6%B1%82"><span class="toc-text">2.1 Node 版本要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%AE%89%E8%A3%85-Koa"><span class="toc-text">2.2 安装 Koa</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%B4%8B%E8%91%B1%E6%A8%A1%E5%9E%8B%E5%88%B0%E5%BA%95%E6%98%AF%E6%80%8E%E4%B9%88%E8%B7%91%E8%B5%B7%E6%9D%A5%E7%9A%84"><span class="toc-text">三、洋葱模型到底是怎么跑起来的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%85%88%E7%9C%8B%E7%8E%B0%E8%B1%A1"><span class="toc-text">3.1 先看现象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%88%91%E4%B8%80%E5%BC%80%E5%A7%8B%E7%9A%84%E9%94%99%E8%AF%AF%E7%90%86%E8%A7%A3"><span class="toc-text">3.2 我一开始的错误理解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-koa-compose-%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-text">3.3 koa-compose 的实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%98%E7%AE%80%E5%8D%95%E4%BA%86"><span class="toc-text">3.4 错误处理为什么变简单了</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81ctx-%E4%B8%8A%E9%82%A3%E4%B8%80%E5%A0%86%E5%B1%9E%E6%80%A7%E6%98%AF%E4%BB%8E%E5%93%AA%E6%9D%A5%E7%9A%84"><span class="toc-text">四、ctx 上那一堆属性是从哪来的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%92%8C-Express-%E4%B8%AD%E9%97%B4%E4%BB%B6%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%B7%AE%E5%BC%82"><span class="toc-text">五、和 Express 中间件模型的差异</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Koa-%E8%B7%AF%E7%94%B1"><span class="toc-text">六、Koa 路由</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%BC%95%E5%85%A5-koa-router"><span class="toc-text">6.1 引入 koa-router</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-GET-%E4%BC%A0%E5%80%BC"><span class="toc-text">6.2 GET 传值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">6.3 动态路由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E5%9B%9B%E7%B1%BB%E4%B8%AD%E9%97%B4%E4%BB%B6%E7%9A%84%E5%86%99%E6%B3%95"><span class="toc-text">七、四类中间件的写法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">7.1 什么是中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E5%BA%94%E7%94%A8%E7%BA%A7%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">7.2 应用级中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E8%B7%AF%E7%94%B1%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">7.3 路由中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">7.4 错误处理中间件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E7%AC%AC%E4%B8%89%E6%96%B9%E4%B8%AD%E9%97%B4%E4%BB%B6"><span class="toc-text">7.5 第三方中间件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%A8%A1%E6%9D%BF%E5%BC%95%E6%93%8E"><span class="toc-text">八、模板引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-koa-views-%E5%8A%A0-ejs"><span class="toc-text">8.1 koa-views 加 ejs</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-art-template"><span class="toc-text">8.2 art-template</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81POST-%E6%95%B0%E6%8D%AE%E4%B8%8E%E9%9D%99%E6%80%81%E8%B5%84%E6%BA%90"><span class="toc-text">九、POST 数据与静态资源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E5%8E%9F%E7%94%9F%E6%96%B9%E5%BC%8F%E8%8E%B7%E5%8F%96-POST-%E6%95%B0%E6%8D%AE"><span class="toc-text">9.1 原生方式获取 POST 数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-koa-bodyparser"><span class="toc-text">9.2 koa-bodyparser</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-koa-static"><span class="toc-text">9.3 koa-static</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81Cookie-%E4%B8%8E-Session"><span class="toc-text">十、Cookie 与 Session</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-Koa-%E4%B8%AD%E4%BD%BF%E7%94%A8-Cookie"><span class="toc-text">10.1 Koa 中使用 Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E8%AE%BE%E7%BD%AE%E4%B8%AD%E6%96%87-Cookie"><span class="toc-text">10.2 设置中文 Cookie</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-Session"><span class="toc-text">10.3 Session</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-Cookie-%E5%92%8C-Session-%E7%9A%84%E5%8F%96%E8%88%8D"><span class="toc-text">10.4 Cookie 和 Session 的取舍</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E8%BF%9E%E6%8E%A5-MongoDB"><span class="toc-text">十一、连接 MongoDB</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E4%BA%8C%E3%80%81%E5%BA%94%E7%94%A8%E7%94%9F%E6%88%90%E5%99%A8%E4%B8%8E%E8%B7%AF%E7%94%B1%E6%A8%A1%E5%9D%97%E5%8C%96"><span class="toc-text">十二、应用生成器与路由模块化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-koa-%E5%BA%94%E7%94%A8%E7%94%9F%E6%88%90%E5%99%A8"><span class="toc-text">12.1 koa 应用生成器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E8%B7%AF%E7%94%B1%E6%A8%A1%E5%9D%97%E5%8C%96"><span class="toc-text">12.2 路由模块化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -244,13 +245,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-relearn-koa" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">重新认识Koa2</h1>
+    <h1 class="post-title">重新认识Koa2，洋葱模型与ctx到底是怎么实现的</h1>
 
     <div class="article-meta">
       <span>
@@ -286,12 +287,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 2.3k字</span>
+            <span>字数统计 7.7k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 9分</span>
+            <span>阅读时长 29分</span>
           </span>
       
       
@@ -305,202 +306,249 @@
   <div class="article-content">
     
       <div id="container">
-        <h1 id="一、Koa框架介绍以及Koa环境搭建"><a href="#一、Koa框架介绍以及Koa环境搭建" class="headerlink" title="一、Koa框架介绍以及Koa环境搭建"></a>一、Koa框架介绍以及Koa环境搭建</h1><h2 id="1-1-Koa-框架介绍"><a href="#1-1-Koa-框架介绍" class="headerlink" title="1.1 Koa 框架介绍"></a>1.1 Koa 框架介绍</h2><blockquote>
-<p><code>Node.js</code> 是一个异步的世界，官方 <code>API</code> 支持的都是 <code>callback</code> 形式的异步编程模型，这 会带来许多问题，例如:</p>
-</blockquote>
-<ol>
-<li><code>callback</code> 嵌套问题 </li>
-<li>异步函数中可能同步调用 callback 返回 数据，带来不一致性。为了解决以上问题 <code>Koa</code> 出现了</li>
-</ol>
-<p><strong>Koa – 基于 Node.js 平台的下一代 web 开发框架</strong></p>
-<blockquote>
-<p><code>koa</code> 是由 <code>Express</code> 原班人马打造的，致力于成为一个更小、更富有表现力、更健壮的 Web 框架。 使用 <code>koa</code> 编写 <code>web</code> 应用，可以免除重复繁琐的回调函数嵌套， 并极大地提 升错误处理的效率。<code>koa</code> 不在内核方法中绑定任何中间件， 它仅仅提供了一个轻量优雅的 函数库，使得编写 Web 应用变得得心应手。开发思路和 express 差不多，最大的特点就是 可以避免异步嵌套</p>
-</blockquote>
-<h2 id="1-2-Koa2-x-框架的安装使用"><a href="#1-2-Koa2-x-框架的安装使用" class="headerlink" title="1.2 Koa2.x 框架的安装使用"></a>1.2 Koa2.x 框架的安装使用</h2><p><strong>1. 安装 Node.js 8.x 以上的版本</strong></p>
-<blockquote>
-<p>开发 <code>Koa2</code> 之前，<code>Node.js</code> 是有要求的，它要求 <code>Node.js</code> 版本高于 <code>V7.6</code>。因为 <code>node.js 7.6</code> 版本 开始完全支持 <code>async/await</code>，所以才能完全你支持我们的 Koa2&#96;</p>
-</blockquote>
-<p><strong>2. 安装 Koa</strong></p>
-<blockquote>
-<p>安装 <code>Koa</code> 框架和我们以前安装其他模块是一样的</p>
-</blockquote>
+        <p>第一次看 Koa 的中间件，我卡在了一个很基础的问题上：为什么 <code>await next()</code> 后面的代码，会在所有后续中间件都跑完之后才执行？Express 里 <code>next()</code> 后面的代码明明是立刻就跑的。当时我以为这是 Koa 加了什么魔法，后来把 <code>koa-compose</code> 的源码翻出来看了一遍，发现它总共就十几行，没有任何魔法，就是一个 Promise 链的递归拼接。</p>
+<p>这篇是我重新梳理 Koa2 的笔记。上半部分是原理，把洋葱模型的 compose 实现和 <code>ctx</code> 的委托机制讲透；下半部分是配套的路由、模板引擎、Cookie、Session 这些日常要用的模块。原理搞清楚之后，那些模块的行为就都能推出来了。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>Koa 为什么会出现，它到底解决了 callback 时代的什么痛点</li>
+<li>洋葱模型的执行顺序，以及 <code>koa-compose</code> 那十几行代码怎么实现的</li>
+<li><code>ctx</code> 上那一堆属性是从哪来的，delegates 委托是怎么回事</li>
+<li>Koa 中间件和 Express 中间件的本质差异，为什么错误处理差那么多</li>
+<li>koa-router 的路由、get 传值、动态路由</li>
+<li>应用级、路由级、错误处理、第三方四类中间件的写法</li>
+<li>ejs 和 art-template 两个模板引擎的接入</li>
+<li>Cookie、Session 的使用与两者的取舍</li>
+<li>路由模块化拆分的做法</li>
+</ul>
+<h2 id="一、Koa-出现是为了解决什么"><a href="#一、Koa-出现是为了解决什么" class="headerlink" title="一、Koa 出现是为了解决什么"></a>一、Koa 出现是为了解决什么</h2><p>Node.js 是一个异步的世界，早期官方 API 支持的都是 callback 形式的异步编程模型，这会带来几个很实际的问题。</p>
+<p>一个是 callback 嵌套。查数据库拿到用户，再查订单，再查商品，三层下来代码就往右缩进出屏幕了，错误处理还得在每一层各写一遍 <code>if (err)</code>。</p>
+<p>另一个更隐蔽，异步函数中有可能同步调用 callback 返回数据，带来执行时机的不一致性。同一个函数，有缓存时同步回调，没缓存时异步回调，调用方写出来的代码在两种路径下行为不同，这种 bug 特别难查。</p>
+<p>为了解决这些问题，Koa 出现了。</p>
+<p>Koa 是由 Express 原班人马打造的，定位是一个更小、更富有表现力、更健壮的 Web 框架。使用 Koa 编写 Web 应用，可以免除重复繁琐的回调函数嵌套，并极大地提升错误处理的效率。Koa 不在内核方法中绑定任何中间件，它仅仅提供了一个轻量优雅的函数库，使得编写 Web 应用变得得心应手。开发思路和 Express 差不多，最大的特点就是可以避免异步嵌套。</p>
+<p>我自己的感受是，Koa 的核心库小到可以一个下午读完，这在框架里是很少见的。它把路由、body 解析、静态文件这些全都扔给社区，自己只留下中间件机制和 <code>ctx</code> 这两样东西。要吐槽的话就是什么都得自己装，但用久了会觉得这个取舍是对的。</p>
+<h2 id="二、环境搭建"><a href="#二、环境搭建" class="headerlink" title="二、环境搭建"></a>二、环境搭建</h2><h3 id="2-1-Node-版本要求"><a href="#2-1-Node-版本要求" class="headerlink" title="2.1 Node 版本要求"></a>2.1 Node 版本要求</h3><p>开发 Koa2 之前，Node.js 是有要求的，它要求 Node.js 版本高于 v7.6。因为 Node.js 7.6 版本开始完整支持 <code>async/await</code>，Koa2 的中间件写法整个建立在 async 函数之上，版本低了直接跑不起来。</p>
+<p>这条限制在 2019 年还是要提一句的，现在基本可以忽略了，主流的 Node 18、Node 20、Node 22 都早已原生支持。另外 Koa 后来也发布了新的大版本，最低 Node 版本要求和一部分细节有调整，具体以官方文档为准。</p>
+<h3 id="2-2-安装-Koa"><a href="#2-2-安装-Koa" class="headerlink" title="2.2 安装 Koa"></a>2.2 安装 Koa</h3><p>安装 Koa 框架和安装其他模块是一样的。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save koa / cnpm install --save koa</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>--save</code> 参数，表示自动修改 <code>package.json</code> 文件，自动添加依赖项</p>
-</blockquote>
-<p><strong>简单使用</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/494.png"></p>
-<h1 id="二、koa-路由-get传值、动态路由"><a href="#二、koa-路由-get传值、动态路由" class="headerlink" title="二、koa 路由 get传值、动态路由"></a>二、koa 路由 get传值、动态路由</h1><h2 id="2-1-Koa-路由"><a href="#2-1-Koa-路由" class="headerlink" title="2.1 Koa 路由"></a>2.1 Koa 路由</h2><ul>
-<li>路由(<code>Routing</code>)是由一个 <code>URI</code>(或者叫路径)和一个特定的 <code>HTTP</code> 方法(<code>GET</code>、<code>POST </code>等)<br>组成的，涉及到应用如何响应客户端对某个网站节点的访问</li>
-<li>通俗的讲:路由就是根据不同的 <code>URL</code> 地址，加载不同的页面实现不同的功能</li>
-<li><code>Koa</code> 中的路由和 <code>Express</code> 有所不同，在 <code>Express</code> 中直接引入 <code>Express</code> 就可以配置路由，但是在 <code>Koa</code> 中我们需要安装对应的 <code>koa-router</code> 路由模块来实现</li>
-</ul>
+<p><code>--save</code> 参数表示自动修改 <code>package.json</code> 文件，自动添加依赖项。这个参数在 npm 5 之后已经是默认行为了，写不写都会写进依赖，老教程里带着它是历史原因。</p>
+<p>装完之后一个最小的 Koa 应用长这样。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/494.png" alt="Koa 最简单的启动示例"></p>
+<p><code>new Koa()</code> 拿到 app 实例，<code>app.use()</code> 注册中间件，<code>app.listen()</code> 起服务。整个框架对外暴露的核心 API 基本就这三个，剩下的都是围绕 <code>ctx</code> 展开的。</p>
+<h2 id="三、洋葱模型到底是怎么跑起来的"><a href="#三、洋葱模型到底是怎么跑起来的" class="headerlink" title="三、洋葱模型到底是怎么跑起来的"></a>三、洋葱模型到底是怎么跑起来的</h2><p>这一节是全文的重点，前面都是铺垫。</p>
+<h3 id="3-1-先看现象"><a href="#3-1-先看现象" class="headerlink" title="3.1 先看现象"></a>3.1 先看现象</h3><p>Koa 的中间件执行顺序被称为洋葱圈模型，先由外向内一层层进去，到最里面之后再由内向外一层层出来。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/498.gif" alt="Koa 洋葱模型的执行流程动图"></p>
+<p>用代码表达就是这样。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">app.<span class="title function_">use</span>(<span class="title function_">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;1 进入&#x27;</span>)</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">next</span>()</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;1 出来&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;2 进入&#x27;</span>)</span><br><span class="line">  <span class="keyword">await</span> <span class="title function_">next</span>()</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;2 出来&#x27;</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;3 处理&#x27;</span>)</span><br><span class="line">  ctx.<span class="property">body</span> = <span class="string">&#x27;hello&#x27;</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>打印顺序是 <code>1 进入 → 2 进入 → 3 处理 → 2 出来 → 1 出来</code>。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/503.png" alt="Koa 中间件洋葱圈模型示意"></p>
+<p>这个顺序的价值在哪？做耗时统计的时候，你在最外层中间件的 <code>await next()</code> 前后各打一个时间戳，中间的差值就是后面所有中间件加起来的总耗时，一行不用改业务代码。响应头统一处理、错误统一捕获、日志统一记录，全都靠这个「出来」的阶段。</p>
+<h3 id="3-2-我一开始的错误理解"><a href="#3-2-我一开始的错误理解" class="headerlink" title="3.2 我一开始的错误理解"></a>3.2 我一开始的错误理解</h3><p>我最早以为 Koa 是把中间件收集起来，先正着跑一遍再倒着跑一遍，跑了两轮。</p>
+<p>这个理解是错的。中间件函数一共只被调用一次，「进去」和「出来」是同一次函数调用的前半段和后半段，中间被 <code>await next()</code> 切开了。<code>await</code> 会让当前函数在这一行挂起，把执行权交给下游，等下游返回的 Promise 完成后再从这一行继续往下走。</p>
+<p>所以洋葱模型不是框架设计出来的什么特殊调度，它就是 async 函数天然的行为。Koa 做的事情只有一件：把这些函数按正确的方式串起来。</p>
+<h3 id="3-3-koa-compose-的实现"><a href="#3-3-koa-compose-的实现" class="headerlink" title="3.3 koa-compose 的实现"></a>3.3 koa-compose 的实现</h3><p>串起来这件事由 <code>koa-compose</code> 完成，核心是这么一段。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">compose</span> (<span class="params">middleware</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> (<span class="params">context, next</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> index = -<span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">dispatch</span>(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">function</span> <span class="title function_">dispatch</span> (<span class="params">i</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (i &lt;= index) <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(<span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&#x27;next() called multiple times&#x27;</span>))</span><br><span class="line">      index = i</span><br><span class="line">      <span class="keyword">let</span> fn = middleware[i]</span><br><span class="line">      <span class="keyword">if</span> (i === middleware.<span class="property">length</span>) fn = next</span><br><span class="line">      <span class="keyword">if</span> (!fn) <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">resolve</span>()</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">resolve</span>(<span class="title function_">fn</span>(context, dispatch.<span class="title function_">bind</span>(<span class="literal">null</span>, i + <span class="number">1</span>)))</span><br><span class="line">      &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="title class_">Promise</span>.<span class="title function_">reject</span>(err)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>一行行拆开看。</p>
+<p><code>dispatch(i)</code> 负责执行第 <code>i</code> 个中间件。关键在倒数第三行，传给中间件的第二个参数是 <code>dispatch.bind(null, i + 1)</code>，也就是说你在中间件里调用的那个 <code>next</code>，其实就是「执行下一个中间件」这个动作本身。你不调它，链条就断在这里，后面的中间件一个都不会执行。</p>
+<p><code>Promise.resolve(fn(...))</code> 这一层包装是为了兼容。中间件可以是 async 函数（返回 Promise），也可以是普通函数（返回 undefined 或别的值），包一层之后统一都是 Promise，<code>await next()</code> 才能一直成立。</p>
+<p><code>index</code> 那两行是防重复调用的守卫。同一个中间件里写两次 <code>await next()</code>，第二次进来时 <code>i &lt;= index</code> 成立，直接 reject 一个明确的错误。没有这个守卫的话，重复调用会导致下游中间件被执行两遍，响应写两次，问题现场特别混乱。</p>
+<p><code>try/catch</code> 包住同步执行阶段，把同步抛出的异常也转成 rejected Promise。这样不管中间件是同步抛错还是异步 reject，对上游来说都是一个 rejected Promise，可以用同一个 <code>try/catch</code> 接住。</p>
+<p>回到最开始那个问题：为什么 <code>await next()</code> 后面的代码会在下游全部跑完之后才执行？因为 <code>next()</code> 返回的是 <code>dispatch(i + 1)</code> 的返回值，而 <code>dispatch(i + 1)</code> 返回的是下游中间件那个 async 函数的 Promise，这个 Promise 要等到下游函数体整个执行完（包括它内部的 <code>await next()</code>）才 resolve。一层套一层，最终形成一条完整的 Promise 链。</p>
+<p>没有魔法，就是 Promise 的递归组合。</p>
+<h3 id="3-4-错误处理为什么变简单了"><a href="#3-4-错误处理为什么变简单了" class="headerlink" title="3.4 错误处理为什么变简单了"></a>3.4 错误处理为什么变简单了</h3><p>理解了上面这条 Promise 链，就能明白 Koa 的错误处理为什么好用。</p>
+<p>只要在最外层放一个中间件，用 <code>try/catch</code> 包住 <code>await next()</code>，整条链上任何一层抛出的错误都会被它接到。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">app.<span class="title function_">use</span>(<span class="title function_">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="title function_">next</span>()</span><br><span class="line">  &#125; <span class="keyword">catch</span> (err) &#123;</span><br><span class="line">    ctx.<span class="property">status</span> = err.<span class="property">status</span> || <span class="number">500</span></span><br><span class="line">    ctx.<span class="property">body</span> = &#123; <span class="attr">message</span>: err.<span class="property">message</span> &#125;</span><br><span class="line">    ctx.<span class="property">app</span>.<span class="title function_">emit</span>(<span class="string">&#x27;error&#x27;</span>, err, ctx)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>这在 callback 时代是做不到的。回调里抛出的异常不在调用方的调用栈上，外层 <code>try/catch</code> 根本抓不住，只能每层各写一遍 <code>if (err) return next(err)</code>。</p>
+<h2 id="四、ctx-上那一堆属性是从哪来的"><a href="#四、ctx-上那一堆属性是从哪来的" class="headerlink" title="四、ctx 上那一堆属性是从哪来的"></a>四、ctx 上那一堆属性是从哪来的</h2><p>用 Koa 的时候你会写 <code>ctx.body</code>、<code>ctx.query</code>、<code>ctx.status</code>、<code>ctx.path</code>，但 Koa 的源码里 <code>context.js</code> 这个文件其实没定义这些属性。它们是委托来的。</p>
+<p>Koa 把请求和响应分别封装成 <code>ctx.request</code> 和 <code>ctx.response</code> 两个对象，真正的属性定义在 <code>request.js</code> 和 <code>response.js</code> 里。然后用 <code>delegates</code> 这个小模块，把这两个对象上的属性和方法「代理」到 <code>ctx</code> 上。</p>
+<p>大致是这个意思。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> delegate = <span class="built_in">require</span>(<span class="string">&#x27;delegates&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> proto = <span class="variable language_">module</span>.<span class="property">exports</span> = &#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">delegate</span>(proto, <span class="string">&#x27;response&#x27;</span>)</span><br><span class="line">  .<span class="title function_">method</span>(<span class="string">&#x27;redirect&#x27;</span>)</span><br><span class="line">  .<span class="title function_">access</span>(<span class="string">&#x27;status&#x27;</span>)</span><br><span class="line">  .<span class="title function_">access</span>(<span class="string">&#x27;body&#x27;</span>)</span><br><span class="line">  .<span class="title function_">getter</span>(<span class="string">&#x27;headerSent&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="title function_">delegate</span>(proto, <span class="string">&#x27;request&#x27;</span>)</span><br><span class="line">  .<span class="title function_">access</span>(<span class="string">&#x27;query&#x27;</span>)</span><br><span class="line">  .<span class="title function_">access</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line">  .<span class="title function_">getter</span>(<span class="string">&#x27;href&#x27;</span>)</span><br><span class="line">  .<span class="title function_">getter</span>(<span class="string">&#x27;ip&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>access</code> 生成一对 getter 和 setter，<code>getter</code> 只生成读，<code>method</code> 代理方法调用。所以你写 <code>ctx.body = &#39;hello&#39;</code>，实际执行的是 <code>ctx.response.body = &#39;hello&#39;</code>；你读 <code>ctx.query</code>，实际读的是 <code>ctx.request.query</code>。</p>
+<p>这个设计有两个好处。一是用起来短，不用每次都写 <code>ctx.request.query</code>。二是职责还是分开的，请求和响应的实现代码各在各的文件里，没有揉成一坨。</p>
+<p>这里有个坑我踩过：<code>ctx.body</code> 和 <code>ctx.request.body</code> 是两个完全不同的东西。前者是你要返回给客户端的响应体，后者是客户端 POST 上来的请求体（而且要装了 <code>koa-bodyparser</code> 才有）。名字太像，写错了表现是「接口返回了一个空对象」，得盯着看好一会儿才发现少了 <code>request</code> 三个字。</p>
+<h2 id="五、和-Express-中间件模型的差异"><a href="#五、和-Express-中间件模型的差异" class="headerlink" title="五、和 Express 中间件模型的差异"></a>五、和 Express 中间件模型的差异</h2><p>这两个框架的中间件长得有点像，但底子完全不同。</p>
+<p>先说签名。Express 的中间件是 <code>(req, res, next)</code>，三个参数分开；Koa 是 <code>(ctx, next)</code>，请求和响应都挂在 <code>ctx</code> 上。这只是表面差异。</p>
+<p>真正的差异在 <code>next</code> 的语义。</p>
+<p>Express 的 <code>next</code> 是一个回调，调用它表示「我处理完了，交给下一个」，它没有返回值，也不代表下游的完成。所以 Express 里 <code>next()</code> 后面的代码是立刻执行的，那时候下游中间件可能才刚开始跑异步操作。想在响应发出前做点什么，得去 hook <code>res.end</code>，或者用 <code>on-finished</code> 这类库监听响应结束事件。</p>
+<p>Koa 的 <code>next</code> 返回一个 Promise，代表「下游全部执行完毕」。<code>await next()</code> 之后的代码天然处在响应即将发出的那个时刻，这就是洋葱模型后半段的来源。</p>
+<p>第二个差异是错误处理。Express 4 里 async 中间件抛出的错误不会被框架自动捕获，你得自己 <code>.catch(next)</code> 或者用 <code>try/catch</code> 包起来手动调 <code>next(err)</code>，漏掉一个地方就是一个静默失败或者进程崩溃。Koa 因为整条链是 Promise，最外层一个 <code>try/catch</code> 就全包了。这是我从 Express 换到 Koa 之后感受最明显的一点。Express 后来的大版本对 async 错误处理有改进，具体以官方文档为准。</p>
+<p>第三个差异是响应的写入时机。Express 里你调 <code>res.send()</code> 就直接把响应发出去了，发出去就改不了了。Koa 是给 <code>ctx.body</code> 赋值，这只是记录下来，真正的写出发生在所有中间件都跑完之后，由框架统一完成。所以在 Koa 里，上游中间件可以在 <code>await next()</code> 之后再去修改 <code>ctx.body</code>，比如统一包一层 <code>&#123; code, data &#125;</code> 的响应结构。</p>
+<p>不是说 Express 的模型不行，它出现得更早，那个年代 Promise 还没普及，回调是唯一的选择。只是既然现在写的是 async&#x2F;await，Koa 的模型确实更顺。</p>
+<h2 id="六、Koa-路由"><a href="#六、Koa-路由" class="headerlink" title="六、Koa 路由"></a>六、Koa 路由</h2><h3 id="6-1-引入-koa-router"><a href="#6-1-引入-koa-router" class="headerlink" title="6.1 引入 koa-router"></a>6.1 引入 koa-router</h3><p>路由（Routing）是由一个 URI（或者叫路径）和一个特定的 HTTP 方法（GET、POST 等）组成的，涉及到应用如何响应客户端对某个网站节点的访问。通俗的讲，路由就是根据不同的 URL 地址，加载不同的页面实现不同的功能。</p>
+<p>Koa 中的路由和 Express 有所不同。在 Express 中直接引入 Express 就可以配置路由，但是在 Koa 中我们需要安装对应的 <code>koa-router</code> 路由模块来实现。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save koa-router</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/495.png"></p>
-<h2 id="2-2-Koa-路由-get-传值"><a href="#2-2-Koa-路由-get-传值" class="headerlink" title="2.2 Koa 路由 get 传值"></a>2.2 Koa 路由 get 传值</h2><blockquote>
-<p>在 <code>koa2</code> 中 <code>GET</code> 传值通过 <code>request</code> 接收，但是接收的方法有两种:<code>query</code> 和 <code>querystring</code></p>
-</blockquote>
+<p><img src="https://s.poetries.top/gitee/2019/10/495.png" alt="koa-router 基本用法"></p>
+<p>补一句现状：<code>koa-router</code> 这个包后来维护变慢，社区实际用得更多的是 <code>@koa/router</code>，API 基本一致。新项目选哪个，看一眼两个包的最近发布时间再定，以官方仓库说明为准。</p>
+<h3 id="6-2-GET-传值"><a href="#6-2-GET-传值" class="headerlink" title="6.2 GET 传值"></a>6.2 GET 传值</h3><p>在 koa2 中 GET 传值通过 <code>request</code> 接收，接收的方法有两种，<code>query</code> 和 <code>querystring</code>。</p>
 <ul>
-<li><code>query</code>:返回的是格式化好的参数对象。 </li>
-<li><code>querystring</code>:返回的是请求字符串</li>
+<li><code>query</code> 返回的是格式化好的参数对象</li>
+<li><code>querystring</code> 返回的是请求字符串</li>
 </ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/496.png"></p>
-<h2 id="2-3-Koa-动态路由"><a href="#2-3-Koa-动态路由" class="headerlink" title="2.3 Koa 动态路由"></a>2.3 Koa 动态路由</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/497.png"></p>
-<h1 id="三、koa-中间件及执行流程"><a href="#三、koa-中间件及执行流程" class="headerlink" title="三、koa 中间件及执行流程"></a>三、koa 中间件及执行流程</h1><h2 id="3-1-koa中间件的洋葱图执行流程"><a href="#3-1-koa中间件的洋葱图执行流程" class="headerlink" title="3.1 koa中间件的洋葱图执行流程"></a>3.1 koa中间件的洋葱图执行流程</h2><p><img src="https://poetries1.gitee.io/img-repo/2019/10/498.gif"></p>
-<h2 id="3-2-koa-中间件"><a href="#3-2-koa-中间件" class="headerlink" title="3.2 koa 中间件"></a>3.2 koa 中间件</h2><h3 id="3-2-1-什么是-Koa-的中间件"><a href="#3-2-1-什么是-Koa-的中间件" class="headerlink" title="3.2.1 什么是 Koa 的中间件"></a>3.2.1 什么是 Koa 的中间件</h3><ul>
-<li>通俗的讲:中间件就是匹配路由之前或者匹配路由完成做的一系列的操作，我们就可以<br>把它叫做中间件</li>
-<li>在<code>express</code>中间件(<code>Middleware</code>)是一个函数，它可以访问请求对象(request object (req)), 响应对象(<code>response object (res)</code>), 和 <code>web</code> 应用中处理请求-响应循环流程中的中间件，一 般被命名为 next 的变量。在 <code>Koa</code> 中中间件和 <code>express</code> 有点类似。</li>
-</ul>
-<p><strong>中间件的功能包括</strong></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/496.png" alt="query 与 querystring 的返回差异"></p>
+<p>日常用 <code>ctx.query</code> 就够了，拿到的是对象可以直接取字段。<code>querystring</code> 的场景比较少，一般是你要把整串参数原样透传给下游服务，或者要参与签名计算，这时候不能被解析和重排。</p>
+<p>有个细节要注意，<code>ctx.query</code> 的值全是字符串。<code>?page=1</code> 拿到的是 <code>&#39;1&#39;</code> 不是 <code>1</code>，直接拿去做数值比较会出问题，该 <code>Number()</code> 就 <code>Number()</code>。</p>
+<h3 id="6-3-动态路由"><a href="#6-3-动态路由" class="headerlink" title="6.3 动态路由"></a>6.3 动态路由</h3><p><img src="https://s.poetries.top/gitee/2019/10/497.png" alt="Koa 动态路由的写法"></p>
+<p>动态路由用 <code>:</code> 声明占位段，比如 <code>/user/:id</code>，取值走 <code>ctx.params.id</code>。它和 <code>ctx.query</code> 的区别是，params 来自路径本身，query 来自问号后面。</p>
+<p>路由的匹配顺序是按注册顺序来的，先注册先匹配。所以 <code>/user/:id</code> 如果注册在 <code>/user/new</code> 前面，访问 <code>/user/new</code> 会命中动态路由，<code>id</code> 拿到字符串 <code>&#39;new&#39;</code>。把具体路径注册在动态路径前面能避开这个问题。</p>
+<h2 id="七、四类中间件的写法"><a href="#七、四类中间件的写法" class="headerlink" title="七、四类中间件的写法"></a>七、四类中间件的写法</h2><h3 id="7-1-什么是中间件"><a href="#7-1-什么是中间件" class="headerlink" title="7.1 什么是中间件"></a>7.1 什么是中间件</h3><p>通俗的讲，中间件就是匹配路由之前或者匹配路由完成后做的一系列操作，我们就可以把它叫做中间件。</p>
+<p>在 Express 中，中间件（Middleware）是一个函数，它可以访问请求对象（request object (req)）、响应对象（response object (res)），和 web 应用中处理请求响应循环流程中的中间件，一般被命名为 next 的变量。在 Koa 中，中间件和 Express 有点类似，差异前面第五节已经讲过了。</p>
+<p>中间件的功能包括：</p>
 <ul>
 <li>执行任何代码</li>
 <li>修改请求和响应对象</li>
-<li>终结请求-响应循环</li>
+<li>终结请求响应循环</li>
 <li>调用堆栈中的下一个中间件</li>
 </ul>
-<blockquote>
-<p>如果我的 <code>get</code>、<code>post</code> 回调函数中，没有 <code>next</code> 参数，那么就匹配上第一个路由，就不会往下匹 配了。如果想往下匹配的话，那么需要写 <code>next()</code></p>
-</blockquote>
-<h3 id="3-2-2-Koa-应用可使用如下几种中间件"><a href="#3-2-2-Koa-应用可使用如下几种中间件" class="headerlink" title="3.2.2 Koa 应用可使用如下几种中间件"></a>3.2.2 Koa 应用可使用如下几种中间件</h3><p><strong>1. 应用级中间件</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/499.png"></p>
-<p><strong>2. 路由中间件</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/500.png"></p>
-<p><strong>3. 错误处理中间件</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/501.png"></p>
-<p><strong>4. 第三方中间件</strong></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/502.png"></p>
-<h3 id="3-2-3-Koa-中间件的执行顺序"><a href="#3-2-3-Koa-中间件的执行顺序" class="headerlink" title="3.2.3 Koa 中间件的执行顺序"></a>3.2.3 Koa 中间件的执行顺序</h3><blockquote>
-<p><code>Koa</code> 的中间件和 <code>Express</code> 不同，<code>Koa</code> 选择了洋葱圈模型</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/503.png"></p>
-<h1 id="四、koa-ejs模板引擎使用-以及ejs配置全局数据"><a href="#四、koa-ejs模板引擎使用-以及ejs配置全局数据" class="headerlink" title="四、koa ejs模板引擎使用 以及ejs配置全局数据"></a>四、koa ejs模板引擎使用 以及ejs配置全局数据</h1><p><strong>1. 安装 koa-views 和 ejs</strong></p>
+<p>如果你的 get、post 回调函数中没有 <code>next</code> 参数，那么匹配上第一个路由之后就不会往下匹配了。想往下匹配的话，需要写 <code>next()</code>。</p>
+<h3 id="7-2-应用级中间件"><a href="#7-2-应用级中间件" class="headerlink" title="7.2 应用级中间件"></a>7.2 应用级中间件</h3><p><img src="https://s.poetries.top/gitee/2019/10/499.png" alt="Koa 应用级中间件示例"></p>
+<p>应用级中间件通过 <code>app.use()</code> 注册，对所有请求生效。日志记录、耗时统计、统一错误处理、CORS 头，这些都放在这一层。</p>
+<p>注册顺序就是执行顺序，这一点很关键。错误处理中间件必须放在最前面，因为它要靠 <code>await next()</code> 把后面所有中间件的异常都接住。放在后面的话，前面那些中间件的错误它就管不到了。</p>
+<h3 id="7-3-路由中间件"><a href="#7-3-路由中间件" class="headerlink" title="7.3 路由中间件"></a>7.3 路由中间件</h3><p><img src="https://s.poetries.top/gitee/2019/10/500.png" alt="Koa 路由中间件示例"></p>
+<p>路由中间件挂在具体的路由上，只对匹配到的那条路径生效。权限校验最适合放这一层，比如 <code>/admin</code> 下面的所有接口挂一个鉴权中间件，其它路径不受影响。</p>
+<h3 id="7-4-错误处理中间件"><a href="#7-4-错误处理中间件" class="headerlink" title="7.4 错误处理中间件"></a>7.4 错误处理中间件</h3><p><img src="https://s.poetries.top/gitee/2019/10/501.png" alt="Koa 错误处理中间件示例"></p>
+<p>除了用 <code>try/catch</code> 包住 <code>await next()</code> 这种写法，Koa 还提供了 <code>app.on(&#39;error&#39;, ...)</code> 这个兜底。前者能拿到 <code>ctx</code>，可以决定返回给客户端什么内容；后者更适合做上报和记日志，它连中间件都跑不起来的那种底层错误也能接到。两个配合着用比较稳。</p>
+<h3 id="7-5-第三方中间件"><a href="#7-5-第三方中间件" class="headerlink" title="7.5 第三方中间件"></a>7.5 第三方中间件</h3><p><img src="https://s.poetries.top/gitee/2019/10/502.png" alt="Koa 常用第三方中间件"></p>
+<p>Koa 内核不带任何中间件，body 解析、静态文件、模板渲染、session 全部靠社区包，下面几节说的就是这些。这个设计的代价是初始配置多，好处是你清楚地知道每一个环节由谁负责，出问题知道去哪查。</p>
+<h2 id="八、模板引擎"><a href="#八、模板引擎" class="headerlink" title="八、模板引擎"></a>八、模板引擎</h2><h3 id="8-1-koa-views-加-ejs"><a href="#8-1-koa-views-加-ejs" class="headerlink" title="8.1 koa-views 加 ejs"></a>8.1 koa-views 加 ejs</h3><p>安装两个包。</p>
 <ul>
-<li>安装 <code>koa-views npm install --save koa-views / cnpm install --save koa-views</code></li>
-<li>安装 <code>ejs npm install ejs --save / cnpm install ejs --save</code></li>
+<li>安装 koa-views：<code>npm install --save koa-views</code></li>
+<li>安装 ejs：<code>npm install ejs --save</code></li>
 </ul>
-<p><strong>2. 引入 koa-views 配置中间件</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> views = <span class="built_in">require</span>(<span class="string">&#x27;koa-views&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">views</span>(<span class="string">&#x27;views&#x27;</span>, &#123; <span class="attr">map</span>: &#123;<span class="attr">html</span>: <span class="string">&#x27;ejs&#x27;</span> &#125;&#125;));</span><br></pre></td></tr></table></figure>
+<p>引入 koa-views 配置中间件。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> views = <span class="built_in">require</span>(<span class="string">&#x27;koa-views&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">views</span>(<span class="string">&#x27;views&#x27;</span>, &#123; <span class="attr">map</span>: &#123; <span class="attr">html</span>: <span class="string">&#x27;ejs&#x27;</span> &#125; &#125;));</span><br></pre></td></tr></table></figure>
 
-<p><strong>3. Koa 中使用 ejs</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">router.<span class="title function_">get</span>(<span class="string">&#x27;/add&#x27;</span>,<span class="title function_">async</span> (ctx)=&gt;&#123; </span><br><span class="line">    <span class="keyword">let</span> title = <span class="string">&#x27;hello koa2&#x27;</span> </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">await</span> ctx.<span class="title function_">render</span>(index<span class="string">&#x27;,&#123; title &#125;)</span></span><br><span class="line"><span class="string">&#125;)</span></span><br></pre></td></tr></table></figure>
+<p>第一个参数是模板目录，<code>map</code> 把 <code>.html</code> 后缀映射到 ejs 引擎，这样模板文件可以直接叫 <code>index.html</code>，编辑器的语法高亮也认。</p>
+<p>在路由里渲染。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">router.<span class="title function_">get</span>(<span class="string">&#x27;/add&#x27;</span>, <span class="title function_">async</span> (ctx) =&gt; &#123; </span><br><span class="line">    <span class="keyword">let</span> title = <span class="string">&#x27;hello koa2&#x27;</span></span><br><span class="line">    <span class="keyword">await</span> ctx.<span class="title function_">render</span>(<span class="string">&#x27;index&#x27;</span>, &#123; title &#125;)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-
-<p><strong>4. Ejs 引入模板</strong></p>
+<p>原文这里的 <code>ctx.render(index&#39;,&#123; title &#125;)</code> 少了一个开头的单引号，是个 typo，我改过来了。另外 <code>ctx.render</code> 前面的 <code>await</code> 不能省，它是异步的，省掉的话中间件会在渲染完成前就返回，客户端拿到空响应。</p>
+<p>ejs 常用语法列一下。</p>
+<p>引入模板：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;%- include header.ejs %&gt;</span><br></pre></td></tr></table></figure>
 
-<p><strong>5. Ejs 绑定数据</strong></p>
+<p>绑定数据（会做 HTML 转义）：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;%=h%&gt;</span><br></pre></td></tr></table></figure>
 
-<p><strong>6. Ejs 绑定 html 数据</strong></p>
+<p>绑定 HTML 数据（不转义）：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&lt;%-h%&gt;</span><br></pre></td></tr></table></figure>
 
-<p><strong>7. Ejs 模板判断语句</strong></p>
+<p>这两个的区别是安全边界。<code>&lt;%= %&gt;</code> 会把 <code>&lt;</code> <code>&gt;</code> 这些字符转义掉，用户输入的内容必须走它，否则就是一个 XSS 漏洞。<code>&lt;%- %&gt;</code> 原样输出，只能用在你自己完全可控的内容上。这个我见过实际出事的例子，评论内容用了 <code>&lt;%- %&gt;</code> 直接就被注入了。</p>
+<p>判断语句：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&lt;% if(true)&#123; %&gt;</span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span>true<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">&lt;%&#125; else&#123; %&gt;</span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span>&gt;</span>false<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">&lt;%&#125; %&gt;</span><br></pre></td></tr></table></figure>
 
-<p><strong>8. Ejs 模板中循环数据</strong></p>
+<p>循环数据：</p>
 <figure class="highlight html"><table><tr><td class="code"><pre><span class="line">&lt;%for(var i=0;i&lt;list.length;i++) &#123; %&gt;</span><br><span class="line">    <span class="tag">&lt;<span class="name">li</span>&gt;</span>&lt;%=list[i] %&gt;<span class="tag">&lt;/<span class="name">li</span>&gt;</span></span><br><span class="line">&lt;%&#125;%&gt;</span><br></pre></td></tr></table></figure>
 
-<h1 id="五、koa-post-提交数据-koa-bodyparser-中间件的使用"><a href="#五、koa-post-提交数据-koa-bodyparser-中间件的使用" class="headerlink" title="五、koa post 提交数据 koa-bodyparser 中间件的使用"></a>五、koa post 提交数据 koa-bodyparser 中间件的使用</h1><h2 id="5-1-原生-Nodejs-获取-post-提交数据"><a href="#5-1-原生-Nodejs-获取-post-提交数据" class="headerlink" title="5.1 原生 Nodejs 获取 post 提交数据"></a>5.1 原生 Nodejs 获取 post 提交数据</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">parsePostData</span>(<span class="params">ctx</span>)&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve,reject</span>)=&gt;</span>&#123;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            <span class="keyword">let</span> postdata=<span class="string">&quot;&quot;</span>;</span><br><span class="line">            ctx.<span class="property">req</span>.<span class="title function_">on</span>(<span class="string">&#x27;data&#x27;</span>,<span class="function">(<span class="params">data</span>)=&gt;</span>&#123;</span><br><span class="line">                postdata += data</span><br><span class="line">            &#125;)</span><br><span class="line">            ctx.<span class="property">req</span>.<span class="title function_">on</span>(<span class="string">&quot;end&quot;</span>,<span class="keyword">function</span>(<span class="params"></span>)&#123;</span><br><span class="line">                <span class="title function_">resolve</span>(postdata);</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;<span class="keyword">catch</span>(error)&#123;</span><br><span class="line">            <span class="title function_">reject</span>(error);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="5-2-Koa-中-koa-bodyparser-中间件的使用"><a href="#5-2-Koa-中-koa-bodyparser-中间件的使用" class="headerlink" title="5.2 Koa 中 koa-bodyparser 中间件的使用"></a>5.2 Koa 中 koa-bodyparser 中间件的使用</h2><p><strong>1. 安装 koa-bodyparser</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save koa-bodyparser</span><br></pre></td></tr></table></figure>
-
-<p><strong>2. 安装 引入配置中间件</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> bodyParser = <span class="built_in">require</span>(<span class="string">&#x27;koa-bodyparser&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">bodyParser</span>());</span><br><span class="line">app.<span class="title function_">use</span>(<span class="keyword">async</span> ctx =&gt; &#123;</span><br><span class="line">    ctx.<span class="property">body</span> = ctx.<span class="property">request</span>.<span class="property">body</span>;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. 使用</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">ctx.<span class="property">request</span>.<span class="property">body</span> <span class="comment">// 获取 post 提交的数据</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="六、koa-static静态资源中间件"><a href="#六、koa-static静态资源中间件" class="headerlink" title="六、koa-static静态资源中间件"></a>六、koa-static静态资源中间件</h1><p><strong>1. 安装 koa-static</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save koa-static</span><br></pre></td></tr></table></figure>
-
-<p><strong>2. 引入配置中间件</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">static</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa-static&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">static</span>(</span><br><span class="line">    path.<span class="title function_">join</span>( __dirname, <span class="string">&#x27;public&#x27;</span>)</span><br><span class="line">))</span><br></pre></td></tr></table></figure>
-
-<h1 id="七、koa-art-template高性能模板引擎的使用"><a href="#七、koa-art-template高性能模板引擎的使用" class="headerlink" title="七、koa art-template高性能模板引擎的使用"></a>七、koa art-template高性能模板引擎的使用</h1><h2 id="7-1-常见模板引擎的性能对比"><a href="#7-1-常见模板引擎的性能对比" class="headerlink" title="7.1 常见模板引擎的性能对比"></a>7.1 常见模板引擎的性能对比</h2><blockquote>
-<p>适用于 <code>koa</code> 的模板引擎选择非常多，比如 <code>jade</code>、<code>ejs</code>、<code>nunjucks</code>、<code>art-template</code> 等</p>
-</blockquote>
-<ul>
-<li><code>art-template</code> 是一个简约、超快的模板引擎</li>
-<li>它采用作用域预声明的技术来优化模板渲染速度，从而获得接近 JavaScript 极限的运行 性能，并且同时支持 NodeJS 和浏览器。</li>
-<li><code>art-template</code> 支持 <code>ejs</code> 的语法，也可以用自己的类似 <code>angular</code> 数据绑定的语法</li>
-<li>中文文档: <a href="http://aui.github.io/art-template/zh-cn/docs">http://aui.github.io/art-template/zh-cn/docs</a></li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/504.png"></p>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/505.png"></p>
-<h2 id="7-2-在-Koa-中使用-art-template-模板引擎"><a href="#7-2-在-Koa-中使用-art-template-模板引擎" class="headerlink" title="7.2 在 Koa 中使用 art-template 模板引擎"></a>7.2 在 Koa 中使用 art-template 模板引擎</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save art-template </span><br><span class="line">npm install --save koa-art-template</span><br></pre></td></tr></table></figure>
+<h3 id="8-2-art-template"><a href="#8-2-art-template" class="headerlink" title="8.2 art-template"></a>8.2 art-template</h3><p>适用于 Koa 的模板引擎选择非常多，比如 jade、ejs、nunjucks、art-template 等。</p>
+<p>art-template 是一个简约、超快的模板引擎。它采用作用域预声明的技术来优化模板渲染速度，从而获得接近 JavaScript 极限的运行性能，并且同时支持 NodeJS 和浏览器。art-template 支持 ejs 的语法，也可以用自己的类似 angular 数据绑定的语法。中文文档在 <a href="http://aui.github.io/art-template/zh-cn/docs">http://aui.github.io/art-template/zh-cn/docs</a></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/504.png" alt="模板引擎性能对比数据"></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/505.png" alt="模板引擎性能对比数据（续）"></p>
+<p>这两张对比图要辩证地看。渲染性能在真实业务里很少是瓶颈，一次数据库查询几十毫秒，模板渲染的差异往往在微秒级别，选型时优先看语法顺不顺手、社区活不活跃，性能排在后面。当然如果你的场景是服务端渲染大量列表页，那这个差异就值得关注了。</p>
+<p>接入方式。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save art-template </span><br><span class="line">npm install --save koa-art-template</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> render = <span class="built_in">require</span>(<span class="string">&#x27;koa-art-template&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line"><span class="title function_">render</span>(app, &#123;</span><br><span class="line">    <span class="attr">root</span>: path.<span class="title function_">join</span>(__dirname, <span class="string">&#x27;view&#x27;</span>),</span><br><span class="line">    <span class="attr">extname</span>: <span class="string">&#x27;.art&#x27;</span>,</span><br><span class="line">    <span class="attr">debug</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;production&#x27;</span></span><br><span class="line">&#125;);</span><br><span class="line">app.<span class="title function_">use</span>(<span class="keyword">async</span> <span class="keyword">function</span> (<span class="params">ctx</span>) &#123;</span><br><span class="line">    <span class="keyword">await</span> ctx.<span class="title function_">render</span>(<span class="string">&#x27;user&#x27;</span>);</span><br><span class="line">&#125;);</span><br><span class="line">app.<span class="title function_">listen</span>(<span class="number">8080</span>);</span><br></pre></td></tr></table></figure>
 
-<h2 id="7-3-art-template-模板引擎语法"><a href="#7-3-art-template-模板引擎语法" class="headerlink" title="7.3 art-template 模板引擎语法"></a>7.3 art-template 模板引擎语法</h2><blockquote>
-<p>参考:<a href="http://aui.github.io/art-template/zh-cn/docs/syntax.html">http://aui.github.io/art-template/zh-cn/docs/syntax.html</a></p>
-</blockquote>
-<h1 id="八、koa-Cookie的使用"><a href="#八、koa-Cookie的使用" class="headerlink" title="八、koa Cookie的使用"></a>八、koa Cookie的使用</h1><h2 id="8-1-Koa-Cookie-的使用"><a href="#8-1-Koa-Cookie-的使用" class="headerlink" title="8.1 Koa Cookie 的使用"></a>8.1 Koa Cookie 的使用</h2><p><strong>1. Koa 中设置 Cookie 的值</strong></p>
+<p><code>debug</code> 那行要留意，开发时打开能看到详细的模板报错，生产环境必须关掉，因为 debug 模式下模板不走缓存，每次请求都重新编译，性能差很多。这里用 <code>process.env.NODE_ENV</code> 判断是对的写法。</p>
+<p>art-template 的模板语法参考 <a href="http://aui.github.io/art-template/zh-cn/docs/syntax.html">http://aui.github.io/art-template/zh-cn/docs/syntax.html</a></p>
+<h2 id="九、POST-数据与静态资源"><a href="#九、POST-数据与静态资源" class="headerlink" title="九、POST 数据与静态资源"></a>九、POST 数据与静态资源</h2><h3 id="9-1-原生方式获取-POST-数据"><a href="#9-1-原生方式获取-POST-数据" class="headerlink" title="9.1 原生方式获取 POST 数据"></a>9.1 原生方式获取 POST 数据</h3><p>不用任何中间件的话，得自己监听原生请求流。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">parsePostData</span>(<span class="params">ctx</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Promise</span>(<span class="function">(<span class="params">resolve, reject</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">let</span> postdata = <span class="string">&quot;&quot;</span>;</span><br><span class="line">            ctx.<span class="property">req</span>.<span class="title function_">on</span>(<span class="string">&#x27;data&#x27;</span>, <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">                postdata += data</span><br><span class="line">            &#125;)</span><br><span class="line">            ctx.<span class="property">req</span>.<span class="title function_">on</span>(<span class="string">&quot;end&quot;</span>, <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">                <span class="title function_">resolve</span>(postdata)</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">            <span class="title function_">reject</span>(error)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原文这段的括号是不配对的，我按原意补齐了。这里的 <code>ctx.req</code> 是 Node 原生的请求对象，不是 <code>ctx.request</code>（Koa 封装过的那个），别搞混。</p>
+<p>这段代码在真实项目里还差不少东西：拿到的是原始字符串，还得根据 <code>Content-Type</code> 自己判断是 JSON 还是表单去解析；没有做体积限制，客户端传一个超大 body 上来内存就爆了；中文字符如果正好在两个 chunk 的边界上被切开，字符串拼接会出现乱码，正确做法是先收集 Buffer 最后统一 <code>toString</code>。</p>
+<p>所以实际开发直接用现成的中间件就好，这段代码的价值是理解底层在发生什么。</p>
+<h3 id="9-2-koa-bodyparser"><a href="#9-2-koa-bodyparser" class="headerlink" title="9.2 koa-bodyparser"></a>9.2 koa-bodyparser</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save koa-bodyparser</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> <span class="title class_">Koa</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa&#x27;</span>);</span><br><span class="line"><span class="keyword">var</span> bodyParser = <span class="built_in">require</span>(<span class="string">&#x27;koa-bodyparser&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> app = <span class="keyword">new</span> <span class="title class_">Koa</span>();</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">bodyParser</span>());</span><br><span class="line">app.<span class="title function_">use</span>(<span class="keyword">async</span> ctx =&gt; &#123;</span><br><span class="line">    ctx.<span class="property">body</span> = ctx.<span class="property">request</span>.<span class="property">body</span>;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>用 <code>ctx.request.body</code> 取 POST 提交的数据。再强调一次，是 <code>ctx.request.body</code>，不是 <code>ctx.body</code>。</p>
+<p><code>bodyParser()</code> 必须注册在需要读 body 的路由之前，因为它要靠洋葱模型的「进去」阶段把流读完并解析好，后面的中间件才拿得到。注册顺序反了的话，<code>ctx.request.body</code> 是 undefined，而且不报错，静默的。</p>
+<h3 id="9-3-koa-static"><a href="#9-3-koa-static" class="headerlink" title="9.3 koa-static"></a>9.3 koa-static</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install --save koa-static</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">static</span> = <span class="built_in">require</span>(<span class="string">&#x27;koa-static&#x27;</span>);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">static</span>(</span><br><span class="line">    path.<span class="title function_">join</span>(__dirname, <span class="string">&#x27;public&#x27;</span>)</span><br><span class="line">))</span><br></pre></td></tr></table></figure>
+
+<p>静态资源中间件的位置也有讲究。放得太靠后，每个静态文件请求都要先穿过前面所有中间件（包括鉴权、日志、body 解析），白白消耗。一般放在错误处理之后、业务路由之前。</p>
+<p>顺带说一句，生产环境的静态资源交给 Nginx 处理比交给 Node 更合适，Node 这边只处理动态请求。这块可以看我另一篇 <a href="https://feinterview.poetries.top/blog/review-nginx">Nginx 极简教程</a>，里面静态站点和反向代理的配置能直接用。</p>
+<p><code>static</code> 这个变量名其实不太好，虽然 <code>static</code> 在非严格模式下不是保留字，但它是 ES 的关键字之一，换成 <code>serve</code> 或者 <code>koaStatic</code> 更稳妥。</p>
+<h2 id="十、Cookie-与-Session"><a href="#十、Cookie-与-Session" class="headerlink" title="十、Cookie 与 Session"></a>十、Cookie 与 Session</h2><h3 id="10-1-Koa-中使用-Cookie"><a href="#10-1-Koa-中使用-Cookie" class="headerlink" title="10.1 Koa 中使用 Cookie"></a>10.1 Koa 中使用 Cookie</h3><p>设置值：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">ctx.<span class="property">cookies</span>.<span class="title function_">set</span>(name, value, [options])</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>通过 <code>options</code> 设置 <code>cookie name</code> 的 <code>value</code> </p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/506.png"></p>
-<p><strong>2. Koa 中获取 Cookie 的值</strong></p>
+<p>通过 <code>options</code> 设置这个 cookie 的行为。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/506.png" alt="ctx.cookies.set 的 options 参数说明"></p>
+<p><code>options</code> 里最该关注的是 <code>httpOnly</code> 和 <code>maxAge</code>。<code>httpOnly</code> 默认为 true，开着的时候 JS 读不到这个 cookie，能挡掉一部分 XSS 窃取会话的攻击。存放会话标识的 cookie 一定要保持 httpOnly。跨站点的场景还要看 <code>sameSite</code>，现代浏览器对它的默认值做过收紧，具体行为以浏览器文档为准。</p>
+<p>获取值：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line">ctx.<span class="property">cookies</span>.<span class="title function_">get</span>(<span class="string">&#x27;name&#x27;</span>);</span><br></pre></td></tr></table></figure>
 
-<h2 id="8-2-Koa-中设置中文-Cookie"><a href="#8-2-Koa-中设置中文-Cookie" class="headerlink" title="8.2 Koa 中设置中文 Cookie"></a>8.2 Koa 中设置中文 Cookie</h2><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="keyword">new</span> <span class="title class_">Buffer</span>(<span class="string">&#x27;hello, world!&#x27;</span>).<span class="title function_">toString</span>(<span class="string">&#x27;base64&#x27;</span>));<span class="comment">// 转换成 base64 字符 串:aGVsbG8sIHdvcmxkIQ==</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="keyword">new</span> <span class="title class_">Buffer</span>(<span class="string">&#x27;aGVsbG8sIHdvcmxkIQ==&#x27;</span>, <span class="string">&#x27;base64&#x27;</span>).<span class="title function_">toString</span>());<span class="comment">// 还原 base 64 字符串:hello, world!</span></span><br></pre></td></tr></table></figure>
+<h3 id="10-2-设置中文-Cookie"><a href="#10-2-设置中文-Cookie" class="headerlink" title="10.2 设置中文 Cookie"></a>10.2 设置中文 Cookie</h3><p>cookie 的值只能是 ASCII，直接塞中文会报错。老办法是转 base64。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="keyword">new</span> <span class="title class_">Buffer</span>(<span class="string">&#x27;hello, world!&#x27;</span>).<span class="title function_">toString</span>(<span class="string">&#x27;base64&#x27;</span>));</span><br><span class="line"><span class="comment">// 转换成 base64 字符串: aGVsbG8sIHdvcmxkIQ==</span></span><br><span class="line"></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="keyword">new</span> <span class="title class_">Buffer</span>(<span class="string">&#x27;aGVsbG8sIHdvcmxkIQ==&#x27;</span>, <span class="string">&#x27;base64&#x27;</span>).<span class="title function_">toString</span>());</span><br><span class="line"><span class="comment">// 还原 base64 字符串: hello, world!</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="九、koa-Session-的使用"><a href="#九、koa-Session-的使用" class="headerlink" title="九、koa Session 的使用"></a>九、koa Session 的使用</h1><h2 id="9-1-Session-简单介绍"><a href="#9-1-Session-简单介绍" class="headerlink" title="9.1 Session 简单介绍"></a>9.1 Session 简单介绍</h2><blockquote>
-<p><code>session</code> 是另一种记录客户状态的机制，不同的是 <code>Cookie</code> 保存在客户端浏览器中，而 <code>session</code> 保存在服务器上</p>
-</blockquote>
-<h2 id="9-2-Session-的工作流程"><a href="#9-2-Session-的工作流程" class="headerlink" title="9.2 Session 的工作流程"></a>9.2 Session 的工作流程</h2><blockquote>
-<p>当浏览器访问服务器并发送第一次请求时，服务器端会创建一个 <code>session</code> 对象，生 成一个类似于 <code>key</code>,<code>value</code> 的键值对， 然后将<code>key(cookie)</code>返回到浏览器(客户)端，浏览 器下次再访问时，携带 <code>key(cookie)</code>，找到对应的 <code>session(value)</code>。 客户的信息都保存 在 <code>session</code> 中</p>
-</blockquote>
-<h2 id="9-3-koa-session-的使用"><a href="#9-3-koa-session-的使用" class="headerlink" title="9.3 koa-session 的使用"></a>9.3 koa-session 的使用</h2><p><strong>1. 安装 express-session</strong></p>
+<p>这是 2019 年的写法。<code>new Buffer()</code> 现在已经被废弃了，会打安全警告，现在的做法是用 <code>Buffer.from()</code>。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Buffer</span>.<span class="title function_">from</span>(<span class="string">&#x27;hello, world!&#x27;</span>).<span class="title function_">toString</span>(<span class="string">&#x27;base64&#x27;</span>))</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="title class_">Buffer</span>.<span class="title function_">from</span>(<span class="string">&#x27;aGVsbG8sIHdvcmxkIQ==&#x27;</span>, <span class="string">&#x27;base64&#x27;</span>).<span class="title function_">toString</span>())</span><br></pre></td></tr></table></figure>
+
+<p>废弃的原因是 <code>new Buffer(number)</code> 会分配一块未初始化的内存，里面可能残留着之前的敏感数据，而 <code>Buffer.from</code> 和 <code>Buffer.alloc</code> 把这两种语义分开了，不会误用。</p>
+<p>另外要说清楚，base64 是编码不是加密，谁都能解回来，只是为了让中文能塞进 cookie 而已，别拿它存密码。</p>
+<h3 id="10-3-Session"><a href="#10-3-Session" class="headerlink" title="10.3 Session"></a>10.3 Session</h3><p>session 是另一种记录客户状态的机制。不同的是 cookie 保存在客户端浏览器中，而 session 保存在服务器上。</p>
+<p>工作流程是这样：当浏览器访问服务器并发送第一次请求时，服务器端会创建一个 session 对象，生成一个类似于 key、value 的键值对，然后将 key（放进 cookie）返回到浏览器端，浏览器下次再访问时携带这个 key，服务端就能找到对应的 session（value）。客户的信息都保存在 session 中。</p>
+<p>安装 koa-session：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install koa-session --save</span><br></pre></td></tr></table></figure>
 
-<p><strong>2. 引入 express-session</strong></p>
+<p>引入：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const session = require(&#x27;koa-session&#x27;);</span><br></pre></td></tr></table></figure>
 
-<p><strong>3. 设置官方文档提供的中间件</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">app.<span class="property">keys</span> = [<span class="string">&#x27;some secret hurr&#x27;</span>];</span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">CONFIG</span> = &#123;</span><br><span class="line">    <span class="attr">key</span>: <span class="string">&#x27;koa:sess&#x27;</span>, <span class="comment">//cookie key (default is koa:sess)</span></span><br><span class="line">    <span class="attr">maxAge</span>: <span class="number">86400000</span>, <span class="comment">// cookie 的过期时间 maxAge in ms (default is 1 days)</span></span><br><span class="line">    <span class="attr">overwrite</span>: <span class="literal">true</span>, <span class="comment">//是否可以 overwrite (默认 default true)</span></span><br><span class="line">    <span class="attr">httpOnly</span>: <span class="literal">true</span>, <span class="comment">//cookie 是否只有服务器端可以访问 httpOnly or not (default true)</span></span><br><span class="line">    <span class="attr">signed</span>: <span class="literal">true</span>, <span class="comment">//签名默认 true</span></span><br><span class="line">    <span class="attr">rolling</span>:<span class="literal">false</span>, <span class="comment">//在每次请求时强行设置cookie，这将重置cookie过期时间(默认:false)</span></span><br><span class="line">    <span class="attr">renew</span>: <span class="literal">false</span>, <span class="comment">//(boolean) renew session when session is nearly expired</span></span><br><span class="line">&#125;</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">session</span>(<span class="variable constant_">CONFIG</span>, app));</span><br></pre></td></tr></table></figure>
+<p>原文这两步的小标题写的是「安装 express-session」「引入 express-session」，包名写串了，Koa 用的是 <code>koa-session</code>，这里已经改正。</p>
+<p>配置：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">app.<span class="property">keys</span> = [<span class="string">&#x27;some secret hurr&#x27;</span>];</span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">CONFIG</span> = &#123;</span><br><span class="line">    <span class="attr">key</span>: <span class="string">&#x27;koa:sess&#x27;</span>, <span class="comment">// cookie key (default is koa:sess)</span></span><br><span class="line">    <span class="attr">maxAge</span>: <span class="number">86400000</span>, <span class="comment">// cookie 的过期时间 maxAge in ms (default is 1 days)</span></span><br><span class="line">    <span class="attr">overwrite</span>: <span class="literal">true</span>, <span class="comment">// 是否可以 overwrite (默认 default true)</span></span><br><span class="line">    <span class="attr">httpOnly</span>: <span class="literal">true</span>, <span class="comment">// cookie 是否只有服务器端可以访问 httpOnly or not (default true)</span></span><br><span class="line">    <span class="attr">signed</span>: <span class="literal">true</span>, <span class="comment">// 签名默认 true</span></span><br><span class="line">    <span class="attr">rolling</span>: <span class="literal">false</span>, <span class="comment">// 在每次请求时强行设置cookie，这将重置cookie过期时间(默认:false)</span></span><br><span class="line">    <span class="attr">renew</span>: <span class="literal">false</span>, <span class="comment">// (boolean) renew session when session is nearly expired</span></span><br><span class="line">&#125;</span><br><span class="line">app.<span class="title function_">use</span>(<span class="title function_">session</span>(<span class="variable constant_">CONFIG</span>, app));</span><br></pre></td></tr></table></figure>
 
-<p><strong>4. 使用</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">//设置值 </span></span><br><span class="line">ctx.<span class="property">session</span>.<span class="property">username</span> = <span class="string">&quot;张三&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取值 </span></span><br><span class="line">ctx.<span class="property">session</span>.<span class="property">username</span></span><br></pre></td></tr></table></figure>
+<p><code>app.keys</code> 是签名用的密钥，配合 <code>signed: true</code> 给 cookie 加签名，防止客户端篡改。这个值绝对不能像示例里这样硬编码在代码中提交到仓库，应该走环境变量。数组形式是为了支持密钥轮换，新密钥放第一个用于签名，旧的留在后面还能验签，这样换密钥不会把所有用户踢下线。</p>
+<p><code>rolling</code> 和 <code>renew</code> 的区别容易混。<code>rolling</code> 是每次请求都重设 cookie，用户只要在活动就不会过期；<code>renew</code> 是快过期时才续，请求少一些。做后台管理系统我一般开 <code>rolling</code>。</p>
+<p>使用：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 设置值 </span></span><br><span class="line">ctx.<span class="property">session</span>.<span class="property">username</span> = <span class="string">&quot;张三&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取值 </span></span><br><span class="line">ctx.<span class="property">session</span>.<span class="property">username</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="9-4-Cookie-和-Session-区别"><a href="#9-4-Cookie-和-Session-区别" class="headerlink" title="9.4 Cookie 和 Session 区别"></a>9.4 Cookie 和 Session 区别</h2><ul>
-<li><code>cookie</code> 数据存放在客户的浏览器上，<code>session</code> 数据放在服务器上</li>
-<li><code>cookie</code> 不是很安全，别人可以分析存放在本地的 <code>COOKIE</code> 并进行 <code>COOKIE</code> 欺骗 考虑到安全应当使用 <code>session</code></li>
-<li><code>session</code>会在一定时间内保存在服务器上。当访问增多，会比较占用你服务器的性能 考虑到减轻服务器性能方面，应当使用 <code>COOKIE</code></li>
-<li>单个 <code>cookie</code> 保存的数据不能超过 <code>4K</code>，很多浏览器都限制一个站点最多保存 <code>20</code> 个 <code>cookie</code></li>
+<p>要注意 <code>koa-session</code> 默认是把 session 数据整个加密后存在 cookie 里的，不是存在服务端内存。这和上面那套「服务端存 value」的描述不完全一样，想真正存服务端得配 <code>store</code>（Redis 之类）。多实例部署时这一点尤其重要，存内存的话用户请求打到另一个实例上 session 就丢了。</p>
+<h3 id="10-4-Cookie-和-Session-的取舍"><a href="#10-4-Cookie-和-Session-的取舍" class="headerlink" title="10.4 Cookie 和 Session 的取舍"></a>10.4 Cookie 和 Session 的取舍</h3><ul>
+<li>cookie 数据存放在客户的浏览器上，session 数据放在服务器上</li>
+<li>cookie 不是很安全，别人可以分析存放在本地的 cookie 并进行 cookie 欺骗，考虑到安全应当使用 session</li>
+<li>session 会在一定时间内保存在服务器上，当访问增多会比较占用服务器性能，考虑到减轻服务器性能方面，应当使用 cookie</li>
+<li>单个 cookie 保存的数据不能超过 4K，很多浏览器都限制一个站点最多保存 20 个 cookie</li>
 </ul>
-<h1 id="十、Koa-操作-Mongodb-数据库"><a href="#十、Koa-操作-Mongodb-数据库" class="headerlink" title="十、Koa 操作 Mongodb 数据库"></a>十、Koa 操作 Mongodb 数据库</h1><blockquote>
-<p>官方文档:<a href="http://mongodb.github.io/node-mongodb-native/">http://mongodb.github.io/node-mongodb-native/</a></p>
-</blockquote>
-<h1 id="十一、Koa-应用生成器以及-Koa-路由模-块化"><a href="#十一、Koa-应用生成器以及-Koa-路由模-块化" class="headerlink" title="十一、Koa 应用生成器以及 Koa 路由模 块化"></a>十一、Koa 应用生成器以及 Koa 路由模 块化</h1><h2 id="11-1-koa-应用生成器"><a href="#11-1-koa-应用生成器" class="headerlink" title="11.1 koa 应用生成器"></a>11.1 koa 应用生成器</h2><blockquote>
-<p>通过应用 <code>koa</code> 脚手架生成工具 可以快速创建一个基于 <code>koa2</code> 的应用的骨架</p>
-</blockquote>
-<p><strong>1. 全局安装</strong></p>
+<p>这几条是当年的通用说法，方向上没问题。补充一点现在的实践：前后端分离之后，越来越多的项目直接用 JWT 这类无状态 token 替代 session，好处是服务端不用存，天然适合多实例；代价是没法立刻让某个 token 失效，得靠短过期时间加刷新机制来弥补。选哪个看你的业务对「立刻踢人下线」这个能力的需求有多强。</p>
+<h2 id="十一、连接-MongoDB"><a href="#十一、连接-MongoDB" class="headerlink" title="十一、连接 MongoDB"></a>十一、连接 MongoDB</h2><p>Koa 操作 MongoDB 走官方的 Node 驱动，文档在 <a href="http://mongodb.github.io/node-mongodb-native/">http://mongodb.github.io/node-mongodb-native/</a></p>
+<p>实际项目里更常见的是用 mongoose 这类 ODM，它多提供了 Schema 校验和模型抽象。MongoDB 本身的操作和概念我另外写过一篇 <a href="https://feinterview.poetries.top/blog/mongodb-review-1">MongoDB 拾遗</a>，环境搭建、常用查询语句那部分可以配合看。</p>
+<h2 id="十二、应用生成器与路由模块化"><a href="#十二、应用生成器与路由模块化" class="headerlink" title="十二、应用生成器与路由模块化"></a>十二、应用生成器与路由模块化</h2><h3 id="12-1-koa-应用生成器"><a href="#12-1-koa-应用生成器" class="headerlink" title="12.1 koa 应用生成器"></a>12.1 koa 应用生成器</h3><p>通过 Koa 脚手架生成工具可以快速创建一个基于 koa2 的应用骨架。</p>
+<p>全局安装：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install koa-generator -g</span><br></pre></td></tr></table></figure>
 
-<p><strong>2. 创建项目</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">koa koa_demo</span><br></pre></td></tr></table></figure>
+<p>创建项目、安装依赖、启动：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">koa koa_demo</span><br><span class="line"></span><br><span class="line">cd koa_demo</span><br><span class="line"></span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">npm start</span><br></pre></td></tr></table></figure>
 
-<p><strong>3. 安装依赖</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd koa_demo</span><br><span class="line"></span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
-
-<p><strong>4. 启动项目</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm start</span><br></pre></td></tr></table></figure>
-
-<h2 id="11-2-koa-搭建模块化路由-层级路由"><a href="#11-2-koa-搭建模块化路由-层级路由" class="headerlink" title="11.2 koa 搭建模块化路由&#x2F;层级路由"></a>11.2 koa 搭建模块化路由&#x2F;层级路由</h2><ol>
-<li>在目录下面新建一个文件夹 <code>routes</code></li>
-<li>在 <code>routes</code> 里面配置对应的子页面</li>
-<li>比如在 <code>routes</code> 新建 <code>index.js</code></li>
-</ol>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/507.png"></p>
-<ol start="4">
-<li>然后在主应用中加载子路由模块:</li>
-</ol>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/508.png"></p>
+<p>生成器给的目录结构是个不错的起点，但它生成的代码风格偏老（比如还在用 <code>var</code>），拿来学习结构可以，正式项目建议按自己的规范重新组织。</p>
+<h3 id="12-2-路由模块化"><a href="#12-2-路由模块化" class="headerlink" title="12.2 路由模块化"></a>12.2 路由模块化</h3><p>所有路由堆在 <code>app.js</code> 里，文件很快就会失控。拆分的做法是这样。</p>
+<p>在目录下面新建一个文件夹 <code>routes</code>，在 <code>routes</code> 里面配置对应的子页面，比如新建 <code>routes/index.js</code>。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/507.png" alt="routes 子路由模块的写法"></p>
+<p>然后在主应用中加载子路由模块。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/508.png" alt="主应用中挂载子路由模块"></p>
+<p>这里的关键是 <code>router.routes()</code> 返回的其实就是一个中间件函数，所以子路由可以像普通中间件一样被组合。父路由用 <code>router.use(&#39;/user&#39;, userRouter.routes())</code> 挂载，路径前缀会自动拼上，子路由文件里只写相对路径就行。</p>
+<p>回到洋葱模型那条主线，路由中间件说到底和应用级中间件是一样的东西，只是它内部多了一层路径匹配的判断，匹配不上就直接 <code>await next()</code> 放行。理解了 compose 之后，这些看起来花哨的组合方式其实都是同一套机制。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Koa 值得记住的就两件事，剩下的都是查文档。</p>
+<p>第一件是 compose。中间件不是被调用两次，是一次调用被 <code>await next()</code> 切成了前后两半，<code>next</code> 就是 <code>dispatch(i+1)</code> 这个函数本身，整条链是一个递归拼起来的 Promise。想明白这个，洋葱模型的执行顺序、错误为什么能被最外层一把接住、<code>ctx.body</code> 为什么可以在 <code>await next()</code> 之后再改，全都是推得出来的。</p>
+<p>第二件是 <code>ctx</code> 的委托。<code>ctx</code> 上没有真实的属性定义，它们通过 delegates 代理到 <code>ctx.request</code> 和 <code>ctx.response</code> 上。这解释了为什么 <code>ctx.body</code> 和 <code>ctx.request.body</code> 是两个完全不同的东西，也是新手最容易掉的坑。</p>
+<p>和 Express 比，差异的根源在 <code>next</code> 的语义：Express 的 <code>next</code> 是回调，不代表下游完成；Koa 的 <code>next</code> 返回 Promise，代表下游全部完成。所有行为差异都是从这一条派生出来的。</p>
+<p>配套模块方面，中间件的注册顺序是错误处理放最前、静态资源和 bodyparser 放中间、业务路由放最后，这个顺序错了会出各种静默失败的怪问题，比我想象中常见。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://koajs.com/">Koa 官方网站</a></li>
+<li><a href="https://github.com/koajs/koa">Koa GitHub 仓库</a></li>
+<li><a href="https://github.com/koajs/compose">koa-compose 源码</a></li>
+<li><a href="https://github.com/koajs/router">@koa&#x2F;router 文档</a></li>
+<li><a href="https://expressjs.com/zh-cn/guide/using-middleware.html">Express 中间件文档</a></li>
+<li><a href="http://aui.github.io/art-template/zh-cn/docs/">art-template 中文文档</a></li>
+<li><a href="https://nodejs.org/api/buffer.html">Node.js Buffer 文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     

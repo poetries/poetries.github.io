@@ -7,36 +7,38 @@
 <head>
   <meta charset="utf-8">
   
-  <title>浅析redux-saga中间件及用法 | 前端进阶之旅</title>
+  <title>浅析 redux-saga 中间件及用法，对比 redux-thunk | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Redux,中间件," />
+    <meta name="keywords" content="Redux,redux-saga,中间件,异步处理," />
   
 
-  <meta name="description" content="一、redux-thunk1.1 redux的副作用处理 redux中的数据流大致是  UI—————&gt;action（plain）—————&gt;reducer——————&gt;state——————&gt;UI    redux是遵循函数式编程的规则，上述的数据流中，action是一个原始js对象（plain object）且reducer是一个纯函数，对于同步且没有副作用的操作，上述">
+  <meta name="description" content="从 redux 的副作用处理讲起，拆 redux-thunk 十几行源码和它的局限，再逐个说清 redux-saga 的 take、call、put、select、fork、takeEvery 等 Effect，配登录登出完整案例和选型建议。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浅析redux-saga中间件及用法">
+<meta property="og:title" content="浅析 redux-saga 中间件及用法，对比 redux-thunk">
 <meta property="og:url" content="http://blog.poetries.top/2018/08/29/redux-saga-and-redux-thunk/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、redux-thunk1.1 redux的副作用处理 redux中的数据流大致是  UI—————&gt;action（plain）—————&gt;reducer——————&gt;state——————&gt;UI    redux是遵循函数式编程的规则，上述的数据流中，action是一个原始js对象（plain object）且reducer是一个纯函数，对于同步且没有副作用的操作，上述">
+<meta property="og:description" content="从 redux 的副作用处理讲起，拆 redux-thunk 十几行源码和它的局限，再逐个说清 redux-saga 的 take、call、put、select、fork、takeEvery 等 Effect，配登录登出完整案例和选型建议。">
 <meta property="og:locale">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/484.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/485.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/486.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/487.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/488.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/489.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/490.png">
-<meta property="og:image" content="https://poetries1.gitee.io/img-repo/2019/10/491.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/484.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/485.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/486.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/487.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/488.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/489.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/490.png">
+<meta property="og:image" content="https://s.poetries.top/gitee/2019/10/491.png">
 <meta property="article:published_time" content="2018-08-29T11:20:20.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.686Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.951Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Redux">
+<meta property="article:tag" content="redux-saga">
 <meta property="article:tag" content="中间件">
+<meta property="article:tag" content="异步处理">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://poetries1.gitee.io/img-repo/2019/10/484.png">
+<meta name="twitter:image" content="https://s.poetries.top/gitee/2019/10/484.png">
 
   
 
@@ -214,7 +216,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81redux-thunk"><span class="toc-text">一、redux-thunk</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-redux%E7%9A%84%E5%89%AF%E4%BD%9C%E7%94%A8%E5%A4%84%E7%90%86"><span class="toc-text">1.1 redux的副作用处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-redux-thunk%E6%BA%90%E7%A0%81"><span class="toc-text">1.2 redux-thunk源码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-redux-thunk%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-text">1.3 redux-thunk的缺点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81redux-saga-%E7%AE%80%E4%BB%8B"><span class="toc-text">二、redux-saga 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81redux-saga%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="toc-text">三、redux-saga使用案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81redux-saga%E4%BD%BF%E7%94%A8%E7%BB%86%E8%8A%82"><span class="toc-text">四、redux-saga使用细节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%A3%B0%E6%98%8E%E5%BC%8F%E7%9A%84Effect"><span class="toc-text">4.1 声明式的Effect</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Effect%E6%8F%90%E4%BE%9B%E7%9A%84%E5%85%B7%E4%BD%93%E6%96%B9%E6%B3%95"><span class="toc-text">4.2 Effect提供的具体方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-take"><span class="toc-text">4.2.1 take</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-call-apply"><span class="toc-text">4.2.2 call(apply)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-3-put"><span class="toc-text">4.2.3 put</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-4-select"><span class="toc-text">4.2.4 select</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-5-fork"><span class="toc-text">4.2.5 fork</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-6-takeEvery%E5%92%8CtakeLatest"><span class="toc-text">4.2.6 takeEvery和takeLatest</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90%E4%B8%80"><span class="toc-text">五、案例分析一</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-LoginPanel-%E7%99%BB%E9%99%86%E9%A1%B5"><span class="toc-text">5.1 LoginPanel(登陆页)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-LoginSuccess"><span class="toc-text">5.2 LoginSuccess</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90%E4%BA%8C"><span class="toc-text">六、案例分析二</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%85%8D%E7%BD%AEsaga%E4%BF%A1%E6%81%AF"><span class="toc-text">6.1 配置saga信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%85%8D%E7%BD%AEreduce"><span class="toc-text">6.2 配置reduce</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%A4%84%E7%90%86action"><span class="toc-text">6.3 处理action</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%A4%84%E7%90%86sagas"><span class="toc-text">6.4 处理sagas</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">七、总结</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81redux-thunk"><span class="toc-text">一、redux-thunk</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-redux-%E7%9A%84%E5%89%AF%E4%BD%9C%E7%94%A8%E5%A4%84%E7%90%86"><span class="toc-text">1.1 redux 的副作用处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-redux-thunk-%E6%BA%90%E7%A0%81"><span class="toc-text">1.2 redux-thunk 源码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-redux-thunk-%E7%9A%84%E7%BC%BA%E7%82%B9"><span class="toc-text">1.3 redux-thunk 的缺点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81redux-saga-%E7%AE%80%E4%BB%8B"><span class="toc-text">二、redux-saga 简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81redux-saga-%E4%BD%BF%E7%94%A8%E6%A1%88%E4%BE%8B"><span class="toc-text">三、redux-saga 使用案例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81redux-saga-%E4%BD%BF%E7%94%A8%E7%BB%86%E8%8A%82"><span class="toc-text">四、redux-saga 使用细节</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%A3%B0%E6%98%8E%E5%BC%8F%E7%9A%84-Effect"><span class="toc-text">4.1 声明式的 Effect</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Effect-%E6%8F%90%E4%BE%9B%E7%9A%84%E5%85%B7%E4%BD%93%E6%96%B9%E6%B3%95"><span class="toc-text">4.2 Effect 提供的具体方法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-1-take"><span class="toc-text">4.2.1 take</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-2-call-%E5%92%8C-apply"><span class="toc-text">4.2.2 call 和 apply</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-3-put"><span class="toc-text">4.2.3 put</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-4-select"><span class="toc-text">4.2.4 select</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-5-fork"><span class="toc-text">4.2.5 fork</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-6-takeEvery-%E5%92%8C-takeLatest"><span class="toc-text">4.2.6 takeEvery 和 takeLatest</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90%E4%B8%80"><span class="toc-text">五、案例分析一</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-LoginPanel-%E7%99%BB%E5%BD%95%E9%A1%B5"><span class="toc-text">5.1 LoginPanel 登录页</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-LoginSuccess-%E7%99%BB%E5%BD%95%E6%88%90%E5%8A%9F%E5%88%97%E8%A1%A8%E5%B1%95%E7%A4%BA%E9%A1%B5"><span class="toc-text">5.2 LoginSuccess 登录成功列表展示页</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90%E4%BA%8C"><span class="toc-text">六、案例分析二</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%85%8D%E7%BD%AE-saga-%E4%BF%A1%E6%81%AF"><span class="toc-text">6.1 配置 saga 信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%85%8D%E7%BD%AEreduce"><span class="toc-text">6.2 配置reduce</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%A4%84%E7%90%86action"><span class="toc-text">6.3 处理action</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%A4%84%E7%90%86sagas"><span class="toc-text">6.4 处理sagas</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">七、总结</span></a></li></ol>
   </div>
   
 
@@ -237,13 +239,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-redux-saga-and-redux-thunk" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">浅析redux-saga中间件及用法</h1>
+    <h1 class="post-title">浅析 redux-saga 中间件及用法，对比 redux-thunk</h1>
 
     <div class="article-meta">
       <span>
@@ -279,12 +281,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 3.9k字</span>
+            <span>字数统计 6.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 17分</span>
+            <span>阅读时长 26分</span>
           </span>
       
       
@@ -298,269 +300,198 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="一、redux-thunk"><a href="#一、redux-thunk" class="headerlink" title="一、redux-thunk"></a>一、redux-thunk</h2><h3 id="1-1-redux的副作用处理"><a href="#1-1-redux的副作用处理" class="headerlink" title="1.1 redux的副作用处理"></a>1.1 redux的副作用处理</h3><blockquote>
-<p>redux中的数据流大致是</p>
-</blockquote>
+        <p>项目里第一次出现「点两下登录按钮发了两个请求」这种问题的时候，我用 redux-thunk 的写法是在 action 里加一个 <code>loading</code> 标记位挡住。挡是挡住了，但接着又来了「切页面时要取消上一个未完成的请求」「登录成功后自动拉一次列表，拉列表失败不影响登录状态」这类需求，标记位越加越多，一个 action 文件里塞满了 <code>if (loading) return</code>。</p>
+<p>那时候才意识到 thunk 解决的只是「redux 能不能接受异步」，没解决「异步流程怎么编排」。redux-saga 补的正是后面这块。这篇从 redux 为什么需要中间件讲起，拆 thunk 那十几行源码，再把 saga 的几个核心 Effect 逐个过一遍，最后配两个完整案例。文章写于 2018 年，末尾我另外补了一节现在的选型判断。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>redux 的数据流为什么装不下副作用，中间件插在哪个位置</li>
+<li>redux-thunk 的完整源码，以及它为什么只有十几行</li>
+<li>thunk 的局限：action 形式不统一、异步逻辑分散</li>
+<li>redux-saga 的 watch &#x2F; worker 工作模式和它的四个优点</li>
+<li><code>take</code>、<code>call</code>、<code>put</code>、<code>select</code>、<code>fork</code>、<code>takeEvery</code>、<code>takeLatest</code> 逐个拆</li>
+<li>阻塞调用和非阻塞调用的差别，以及它导致的真实体验问题</li>
+<li>一个登录登出加列表加载的完整案例，和一套工程化目录结构</li>
+<li>thunk 和 saga 到今天该怎么选</li>
+</ul>
+<h2 id="一、redux-thunk"><a href="#一、redux-thunk" class="headerlink" title="一、redux-thunk"></a>一、redux-thunk</h2><h3 id="1-1-redux-的副作用处理"><a href="#1-1-redux-的副作用处理" class="headerlink" title="1.1 redux 的副作用处理"></a>1.1 redux 的副作用处理</h3><p>先看 redux 原本的数据流长什么样：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UI—————&gt;action（plain）—————&gt;reducer——————&gt;state——————&gt;UI</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/484.png"></p>
-<ul>
-<li><code>redux</code>是遵循函数式编程的规则，上述的数据流中，<code>action</code>是一个原始js对象（<code>plain object</code>）且<code>reducer</code>是一个纯函数，对于同步且没有副作用的操作，上述的数据流起到可以管理数据，从而控制视图层更新的目的</li>
-<li>如果存在副作用函数，那么我们需要首先处理副作用函数，然后生成原始的js对象。如何处理副作用操作，在<code>redux</code>中选择在发出<code>action</code>，到<code>reducer</code>处理函数之间使用中间件处理副作用</li>
-</ul>
-<blockquote>
-<p>redux增加中间件处理副作用后的数据流大致如下：</p>
-</blockquote>
+<p><img src="https://s.poetries.top/gitee/2019/10/484.png" alt="redux 原始数据流示意图，从 UI 到 action 到 reducer 再回到 UI"></p>
+<p><code>redux</code> 是遵循函数式编程规则的。上述数据流中，<code>action</code> 是一个原始 js 对象（plain object），<code>reducer</code> 是一个纯函数。对于同步且没有副作用的操作，这条流水线足以管理数据、控制视图层更新。</p>
+<p>问题出在「纯函数」这三个字上。发请求、读 localStorage、setTimeout 这些都是副作用，塞进 reducer 就破坏了纯度，reducer 一旦不纯，时间旅行调试和可预测性就全废了。</p>
+<p>所以如果存在副作用函数，我们需要先处理副作用，然后生成原始的 js 对象。<code>redux</code> 的选择是在发出 <code>action</code> 到 <code>reducer</code> 处理函数之间插一层中间件来处理。</p>
+<p>增加中间件之后的数据流大致如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UI——&gt;action(side function)—&gt;middleware—&gt;action(plain)—&gt;reducer—&gt;state—&gt;UI</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/485.png"></p>
-<blockquote>
-<p>在有副作用的<code>action</code>和原始的<code>action</code>之间增加中间件处理，从图中我们也可以看出，中间件的作用就是：</p>
-</blockquote>
-<ul>
-<li>转换异步操作，<strong>生成原始的action</strong>，这样，<code>reducer</code>函数就能处理相应的<code>action</code>，从而改变<code>state</code>，更新<code>UI</code></li>
-</ul>
-<h3 id="1-2-redux-thunk源码"><a href="#1-2-redux-thunk源码" class="headerlink" title="1.2 redux-thunk源码"></a>1.2 redux-thunk源码</h3><blockquote>
-<p>在redux中，thunk是redux作者给出的中间件，实现极为简单，10多行代码</p>
-</blockquote>
+<p><img src="https://s.poetries.top/gitee/2019/10/485.png" alt="redux 加入中间件处理副作用后的数据流示意图"></p>
+<p>在有副作用的 <code>action</code> 和原始的 <code>action</code> 之间增加中间件处理，从图里能看出中间件的职责只有一个：把异步操作转换掉，生成原始的 action。这样 <code>reducer</code> 函数就能处理相应的 action，从而改变 <code>state</code>、更新 <code>UI</code>。</p>
+<p>这个设计我觉得挺聪明的。它没有去改 reducer 的规则，而是在 action 到达 reducer 之前加了一道「提纯」工序，脏活全在中间件里干完，reducer 那边看到的永远是干净的普通对象。中间件机制本身是怎么用 <code>compose</code> 串起来的，我在 <a href="https://feinterview.poetries.top/blog/react-redux">手写一个迷你版 Redux</a> 里逐行实现过。</p>
+<h3 id="1-2-redux-thunk-源码"><a href="#1-2-redux-thunk-源码" class="headerlink" title="1.2 redux-thunk 源码"></a>1.2 redux-thunk 源码</h3><p>在 redux 中，thunk 是 redux 作者给出的中间件，实现极为简单，十几行代码：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createThunkMiddleware</span>(<span class="params">extraArgument</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function">(<span class="params">&#123; dispatch, getState &#125;</span>) =&gt;</span> <span class="function"><span class="params">next</span> =&gt;</span> <span class="function"><span class="params">action</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> action === <span class="string">&#x27;function&#x27;</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="title function_">action</span>(dispatch, getState, extraArgument);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="title function_">next</span>(action);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> thunk = <span class="title function_">createThunkMiddleware</span>();</span><br><span class="line">thunk.<span class="property">withExtraArgument</span> = createThunkMiddleware;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> thunk;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这几行代码做的事情也很简单，判别action的类型，如果action是函数，就调用这个函数，调用的步骤为</p>
-</blockquote>
+<p>这几行代码做的事情很简单：判别 action 的类型，如果 action 是函数，就调用这个函数，调用的形式为</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">action(dispatch, getState, extraArgument);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>发现实参为<code>dispatch</code>和<code>getState</code>，因此我们在定义<code>action</code>为<code>thunk</code>函数是，一般形参为<code>dispatch</code>和<code>getState</code></p>
-</blockquote>
-<h3 id="1-3-redux-thunk的缺点"><a href="#1-3-redux-thunk的缺点" class="headerlink" title="1.3 redux-thunk的缺点"></a>1.3 redux-thunk的缺点</h3><blockquote>
-<p><code>thunk</code>的缺点也是很明显的，<code>thunk</code>仅仅做了执行这个函数，并不在乎函数主体内是什么，也就是说<code>thunk</code>使得<code>redux</code>可以接受函数作为<code>action</code>，但是函数的内部可以多种多样。比如下面是一个获取商品列表的异步操作所对应的<code>action</code></p>
-</blockquote>
+<p>传进去的实参是 <code>dispatch</code> 和 <code>getState</code>，所以我们定义 thunk 形式的 action 时，形参一般就写这两个。如果 action 不是函数，就 <code>next(action)</code> 原样往下传给下一个中间件，跟没装过一样。</p>
+<p>值得多看一眼的是这行嵌套箭头函数：<code>(&#123; dispatch, getState &#125;) =&gt; next =&gt; action =&gt; &#123;&#125;</code>。这就是 redux 中间件的标准签名，三层柯里化，第一层拿 store 的能力，第二层拿链条上的下一环，第三层才是真正处理 action 的地方。所有 redux 中间件都长这个样子，看懂这一个就都看懂了。</p>
+<p><code>withExtraArgument</code> 是给依赖注入用的。比如你想在所有 thunk 里都能直接拿到 axios 实例，就 <code>applyMiddleware(thunk.withExtraArgument(api))</code>，之后每个 thunk 的第三个参数就是它，省得到处 import。</p>
+<h3 id="1-3-redux-thunk-的缺点"><a href="#1-3-redux-thunk-的缺点" class="headerlink" title="1.3 redux-thunk 的缺点"></a>1.3 redux-thunk 的缺点</h3><p>thunk 的缺点也很明显。它仅仅做了「执行这个函数」这一件事，并不在乎函数主体内是什么。thunk 使得 redux 可以接受函数作为 action，但函数内部可以写成什么样完全没有约束。</p>
+<p>比如下面是一个获取商品列表的异步操作所对应的 action：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="title function_">default</span> ()=&gt;<span class="function">(<span class="params">dispatch</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="title function_">fetch</span>(<span class="string">&#x27;/api/goodList&#x27;</span>,&#123; <span class="comment">//fecth返回的是一个promise</span></span><br><span class="line">      <span class="attr">method</span>: <span class="string">&#x27;get&#x27;</span>,</span><br><span class="line">      <span class="attr">dataType</span>: <span class="string">&#x27;json&#x27;</span>,</span><br><span class="line">    &#125;).<span class="title function_">then</span>(<span class="keyword">function</span>(<span class="params">json</span>)&#123;</span><br><span class="line">      <span class="keyword">var</span> json=<span class="title class_">JSON</span>.<span class="title function_">parse</span>(json);</span><br><span class="line">      <span class="keyword">if</span>(json.<span class="property">msg</span>==<span class="number">200</span>)&#123;</span><br><span class="line">        <span class="title function_">dispatch</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;init&#x27;</span>,<span class="attr">data</span>:json.<span class="property">data</span>&#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,<span class="keyword">function</span>(<span class="params">error</span>)&#123;</span><br><span class="line">      <span class="variable language_">console</span>.<span class="title function_">log</span>(error);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>从这个具有副作用的<code>action</code>中，我们可以看出，函数内部极为复杂。如果需要为每一个异步操作都如此定义一个<code>action</code>，显然<code>action</code>不易维护</p>
-</blockquote>
-<p><strong>action不易维护的原因</strong></p>
-<ul>
-<li><code>action</code>的形式不统一</li>
-<li>就是异步操作太为分散，分散在了各个<code>action</code>中</li>
-</ul>
-<h2 id="二、redux-saga-简介"><a href="#二、redux-saga-简介" class="headerlink" title="二、redux-saga 简介"></a>二、redux-saga 简介</h2><blockquote>
-<p><code>redux-saga </code>是一个 <code>redux </code>中间件，它具有如下特性</p>
-</blockquote>
-<ul>
-<li>集中处理 <code>redux</code> 副作用问题。</li>
-<li>被实现为 <code>generator</code> 。</li>
-<li>类 <code>redux-thunk</code> 中间件。</li>
-<li><code>watch</code>&#x2F;<code>worker</code>（监听-&gt;执行） 的工作形式</li>
-</ul>
-<p><strong>redux-saga的优点</strong></p>
+<p>从这个具有副作用的 action 里能看出，函数内部相当复杂：fetch 的配置、状态码判断、JSON 解析、错误处理全挤在一起。如果每一个异步操作都要这么定义一个 action，维护成本会飞快上涨。</p>
+<p>具体不易维护的地方有两处。一是 action 的形式不统一，同步的是对象，异步的是函数，处理它们的心智模型完全不同。二是异步操作太分散，散落在各个 action 文件里，你想知道这个项目一共发了多少种请求，只能靠全局搜索。</p>
+<p>这里还有个更细的问题：这段代码基本没法做单元测试。要测它就得 mock 掉 <code>fetch</code>，而 <code>fetch</code> 是在函数内部直接调用的，你没有插手的余地。</p>
+<h2 id="二、redux-saga-简介"><a href="#二、redux-saga-简介" class="headerlink" title="二、redux-saga 简介"></a>二、redux-saga 简介</h2><p><code>redux-saga</code> 是一个 redux 中间件，它有四个特性：集中处理 redux 副作用问题；被实现为 generator；属于类 <code>redux-thunk</code> 的中间件；采用 watch &#x2F; worker（监听到执行）的工作形式。</p>
+<p>最后那条是它和 thunk 结构上最大的差别。thunk 是「你 dispatch 一个函数，我帮你执行」，saga 是「你正常 dispatch 普通对象，我在旁边一直盯着，看到感兴趣的就自己动手」。UI 那边根本不知道 saga 存在。</p>
+<p><strong>redux-saga 的优点</strong></p>
 <ul>
 <li>集中处理了所有的异步操作，异步接口部分一目了然</li>
-<li><code>action</code>是普通对象，这跟<code>redux</code>同步的<code>action</code>一模一样</li>
-<li>通过<code>Effect</code>，方便异步接口的测试</li>
-<li>通过<code>worker</code> 和<code>watcher</code>可以实现非阻塞异步调用，并且同时可以实现非阻塞调用下的事件监听</li>
+<li><code>action</code> 是普通对象，这跟 redux 同步的 action 一模一样</li>
+<li>通过 <code>Effect</code>，方便异步接口的测试</li>
+<li>通过 worker 和 watcher 可以实现非阻塞异步调用，同时还能实现非阻塞调用下的事件监听</li>
 <li>异步操作的流程是可以控制的，可以随时取消相应的异步操作</li>
 </ul>
-<blockquote>
-<p>基本用法</p>
-</blockquote>
-<ul>
-<li>使用<code>createSagaMiddleware</code>方法创建<code>saga</code> 的<code>Middleware</code>，然后在创建的<code>redux</code>的<code>store</code>时，使用<code>applyMiddleware</code>函数将创建的<code>saga Middleware</code>实例绑定到<code>store</code>上，最后可以调用<code>saga Middleware</code>的<code>run</code>函数来执行某个或者某些<code>Middleware</code>。</li>
-<li>在<code>saga</code>的<code>Middleware</code>中，可以使用<code>takeEvery</code>或者<code>takeLatest</code>等<code>API</code>来监听某个<code>action</code>，当某个<code>action</code>触发后，<code>saga</code>可以使用<code>call</code>发起异步操作，操作完成后使用<code>put</code>函数触发<code>action</code>，同步更新<code>state</code>，从而完成整个<code>State</code>的更新。</li>
-</ul>
-<h2 id="三、redux-saga使用案例"><a href="#三、redux-saga使用案例" class="headerlink" title="三、redux-saga使用案例"></a>三、redux-saga使用案例</h2><ul>
-<li><code>redux-saga</code>是控制执行的<code>generator</code>，在<code>redux-saga</code>中<code>action</code>是原始的<code>js</code>对象，把所有的异步副作用操作放在了<code>saga</code>函数里面。这样既统一了<code>action</code>的形式，又使得异步操作集中可以被集中处理</li>
-<li><code>redux-saga</code>是通过<code>genetator</code>实现的，如果不支持<code>generator</code>需要通过插件<code>babel-polyfill</code>转义。我们接着来实现一个输出<code>hellosaga</code>的例子</li>
-</ul>
-<p><strong>创建一个helloSaga.js文件</strong></p>
+<p>第三条我想多说两句，因为它是 saga 最被低估的价值。saga 里所有副作用都不是直接执行的，而是先 <code>yield</code> 一个描述对象出来，由中间件负责真正执行。测试的时候你只要检查「它 yield 出来的描述对象对不对」，完全不用 mock 网络层。这个设计是真的舒服。</p>
+<p><strong>基本用法</strong></p>
+<p>使用 <code>createSagaMiddleware</code> 方法创建 saga 的 Middleware，然后在创建 redux 的 store 时，用 <code>applyMiddleware</code> 函数把 saga Middleware 实例绑定到 store 上，最后调用 saga Middleware 的 <code>run</code> 函数来执行某个或者某些 saga。</p>
+<p>在 saga 里，可以使用 <code>takeEvery</code> 或者 <code>takeLatest</code> 等 API 监听某个 action。当某个 action 触发后，saga 用 <code>call</code> 发起异步操作，操作完成后使用 <code>put</code> 函数触发新的 action，同步更新 state，从而完成整个 State 的更新。</p>
+<h2 id="三、redux-saga-使用案例"><a href="#三、redux-saga-使用案例" class="headerlink" title="三、redux-saga 使用案例"></a>三、redux-saga 使用案例</h2><p><code>redux-saga</code> 是受控执行的 generator。在 redux-saga 中 action 是原始的 js 对象，所有异步副作用操作都放在 saga 函数里面。这样既统一了 action 的形式，又让异步操作能被集中处理。</p>
+<p>redux-saga 是通过 generator 实现的，如果运行环境不支持 generator，需要通过 <code>babel-polyfill</code> 转义。这一条在 2018 年还挺重要，那会儿要兼容的浏览器版本比现在低不少。</p>
+<p>先从一个输出 <code>hello saga</code> 的最小例子开始。</p>
+<p><strong>创建一个 helloSaga.js 文件</strong></p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> * <span class="title function_">helloSaga</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&#x27;Hello Sagas!&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><strong>在redux中使用redux-saga中间件</strong></p>
-<blockquote>
-<p>在<code>main.js</code>中</p>
-</blockquote>
+<p>这个 generator 现在什么都没做，只是打印一句话，用来验证 saga 确实被中间件跑起来了。</p>
+<p><strong>在 redux 中使用 redux-saga 中间件</strong></p>
+<p>接下来在 <code>main.js</code> 里把中间件装上：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore, applyMiddleware &#125; <span class="keyword">from</span> <span class="string">&#x27;redux&#x27;</span></span><br><span class="line"><span class="keyword">import</span> createSagaMiddleware <span class="keyword">from</span> <span class="string">&#x27;redux-saga&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; helloSaga &#125; <span class="keyword">from</span> <span class="string">&#x27;./sagas&#x27;</span></span><br><span class="line"><span class="keyword">const</span> sagaMiddleware=<span class="title function_">createSagaMiddleware</span>();</span><br><span class="line"><span class="keyword">const</span> store = <span class="title function_">createStore</span>(</span><br><span class="line"> reducer,</span><br><span class="line"> <span class="title function_">applyMiddleware</span>(sagaMiddleware)</span><br><span class="line">);</span><br><span class="line">sagaMiddleware.<span class="title function_">run</span>(helloSaga);</span><br><span class="line"><span class="comment">//会输出Hello, Sagas!</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>和调用<code>redux</code>的其他中间件一样，如果想使用<code>redux-saga</code>中间件，那么只要在<code>applyMiddleware</code>中调用一个<code>createSagaMiddleware</code>的实例。唯一不同的是需要调用<code>run</code>方法使得<code>generator</code>可以开始执行</p>
-</blockquote>
-<h2 id="四、redux-saga使用细节"><a href="#四、redux-saga使用细节" class="headerlink" title="四、redux-saga使用细节"></a>四、redux-saga使用细节</h2><h3 id="4-1-声明式的Effect"><a href="#4-1-声明式的Effect" class="headerlink" title="4.1 声明式的Effect"></a>4.1 声明式的Effect</h3><blockquote>
-<p>在<code>redux-saga</code>中提供了一系列的<code>api</code>，比如<code>take</code>、<code>put</code>、<code>all</code>、<code>select</code>等<code>API</code>，在<code>redux-saga</code>中将这一系列的<code>api</code>都定义为Effect。这些<code>Effect</code>执行后，当函数<code>resolve</code>时返回一个描述对象，然后<code>redux-saga</code>中间件根据这个描述对象恢复执行<code>generator</code>中的函数</p>
-</blockquote>
-<p><strong>redux-thunk的大体过程</strong></p>
-<blockquote>
-<p><code>action1(side function)</code>—&gt;<code>redux-thunk</code>监听—&gt;执行相应的有副作用的方法—&gt;<code>action2(plain object)</code></p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/486.png"></p>
-<blockquote>
-<p>转化到<code>action2</code>是一个原始<code>js</code>对象形式的<code>action</code>，然后执行<code>reducer</code>函数就会更新<code>store</code>中的<code>state</code></p>
-</blockquote>
-<p><strong>redux-saga的大体过程</strong></p>
-<blockquote>
-<p>action1(plain object)——&gt;redux-saga监听—&gt;执行相应的Effect方法——&gt;返回描述对象—&gt;恢复执行异步和副作用函数—&gt;action2(plain object)</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/487.png"></p>
-<blockquote>
-<p>对比<code>redux-thunk</code>我们发现，<code>redux-saga</code>中监听到了原始<code>js</code>对象<code>action</code>，并不会马上执行副作用操作，会先通过<code>Effect</code>方法将其转化成一个描述对象，然后再将描述对象，作为标识，再恢复执行副作用函数</p>
-</blockquote>
-<h3 id="4-2-Effect提供的具体方法"><a href="#4-2-Effect提供的具体方法" class="headerlink" title="4.2 Effect提供的具体方法"></a>4.2 Effect提供的具体方法</h3><blockquote>
-<p>下面来介绍几个<code>Effect</code>中常用的几个方法，从低阶的API，比如<code>take</code>，<code>call(apply)</code>，<code>fork</code>，<code>put</code>，<code>select</code>等，以及高阶<code>API</code>，比如<code>takeEvery</code>和<code>takeLatest</code>等</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import &#123;take,call,put,select,fork,takeEvery,takeLatest&#125; from &#x27;redux-saga/effects&#x27;</span><br></pre></td></tr></table></figure>
+<p>和调用 redux 的其他中间件一样，想使用 redux-saga 中间件，只要在 <code>applyMiddleware</code> 中传入一个 <code>createSagaMiddleware</code> 的实例。唯一不同的是需要额外调用 <code>run</code> 方法，generator 才会开始执行。</p>
+<p>这个 <code>run</code> 是必须的，忘了它就是新手最常见的「saga 一点反应都没有」。原因是 saga 不像别的中间件那样被动等 action，它需要主动启动一个根 generator 来铺开所有监听。</p>
+<h2 id="四、redux-saga-使用细节"><a href="#四、redux-saga-使用细节" class="headerlink" title="四、redux-saga 使用细节"></a>四、redux-saga 使用细节</h2><h3 id="4-1-声明式的-Effect"><a href="#4-1-声明式的-Effect" class="headerlink" title="4.1 声明式的 Effect"></a>4.1 声明式的 Effect</h3><p>redux-saga 提供了一系列 API，比如 <code>take</code>、<code>put</code>、<code>all</code>、<code>select</code> 等，这些 API 统称为 Effect。这些 Effect 执行后会返回一个描述对象，redux-saga 中间件根据这个描述对象去真正执行，执行完再恢复 generator 往下走。</p>
+<p>关键点在于「描述」两个字。<code>call(fetch, url)</code> 这行代码并不发请求，它只是造了一个对象说「请帮我调用 fetch，参数是 url」。真正发请求的是中间件。</p>
+<p><strong>redux-thunk 的大体过程</strong></p>
+<p><code>action1(side function)</code> -&gt; <code>redux-thunk</code> 监听 -&gt; 执行相应的有副作用的方法 -&gt; <code>action2(plain object)</code></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/486.png" alt="redux-thunk 处理副作用的流程示意图"></p>
+<p>转化后的 <code>action2</code> 是一个原始 js 对象形式的 action，然后执行 reducer 函数就会更新 store 中的 state。</p>
+<p><strong>redux-saga 的大体过程</strong></p>
+<p><code>action1(plain object)</code> -&gt; redux-saga 监听 -&gt; 执行相应的 Effect 方法 -&gt; 返回描述对象 -&gt; 恢复执行异步和副作用函数 -&gt; <code>action2(plain object)</code></p>
+<p><img src="https://s.poetries.top/gitee/2019/10/487.png" alt="redux-saga 通过 Effect 描述对象处理副作用的流程示意图"></p>
+<p>对比两张图能看出差别：redux-saga 监听到的是原始 js 对象 action，并且不会马上执行副作用操作，而是先通过 Effect 方法把它转化成一个描述对象，再拿这个描述对象作为标识，恢复执行副作用函数。</p>
+<p>那多这一层描述对象到底图什么呢？</p>
+<p>图的就是测试和可控。副作用不由你的代码直接触发，中间件就有机会在中间做取消、超时、竞态处理，测试时也可以只断言描述对象而不真的发请求。thunk 那边做不到这些，因为 <code>fetch</code> 已经在你的函数里被硬编码执行了。</p>
+<h3 id="4-2-Effect-提供的具体方法"><a href="#4-2-Effect-提供的具体方法" class="headerlink" title="4.2 Effect 提供的具体方法"></a>4.2 Effect 提供的具体方法</h3><p>下面介绍几个常用的 Effect，包括低阶 API（<code>take</code>、<code>call</code>、<code>apply</code>、<code>fork</code>、<code>put</code>、<code>select</code>）和高阶 API（<code>takeEvery</code>、<code>takeLatest</code>）。</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; take, call, put, select, fork, takeEvery, takeLatest &#125; <span class="keyword">from</span> <span class="string">&#x27;redux-saga/effects&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="4-2-1-take"><a href="#4-2-1-take" class="headerlink" title="4.2.1 take"></a>4.2.1 take</h4><blockquote>
-<p><code>take</code>这个方法，是用来监听<code>action</code>，返回的是监听到的<code>action</code>对象。比如</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const loginAction = &#123;</span><br><span class="line">   type:&#x27;login&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="4-2-1-take"><a href="#4-2-1-take" class="headerlink" title="4.2.1 take"></a>4.2.1 take</h4><p><code>take</code> 用来监听 action，返回的是监听到的 action 对象。比如有这么一个 action：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> loginAction = &#123;</span><br><span class="line">   <span class="attr">type</span>: <span class="string">&#x27;login&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在<code>UI Component</code>中<code>dispatch</code>一个<code>action</code></p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dispatch(loginAction)</span><br></pre></td></tr></table></figure>
+<p>在 <code>UI Component</code> 中 dispatch 一个 action：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">dispatch</span>(loginAction)</span><br></pre></td></tr></table></figure>
 
-<p>在saga中使用：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const action = yield take(&#x27;login&#x27;);</span><br></pre></td></tr></table></figure>
+<p>在 saga 中这样接：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> action = <span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;login&#x27;</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>可以监听到UI传递到中间件的<code>Action</code>,上述<code>take</code>方法的返回，就是<code>dipath</code>的原始对象。一旦监听到<code>login</code>动作，返回的<code>action</code>为：</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  type:&#x27;login&#x27;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它能监听到 UI 传递到中间件的 action，<code>take</code> 方法的返回值就是 dispatch 的那个原始对象。一旦监听到 <code>login</code> 动作，返回的 action 为：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">type</span>: <span class="string">&#x27;login&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="4-2-2-call-apply"><a href="#4-2-2-call-apply" class="headerlink" title="4.2.2 call(apply)"></a>4.2.2 call(apply)</h4><blockquote>
-<p><code>call</code>和<code>apply</code>方法与<code>js</code>中的<code>call</code>和<code>apply</code>相似，我们以<code>call</code>方法为例</p>
-</blockquote>
+<p>这里有个特点要留意：<code>take</code> 是一次性的。它拿到一个 action 之后就往下走了，想持续监听得自己套一个 <code>while(true)</code>。后面案例里满屏的 <code>while(true)</code> 就是这么来的，不是写错了。</p>
+<h4 id="4-2-2-call-和-apply"><a href="#4-2-2-call-和-apply" class="headerlink" title="4.2.2 call 和 apply"></a>4.2.2 call 和 apply</h4><p><code>call</code> 和 <code>apply</code> 与 js 中的 <code>call</code>、<code>apply</code> 相似，我们以 <code>call</code> 为例：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">call(fn, ...args)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p><code>call</code>方法调用<code>fn</code>，参数为<code>args</code>，返回一个描述对象。不过这里<code>call</code>方法传入的函数<code>fn</code>可以是普通函数，也可以是<code>generator</code>。<code>call</code>方法应用很广泛，在<code>redux-saga</code>中使用异步请求等常用<code>call</code>方法来实现</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yield call(fetch,&#x27;/userInfo&#x27;,username)</span><br></pre></td></tr></table></figure>
+<p><code>call</code> 调用 <code>fn</code>，参数为 <code>args</code>，返回一个描述对象。这里传入的 <code>fn</code> 可以是普通函数，也可以是 generator。<code>call</code> 应用很广泛，redux-saga 里发异步请求基本都靠它：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">yield</span> <span class="title function_">call</span>(fetch, <span class="string">&#x27;/userInfo&#x27;</span>, username)</span><br></pre></td></tr></table></figure>
 
-<h4 id="4-2-3-put"><a href="#4-2-3-put" class="headerlink" title="4.2.3 put"></a>4.2.3 put</h4><blockquote>
-<p>redux-saga做为中间件，工作流是这样的</p>
-</blockquote>
+<p>要记住的一点是 <code>call</code> 会阻塞。写在它后面的语句必须等它 resolve 之后才能执行，这个特性在 5.2 节会引出一个真实的体验问题。</p>
+<h4 id="4-2-3-put"><a href="#4-2-3-put" class="headerlink" title="4.2.3 put"></a>4.2.3 put</h4><p>redux-saga 作为中间件，工作流是这样的：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">UI——&gt;action1————&gt;redux-saga中间件————&gt;action2————&gt;reducer..</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>从工作流中，我们发现<code>redux-saga</code>执行完副作用函数后，必须发出<code>action</code>，然后这个<code>action</code>被<code>reducer</code>监听，从而达到更新<code>state</code>的目的。相应的这里的<code>put</code>对应与<code>redux</code>中的<code>dispatch</code>，工作流程图如下</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/488.png"></p>
-<blockquote>
-<p>可以看出<code>redux-saga</code>执行副作用方法转化<code>action</code>时，<code>put</code>这个<code>Effect</code>方法跟<code>redux</code>原始的<code>dispatch</code>相似，都是可以发出<code>action</code>，且发出的<code>action</code>都会被<code>reducer</code>监听到。<code>put</code>的使用方法</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yield put(&#123;type:&#x27;login&#x27;&#125;)</span><br></pre></td></tr></table></figure>
-<h4 id="4-2-4-select"><a href="#4-2-4-select" class="headerlink" title="4.2.4 select"></a>4.2.4 select</h4><blockquote>
-<p><code>put</code>方法与<code>redux</code>中的<code>dispatch</code>相对应，同样的如果我们想在中间件中获取<code>state</code>，那么需要使用<code>select</code>。<code>select</code>方法对应的是<code>redux</code>中的<code>getState</code>，用户获取<code>store</code>中的<code>state</code>，使用方法：</p>
-</blockquote>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const id = yield select(state =&gt; state.id);</span><br></pre></td></tr></table></figure>
-<h4 id="4-2-5-fork"><a href="#4-2-5-fork" class="headerlink" title="4.2.5 fork"></a>4.2.5 fork</h4><blockquote>
-<p><code>fork</code>方法相当于<code>web work</code>，<code>fork</code>方法不会阻塞主线程，在非阻塞调用中十分有用</p>
-</blockquote>
-<h4 id="4-2-6-takeEvery和takeLatest"><a href="#4-2-6-takeEvery和takeLatest" class="headerlink" title="4.2.6 takeEvery和takeLatest"></a>4.2.6 takeEvery和takeLatest</h4><blockquote>
-<p><code>takeEvery</code>和<code>takeLatest</code>用于监听相应的动作并执行相应的方法，是构建在<code>take</code>和<code>fork</code>上面的高阶<code>api</code>，比如要监听<code>login</code>动作，好用<code>takeEvery</code>方法可以</p>
-</blockquote>
- <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">takeEvery(&#x27;login&#x27;,loginFunc)</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>takeEvery</code>监听到<code>login</code>的动作，就会执行<code>loginFunc</code>方法，除此之外，<code>takeEvery</code>可以同时监听到多个相同的<code>action</code>。</li>
-<li><code>takeLatest</code>方法跟<code>takeEvery</code>是相同方式调用</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">takeLatest(&#x27;login&#x27;,loginFunc)</span><br></pre></td></tr></table></figure>
+<p>从工作流能看出，redux-saga 执行完副作用函数后必须发出 action，这个 action 被 reducer 监听到，才能达到更新 state 的目的。这里的 <code>put</code> 对应的就是 redux 中的 <code>dispatch</code>，流程图如下：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/488.png" alt="put 发出 action 到 reducer 的工作流程图"></p>
+<p>redux-saga 执行副作用方法转化 action 时，<code>put</code> 这个 Effect 跟 redux 原始的 <code>dispatch</code> 相似，都能发出 action，且发出的 action 都会被 reducer 监听到。用法是：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">yield</span> <span class="title function_">put</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;login&#x27;</span> &#125;)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>与<code>takeLatest</code>不同的是，<code>takeLatest</code>是会监听执行最近的那个被触发的<code>action</code></p>
-</blockquote>
-<h2 id="五、案例分析一"><a href="#五、案例分析一" class="headerlink" title="五、案例分析一"></a>五、案例分析一</h2><blockquote>
-<p>接着我们来实现一个<code>redux-saga</code>样例，存在一个登陆页，登陆成功后，显示列表页，并且，在列表页，可以点击登出，返回到登陆页。例子的最终展示效果如下</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/489.png"></p>
-<blockquote>
-<p>样例的功能流程图为</p>
-</blockquote>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/490.png"></p>
-<h3 id="5-1-LoginPanel-登陆页"><a href="#5-1-LoginPanel-登陆页" class="headerlink" title="5.1 LoginPanel(登陆页)"></a>5.1 LoginPanel(登陆页)</h3><p><strong>输入时时保存用户名和密码</strong></p>
-<ul>
-<li>用户名输入框和密码框onchange时触发的函数为</li>
-</ul>
+<p>差别在于 <code>put</code> 同样是声明式的，它返回描述对象，由中间件去 dispatch。所以在测试里你能直接断言「这个 saga 应该 put 出一个 type 为 login 的 action」。</p>
+<h4 id="4-2-4-select"><a href="#4-2-4-select" class="headerlink" title="4.2.4 select"></a>4.2.4 select</h4><p><code>put</code> 与 redux 中的 <code>dispatch</code> 相对应，同样地，如果我们想在中间件里获取 state，那就需要 <code>select</code>。<code>select</code> 对应的是 redux 中的 <code>getState</code>，用于获取 store 中的 state：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> id = <span class="keyword">yield</span> <span class="title function_">select</span>(<span class="function"><span class="params">state</span> =&gt;</span> state.<span class="property">id</span>);</span><br></pre></td></tr></table></figure>
+
+<p>用它的时候有个坑：<code>select</code> 拿到的是调用那一刻的快照。如果你在 <code>yield call(...)</code> 之前 select 了一个值，等请求回来再用它，中间这段时间 state 可能已经被别的 action 改过了。需要最新值就在用之前重新 select 一次。</p>
+<h4 id="4-2-5-fork"><a href="#4-2-5-fork" class="headerlink" title="4.2.5 fork"></a>4.2.5 fork</h4><p><code>fork</code> 方法的效果类似 web worker 那种「另起一条线去跑」的感觉，它不会阻塞主线程，在非阻塞调用中十分有用。</p>
+<p>需要说清楚的是它并不是真的开线程，JS 还是单线程的。<code>fork</code> 做的事是启动一个子任务然后立刻返回，不等它完成，后面的语句照常往下执行。所以它更准确的说法是「非阻塞地派生一个任务」。</p>
+<p>和它配套的还有 <code>cancel</code>，可以主动取消一个 fork 出来的任务，这正是 thunk 完全做不到的那类能力。</p>
+<h4 id="4-2-6-takeEvery-和-takeLatest"><a href="#4-2-6-takeEvery-和-takeLatest" class="headerlink" title="4.2.6 takeEvery 和 takeLatest"></a>4.2.6 takeEvery 和 takeLatest</h4><p><code>takeEvery</code> 和 <code>takeLatest</code> 用于监听相应的动作并执行相应的方法，是构建在 <code>take</code> 和 <code>fork</code> 上面的高阶 API。比如要监听 <code>login</code> 动作，用 <code>takeEvery</code> 可以这么写：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">takeEvery</span>(<span class="string">&#x27;login&#x27;</span>, loginFunc)</span><br></pre></td></tr></table></figure>
+
+<p><code>takeEvery</code> 监听到 <code>login</code> 动作就会执行 <code>loginFunc</code> 方法。它的特点是每一次触发都会派生一个新任务，多个同名 action 连着来，就会有多个 <code>loginFunc</code> 同时在跑。</p>
+<p><code>takeLatest</code> 的调用方式完全一样：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="title function_">takeLatest</span>(<span class="string">&#x27;login&#x27;</span>, loginFunc)</span><br></pre></td></tr></table></figure>
+
+<p>与 <code>takeEvery</code> 不同的是，<code>takeLatest</code> 只保留最近一次被触发的那个任务，前面还没跑完的会被自动取消。</p>
+<p>原文这里把两个名字写反了（写成了「与 takeLatest 不同的是，takeLatest 会…」），这次顺手改对。这两个的区别在实际项目里很关键：搜索框联想、按钮防重复提交这类场景用 <code>takeLatest</code>，因为你只关心最后一次的结果；而埋点上报、消息推送这种每条都不能丢的，必须用 <code>takeEvery</code>。</p>
+<p>选错的表现挺隐蔽的。用 <code>takeEvery</code> 做搜索联想，网络抖动的时候先发的请求后回来，输入框里显示的会是旧关键词的结果，用户看不出哪里不对，只觉得「搜出来的东西不对」。</p>
+<h2 id="五、案例分析一"><a href="#五、案例分析一" class="headerlink" title="五、案例分析一"></a>五、案例分析一</h2><p>接着我们来实现一个 redux-saga 样例：有一个登录页，登录成功后显示列表页，并且在列表页可以点击登出返回到登录页。</p>
+<p>这个例子看着简单，但它把 saga 的几个关键点都覆盖到了，包括受控输入、请求、流程串联，以及最后那个阻塞与非阻塞的对比。</p>
+<p>例子的最终展示效果如下：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/489.png" alt="登录页与登录成功后列表页的最终展示效果"></p>
+<p>样例的功能流程图为：</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/490.png" alt="登录、拉列表、登出三条链路的功能流程图"></p>
+<p>对着流程图看代码会轻松很多。整条链路是 UI 发出大写的原始 action，saga 监听到之后执行副作用，再 put 出小写的 action 给 reducer。大写小写这个约定不是语法要求，是作者用来区分「UI 发出的意图」和「saga 处理完的结果」的一个习惯，实际项目里建议换成 <code>USER/LOGIN_REQUEST</code> 和 <code>USER/LOGIN_SUCCESS</code> 这种更明确的命名。</p>
+<h3 id="5-1-LoginPanel-登录页"><a href="#5-1-LoginPanel-登录页" class="headerlink" title="5.1 LoginPanel 登录页"></a>5.1 LoginPanel 登录页</h3><p><strong>实时保存用户名和密码</strong></p>
+<p>用户名输入框和密码框 onchange 时触发的函数为：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="attr">changeUsername</span>:<span class="function">(<span class="params">e</span>)=&gt;</span>&#123;</span><br><span class="line">    <span class="title function_">dispatch</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;CHANGE_USERNAME&#x27;</span>,<span class="attr">value</span>:e.<span class="property">target</span>.<span class="property">value</span>&#125;);</span><br><span class="line"> &#125;,</span><br><span class="line"><span class="attr">changePassword</span>:<span class="function">(<span class="params">e</span>)=&gt;</span>&#123;</span><br><span class="line">  <span class="title function_">dispatch</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;CHANGE_PASSWORD&#x27;</span>,<span class="attr">value</span>:e.<span class="property">target</span>.<span class="property">value</span>&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在函数中最后会<code>dispatch</code>两个<code>action：CHANGE_USERNAME和CHANGE_PASSWORD</code></p>
-</blockquote>
-<ul>
-<li>在<code>saga.js</code>文件中监听这两个方法并执行副作用函数，最后<code>put</code>发出转化后的<code>action</code>，给<code>reducer</code>函数调用</li>
-</ul>
+<p>这两个函数最后会 dispatch 两个 action，<code>CHANGE_USERNAME</code> 和 <code>CHANGE_PASSWORD</code>。注意它们都是普通对象，UI 层完全不知道 saga 的存在。</p>
+<p>接着在 <code>saga.js</code> 文件中监听这两个动作并执行副作用函数，最后 <code>put</code> 发出转化后的 action，交给 reducer 处理：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> * <span class="title function_">watchUsername</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">const</span> action= <span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;CHANGE_USERNAME&#x27;</span>);</span><br><span class="line">    <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;change_username&#x27;</span>,</span><br><span class="line">    <span class="attr">value</span>:action.<span class="property">value</span>&#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">function</span> * <span class="title function_">watchPassword</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="keyword">const</span> action=<span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;CHANGE_PASSWORD&#x27;</span>);</span><br><span class="line">    <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;change_password&#x27;</span>,</span><br><span class="line">    <span class="attr">value</span>:action.<span class="property">value</span>&#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>最后在<code>reducer</code>中接收到<code>redux-saga</code>的<code>put</code>方法传递过来的<code>action：change_username</code>和<code>change_password</code>，然后更新<code>state</code></p>
-</blockquote>
-<p><strong>监听登陆事件判断登陆是否成功</strong></p>
-<blockquote>
-<p>在UI中发出的登陆事件为</p>
-</blockquote>
+<p>最后在 reducer 中接收到 redux-saga 的 <code>put</code> 方法传递过来的 action（<code>change_username</code> 和 <code>change_password</code>），然后更新 state。</p>
+<p>这两个 watcher 里的 <code>while(true)</code> 就是前面说的，<code>take</code> 只取一次，想一直监听就得循环。看着像死循环，实际上 <code>yield take(...)</code> 会把 generator 挂起，直到对应的 action 来了才继续，不会占 CPU。</p>
+<p>顺着上面聊，受控输入这个场景其实没必要走 saga 绕一圈，直接 reducer 处理就好。这里这么写纯粹是为了演示 <code>take</code> 加 <code>put</code> 的最小闭环。真项目里这么干，每敲一个字符都要过一遍 saga，属于给自己找麻烦。</p>
+<p><strong>监听登录事件判断登录是否成功</strong></p>
+<p>在 UI 中发出的登录事件为：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="attr">toLoginIn</span>:<span class="function">(<span class="params">username,password</span>)=&gt;</span>&#123;</span><br><span class="line">  <span class="title function_">dispatch</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;TO_LOGIN_IN&#x27;</span>,username,password&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>登陆事件的<code>action</code>为：<code>TO_LOGIN_IN</code>.对于登入事件的处理函数为：</p>
-</blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="comment">//监听登入事件</span></span><br><span class="line">    <span class="keyword">const</span> action1=<span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;TO_LOGIN_IN&#x27;</span>);</span><br><span class="line">    <span class="keyword">const</span> res=<span class="keyword">yield</span> <span class="title function_">call</span>(fetchSmart,<span class="string">&#x27;/login&#x27;</span>,&#123;</span><br><span class="line">      <span class="attr">method</span>:<span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">      <span class="attr">body</span>:<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">        <span class="attr">username</span>:action1.<span class="property">username</span>,</span><br><span class="line">        <span class="attr">password</span>:action1.<span class="property">password</span></span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">if</span>(res)&#123;</span><br><span class="line">      <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;to_login_in&#x27;</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>登录事件的 action 是 <code>TO_LOGIN_IN</code>，对应的处理函数为：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="comment">// 监听登入事件</span></span><br><span class="line">    <span class="keyword">const</span> action1 = <span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;TO_LOGIN_IN&#x27;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> res = <span class="keyword">yield</span> <span class="title function_">call</span>(fetchSmart, <span class="string">&#x27;/login&#x27;</span>, &#123;</span><br><span class="line">      <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">      <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">        <span class="attr">username</span>: action1.<span class="property">username</span>,</span><br><span class="line">        <span class="attr">password</span>: action1.<span class="property">password</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (res) &#123;</span><br><span class="line">      <span class="keyword">yield</span> <span class="title function_">put</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;to_login_in&#x27;</span> &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在上述的处理函数中，首先监听原始动作提取出传递来的用户名和密码，然后请求是否登陆成功，如果登陆成功有返回值，则执行<code>put</code>的<code>action:to_login_in</code></p>
-</blockquote>
-<h3 id="5-2-LoginSuccess"><a href="#5-2-LoginSuccess" class="headerlink" title="5.2 LoginSuccess"></a>5.2 LoginSuccess</h3><blockquote>
-<p>(登陆成功列表展示页)</p>
-</blockquote>
-<ul>
-<li>登陆成功后的页面功能包括：<ul>
-<li>获取列表信息，展示列表信息</li>
-<li>登出功能，点击可以返回登陆页面</li>
-</ul>
-</li>
-</ul>
+<p>原文这段代码括号是对不上的，而且 <code>put</code> 前面漏了 <code>yield</code>，这次一并改对了。漏掉 <code>yield</code> 是个很典型的错误，因为 <code>put(...)</code> 只返回描述对象，不 yield 出去中间件就收不到，表现是「代码看着执行了但 state 没变」，非常难查。</p>
+<p>处理函数的逻辑是：先监听原始动作，提取出传递来的用户名和密码，然后发请求判断是否登录成功，如果登录成功有返回值，就 <code>put</code> 出 <code>to_login_in</code> 这个 action。</p>
+<h3 id="5-2-LoginSuccess-登录成功列表展示页"><a href="#5-2-LoginSuccess-登录成功列表展示页" class="headerlink" title="5.2 LoginSuccess 登录成功列表展示页"></a>5.2 LoginSuccess 登录成功列表展示页</h3><p>登录成功后的页面有两个功能：获取并展示列表信息，以及登出后返回登录页面。</p>
 <p><strong>获取列表信息</strong></p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;delay&#125; <span class="keyword">from</span> <span class="string">&#x27;redux-saga&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> * <span class="title function_">getList</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">   <span class="keyword">yield</span> <span class="title function_">delay</span>(<span class="number">3000</span>);</span><br><span class="line">   <span class="keyword">const</span> res = <span class="keyword">yield</span> <span class="title function_">call</span>(fetchSmart,<span class="string">&#x27;/list&#x27;</span>,&#123;</span><br><span class="line">     <span class="attr">method</span>:<span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">     <span class="attr">body</span>:<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;&#125;)</span><br><span class="line">   &#125;);</span><br><span class="line">   <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;update_list&#x27;</span>,<span class="attr">list</span>:res.<span class="property">data</span>.<span class="property">activityList</span>&#125;);</span><br><span class="line"> &#125; <span class="keyword">catch</span>(error) &#123;</span><br><span class="line">   <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;update_list_error&#x27;</span>, error&#125;);</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>为了演示请求过程，我们在本地<code>mock</code>，通过<code>redux-saga</code>的工具函数<code>delay</code>，<code>delay</code>的功能相当于延迟xx秒，因为真实的请求存在延迟，因此可以用delay在本地模拟真实场景下的请求延迟</p>
-</blockquote>
+<p>这段有两个细节值得停一下。</p>
+<p>一是 <code>try / catch</code> 包住了整个流程。saga 里的错误处理就是普通的 try catch，这比 thunk 那种到处 <code>.catch()</code> 直观得多，因为 generator 让异步代码长得跟同步一样。</p>
+<p>二是那个 <code>delay(3000)</code>。为了演示请求过程，我们在本地 mock，通过 redux-saga 的工具函数 <code>delay</code> 延迟若干秒。真实请求本来就存在延迟，用 <code>delay</code> 可以在本地模拟出这种场景。</p>
+<p>补一句版本相关的：<code>delay</code> 在 redux-saga 早期版本从 <code>redux-saga</code> 主包导出，从 v1 开始它被移到了 <code>redux-saga/effects</code>，也就是 <code>import &#123; delay &#125; from &#39;redux-saga/effects&#39;</code>。老代码升级到 v1 之后如果报找不到 <code>delay</code>，去改这行 import 就行。</p>
 <p><strong>登出功能</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">const action2=yield take(&#x27;TO_LOGIN_OUT&#x27;);</span><br><span class="line">yield put(&#123;type:&#x27;to_login_out&#x27;&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> action2 = <span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;TO_LOGIN_OUT&#x27;</span>);</span><br><span class="line"><span class="keyword">yield</span> <span class="title function_">put</span>(&#123; <span class="attr">type</span>: <span class="string">&#x27;to_login_out&#x27;</span> &#125;);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>与登入相似，登出的功能从UI处接受<code>action:TO_LOGIN_OUT</code>,然后转发<code>action:to_login_out</code></p>
-</blockquote>
+<p>与登入相似，登出功能从 UI 处接收 <code>TO_LOGIN_OUT</code>，然后转发 <code>to_login_out</code>。</p>
 <p><strong>完整的实现登入登出和列表展示的代码</strong></p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> * <span class="title function_">getList</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">   <span class="keyword">yield</span> <span class="title function_">delay</span>(<span class="number">3000</span>);</span><br><span class="line">   <span class="keyword">const</span> res = <span class="keyword">yield</span> <span class="title function_">call</span>(fetchSmart,<span class="string">&#x27;/list&#x27;</span>,&#123;</span><br><span class="line">     <span class="attr">method</span>:<span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">     <span class="attr">body</span>:<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;&#125;)</span><br><span class="line">   &#125;);</span><br><span class="line">   <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;update_list&#x27;</span>,<span class="attr">list</span>:res.<span class="property">data</span>.<span class="property">activityList</span>&#125;);</span><br><span class="line"> &#125; <span class="keyword">catch</span>(error) &#123;</span><br><span class="line">   <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;update_list_error&#x27;</span>, error&#125;);</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> * <span class="title function_">watchIsLogin</span>(<span class="params"></span>)&#123;</span><br><span class="line">  <span class="keyword">while</span>(<span class="literal">true</span>)&#123;</span><br><span class="line">    <span class="comment">//监听登入事件</span></span><br><span class="line">    <span class="keyword">const</span> action1=<span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;TO_LOGIN_IN&#x27;</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">const</span> res=<span class="keyword">yield</span> <span class="title function_">call</span>(fetchSmart,<span class="string">&#x27;/login&#x27;</span>,&#123;</span><br><span class="line">      <span class="attr">method</span>:<span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">      <span class="attr">body</span>:<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">        <span class="attr">username</span>:action1.<span class="property">username</span>,</span><br><span class="line">        <span class="attr">password</span>:action1.<span class="property">password</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//根据返回的状态码判断登陆是否成功</span></span><br><span class="line">    <span class="keyword">if</span>(res.<span class="property">status</span>===<span class="number">10000</span>)&#123;</span><br><span class="line">      <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;to_login_in&#x27;</span>&#125;);</span><br><span class="line">      <span class="comment">//登陆成功后获取首页的活动列表</span></span><br><span class="line">      <span class="keyword">yield</span> <span class="title function_">call</span>(getList);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//监听登出事件</span></span><br><span class="line">    <span class="keyword">const</span> action2=<span class="keyword">yield</span> <span class="title function_">take</span>(<span class="string">&#x27;TO_LOGIN_OUT&#x27;</span>);</span><br><span class="line">    <span class="keyword">yield</span> <span class="title function_">put</span>(&#123;<span class="attr">type</span>:<span class="string">&#x27;to_login_out&#x27;</span>&#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>通过请求状态码判断登入是否成功，在登陆成功后，可以通过</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yield call(getList)</span><br></pre></td></tr></table></figure>
+<p>这段把整条业务流程串成了一个 generator，读起来是一条直线：等登录、发请求、判断状态码、通知 reducer、拉列表、等登出。这就是 saga 最大的卖点，流程可以写成顺序代码，而不是散在几个回调里。</p>
+<p>通过请求状态码判断登录是否成功，登录成功后用这行拉列表：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">yield</span> <span class="title function_">call</span>(getList)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>注意call方法调用是会阻塞主线程的，具体来说</p>
-</blockquote>
-<ul>
-<li>在call方法调用结束之前，call方法之后的语句是无法执行的</li>
-<li>如果<code>call(getList)</code>存在延迟，<code>call(getList)</code>之后的语句 <code>const action2=yieldtake(&#39;TO_LOGIN_OUT&#39;)</code>在<code>call</code>方法返回结果之前无法执行</li>
-<li>在延迟期间的登出操作会被忽略</li>
-</ul>
-<p><img src="https://poetries1.gitee.io/img-repo/2019/10/491.png"></p>
+<p><strong>这里埋着一个真实的体验问题</strong>：<code>call</code> 方法是会阻塞的。</p>
+<p>具体表现有三点。在 <code>call</code> 调用结束之前，它后面的语句无法执行；如果 <code>call(getList)</code> 存在延迟，后面那句 <code>const action2 = yield take(&#39;TO_LOGIN_OUT&#39;)</code> 在 <code>call</code> 返回结果之前根本不会被执行；结果就是延迟期间用户点的登出操作会被完全忽略。</p>
+<p><img src="https://s.poetries.top/gitee/2019/10/491.png" alt="call 阻塞期间点击登出无响应的效果演示"></p>
+<p>图里就是这个现象。列表还在转圈的三秒里，登出按钮点了没有任何反应，用户只会觉得页面卡死了。</p>
 <p><strong>无阻塞调用</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yield call(getList)</span><br></pre></td></tr></table></figure>
+<p>把这行</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">yield</span> <span class="title function_">call</span>(getList)</span><br></pre></td></tr></table></figure>
 
-<p>修改为</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yield fork(getList)</span><br></pre></td></tr></table></figure>
+<p>改成</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">yield</span> <span class="title function_">fork</span>(getList)</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>通过fork方法不会阻塞主线程，在白屏时点击登出，可以立刻响应登出功能，从而返回登陆页面</p>
-</blockquote>
-<h2 id="六、案例分析二"><a href="#六、案例分析二" class="headerlink" title="六、案例分析二"></a>六、案例分析二</h2><h3 id="6-1-配置saga信息"><a href="#6-1-配置saga信息" class="headerlink" title="6.1 配置saga信息"></a>6.1 配置saga信息</h3><blockquote>
-<p><code>src/store/configureStore.js</code></p>
-</blockquote>
+<p><code>fork</code> 不会阻塞后续语句，<code>getList</code> 在后台跑，<code>take(&#39;TO_LOGIN_OUT&#39;)</code> 立刻就位。这时候在白屏期间点击登出，可以立刻响应并返回登录页面。</p>
+<p>这个 <code>call</code> 换 <code>fork</code> 的一行改动，是我认为整篇文章里最有价值的一处。它说明 saga 不只是「让异步能写进 redux」，而是把「这一步该不该等」这种流程控制决策显式地交到了你手里。thunk 里想实现同样的效果，你得自己维护一堆状态标记，还不一定做得对。</p>
+<p>选择标准也简单：后面的语句依赖这一步的结果，用 <code>call</code>；不依赖、可以并行跑的，用 <code>fork</code>。</p>
+<h2 id="六、案例分析二"><a href="#六、案例分析二" class="headerlink" title="六、案例分析二"></a>六、案例分析二</h2><p>上面那个例子是把 saga 写在一起讲逻辑，这一节看看真实项目里的目录结构怎么摆。</p>
+<h3 id="6-1-配置-saga-信息"><a href="#6-1-配置-saga-信息" class="headerlink" title="6.1 配置 saga 信息"></a>6.1 配置 saga 信息</h3><p>先在 <code>src/store/configureStore.js</code> 里把中间件装好：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createStore, applyMiddleware, compose &#125; <span class="keyword">from</span> <span class="string">&#x27;redux&#x27;</span></span><br><span class="line"><span class="comment">// import &#123;createLogger &#125; from &#x27;redux-logger&#x27;</span></span><br><span class="line"><span class="keyword">import</span> createHistory <span class="keyword">from</span> <span class="string">&#x27;history/createBrowserHistory&#x27;</span></span><br><span class="line"><span class="keyword">import</span> createSagaMiddleware <span class="keyword">from</span> <span class="string">&#x27;redux-saga&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; routerMiddleware &#125; <span class="keyword">from</span> <span class="string">&#x27;react-router-redux&#x27;</span></span><br><span class="line"><span class="keyword">import</span> rootSaga <span class="keyword">from</span> <span class="string">&#x27;../sagas&#x27;</span></span><br><span class="line"><span class="keyword">import</span> rootReducer <span class="keyword">from</span> <span class="string">&#x27;../reducers/&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> history = <span class="title function_">createHistory</span>()</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> middleware = <span class="title function_">routerMiddleware</span>(history)</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建saga middleware</span></span><br><span class="line"><span class="keyword">const</span> sagaMiddleware = <span class="title function_">createSagaMiddleware</span>();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title function_">configureStore</span> = preloadedState =&gt; &#123;</span><br><span class="line">	<span class="comment">// 安装 Redux-DevTools Chrome 插件后可用 composeEnhancers()</span></span><br><span class="line">	<span class="keyword">const</span> composeEnhancers = <span class="variable language_">window</span>.<span class="property">__REDUX_DEVTOOLS_EXTENSION_COMPOSE__</span> || compose</span><br><span class="line"></span><br><span class="line">	<span class="keyword">const</span> store = <span class="title function_">createStore</span>(</span><br><span class="line">		rootReducer,</span><br><span class="line">		preloadedState,</span><br><span class="line">		<span class="title function_">composeEnhancers</span>(</span><br><span class="line">			<span class="title function_">applyMiddleware</span>(sagaMiddleware,middleware)</span><br><span class="line">		)</span><br><span class="line">	)</span><br><span class="line">	sagaMiddleware.<span class="title function_">run</span>(rootSaga);</span><br><span class="line">	<span class="keyword">if</span> (<span class="variable language_">module</span>.<span class="property">hot</span>) &#123;</span><br><span class="line">		<span class="comment">// Enable Webpack hot module replacement for reducers</span></span><br><span class="line">		<span class="variable language_">module</span>.<span class="property">hot</span>.<span class="title function_">accept</span>(<span class="string">&#x27;../reducers&#x27;</span>, <span class="function">() =&gt;</span> &#123;</span><br><span class="line">			<span class="keyword">const</span> nextRootReducer = <span class="built_in">require</span>(<span class="string">&#x27;../reducers&#x27;</span>).<span class="property">default</span></span><br><span class="line">			store.<span class="title function_">replaceReducer</span>(nextRootReducer)</span><br><span class="line">		&#125;)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> store</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> configureStore</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <h3 id="6-2-配置reduce"><a href="#6-2-配置reduce" class="headerlink" title="6.2 配置reduce"></a>6.2 配置reduce</h3><figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/reducers/index.js</span></span><br><span class="line"><span class="keyword">import</span> &#123;combineReducers&#125; <span class="keyword">from</span> <span class="string">&#x27;redux&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123;routerReducer <span class="keyword">as</span> routing&#125; <span class="keyword">from</span> <span class="string">&#x27;react-router-redux&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> rootReducer = <span class="title function_">combineReducers</span>(&#123;</span><br><span class="line">      routing,</span><br><span class="line">      poetry 				: <span class="built_in">require</span>(<span class="string">&#x27;./poetry&#x27;</span>).<span class="property">default</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> rootReducer</span><br></pre></td></tr></table></figure>

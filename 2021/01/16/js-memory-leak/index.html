@@ -7,26 +7,28 @@
 <head>
   <meta charset="utf-8">
   
-  <title>JS内存泄漏与垃圾回收机制 | 前端进阶之旅</title>
+  <title>JS内存泄漏与垃圾回收机制完全梳理 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="垃圾回收," />
+    <meta name="keywords" content="JavaScript,垃圾回收,内存泄漏," />
   
 
-  <meta name="description" content="什么是内存泄漏？ 程序的运行需要内存，只要程序提出要求，操作系统或者运行是就必须供给内存 对于持续运行的服务进程，必须及时释放内存，否则，内存占用越来越高，轻则影响系统性能，重则导致进程崩溃 不再用到的内存，没有及时释放，就叫做内存泄漏。 有些语言（比如c语言）必须手动释放内存，程序员负责内存管理 这很麻烦，所以大多数语言提供自动内存管理，减轻程序员的负担，这被称为”垃圾回收机制”。   java">
+  <meta name="description" content="从标记清除与引用计数两种垃圾回收算法讲起，梳理 JS 内存泄漏的四类常见成因、循环引用的真实影响，以及用 Chrome DevTools 定位泄漏的完整排查路径。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="JS内存泄漏与垃圾回收机制">
+<meta property="og:title" content="JS内存泄漏与垃圾回收机制完全梳理">
 <meta property="og:url" content="http://blog.poetries.top/2021/01/16/js-memory-leak/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="什么是内存泄漏？ 程序的运行需要内存，只要程序提出要求，操作系统或者运行是就必须供给内存 对于持续运行的服务进程，必须及时释放内存，否则，内存占用越来越高，轻则影响系统性能，重则导致进程崩溃 不再用到的内存，没有及时释放，就叫做内存泄漏。 有些语言（比如c语言）必须手动释放内存，程序员负责内存管理 这很麻烦，所以大多数语言提供自动内存管理，减轻程序员的负担，这被称为”垃圾回收机制”。   java">
+<meta property="og:description" content="从标记清除与引用计数两种垃圾回收算法讲起，梳理 JS 内存泄漏的四类常见成因、循环引用的真实影响，以及用 Chrome DevTools 定位泄漏的完整排查路径。">
 <meta property="og:locale">
 <meta property="og:image" content="http://www.ruanyifeng.com/blogimg/asset/2017/bg2017041703.png">
 <meta property="article:published_time" content="2021-01-16T07:55:24.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.674Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.943Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="JavaScript">
 <meta property="article:tag" content="垃圾回收">
+<meta property="article:tag" content="内存泄漏">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://www.ruanyifeng.com/blogimg/asset/2017/bg2017041703.png">
 
@@ -206,7 +208,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%EF%BC%9F"><span class="toc-text">什么是内存泄漏？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%9A%84%E5%BF%85%E8%A6%81%E6%80%A7"><span class="toc-text">垃圾回收的必要性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%8E%9F%E7%90%86"><span class="toc-text">垃圾回收原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AD%96%E7%95%A51%EF%BC%9A%E6%A0%87%E8%AE%B0%E6%B8%85%E9%99%A4"><span class="toc-text">策略1：标记清除</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AD%96%E7%95%A52%EF%BC%9A%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-text">策略2：引用计数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%BA%E7%82%B9"><span class="toc-text">缺点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%A2%E8%AF%95%E5%9B%9E%E7%AD%94"><span class="toc-text">面试回答</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%9E%83%E5%9C%BE"><span class="toc-text">什么是垃圾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%A3%80%E5%9E%83%E5%9C%BE"><span class="toc-text">如何检垃圾</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JavaScript-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%95%99%E7%A8%8B"><span class="toc-text">JavaScript 内存泄漏教程</span></a>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E5%88%B0%E5%BA%95%E6%8C%87%E4%BB%80%E4%B9%88"><span class="toc-text">一、内存泄漏到底指什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E6%9C%89%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6"><span class="toc-text">二、为什么必须有垃圾回收</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%AD%96%E7%95%A5%E4%B8%80%EF%BC%9A%E6%A0%87%E8%AE%B0%E6%B8%85%E9%99%A4"><span class="toc-text">三、策略一：标记清除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E7%AD%96%E7%95%A5%E4%BA%8C%EF%BC%9A%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-text">四、策略二：引用计数</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E7%9A%84%E7%BC%BA%E9%99%B7"><span class="toc-text">引用计数的缺陷</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9B%9B%E7%B1%BB%E9%AB%98%E9%A2%91%E6%B3%84%E6%BC%8F%E5%86%99%E6%B3%95"><span class="toc-text">五、四类高频泄漏写法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%84%8F%E5%A4%96%E7%9A%84%E5%85%A8%E5%B1%80%E5%8F%98%E9%87%8F"><span class="toc-text">5.1 意外的全局变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%B2%A1%E6%B8%85%E6%8E%89%E7%9A%84%E5%AE%9A%E6%97%B6%E5%99%A8%E4%B8%8E%E4%BA%8B%E4%BB%B6%E7%9B%91%E5%90%AC"><span class="toc-text">5.2 没清掉的定时器与事件监听</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E9%97%AD%E5%8C%85%E6%84%8F%E5%A4%96%E6%8C%81%E6%9C%89%E5%A4%A7%E5%AF%B9%E8%B1%A1"><span class="toc-text">5.3 闭包意外持有大对象</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%B8%B8%E7%A6%BB-DOM-%E8%8A%82%E7%82%B9"><span class="toc-text">5.4 游离 DOM 节点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E7%94%A8-DevTools-%E6%8A%8A%E6%B3%84%E6%BC%8F%E6%8A%93%E5%87%BA%E6%9D%A5"><span class="toc-text">六、用 DevTools 把泄漏抓出来</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%9D%A2%E8%AF%95%E6%80%8E%E4%B9%88%E7%AD%94"><span class="toc-text">七、面试怎么答</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%9E%83%E5%9C%BE"><span class="toc-text">什么是垃圾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E6%A3%80%E6%B5%8B%E5%9E%83%E5%9C%BE"><span class="toc-text">如何检测垃圾</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%81%87%E5%88%B0%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%80%8E%E4%B9%88%E6%8E%92%E6%9F%A5"><span class="toc-text">遇到内存泄漏怎么排查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -229,13 +231,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-js-memory-leak" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">JS内存泄漏与垃圾回收机制</h1>
+    <h1 class="post-title">JS内存泄漏与垃圾回收机制完全梳理</h1>
 
     <div class="article-meta">
       <span>
@@ -271,12 +273,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 1.6k字</span>
+            <span>字数统计 4.1k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 5分</span>
+            <span>阅读时长 14分</span>
           </span>
       
       
@@ -290,94 +292,101 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="什么是内存泄漏？"><a href="#什么是内存泄漏？" class="headerlink" title="什么是内存泄漏？"></a>什么是内存泄漏？</h2><ul>
-<li>程序的运行需要内存，只要程序提出要求，操作系统或者运行是就必须供给内存</li>
-<li>对于持续运行的服务进程，必须及时释放内存，否则，内存占用越来越高，轻则影响系统性能，重则导致进程崩溃</li>
-<li>不再用到的内存，没有及时释放，就叫做内存泄漏。</li>
-<li>有些语言（比如c语言）必须手动释放内存，程序员负责内存管理</li>
-<li>这很麻烦，所以大多数语言提供自动内存管理，减轻程序员的负担，这被称为”垃圾回收机制”。</li>
+        <p>一个后台管理系统的页面，来回切几十次路由之后开始卡，任务管理器里那个标签页占了一两个 G。刷新一下又好了，第二天用户继续来提工单。这类问题的定位难度不在于修，而在于你根本不知道该从哪儿看起。</p>
+<p>要看懂内存泄漏，得先看懂 JS 引擎是按什么规则回收内存的。这篇从标记清除和引用计数两种算法讲起，把「什么样的对象算垃圾」这条判定线说清楚，再回过头看那些经典的泄漏写法为什么会逃过回收，最后给一条能落地的 Chrome DevTools 排查路径。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>内存泄漏的准确定义，以及它和内存占用高的区别</li>
+<li>JS 为什么必须有垃圾回收机制</li>
+<li>标记清除算法的判定依据是可达性而不是引用数</li>
+<li>引用计数的工作方式与它天生的缺陷</li>
+<li>循环引用在现代引擎里到底还会不会泄漏</li>
+<li>四类高频泄漏写法：全局变量、定时器、闭包、游离 DOM</li>
+<li>用 Chrome DevTools 的三次快照法定位泄漏源</li>
+<li>面试被问到这块该怎么组织回答</li>
 </ul>
-<blockquote>
-<p>javascript垃圾回收机制原理：解决内存的泄露，垃圾回收机制会定期（周期性）找出那些不再用到的内存（变量），然后释放其内存。</p>
-</blockquote>
-<h2 id="垃圾回收的必要性"><a href="#垃圾回收的必要性" class="headerlink" title="垃圾回收的必要性"></a>垃圾回收的必要性</h2><blockquote>
-<p>由于字符串、对象和数组没有固定大小，所有当他们的大小已知时，才能对他们进行动态的存储分配。JavaScript程序每次创建字符串、数组或对象时，解释器都必须分配内存来存储那个实体。只要像这样动态地分配了内存，最终都要释放这些内存以便他们能够被再用，否则，JavaScript的解释器将会消耗完系统中所有可用的内存，造成系统崩溃</p>
-</blockquote>
-<p>这段话解释了为什么需要系统需要垃圾回收，JS不像C&#x2F;C++，他有自己的一套垃圾回收机制（Garbage Collection）。JavaScript的解释器可以检测到何时程序不再使用一个对象了，当他确定了一个对象是无用的时候，他就知道不再需要这个对象，可以把它所占用的内存释放掉了。例如：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a = <span class="string">&quot;before&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> b = <span class="string">&quot;override a&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> a = b; <span class="comment">//重写a</span></span><br></pre></td></tr></table></figure>
+<h2 id="一、内存泄漏到底指什么"><a href="#一、内存泄漏到底指什么" class="headerlink" title="一、内存泄漏到底指什么"></a>一、内存泄漏到底指什么</h2><p>程序的运行需要内存，只要程序提出要求，操作系统或者运行时就必须供给内存。</p>
+<p>对于持续运行的服务进程，必须及时释放内存，否则内存占用越来越高，轻则影响系统性能，重则导致进程崩溃。不再用到的内存没有及时释放，就叫做内存泄漏。</p>
+<p>这里有个容易混淆的点。内存占用高不等于内存泄漏。你打开一个渲染了十万行表格的页面，占几百 M 很正常，只要关掉页面内存能降下来，那就不是泄漏。泄漏的判定标准是「这块内存已经没有任何代码路径能再用到它，但引擎认为它还有用，所以不敢回收」。</p>
+<p>有些语言（比如 C 语言）必须手动释放内存，程序员负责内存管理。这很麻烦，所以大多数语言提供自动内存管理，减轻程序员的负担，这被称为垃圾回收机制。</p>
+<p>JavaScript 的垃圾回收机制会定期（周期性）找出那些不再用到的内存，然后释放掉。注意是「定期」，不是「立刻」。你把一个变量置成 <code>null</code> 的那一瞬间内存并不会马上降，得等下一轮 GC 跑起来。这一点在你盯着 DevTools 的内存曲线做验证时特别容易误判。</p>
+<h2 id="二、为什么必须有垃圾回收"><a href="#二、为什么必须有垃圾回收" class="headerlink" title="二、为什么必须有垃圾回收"></a>二、为什么必须有垃圾回收</h2><p>字符串、对象和数组没有固定大小，只有当它们的大小已知时，才能对它们进行动态的存储分配。JavaScript 程序每次创建字符串、数组或对象时，解释器都必须分配内存来存储那个实体。</p>
+<p>只要像这样动态地分配了内存，最终都要释放这些内存以便它们能够被再用，否则 JavaScript 引擎将会消耗完系统中所有可用的内存，造成系统崩溃。</p>
+<p>JS 不像 C&#x2F;C++，它有自己的一套垃圾回收机制（Garbage Collection）。引擎可以检测到何时程序不再使用一个对象，当它确定一个对象是无用的时候，就可以把它所占用的内存释放掉。例如：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> a = <span class="string">&quot;before&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> b = <span class="string">&quot;override a&quot;</span>;</span><br><span class="line"><span class="keyword">var</span> a = b; <span class="comment">// 重写 a</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>这段代码运行之后，“before”这个字符串失去了引用（之前是被a引用），系统检测到这个事实之后，就会释放该字符串的存储空间以便这些空间可以被再利用。</p>
-</blockquote>
-<h2 id="垃圾回收原理"><a href="#垃圾回收原理" class="headerlink" title="垃圾回收原理"></a>垃圾回收原理</h2><blockquote>
-<p>现在各大浏览器通常用采用的垃圾回收有两种方法：<strong>标记清除</strong>、<strong>引用计数</strong></p>
-</blockquote>
-<h3 id="策略1：标记清除"><a href="#策略1：标记清除" class="headerlink" title="策略1：标记清除"></a>策略1：标记清除</h3><blockquote>
-<p>这是javascript中最常用的垃圾回收方式。当变量进入执行环境是，就标记这个变量为“进入环境”。从逻辑上讲，永远不能释放进入环境的变量所占用的内存，因为只要执行流进入相应的环境，就可能会用到他们。当变量离开环境时，则将其标记为“离开环境”。</p>
-</blockquote>
-<p>垃圾收集器在运行的时候会给存储在内存中的所有变量都加上标记。然后，它会去掉环境中的变量以及被环境中的变量引用的标记。而在此之后再被加上标记的变量将被视为准备删除的变量，原因是环境中的变量已经无法访问到这些变量了。最后。垃圾收集器完成内存清除工作，销毁那些带标记的值，并回收他们所占用的内存空间</p>
+<p>这段代码运行之后，<code>&quot;before&quot;</code> 这个字符串失去了引用（之前是被 <code>a</code> 引用的），引擎检测到这个事实之后，就会释放该字符串的存储空间以便这些空间可以被再利用。</p>
+<p>顺着上面聊，这段用的是 <code>var</code>，是 2021 年前后很常见的写法。现在一般会用 <code>const</code> 加解构来替代，一方面 <code>const</code> 能在编译期就拦住重复声明（上面那个 <code>var a</code> 声明两次在 <code>const</code> 下直接报错），另一方面块级作用域会让变量更早离开作用域，也就更早变成可回收状态。原理没变，只是作用域粒度更细了。</p>
+<h2 id="三、策略一：标记清除"><a href="#三、策略一：标记清除" class="headerlink" title="三、策略一：标记清除"></a>三、策略一：标记清除</h2><p>这是 JavaScript 中最常用的垃圾回收方式。</p>
+<p>当变量进入执行环境时，就标记这个变量为「进入环境」。从逻辑上讲，永远不能释放进入环境的变量所占用的内存，因为只要执行流进入相应的环境，就可能会用到它们。当变量离开环境时，则将其标记为「离开环境」。</p>
+<p>整个过程可以拆成三步：</p>
 <ul>
 <li>垃圾收集器在运行的时候会给存储在内存中的所有变量都加上标记</li>
-<li>去掉环境中的变量以及被环境中的变量引用的变量的标记</li>
-<li>此后再被加上标记的变量将被视为准备删除的变量，因为环境中的变量已经无法访问到这些变量了</li>
+<li>去掉环境中的变量、以及被环境中的变量引用的变量的标记</li>
+<li>此后仍然带着标记的变量将被视为准备删除的变量，因为环境中的变量已经无法访问到它们了</li>
 </ul>
-<h3 id="策略2：引用计数"><a href="#策略2：引用计数" class="headerlink" title="策略2：引用计数"></a>策略2：引用计数</h3><blockquote>
-<p>语言引擎有一张”引用表”，保存了内存里面所有资源（通常是各种值）的引用次数。如果一个值的引用次数是0，就表示这个值不再用到了，因此可以将这块内存释放。</p>
-</blockquote>
-<p><img src="http://www.ruanyifeng.com/blogimg/asset/2017/bg2017041703.png"></p>
-<p>上图中，左下角的两个值，没有任何引用，所以可以释放</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> arr = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>];</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;hello world&quot;</span>);</span><br></pre></td></tr></table></figure>
+<p>最后垃圾收集器完成内存清除工作，销毁那些带标记的值，并回收它们所占用的内存空间。</p>
+<p>这套算法真正的判定依据是可达性，不是引用数。</p>
+<p>引擎内部维护了一组「根」（GC roots），包括全局对象、当前调用栈上的局部变量、以及一部分内置对象。从这些根出发能沿着引用链走到的对象就是活的，走不到的就是垃圾。这个区别在下一节看引用计数的时候会变得很关键。</p>
+<h2 id="四、策略二：引用计数"><a href="#四、策略二：引用计数" class="headerlink" title="四、策略二：引用计数"></a>四、策略二：引用计数</h2><p>语言引擎有一张引用表，保存了内存里面所有资源（通常是各种值）的引用次数。如果一个值的引用次数是 0，就表示这个值不再用到了，因此可以将这块内存释放。</p>
+<p><img src="http://www.ruanyifeng.com/blogimg/asset/2017/bg2017041703.png" alt="引用计数示意图，左下角两个没有任何引用的值可以被释放"></p>
+<p>上图中，左下角的两个值没有任何引用，所以可以释放。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;hello world&quot;</span>);</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面的代码中，数组<code>[1,2,3,4]</code>是一个值，会占用内存。变量arr是仅有的对这个值的引用，因此引用次数为1。尽管后面的代码没有用到arr，它是会持续占用内存</p>
-</blockquote>
-<p>如果增加一行代码，解除arr对<code>[1,2,3,4]</code>引用，这块内存就可以被垃圾回收机制释放了。</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> arr = [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>];</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">arr = <span class="literal">null</span>;</span><br></pre></td></tr></table></figure>
+<p>上面的代码中，数组 <code>[1,2,3,4]</code> 是一个值，会占用内存。变量 <code>arr</code> 是仅有的对这个值的引用，因此引用次数为 1。尽管后面的代码没有再用到 <code>arr</code>，它还是会持续占用内存。</p>
+<p>如果增加一行代码，解除 <code>arr</code> 对 <code>[1,2,3,4]</code> 的引用，这块内存就可以被垃圾回收机制释放了。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> arr = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;hello world&quot;</span>);</span><br><span class="line">arr = <span class="literal">null</span>;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>上面代码中，arr重置为null，就解除了对<code>[1，2，3，4]</code>的引用，引用次数变成了0，内存就可以释放出来了。</p>
-</blockquote>
-<blockquote>
-<p>因此，并不是说有了垃圾回收机制，程序员就轻松了。你还是需要关注内存占用：那些很占空间的值，一旦不再用到，你必须检查是否还存在对它们的引用。如果是的话，就必须手动解除引用</p>
-</blockquote>
-<p>再来下面来看看代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">problem</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> objA = <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line">    <span class="keyword">var</span> objB = <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"></span><br><span class="line">    objA.<span class="property">someOtherObject</span> = objB;</span><br><span class="line">    objB.<span class="property">anotherObject</span> = objA;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面代码中，<code>arr</code> 重置为 <code>null</code>，就解除了对 <code>[1,2,3,4]</code> 的引用，引用次数变成 0，内存就可以释放出来了。</p>
+<p>所以并不是有了垃圾回收机制，程序员就可以完全不管内存。那些很占空间的值，一旦不再用到，你还是需要检查是否存在对它们的引用，必要时手动解除。</p>
+<h3 id="引用计数的缺陷"><a href="#引用计数的缺陷" class="headerlink" title="引用计数的缺陷"></a>引用计数的缺陷</h3><p>引用计数的问题在于，它只看「有几个人指着我」，不看「这些人自己还活不活着」。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">problem</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> objA = <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line">  <span class="keyword">var</span> objB = <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"></span><br><span class="line">  objA.<span class="property">someOtherObject</span> = objB;</span><br><span class="line">  objB.<span class="property">anotherObject</span> = objA;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>在这个例子中，objA和objB通过各自的属性相互引用；也就是说这两个对象的引用次数都是2。在采用引用计数的策略中，由于函数执行之后，这两个对象都离开了作用域，函数执行完成之后，objA和objB还将会继续存在，因为他们的引用次数永远不会是0。这样的相互引用如果说很大量的存在就会导致大量的内存泄露</p>
-</blockquote>
-<p>不过上面的问题也不是不能解决，我们可以手动切断他们的循环引用。</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">myObj.<span class="property">element</span> = <span class="literal">null</span>;</span><br><span class="line">element.<span class="property">someObject</span> =<span class="literal">null</span>;</span><br></pre></td></tr></table></figure>
+<p>在这个例子中，<code>objA</code> 和 <code>objB</code> 通过各自的属性相互引用，这两个对象的引用次数都是 2。在采用引用计数的策略下，函数执行完成之后这两个对象虽然离开了作用域，但它们的引用次数永远不会降到 0，于是永远不会被回收。这样的相互引用如果大量存在，就会导致明显的内存泄漏。</p>
+<p>手动切断循环引用可以解决这个问题：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">problem</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> objA = <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line">  <span class="keyword">var</span> objB = <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"></span><br><span class="line">  objA.<span class="property">someOtherObject</span> = objB;</span><br><span class="line">  objB.<span class="property">anotherObject</span> = objA;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 函数结束前手动断开，引用计数立刻归零</span></span><br><span class="line">  objA.<span class="property">someOtherObject</span> = <span class="literal">null</span>;</span><br><span class="line">  objB.<span class="property">anotherObject</span> = <span class="literal">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>这样写代码的话就可以解决循环引用的问题了，也就防止了内存泄露的问题。</p>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><blockquote>
-<p>如果存在循环引用的情况，那么这个引用值占的空间就永远不会被回收。</p>
-</blockquote>
-<h2 id="面试回答"><a href="#面试回答" class="headerlink" title="面试回答"></a>面试回答</h2><h3 id="什么是垃圾"><a href="#什么是垃圾" class="headerlink" title="什么是垃圾"></a>什么是垃圾</h3><blockquote>
-<p>一般来说没有被引用的对象就是垃圾，就是要被清除，有个例外如果几个对象引用形成一个环，互相引用，但根访问不到它们，这几个对象也是垃圾，也要被清除。</p>
-</blockquote>
-<h3 id="如何检垃圾"><a href="#如何检垃圾" class="headerlink" title="如何检垃圾"></a>如何检垃圾</h3><ul>
-<li>一种算法是标记 标记-清除 算法</li>
-</ul>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
-<ul>
-<li><h1 id="JavaScript-内存泄漏教程"><a href="#JavaScript-内存泄漏教程" class="headerlink" title="JavaScript 内存泄漏教程"></a><a href="http://www.ruanyifeng.com/blog/2017/04/memory-leak.html">JavaScript 内存泄漏教程</a></h1></li>
-<li><a href="http://www.ruanyifeng.com/blog/2017/04/memory-leak.html">JavaScript 内存泄漏教程</a><blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>7c58ba165b59a7a915f47ba206b544c01c8425a5</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</li>
+<p>这里要补一句原文没说清楚的事。<strong>上面这段手动断开的写法，在今天的主流浏览器里其实已经不需要了。</strong></p>
+<p>V8、SpiderMonkey、JavaScriptCore 这些现代引擎用的都是标记清除（配合分代回收、增量标记等优化），判定依据是从 GC roots 出发的可达性。<code>objA</code> 和 <code>objB</code> 虽然互相指着对方，但函数返回后没有任何根能走到它们，整个环会被当成一坨垃圾一起清掉。</p>
+<p>引用计数导致循环引用泄漏，主要是 IE 6&#x2F;7 时代的历史问题。当时 IE 的 DOM 和 BOM 对象由 COM 组件实现，走的是独立于 JS 引擎的引用计数，DOM 节点和 JS 对象互相引用就会两边都不敢回收。这个坑在 IE 9 之后基本就没有了。</p>
+<p>回到我们要解决的问题上，既然循环引用不再是主要成因，那今天的内存泄漏到底从哪儿来？</p>
+<h2 id="五、四类高频泄漏写法"><a href="#五、四类高频泄漏写法" class="headerlink" title="五、四类高频泄漏写法"></a>五、四类高频泄漏写法</h2><p>答案是，泄漏几乎都来自「你以为它已经没人用了，但实际上还有一条引用链挂在根上」。</p>
+<h3 id="5-1-意外的全局变量"><a href="#5-1-意外的全局变量" class="headerlink" title="5.1 意外的全局变量"></a>5.1 意外的全局变量</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">  bar = <span class="string">&quot;这是一个隐式全局变量&quot;</span>; <span class="comment">// 少写了 var/let/const</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>非严格模式下，给未声明的变量赋值会挂到 <code>window</code> 上。<code>window</code> 是 GC root，挂上去的东西这辈子都不会被回收。开启严格模式（<code>&#39;use strict&#39;</code>）或者用打包工具默认的 ESM 模块作用域，这类问题基本就绝迹了。</p>
+<h3 id="5-2-没清掉的定时器与事件监听"><a href="#5-2-没清掉的定时器与事件监听" class="headerlink" title="5.2 没清掉的定时器与事件监听"></a>5.2 没清掉的定时器与事件监听</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 组件里起了定时器，卸载时忘了清</span></span><br><span class="line"><span class="keyword">const</span> timer = <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">render</span>(bigData); <span class="comment">// bigData 被闭包持有，跟着定时器一起活着</span></span><br><span class="line">&#125;, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<p><code>setInterval</code> 的回调被浏览器的定时器队列持有，只要不 <code>clearInterval</code>，回调以及它闭包里引用的所有东西都是可达的。SPA 里这是最高频的泄漏来源，路由切走了组件销毁了，定时器还在跑，跑一次就多留一份数据。</p>
+<p><code>addEventListener</code> 同理。绑在 <code>window</code> 或 <code>document</code> 上的监听尤其危险，因为宿主对象的生命周期跟页面一样长。</p>
+<h3 id="5-3-闭包意外持有大对象"><a href="#5-3-闭包意外持有大对象" class="headerlink" title="5.3 闭包意外持有大对象"></a>5.3 闭包意外持有大对象</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">createHandler</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> hugeData = <span class="keyword">new</span> <span class="title class_">Array</span>(<span class="number">1000000</span>).<span class="title function_">fill</span>(<span class="string">&quot;x&quot;</span>);</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">    <span class="comment">// 这里其实只用到了 hugeData.length</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(hugeData.<span class="property">length</span>);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回的函数只用了一个 <code>length</code>，但闭包捕获的是整个变量。V8 在部分场景下会做优化只保留用到的变量，但你不能指望这个优化在所有写法下都生效。稳妥的做法是在闭包里只捕获真正需要的那个值。</p>
+<h3 id="5-4-游离-DOM-节点"><a href="#5-4-游离-DOM-节点" class="headerlink" title="5.4 游离 DOM 节点"></a>5.4 游离 DOM 节点</h3><figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> cache = [];</span><br><span class="line"><span class="keyword">const</span> el = <span class="variable language_">document</span>.<span class="title function_">getElementById</span>(<span class="string">&quot;panel&quot;</span>);</span><br><span class="line">cache.<span class="title function_">push</span>(el);</span><br><span class="line"><span class="variable language_">document</span>.<span class="property">body</span>.<span class="title function_">removeChild</span>(el); <span class="comment">// 从文档树摘掉了，但 cache 还拿着</span></span><br></pre></td></tr></table></figure>
+
+<p>节点从 DOM 树上摘下来了，视觉上已经消失，但因为 <code>cache</code> 数组还引用着它，整棵子树连同上面绑的事件、数据都还留在内存里。DevTools 里管这种叫 detached DOM node，是排查时最容易一眼认出来的泄漏类型。</p>
+<p>这块可以用 <code>WeakMap</code>、<code>WeakSet</code> 来缓解，它们持有的是弱引用，不会阻止键对象被回收。关于弱引用集合的具体用法，可以看看 <a href="https://feinterview.poetries.top/blog/es6-set-weakSet-map-weakMap">Set WeakSet Map WeakMap 梳理</a>。</p>
+<h2 id="六、用-DevTools-把泄漏抓出来"><a href="#六、用-DevTools-把泄漏抓出来" class="headerlink" title="六、用 DevTools 把泄漏抓出来"></a>六、用 DevTools 把泄漏抓出来</h2><p>知道了成因，还得有办法定位到具体哪一行。Chrome DevTools 的 Memory 面板提供了一套很成熟的流程，我自己常用的是三次快照法。</p>
+<p>第一步，打开 Memory 面板，在页面加载完、还没做任何操作时拍一张 Heap snapshot，作为基线。</p>
+<p>第二步，把你怀疑泄漏的操作重复做十次以上。比如反复进出某个路由、反复打开关闭某个弹窗。次数多是有讲究的，重复次数越多，泄漏对象的数量差异越明显，越容易从噪音里被挑出来。做完之后再拍第二张快照。</p>
+<p>第三步，手动点一下面板上的垃圾桶图标强制触发一次 GC，再拍第三张。</p>
+<p>然后把快照的对比模式切成 Comparison，用第三张对比第一张，按 <code>Delta</code> 排序。正常情况下大部分对象的增量应该接近 0，那些增量恰好等于你操作次数（或者它的整数倍）的构造函数，基本就是泄漏源。点开之后看下方的 Retainers 面板，它会告诉你这个对象是被谁一路引用到根上的，顺着这条链往上找就能定位到代码。</p>
+<p>排查游离节点还有个更快的入口。在 Memory 面板的过滤框里输入 <code>Detached</code>，能直接筛出所有游离的 DOM 节点。Chrome 后来还加了专门的 Detached Elements 面板，比翻快照直观不少。</p>
+<p>如果只是想先确认「到底有没有泄漏」，不用这么麻烦。Performance 面板勾上 Memory，录一段你重复操作的过程，看 JS Heap 那条线。健康的曲线应该是锯齿形，涨一段被 GC 削一次，整体维持在一个水平线上；泄漏的曲线是每次 GC 之后的谷底都比上一次高，整条线阶梯式往上爬。</p>
+<p>说实话我也没完全跑通过所有场景，有些泄漏藏在第三方库里，Retainers 链一路指到压缩后的变量名，这时候只能靠源码映射和二分注释法慢慢缩范围。这块我还在摸索。想了解更多前端性能相关的排查手段，可以参考 <a href="https://feinterview.poetries.top/blog/fed-performance-optimization">前端性能优化梳理</a>。</p>
+<h2 id="七、面试怎么答"><a href="#七、面试怎么答" class="headerlink" title="七、面试怎么答"></a>七、面试怎么答</h2><h3 id="什么是垃圾"><a href="#什么是垃圾" class="headerlink" title="什么是垃圾"></a>什么是垃圾</h3><p>一般来说没有被引用的对象就是垃圾，需要被清除。这里有个常被追问的例外，如果几个对象互相引用形成一个环，但从根出发访问不到它们，这几个对象同样是垃圾，也要被清除。</p>
+<p>能把这个例外主动说出来，比背完标记清除三步走要加分得多，因为它说明你理解的判定依据是可达性而不是引用数。</p>
+<h3 id="如何检测垃圾"><a href="#如何检测垃圾" class="headerlink" title="如何检测垃圾"></a>如何检测垃圾</h3><p>主流答案是标记清除算法。展开一点可以提到 V8 的分代回收：新生代用 Scavenge（复制算法，空间换时间，适合存活率低的对象），老生代用标记清除加标记整理，配合增量标记和并发标记把 GC 造成的主线程停顿切碎，避免一次长停顿导致掉帧。</p>
+<h3 id="遇到内存泄漏怎么排查"><a href="#遇到内存泄漏怎么排查" class="headerlink" title="遇到内存泄漏怎么排查"></a>遇到内存泄漏怎么排查</h3><p>按上一节那套流程讲就行。先用 Performance 面板的 JS Heap 曲线确认是不是真泄漏，再用 Memory 面板的三次快照对比找出增量异常的构造函数，最后看 Retainers 链定位到代码。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>内存泄漏的判定线其实只有一条，就是从 GC roots 出发能不能走到这个对象。走得到就是活的，引擎不敢动；走不到就是垃圾，迟早会被清掉。</p>
+<p>标记清除和引用计数的差别也在这条线上。引用计数只数指着自己的人有几个，所以被循环引用坑死；标记清除看的是可达性，一个孤立的引用环整体都是不可达的，会被一起清掉。现代浏览器用的都是标记清除，循环引用早已不是主要威胁。</p>
+<p>今天真正制造泄漏的是那些「无意中挂到长生命周期对象上」的引用，定时器、事件监听、闭包、缓存住的游离 DOM，这四类占了绝大多数。写代码时记住一件事就够了，凡是往全局、往宿主对象、往长期存活的容器里放东西，都要在对应的位置写好清理逻辑。</p>
+<p>排查的时候别急着看代码，先拿三次快照法把嫌疑对象锁定到具体的构造函数，再顺着 Retainers 链回到源码，比凭直觉猜要快得多。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://www.ruanyifeng.com/blog/2017/04/memory-leak.html">JavaScript 内存泄漏教程 阮一峰</a></li>
+<li><a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Memory_management">MDN 内存管理</a></li>
+<li><a href="https://developer.chrome.com/docs/devtools/memory-problems/heap-snapshots">Chrome DevTools 记录堆快照</a></li>
+<li><a href="https://v8.dev/blog/trash-talk">V8 博客 Trash talk: the Orinoco garbage collector</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

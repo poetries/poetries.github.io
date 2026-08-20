@@ -7,30 +7,33 @@
 <head>
   <meta charset="utf-8">
   
-  <title>使用umi改进dva项目开发 | 前端进阶之旅</title>
+  <title>使用umi改进dva项目开发，约定式路由与插件体系实践 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="Dva,Umi," />
+    <meta name="keywords" content="Dva,Umi,React,前端工程化,约定式路由," />
   
 
-  <meta name="description" content="一、Umi简介 一个可插拔的企业级 react 应用框架。umi 以路由为基础的，以及各种进阶的路由功能，并以此进行功能扩展，比如支持路由级的按需加载。然后配以完善的插件体系，覆盖从源码到构建产物的每个生命周期  1.1 特性 开箱即用，内置 react、react-router 等 支持配置的路由方式 完善的插件体系，覆盖从源码到构建产物的每个生命周期 高性能，通过插件支持 PWA、以路由为单元">
+  <meta name="description" content="umi 用目录约定替掉手写 router.js 和 app.model 注册，这篇讲清约定式路由的全部规则、model 自动加载的查找顺序、配置文件与 UMI_ENV 分环境、mock 约定，以及和 dva 的分工。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="使用umi改进dva项目开发">
+<meta property="og:title" content="使用umi改进dva项目开发，约定式路由与插件体系实践">
 <meta property="og:url" content="http://blog.poetries.top/2018/09/07/umi-dva/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="一、Umi简介 一个可插拔的企业级 react 应用框架。umi 以路由为基础的，以及各种进阶的路由功能，并以此进行功能扩展，比如支持路由级的按需加载。然后配以完善的插件体系，覆盖从源码到构建产物的每个生命周期  1.1 特性 开箱即用，内置 react、react-router 等 支持配置的路由方式 完善的插件体系，覆盖从源码到构建产物的每个生命周期 高性能，通过插件支持 PWA、以路由为单元">
+<meta property="og:description" content="umi 用目录约定替掉手写 router.js 和 app.model 注册，这篇讲清约定式路由的全部规则、model 自动加载的查找顺序、配置文件与 UMI_ENV 分环境、mock 约定，以及和 dva 的分工。">
 <meta property="og:locale">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/rmsportal/zvfEXesXdgTzWYZCuHLe.png">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/rmsportal/mlEDcowMOSeXwLoukayR.png">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/rmsportal/ppRAiFpnZbpwDDuoFdPh.png">
 <meta property="og:image" content="https://gw.alipayobjects.com/zos/rmsportal/wbeiDacBkchXrTafasBy.png">
 <meta property="article:published_time" content="2018-09-07T12:10:23.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.692Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.957Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Dva">
 <meta property="article:tag" content="Umi">
+<meta property="article:tag" content="React">
+<meta property="article:tag" content="前端工程化">
+<meta property="article:tag" content="约定式路由">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://gw.alipayobjects.com/zos/rmsportal/zvfEXesXdgTzWYZCuHLe.png">
 
@@ -210,7 +213,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Umi%E7%AE%80%E4%BB%8B"><span class="toc-text">一、Umi简介</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E7%89%B9%E6%80%A7"><span class="toc-text">1.1 特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E6%9E%B6%E6%9E%84"><span class="toc-text">1.2 架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E5%92%8C-dva%E3%80%81roadhog%E5%85%B3%E7%B3%BB"><span class="toc-text">1.3 和 dva、roadhog关系</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">二、环境搭建</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">三、目录结构</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%B7%AF%E7%94%B1%E9%85%8D%E7%BD%AE"><span class="toc-text">四、路由配置</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-%E7%BA%A6%E5%AE%9A%E5%BC%8F%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1 约定式路由</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-1-%E5%9F%BA%E7%A1%80%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.1 基础路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-2-%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.2 动态路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-3-%E5%8F%AF%E9%80%89%E7%9A%84%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.3 可选的动态路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-4-%E5%B5%8C%E5%A5%97%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.4 嵌套路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-5-%E5%85%A8%E5%B1%80-layout"><span class="toc-text">4.1.5 全局 layout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-6-%E4%B8%8D%E5%90%8C%E7%9A%84%E5%85%A8%E5%B1%80-layout"><span class="toc-text">4.1.6 不同的全局 layout</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-7-404-%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.7 404 路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-8-%E9%80%9A%E8%BF%87%E6%B3%A8%E9%87%8A%E6%89%A9%E5%B1%95%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.8 通过注释扩展路由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-%E9%85%8D%E7%BD%AE%E5%BC%8F%E8%B7%AF%E7%94%B1"><span class="toc-text">4.2 配置式路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-%E6%9D%83%E9%99%90%E8%B7%AF%E7%94%B1"><span class="toc-text">4.3 权限路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-4-%E8%B7%AF%E7%94%B1%E5%8A%A8%E6%95%88"><span class="toc-text">4.4 路由动效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-5-%E9%9D%A2%E5%8C%85%E5%B1%91"><span class="toc-text">4.5 面包屑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-6-%E5%90%AF%E7%94%A8-Hash-%E8%B7%AF%E7%94%B1"><span class="toc-text">4.6 启用 Hash 路由</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-7-%E9%A1%B5%E9%9D%A2%E9%97%B4%E8%B7%B3%E8%BD%AC"><span class="toc-text">4.7 页面间跳转</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%85%8D%E7%BD%AE"><span class="toc-text">五、配置</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%E3%80%81Mock-%E6%95%B0%E6%8D%AE"><span class="toc-text">六、Mock 数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%BB%93%E5%90%88dva%E5%AE%9E%E8%B7%B5"><span class="toc-text">七、结合dva实践</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB"><span class="toc-text">八、问题汇总</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%E3%80%81Demo"><span class="toc-text">九、Demo</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E5%8F%82%E8%80%83"><span class="toc-text">十、参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Umi%E7%AE%80%E4%BB%8B"><span class="toc-text">一、Umi简介</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E7%89%B9%E6%80%A7"><span class="toc-text">1.1 特性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%9E%B6%E6%9E%84"><span class="toc-text">1.2 架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%92%8C-dva%E3%80%81roadhog%E5%85%B3%E7%B3%BB"><span class="toc-text">1.3 和 dva、roadhog关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-text">二、环境搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="toc-text">三、目录结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%B7%AF%E7%94%B1%E9%85%8D%E7%BD%AE"><span class="toc-text">四、路由配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%BA%A6%E5%AE%9A%E5%BC%8F%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1 约定式路由</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-%E5%9F%BA%E7%A1%80%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.1 基础路由</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.2 动态路由</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-3-%E5%8F%AF%E9%80%89%E7%9A%84%E5%8A%A8%E6%80%81%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.3 可选的动态路由</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-4-%E5%B5%8C%E5%A5%97%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.4 嵌套路由</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-5-%E5%85%A8%E5%B1%80-layout"><span class="toc-text">4.1.5 全局 layout</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-6-%E4%B8%8D%E5%90%8C%E7%9A%84%E5%85%A8%E5%B1%80-layout"><span class="toc-text">4.1.6 不同的全局 layout</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-7-404-%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.7 404 路由</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-8-%E9%80%9A%E8%BF%87%E6%B3%A8%E9%87%8A%E6%89%A9%E5%B1%95%E8%B7%AF%E7%94%B1"><span class="toc-text">4.1.8 通过注释扩展路由</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%85%8D%E7%BD%AE%E5%BC%8F%E8%B7%AF%E7%94%B1"><span class="toc-text">4.2 配置式路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E6%9D%83%E9%99%90%E8%B7%AF%E7%94%B1"><span class="toc-text">4.3 权限路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E8%B7%AF%E7%94%B1%E5%8A%A8%E6%95%88"><span class="toc-text">4.4 路由动效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E9%9D%A2%E5%8C%85%E5%B1%91"><span class="toc-text">4.5 面包屑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-%E5%90%AF%E7%94%A8-Hash-%E8%B7%AF%E7%94%B1"><span class="toc-text">4.6 启用 Hash 路由</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-Scroll-to-top"><span class="toc-text">4.7 Scroll to top</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-8-%E9%A1%B5%E9%9D%A2%E9%97%B4%E8%B7%B3%E8%BD%AC"><span class="toc-text">4.8 页面间跳转</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E9%85%8D%E7%BD%AE"><span class="toc-text">五、配置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Mock-%E6%95%B0%E6%8D%AE"><span class="toc-text">六、Mock 数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E7%BB%93%E5%90%88dva%E5%AE%9E%E8%B7%B5"><span class="toc-text">七、结合dva实践</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB"><span class="toc-text">八、问题汇总</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81Demo"><span class="toc-text">九、Demo</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -233,13 +236,13 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
 <article id="post-umi-dva" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">使用umi改进dva项目开发</h1>
+    <h1 class="post-title">使用umi改进dva项目开发，约定式路由与插件体系实践</h1>
 
     <div class="article-meta">
       <span>
@@ -275,12 +278,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 4.6k字</span>
+            <span>字数统计 11.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 21分</span>
+            <span>阅读时长 46分</span>
           </span>
       
       
@@ -294,10 +297,24 @@
   <div class="article-content">
     
       <div id="container">
-        <h1 id="一、Umi简介"><a href="#一、Umi简介" class="headerlink" title="一、Umi简介"></a>一、Umi简介</h1><blockquote>
+        <p>裸 dva 项目写到第二十个页面的时候，<code>router.js</code> 已经三百行了。每加一个页面要做四件事，在 <code>routes/</code> 建组件、在 <code>models/</code> 建 model、去 <code>index.js</code> 里补一行 <code>app.model(require(...))</code>、再回 <code>router.js</code> 加一条 <code>&lt;Route&gt;</code>。漏掉任何一步都是白屏或者 dispatch 没反应，而且报错信息还不会告诉你漏的是哪一步。</p>
+<p>umi 干的事就是把这四步压成一步，你在 <code>pages/</code> 下建个文件，路由和 model 自己就注册好了。这篇是我 2018 年从 dva 迁到 umi 时整理的笔记，约定式路由的全部规则、model 的查找顺序、配置文件的分环境写法、mock 约定，一条条列在这儿。原文的写法我一字没删，另外补了几段现在的情况，umi 后来发过好几个大版本，有些写法已经变了，哪些能抄、哪些不能抄，我在对应的位置标了出来。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>umi、dva、roadhog 三者到底是什么关系，为什么它们能拆开也能合起来用</li>
+<li>从扁平的 <code>models/services/routes</code> 换成按页面组织的目录，具体解决了什么问题</li>
+<li>约定式路由的八条规则，动态路由、可选动态路由、嵌套路由、404、注释扩展</li>
+<li>什么时候该放弃约定式改用配置式路由，两者是互斥的</li>
+<li>权限路由、路由动效、面包屑、hash 路由这几个高频需求的实现方式</li>
+<li><code>.umirc.js</code> 和 <code>UMI_ENV</code> 怎么配出多套环境的配置</li>
+<li>mock 目录的约定写法，以及怎么模拟网络延迟</li>
+<li>model 自动注册的完整查找规则，全局 model 和页面 model 的边界</li>
+</ul>
+<h2 id="一、Umi简介"><a href="#一、Umi简介" class="headerlink" title="一、Umi简介"></a>一、Umi简介</h2><blockquote>
 <p>一个可插拔的企业级 <code>react</code> 应用框架。<code>umi</code> 以路由为基础的，以及各种进阶的路由功能，并以此进行功能扩展，比如支持路由级的按需加载。然后配以完善的插件体系，覆盖从源码到构建产物的每个生命周期</p>
 </blockquote>
-<h2 id="1-1-特性"><a href="#1-1-特性" class="headerlink" title="1.1 特性"></a>1.1 特性</h2><ul>
+<p>这段官方定义里有两个词是重点，「以路由为基础」和「插件体系」。前者决定了你的目录长什么样，后者决定了 dva、antd、PWA 这些东西怎么接进来。这篇后面的内容基本都在展开这两句。</p>
+<h3 id="1-1-特性"><a href="#1-1-特性" class="headerlink" title="1.1 特性"></a>1.1 特性</h3><ul>
 <li>开箱即用，内置 <code>react</code>、<code>react-router</code> 等</li>
 <li>支持配置的路由方式</li>
 <li>完善的插件体系，覆盖从源码到构建产物的每个生命周期</li>
@@ -308,23 +325,34 @@
 <li>完善的 <code>TypeScript</code> 支持，包括 <code>d.ts </code>定义和 <code>umi test</code></li>
 <li>与 <code>dva</code> 数据流的深入融合，支持 <code>duck directory</code>、<code>model</code> 的自动加载、<code>code splitting </code>等等</li>
 </ul>
-<h2 id="1-2-架构"><a href="#1-2-架构" class="headerlink" title="1.2 架构"></a>1.2 架构</h2><p><img src="https://gw.alipayobjects.com/zos/rmsportal/zvfEXesXdgTzWYZCuHLe.png"></p>
-<h2 id="1-3-和-dva、roadhog关系"><a href="#1-3-和-dva、roadhog关系" class="headerlink" title="1.3 和 dva、roadhog关系"></a>1.3 和 dva、roadhog关系</h2><ul>
+<p>这一串里，对老 dva 项目冲击最大的是最后一条。<code>duck directory</code> 和 <code>model</code> 自动加载合起来的效果是，你不用再维护那份 <code>app.model(require(...))</code> 的清单了。第七节会把这套规则拆开讲。</p>
+<h3 id="1-2-架构"><a href="#1-2-架构" class="headerlink" title="1.2 架构"></a>1.2 架构</h3><p>下面这张官方架构图把 umi 的分层画得挺清楚，从下往上看会更好理解。</p>
+<p><img src="https://gw.alipayobjects.com/zos/rmsportal/zvfEXesXdgTzWYZCuHLe.png" alt="umi 架构图：底层是 webpack 和 babel，中间是 umi 内核与插件体系，上层是路由、dva、antd 等按需接入的能力"></p>
+<p>最底下是 webpack 和 babel，中间那层才是 umi 自己的东西，也就是内核加插件机制，再往上的 dva 整合、antd 按需加载、PWA、polyfill，全都是插件。你要是嫌某个能力用不上，把插件摘掉就行，这跟 create-react-app 那种一次性 eject 的思路完全不同。</p>
+<h3 id="1-3-和-dva、roadhog关系"><a href="#1-3-和-dva、roadhog关系" class="headerlink" title="1.3 和 dva、roadhog关系"></a>1.3 和 dva、roadhog关系</h3><ul>
 <li><code>roadhog</code> 是基于 <code>webpack</code> 的封装工具，目的是简化 <code>webpack</code> 的配置<br>umi 可以简单地理解为 <code>roadhog + 路由</code>，思路类似 <code>next.js/nuxt.js</code>，辅以一套插件机制，目的是通过框架的方式简化 <code>React </code>开发</li>
 <li><code>dva </code> 目前是纯粹的数据流，和 <code>umi</code> 以及 <code>roadhog</code> 之间并没有相互的依赖关系，可以分开使用也可以一起使用</li>
 </ul>
-<h1 id="二、环境搭建"><a href="#二、环境搭建" class="headerlink" title="二、环境搭建"></a>二、环境搭建</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ mkdir myapp &amp;&amp; cd myapp</span><br><span class="line">$ yarn create umi</span><br></pre></td></tr></table></figure>
+<p>这三者的关系我一开始也绕了半天，后来发现按「谁管什么」来记最省事。roadhog 管构建，umi 管构建加路由，dva 只管数据流。所以你能看到三种组合，光用 dva 不用 umi（老 dva 脚手架就是这样，路由自己写在 <code>router.js</code> 里），光用 umi 不用 dva（数据流换成别的），或者两个一起上。</p>
+<p>也正因为这样，这篇不会重复讲 model 里 <code>state</code>、<code>reducers</code>、<code>effects</code>、<code>subscriptions</code> 怎么写，那部分我在 <a href="https://feinterview.poetries.top/blog/dva">Dva实践总结</a> 里从五个 API 一路写到了完整案例。这篇只讲 umi 接进来之后，dva 的写法哪里变了。</p>
+<h2 id="二、环境搭建"><a href="#二、环境搭建" class="headerlink" title="二、环境搭建"></a>二、环境搭建</h2><p>umi 没有独立的 cli 包要全局装，直接用 <code>yarn create</code> 起一个交互式脚手架就行。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ mkdir myapp &amp;&amp; cd myapp</span><br><span class="line">$ yarn create umi</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://gw.alipayobjects.com/zos/rmsportal/mlEDcowMOSeXwLoukayR.png"></p>
+<p>跑完会弹出一个选择器，问你要建什么类型的项目。</p>
+<p><img src="https://gw.alipayobjects.com/zos/rmsportal/mlEDcowMOSeXwLoukayR.png" alt="yarn create umi 的交互式选择界面，可以选择创建 app、block、library 等不同类型的项目"></p>
+<p>选 <code>app</code> 之后它还会接着问要不要 TypeScript、要不要 dva、要不要 antd，按需勾就行，这几个选项对应的其实就是往 <code>.umirc.js</code> 的 <code>plugins</code> 里塞不塞对应的插件。</p>
 <blockquote>
 <p>确定后，会根据你的选择自动创建好目录和文件</p>
 </blockquote>
-<p><img src="https://gw.alipayobjects.com/zos/rmsportal/ppRAiFpnZbpwDDuoFdPh.png"></p>
-<h1 id="三、目录结构"><a href="#三、目录结构" class="headerlink" title="三、目录结构"></a>三、目录结构</h1><blockquote>
+<p><img src="https://gw.alipayobjects.com/zos/rmsportal/ppRAiFpnZbpwDDuoFdPh.png" alt="脚手架执行完成后自动生成的目录和文件列表，包含 mock、src&#x2F;pages、.umirc.js 等"></p>
+<p>生成出来的东西比 dva-cli 少得多，没有 <code>router.js</code>，也没有一大堆 webpack 配置文件，这正是 umi 的风格，能靠约定推导出来的就不落成文件。</p>
+<h2 id="三、目录结构"><a href="#三、目录结构" class="headerlink" title="三、目录结构"></a>三、目录结构</h2><p>这一节是整篇最值钱的部分。umi 带来的改变不在于某个 API，而在于你的文件该往哪儿放。</p>
+<blockquote>
 <p><code>dva</code> 项目之前通常都是这种扁平的组织方式</p>
 </blockquote>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">+ models</span><br><span class="line">  - <span class="variable language_">global</span>.<span class="property">js</span></span><br><span class="line">  - a1.<span class="property">js</span></span><br><span class="line">  - a2.<span class="property">js</span></span><br><span class="line">  - b.<span class="property">js</span></span><br><span class="line">+ services</span><br><span class="line">  - a.<span class="property">js</span></span><br><span class="line">  - b.<span class="property">js</span></span><br><span class="line">+ routes</span><br><span class="line">  - <span class="title class_">PageA</span>.<span class="property">js</span></span><br><span class="line">  - <span class="title class_">PageB</span>.<span class="property">js</span></span><br></pre></td></tr></table></figure>
 
+<p>这种平铺法在页面少的时候没问题，超过二十个页面就开始难受了。<code>models/</code> 里躺着四十个文件，你光看文件名分不清哪个还在用；想删掉一个下线的页面，得去三个目录里各找一遍，漏删的那个 model 还会一直被注册进 store，白占内存。</p>
 <blockquote>
 <p>用了 <code>umi</code> 后，可以按页面维度进行组织</p>
 </blockquote>
@@ -333,6 +361,8 @@
 <blockquote>
 <p>好处是更加结构更加清晰了，减少耦合，一删全删，方便 copy 和共享</p>
 </blockquote>
+<p>「一删全删」这四个字是我用下来感受最深的。页面下线的时候 <code>rm -rf pages/a</code> 就完事了，它的 model、service 全跟着走，不会留下孤儿文件。反过来，要把一个功能搬到另一个项目里，也是整个目录 copy 过去。这种把相关文件放一起的组织方式在社区里叫 duck directory，最早是 Redux 圈子里为了解决同一个功能的文件散落各处提出来的。</p>
+<p>注意 <code>models/global.js</code> 还留在 <code>src</code> 顶层，这是有意的。登录用户信息、全局菜单、权限这类跨页面共享的数据不属于任何一个页面，放全局；只有当前页面用的数据放页面自己的目录里。这条线画不清楚，页面 model 迟早会被别的页面偷偷引用，duck directory 就白分了。</p>
 <p><strong>自动注册 models</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+ src</span><br><span class="line">  + models</span><br><span class="line">    - g.js</span><br><span class="line">  + pages</span><br><span class="line">    + a</span><br><span class="line">      + models</span><br><span class="line">        - a.js</span><br><span class="line">        - b.js</span><br><span class="line">        + ss</span><br><span class="line">          - s.js</span><br><span class="line">      - page.js</span><br><span class="line">    + c</span><br><span class="line">      - model.js</span><br><span class="line">      + d</span><br><span class="line">        + models</span><br><span class="line">          - d.js</span><br><span class="line">        - page.js</span><br><span class="line">      - page.js</span><br></pre></td></tr></table></figure>
 
@@ -342,11 +372,14 @@
 <li><code>/c</code> 的 <code>page model</code> 为 <code>src/pages/c/model.js</code></li>
 <li><code>/c/d</code> 的 <code>page model</code> 为 <code>src/pages/c/model.js</code>, <code>src/pages/c/d/models/d.js</code></li>
 </ul>
+<p>第四条要多看两眼，<code>/c/d</code> 拿到的是 <code>c/model.js</code> 加 <code>c/d/models/d.js</code> 两份，也就是说页面 model 会沿着目录往上找。这个设计在做多级菜单的中后台时很省事，<code>/order</code> 这一层的公共数据放 <code>pages/order/model.js</code>，下面的 <code>/order/list</code>、<code>/order/detail</code> 都能直接用，不用提到全局去。</p>
+<p>我踩过的坑是文件名冲突。model 的 namespace 默认取文件名，如果 <code>pages/a/models/list.js</code> 和 <code>pages/b/models/list.js</code> 同时被加载，两个 namespace 都叫 <code>list</code>，后注册的会盖掉前面的。生产环境下页面 model 是按需加载的，你未必撞得上；但开发模式是全量载入的，所以线下正常线上异常，或者反过来，都有可能。稳妥的做法是把 namespace 显式写成带业务前缀的名字。</p>
 <blockquote>
 <p>一个复杂应用的目录结构如下</p>
 </blockquote>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.</span><br><span class="line">├── dist/                          <span class="comment">// 默认的 build 输出目录</span></span><br><span class="line">├── mock/                          <span class="comment">// mock 文件所在目录，基于 express</span></span><br><span class="line">├── config/</span><br><span class="line">    ├── config.<span class="property">js</span>                  <span class="comment">// umi 配置，同 .umirc.js，二选一</span></span><br><span class="line">└── src/                           <span class="comment">// 源码目录，可选</span></span><br><span class="line">    ├── layouts/index.<span class="property">js</span>           <span class="comment">// 全局布局</span></span><br><span class="line">    ├── pages/                     <span class="comment">// 页面目录，里面的文件即路由</span></span><br><span class="line">        ├── .<span class="property">umi</span>/                  <span class="comment">// dev 临时目录，需添加到 .gitignore</span></span><br><span class="line">        ├── .<span class="property">umi</span>-production/       <span class="comment">// build 临时目录，会自动删除</span></span><br><span class="line">        ├── <span class="variable language_">document</span>.<span class="property">ejs</span>           <span class="comment">// HTML 模板</span></span><br><span class="line">        ├── <span class="number">404.</span>js                 <span class="comment">// 404 页面</span></span><br><span class="line">        ├── page1.<span class="property">js</span>               <span class="comment">// 页面 1，任意命名，导出 react 组件</span></span><br><span class="line">        ├── page1.<span class="property">test</span>.<span class="property">js</span>          <span class="comment">// 用例文件，umi test 会匹配所有 .test.js 和 .e2e.js 结尾的文件</span></span><br><span class="line">        └── page2.<span class="property">js</span>               <span class="comment">// 页面 2，任意命名</span></span><br><span class="line">    ├── <span class="variable language_">global</span>.<span class="property">css</span>                 <span class="comment">// 约定的全局样式文件，自动引入，也可以用 global.less</span></span><br><span class="line">    ├── <span class="variable language_">global</span>.<span class="property">js</span>                  <span class="comment">// 可以在这里加入 polyfill</span></span><br><span class="line">├── .<span class="property">umirc</span>.<span class="property">js</span>                      <span class="comment">// umi 配置，同 config/config.js，二选一</span></span><br><span class="line">├── .<span class="property">env</span>                           <span class="comment">// 环境变量</span></span><br><span class="line">└── package.<span class="property">json</span></span><br></pre></td></tr></table></figure>
 
+<p>这张结构图里没有 <code>router.js</code>，也没有 webpack 配置，能省的全省了。下面把这些约定挨个说一遍，重点是每一条约定「省掉了什么」，这样你记起来会容易得多。</p>
 <p><strong>1、dist</strong></p>
 <blockquote>
 <p>默认输出路径，可通过配置 <code>outputPath</code> 修改</p>
@@ -355,6 +388,7 @@
 <blockquote>
 <p>约定 <code>mock </code>目录里所有的 <code>.js</code> 文件会被解析为 <code>mock</code> 文件</p>
 </blockquote>
+<p>不用装 json-server，也不用另起一个 node 服务，<code>umi dev</code> 本身就是那个 mock 服务器。</p>
 <p>比如，新建<code> mock/users.js</code>，内容如下：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="string">&#x27;/api/users&#x27;</span>: [<span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;b&#x27;</span>],</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -371,6 +405,7 @@
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+ pages</span><br><span class="line">  - index.js</span><br><span class="line">+ layouts</span><br><span class="line">  - index.js</span><br><span class="line">- .umirc.js</span><br></pre></td></tr></table></figure>
 
 
+<p>这两种写法我的建议是加上 <code>src</code>。项目一大，根目录迟早会堆进 Dockerfile、CI 配置、脚本目录这些跟源码没关系的东西，有 <code>src</code> 这层隔离，构建工具和你自己找文件都清爽。</p>
 <p><strong>4、src&#x2F;layouts&#x2F;index.js</strong></p>
 <blockquote>
 <p>全局布局，实际上是在路由外面套了一层</p>
@@ -381,10 +416,12 @@
 <p>如果有 <code>layouts/index.js</code>，那么路由则变为：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./layouts/index&#x27;</span>, <span class="attr">routes</span>: [</span><br><span class="line">    &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/index&#x27;</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">path</span>: <span class="string">&#x27;/users&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users&#x27;</span> &#125;,</span><br><span class="line">  ] &#125;</span><br><span class="line">]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
+<p>看懂这个转换你就明白 layout 的本质了，它不是一个「壳组件」，而是真的往路由表里插了一层父路由，子路由从 <code>props.children</code> 出去。所以 layout 组件不会因为你在子页面之间跳转而重新挂载，侧边栏的展开状态、顶部的未读消息轮询都能保持住。这也是把全局布局做成 layout 而不是在每个页面里手动 import 的最大理由。</p>
 <p><strong>5、src&#x2F;pages</strong></p>
 <blockquote>
 <p>约定 <code>pages</code> 下所有的 <code>(j|t)sx?</code> 文件即路由</p>
 </blockquote>
+<p>这一条是约定式路由的地基，也是最容易咬到人的一条。它是「所有」，不是「除了 xxx 之外」。你在 <code>pages/user/</code> 下顺手建一个 <code>utils.js</code> 放格式化函数，它也会变成 <code>/user/utils</code> 这条路由。所以工具函数、常量、非路由组件都别往 <code>pages</code> 里丢，第八节最后那条问题就是被这个坑到的。</p>
 <p><strong>6、src&#x2F;pages&#x2F;404.js</strong></p>
 <blockquote>
 <p><code>404</code> 页面。注意开发模式下有内置 umi 提供的 404 提示页面，所以只有显式访问 <code>/404</code> 才能访问到这个页面</p>
@@ -399,6 +436,7 @@
 <blockquote>
 <p>这是 <code>umi dev</code> 时生产的临时目录，默认包含 <code>umi.js</code> 和 <code>router.js</code>，有些插件也会在这里生成一些其他临时文件。可以在这里做一些验证，但请不要直接在这里修改代码，<code>umi</code> 重启或者 <code>pages</code> 下的文件修改都会重新生成这个文件夹下的文件</p>
 </blockquote>
+<p>这个目录是排查路由问题的第一现场。约定式路由生成出来的路由表长什么样，全在 <code>.umi/router.js</code> 里写着。页面 404、layout 没套上、动态参数没匹配到，先打开这个文件看看实际生成的配置对不对，比对着自己的目录结构猜快多了。它是构建产物，记得加进 <code>.gitignore</code>。</p>
 <p><strong>9、src&#x2F;pages&#x2F;.umi-production</strong></p>
 <blockquote>
 <p>同 <code>src/pagers/.umi</code>，但是是在 <code>umi build </code>时生成的，会在 <code>umi build</code> 执行完自动删除</p>
@@ -411,21 +449,28 @@
 <blockquote>
 <p>这个文件不走 <code>css modules</code>，自动被引入，可以写一些全局样式，或者做一些样式覆盖</p>
 </blockquote>
+<p>「不走 css modules」这半句是重点。项目里其它 <code>.less</code> 文件的类名都会被编译成带 hash 的唯一类名，只有这个文件保持原样，所以要覆盖 antd 的样式就得写在这儿，写在页面的 less 里是不生效的。</p>
 <p><strong>12、.umirc.js 和 config&#x2F;config.js</strong></p>
 <blockquote>
 <p><code>umi</code> 的配置文件，二选一</p>
 </blockquote>
+<p>选哪个看配置量。配置项少就用根目录的 <code>.umirc.js</code>，配置多到要拆成 <code>router.config.js</code>、<code>theme.config.js</code> 好几份的时候，用 <code>config/</code> 目录会舒服很多，Ant Design Pro 就是走的这条路。</p>
 <p><strong>13、.env</strong></p>
 <p>环境变量，比如：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CLEAR_CONSOLE=none</span><br><span class="line">BROWSER=none</span><br></pre></td></tr></table></figure>
 
-<h1 id="四、路由配置"><a href="#四、路由配置" class="headerlink" title="四、路由配置"></a>四、路由配置</h1><h2 id="4-1-约定式路由"><a href="#4-1-约定式路由" class="headerlink" title="4.1 约定式路由"></a>4.1 约定式路由</h2><h3 id="4-1-1-基础路由"><a href="#4-1-1-基础路由" class="headerlink" title="4.1.1 基础路由"></a>4.1.1 基础路由</h3><p>假设 <code>pages</code> 目录结构如下：</p>
+<p><code>BROWSER=none</code> 是我每个项目都会加的一行，作用是 <code>umi dev</code> 起来之后不自动打开浏览器。开发时一天重启十几次，每次都弹一个新标签页真的很烦。</p>
+<h2 id="四、路由配置"><a href="#四、路由配置" class="headerlink" title="四、路由配置"></a>四、路由配置</h2><p>路由是 umi 的核心，它提供两套模式，约定式和配置式，两者互斥。先看约定式。</p>
+<h3 id="4-1-约定式路由"><a href="#4-1-约定式路由" class="headerlink" title="4.1 约定式路由"></a>4.1 约定式路由</h3><p>约定式路由的规则一共八条，看着多，其实就是「目录结构怎么映射成 URL」这一件事的八种情况。</p>
+<h4 id="4-1-1-基础路由"><a href="#4-1-1-基础路由" class="headerlink" title="4.1.1 基础路由"></a>4.1.1 基础路由</h4><p>假设 <code>pages</code> 目录结构如下：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+ pages/</span><br><span class="line">  + users/</span><br><span class="line">    - index.js</span><br><span class="line">    - list.js</span><br><span class="line">  - index.js</span><br></pre></td></tr></table></figure>
 
 <p>那么，umi 会自动生成路由配置如下：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/index.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/index.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/list&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/list.js&#x27;</span> &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-1-2-动态路由"><a href="#4-1-2-动态路由" class="headerlink" title="4.1.2 动态路由"></a>4.1.2 动态路由</h3><blockquote>
+<p>对着看一眼就明白了，目录名变成路径段，<code>index.js</code> 对应目录本身那一级。这条规则底下没有任何魔法，umi 只是扫了一遍 <code>pages</code> 目录然后生成上面这段配置，你在 <code>.umi/router.js</code> 里能看到一模一样的东西。</p>
+<h4 id="4-1-2-动态路由"><a href="#4-1-2-动态路由" class="headerlink" title="4.1.2 动态路由"></a>4.1.2 动态路由</h4><p>列表页点进详情，URL 里得带 id，这就要用到动态路由。</p>
+<blockquote>
 <p><code>umi</code> 里约定，带 <code>$</code> 前缀的目录或文件为动态路由。</p>
 </blockquote>
 <p>比如以下目录结构：</p>
@@ -434,31 +479,37 @@
 <p>会生成路由配置如下：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/index.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/:id&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/$id.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/:post/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/$post/index.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/:post/comments&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/$post/comments.js&#x27;</span> &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-1-3-可选的动态路由"><a href="#4-1-3-可选的动态路由" class="headerlink" title="4.1.3 可选的动态路由"></a>4.1.3 可选的动态路由</h3><blockquote>
+<p><code>$</code> 换成 <code>:</code> 就是最终的路由参数名，取值在组件里用 <code>props.match.params.id</code> 拿。选 <code>$</code> 做前缀是因为文件名里不能带冒号，Windows 直接不让你建这种文件。</p>
+<p>这里有个坑要注意，动态路由和静态路由撞车的时候，谁先匹配上就归谁。假如你既有 <code>pages/users/$id.js</code> 又有 <code>pages/users/new.js</code>，访问 <code>/users/new</code> 到底走哪个，取决于生成的路由表里两条的先后顺序。真遇到了就去 <code>.umi/router.js</code> 里确认，别猜。</p>
+<h4 id="4-1-3-可选的动态路由"><a href="#4-1-3-可选的动态路由" class="headerlink" title="4.1.3 可选的动态路由"></a>4.1.3 可选的动态路由</h4><p>同一个页面既要能新建又要能编辑的时候，这条规则就派上用场了。</p>
+<blockquote>
 <p><code>umi</code> 里约定动态路由如果带 <code>$</code> 后缀，则为可选动态路由。</p>
 </blockquote>
 <p>比如以下结构：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+ pages/</span><br><span class="line">  + users/</span><br><span class="line">    - $id$.js</span><br><span class="line">  - index.js</span><br></pre></td></tr></table></figure>
 
 <p>会生成路由配置如下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>: <span class="attr">component</span>: <span class="string">&#x27;./pages/index.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/:id?&#x27;</span>: <span class="attr">component</span>: <span class="string">&#x27;./pages/users/$id$.js&#x27;</span> &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/index.js&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/:id?&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/$id$.js&#x27;</span> &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-1-4-嵌套路由"><a href="#4-1-4-嵌套路由" class="headerlink" title="4.1.4 嵌套路由"></a>4.1.4 嵌套路由</h3><blockquote>
+<p>生成结果里那个 <code>?</code> 就是 react-router 的可选参数写法，<code>/users</code> 和 <code>/users/123</code> 都会命中同一个组件。组件里判断一下 <code>match.params.id</code> 有没有值，有就是编辑，没有就是新建，一套表单代码两用。原文这段的示例代码里对象属性之间写成了冒号，应该是逗号，我顺手改对了，照着原样抄会直接语法报错。</p>
+<h4 id="4-1-4-嵌套路由"><a href="#4-1-4-嵌套路由" class="headerlink" title="4.1.4 嵌套路由"></a>4.1.4 嵌套路由</h4><blockquote>
 <p><code>umi</code> 里约定目录下有<code> _layout.js</code> 时会生成嵌套路由，以<code> _layout.js</code> 为该目录的 <code>layout</code> 。</p>
 </blockquote>
 <p>比如以下目录结构：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+ pages/</span><br><span class="line">  + users/</span><br><span class="line">    - _layout.js</span><br><span class="line">    - $id.js</span><br><span class="line">    - index.js</span><br></pre></td></tr></table></figure>
 
 <p>会生成路由配置如下：</p>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users&#x27;</span>: <span class="attr">component</span>: <span class="string">&#x27;./pages/users/_layout.js&#x27;</span></span><br><span class="line">    <span class="attr">routes</span>: [</span><br><span class="line">     &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/index.js&#x27;</span> &#125;,</span><br><span class="line">     &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/:id&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/$id.js&#x27;</span> &#125;,</span><br><span class="line">   ],</span><br><span class="line">  &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/users&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/_layout.js&#x27;</span>,</span><br><span class="line">    <span class="attr">routes</span>: [</span><br><span class="line">     &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/index.js&#x27;</span> &#125;,</span><br><span class="line">     &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/:id&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./pages/users/$id.js&#x27;</span> &#125;,</span><br><span class="line">   ],</span><br><span class="line">  &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-1-5-全局-layout"><a href="#4-1-5-全局-layout" class="headerlink" title="4.1.5 全局 layout"></a>4.1.5 全局 layout</h3><blockquote>
+<p>（这段原文同样把 <code>path</code> 后面的逗号写成了冒号，还漏了一个逗号，我按能跑的写法补上了。）</p>
+<p>局部 layout 最常见的用法是给一组页面加公共的 Tab 导航。比如 <code>/users</code> 底下有列表、统计、设置三个页面，头部那排 Tab 写在 <code>_layout.js</code> 里，切换的时候 Tab 不重新渲染，只有下面的内容区在变。下划线开头是 umi 的约定，凡是 <code>_</code> 开头的文件都不会被当成路由，所以你想在 <code>pages</code> 里放非路由文件，前面加个下划线是个可行的办法。</p>
+<h4 id="4-1-5-全局-layout"><a href="#4-1-5-全局-layout" class="headerlink" title="4.1.5 全局 layout"></a>4.1.5 全局 layout</h4><blockquote>
 <p>约定 <code>src/layouts/index.js</code> 为全局路由，返回一个 React 组件，通过 <code>props.children</code> 渲染子组件。</p>
 </blockquote>
 <p>比如：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span>(<span class="params">props</span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Header</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123; props.children &#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Footer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-1-6-不同的全局-layout"><a href="#4-1-6-不同的全局-layout" class="headerlink" title="4.1.6 不同的全局 layout"></a>4.1.6 不同的全局 layout</h3><blockquote>
+<h4 id="4-1-6-不同的全局-layout"><a href="#4-1-6-不同的全局-layout" class="headerlink" title="4.1.6 不同的全局 layout"></a>4.1.6 不同的全局 layout</h4><blockquote>
 <p>你可能需要针对不同路由输出不同的全局 <code>layout</code>，<code>umi</code> 不支持这样的配置，但你仍可以在 <code>layouts/index.js</code> 对 <code>location.path</code> 做区分，渲染不同的 <code>layout </code>。</p>
 </blockquote>
 <ul>
@@ -466,7 +517,8 @@
 </ul>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span>(<span class="params">props</span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (props.<span class="property">location</span>.<span class="property">pathname</span> === <span class="string">&#x27;/login&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="language-xml"><span class="tag">&lt;<span class="name">SimpleLayout</span>&gt;</span>&#123; props.children &#125;<span class="tag">&lt;/<span class="name">SimpleLayout</span>&gt;</span></span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Header</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123; props.children &#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Footer</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-1-7-404-路由"><a href="#4-1-7-404-路由" class="headerlink" title="4.1.7 404 路由"></a>4.1.7 404 路由</h3><blockquote>
+<p>登录页是这条规则的经典场景，它不该有侧边栏和面包屑。这种 if 判断多了会很难看，页面一多就变成一长串 <code>pathname.startsWith(...)</code>。我的做法是把不需要主框架的路径抽成一个数组，用 <code>some</code> 判断一次；再复杂就直接放弃全局 layout，改成 4.2 的配置式路由，在配置里给不同的一级路由指定不同的 layout 组件，Ant Design Pro 的 <code>BasicLayout</code> 和 <code>UserLayout</code> 就是这么分的，具体写法我在 <a href="https://feinterview.poetries.top/blog/ant-design-pro">Ant Design Pro 总结篇</a> 里展开写过。</p>
+<h4 id="4-1-7-404-路由"><a href="#4-1-7-404-路由" class="headerlink" title="4.1.7 404 路由"></a>4.1.7 404 路由</h4><blockquote>
 <p>约定 <code>pages/404.js</code> 为 <code>404 </code>页面，需返回 <code>React</code> 组件。</p>
 </blockquote>
 <p>比如：</p>
@@ -475,7 +527,8 @@
 <blockquote>
 <p>注意：开发模式下，umi 会添加一个默认的 <code>404</code> 页面来辅助开发，但你仍然可通过精确地访问 <code>/404 </code>来验证 404 页面。</p>
 </blockquote>
-<h3 id="4-1-8-通过注释扩展路由"><a href="#4-1-8-通过注释扩展路由" class="headerlink" title="4.1.8 通过注释扩展路由"></a>4.1.8 通过注释扩展路由</h3><blockquote>
+<p>这条注意事项救过我一次。开发时随便打个不存在的地址，看到的是 umi 自带的那个带路由列表的调试页，不是你写的 404，很容易以为自己的 404 没生效。想验证就老老实实访问 <code>/404</code>，或者直接跑一次 <code>umi build</code> 看构建产物。</p>
+<h4 id="4-1-8-通过注释扩展路由"><a href="#4-1-8-通过注释扩展路由" class="headerlink" title="4.1.8 通过注释扩展路由"></a>4.1.8 通过注释扩展路由</h4><blockquote>
 <p>约定路由文件的首个注释如果包含 <code>yaml </code>格式的配置，则会被用于扩展路由。</p>
 </blockquote>
 <p>比如：</p>
@@ -489,16 +542,19 @@
 <p>则会生成路由配置：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">[</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./index.js&#x27;</span>,</span><br><span class="line">    <span class="attr">title</span>: <span class="string">&#x27;Index Page&#x27;</span>,</span><br><span class="line">    <span class="title class_">Routes</span>: [ <span class="string">&#x27;./src/routes/a.js&#x27;</span>, <span class="string">&#x27;./src/routes/b.js&#x27;</span> ],</span><br><span class="line">  &#125;,</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
 
-<h2 id="4-2-配置式路由"><a href="#4-2-配置式路由" class="headerlink" title="4.2 配置式路由"></a>4.2 配置式路由</h2><blockquote>
+<p>这个设计挺巧的，约定式路由没有配置文件可以写，那就把配置写进页面文件的头部注释里，标题、权限包装组件这些额外信息就有地方放了。代价是它跟普通注释长得一模一样，新同学很容易在格式化代码或者清理注释的时候顺手删掉，然后页面权限就没了。团队里用这套写法，最好在代码规范里单独提一句。</p>
+<h3 id="4-2-配置式路由"><a href="#4-2-配置式路由" class="headerlink" title="4.2 配置式路由"></a>4.2 配置式路由</h3><blockquote>
 <p>如果你倾向于使用配置式的路由，可以配置 <code>routes</code> ，此配置项存在时则不会对 <code>src/pages</code> 目录做约定式的解析。</p>
 </blockquote>
+<p>「此配置项存在时则不会对 <code>src/pages</code> 目录做约定式的解析」这句话是硬开关，两套模式不能混用。写了 <code>routes</code> 之后 <code>pages</code> 下的文件就纯粹是组件了，加了新文件不配路由就是访问不到，别在那儿找半天。</p>
 <p>比如：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">routes</span>: [</span><br><span class="line">    &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./a&#x27;</span> &#125;,</span><br><span class="line">    &#123; <span class="attr">path</span>: <span class="string">&#x27;/list&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./b&#x27;</span>, <span class="title class_">Routes</span>: [<span class="string">&#x27;./routes/PrivateRoute.js&#x27;</span>] &#125;,</span><br><span class="line">    &#123; <span class="attr">path</span>: <span class="string">&#x27;/users&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./users/_layout&#x27;</span>,</span><br><span class="line">      <span class="attr">routes</span>: [</span><br><span class="line">        &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/detail&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./users/detail&#x27;</span> &#125;,</span><br><span class="line">        &#123; <span class="attr">path</span>: <span class="string">&#x27;/users/:id&#x27;</span>, <span class="attr">component</span>: <span class="string">&#x27;./users/id&#x27;</span> &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;,</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>注意：<code>component</code> 是相对于 <code>src/pages</code> 目录的</p>
 </blockquote>
-<h2 id="4-3-权限路由"><a href="#4-3-权限路由" class="headerlink" title="4.3 权限路由"></a>4.3 权限路由</h2><blockquote>
+<p>我自己的感受是，中后台项目最后基本都会倒向配置式。原因不是约定式不好用，而是中后台的菜单树、面包屑、权限几乎一定要跟路由一起管，有一份集中的配置反而好维护，改菜单顺序不用去挪文件夹。小项目和面向 C 端的站点用约定式更爽，建个文件就能跑。</p>
+<h3 id="4-3-权限路由"><a href="#4-3-权限路由" class="headerlink" title="4.3 权限路由"></a>4.3 权限路由</h3><blockquote>
 <p><code>umi</code> 的权限路由是通过配置路由的 <code>Routes</code> 属性来实现。约定式的通过 <code>yaml</code> 注释添加，配置式的直接配上即可。</p>
 </blockquote>
 <p>比如有以下配置：</p>
@@ -510,7 +566,9 @@
 <p><code>./routes/PrivateRoute.js</code> 文件示例：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="title function_">default</span> (props) =&gt; &#123;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">div</span>&gt;</span>PrivateRoute (routes/PrivateRoute.js)<span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      &#123; props.children &#125;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="4-4-路由动效"><a href="#4-4-路由动效" class="headerlink" title="4.4 路由动效"></a>4.4 路由动效</h2><blockquote>
+<p>看明白 <code>Routes</code> 的机制之后你会发现它就是个高阶包装，umi 把匹配到的页面组件塞进 <code>props.children</code>，你在外层这个组件里决定是渲染它还是踢去登录页。所以权限校验、埋点上报、页面级的数据预取都能挂在这一层，不用每个页面自己写一遍。</p>
+<p>要提醒一句，前端的权限路由只是体验层面的拦截，把没权限的入口藏起来而已。接口该做的鉴权一样不能少，不然改个 localStorage 就能进后台了。这一点在 dva 项目里尤其容易被忽略，因为权限值往往就存在 localStorage 里。</p>
+<h3 id="4-4-路由动效"><a href="#4-4-路由动效" class="headerlink" title="4.4 路由动效"></a>4.4 路由动效</h3><blockquote>
 <p>路由动效应该是有多种实现方式，这里举 react-transition-group 的例子。</p>
 </blockquote>
 <p>先安装依赖，</p>
@@ -519,14 +577,17 @@
 <blockquote>
 <p>在 <code> layout</code>  组件（<code> layouts/index.js</code>  或者 <code>pages</code> 子目录下的 _layout.js）里在渲染子组件时用 <code>TransitionGroup</code> 和 <code>CSSTransition</code> 包裹一层，并以 <code>location.key</code> 为 <code>key</code>，</p>
 </blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> withRouter <span class="keyword">from</span> <span class="string">&#x27;umi/withRouter&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">TransitionGroup</span>, <span class="title class_">CSSTransition</span> &#125; <span class="keyword">from</span> <span class="string">&quot;react-transition-group&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">withRouter</span>(</span><br><span class="line">  <span class="function">(<span class="params">&#123; location &#125;</span>) =&gt;</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">TransitionGroup</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">CSSTransition</span> <span class="attr">key</span>=<span class="string">&#123;location.key&#125;</span> <span class="attr">classNames</span>=<span class="string">&quot;fade&quot;</span> <span class="attr">timeout</span>=<span class="string">&#123;300&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123; children &#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">CSSTransition</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">TransitionGroup</span>&gt;</span></span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> withRouter <span class="keyword">from</span> <span class="string">&#x27;umi/withRouter&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">TransitionGroup</span>, <span class="title class_">CSSTransition</span> &#125; <span class="keyword">from</span> <span class="string">&quot;react-transition-group&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">withRouter</span>(</span><br><span class="line">  <span class="function">(<span class="params">&#123; location, children &#125;</span>) =&gt;</span></span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">TransitionGroup</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">CSSTransition</span> <span class="attr">key</span>=<span class="string">&#123;location.key&#125;</span> <span class="attr">classNames</span>=<span class="string">&quot;fade&quot;</span> <span class="attr">timeout</span>=<span class="string">&#123;300&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123; children &#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">CSSTransition</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">TransitionGroup</span>&gt;</span></span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
+<p>关键在 <code>key=&#123;location.key&#125;</code>。React 靠 key 判断是不是同一个节点，key 变了就当成新节点重新挂载，<code>CSSTransition</code> 才有机会跑进场动画。原文这段只解构了 <code>location</code> 却用到了 <code>children</code>，抄过去会直接报 <code>children is not defined</code>，我把 <code>children</code> 补进解构里了。</p>
 <blockquote>
 <p>上面用到的 <code>fade</code> 样式，可以在 <code>src</code> 下的 <code>global.css</code> 里定义：</p>
 </blockquote>
 <figure class="highlight css"><table><tr><td class="code"><pre><span class="line"><span class="selector-class">.fade-enter</span> &#123;</span><br><span class="line">  <span class="attribute">opacity</span>: <span class="number">0</span>;</span><br><span class="line">  <span class="attribute">z-index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-class">.fade-enter</span><span class="selector-class">.fade-enter-active</span> &#123;</span><br><span class="line">  <span class="attribute">opacity</span>: <span class="number">1</span>;</span><br><span class="line">  <span class="attribute">transition</span>: opacity <span class="number">250ms</span> ease-in;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="4-5-面包屑"><a href="#4-5-面包屑" class="headerlink" title="4.5 面包屑"></a>4.5 面包屑</h2><blockquote>
+<p>样式必须写在 <code>global.css</code> 里，写在页面的 less 里会被 CSS Modules 加上 hash，类名对不上，动画就是不生效。这个问题我排查了挺久，最后是在 DevTools 里看到元素上挂着 <code>fade-enter___2xKpQ</code> 才反应过来。</p>
+<p>顺带一提，路由动效在中后台系统里我一般不加。切页面本来就要等接口，再叠 300ms 的过渡，操作密集的人会觉得卡。</p>
+<h3 id="4-5-面包屑"><a href="#4-5-面包屑" class="headerlink" title="4.5 面包屑"></a>4.5 面包屑</h3><blockquote>
 <p>面包屑也是有多种实现方式，这里举 <code>react-router-breadcrumbs-hoc</code> 的例子。</p>
 </blockquote>
 <p>先安装依赖，</p>
@@ -536,12 +597,19 @@
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">NavLink</span> <span class="keyword">from</span> <span class="string">&#x27;umi/navlink&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> withBreadcrumbs <span class="keyword">from</span> <span class="string">&#x27;react-router-breadcrumbs-hoc&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更多配置请移步 https://github.com/icd2k3/react-router-breadcrumbs-hoc</span></span><br><span class="line"><span class="keyword">const</span> routes = [</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/&#x27;</span>, <span class="attr">breadcrumb</span>: <span class="string">&#x27;首页&#x27;</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">path</span>: <span class="string">&#x27;/list&#x27;</span>, <span class="attr">breadcrumb</span>: <span class="string">&#x27;List Page&#x27;</span> &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">withBreadcrumbs</span>(routes)(<span class="function">(<span class="params">&#123; breadcrumbs &#125;</span>) =&gt;</span> (</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    &#123;breadcrumbs.map((breadcrumb, index) =&gt; (</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">span</span> <span class="attr">key</span>=<span class="string">&#123;breadcrumb.key&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;<span class="name">NavLink</span> <span class="attr">to</span>=<span class="string">&#123;breadcrumb.props.match.url&#125;</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">          &#123;breadcrumb&#125;</span></span><br><span class="line"><span class="language-xml">        <span class="tag">&lt;/<span class="name">NavLink</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">        &#123;(index &lt; breadcrumbs.length - 1) &amp;&amp; <span class="tag">&lt;<span class="name">i</span>&gt;</span> / <span class="tag">&lt;/<span class="name">i</span>&gt;</span>&#125;</span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">    ))&#125;</span></span><br><span class="line"><span class="language-xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line">));</span><br></pre></td></tr></table></figure>
 
 <p>然后在需要的地方引入此 <code>React</code> 组件即可。</p>
-<h2 id="4-6-启用-Hash-路由"><a href="#4-6-启用-Hash-路由" class="headerlink" title="4.6 启用 Hash 路由"></a>4.6 启用 Hash 路由</h2><blockquote>
+<p>面包屑这块要注意的是，<code>react-router-breadcrumbs-hoc</code> 需要你手动维护一份路径到名称的映射表，路由改了这份表不改，面包屑就对不上了。用配置式路由的项目其实可以省掉这个库，直接从 <code>routes</code> 配置里读 <code>name</code> 生成面包屑，Ant Design Pro 走的就是这条路。</p>
+<h3 id="4-6-启用-Hash-路由"><a href="#4-6-启用-Hash-路由" class="headerlink" title="4.6 启用 Hash 路由"></a>4.6 启用 Hash 路由</h3><blockquote>
 <p><code>umi</code> 默认是用的 <code>Browser History</code>，如果要用 <code>Hash History</code>，需配置：</p>
 </blockquote>
-<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">history</span>: <span class="string">&#x27;hash&#x27;</span>,</span><br><span class="line">&#125;</span><br><span class="line"># <span class="title class_">Scroll</span> to top</span><br><span class="line">在 layout 组件（layouts/index.<span class="property">js</span> 或者 pages 子目录下的 _layout.<span class="property">js</span>）的 componentDidUpdate 里决定是否 scroll to top，比如：</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> withRouter <span class="keyword">from</span> <span class="string">&#x27;umi/withRouter&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Layout</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">componentDidUpdate</span>(<span class="params">prevProps</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">location</span> !== prevProps.<span class="property">location</span>) &#123;</span><br><span class="line">      <span class="variable language_">window</span>.<span class="title function_">scrollTo</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">withRouter</span>(<span class="title class_">Layout</span>);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">history</span>: <span class="string">&#x27;hash&#x27;</span>,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="4-7-页面间跳转"><a href="#4-7-页面间跳转" class="headerlink" title="4.7 页面间跳转"></a>4.7 页面间跳转</h2><blockquote>
+<p>什么时候要切回 hash？你的静态资源部署在没法配 nginx 规则的地方（对象存储、GitHub Pages），或者后端不愿意为你加那条把所有未匹配路径都返回 <code>index.html</code> 的 fallback，那就用 hash。代价是 URL 里多个 <code>#</code>，而且服务端拿不到 <code>#</code> 后面的部分，一些统计和分享场景会有点别扭。</p>
+<h3 id="4-7-Scroll-to-top"><a href="#4-7-Scroll-to-top" class="headerlink" title="4.7 Scroll to top"></a>4.7 Scroll to top</h3><p>原文这一段被上面那个代码块吃进去了，格式坏掉了，我把它拆出来单独放一节。这是个很实际的问题：单页应用切换路由时滚动条不会自动回到顶部，从长列表点进详情页，一进去就是页面中间，用户会一脸问号。</p>
+<p>在 layout 组件（<code>layouts/index.js</code> 或者 pages 子目录下的 <code>_layout.js</code>）的 <code>componentDidUpdate</code> 里决定是否 scroll to top，比如：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Component</span> &#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> withRouter <span class="keyword">from</span> <span class="string">&#x27;umi/withRouter&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Layout</span> <span class="keyword">extends</span> <span class="title class_ inherited__">Component</span> &#123;</span><br><span class="line">  <span class="title function_">componentDidUpdate</span>(<span class="params">prevProps</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">location</span> !== prevProps.<span class="property">location</span>) &#123;</span><br><span class="line">      <span class="variable language_">window</span>.<span class="title function_">scrollTo</span>(<span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">render</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable language_">this</span>.<span class="property">props</span>.<span class="property">children</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">withRouter</span>(<span class="title class_">Layout</span>);</span><br></pre></td></tr></table></figure>
+
+<p>放在 layout 里而不是每个页面里，是因为 layout 不会随路由切换而卸载，它的 <code>componentDidUpdate</code> 正好能捕捉到 location 的变化。<code>withRouter</code> 那层不能省，不套的话 layout 拿不到最新的 <code>location</code>，条件永远不成立。这也是下一节第 2 个问题的同一个根因。</p>
+<h3 id="4-8-页面间跳转"><a href="#4-8-页面间跳转" class="headerlink" title="4.8 页面间跳转"></a>4.8 页面间跳转</h3><blockquote>
 <p>在 umi 里，页面之间跳转有两种方式：声明式和命令式</p>
 </blockquote>
 <p><strong>声明式</strong></p>
@@ -556,16 +624,20 @@
 </blockquote>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">&#x27;umi/router&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">goToListPage</span>(<span class="params"></span>) &#123;</span><br><span class="line">  router.<span class="title function_">push</span>(<span class="string">&#x27;/list&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h1 id="五、配置"><a href="#五、配置" class="headerlink" title="五、配置"></a>五、配置</h1><blockquote>
+<p>选哪个看它出现在什么位置。渲染在页面上、用户能看见能点的，用 <code>Link</code>，它最终渲染成 <code>&lt;a&gt;</code>，能右键新窗口打开，对无障碍和 SEO 也友好。写在事件回调里的，比如提交表单成功之后跳转、拿到接口返回再决定去哪儿，用 <code>router.push</code>。</p>
+<p>这里要说一句时效性。<code>umi/link</code> 和 <code>umi/router</code> 这种子路径导入是 umi 2 的写法，umi 后来又发了好几个大版本，导入方式改成了从 <code>umi</code> 统一导出。所以你要是在新版本上抄这篇的代码，会直接报模块找不到。改法很简单，按你项目里 umi 版本的官方文档改导入语句，<code>Link</code>、<code>history</code> 这些能力本身没变，变的只是从哪儿引进来。这一节往后的所有代码你都得带着这个前提看。</p>
+<h2 id="五、配置"><a href="#五、配置" class="headerlink" title="五、配置"></a>五、配置</h2><blockquote>
 <p>配置文件<br><code>umi</code> 允许在 <code>.umirc.js</code> 或 <code>config/config.js </code>（二选一，<code>.umirc.js</code> 优先）中进行配置，支持 <code>ES6 </code>语法。</p>
 </blockquote>
 <p>比如：</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">base</span>: <span class="string">&#x27;/admin/&#x27;</span>,</span><br><span class="line">  <span class="attr">publicPath</span>: <span class="string">&#x27;http://cdn.com/foo&#x27;</span>,</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">    [<span class="string">&#x27;umi-plugin-react&#x27;</span>, &#123;</span><br><span class="line">      <span class="attr">dva</span>: <span class="literal">true</span>,</span><br><span class="line">    &#125;],</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
+<p>这几个配置项挑两个说说。<code>base</code> 是路由的基础路径，应用挂在 <code>/admin</code> 这种子路径下时必须配，不然刷新页面路由匹配不上。<code>publicPath</code> 是静态资源的引用前缀，走 CDN 就配成 CDN 域名，这两个经常被搞混，一个管路由一个管资源，改错了症状是「首页能开但样式全丢」或者「资源都在但一刷新就 404」。</p>
 <p><strong>.umirc.local.js</strong></p>
 <blockquote>
 <p><code>.umirc.local.js</code> 是本地的配置文件，不要提交到 <code>git</code>，所以通常需要配置到 <code>.gitignore</code>。如果存在，会和 <code>.umirc.js</code> 合并后再返回。</p>
 </blockquote>
+<p>这个文件解决的是团队协作里一个很烦的问题。每个人联调的后端地址不一样，proxy 配置改来改去，一不小心就把自己的本地地址提交上去了，别人拉下来接口全挂。有了 <code>.umirc.local.js</code>，个性化配置写在这里，它不进版本库，谁也不会覆盖谁。</p>
 <p><strong>UMI_ENV</strong></p>
 <blockquote>
 <p>可以通过环境变量 <code>UMI_ENV</code> 区分不同环境来指定配置。</p>
@@ -581,7 +653,9 @@
 </blockquote>
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  a<span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">  b<span class="punctuation">:</span> &#x27;cloud&#x27;<span class="punctuation">,</span></span><br><span class="line">  c<span class="punctuation">:</span> &#x27;local&#x27;<span class="punctuation">,</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
-<h1 id="六、Mock-数据"><a href="#六、Mock-数据" class="headerlink" title="六、Mock 数据"></a>六、Mock 数据</h1><p><strong>使用 umi 的 mock 功能</strong></p>
+<p>对着这两个结果推一下优先级就清楚了，<code>.umirc.local.js</code> 永远在最上面，<code>UMI_ENV</code> 指定的环境配置排中间，基础的 <code>.umirc.js</code> 垫底。所以本地文件能盖掉任何东西，这也是为什么它绝对不能提交。</p>
+<p>实际用法是在 <code>package.json</code> 里给每套环境配一条 script，比如 <code>&quot;build:test&quot;: &quot;UMI_ENV=test umi build&quot;</code>，CI 上跑哪条就出哪个环境的包。有一点我一直不太放心，就是嵌套对象在合并时到底是整体替换还是逐键合并，不同版本的行为我没有逐个验证过。所以像 <code>theme</code>、<code>proxy</code> 这种嵌套结构，我的习惯是在环境配置里写全，不去指望它跟基础配置合并，省得出现「测试环境少了一半主题变量」这种排查起来很费劲的问题。</p>
+<h2 id="六、Mock-数据"><a href="#六、Mock-数据" class="headerlink" title="六、Mock 数据"></a>六、Mock 数据</h2><p><strong>使用 umi 的 mock 功能</strong></p>
 <blockquote>
 <p><code>umi</code> 里约定 <code>mock</code> 文件夹下的文件即<code>mock</code>文件，文件导出接口定义，支持基于 <code>require</code> 动态分析的实时刷新，支持 ES6 语法，以及友好的出错提示</p>
 </blockquote>
@@ -590,6 +664,7 @@
 <blockquote>
 <p>当客户端（浏览器）发送请求，如：<code>GET /api/users</code>，那么本地启动的 <code>umi dev</code> 会跟此配置文件匹配请求路径以及方法，如果匹配到了，就会将请求通过配置处理</p>
 </blockquote>
+<p>这个 key 的写法值得记一下，<code>&#39;GET /api/users&#39;</code> 是「方法加空格加路径」，方法可以省略，省略了就是所有方法都匹配。value 支持三种，对象、数组和函数，前两种直接返回，函数则是标准的 express 处理器，能拿到 <code>req</code> 做参数判断，能自己设状态码。做「查询条件不同返回不同数据」这种模拟就得用函数写法。</p>
 <p><strong>引入 Mock.js</strong></p>
 <blockquote>
 <p><code>Mock.js</code> 是常用的辅助生成模拟数据的第三方库，当然你可以用你喜欢的任意库来结合 roadhog 构建数据模拟功能</p>
@@ -606,11 +681,13 @@
 <blockquote>
 <p>对于整个系统来说，请求接口是复杂并且繁多的，为了处理大量模拟请求的场景，我们通常把每一个数据模型抽象成一个文件，统一放在 mock 的文件夹中，然后他们会自动被引入</p>
 </blockquote>
-<p><img src="https://gw.alipayobjects.com/zos/rmsportal/wbeiDacBkchXrTafasBy.png"></p>
+<p><img src="https://gw.alipayobjects.com/zos/rmsportal/wbeiDacBkchXrTafasBy.png" alt="mock 目录下按数据模型拆分的多个 mock 文件，每个业务实体一个文件，会被 umi 自动引入"></p>
+<p>拆分的粒度跟 model 保持一致就行，一个业务实体一个文件，<code>mock/user.js</code>、<code>mock/order.js</code>。别图省事全堆在一个 <code>mock/index.js</code> 里，几百行之后你想找某个接口的模拟数据都得靠搜索。</p>
 <p><strong>模拟延迟</strong></p>
 <blockquote>
 <p>为了更加真实的模拟网络数据请求，往往需要模拟网络延迟时间</p>
 </blockquote>
+<p>这件事看着可有可无，其实很要紧。mock 接口是零延迟返回的，你本地看着 loading 一闪而过甚至根本看不见，等上了测试环境接口要跑 800ms，才发现按钮没做防重复点击、表格没接 loading、竞态请求会把旧数据盖回去。加个延迟，这些问题在本地就能暴露出来。</p>
 <ul>
 <li>手动添加 <code>setTimeout</code> 模拟延迟</li>
 </ul>
@@ -627,7 +704,9 @@
 <blockquote>
 <p>当本地开发完毕之后，如果服务器的接口满足之前的约定，那么你只需要不开本地代理或者重定向代理到目标服务器就可以访问真实的服务端数据，非常方便</p>
 </blockquote>
-<h1 id="七、结合dva实践"><a href="#七、结合dva实践" class="headerlink" title="七、结合dva实践"></a>七、结合dva实践</h1><blockquote>
+<p>「如果服务器的接口满足之前的约定」这个前提，实际项目里十次有三次是不成立的。所以联调前把 mock 文件和后端的接口文档对一遍，字段名、层级、分页结构，能省下大半天的扯皮时间。</p>
+<h2 id="七、结合dva实践"><a href="#七、结合dva实践" class="headerlink" title="七、结合dva实践"></a>七、结合dva实践</h2><p>前面六节讲的都是 umi 自己的事，这一节才是这篇标题里说的「改进 dva 项目开发」到底改进了什么。</p>
+<blockquote>
 <p>自<code>&gt;= umi@2</code>起，<code>dva</code>的整合可以直接通过 <code>umi-plugin-react</code> 来配置</p>
 </blockquote>
 <p><strong>特性</strong></p>
@@ -637,8 +716,10 @@
 <li>无需手写 <code>router.js</code>，交给 <code>umi</code> 处理，支持 <code>model</code> 和 <code>component</code> 的按需加载</li>
 <li>内置 <code>query-string</code> 处理，无需再手动解码和编码</li>
 <li>内置 <code>dva-loading </code>和 <code>dva-immer</code>，其中 <code>dva-immer</code> 需通过配置开启</li>
-<li>开箱即用，无需安装额外依赖，比如 <code>dva</code>、<code>dva-loading</code>、<code>dva-immer</code>、<code>path-to-regexp</code>、<code>object-assign</code>、<code>react</code>、<code>react-dom</code> 等&#96;</li>
+<li>开箱即用，无需安装额外依赖，比如 <code>dva</code>、<code>dva-loading</code>、<code>dva-immer</code>、<code>path-to-regexp</code>、<code>object-assign</code>、<code>react</code>、<code>react-dom</code> 等</li>
 </ul>
+<p>对照裸 dva 项目看，这几条省掉的是实打实的重复劳动。以前每加一个 model 要去 <code>index.js</code> 补一行注册，现在建文件就行；以前 model 里第一行永远是 <code>namespace: &#39;users&#39;</code>，现在文件名就是 namespace；以前 <code>router.js</code> 手写一长串 <code>&lt;Route&gt;</code>，现在整个文件都不存在了。</p>
+<p><code>dva-immer</code> 那条值得单独说。开了之后 reducer 可以直接写 <code>state.list = payload</code>，不用再 <code>return &#123; ...state, list: payload &#125;</code>。嵌套三层以上的 state 用扩展运算符改起来是真的痛苦，immer 底层用 Proxy 拦截你的「修改」，最后产出一个新对象，写法像可变的，结果是不可变的。这个思路后来在整个 React 生态里铺开了，Redux Toolkit 的 <code>createSlice</code> 内置的就是同一套东西。</p>
 <p><strong>使用</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ yarn add umi-plugin-react</span><br></pre></td></tr></table></figure>
 
@@ -648,6 +729,7 @@
 <p>推荐开启 <code>dva-immer</code> 以简化 <code>reducer</code> 编写，</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">    [</span><br><span class="line">      <span class="string">&#x27;umi-plugin-react&#x27;</span>,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">dva</span>: &#123;</span><br><span class="line">          <span class="attr">immer</span>: <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">  ],</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
+<p>这里必须插一句时效性提醒。<code>umi-plugin-react</code> 是 umi 2 时代的聚合插件，后来的大版本里官方把这套整合并进了预设（preset）里，装完框架就自带，不用再手动往 <code>plugins</code> 里塞。所以上面这段配置在新版本上是抄不动的，具体的包名和配置项请以你项目里那个 umi 版本的官方文档为准，我不去猜。能沿用的是思路，dva 的整合在 umi 里始终是「一个可插拔的能力」，而不是内核的一部分。</p>
 <p><strong>model 注册</strong></p>
 <blockquote>
 <p><code>model</code> 分两类，一是全局<code> model</code>，二是页面<code> model</code>。全局 <code>model </code>存于 <code>/src/models/</code> 目录，所有页面都可引用；页面 model 不能被其他页面所引用。</p>
@@ -667,48 +749,66 @@
 <ul>
 <li><code>global model</code> 为 <code>src/models/g.js</code></li>
 <li><code>/a</code> 的 <code>page model </code>为 <code>src/pages/a/models/&#123;a,b,ss/s&#125;.js</code></li>
-<li><code>/c </code>的 <code>page model</code> <code>为</code> src&#x2F;pages&#x2F;c&#x2F;model.js&#96;</li>
+<li><code>/c</code> 的 <code>page model</code> 为 <code>src/pages/c/model.js</code></li>
 <li><code>/c/d</code> 的 <code>page model</code> 为 <code>src/pages/c/model.js</code>, <code>src/pages/c/d/models/d.js</code></li>
 </ul>
-<h1 id="八、问题汇总"><a href="#八、问题汇总" class="headerlink" title="八、问题汇总"></a>八、问题汇总</h1><p><strong>1、如何配置 onError、initialState 等 hook？</strong></p>
+<p>这套规则里有一条容易被漏掉，「<code>global model</code> 全量载入，<code>page model</code> 在 production 时按需载入，在 development 时全量载入」。开发和生产的行为不一样，意味着有些问题只在打包后才出现。最典型的是跨页面引用页面 model，比如在 <code>/a</code> 的组件里读 <code>state.b</code>，开发时 b 的 model 全量注册着，能读到；上线之后没进过 <code>/b</code> 页面，那个 model 根本没注册，读出来是 <code>undefined</code>，页面直接白屏。要共享的数据老老实实提到 <code>src/models/</code> 里去。</p>
+<p>回到主线，这就是 umi 给 dva 项目带来的全部改变，路由不用写了，model 不用注册了，namespace 跟着文件名走，按需加载白送。model 内部怎么写一点没变，state 还是那个 state，effect 还是 generator，<code>put</code> 和 <code>call</code> 也还是 redux-saga 那一套。</p>
+<h2 id="八、问题汇总"><a href="#八、问题汇总" class="headerlink" title="八、问题汇总"></a>八、问题汇总</h2><p>下面这几个是我当年迁移时真正卡住过的问题，也是社区里问得最多的几个。</p>
+<p><strong>1、如何配置 onError、initialState 等 hook？</strong></p>
+<p>裸 dva 里这些是传给 <code>dva(&#123;...&#125;)</code> 的，可 umi 把创建实例这一步藏起来了，你根本没有那个入口。答案还是约定，约定一个文件名给你放这些配置。</p>
 <blockquote>
 <p>新建 <code>src/dva.js</code>，通过导出的 <code>config</code> 方法来返回额外配置项，比如：</p>
 </blockquote>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; message &#125; <span class="keyword">from</span> <span class="string">&#x27;antd&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">config</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="title function_">onError</span>(<span class="params">err</span>) &#123;</span><br><span class="line">      err.<span class="title function_">preventDefault</span>();</span><br><span class="line">      message.<span class="title function_">error</span>(err.<span class="property">message</span>);</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">initialState</span>: &#123;</span><br><span class="line">      <span class="attr">global</span>: &#123;</span><br><span class="line">        <span class="attr">text</span>: <span class="string">&#x27;hi umi + dva&#x27;</span>,</span><br><span class="line">      &#125;,</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><strong>2、url 变化了，但页面组件也刷新，是什么原因？</strong></p>
+<p><code>onError</code> 这个 hook 我建议第一天就配上。effect 里不写 try&#x2F;catch 的话请求挂了是静默失败的，页面一直转圈，用户什么提示都看不到，配一个全局的 <code>message.error</code> 能省掉后面无数次「我这边点了没反应」的沟通。</p>
+<p><strong>2、url 变化了，但页面组件不刷新，是什么原因？</strong></p>
 <blockquote>
 <p><code>layouts/index.js</code> 里如果用了 <code>connect</code> 传数据，需要用 <code>umi/withRouter</code> 高阶一下</p>
 </blockquote>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> withRouter <span class="keyword">from</span> <span class="string">&#x27;umi/withRouter&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">withRouter</span>(<span class="title function_">connect</span>(mapStateToProps)(<span class="title class_">LayoutComponent</span>));</span><br></pre></td></tr></table></figure>
 
+<p>这个问题的根因在 <code>connect</code> 的性能优化上。react-redux 的 <code>connect</code> 默认给组件做了浅比较，state 没变就不重新渲染，可路由变化并不会改动你 <code>mapStateToProps</code> 里那几个字段，于是 layout 拿着旧的 <code>location</code> 一动不动，下面的菜单高亮、面包屑就全不对了。<code>withRouter</code> 的作用是把路由变化也变成 props 的变化，把这层拦截打开。</p>
+<p>顺序也别写反，<code>withRouter</code> 要在最外层。写成 <code>connect(...)(withRouter(Layout))</code> 就没用了，因为拦截你的那个 <code>connect</code> 还在外面。这条同样适用于任何被 <code>connect</code> 包过又依赖路由的组件，不只是 layout。</p>
 <p><strong>3、如何访问到 store 或 dispatch 方法？</strong></p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="variable language_">window</span>.<span class="property">g_app</span>.<span class="property">_store</span></span><br><span class="line"><span class="variable language_">window</span>.<span class="property">g_app</span>.<span class="property">_store</span>.<span class="property">dispatch</span></span><br></pre></td></tr></table></figure>
 
+<p>下划线开头就是在告诉你这是私有的，不保证向后兼容。调试时在控制台里敲敲没问题，业务代码里别这么写，正经路子是 <code>connect</code> 注入的 <code>dispatch</code>。真有那种脱离 React 树的场景（比如 axios 拦截器里收到 401 想清空用户信息），也尽量改成事件通知或者让 subscription 去订阅，别直接摸全局 store。</p>
 <p><strong>4、如何禁用包括 component 和 models 的按需加载？</strong></p>
 <blockquote>
 <p>在 <code>.umirc.js</code> 里配置：</p>
 </blockquote>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">disableDynamicImport</span>: <span class="literal">true</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
-
-
+<p>什么时候会想关掉它？内网的中后台系统，用户不多、带宽管够、页面数量也就几十个，拆成一堆小 chunk 反而让每次跳转都多一次网络往返。整包一次下完，之后全在本地跑，体感更顺。公网项目就别关了，首屏体积会很难看。</p>
 <p><strong>如果不用page.js的命名，倒是能生成路由，但是model、service、components就全部变路由了</strong></p>
+<p>这就是第三节里说的那条约定咬人了，<code>pages</code> 下所有 <code>(j|t)sx?</code> 文件都是路由，没有例外。</p>
 <blockquote>
 <p>不用 page.js，然后通过 umi-plugin-routes 过滤掉不需要的路由，参考 <a href="https://github.com/zuiidea/antd-admin/blob/develop/.umirc.js#L4-L16">https://github.com/zuiidea/antd-admin/blob/develop/.umirc.js#L4-L16</a></p>
 </blockquote>
+<p>除了插件过滤，还有两个更省事的办法。一是把非路由文件放进 <code>models/</code>、<code>services/</code>、<code>components/</code> 这些 umi 认识的子目录里，它们不会被当成路由；二是文件名前面加下划线，<code>_utils.js</code> 这种，umi 约定下划线开头的文件跳过。我自己更常用第二种，改个文件名就完事，不用引第三方插件。</p>
 <p><strong>.umirc.mock.js 这个文件怎么配置呢？</strong></p>
 <blockquote>
 <p>可以不用配置，在 mock&#x2F; 下建文件写 mock 代码即可。</p>
 </blockquote>
-<h1 id="九、Demo"><a href="#九、Demo" class="headerlink" title="九、Demo"></a>九、Demo</h1><blockquote>
+<p>这是从 roadhog 迁过来的人最常问的，roadhog 时代 mock 配置确实写在 <code>.roadhogrc.mock.js</code> 里，umi 换成了目录约定。两套东西的写法思路是一脉相承的，只是从「写配置」变成了「建文件」，整个 umi 的设计取向都在这句话里。</p>
+<h2 id="九、Demo"><a href="#九、Demo" class="headerlink" title="九、Demo"></a>九、Demo</h2><p>上面所有配置我当年攒了一个可以直接跑的最小仓库，路由、model 自动注册、mock 都配好了，clone 下来 <code>yarn &amp;&amp; yarn start</code> 就能起。</p>
+<blockquote>
 <p><a href="https://github.com/poetries/umi-tmp">https://github.com/poetries/umi-tmp</a></p>
 </blockquote>
-<h1 id="十、参考"><a href="#十、参考" class="headerlink" title="十、参考"></a>十、参考</h1><ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>umi 对 dva 项目的改造集中在三处，路由从手写变成目录约定，model 从手动 <code>app.model</code> 变成自动加载，构建配置从一堆散文件收进一个 <code>.umirc.js</code>。省下来的都是重复劳动，而不是抽象了什么新概念，所以从裸 dva 迁过来的成本很低，model 里的代码基本一行不用改。</p>
+<p>真正需要拿主意的其实就一个，约定式还是配置式。菜单树复杂、权限跟路由强绑定的中后台，配置式更省心；页面之间关系简单的，约定式建个文件就能跑，爽得多。两者互斥，中途切换要重写整份路由，所以这个决定最好在项目开头就下。</p>
+<p>至于现在还要不要开新项目用这套。umi 本身一直在更新，做中后台仍然是个靠谱的选择，但这篇里的 <code>umi/link</code>、<code>umi/router</code>、<code>umi-plugin-react</code> 都是 umi 2 的写法，新版本上直接抄会报错，请对着你那个版本的官方文档改导入语句。dva 这边的情况更明确一些，社区活跃度这几年一直在往下走，React 生态现在的主流做法是分层，服务端数据交给 TanStack Query 这类请求库管缓存和重试，客户端状态用 Redux Toolkit 或者 Zustand，两边各管各的，比把所有东西塞进一个 model 更清爽。这几种方案怎么选，我在 <a href="https://feinterview.poetries.top/blog/react-state-management-comparison">React 状态管理方案对比</a> 里单独算过账。</p>
+<p>老项目就别折腾了。dva 加 umi 跑得好好的中后台，重构的收益远比不上风险，把这篇当维护手册用就行。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a href="https://umijs.org/zh/config/#%E5%9F%BA%E6%9C%AC%E9%85%8D%E7%BD%AE">Umi config配置</a></li>
 <li><a href="https://umijs.org/zh/api/">Umi APi</a></li>
 <li><a href="https://umijs.org/zh/plugin/">Umi插件</a></li>
 <li><a href="https://github.com/sorrycc/blog/issues/66">使用 umi 改进 dva 项目开发</a></li>
+<li><a href="https://umijs.org/">umi 官网</a></li>
+<li><a href="https://dvajs.com/">dva 官方文档</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
 </ul>
 
       </div>

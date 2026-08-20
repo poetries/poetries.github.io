@@ -12,15 +12,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="前端监控,Sentry," />
+    <meta name="keywords" content="Docker,前端监控,Sentry," />
   
 
-  <meta name="description" content="Sentry介绍 Sentry 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中    Gi">
+  <meta name="description" content="Sentry 从私有化部署到前端接入的完整落地记录，含 onpremise 一键部署踩坑、Vue2&#x2F;Vue3 Vite&#x2F;React umi 三套 SDK 接入、sourceMap 上传配置、面包屑与 Performance 面板，以及 setUser、rrweb 录屏、报警规则等进阶用法。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="前端异常监控平台之Sentry落地">
 <meta property="og:url" content="http://blog.poetries.top/2022/07/27/sentry-summary/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
-<meta property="og:description" content="Sentry介绍 Sentry 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中    Gi">
+<meta property="og:description" content="Sentry 从私有化部署到前端接入的完整落地记录，含 onpremise 一键部署踩坑、Vue2&#x2F;Vue3 Vite&#x2F;React umi 三套 SDK 接入、sourceMap 上传配置、面包屑与 Performance 面板，以及 setUser、rrweb 录屏、报警规则等进阶用法。">
 <meta property="og:locale">
 <meta property="og:image" content="https://s.poetries.top/uploads/2022/07/bb6538297dd29493.png">
 <meta property="og:image" content="https://s.poetries.top/uploads/2022/07/ea60de5188aaa2a1.png">
@@ -57,8 +57,9 @@
 <meta property="og:image" content="https://s.poetries.top/uploads/2022/07/d7231e857e234509.png">
 <meta property="og:image" content="https://s.poetries.top/uploads/2022/07/4bd87c7949fd6a74.png">
 <meta property="article:published_time" content="2022-07-27T12:40:43.000Z">
-<meta property="article:modified_time" content="2026-07-27T01:52:49.689Z">
+<meta property="article:modified_time" content="2026-08-20T15:39:15.954Z">
 <meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Docker">
 <meta property="article:tag" content="前端监控">
 <meta property="article:tag" content="Sentry">
 <meta name="twitter:card" content="summary">
@@ -240,7 +241,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Sentry%E4%BB%8B%E7%BB%8D"><span class="toc-text">Sentry介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA%E9%85%8D%E7%BD%AE"><span class="toc-text">环境搭建配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%98%E6%96%B9Sentry%E6%9C%8D%E5%8A%A1"><span class="toc-text">官方Sentry服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sentry%E7%A7%81%E6%9C%89%E5%8C%96%E9%83%A8%E7%BD%B2"><span class="toc-text">Sentry私有化部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%89%E8%A3%85docker%E7%8E%AF%E5%A2%83"><span class="toc-text">安装docker环境</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2"><span class="toc-text">一键部署</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%89%A7%E8%A1%8C"><span class="toc-text">启动项目执行</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E9%A1%B9%E7%9B%AE"><span class="toc-text">访问项目</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E8%AF%AD%E8%A8%80%E5%92%8C%E6%97%B6%E5%8C%BA"><span class="toc-text">设置语言和时区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vue2-Sentry"><span class="toc-text">Vue2 + Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAvue%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建一个vue项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E5%85%A5sentry"><span class="toc-text">接入sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E4%BC%A0sourceMap%E5%88%B0sentry"><span class="toc-text">上传sourceMap到sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B-Performance"><span class="toc-text">查看 Performance</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Vue3-Vite-Sentry"><span class="toc-text">Vue3 + Vite + Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BAvue3%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建vue3项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85sentry%E4%BE%9D%E8%B5%96"><span class="toc-text">安装sentry依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96sentry"><span class="toc-text">初始化sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sourcemap%E4%B8%8A%E4%BC%A0"><span class="toc-text">sourcemap上传</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#React-Sentry"><span class="toc-text">React + Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAumi%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建一个umi项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E5%85%A5sentry-1"><span class="toc-text">接入sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sourcemap%E4%B8%8A%E4%BC%A0-1"><span class="toc-text">sourcemap上传</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E7%9B%AE%E5%BD%95%E5%88%9B%E5%BB%BA%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-sentryclirc"><span class="toc-text">根目录创建配置文件 .sentryclirc</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sourcemap%E9%85%8D%E7%BD%AE%E4%B8%8A%E4%BC%A0"><span class="toc-text">sourcemap配置上传</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%E7%94%A8%E6%B3%95"><span class="toc-text">进阶用法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E7%94%A8%E6%88%B7"><span class="toc-text">识别用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%94%99%E8%AF%AF%E8%BE%B9%E7%95%8C"><span class="toc-text">错误边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rrweb-%E9%87%8D%E6%92%AD"><span class="toc-text">rrweb 重播</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E8%AE%BE%E7%BD%AE%E6%8A%A5%E8%AD%A6"><span class="toc-text">手动设置报警</span></a></li></ol></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%90%9E%E6%B8%85%E6%A5%9A-Sentry-%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">一、先搞清楚 Sentry 是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%94%A8%E5%AE%98%E6%96%B9-SaaS-%E8%BF%98%E6%98%AF%E8%87%AA%E5%B7%B1%E9%83%A8%E7%BD%B2"><span class="toc-text">二、用官方 SaaS 还是自己部署</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%98%E6%96%B9-Sentry-%E6%9C%8D%E5%8A%A1"><span class="toc-text">官方 Sentry 服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Sentry-%E7%A7%81%E6%9C%89%E5%8C%96%E9%83%A8%E7%BD%B2"><span class="toc-text">Sentry 私有化部署</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E7%A7%81%E6%9C%89%E5%8C%96%E9%83%A8%E7%BD%B2%E7%9A%84%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-text">三、私有化部署的完整流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-docker-%E7%8E%AF%E5%A2%83"><span class="toc-text">安装 docker 环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%95%9C%E5%83%8F%E5%8A%A0%E9%80%9F%E8%BF%99%E4%B8%80%E6%AD%A5%E4%B8%8D%E8%83%BD%E8%B7%B3"><span class="toc-text">镜像加速这一步不能跳</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-docker-compose"><span class="toc-text">安装 docker-compose</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2"><span class="toc-text">一键部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E5%B9%B6%E8%AE%BF%E9%97%AE"><span class="toc-text">启动并访问</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E5%90%8E%E5%8F%B0"><span class="toc-text">访问后台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E8%AF%AD%E8%A8%80%E5%92%8C%E6%97%B6%E5%8C%BA"><span class="toc-text">设置语言和时区</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81Vue2-%E9%A1%B9%E7%9B%AE%E6%8E%A5%E5%85%A5-Sentry"><span class="toc-text">四、Vue2 项目接入 Sentry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAvue%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建一个vue项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E5%85%A5sentry"><span class="toc-text">接入sentry</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E4%B8%8A%E4%BC%A0-sourceMap-%E5%88%B0-Sentry"><span class="toc-text">五、上传 sourceMap 到 Sentry</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81Performance-%E9%9D%A2%E6%9D%BF%E7%9C%8B%E4%BB%80%E4%B9%88"><span class="toc-text">六、Performance 面板看什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81Vue3-%E5%8A%A0-Vite-%E7%9A%84%E9%85%8D%E7%BD%AE%E5%B7%AE%E5%BC%82"><span class="toc-text">七、Vue3 加 Vite 的配置差异</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BAvue3%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建vue3项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85sentry%E4%BE%9D%E8%B5%96"><span class="toc-text">安装sentry依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96sentry"><span class="toc-text">初始化sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sourcemap%E4%B8%8A%E4%BC%A0"><span class="toc-text">sourcemap上传</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81React-%E9%A1%B9%E7%9B%AE%E6%8E%A5%E5%85%A5"><span class="toc-text">八、React 项目接入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%B8%80%E4%B8%AAumi%E9%A1%B9%E7%9B%AE"><span class="toc-text">创建一个umi项目</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E5%85%A5sentry-1"><span class="toc-text">接入sentry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#sourcemap%E4%B8%8A%E4%BC%A0-1"><span class="toc-text">sourcemap上传</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E7%9B%AE%E5%BD%95%E5%88%9B%E5%BB%BA%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6-sentryclirc"><span class="toc-text">根目录创建配置文件 .sentryclirc</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#sourcemap%E9%85%8D%E7%BD%AE%E4%B8%8A%E4%BC%A0"><span class="toc-text">sourcemap配置上传</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%87%A0%E4%B8%AA%E5%80%BC%E5%BE%97%E5%BC%80%E7%9A%84%E8%BF%9B%E9%98%B6%E8%83%BD%E5%8A%9B"><span class="toc-text">九、几个值得开的进阶能力</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%86%E5%88%AB%E7%94%A8%E6%88%B7"><span class="toc-text">识别用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%94%99%E8%AF%AF%E8%BE%B9%E7%95%8C"><span class="toc-text">错误边界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#rrweb-%E5%BD%95%E5%B1%8F%E5%9B%9E%E6%94%BE"><span class="toc-text">rrweb 录屏回放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%8B%E5%8A%A8%E8%AE%BE%E7%BD%AE%E6%8A%A5%E8%AD%A6"><span class="toc-text">手动设置报警</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -263,7 +264,7 @@
   </a>
   <div class="tencent_code">
     <h4>关注公众号</h4> 
-    <img src="https://interview.poetries.top/qrcode.jpg" alt="公众号：前端进价之旅">
+    <img src="/img/gongzhonghao.webp" alt="公众号：前端进阶之旅">
   </div> 
 </div>
 
@@ -305,12 +306,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 3.5k字</span>
+            <span>字数统计 11.2k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 15分</span>
+            <span>阅读时长 42分</span>
           </span>
       
       
@@ -324,7 +325,21 @@
   <div class="article-content">
     
       <div id="container">
-        <h2 id="Sentry介绍"><a href="#Sentry介绍" class="headerlink" title="Sentry介绍"></a>Sentry介绍</h2><blockquote>
+        <p>线上出问题的时候，最难受的不是修不好，是不知道出了什么问题。用户截了张白屏的图发过来，你问他点了什么、什么浏览器、什么时候发生的，他说不清楚。你本地怎么点都复现不了。</p>
+<p>Sentry 解决的就是这件事。它把线上抛出的每一个异常连同发生时的上下文一起收集回来，报错堆栈、用户操作路径、浏览器版本、当时的路由，全都有。配上 sourceMap 之后，压缩过的 <code>a.b.c is not a function</code> 能还原到你源码的具体某一行。</p>
+<p>这篇是我把 Sentry 从零落到项目里的完整记录。包括自己在服务器上私有化部署整套服务，以及 Vue2、Vue3 加 Vite、React 加 umi 三套项目分别怎么接入、sourceMap 怎么传。踩过的坑我都标出来了，尤其是 sourceMap 那部分，配错一个字符就前功尽弃。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li>Sentry 的架构长什么样，为什么它比自己写个 <code>window.onerror</code> 上报强</li>
+<li>官方 SaaS 和私有化部署怎么选，各自的代价是什么</li>
+<li>用 <code>onpremise</code> 一键脚本部署整套 Sentry 的完整流程和前置条件</li>
+<li>Vue2 项目接入 <code>@sentry/vue</code>，以及 <code>tracesSampleRate</code> 该设多少</li>
+<li>sourceMap 上传的两条路，以及 <code>urlPrefix</code> 为什么是最容易配错的那一项</li>
+<li>sourceMap 传完之后必须从生产产物里删掉，三种删法</li>
+<li>Vue3 加 Vite 和 React 加 umi 两套配置的差异</li>
+<li><code>setUser</code>、错误边界、rrweb 录屏回放、报警规则这几个进阶能力</li>
+</ul>
+<h2 id="一、先搞清楚-Sentry-是什么"><a href="#一、先搞清楚-Sentry-是什么" class="headerlink" title="一、先搞清楚 Sentry 是什么"></a>一、先搞清楚 Sentry 是什么</h2><blockquote>
 <p><code>Sentry</code> 是一套开源的实时的异常收集、追踪、监控系统。这套解决方案由对应各种语言的 SDK 和一套庞大的数据后台服务组成，通过 Sentry SDK 的配置，还可以上报错误关联的版本信息、发布环境。同时 Sentry SDK 会自动捕捉异常发生前的相关操作，便于后续异常追踪。异常数据上报到数据服务之后，会通过过滤、关键信息提取、归纳展示在数据后台的 Web 界面中</p>
 </blockquote>
 <blockquote>
@@ -333,21 +348,33 @@
 <li>文档 <a href="https://docs.sentry.io/">https://docs.sentry.io/</a></li>
 </ul>
 </blockquote>
+<p>这段介绍里最值得展开的是「自动捕捉异常发生前的相关操作」。</p>
+<p>很多团队做异常监控的第一版都是自己在入口挂个 <code>window.onerror</code> 加 <code>unhandledrejection</code>，把错误信息 POST 到自家接口。这套东西能跑，但你拿到的只有一条错误消息和一个堆栈，然后就没了。用户在报错前点了哪几个按钮、发了哪几个请求、路由从哪跳到哪，全是空白。</p>
+<p>Sentry 的 SDK 会在后台记录这些行为，叫做面包屑（Breadcrumbs）。异常发生的那一刻，它把最近的一串操作记录和错误一起打包上报。你在后台看到的不是一个孤立的错误，而是一条完整的时间线。这是自研方案很难补齐的部分。</p>
+<p>我一直觉得，前端监控这件事真正的门槛不在采集，在于把采集到的东西组织成能定位问题的形态。Sentry 值钱的地方在后面这一半。</p>
 <p><strong>支持如下语言</strong></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/bb6538297dd29493.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/bb6538297dd29493.png" alt="Sentry 支持的语言与框架 SDK 列表"></p>
+<p>这张图看一眼就行，重点是 Sentry 不只是前端工具。同一套后台可以同时接前端 JS、Node 服务、Python、Java、移动端，错误按项目区分。前后端在同一个平台看错误，联调时对时间线会方便很多。</p>
 <p><strong>sentry功能架构</strong></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/ea60de5188aaa2a1.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/ea60de5188aaa2a1.png" alt="Sentry 的功能架构图"></p>
+<p>功能层面从左到右是采集、处理、存储、展示、告警这几块。你在前端只需要关心最左边那一段，SDK 负责采集和上报，剩下的都是服务端的事。</p>
 <p><strong>sentry核心架构</strong></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/31d57c95765101aa.png"></p>
-<h2 id="环境搭建配置"><a href="#环境搭建配置" class="headerlink" title="环境搭建配置"></a>环境搭建配置</h2><h3 id="官方Sentry服务"><a href="#官方Sentry服务" class="headerlink" title="官方Sentry服务"></a>官方Sentry服务</h3><blockquote>
+<p><img src="https://s.poetries.top/uploads/2022/07/31d57c95765101aa.png" alt="Sentry 的核心服务架构图"></p>
+<p>这张图才是私有化部署要看的。图里那些 relay、kafka、ClickHouse、Postgres 就是后面部署时会拉起来的一堆容器。先看一眼有个印象，等下 <code>docker-compose ps</code> 打出来二十多个服务的时候就不会懵。</p>
+<h2 id="二、用官方-SaaS-还是自己部署"><a href="#二、用官方-SaaS-还是自己部署" class="headerlink" title="二、用官方 SaaS 还是自己部署"></a>二、用官方 SaaS 还是自己部署</h2><h3 id="官方-Sentry-服务"><a href="#官方-Sentry-服务" class="headerlink" title="官方 Sentry 服务"></a>官方 Sentry 服务</h3><blockquote>
 <p>sentry是开源的，如果我们愿意付费的话，sentry给我们提供了方便。省去了自己搭建和维护 Python 服务的麻烦事</p>
 </blockquote>
 <p>登录官网 <a href="https://sentry.io/">https://sentry.io</a> 注册账号后接入sdk即可使用</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/5db080cc6f487560.png"></p>
-<h3 id="Sentry私有化部署"><a href="#Sentry私有化部署" class="headerlink" title="Sentry私有化部署"></a>Sentry私有化部署</h3><blockquote>
+<p><img src="https://s.poetries.top/uploads/2022/07/5db080cc6f487560.png" alt="sentry.io 官网注册后的控制台"></p>
+<p>注册完直接创建项目、拿 DSN、接 SDK，五分钟能跑通。官方有免费额度，个人项目和小团队试水完全够用。</p>
+<p>那什么时候需要自己部署？我的判断标准就两条。一是数据不能出境，很多公司的合规要求卡这一条，那就只能自建。二是量大到免费额度撑不住，而付费又不划算。</p>
+<p>除此之外我会优先选 SaaS。自建的隐性成本比想象中高很多，下面就知道了。</p>
+<h3 id="Sentry-私有化部署"><a href="#Sentry-私有化部署" class="headerlink" title="Sentry 私有化部署"></a>Sentry 私有化部署</h3><blockquote>
 <p>Sentry 的管理后台是基于 <code>Python Django</code> 开发的。这个管理后台由背后的 Postgres 数据库（管理后台默认的数据库）、<code>ClickHouse</code>（存数据特征的数据库）、relay、kafka、redis 等一些基础服务或由 Sentry 官方维护的总共 23 个服务支撑运行。可见的是，如果独立的部署和维护这 23 个服务将是异常复杂和困难的。幸运的是，官方提供了基于 docker 镜像的一键部署实现 <a href="https://github.com/getsentry/self-hosted">getsentry&#x2F;onpremise</a></p>
 </blockquote>
+<p>23 个服务这个数字要认真对待。它意味着这台机器以后就是专门跑 Sentry 的，别指望顺便再跑点别的。</p>
 <p>sentry 本身是基于 Django 开发的，而且也依赖到其他的如 Postgresql、 Redis 等组件，所以一般有两种途径进行安装：通过 Docker 或用 Python 搭建</p>
+<p>Python 那条路我劝你别走，依赖版本对齐能耗掉一整天。老老实实用 Docker。</p>
 <p><strong>前置环境</strong></p>
 <blockquote>
 <p>需要安装对应版本，否则安装会报错</p>
@@ -359,36 +386,47 @@
 <li><code>8 GB RAM</code></li>
 <li><code>20 GB Free Disk Space</code></li>
 </ul>
-<h4 id="安装docker环境"><a href="#安装docker环境" class="headerlink" title="安装docker环境"></a>安装docker环境</h4><p>安装工具包</p>
+<p>这四行是硬门槛，尤其是内存那条。8G 是<strong>最低</strong>要求不是推荐值，我拿 4G 的机器试过，<code>install.sh</code> 能跑完，但启动之后 ClickHouse 和 kafka 会互相抢内存，容器不断被 OOM kill 再重启，后台页面点两下就 502。别省这个钱。</p>
+<p>磁盘 20G 也只是起步，Sentry 会持续写事件数据，跑一段时间之后要么加盘要么配数据保留策略。</p>
+<h2 id="三、私有化部署的完整流程"><a href="#三、私有化部署的完整流程" class="headerlink" title="三、私有化部署的完整流程"></a>三、私有化部署的完整流程</h2><h3 id="安装-docker-环境"><a href="#安装-docker-环境" class="headerlink" title="安装 docker 环境"></a>安装 docker 环境</h3><p>安装工具包</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install yum-utils device-mapper-persistent-data lvm2 -y</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png" alt="yum 安装 docker 依赖工具包"></p>
+<p><code>yum-utils</code> 提供了下一步要用的 <code>yum-config-manager</code> 命令，另外两个是存储驱动的依赖。这一步基本不会出问题。</p>
 <p>设置阿里镜像源</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png" alt="添加阿里云 docker-ce 软件源"></p>
+<p>执行完会在 <code>/etc/yum.repos.d/</code> 下生成一个 <code>docker-ce.repo</code>。这里换的是<strong>下载 docker 程序</strong>的源，跟下一节的镜像加速不是一回事。</p>
 <p>安装docker</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install docker-ce docker-ce-cli containerd.io -y</span><br></pre></td></tr></table></figure>
 
+<p>装完检查一下版本，<code>docker --version</code> 输出必须满足前面说的 19.03.6 以上。CentOS 自带源里的 <code>docker</code> 包版本很老，这也是为什么要先换阿里源再装。</p>
 <p>启动docker</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设为开机启动</span></span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
 
-<p><strong>docker 镜像加速（重要）</strong></p>
+<p><code>enable</code> 那行别漏，服务器重启之后 Sentry 全套服务要能自己起来。</p>
+<h3 id="镜像加速这一步不能跳"><a href="#镜像加速这一步不能跳" class="headerlink" title="镜像加速这一步不能跳"></a>镜像加速这一步不能跳</h3><p><strong>docker 镜像加速（重要）</strong></p>
 <blockquote>
 <p>在后续部署的过程中，需要拉取大量镜像，官方源拉取较慢，可以修改 docker 镜像源</p>
 </blockquote>
-<p>登录阿里云官网，打开 <a href="https://cr.console.aliyun.com/">阿里云容器镜像服务</a>。点击左侧菜单最下面的 <code>镜像加速器</code> ，选择 <code>Centos</code></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/48ed424be7911056.png"></p>
+<p>原文标了「重要」两个字，我再加重一下。Sentry 这套要拉二十多个镜像，总体积好几个 G。不配加速的话，<code>install.sh</code> 很可能在拉镜像那一步卡到超时然后失败，而失败之后重跑又要从头再来一遍。这是整个部署流程里最耗时间也最容易崩的一环。</p>
+<p>登录阿里云官网，打开 <a href="https://cr.console.aliyun.com/">阿里云容器镜像服务</a>。点击左侧菜单最下面的 <code>镜像加速器</code> ，选择 <code>Centos</code></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/48ed424be7911056.png" alt="阿里云容器镜像服务的镜像加速器页面"></p>
+<p>这个页面会给你一个专属的加速地址，形如 <code>https://xxxxxxxx.mirror.aliyuncs.com</code>，每个账号不一样。别抄别人博客里的地址，那些多半已经失效了。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;registry-mirrors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;https://l6of9ya6.mirror.aliyuncs.com&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
+<p>把里面那串换成你自己的。这个文件如果原来不存在，直接新建就行；如果已经有内容，注意保持 JSON 合法，多一个逗号 docker 就起不来了。</p>
 <p>然后重启docker即可</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 重新加载配置</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启docker</span></span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
 
-<p><strong>安装docker-compose</strong></p>
+<p>改完一定要验证。<code>docker info</code> 的输出末尾有一段 <code>Registry Mirrors</code>，你配的地址出现在那里才算生效。这个我踩过，改完没验证直接跑安装脚本，等了四十分钟发现镜像一个都没下下来，回头才看到 JSON 格式写错了 docker 压根没加载。</p>
+<h3 id="安装-docker-compose"><a href="#安装-docker-compose" class="headerlink" title="安装 docker-compose"></a>安装 docker-compose</h3><p><strong>安装docker-compose</strong></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用国内源安装</span></span><br><span class="line"><span class="built_in">sudo</span> curl -L <span class="string">&quot;https://get.daocloud.io/docker/compose/releases/download/1.29.2/docker-compose-<span class="subst">$(uname -s)</span>-<span class="subst">$(uname -m)</span>&quot;</span> -o /usr/local/bin/docker-compose</span><br></pre></td></tr></table></figure>
 
+<p>注意这里下的是 1.29.2，前置条件要求 1.28.0 以上，这个版本是满足的。</p>
 <p><strong>设置docker-compose执行权限</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chmod +x /usr/local/bin/docker-compose</span><br></pre></td></tr></table></figure>
 
@@ -396,10 +434,12 @@
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose</span><br></pre></td></tr></table></figure>
 
 <p><strong>测试是否安装成功：</strong></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ docker-compose --version</span><br><span class="line"></span><br><span class="line">docker-compose version 1.22.0, build f46880fe</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">$ docker-compose --version</span><br><span class="line"></span><br><span class="line">docker-compose version 1.29.2, build 5becea4c</span><br></pre></td></tr></table></figure>
 
-<h4 id="一键部署"><a href="#一键部署" class="headerlink" title="一键部署"></a>一键部署</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/getsentry/onpremise</span><br></pre></td></tr></table></figure>
+<p>这里要提醒一下，原文这段输出贴的是 <code>1.22.0</code>，跟上面下载的 1.29.2 对不上，应该是从别的笔记里复制过来忘了改。真跑出 1.22.0 的话说明你系统里还有个旧版本抢在 <code>PATH</code> 前面，得先把它清掉，因为 1.22.0 不满足 Sentry 的前置要求，<code>install.sh</code> 会在环境检查那一步直接拒绝。</p>
+<h3 id="一键部署"><a href="#一键部署" class="headerlink" title="一键部署"></a>一键部署</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/getsentry/onpremise</span><br></pre></td></tr></table></figure>
 
+<p>这个仓库名后来改成了 <code>self-hosted</code>，GitHub 会自动重定向，所以上面这条命令现在还能用，但新拉的话建议直接用 <code>git clone https://github.com/getsentry/self-hosted</code>。另外强烈建议 <code>git checkout</code> 到一个明确的版本 tag 再装，直接用主干代码容易碰上尚未稳定的改动。</p>
 <blockquote>
 <p>在 <code>onpremise</code> 的根路径下有一个 <code>install.sh</code> 文件，只需要执行此脚本即可完成快速部署，脚本运行的过程中，大致会经历以下步骤：</p>
 </blockquote>
@@ -412,53 +452,89 @@
 <li>服务初始化</li>
 <li>设置管理员账号（如果跳过此步，可手动创建）</li>
 </ul>
+<p>这七步里，卡人的是第四步拉镜像和第六步服务初始化。前者靠镜像加速，后者靠内存。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> onpremise</span><br><span class="line"></span><br><span class="line"><span class="comment"># 直接运行 ./install.sh 将 Sentry 及其依赖都通过 docker 安装</span></span><br><span class="line">./install.sh</span><br></pre></td></tr></table></figure>
 
 <p>后续一步一步安装下来</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/ec9447e63222462a.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/ec9447e63222462a.png" alt="install.sh 执行过程中的输出"></p>
+<p>这个脚本一跑就是几十分钟，中间不要中断。建议挂在 <code>screen</code> 或者 <code>tmux</code> 里跑，SSH 断了脚本还在，不然网络一抖整个过程白费。</p>
 <p>设置管理员账号（如果跳过此步，可手动创建）</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/c960c51703ae0a14.png"></p>
-<h4 id="启动项目执行"><a href="#启动项目执行" class="headerlink" title="启动项目执行"></a>启动项目执行</h4><p>在执行结束后，会提示创建完毕，运行 <code>docker-compose up -d</code> 启动服务</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/751ff76231406eec.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/c960c51703ae0a14.png" alt="安装过程中提示创建管理员账号"></p>
+<p>这一步会让你输邮箱和密码，输入密码时终端不回显，看着像卡住了其实是正常的，直接敲完回车。这个账号就是后面登录后台的超级管理员，记牢。</p>
+<p>跳过了也不要紧，后面可以用 <code>docker-compose run --rm web createuser</code> 补建。</p>
+<h3 id="启动并访问"><a href="#启动并访问" class="headerlink" title="启动并访问"></a>启动并访问</h3><p>在执行结束后，会提示创建完毕，运行 <code>docker-compose up -d</code> 启动服务</p>
+<p><img src="https://s.poetries.top/uploads/2022/07/751ff76231406eec.png" alt="安装完成的提示信息"></p>
+<p>看到这个提示才算装完。注意 <code>install.sh</code> 只是把镜像和配置准备好了，服务并没有启动，还得手动拉起来。</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker-compose up -d</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s.poetries.top/uploads/2022/07/5fe231a45329b6bf.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/5fe231a45329b6bf.png" alt="docker-compose up -d 启动全部 Sentry 服务"></p>
+<p>这一屏会刷出二十多行 <code>Creating</code>，对应的就是前面架构图里那些服务。启动也需要时间，<code>up -d</code> 命令返回不代表服务可用了，ClickHouse 和 kafka 初始化要好几分钟。</p>
 <p>查看服务运行状态<code>docker-compose ps</code></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/d00aa7e4b2070d77.png"></p>
-<h4 id="访问项目"><a href="#访问项目" class="headerlink" title="访问项目"></a>访问项目</h4><blockquote>
+<p><img src="https://s.poetries.top/uploads/2022/07/d00aa7e4b2070d77.png" alt="docker-compose ps 查看所有服务状态"></p>
+<p>这一步是最有用的排查手段。所有服务都应该是 <code>Up</code>，如果有 <code>Exit</code> 或者反复 <code>Restarting</code> 的，用 <code>docker-compose logs &lt;服务名&gt;</code> 去看具体原因。</p>
+<p>按我的经验，最常挂的是 <code>clickhouse</code> 和 <code>kafka</code>，原因基本都是内存不够。<code>free -h</code> 看一眼可用内存，如果剩不到 1G，那就是它了。</p>
+<h3 id="访问后台"><a href="#访问后台" class="headerlink" title="访问后台"></a>访问后台</h3><blockquote>
 <p>所有服务都启动成功后,就可以访问<code>sentry</code>后台了,后台默认运行在服务器的<code>9000</code>端口,这里的<code>账户密码就是安装时让你设置</code>的那个</p>
 </blockquote>
-<p><img src="https://s.poetries.top/uploads/2022/07/e714d0cdfa38438d.png"></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/26405ca96fbdf205.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/e714d0cdfa38438d.png" alt="Sentry 后台登录页"></p>
+<p>访问 <code>http://服务器IP:9000</code>。打不开的先查两件事，一是安全组有没有放行 9000 端口，二是 <code>docker-compose ps</code> 里的 web 服务是不是真的起来了。</p>
+<p>顺带说一句，9000 是个很常用的端口，跟前面那篇里 Nest 服务的端口撞了。同一台机器上跑多个东西的时候要留意，Sentry 的端口可以在 <code>docker-compose.yml</code> 里改。</p>
+<p><img src="https://s.poetries.top/uploads/2022/07/26405ca96fbdf205.png" alt="Sentry 后台首页的项目列表"></p>
+<p>登进来就是这个样子，左侧是导航，中间是 Issues 列表，现在还是空的。接下来要做的是创建一个项目拿到 DSN，然后去前端接 SDK。</p>
 <h3 id="设置语言和时区"><a href="#设置语言和时区" class="headerlink" title="设置语言和时区"></a>设置语言和时区</h3><p>点击头像<code>User settings - Account Details</code>的相应菜单设置，刷新后生效</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/d86d96288fe1ea13.png"></p>
-<h2 id="Vue2-Sentry"><a href="#Vue2-Sentry" class="headerlink" title="Vue2 + Sentry"></a>Vue2 + Sentry</h2><h3 id="创建一个vue项目"><a href="#创建一个vue项目" class="headerlink" title="创建一个vue项目"></a>创建一个vue项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm i @vue/cli -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化vue2项目</span></span><br><span class="line">vue create vue2-sentry</span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.top/uploads/2022/07/d86d96288fe1ea13.png" alt="账号设置里的语言和时区选项"></p>
+<p>时区这一项建议第一时间就改。默认是 UTC，跟用户反馈的时间对不上，排查问题时你会不停地在脑子里做加减 8 小时的换算，特别容易出错。改完刷新页面才生效，别以为没改上。</p>
+<p>界面这块补一句时效性说明。Sentry 的后台从 2022 年到现在改版过好几次，导航结构、设置页的层级、创建项目的引导流程都跟图里不完全一样了。整体的概念模型没变，还是「组织 &gt; 团队 &gt; 项目」这三层，DSN 依然在项目设置的 Client Keys 里，按这个逻辑找就行。</p>
+<h2 id="四、Vue2-项目接入-Sentry"><a href="#四、Vue2-项目接入-Sentry" class="headerlink" title="四、Vue2 项目接入 Sentry"></a>四、Vue2 项目接入 Sentry</h2><p>服务端有了，接下来把前端接上去。</p>
+<h3 id="创建一个vue项目"><a href="#创建一个vue项目" class="headerlink" title="创建一个vue项目"></a>创建一个vue项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm i @vue/cli -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化vue2项目</span></span><br><span class="line">vue create vue2-sentry</span><br></pre></td></tr></table></figure>
 
-<h3 id="接入sentry"><a href="#接入sentry" class="headerlink" title="接入sentry"></a>接入sentry</h3><p><img src="https://s.poetries.top/uploads/2022/07/c4137ad12fdccfbd.png"></p>
+<h3 id="接入sentry"><a href="#接入sentry" class="headerlink" title="接入sentry"></a>接入sentry</h3><p><img src="https://s.poetries.top/uploads/2022/07/c4137ad12fdccfbd.png" alt="Sentry 后台的 Vue SDK 接入引导页"></p>
+<p>在后台创建项目时选 Vue，它会直接给你一段带 DSN 的初始化代码，照抄就行。这个引导页是最省事的入口，比翻文档快。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Using npm</span></span><br><span class="line">npm install --save @sentry/vue @sentry/tracing</span><br></pre></td></tr></table></figure>
 
+<p>这里装了两个包。<code>@sentry/vue</code> 是 Vue 适配的 SDK，<code>@sentry/tracing</code> 提供性能追踪能力。补一句现在的情况，后来的 SDK 大版本里 <code>@sentry/tracing</code> 已经并入主包了，新项目只装 <code>@sentry/vue</code> 就够，初始化的 API 写法也跟下面这段不一样。这篇写的是 2022 年那个版本的写法，接的时候以你装的版本对应的官方文档为准。</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// src/main.js</span></span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Vue</span> <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="title class_">Router</span> <span class="keyword">from</span> <span class="string">&quot;vue-router&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> <span class="title class_">Sentry</span> <span class="keyword">from</span> <span class="string">&quot;@sentry/vue&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Integrations</span> &#125; <span class="keyword">from</span> <span class="string">&quot;@sentry/tracing&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Vue</span>.<span class="title function_">use</span>(<span class="title class_">Router</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> router = <span class="keyword">new</span> <span class="title class_">Router</span>(&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">  <span class="title class_">Vue</span>,</span><br><span class="line">  <span class="attr">dsn</span>: <span class="string">&quot;http://xdsdfafda21212@119.75.24.41:9000/2&quot;</span>,</span><br><span class="line">  <span class="attr">integrations</span>: [</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Integrations</span>.<span class="title class_">BrowserTracing</span>(&#123;</span><br><span class="line">      <span class="attr">routingInstrumentation</span>: <span class="title class_">Sentry</span>.<span class="title function_">vueRouterInstrumentation</span>(router),</span><br><span class="line">      <span class="attr">tracingOrigins</span>: [<span class="string">&quot;localhost&quot;</span>, <span class="string">&quot;my-site-url.com&quot;</span>, <span class="regexp">/^\//</span>],</span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">  <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line">  <span class="comment">// environment: process.env.ENVIRONMENT,</span></span><br><span class="line">  <span class="comment">// Set tracesSampleRate to 1.0 to capture 100%</span></span><br><span class="line">  <span class="comment">// of transactions for performance monitoring.</span></span><br><span class="line">  <span class="comment">// We recommend adjusting this value in production</span></span><br><span class="line">  <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">  <span class="attr">tracesSampleRate</span>: <span class="number">1.0</span>,</span><br><span class="line">  <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Vue</span>(&#123;</span><br><span class="line">  router,</span><br><span class="line">  <span class="attr">render</span>: <span class="function"><span class="params">h</span> =&gt;</span> <span class="title function_">h</span>(<span class="title class_">App</span>),</span><br><span class="line">&#125;).$mount(<span class="string">&quot;#app&quot;</span>);</span><br></pre></td></tr></table></figure>
 
+<p>这段配置里有四个字段要单独讲，配错任何一个后面都会出问题。</p>
+<p><code>dsn</code> 是数据上报地址，格式是 <code>协议://公钥@主机:端口/项目ID</code>。私有化部署的话主机就是你服务器的 IP，末尾那个数字是项目在 Sentry 里的自增 ID。这个字段可以直接暴露在前端代码里，它只有写入权限，不用当密钥保护。</p>
+<p><code>routingInstrumentation</code> 把 vue-router 接了进来，作用是让 Sentry 知道路由跳转，页面切换会被记成一次 transaction，面包屑里也能看到用户从哪个页面跳到了哪个页面。不接这个，性能面板里就只有一次首屏加载，看不到后续导航。</p>
+<p><code>tracesSampleRate: 1.0</code> 是性能数据的采样率，1.0 表示 100% 上报。这个值在生产环境要往下调。注意它只影响性能追踪（transaction），不影响错误上报，错误默认是全量的，别搞混了担心漏报。日活几万的应用我一般设到 0.1 左右，采多了后台存不下，而且性能数据本来就是看趋势的，抽样不影响判断。</p>
+<p><code>release</code> 是这篇里最容易被忽视但最关键的一个字段。它是版本标识，Sentry 靠它把「上报的错误」和「上传的 sourceMap」关联起来。下一节配 sourceMap 上传时还有一个 <code>release</code> 参数，<strong>这两个值必须完全一致</strong>，差一个字符就匹配不上，你传了 sourceMap 也还原不出源码。我第一次配的时候就是这里对不上，排查了一下午才发现。</p>
 <p>我们手动抛出异常，在控制台可见捕获了错误</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/893f765fac6d2520.png"></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/695199f400f7e40d.png"></p>
-<h3 id="上传sourceMap到sentry"><a href="#上传sourceMap到sentry" class="headerlink" title="上传sourceMap到sentry"></a>上传sourceMap到sentry</h3><p>为了方便查看具体的报错内容，我们需要上传<code>sourceMap</code>到<code>sentry</code>平台。一般有两种方式 <code>sentry-cli</code>和 <code>sentry-webpack-plugin</code>方式，这里为了方便采用<code>webpack</code>方式</p>
+<p><img src="https://s.poetries.top/uploads/2022/07/893f765fac6d2520.png" alt="Sentry 后台 Issues 列表中捕获到的错误"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/695199f400f7e40d.png" alt="错误详情页的堆栈信息"></p>
+<p>第一张是 Issues 列表，能看到刚抛的错误进来了。Sentry 会把相同的错误自动聚合成一条 issue，右边显示发生次数和影响用户数，不会被同一个错误刷屏。</p>
+<p>第二张是详情页。开发环境下堆栈是可读的，因为代码没压缩。但生产环境的代码经过压缩混淆，这里显示的会是 <code>chunk-vendors.a1b2c3.js:1:20345</code> 这种东西，完全没法定位。</p>
+<p>所以就有了下一节。</p>
+<h2 id="五、上传-sourceMap-到-Sentry"><a href="#五、上传-sourceMap-到-Sentry" class="headerlink" title="五、上传 sourceMap 到 Sentry"></a>五、上传 sourceMap 到 Sentry</h2><p>为了方便查看具体的报错内容，我们需要上传<code>sourceMap</code>到<code>sentry</code>平台。一般有两种方式 <code>sentry-cli</code>和 <code>sentry-webpack-plugin</code>方式，这里为了方便采用<code>webpack</code>方式</p>
 <ul>
 <li><code>source-map</code> 是一个文件，可以让已编译过的代码可以映射出原始源;</li>
 <li><code>source-map</code> 就是一个信息文件，里面储存着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。</li>
 </ul>
+<p>两种方式的区别在于时机。<code>sentry-cli</code> 是独立的命令行工具，构建完之后单独跑一条命令上传，适合放进 CI 流水线；<code>sentry-webpack-plugin</code> 挂在构建流程里，<code>npm run build</code> 跑完自动就传了。个人项目用插件方便，团队项目我更推荐 CLI，因为构建和上传解耦，构建失败时不会传上去半截产物。</p>
 <p><strong>webpack方式上传</strong></p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">npm i @sentry/webpack-plugin -D</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm i @sentry/webpack-plugin -D</span><br></pre></td></tr></table></figure>
 
 <p>修改<code>vue.config.js</code>配置文件</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">SentryCliPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;@sentry/webpack-plugin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="comment">// 打包生成sourcemap，打包完上传到sentry之后在删除，不要把sourcemao传到生产环境</span></span><br><span class="line">  <span class="attr">productionSourceMap</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;development&#x27;</span>,</span><br><span class="line">  <span class="attr">configureWebpack</span>: <span class="function"><span class="params">config</span>=&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;development&#x27;</span>) &#123;</span><br><span class="line">      config.<span class="property">plugins</span>.<span class="title function_">push</span>(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">SentryCliPlugin</span>(&#123;</span><br><span class="line">          <span class="attr">include</span>: <span class="string">&#x27;./dist/js&#x27;</span>, <span class="comment">// 只上传js</span></span><br><span class="line">          <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>, <span class="string">&#x27;webpack.config.js&#x27;</span>],</span><br><span class="line">          <span class="attr">ignoreFile</span>: <span class="string">&#x27;.sentrycliignore&#x27;</span>,</span><br><span class="line">          <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号 对应main.js中设置的Sentry.init版本号</span></span><br><span class="line">          <span class="attr">cleanArtifacts</span>: <span class="literal">true</span>, <span class="comment">// Remove all the artifacts in the release before the upload.</span></span><br><span class="line">          <span class="comment">// URL prefix to add to the beginning of all filenames. Defaults to ~/ but you might want to set this to the full URL. This is also useful if your files are stored in a sub folder. eg: url-prefix &#x27;~/static/js&#x27;</span></span><br><span class="line">          <span class="attr">urlPrefix</span>: <span class="string">&#x27;~/js&#x27;</span>, <span class="comment">// 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题</span></span><br><span class="line">          <span class="comment">// urlPrefix： 关于这个，是要看你线上项目的资源地址，比如</span></span><br><span class="line">          <span class="comment">// 怎么看资源地址呢， 例如谷歌浏览器， F12控制台， 或者去Application里面找到对应资源打开</span></span><br><span class="line">        &#125;),</span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">SentryCliPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;@sentry/webpack-plugin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span>.<span class="property">exports</span> = &#123;</span><br><span class="line">  <span class="comment">// 打包生成sourcemap，打包完上传到sentry之后在删除，不要把sourcemao传到生产环境</span></span><br><span class="line">  <span class="attr">productionSourceMap</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;development&#x27;</span>,</span><br><span class="line">  <span class="attr">configureWebpack</span>: <span class="function"><span class="params">config</span>=&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;development&#x27;</span>) &#123;</span><br><span class="line">      config.<span class="property">plugins</span>.<span class="title function_">push</span>(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">SentryCliPlugin</span>(&#123;</span><br><span class="line">          <span class="attr">include</span>: <span class="string">&#x27;./dist/js&#x27;</span>, <span class="comment">// 只上传js</span></span><br><span class="line">          <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>, <span class="string">&#x27;webpack.config.js&#x27;</span>],</span><br><span class="line">          <span class="attr">ignoreFile</span>: <span class="string">&#x27;.sentrycliignore&#x27;</span>,</span><br><span class="line">          <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号 对应main.js中设置的Sentry.init版本号</span></span><br><span class="line">          <span class="attr">cleanArtifacts</span>: <span class="literal">true</span>, <span class="comment">// Remove all the artifacts in the release before the upload.</span></span><br><span class="line">          <span class="attr">urlPrefix</span>: <span class="string">&#x27;~/js&#x27;</span>, <span class="comment">// 线上对应的url资源的相对路径 注意修改这里，否则上传sourcemap还原错误信息有问题</span></span><br><span class="line">          <span class="comment">// urlPrefix： 关于这个，是要看你线上项目的资源地址，比如</span></span><br><span class="line">          <span class="comment">// 怎么看资源地址呢， 例如谷歌浏览器， F12控制台， 或者去Application里面找到对应资源打开</span></span><br><span class="line">        &#125;),</span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p><code>productionSourceMap</code> 必须打开，不然构建产物里压根没有 <code>.map</code> 文件，插件也就没东西可传。</p>
+<p><code>include: &#39;./dist/js&#39;</code> 限定只扫这个目录。范围写太大会把一堆无关文件也传上去，上传慢而且占存储。Vue CLI 默认把 JS 产物放在 <code>dist/js</code>，用了自定义输出目录的要相应调整。</p>
+<p><code>release</code> 前面说过了，跟 <code>main.js</code> 里 <code>Sentry.init</code> 的那个值必须一模一样。我的做法是抽成一个变量放在单独文件里，两边都 require 它，从根上杜绝写岔。</p>
+<p><code>cleanArtifacts: true</code> 是上传前先清掉这个 release 下已有的产物。不加这个的话，反复构建同一个版本号会在服务端堆一堆重复文件，还可能因为新旧文件混在一起导致映射错乱。</p>
+<p>然后是 <code>urlPrefix</code>，这是整段配置里最容易配错的一项。</p>
+<p>它的作用是告诉 Sentry「这些 sourceMap 对应的线上资源，URL 长什么样」。Sentry 收到一个错误堆栈，里面记录的是出错文件的完整 URL，它要拿这个 URL 去匹配你上传的产物名。<code>~</code> 代表域名，<code>~/js</code> 就是说这些文件线上访问路径是 <code>https://你的域名/js/xxx.js</code>。</p>
+<p>怎么确认该填什么？打开线上页面，F12 到 Network 面板，看一眼 JS 文件的实际请求路径，域名后面那段就是。如果你的资源部署在 CDN 的子目录下，比如 <code>https://cdn.xxx.com/app/static/js/main.js</code>，那 <code>urlPrefix</code> 就得写 <code>~/app/static/js</code>。填错的表现很迷惑：sourceMap 明明传上去了，后台也能看到文件列表，但错误堆栈还是压缩后的样子。这个坑我踩得最惨，因为没有任何报错提示你配错了。</p>
+<p>顺带说一下 <code>ignoreFile: &#39;.sentrycliignore&#39;</code>，它指向一个类似 <code>.gitignore</code> 的文件，可以更细粒度地排除不想上传的产物。项目根目录得真有这个文件，没有的话这一项可以直接删掉。</p>
 <p>获取<code>TOKEN</code></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/d2cf43bc99c8125d.png"></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/f427cd23cd15f067.png"></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/1db9fed291b04c9c.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/d2cf43bc99c8125d.png" alt="Sentry 设置页面的 Auth Tokens 入口"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/f427cd23cd15f067.png" alt="新建 Auth Token 的权限勾选页面"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/1db9fed291b04c9c.png" alt="创建完成后显示的 token 字符串"></p>
+<p>这三张图是创建 token 的完整流程。第二张那一步要注意权限勾选，<code>project:write</code> 是上传产物必需的，漏勾的话上传会报 403，而错误信息不会明确告诉你是权限问题。</p>
+<p>第三张里的 token 只会完整显示这一次，关掉页面就看不到了，当场复制走。这个 token 跟 DSN 不一样，它有写权限，<strong>绝对不能提交进代码仓库</strong>，走环境变量或者 CI 的 secret。</p>
 <p>获取<code>org</code></p>
-<p><img src="https://s.poetries.top/uploads/2022/07/8962b2ec56f2cc19.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/8962b2ec56f2cc19.png" alt="组织设置页面查看组织名称 slug"></p>
+<p><code>org</code> 要的是组织的 slug 而不是显示名称。两者经常不一样，显示名是「我的团队」，slug 可能是 <code>my-team</code>。填错了上传会报找不到组织。看浏览器地址栏最直观，URL 里 <code>/organizations/</code> 后面那段就是。</p>
 <p>在项目根目录创建<code>.sentryclirc</code></p>
 <ul>
 <li><code>url</code>：sentry部署的地址，默认是<code>https://sentry.io/</code></li>
@@ -468,22 +544,36 @@
 </ul>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># .sentryclirc</span></span><br><span class="line"></span><br><span class="line">[auth]</span><br><span class="line">token=填入控制台创建的TOKEN</span><br><span class="line"></span><br><span class="line">[defaults]</span><br><span class="line">url=https://sentry.io/</span><br><span class="line">org=sentry</span><br><span class="line">project=vue</span><br></pre></td></tr></table></figure>
 
+<p>这是个 INI 格式的配置文件，注释用 <code>#</code>，等号两边不要加空格。</p>
+<p>私有化部署的话，<code>url</code> 那行必须改成你自己的地址，比如 <code>http://119.75.24.41:9000/</code>，保留默认值的话 CLI 会去官方 SaaS 上找你的组织，当然找不到。这一条漏改也是高频问题。</p>
+<p>还有，<code>.sentryclirc</code> 里有 token，记得加进 <code>.gitignore</code>。</p>
 <p>执行项目打包命令，即可把js下的<code>sourcemap</code>相关文件上传到<code>sentry</code></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm run build</span><br></pre></td></tr></table></figure>
 
 <p>上传后的<code>sourcemap</code>在这里可以看到</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/fc614a806ae0c774.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/fc614a806ae0c774.png" alt="Sentry 后台 Releases 里的产物文件列表"></p>
+<p>构建完之后第一件事是来这个页面确认。路径是 Releases 里点进对应版本号，看 Artifacts 列表。文件名带 <code>~/js/</code> 前缀、<code>.js</code> 和 <code>.js.map</code> 成对出现，才算传对了。</p>
+<p>这一步是整个 sourceMap 流程的验收点。列表是空的说明 token 或者 org 有问题；有文件但前缀不对，说明 <code>urlPrefix</code> 填错了。在这里发现问题比等到线上报错时才发现要省事得多。</p>
 <p>正确上传过 <code>source-map</code> 的项目，可以看到很清晰的报错位置</p>
 <blockquote>
 <p>进入本地打包的dist，<code>http-server -p 6002</code> 启动一个模拟正式环境部署的服务访问看看效果</p>
 </blockquote>
-<p><img src="https://s.poetries.top/uploads/2022/07/c28db99ceb1e7001.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/c28db99ceb1e7001.png" alt="还原后可以看到源码行号的错误堆栈"></p>
+<p>这才是我们要的效果，堆栈直接指到源文件的某一行，还带上下文代码。</p>
+<p>用 <code>http-server</code> 起本地服务这个验证方式很实用。直接在生产环境验证的话，改一次配置就要发一次版，成本太高。本地起个静态服务模拟线上产物，改配置重构建重传，几分钟一轮。</p>
 <p>还可以通过 <code>面包屑</code> 功能查看，报错前发生了什么操作</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/1d6f7cba82780187.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/1d6f7cba82780187.png" alt="错误详情页的 Breadcrumbs 操作时间线"></p>
+<p>这就是开头说的面包屑。图里能看到用户点了什么、发了哪些 XHR 请求、路由怎么跳的，按时间倒序排。定位那种「特定操作路径才触发」的偶现 bug，这个功能价值极大。</p>
 <p><strong>记得别把sourcemap文件传到生产环境，又大又不安全</strong> 删除<code>sourcemap</code>, 基于vue2演示的三种方式</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方式1</span></span><br><span class="line"><span class="string">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">  <span class="string">&quot;build&quot;</span>: <span class="string">&quot;vue-cli-service build &amp;&amp; rimraf ./dist/js/*.map&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式2 单独生成map</span></span><br><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="title function_">configureWebpack</span>(<span class="params">config</span>) &#123;</span><br><span class="line">     config.<span class="property">output</span>.<span class="title function_">sourceMapFilename</span>(<span class="string">&#x27;sourceMap/[name].[chunkhash].map.js&#x27;</span>)</span><br><span class="line">     config.<span class="title function_">plugin</span>(<span class="string">&#x27;sentry&#x27;</span>).<span class="title function_">use</span>(<span class="title class_">SentryCliPlugin</span>, [&#123;</span><br><span class="line">        <span class="attr">include</span>: <span class="string">&#x27;./dist/sourceMap&#x27;</span>, <span class="comment">// 只上传js</span></span><br><span class="line">        <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>],</span><br><span class="line">        <span class="attr">configFile</span>: <span class="string">&#x27;sentry.properties&#x27;</span>,</span><br><span class="line">        <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">        <span class="attr">cleanArtifacts</span>: <span class="literal">true</span>, <span class="comment">// 先清理再上传</span></span><br><span class="line">    &#125;])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式3 webpack插件清理</span></span><br><span class="line">$ npm i webpack-<span class="keyword">delete</span>-sourcemaps-plugin -D</span><br><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">DeleteSourceMapsPlugin</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;webpack-delete-sourcemaps-plugin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="title function_">configureWebpack</span>(<span class="params">config</span>) &#123;</span><br><span class="line">    config.<span class="property">plugin</span>.<span class="title function_">push</span>(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">DeleteSourceMapsPlugin</span>(), <span class="comment">// 清理sourcemap</span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这句提醒必须重视。sourceMap 里包含完整源码，传到生产环境等于把代码公开了，任何人打开 DevTools 都能看到你的业务逻辑。而且 <code>.map</code> 文件通常比 JS 本体还大，白白占带宽。</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 方式1</span></span><br><span class="line"><span class="string">&quot;scripts&quot;</span>: &#123;</span><br><span class="line">  <span class="string">&quot;build&quot;</span>: <span class="string">&quot;vue-cli-service build &amp;&amp; rimraf ./dist/js/*.map&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式2 单独生成map</span></span><br><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="title function_">chainWebpack</span>(<span class="params">config</span>) &#123;</span><br><span class="line">     config.<span class="property">output</span>.<span class="title function_">sourceMapFilename</span>(<span class="string">&#x27;sourceMap/[name].[chunkhash].map.js&#x27;</span>)</span><br><span class="line">     config.<span class="title function_">plugin</span>(<span class="string">&#x27;sentry&#x27;</span>).<span class="title function_">use</span>(<span class="title class_">SentryCliPlugin</span>, [&#123;</span><br><span class="line">        <span class="attr">include</span>: <span class="string">&#x27;./dist/sourceMap&#x27;</span>, <span class="comment">// 只上传sourceMap目录</span></span><br><span class="line">        <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>],</span><br><span class="line">        <span class="attr">configFile</span>: <span class="string">&#x27;sentry.properties&#x27;</span>,</span><br><span class="line">        <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">        <span class="attr">cleanArtifacts</span>: <span class="literal">true</span>, <span class="comment">// 先清理再上传</span></span><br><span class="line">    &#125;])</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式3 webpack插件清理</span></span><br><span class="line">$ npm i webpack-<span class="keyword">delete</span>-sourcemaps-plugin -D</span><br><span class="line"><span class="comment">// vue.config.js</span></span><br><span class="line"><span class="keyword">const</span> &#123; <span class="title class_">DeleteSourceMapsPlugin</span> &#125; = <span class="built_in">require</span>(<span class="string">&#x27;webpack-delete-sourcemaps-plugin&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="title function_">configureWebpack</span>(<span class="params">config</span>) &#123;</span><br><span class="line">    config.<span class="property">plugins</span>.<span class="title function_">push</span>(</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">DeleteSourceMapsPlugin</span>(), <span class="comment">// 清理sourcemap</span></span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="查看-Performance"><a href="#查看-Performance" class="headerlink" title="查看 Performance"></a>查看 Performance</h3><p><img src="https://s.poetries.top/uploads/2022/07/d02c70b8bed7be49.png"></p>
+<p>这三种方式的差别值得说一下，因为原文这段代码有两处会让人直接跑不通。</p>
+<p>方式 1 最直白，构建完用 <code>rimraf</code> 把 <code>.map</code> 文件删掉。要保证 <code>&amp;&amp;</code> 前面的上传已经完成，<code>@sentry/webpack-plugin</code> 是在 webpack 编译流程里同步传的，所以这个顺序是安全的。</p>
+<p>方式 2 的思路是把 sourceMap 单独输出到另一个目录，这样正式产物目录里天然没有 <code>.map</code>，不用删。这里要注意，原文这段用的 <code>config.output.sourceMapFilename()</code> 和 <code>config.plugin().use()</code> 都是 webpack-chain 的链式 API，只能写在 <code>chainWebpack</code> 里，写在 <code>configureWebpack</code> 里会直接报错，上面这份我已经改成 <code>chainWebpack</code> 了。</p>
+<p>方式 3 用现成的插件在构建结束时删。原文写的是 <code>config.plugin.push(...)</code>，少了个 s，正确的是 <code>config.plugins.push(...)</code>，<code>configureWebpack</code> 拿到的是原始配置对象，插件数组的字段名是 <code>plugins</code>。</p>
+<p>我自己用方式 1，理由是它最容易看懂，出问题一眼就知道是哪一步没执行。</p>
+<h2 id="六、Performance-面板看什么"><a href="#六、Performance-面板看什么" class="headerlink" title="六、Performance 面板看什么"></a>六、Performance 面板看什么</h2><p><img src="https://s.poetries.top/uploads/2022/07/d02c70b8bed7be49.png" alt="Sentry 的 Performance 性能面板"></p>
 <blockquote>
 <p><code>Sentry.init()</code> 中，<code>new Integrations.BrowserTracing()</code> 的功能是将浏览器页面加载和导航检测作为事物，并捕获请求，指标和错误。</p>
 </blockquote>
@@ -497,71 +587,133 @@
 <li><code>USER</code>：<code>uv</code> 数字</li>
 <li><code>USER MISERY</code>: 对响应时间难以忍受的用户指标，由 <code>sentry</code> 计算出来，阈值可以动态修改</li>
 </ul>
-<h2 id="Vue3-Vite-Sentry"><a href="#Vue3-Vite-Sentry" class="headerlink" title="Vue3 + Vite + Sentry"></a>Vue3 + Vite + Sentry</h2><h3 id="创建vue3项目"><a href="#创建vue3项目" class="headerlink" title="创建vue3项目"></a>创建vue3项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yarn create vite</span><br></pre></td></tr></table></figure>
+<p>这几个指标里 LCP、FID、CLS 就是 Google 那套 Core Web Vitals，直接影响搜索排名，也是最值得先看的三个。</p>
+<p>我平时的看法顺序是这样。先看 TTFB，它高说明问题在服务端或者网络，前端再优化也没用；TTFB 正常但 LCP 高，那就是资源加载或者渲染的问题，去查首屏那张大图或者那个大 chunk；CLS 高基本都是图片没写宽高、或者广告位、字体加载导致的布局跳动，改起来最快见效。</p>
+<p><code>USER MISERY</code> 这个指标挺有意思，它不是纯技术指标而是体验指标，统计的是响应慢到让用户不耐烦的比例。阈值可以在项目设置里调。真正推动优化排期的时候，这个数字比 P95 耗时更容易说服人。</p>
+<p>FID 这里补一句，Web Vitals 这套指标后来有过调整，业界主推的交互指标有了新的替代项。这块我没有在最新版本的 Sentry 面板上逐项核对过，看到面板里有你不认识的指标名很正常，查一下官方文档就行。</p>
+<h2 id="七、Vue3-加-Vite-的配置差异"><a href="#七、Vue3-加-Vite-的配置差异" class="headerlink" title="七、Vue3 加 Vite 的配置差异"></a>七、Vue3 加 Vite 的配置差异</h2><p>框架换了，Sentry 的接入思路不变，变的是构建工具那一层。</p>
+<h3 id="创建vue3项目"><a href="#创建vue3项目" class="headerlink" title="创建vue3项目"></a>创建vue3项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yarn create vite</span><br></pre></td></tr></table></figure>
 
 <h3 id="安装sentry依赖"><a href="#安装sentry依赖" class="headerlink" title="安装sentry依赖"></a>安装sentry依赖</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm i @sentry/vue @sentry/tracing</span><br></pre></td></tr></table></figure>
 
+<p>依赖跟 Vue2 一样，<code>@sentry/vue</code> 内部会判断 Vue 版本走不同的适配逻辑，不用装别的包。</p>
 <h3 id="初始化sentry"><a href="#初始化sentry" class="headerlink" title="初始化sentry"></a>初始化sentry</h3><blockquote>
 <p><code>src/main.js</code>中修改</p>
 </blockquote>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; createRouter &#125; <span class="keyword">from</span> <span class="string">&quot;vue-router&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> <span class="title class_">Sentry</span> <span class="keyword">from</span> <span class="string">&quot;@sentry/vue&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Integrations</span> &#125; <span class="keyword">from</span> <span class="string">&quot;@sentry/tracing&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="title function_">createApp</span>(&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">const</span> router = <span class="title function_">createRouter</span>(&#123;</span><br><span class="line">  <span class="comment">// ...</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">  app,</span><br><span class="line">  <span class="attr">dsn</span>: <span class="string">&quot;http://xdfada1212@12.715.204.41:9000/2&quot;</span>,</span><br><span class="line">  <span class="attr">integrations</span>: [</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Integrations</span>.<span class="title class_">BrowserTracing</span>(&#123;</span><br><span class="line">      <span class="attr">routingInstrumentation</span>: <span class="title class_">Sentry</span>.<span class="title function_">vueRouterInstrumentation</span>(router),</span><br><span class="line">      <span class="attr">tracingOrigins</span>: [<span class="string">&quot;localhost&quot;</span>, <span class="string">&quot;my-site-url.com&quot;</span>, <span class="regexp">/^\//</span>],</span><br><span class="line">    &#125;),</span><br><span class="line">  ],</span><br><span class="line">  <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line"><span class="comment">//   environment: process.env.ENVIRONMENT,</span></span><br><span class="line">  <span class="comment">// Set tracesSampleRate to 1.0 to capture 100%</span></span><br><span class="line">  <span class="comment">// of transactions for performance monitoring.</span></span><br><span class="line">  <span class="comment">// We recommend adjusting this value in production</span></span><br><span class="line">    <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">  <span class="attr">tracesSampleRate</span>: <span class="number">1.0</span>,</span><br><span class="line">  <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.<span class="title function_">use</span>(router);</span><br><span class="line">app.<span class="title function_">mount</span>(<span class="string">&quot;#app&quot;</span>);</span><br></pre></td></tr></table></figure>
 
+<p>跟 Vue2 那段对比着看，唯一的实质差异是第一个参数从 <code>Vue</code>（构造函数）变成了 <code>app</code>（应用实例）。这是 Vue3 的应用实例模型带来的，<code>Sentry.init</code> 里传 <code>app</code> 之后，SDK 才能挂上 Vue3 的错误处理钩子。</p>
+<p>其余字段的含义完全一致，<code>release</code> 依然要跟下面上传配置里的对上。</p>
 <h3 id="sourcemap上传"><a href="#sourcemap上传" class="headerlink" title="sourcemap上传"></a>sourcemap上传</h3><blockquote>
 <p>修改<code>vite.config.js</code>配置</p>
 </blockquote>
 <p>安装<code>npm i vite-plugin-sentry -D</code>插件</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; defineConfig &#125; <span class="keyword">from</span> <span class="string">&#x27;vite&#x27;</span></span><br><span class="line"><span class="keyword">import</span> vue <span class="keyword">from</span> <span class="string">&#x27;@vitejs/plugin-vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> viteSentry <span class="keyword">from</span> <span class="string">&#x27;vite-plugin-sentry&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sentryConfig = &#123;</span><br><span class="line">  <span class="attr">configFile</span>: <span class="string">&#x27;./.sentryclirc&#x27;</span>,</span><br><span class="line">  <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">  <span class="attr">deploy</span>: &#123;</span><br><span class="line">   <span class="attr">env</span>: <span class="string">&#x27;production&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">skipEnvironmentCheck</span>: <span class="literal">true</span>, <span class="comment">// 可以跳过环境检查</span></span><br><span class="line">  <span class="attr">sourceMaps</span>: &#123;</span><br><span class="line">   <span class="attr">include</span>: [<span class="string">&#x27;./dist/assets&#x27;</span>],</span><br><span class="line">   <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>],</span><br><span class="line">   <span class="attr">urlPrefix</span>: <span class="string">&#x27;~/assets&#x27;</span>, <span class="comment">// 注意这里设置正确，否则sourcemap上传不正确</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// https://vitejs.dev/config/</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="title function_">defineConfig</span>(&#123;</span><br><span class="line">  <span class="attr">plugins</span>: [</span><br><span class="line">    <span class="title function_">vue</span>(),</span><br><span class="line">    process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span> ? <span class="title function_">viteSentry</span>(sentryConfig) : <span class="literal">null</span>,</span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">build</span>: &#123;</span><br><span class="line">    <span class="attr">sourcemap</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span>,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
+<p>Vite 和 webpack 这里的差别主要在目录约定。Vite 默认把构建产物放在 <code>dist/assets</code> 下，JS、CSS、图片全在一起，所以 <code>include</code> 和 <code>urlPrefix</code> 都是 <code>assets</code> 而不是 webpack 那边的 <code>js</code>。这两项配错的后果跟前面一样，传上去了但对不上。</p>
+<p><code>build.sourcemap</code> 这一项等价于 Vue CLI 的 <code>productionSourceMap</code>，不开就没有 map 文件。这里用 <code>process.env.NODE_ENV === &#39;production&#39;</code> 做条件，开发环境不生成，构建快一点。</p>
+<p><code>skipEnvironmentCheck: true</code> 是跳过插件自带的环境判断。加它的场景是你的 CI 里 <code>NODE_ENV</code> 不是标准的 <code>production</code>，插件会以为不该上传而跳过。</p>
+<p><code>plugins</code> 数组里那个三元表达式返回 <code>null</code>，Vite 会自动过滤掉数组里的假值，这个写法是安全的。</p>
 <blockquote>
 <p>此时当执行<code>vite build</code>时，<code>viteSentry</code>这个插件会将构建的<code>sourcemap</code>文件上传到s<code>entry</code>对应的项目<code>release</code>之下。当次版本新捕获到错误时就可以还原出错误行，以及详细的错误信息。</p>
 </blockquote>
-<p><img src="https://s.poetries.top/uploads/2022/07/605e5eb69a429340.png"></p>
-<h2 id="React-Sentry"><a href="#React-Sentry" class="headerlink" title="React + Sentry"></a>React + Sentry</h2><blockquote>
+<p><img src="https://s.poetries.top/uploads/2022/07/605e5eb69a429340.png" alt="vite 构建时上传 sourcemap 的日志输出"></p>
+<p>构建日志里会打出上传的文件列表，这是最快的确认方式。看不到这段输出就说明插件根本没执行，回去检查 <code>NODE_ENV</code> 和插件的条件判断。</p>
+<h2 id="八、React-项目接入"><a href="#八、React-项目接入" class="headerlink" title="八、React 项目接入"></a>八、React 项目接入</h2><blockquote>
 <p>使用umi项目接入演示</p>
 </blockquote>
 <h3 id="创建一个umi项目"><a href="#创建一个umi项目" class="headerlink" title="创建一个umi项目"></a>创建一个umi项目</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> umi-sentry &amp;&amp; <span class="built_in">cd</span>  umi-sentry</span><br><span class="line"></span><br><span class="line">yarn create umi</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s.poetries.top/uploads/2022/07/b7e76f88d489b17f.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/b7e76f88d489b17f.png" alt="yarn create umi 的交互式选项"></p>
+<p>选模板的交互界面，随便选个 app 类型就行，这里只是拿来演示接入。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Using npm</span></span><br><span class="line">npm install --save @sentry/react @sentry/tracing</span><br></pre></td></tr></table></figure>
 
+<p>React 用 <code>@sentry/react</code>，它额外提供了错误边界组件和 Profiler 这些 React 特有的能力。</p>
 <h3 id="接入sentry-1"><a href="#接入sentry-1" class="headerlink" title="接入sentry"></a>接入sentry</h3><p>初始化sentry</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// pages/index.ts</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> <span class="title class_">Sentry</span> <span class="keyword">from</span> <span class="string">&quot;@sentry/react&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">BrowserTracing</span> &#125; <span class="keyword">from</span> <span class="string">&quot;@sentry/tracing&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">  <span class="attr">dsn</span>: <span class="string">&quot;https://xdfa@o1334810.ingest.sentry.io/121&quot;</span>,</span><br><span class="line">  <span class="attr">integrations</span>: [<span class="keyword">new</span> <span class="title class_">BrowserTracing</span>()],</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Set tracesSampleRate to 1.0 to capture 100%</span></span><br><span class="line">  <span class="comment">// of transactions for performance monitoring.</span></span><br><span class="line">  <span class="comment">// We recommend adjusting this value in production</span></span><br><span class="line">  <span class="attr">release</span>: <span class="string">&#x27;0.0.1&#x27;</span>,</span><br><span class="line">  <span class="attr">tracesSampleRate</span>: <span class="number">1.0</span>,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 
+<p>跟 Vue 那两段对比，React 这边没有传应用实例，因为 React 的错误捕获是靠全局钩子加错误边界组件，不需要在初始化时挂到实例上。</p>
+<p>这段代码放在 <code>pages/index.ts</code> 只是为了演示。真项目里应该放在应用最早执行的地方，umi 的话是 <code>src/app.ts</code> 里，Sentry 要在其他代码之前初始化，不然初始化之前抛的错就漏了。</p>
+<p>注意这里的 DSN 是 <code>o1334810.ingest.sentry.io</code>，是官方 SaaS 的地址。用私有化部署的话换成你自己的。</p>
 <p>手动抛出异常查看是否能正确上报到sentry</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/1742ca6bb482613a.png"></p>
-<h3 id="sourcemap上传-1"><a href="#sourcemap上传-1" class="headerlink" title="sourcemap上传"></a>sourcemap上传</h3><h4 id="根目录创建配置文件-sentryclirc"><a href="#根目录创建配置文件-sentryclirc" class="headerlink" title="根目录创建配置文件 .sentryclirc"></a>根目录创建配置文件 .sentryclirc</h4><figure class="highlight js"><table><tr><td class="code"><pre><span class="line">[auth]</span><br><span class="line">token=<span class="variable constant_">TOKEN</span>控制台获取，<span class="variable constant_">TOKEN</span>需要勾选<span class="attr">project</span>:write写入权限</span><br><span class="line"></span><br><span class="line">[defaults]</span><br><span class="line">url=<span class="attr">https</span>:<span class="comment">//sentry.io/ // 默认地址</span></span><br><span class="line">org=组织名称，控制台获取</span><br><span class="line">project=react <span class="comment">// 项目名称</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://s.poetries.top/uploads/2022/07/1742ca6bb482613a.png" alt="React 项目抛出的异常在 Sentry 后台被捕获"></p>
+<p>跟 Vue 那边一样，先确认错误能进来，再去折腾 sourceMap。顺序反了的话出问题你分不清是上报没通还是映射没对上。</p>
+<h3 id="sourcemap上传-1"><a href="#sourcemap上传-1" class="headerlink" title="sourcemap上传"></a>sourcemap上传</h3><h4 id="根目录创建配置文件-sentryclirc"><a href="#根目录创建配置文件-sentryclirc" class="headerlink" title="根目录创建配置文件 .sentryclirc"></a>根目录创建配置文件 .sentryclirc</h4><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[auth]</span></span><br><span class="line"><span class="attr">token</span>=TOKEN控制台获取，TOKEN需要勾选project:write写入权限</span><br><span class="line"></span><br><span class="line"><span class="section">[defaults]</span></span><br><span class="line"><span class="attr">url</span>=https://sentry.io/</span><br><span class="line"><span class="attr">org</span>=组织名称，控制台获取</span><br><span class="line"><span class="attr">project</span>=react</span><br></pre></td></tr></table></figure>
 
+<p>这里要提醒一处。原文这段配置里用了 <code>//</code> 写行内注释，但 <code>.sentryclirc</code> 是 INI 格式，<code>//</code> 后面的内容会被当成值的一部分，<code>url</code> 就变成了一个带注释文本的非法地址。INI 的注释符是 <code>#</code> 或者 <code>;</code>，而且要独占一行。上面这份我已经把行内注释去掉了。</p>
 <h4 id="sourcemap配置上传"><a href="#sourcemap配置上传" class="headerlink" title="sourcemap配置上传"></a>sourcemap配置上传</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm i @sentry/webpack-plugin -D</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// .umirc.ts 修改</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">SentryPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;@sentry/webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">devtool</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span> ? <span class="string">&#x27;source-map&#x27;</span> : <span class="string">&#x27;eval&#x27;</span>, <span class="comment">// 开启sourcemao</span></span><br><span class="line">  <span class="title function_">chainWebpack</span>(<span class="params">config, &#123; webpack &#125;</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span>)&#123;<span class="comment">//当为prod时候才进行sourcemap的上传，如果不判断，在项目运行的打包也会上传</span></span><br><span class="line">      config.<span class="title function_">plugin</span>(<span class="string">&quot;sentry&quot;</span>).<span class="title function_">use</span>(<span class="title class_">SentryPlugin</span>, [&#123;</span><br><span class="line">        <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>],</span><br><span class="line">        <span class="attr">include</span>: <span class="string">&#x27;./dist&#x27;</span>, <span class="comment">//上传dist文件的js</span></span><br><span class="line">        <span class="attr">configFile</span>: <span class="string">&#x27;./sentryclirc&#x27;</span>, <span class="comment">//配置文件地址，这个一定要有，踩坑在这里，忘了写导致一直无法实现上传sourcemap</span></span><br><span class="line">        <span class="attr">release</span>:<span class="string">&#x27;1.0.1&#x27;</span>, <span class="comment">//版本号，自己定义的变量，整个版本号在项目里面一定要对应</span></span><br><span class="line">        <span class="attr">deleteAfterCompile</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">urlPrefix</span>: <span class="string">&#x27;~/&#x27;</span> <span class="comment">// js的代码路径前缀</span></span><br><span class="line">       &#125;])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// .umirc.ts 修改</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> <span class="title class_">SentryPlugin</span> = <span class="built_in">require</span>(<span class="string">&#x27;@sentry/webpack-plugin&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  <span class="attr">devtool</span>: process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span> ? <span class="string">&#x27;source-map&#x27;</span> : <span class="string">&#x27;eval&#x27;</span>, <span class="comment">// 开启sourcemap</span></span><br><span class="line">  <span class="title function_">chainWebpack</span>(<span class="params">config, &#123; webpack &#125;</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> === <span class="string">&#x27;production&#x27;</span>)&#123;<span class="comment">//当为prod时候才进行sourcemap的上传，如果不判断，在项目运行的打包也会上传</span></span><br><span class="line">      config.<span class="title function_">plugin</span>(<span class="string">&quot;sentry&quot;</span>).<span class="title function_">use</span>(<span class="title class_">SentryPlugin</span>, [&#123;</span><br><span class="line">        <span class="attr">ignore</span>: [<span class="string">&#x27;node_modules&#x27;</span>],</span><br><span class="line">        <span class="attr">include</span>: <span class="string">&#x27;./dist&#x27;</span>, <span class="comment">//上传dist文件的js</span></span><br><span class="line">        <span class="attr">configFile</span>: <span class="string">&#x27;./.sentryclirc&#x27;</span>, <span class="comment">//配置文件地址，这个一定要有，踩坑在这里，忘了写导致一直无法实现上传sourcemap</span></span><br><span class="line">        <span class="attr">release</span>:<span class="string">&#x27;1.0.1&#x27;</span>, <span class="comment">//版本号，自己定义的变量，整个版本号在项目里面一定要对应</span></span><br><span class="line">        <span class="attr">deleteAfterCompile</span>: <span class="literal">true</span>,</span><br><span class="line">        <span class="attr">urlPrefix</span>: <span class="string">&#x27;~/&#x27;</span> <span class="comment">// js的代码路径前缀</span></span><br><span class="line">       &#125;])</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
+<p>这段和 Vue CLI 那份的差别在于 umi 用的是 <code>chainWebpack</code>，所以是 <code>config.plugin().use()</code> 的链式写法。</p>
+<p><code>devtool</code> 这一项对应前面的 <code>productionSourceMap</code>，生产环境设成 <code>&#39;source-map&#39;</code> 才会生成完整的独立 map 文件。别用 <code>&#39;eval-source-map&#39;</code> 之类的，那些把 map 内联进 JS 里，插件拿不到独立文件。</p>
+<p><code>configFile</code> 这里原文写的是 <code>&#39;./sentryclirc&#39;</code>，少了开头的点，跟实际文件名 <code>.sentryclirc</code> 对不上。原文自己也在注释里说「踩坑在这里」，上面这份已经改成 <code>&#39;./.sentryclirc&#39;</code>。这种一个字符的差异最难查，因为找不到配置文件时 CLI 往往是静默跳过而不是报错。</p>
+<p><code>deleteAfterCompile: true</code> 是上传完自动删掉本地的 map 文件，正好解决前面说的「别把 sourceMap 发到生产」的问题，比 Vue 那节的三种手动删法都省事。</p>
+<p><code>release: &#39;1.0.1&#39;</code> 这里写死了，而 <code>Sentry.init</code> 里写的是 <code>&#39;0.0.1&#39;</code>，<strong>这两个对不上</strong>。原文注释里特意说了「整个版本号在项目里面一定要对应」，但代码本身就没对上。真用的时候记得统一，最好像我前面说的那样抽成共享变量。</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 执行打包上传sourcemap</span></span><br><span class="line">npm run build</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入dist文件，启动http-server 本地服务模拟线上效果</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s.poetries.top/uploads/2022/07/3dce162037de39ac.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/3dce162037de39ac.png" alt="umi 构建过程中上传 sourcemap 的输出"></p>
 <p>修改代码抛出异常，查看控制台sourcemap解析的效果</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/3cd50955a8f30718.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/3cd50955a8f30718.png" alt="React 项目还原后的错误堆栈"></p>
+<p>能看到源码行号就说明整条链路通了。到这里三套框架的接入就都跑完了。</p>
 <p><strong>注意：npm run build之后，不要把sourcemap上传到生产环境，记得删除</strong></p>
-<h2 id="进阶用法"><a href="#进阶用法" class="headerlink" title="进阶用法"></a>进阶用法</h2><h3 id="识别用户"><a href="#识别用户" class="headerlink" title="识别用户"></a>识别用户</h3><blockquote>
+<h2 id="九、几个值得开的进阶能力"><a href="#九、几个值得开的进阶能力" class="headerlink" title="九、几个值得开的进阶能力"></a>九、几个值得开的进阶能力</h2><p>基础链路跑通之后，下面这几个功能能让排查效率再上一个台阶。</p>
+<h3 id="识别用户"><a href="#识别用户" class="headerlink" title="识别用户"></a>识别用户</h3><blockquote>
 <p>在上传的 issues 里面，我们可以借助 setUser 方法，设置读取存在本地的用户信息。（此信息需要持久化存储，否则刷新会消失）</p>
 </blockquote>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">// app/main.js</span></span><br><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">setUser</span>(&#123;</span><br><span class="line">  <span class="attr">id</span>: <span class="string">&#x27;dfar12e31&#x27;</span>, <span class="comment">// userId cookie.get(&#x27;userId&#x27;)</span></span><br><span class="line">  <span class="attr">email</span>: <span class="string">&#x27;test@qq.com&#x27;</span>, <span class="comment">// cookie.get(&#x27;email&#x27;)</span></span><br><span class="line">  <span class="attr">username</span>: <span class="string">&#x27;poetry&#x27;</span>, <span class="comment">// cookie.get(&#x27;username&#x27;)</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="title class_">Vue</span>.<span class="property"><span class="keyword">prototype</span></span>.<span class="property">$Sentry</span> = <span class="title class_">Sentry</span></span><br></pre></td></tr></table></figure>
 
-<p><img src="https://s.poetries.top/uploads/2022/07/5406d9288512bbf5.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/5406d9288512bbf5.png" alt="Issues 详情里显示的用户信息"></p>
+<p>这个功能的价值在于把「有 37 个用户受影响」变成「张三、李四这几个用户受影响」。客服转过来一个投诉，你可以直接按用户 ID 搜到他遇到的所有错误，不用在几百条 issue 里翻。</p>
+<p>调用时机要注意，<code>setUser</code> 应该在用户登录成功之后调，登出时用 <code>Sentry.setUser(null)</code> 清掉。原文括号里那句「需要持久化存储，否则刷新会消失」说的就是这个，SDK 不会帮你记住，页面一刷新 scope 就重置了，所以要在应用初始化时从 cookie 或者 localStorage 里读回来重新设一次。</p>
+<p>另外这里有个合规问题要提醒，email 和 username 属于个人信息，上报到第三方 SaaS 之前先确认公司的隐私政策允许。私有化部署就没这个顾虑，这也是选自建的理由之一。</p>
+<p><code>Vue.prototype.$Sentry = Sentry</code> 是把 Sentry 挂到 Vue 原型上，组件里可以直接 <code>this.$Sentry.captureException(err)</code> 主动上报。这个在 <code>try/catch</code> 里很有用，被 catch 住的错误不会自动上报，得手动送。</p>
 <h3 id="错误边界"><a href="#错误边界" class="headerlink" title="错误边界"></a>错误边界</h3><ul>
 <li>定义错误边界，当组件报错的时候，可以上报相关信息</li>
 <li>使用 <code>Sentry.ErrorBoundary</code>。加了错误边界，可以把错误定位到组件上面。</li>
 </ul>
-<h3 id="rrweb-重播"><a href="#rrweb-重播" class="headerlink" title="rrweb 重播"></a>rrweb 重播</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm i @sentry/rrweb rrweb -S</span><br></pre></td></tr></table></figure>
+<p>这是 React 侧特有的能力。React 的错误边界机制本身只保证「组件树的某一部分崩了不至于整页白屏」，<code>Sentry.ErrorBoundary</code> 在这个基础上把崩掉的组件信息一起上报，你能看到是哪个组件出的问题，而不只是一段堆栈。</p>
+<p>用法是把它当普通组件包在外面。</p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">&lt;<span class="title class_">Sentry</span>.<span class="property">ErrorBoundary</span> fallback=&#123;<span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span>这块内容加载失败了<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span>&#125;&gt;</span><br><span class="line">  <span class="language-xml"><span class="tag">&lt;<span class="name">YourComponent</span> /&gt;</span></span></span><br><span class="line">&lt;/<span class="title class_">Sentry</span>.<span class="property">ErrorBoundary</span>&gt;</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">SentryRRWeb</span> <span class="keyword">from</span> <span class="string">&#x27;@sentry/rrweb&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// app/main.js</span></span><br><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">    <span class="title class_">Vue</span>,</span><br><span class="line">    <span class="attr">dsn</span>: <span class="string">&quot;xxx&quot;</span>,</span><br><span class="line">    <span class="attr">integrations</span>: [</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">Integrations</span>.<span class="title class_">BrowserTracing</span>(&#123;</span><br><span class="line">        <span class="attr">routingInstrumentation</span>: <span class="title class_">Sentry</span>.<span class="title function_">vueRouterInstrumentation</span>(router),</span><br><span class="line">        <span class="attr">tracingOrigins</span>: [<span class="string">&quot;localhost&quot;</span>, <span class="string">&quot;my-site-url.com&quot;</span>, <span class="regexp">/^/</span>/],</span><br><span class="line">      &#125;),</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">SentryRRWeb</span>(&#123;</span><br><span class="line">        <span class="attr">checkoutEveryNms</span>: <span class="number">10</span> * <span class="number">1000</span>, <span class="comment">// 每10秒重新制作快照</span></span><br><span class="line">        <span class="attr">checkoutEveryNth</span>: <span class="number">200</span>, <span class="comment">// 每 200 个 event 重新制作快照</span></span><br><span class="line">        <span class="attr">maskAllInputs</span>: <span class="literal">false</span>, <span class="comment">// 将所有输入内容记录为 *</span></span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">    <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line">    <span class="attr">environment</span>: process.<span class="property">env</span>.<span class="property">ENVIRONMENT</span>,</span><br><span class="line">    <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">    <span class="attr">tracesSampleRate</span>: <span class="number">1.0</span>,</span><br><span class="line">    <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">    <span class="attr">logErrors</span>: <span class="literal">true</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>包的粒度是个取舍。整个 App 包一层，白屏能兜住但定位不精确；每个业务模块各包一层，定位精确而且局部降级不影响其他区域，代价是代码里多了不少嵌套。我一般在路由级别和几个重点业务区块包，不会包到每个组件。</p>
+<h3 id="rrweb-录屏回放"><a href="#rrweb-录屏回放" class="headerlink" title="rrweb 录屏回放"></a>rrweb 录屏回放</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm i @sentry/rrweb rrweb -S</span><br></pre></td></tr></table></figure>
 
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="title class_">SentryRRWeb</span> <span class="keyword">from</span> <span class="string">&#x27;@sentry/rrweb&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// app/main.js</span></span><br><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">    <span class="title class_">Vue</span>,</span><br><span class="line">    <span class="attr">dsn</span>: <span class="string">&quot;xxx&quot;</span>,</span><br><span class="line">    <span class="attr">integrations</span>: [</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">Integrations</span>.<span class="title class_">BrowserTracing</span>(&#123;</span><br><span class="line">        <span class="attr">routingInstrumentation</span>: <span class="title class_">Sentry</span>.<span class="title function_">vueRouterInstrumentation</span>(router),</span><br><span class="line">        <span class="attr">tracingOrigins</span>: [<span class="string">&quot;localhost&quot;</span>, <span class="string">&quot;my-site-url.com&quot;</span>, <span class="regexp">/^\//</span>],</span><br><span class="line">      &#125;),</span><br><span class="line">      <span class="keyword">new</span> <span class="title class_">SentryRRWeb</span>(&#123;</span><br><span class="line">        <span class="attr">checkoutEveryNms</span>: <span class="number">10</span> * <span class="number">1000</span>, <span class="comment">// 每10秒重新制作快照</span></span><br><span class="line">        <span class="attr">checkoutEveryNth</span>: <span class="number">200</span>, <span class="comment">// 每 200 个 event 重新制作快照</span></span><br><span class="line">        <span class="attr">maskAllInputs</span>: <span class="literal">false</span>, <span class="comment">// 将所有输入内容记录为 *</span></span><br><span class="line">      &#125;),</span><br><span class="line">    ],</span><br><span class="line">    <span class="comment">// 不同的环境上报到不同的 environment 分类</span></span><br><span class="line">    <span class="attr">environment</span>: process.<span class="property">env</span>.<span class="property">ENVIRONMENT</span>,</span><br><span class="line">    <span class="comment">//  高访问量应用可以控制上报百分比</span></span><br><span class="line">    <span class="attr">tracesSampleRate</span>: <span class="number">1.0</span>,</span><br><span class="line">    <span class="attr">release</span>: process.<span class="property">env</span>.<span class="property">SENTRY_VERSION</span> || <span class="string">&#x27;0.0.1&#x27;</span>, <span class="comment">// 版本号，每次都npm run build上传都修改版本号</span></span><br><span class="line">    <span class="attr">logErrors</span>: <span class="literal">true</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>顺便说一下，原文这段里 <code>tracingOrigins</code> 的正则写成了 <code>/^//</code>，这在 JS 里是无效的，斜杠必须转义。前面 Vue2 那段写的 <code>/^\//</code> 才是对的，上面已经统一。这种错误 copy 过去会直接导致语法错误，构建都过不了。</p>
 <p>在报错后，可以录屏播放错误发生的情况</p>
-<p><img src="https://s.poetries.top/uploads/2022/07/d7231e857e234509.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/d7231e857e234509.png" alt="Sentry 中回放用户操作录像"></p>
+<p>rrweb 的原理不是真的录视频，而是记录 DOM 的变更事件，回放时在页面上重建。所以数据量比视频小得多，但也意味着 canvas、video 这类内容回放不出来。</p>
+<p>三个参数说一下。<code>checkoutEveryNms</code> 和 <code>checkoutEveryNth</code> 是全量快照的间隔，rrweb 平时只记增量变更，隔一段时间打一个完整快照，回放时从最近的快照往后放，不用从头重建。间隔越短数据量越大，回放定位越快。</p>
+<p><code>maskAllInputs</code> 这一项默认建议开成 <code>true</code>，也就是把所有输入框内容打码。原文设成 <code>false</code> 是为了演示方便，但线上千万别这么配，用户在表单里输的密码、手机号、身份证会被原样记录上报，这是实打实的数据泄漏。真要看某个输入框的内容，rrweb 支持按 class 单独放开。</p>
+<p>说实话录屏这个功能我在生产上用得不多，一是数据量确实大，二是隐私顾虑，我更常用的还是面包屑。但遇到那种怎么都复现不了的诡异 bug，能看一遍用户实际操作，价值就出来了。</p>
 <h3 id="手动设置报警"><a href="#手动设置报警" class="headerlink" title="手动设置报警"></a>手动设置报警</h3><ul>
 <li>设置报警规则，当我们某些情况，如 <code>issues</code>，<code>performance</code> 超过我们设置的阈值，会触发 <code>alert</code>。</li>
 <li>我们可以通过提醒等功能来帮助我们即时发现问题。</li>
 </ul>
-<p><img src="https://s.poetries.top/uploads/2022/07/4bd87c7949fd6a74.png"></p>
+<p><img src="https://s.poetries.top/uploads/2022/07/4bd87c7949fd6a74.png" alt="Sentry 的 Alerts 报警规则配置页"></p>
+<p>监控平台不配报警等于没配。没人会每天主动打开后台看有没有新错误，只有报警推到群里才会有人管。</p>
+<p>规则怎么定我的建议是从严到宽反着来。刚上线时先配一条最粗的，比如「出现新的未见过的错误就通知」，跑一周看看噪音有多大。然后按噪音来源逐条收紧，把那些已知的、不影响功能的错误加进忽略列表。一上来就配十条精细规则的结果通常是群里被刷屏，然后所有人都把通知静音了。</p>
+<p>阈值这块，「5 分钟内同一错误超过 N 次」这种基于频率的规则比「出现即报」实用得多，能自动过滤掉个别用户环境导致的偶发问题。</p>
+<p>关于前端监控体系的整体设计，采集哪些指标、怎么和后端链路打通，我之前写过一篇 <a href="https://feinterview.poetries.top/blog/fe-monitor-sys">前端监控系统</a> 可以配合看，那篇讲的是自研思路，跟这篇的现成方案正好互补。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Sentry 落地这件事，真正花时间的是部署和 sourceMap，SDK 接入反而是最简单的一步。</p>
+<p>私有化部署的门槛是 8G 内存和镜像加速这两条，前者不满足服务起不来，后者不满足脚本跑不完。装之前先把 <code>docker info</code> 里的 <code>Registry Mirrors</code> 确认了，能省你一整个下午。<code>install.sh</code> 挂在 tmux 里跑，别让 SSH 断线毁掉四十分钟。</p>
+<p>sourceMap 那部分，我的经验是三个字段决定成败。<code>release</code> 两边必须完全一致，代码里和上传配置里；<code>urlPrefix</code> 要对着 Network 面板里的真实资源路径填；<code>configFile</code> 路径别写漏点。这三项配错都不会给你明确报错，只是默默失效，所以每次改完一定去 Releases 的 Artifacts 列表里眼看确认一遍。</p>
+<p>传完之后一定要删掉生产环境的 map 文件，<code>deleteAfterCompile</code> 或者构建脚本里接一条 <code>rimraf</code>，选哪个都行，别忘了就好。</p>
+<p>至于开哪些功能，我的默认组合是面包屑加 <code>setUser</code> 加报警规则，这三个投入产出比最高。录屏按需开，开的话 <code>maskAllInputs</code> 必须是 <code>true</code>。性能采样率生产环境往 0.1 调，错误上报保持全量。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.sentry.io/">Sentry 官方文档</a></li>
+<li><a href="https://github.com/getsentry/self-hosted">Sentry Self-Hosted 部署仓库</a></li>
+<li><a href="https://docs.sentry.io/platforms/javascript/guides/vue/">Sentry Vue SDK 文档</a></li>
+<li><a href="https://docs.sentry.io/platforms/javascript/guides/react/">Sentry React SDK 文档</a></li>
+<li><a href="https://docs.sentry.io/platforms/javascript/sourcemaps/">Sentry Source Maps 配置指南</a></li>
+<li><a href="https://github.com/getsentry/sentry-webpack-plugin">sentry-webpack-plugin 仓库</a></li>
+<li><a href="https://github.com/ikenfin/vite-plugin-sentry">vite-plugin-sentry 仓库</a></li>
+<li><a href="https://github.com/rrweb-io/rrweb">rrweb 仓库</a></li>
+<li><a href="https://web.dev/articles/vitals">Web Vitals 指标说明</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
 
       </div>
     
