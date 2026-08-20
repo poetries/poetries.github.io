@@ -1,27 +1,76 @@
 ---
-title: React Native之启动流程
+title: React Native启动流程源码拆解从MainActivity到第一帧
+description: 跟着源码走一遍 React Native 在 Android 上的冷启动全过程，从 MainApplication、ReactActivityDelegate、ReactInstanceManager 到 C++ 层的 JSCExecutor，最后回到 AppRegistry.runApplication 完成首帧渲染。
 date: 2019-10-02 15:40:12
-tags: 
- - RN
- - react
+tags:
+  - RN
+  - react
+  - 源码
 categories: Front-End
 ---
 
-> `JS`程序的入口，将当前`APP`对象注册到`AppRegistry`组件中，`AppRegistry`组件是`js module`
+`React Native` 的项目跑起来之后，最让人好奇的一件事是，你在 `index.js` 里就写了一行 `AppRegistry.registerComponent`，`Android` 那边一个 `MainActivity` 里就写了个返回字符串的方法，这两头是怎么对上的？中间隔着 `Java`、`C++`、`JavaScript` 三层，`bundle` 从哪儿读、`JS` 引擎什么时候创建、第一帧是谁触发的，光看业务代码是一点线索都没有。
+
+这篇跟着源码把 `Android` 侧的冷启动完整走一遍。从 `MainApplication` 出发，一层层往下到 `C++` 的 `JSCExecutor`，再从 `JS` 侧的 `AppRegistry.js` 折返回来完成首帧渲染。读完你应该能在脑子里画出这条完整的调用链，看到启动慢或者白屏的时候知道该往哪一段查。
+
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
+
+- `JS` 侧的入口 `AppRegistry.registerComponent`，那个字符串名字是干什么用的
+- `MainApplication` 和 `MainActivity` 各自负责什么，`SoLoader` 在加载谁
+- `ReactActivity` 为什么把所有活都委托给 `ReactActivityDelegate`
+- `ReactRootView.startReactApplication` 的三个参数分别是什么
+- `ReactInstanceManager` 怎么在后台线程里创建 `ReactContext`
+- `CatalystInstance` 构造时的 `initializeBridge` 到底桥接了什么
+- `JSBundleLoader` 在 `Debug` 和 `Release` 下分别从哪里读 `bundle`
+- 下到 `C++` 层，`Instance.cpp` 到 `JSCExecutor.cpp` 这一段发生了什么
+- 回到 `Java` 侧，`setupReactContext` 和 `runApplication` 怎么触发首帧
+- 这条链路在新架构下变成了什么样
+
+## 一、先给一张地图
+
+具体的类名很多，先把主干记住，后面看细节才不会迷路。
+
+整条链路可以概括成一句话，`Java` 侧准备好环境和模块表，交给 `C++` 侧把 `JS bundle` 喂进引擎执行，`JS` 侧执行完注册好组件，`Java` 侧再回头喊一声「跑吧」，`JS` 才开始渲染。
+
+按调用顺序排一遍是这样。
+
+```
+MainApplication (SoLoader 加载 C++ 库)
+  → MainActivity → ReactActivity → ReactActivityDelegate.onCreate
+  → ReactRootView.startReactApplication
+  → ReactInstanceManager.createReactContextInBackground
+  → createReactContext (建两张模块注册表 + CatalystInstance)
+  → CatalystInstanceImpl.initializeBridge (JNI 下到 C++)
+  → JSBundleLoader.loadScript → CatalystInstanceImpl.cpp
+  → Instance.cpp → NativeToJsBridge.cpp → JSCExecutor.cpp (真正执行 JS)
+  → 回到 Java：setupReactContext → rootView.runApplication
+  → AppRegistry.js runApplication → 开始渲染
+```
+
+注意中间有一次「下到 `C++` 再折回 `Java`」的往返，这是最容易看晕的地方，遇到的时候回来看这张图。
+
+## 二、JS 侧的入口
+
+先从最熟悉的那一端看起。`JS` 程序的入口做的事只有一件，把当前 `App` 的根组件注册到 `AppRegistry` 这个 `JS` 模块里。
 
 ```js
 import { AppRegistry } from 'react-native'
- ...省略代码
+// ...省略代码
 
- AppRegistry.registerComponent('demo', () => Index)
- ```
+AppRegistry.registerComponent('demo', () => Index)
+```
 
-## 启动流程
+`registerComponent` 的第一个参数是组件名，第二个是一个返回根组件的工厂函数。注意它只是「注册」，登记在一张表里，并没有渲染任何东西。真正的渲染要等原生侧准备好之后回过头来调 `runApplication`，那时候才会按这个名字去表里找组件。
 
-- 我们新建一个RN的项目，在原生代码中会生成`MainActivity`和`MainApplication`两个`Java`类。顾名思义，`MainAcitivity`就是我们的`Native`的入口了，
-- 我们先来看下`MainApplication`都做了哪些操作
+那个字符串 `'demo'` 是两端约定的暗号，记住它，第三节马上会再见到。
 
-```js
+## 三、MainApplication 和 MainActivity
+
+新建一个 `RN` 项目，原生代码里会生成 `MainActivity` 和 `MainApplication` 两个 `Java` 类。顾名思义，`MainActivity` 就是原生侧的入口。
+
+先看 `MainApplication` 做了哪些事。
+
+```java
 public class MainApplication extends Application implements ReactApplication {
     //ReactNativeHost：持有ReactInstanceManager实例，做一些初始化操作。
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
@@ -50,12 +99,19 @@ public class MainApplication extends Application implements ReactApplication {
     SoLoader.init(this, /* native exopackage */ false);
   }
 }
-}
 ```
 
-我们再来看下`MainActivity`的代码
+这个类里有三处值得留意。
 
-```js
+`ReactNativeHost` 是一个持有 `ReactInstanceManager` 实例的容器，做一些初始化配置。`getUseDeveloperSupport` 返回 `BuildConfig.DEBUG`，这一个布尔值决定了后面一系列分支，包括 `bundle` 从 `Metro` 服务器拉还是从 `assets` 读、红屏错误提示要不要显示、开发者菜单能不能调出来。所以 `Debug` 包和 `Release` 包在启动路径上是真的不一样，测性能必须用 `Release` 包，这一点在[React Native 真机调试完整流程](https://feinterview.poetries.top/blog/rn-device-debug)里也提到过。
+
+`getPackages` 返回的是这个应用要加载的所有 `ReactPackage`。装一个原生库要在这里加一行，说的就是这个位置（后来有了自动链接就不用手动加了）。每个 `Package` 里声明了它提供哪些 `NativeModule` 和 `ViewManager`，第六节创建注册表的时候会遍历这个列表。
+
+`SoLoader.init` 是在加载 `C++` 底层库，为后面解析 `JS` 做准备。这一步失败的话，启动会直接崩在最开始，报的是找不到 `so` 库。
+
+再看 `MainActivity`。
+
+```java
 public class MainActivity extends ReactActivity {
 
     @Override
@@ -65,13 +121,15 @@ public class MainActivity extends ReactActivity {
 }
 ```
 
-> 可以看到其实是继承了`ReactActivity`类，只是重写了`getMainComponentName`方法，有没有看出来，其方法的返回值和我们在`JS`端的值是一样的。如果不一致会怎么样，你可以自己试一下。
+它继承了 `ReactActivity`，只重写了 `getMainComponentName` 方法。看这个返回值，`"demo"`，和第二节 `AppRegistry.registerComponent` 的第一个参数是同一个字符串。
 
-## ReactActivity
+这就是那个暗号。原生侧最后会拿这个名字去 `JS` 侧的注册表里查组件，两边不一致就查不到，启动时会报「`Application demo has not been registered`」。这个错误信息在第十一节还会再见到一次。
 
-> 我们来看下`ReactActivity`的方法的`onCreate`方法
+## 四、ReactActivity 与 ReactActivityDelegate
 
-```js
+看 `ReactActivity` 的 `onCreate`。
+
+```java
 public abstract class ReactActivity extends Activity
     implements DefaultHardwareBackBtnHandler, PermissionAwareActivity {
     private final ReactActivityDelegate mDelegate;
@@ -86,11 +144,13 @@ public abstract class ReactActivity extends Activity
 }
 ```
 
-> `ReactActivity`全权委托给`ReactActivityDelegate`来处理
+一行实际逻辑都没有，全权委托给了 `ReactActivityDelegate`。
 
-**ReactActivityDelegate**
+这个设计不是多此一举。`Activity` 的继承链只有一条，如果 `RN` 的逻辑全写在 `ReactActivity` 里，那你的 `Activity` 就必须继承它，没法再继承公司内部的 `BaseActivity`。把逻辑抽到 `Delegate` 里之后，任何 `Activity` 都可以自己 `new` 一个 `ReactActivityDelegate` 持有着，在各个生命周期回调里转发一下就行。混合开发的项目基本都是这么接的。
 
-```js
+接着看 `Delegate` 里干了什么。
+
+```java
 public class ReactActivityDelegate {
       protected void onCreate(Bundle savedInstanceState) {
       // 弹框权限判断
@@ -130,15 +190,21 @@ public class ReactActivityDelegate {
 }
 ```
 
-> `loadApp`做了三件事:创建`RootView`、创建`ReactApplication`、创建`ReactInstanceManager`
+`onCreate` 里做了两件事。前半段是弹框权限判断，`Debug` 包下要显示红屏错误提示，而红屏是一个悬浮窗，`Android 6.0` 及以上需要用户授予「显示在其他应用上层」的权限。没有这个权限就得跳到系统设置去申请，这也是为什么有些开发机第一次跑 `RN` 项目会莫名其妙跳到一个设置页面。`Release` 包不需要红屏，所以这段不会执行。
 
-## ReactRootView
+后半段调 `loadApp`，参数就是 `MainActivity` 里 `getMainComponentName` 返回的那个 `"demo"`。
 
-> ReactRootView是一个自定义的View，其父类是FrameLayout。因此，可以把RN看成是一个特殊的 “自定义View”。
+`loadApp` 做的事是创建 `RootView`，把它接到 `ReactInstanceManager` 上，然后设为 `Activity` 的内容视图。
 
-> 我们来看下`startReactApplication`方法
+注意 `mReactRootView != null` 那个判断，重复调用 `loadApp` 会直接抛异常。这个约束在混合开发里要留意，同一个 `Delegate` 不能复用来加载第二个页面。
 
-```js
+## 五、ReactRootView 与 startReactApplication
+
+`ReactRootView` 是一个自定义的 `View`，父类是 `FrameLayout`。所以可以把整个 `RN` 页面看成一个特殊的「自定义 View」，它和普通的 `Android` 视图没有本质区别，这也是 `RN` 能和原生页面混合的基础。
+
+看它的 `startReactApplication` 方法。
+
+```java
 public void startReactApplication(
       ReactInstanceManager reactInstanceManager,
       String moduleName,
@@ -165,21 +231,25 @@ public void startReactApplication(
       Systrace.endSection(TRACE_TAG_REACT_JAVA_BRIDGE);
     }
   }
-  ```
+```
 
-  > `startReactApplication`中的三个参数
+第一行 `UiThreadUtil.assertOnUiThread()` 就把约束定死了，这个方法必须在 `UI` 线程调用。后面的 `attachToReactInstanceManager` 会在视图宽高测量完成后添加布局监听，这个动作也只能在 `UI` 线程做。
 
-  |形参	|描述|
-  |---|---|
-  |`reactInstanceManager`|`ReactInstanceManager`类型，创建和管理`CatalyInstance`的实例|
- | `moduleName`	|就是之前的组件名|
- |`initialProperties`	|是`Native`向JS传递的数据，以后可能由POJO代替，默认是`null`，需要的话要重写`createReactActivityDelegate` ，并重写其中`getLaunchOptions`方法|
+三个参数的含义如下。
 
- > `startReactApplication` 中调用了`ReactInstanceManager`的`createReactContextInBackground`方法。
+| 形参 | 描述 |
+|---|---|
+| `reactInstanceManager` | `ReactInstanceManager` 类型，创建和管理 `CatalystInstance` 的实例 |
+| `moduleName` | 就是前面那个组件名，一路从 `getMainComponentName` 传过来 |
+| `initialProperties` | 原生向 `JS` 传递的初始数据，默认是 `null`。需要的话要重写 `createReactActivityDelegate`，并在其中重写 `getLaunchOptions` 方法 |
 
-## ReactInstanceManager
+`initialProperties` 这个参数在混合开发里很有用。原生页面跳进 `RN` 页面时想带点参数过去，比如用户 `ID` 或者一个业务单号，就是通过它传的，`JS` 侧在根组件的 `props` 里能直接拿到。
 
-```js
+方法里最关键的是这个判断，如果 `ReactContext` 还没开始创建，就调 `createReactContextInBackground` 异步创建。方法名里的 `InBackground` 说明这活是在后台线程做的，不会阻塞 `UI` 线程，这也是为什么 `RN` 页面刚打开时会先白一下再出内容。
+
+## 六、ReactInstanceManager 创建 ReactContext
+
+```java
 public void createReactContextInBackground() {
     //首次执行
      mHasStartedCreatingInitialContext = true;
@@ -187,9 +257,9 @@ public void createReactContextInBackground() {
 }
 ```
 
-> 该方法只会在`application`中执行一次，JS重载时，会走`recreateReactContextInBackground`, 这两个方法最终都会调用`recreateReactContextInBackgroundInner`方法
+这个方法在一个应用里只会执行一次。`JS` 热重载的时候走的是 `recreateReactContextInBackground`，两个方法最终都会汇到 `recreateReactContextInBackgroundInner`。
 
-```js
+```java
 @ThreadConfined(UI)
   private void recreateReactContextInBackgroundInner() {
     // 确保在UI线程中执行
@@ -212,12 +282,16 @@ public void createReactContextInBackground() {
   }
 ```
 
-|形参|	描述|
-|---|---|
-|`jsExecutorFactory`|	C++和JS双向通信的中转站|
-|`jsBundleLoader`|	`bundle`加载器，根据`ReactNativeHost`中的配置决定从哪里加载`bundle`文件|
+这里是 `Debug` 和 `Release` 分叉的地方。开发模式下走上面那个提前 `return` 的分支，去连 `Metro` 服务器要 `bundle`；正式包走下面的 `recreateReactContextInBackgroundFromBundleLoader`，从本地 `assets` 读。
 
-```js
+两个参数的含义如下。
+
+| 形参 | 描述 |
+|---|---|
+| `jsExecutorFactory` | `C++` 和 `JS` 双向通信的中转站的工厂 |
+| `jsBundleLoader` | `bundle` 加载器，根据 `ReactNativeHost` 中的配置决定从哪里加载 `bundle` 文件 |
+
+```java
 private void recreateReactContextInBackground(
     JavaScriptExecutor.Factory jsExecutorFactory,
     JSBundleLoader jsBundleLoader) {
@@ -236,9 +310,9 @@ private void recreateReactContextInBackground(
   }
 ```
 
-> `runCreateReactContextOnNewThread`中有一个核心方法`createReactContext`来创建`ReactContext`
+`runCreateReactContextOnNewThread` 里有一个核心方法 `createReactContext` 用来创建 `ReactContext`。下面这段是整条启动链路里信息量最大的一块，值得逐行看。
 
-```js
+```java
 private ReactApplicationContext createReactContext(
       JavaScriptExecutor jsExecutor,
       JSBundleLoader jsBundleLoader) {
@@ -334,18 +408,21 @@ private ReactApplicationContext createReactContext(
   }
 ```
 
-> 这段代码比较长，它主要做了这几件事：
+这段代码比较长，拆开看它主要做了四件事。
 
-- 创建`JavaModule`注册表和`JavaScriptModule`注册表，交给`CatalystInstance`管理。
-- 处理`ReactPackage`，将各自的`Module`放入对应的注册表中。
-- 通过上面的各个参数创建`CatalystInstance`实例。
-`CatalystInstance`关联`ReactContext`，开始加载`JS Bundle`
+创建 `JavaModule` 注册表和 `JavaScriptModule` 注册表，交给 `CatalystInstance` 管理。处理 `ReactPackage`，把各自的 `Module` 放进对应的注册表。用前面准备好的各个参数创建 `CatalystInstance` 实例。最后让 `CatalystInstance` 关联 `ReactContext`，开始加载 `JS Bundle`。
 
-## CatalystInstance
+两张注册表就是[React Native 原理浅析](https://feinterview.poetries.top/blog/rn-yuanli)里讲的那套「两边各存一份模块映射表」在 `Android` 上的落地。`NativeModuleRegistry` 记录 `Java` 侧暴露给 `JS` 的所有方法，`JavaScriptModuleRegistry` 记录 `JS` 侧暴露给 `Java` 的所有方法。跨界调用时传的 `moduleID` 和 `methodID`，查的就是这两张表。
 
-> 我们来看下`CatalystInstance`的实现类`CatalystInstanceImpl`的构造方法
+有个性能上的细节值得注意，`mLazyNativeModulesEnabled` 这个开关控制原生模块是不是懒加载。开着的话注册时只记名字不创建实例，第一次被 `JS` 调到时才真正 `new` 出来。项目里原生模块一多，这个开关对冷启动的影响是能测出来的。
 
-```js
+`CoreModulesPackage` 那一块封装的是 `RN` 框架自己的核心功能，通信、调试、`UIManager` 这些，它会先于业务的 `ReactPackage` 被处理。
+
+## 七、CatalystInstance 与 initializeBridge
+
+看 `CatalystInstance` 的实现类 `CatalystInstanceImpl` 的构造方法。
+
+```java
 private CatalystInstanceImpl(
       final ReactQueueConfigurationSpec reactQueueConfigurationSpec,
       final JavaScriptExecutor jsExecutor,
@@ -373,7 +450,11 @@ private CatalystInstanceImpl(
   }
 ```
 
-```js
+`initHybrid()` 返回的 `mHybridData` 是 `JNI` 相关的句柄，它把 `Java` 对象和 `C++` 对象绑在一起。`ReactQueueConfigurationImpl.create` 创建的是那几条消息队列线程，也就是原理篇里说的三条线在 `Android` 上的实现。
+
+真正的重头戏是 `initializeBridge`，它是一个 `native` 方法，调过去就下到 `C++` 层了。
+
+```java
 private native void initializeBridge(
       ReactCallback callback,
       JavaScriptExecutor jsExecutor,
@@ -384,19 +465,23 @@ private native void initializeBridge(
       Collection<ModuleHolder> cxxModules);
 ```
 
-|形参|	描述|
+参数含义如下。
+
+| 形参 | 描述 |
 |---|---|
-|`ReactCallback`|	CatalystInstanceImpl的静态内部类`ReactCallback`，负责接口回调|
-|`JavaScriptExecutor`|	JS执行器，将JS的调用传给C++层|
-|`MessageQueueThread` |	`JS`线程|
-|`MessageQueueThread moduleQueue`	|`Java`线程|
-|`MessageQueueThread uiBackgroundQueue`	|`UI`背景线程|
-|`javaModules`|	`java module`|
-|`cxxModules` | `c++ module`|
+| `ReactCallback` | `CatalystInstanceImpl` 的静态内部类，负责接口回调 |
+| `JavaScriptExecutor` | `JS` 执行器，把 `JS` 的调用传给 `C++` 层 |
+| `MessageQueueThread jsQueue` | `JS` 线程 |
+| `MessageQueueThread moduleQueue` | `Java` 模块所在的线程 |
+| `MessageQueueThread uiBackgroundQueue` | `UI` 背景线程 |
+| `javaModules` | `Java` 侧的模块集合 |
+| `cxxModules` | `C++` 侧的模块集合 |
 
-> `createReactContext`方法中用`catalystInstance.runJSBundle()` 来加载 `JS bundle`
+这一步把线程、模块表、执行器三样东西全都交给了 `C++` 层。从这里开始，`Java` 和 `JS` 之间就真正接通了。
 
-```js
+桥接好之后，`createReactContext` 方法里用 `catalystInstance.runJSBundle()` 来加载 `JS bundle`。
+
+```java
 @Override
   public void runJSBundle() {
 
@@ -406,11 +491,11 @@ private native void initializeBridge(
   }
 ```
 
-## JSBundleLoader
+## 八、JSBundleLoader 从哪里读 bundle
 
-> `CatalystInstanceImpl.runJSBundle()`会调用`JSBundleLoader`去加载`JS Bundle`，由于不同的情况可能会有不同的`JSBundleLoader`，我们假设其中一种
+`runJSBundle()` 会调 `JSBundleLoader` 去加载 `JS Bundle`。不同场景下用的是不同的 `JSBundleLoader` 实现，这里看其中一种。
 
-```js
+```java
 public abstract class JSBundleLoader {
 
   /**
@@ -432,9 +517,13 @@ public abstract class JSBundleLoader {
   }
 ```
 
-> 可以看到它会继续调用`CatalystInstance`中的`loadScriptFromAssets`方法
+`createAssetLoader` 就是正式包走的那条路，注释里也写明了这是给 `release` 版本推荐的方式。`JS bundle` 直接在原生代码里从 `assets` 读，避免把一个几 `MB` 的大字符串从 `Java` 传到 `native` 内存，省一次拷贝。
 
-```js
+开发模式下用的是另一个实现，从 `Metro` 服务器把 `bundle` 下载下来再加载。这也解释了为什么 `Debug` 包第一次启动明显慢，它要等 `Metro` 完整打包一次。
+
+它会继续调用 `CatalystInstance` 中的 `loadScriptFromAssets` 方法。
+
+```java
 public class CatalystInstanceImpl {
 
   /* package */ void loadScriptFromAssets(AssetManager assetManager, String assetURL) {
@@ -447,17 +536,19 @@ public class CatalystInstanceImpl {
 }
 ```
 
-> 最终呢，还是会调用`CatalystInstanceImpl.cpp`去加载`JS Bundle`，我们去`C++`层看一下实现
+又是一个 `native` 方法，说明马上要下到 `C++` 层了。
 
-我们先看下源码的结构图
+下去之前先看一眼源码的目录结构，知道这些文件都在哪儿，跟着看的时候不容易迷路。
 
-![](https://poetries1.gitee.io/img-repo/2019/10/677.png)
+![React Native Android 端源码结构图，展示 Java 层、JNI 层与 C++ 层的文件组织](https://s.poetries.top/gitee/2019/10/677.png)
 
-## CatalystInstanceImpl.cpp
+## 九、下到 C++ 层
 
-> 在ReactAndroid的Jni中，我们看下相关代码：
+### 9.1 CatalystInstanceImpl.cpp
 
-```js
+在 `ReactAndroid` 的 `JNI` 部分，能找到刚才那个 `native` 方法的实现。
+
+```cpp
 void CatalystInstanceImpl::jniLoadScriptFromAssets(
     jni::alias_ref<JAssetManager::javaobject> assetManager,
     const std::string& assetURL,
@@ -478,15 +569,19 @@ void CatalystInstanceImpl::jniLoadScriptFromAssets(
       loadSynchronously);
     return;
   } else {
-    //bundle命令打包走次流程，instance_是Instan.h中类的实例
+    //bundle命令打包走此流程，instance_是Instance.h中类的实例
     instance_->loadScriptFromString(std::move(script), sourceURL, loadSynchronously);
   }
 }
 ```
 
-## Instance.cpp
+这个函数干了四件事，去掉 `assets://` 前缀拿到真实路径，取出 `AssetManager`，把 `bundle` 内容读进内存，然后判断打包方式走不同分支。
 
-```js
+`isUnbundle` 那个判断值得说一下，第 9.3 节会展开 `unbundle` 是什么。
+
+### 9.2 Instance.cpp
+
+```cpp
 void Instance::loadScriptFromString(std::unique_ptr<const JSBigString> string,
                                     std::string sourceURL,
                                     bool loadSynchronously) {
@@ -511,15 +606,17 @@ void Instance::loadApplicationSync(
 }
 ```
 
-**NativeToJsBridge.cpp**
+这里有个同步和异步的分叉。`loadApplicationSync` 会先拿锁等 `m_syncReady`，阻塞当前线程直到加载完成；`loadApplication` 则是把任务丢到执行队列上异步跑。绝大多数场景走的是异步那条，同步加载只在特定场景下用，因为它会卡住调用方。
 
-```js
+### 9.3 NativeToJsBridge.cpp
+
+```cpp
 void NativeToJsBridge::loadApplication(
     std::unique_ptr<JSModulesUnbundle> unbundle,
     std::unique_ptr<const JSBigString> startupScript,
     std::string startupScriptSourceURL) {
 
-  //获取一个MessageQueueThread，探后在线程中执行一个Task。
+  //获取一个MessageQueueThread，然后在线程中执行一个Task。
   runOnExecutorQueue(
       m_mainExecutorToken,
       [unbundleWrap=folly::makeMoveWrapper(std::move(unbundle)),
@@ -540,16 +637,17 @@ void NativeToJsBridge::loadApplication(
 }
 ```
 
-> unbundle命令，使用方式和bundle命令完全相同。unbundle命令是在bundle命令的基础上增加了一项功能，除了生成整合JS文件index.android.bundle外，还会
-生成各个单独的未整合JS文件（但会被优化），全部放在js-modules目录下，同时会生成一个名为UNBUNDLE的标识文件，一并放在其中。UNBUNDLE标识文件的前4个字节
-固定为0xFB0BD1E5，用于加载前的校验。
+这里顺带解释一下前面提到的 `unbundle`。
 
-- 该函数进一步调用`JSExecutor.cpp`的`loadApplicationScript()`方法。
-- 到了这个方法，就是去真正加载JS文件了。
+`unbundle` 命令的使用方式和 `bundle` 完全相同，它在 `bundle` 的基础上多做了一件事。除了生成整合后的 `index.android.bundle`，还会把各个模块单独输出成未整合的 `JS` 文件（依然会被优化过），全部放在 `js-modules` 目录下，同时生成一个名为 `UNBUNDLE` 的标识文件一并放进去。这个标识文件的前 4 个字节固定是 `0xFB0BD1E5`，加载前用来做校验，前面 `isUnbundle` 判断的就是它。
 
-**JSCExecutor.cpp**
+拆开的好处是可以按需加载模块，启动时不必把整个 `bundle` 全解析一遍，对大型应用的冷启动有帮助。代价是模块之间的调用要多走一层查找。
 
-```js
+回到主线。这个函数进一步调用 `JSExecutor.cpp` 的 `loadApplicationScript()` 方法，到了这一步，就是去真正加载并执行 `JS` 文件了。
+
+### 9.4 JSCExecutor.cpp
+
+```cpp
 void JSCExecutor::loadApplicationScript(std::unique_ptr<const JSBigString> script, std::string sourceURL) {
 
     ...
@@ -559,7 +657,11 @@ void JSCExecutor::loadApplicationScript(std::unique_ptr<const JSBigString> scrip
 }
 ```
 
-```js
+`evaluateSourceCode` 这一行就是整条链路的终点，你写的所有 `JS` 代码在这一刻被 `JavaScriptCore` 求值执行。第二节那句 `AppRegistry.registerComponent('demo', () => Index)` 也是在这时候跑的，组件被登记进 `JS` 侧的注册表。
+
+执行完立刻 `flush`。
+
+```cpp
 void JSCExecutor::flush() {
     ...
     //绑定bridge，核心就是通过getGlobalObject()将JS与C++通过Webkit jSC实现绑定
@@ -570,7 +672,7 @@ void JSCExecutor::flush() {
 }
 ```
 
-```js
+```cpp
 void JSCExecutor::callNativeModules(Value&& value) {
     ...
     //把JS层相关通信数据转换为JSON格式
@@ -581,17 +683,23 @@ void JSCExecutor::callNativeModules(Value&& value) {
 }
 ```
 
-- `m_flushedQueueJS`支线的是`MessageQueue.js`的`flushedQueue()`方法，此时JS已经被加载到队列中，等待Java层来驱动它。
-- `JS Bundle`加载并解析完成后，我们回到Java代码中看看后续的流程
-- 我们在之前的`runCreateReactContextOnNewThread`方法中，在`creatReactContext`之后还有一句核心的代码
+`m_flushedQueueJS` 指向的是 `MessageQueue.js` 的 `flushedQueue()` 方法。调它一下，就把 `JS` 侧在执行 `bundle` 期间攒下来的所有待发调用一次性取出来。
 
-```
+注意 `toJSONString()` 那一行，跨界的数据在这里被序列化成 `JSON` 字符串。原理篇里说的「`JS` 和原生之间只传字符串不传指针」，落到代码上就是这一行。
+
+到这里 `JS` 已经被加载进队列，等着 `Java` 层来驱动它。
+
+## 十、回到 Java 侧完成首帧
+
+`JS Bundle` 加载并解析完成之后，流程折回 `Java`。在之前的 `runCreateReactContextOnNewThread` 方法里，`createReactContext` 之后还有一句核心代码。
+
+```java
 setupReactContext(reactApplicationContext);
 ```
 
-> 这就是加载`JS Bundle`之后执行的代码
+这就是加载完 `JS Bundle` 之后执行的收尾工作。
 
-```js
+```java
 public class ReactInstanceManager {
     private void setupReactContext(ReactApplicationContext reactContext) {
         ...
@@ -613,7 +721,13 @@ public class ReactInstanceManager {
     ...
     }
 }
+```
 
+`setupReactContext` 里的顺序是这样，先初始化 `Native Java Module`，重置 `ReactContext`，注册内存压力回调，复位生命周期状态，最后遍历 `mAttachedRootViews` 把每个 `RootView` 挂到实例上。
+
+`mAttachedRootViews` 里存的就是第五节 `attachToReactInstanceManager` 时登记进去的那些 `ReactRootView`。一个 `Activity` 里有几个 `RN` 根视图，这里就会循环几次。
+
+```java
 private void attachMeasuredRootViewToInstance (     final ReactRootView rootView,
       CatalystInstance catalystInstance) {
       ...
@@ -627,7 +741,11 @@ private void attachMeasuredRootViewToInstance (     final ReactRootView rootView
       }
 ```
 
-```js
+`addMeasuredRootView` 会给这个根视图分配一个 `rootTag`，这个 `tag` 就是原理篇里说的那个「跨界对象编号」。之后 `JS` 侧发过来的所有绘制指令都会带上它，`UIManagerModule` 靠它找到该往哪棵视图树上挂节点。
+
+分配完 `tag` 就调 `rootView.runApplication()`。
+
+```java
  /* package */ void runApplication() {
         ...
       CatalystInstance catalystInstance = reactContext.getCatalystInstance();
@@ -646,11 +764,15 @@ private void attachMeasuredRootViewToInstance (     final ReactRootView rootView
   }
 ```
 
-> 可以看到，最终调用的是`catalystInstance.getJSModule(AppRegistry.class).runApplication(jsAppModuleName, appParams)`， `AppRegistry.class`是JS层暴露给Java层的接口方法。它的真正实现在`AppRegistry.js`里，`AppRegistry.js`是运行所有`RN`应用的`JS`层入口，我们来看看它的实现：
+最终调用的是 `catalystInstance.getJSModule(AppRegistry.class).runApplication(jsAppModuleName, appParams)`。
 
-- **在`Libraries/ReactNative`中的`AppRegistry.js`**
+`AppRegistry.class` 是 `JS` 层暴露给 `Java` 层的接口声明，`getJSModule` 拿到的其实是一个 `Java` 动态代理对象，调它的方法会被转换成 `{moduleID, methodID, args}` 发到 `JS` 侧去。这就是原理篇里「`Java` 调 `JS`」那条路径的实际用法。
 
-## AppRegistry.js
+`appParams` 里带了两样东西，`rootTag` 告诉 `JS` 该往哪棵树上渲染，`initialProps` 是第五节说的原生传给 `JS` 的初始数据。
+
+## 十一、AppRegistry.js 收尾
+
+`AppRegistry.js` 在 `Libraries/ReactNative` 目录下，它是运行所有 `RN` 应用的 `JS` 层入口。
 
 ```js
 runApplication(appKey: string, appParameters: any): void {
@@ -681,13 +803,60 @@ runApplication(appKey: string, appParameters: any): void {
   }
 ```
 
-- 到这里就会去调用JS进行渲染，在通过`UIManagerModule`将JS组件转换成Android组件，最终显示在`ReactRootView`上。
-- 最后总结一下，就是先在应用终端启动并创建上下文对象，启动`JS Runtime`，进行布局，将JS端的代码通过C++层，`UIManagerMoodule`转化成`Android`组件，再进行渲染，最后将渲染的View添加到`ReactRootView`上，最终呈现在用户面前。
+这个函数里最值钱的是那个 `invariant`。它检查 `runnables[appKey]` 存不存在，也就是第二节 `registerComponent` 注册的名字和这里传进来的 `appKey` 对不对得上。对不上就抛出那段很长的错误信息，`Application xxx has not been registered`。
 
-## 系统框架图
+那段提示还列了几种常见原因，包括在错误的目录下启动了打包服务、初始化时 `require` 报错、忘了调 `registerComponent`。我自己遇到最多的是第一种，同时开着两个 `RN` 项目，`Metro` 还连在上一个项目上，装的是这个项目的包，两边的 `appKey` 自然对不上。杀掉旧的 `Metro` 进程重新起就好。
 
-![](https://poetries1.gitee.io/img-repo/2019/10/678.png)
+检查通过之后 `runnables[appKey].run(appParameters)`，`JS` 侧正式开始渲染。渲染出来的节点通过 `UIManagerModule` 转换成 `Android` 组件，挂到 `rootTag` 对应的那棵树上，最终显示在 `ReactRootView` 里。
 
-## 启动流程图
+把整条链路收一下。应用启动并创建上下文对象，启动 `JS` 运行时，加载并执行 `bundle`，计算布局，把 `JS` 端算出的节点通过 `C++` 层和 `UIManagerModule` 转化成 `Android` 组件，渲染完成后添加到 `ReactRootView` 上，呈现给用户。
 
-![](https://poetries1.gitee.io/img-repo/2019/10/679.png)
+## 十二、两张全景图
+
+前面是逐行走的，这里用两张图把整体再对一遍。
+
+先看系统框架图，能看清 `Java`、`C++`、`JS` 三层之间的关系。
+
+![React Native 系统框架图，展示 Java 层、C++ 层与 JS 层之间的调用关系](https://s.poetries.top/gitee/2019/10/678.png)
+
+再看启动流程图，把这篇讲的每一步串成一条线。
+
+![React Native 启动流程图，从 MainActivity 到 AppRegistry.runApplication 的完整调用链](https://s.poetries.top/gitee/2019/10/679.png)
+
+对着图回想一遍第一节那张地图，如果每一格都能说出它在干什么，这条链路就算是走通了。
+
+## 十三、这条链路在新架构下变了什么
+
+必须补一句时效性，这篇拆的是老架构的源码，也就是基于 `Bridge` 的那一套。现在 `React Native` 已经切到新架构，上面很多类名和路径对不上了。
+
+几个主要变化。`JavaScriptCore` 不再是默认引擎，换成了 `Hermes`，`bundle` 在构建期就被预编译成字节码，所以 `evaluateSourceCode` 那一步的解析开销大幅下降，冷启动更快。`CatalystInstance` 加 `MessageQueue` 这套桥接被 `JSI` 取代，`JS` 可以直接持有原生对象的引用同步调用，不用再把一切序列化成 `JSON`。原生模块变成了 `TurboModules`，按需加载，启动时不再一次性注入那张大模块表。渲染侧换成了 `Fabric`，`ShadowTree` 用 `C++` 实现，`UIManagerModule` 那条路径也重写了。
+
+所以第九节里 `toJSONString()` 那一行代表的序列化开销，正是新架构要干掉的东西。
+
+不过这篇的价值不只在类名。整条链路的骨架是没变的，依然是「原生侧准备环境和模块表 → 把 `bundle` 交给引擎执行 → `JS` 注册组件 → 原生侧回头触发渲染」这个顺序。理解了老架构里每一步为什么存在，看新架构的实现会快很多。而且现在还有大量项目跑在老架构上，看崩溃栈的时候这些类名照样用得着。
+
+具体到某个版本上新架构的类名和目录结构，以官方文档和对应版本的源码为准，这块变化很快，我不敢凭印象写。
+
+## 总结
+
+一次 `React Native` 冷启动，实际是三层语言接力跑完的。
+
+`Java` 侧从 `MainApplication` 的 `SoLoader.init` 开始，`MainActivity` 把活委托给 `ReactActivityDelegate`，`loadApp` 创建 `ReactRootView` 并调 `startReactApplication`，然后 `ReactInstanceManager` 在后台线程里创建 `ReactContext`。这一步里最关键的动作是建两张模块注册表，把 `Java` 和 `JS` 双方能互相调用的方法登记好。
+
+接着 `CatalystInstanceImpl` 的 `initializeBridge` 通过 `JNI` 下到 `C++`，把线程、模块表、执行器一并交过去。`JSBundleLoader` 按 `Debug` 还是 `Release` 决定从 `Metro` 拉还是从 `assets` 读，一路经 `Instance.cpp`、`NativeToJsBridge.cpp` 到 `JSCExecutor.cpp`，`evaluateSourceCode` 真正执行你的 `JS` 代码。
+
+`JS` 执行完，`registerComponent` 把根组件登记进注册表，但什么都还没渲染。流程折回 `Java` 侧的 `setupReactContext`，给根视图分配 `rootTag`，最后通过动态代理调到 `AppRegistry.js` 的 `runApplication`，第一帧才真正开始画。
+
+理解这条链路最实际的收益，是排查启动问题时知道往哪一段看。白屏卡在 `bundle` 加载多半是 `Metro` 或者 `assets` 那一段，`Application has not been registered` 是两端 `appKey` 对不上，找不到 `so` 库是 `SoLoader` 那一步。
+
+想把这套东西和整体架构对起来看，建议再读一遍[React Native 原理浅析](https://feinterview.poetries.top/blog/rn-yuanli)，那篇讲的是「这套架构为什么这么设计」，和这篇的「代码具体怎么跑」正好互补。
+
+## 参考
+
+- [React Native 新架构官方文档](https://reactnative.dev/architecture/overview)
+- [React Native Android 源码仓库](https://github.com/facebook/react-native/tree/main/packages/react-native/ReactAndroid)
+- [Hermes 引擎官方文档](https://hermesengine.dev/)
+- [Android JNI 官方文档](https://developer.android.com/training/articles/perf-jni)
+- [React Native 原理浅析](https://feinterview.poetries.top/blog/rn-yuanli)
+- [React Native 真机调试完整流程](https://feinterview.poetries.top/blog/rn-device-debug)
+- [前端进阶之旅](https://interview.poetries.top)

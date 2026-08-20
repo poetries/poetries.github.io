@@ -34,7 +34,7 @@ categories: Front-End
 三、JSX语法
 ---
 
-![](https://poetries1.gitee.io/img-repo/2019/10/463.png)
+![](https://s.poetries.top/gitee/2019/10/463.png)
 
 ```javascript
 /*

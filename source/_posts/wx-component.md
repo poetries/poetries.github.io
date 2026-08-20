@@ -227,7 +227,6 @@ Component({
 
 - 在component下新建popup文件夹
 
-![](https://user-gold-cdn.xitu.io/2018/3/14/16223cc683fa5afc?w=295&h=676&f=png&s=15505)
 
 popup.wxml
 

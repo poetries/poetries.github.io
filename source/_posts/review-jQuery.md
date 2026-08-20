@@ -196,9 +196,7 @@ alert($nav.get(0) == nav);//true
 - **代理模式以及代理内存结构**
 
 
-![代理内存结构1](http://7xq6al.com1.z0.glb.clouddn.com/jquery2.png)
 
-![代理内存结构2](http://7xq6al.com1.z0.glb.clouddn.com/jquery3.png)
 
 
 #### 第二节 选择器
@@ -485,11 +483,6 @@ alert($nav.get(0) == nav);//true
     - 这两个方法的作用分别是获取元素的滚动条距顶端的距离和距左侧的距离
   - **一张图总结以上的位置关系(项目中很常用-必须要弄清楚)**
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/jquery4.jpg)
-![](http://7xq6al.com1.z0.glb.clouddn.com/jquery5.jpg)
-![](http://7xq6al.com1.z0.glb.clouddn.com/jquery6.jpg)
-![](http://7xq6al.com1.z0.glb.clouddn.com/jquery7.jpg)
-![](http://7xq6al.com1.z0.glb.clouddn.com/jquery7.jpg)
 
 
 #### 第六节 jQuery动画
@@ -835,7 +828,6 @@ xhr.onreadystatechange = function(){
 - `responseText` ：请求服务器返回的数据存在该属性里面
 - `status` : `http`状态码
 
-![HTTP状态码](http://7xq6al.com1.z0.glb.clouddn.com/jquery9.png)
 
 - 案例：`ajax`封装案例
 

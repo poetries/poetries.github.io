@@ -1,9 +1,9 @@
 ---
 title: 配置sublime的LiveReload与webstorm的插件实现实时预览
 date: 2016-08-13 18:20:43
-tags: 
-  - sublime
-  - webstorm 
+tags:
+- sublime
+- webstorm
 categories: 工欲善其事必先利其器
 ---
 
@@ -25,7 +25,6 @@ git clone https://github.com/Grafikart/ST3-LiveReload.git LiveReload
 
 用的是`chrome`，在应用商店可以直接找到`LiveReload`，安装
 
-![](http://image.codes51.com/Article/image/20151225/20151225164913_2188.jpg)
 
 - 配置
 
@@ -45,14 +44,12 @@ git clone https://github.com/Grafikart/ST3-LiveReload.git LiveReload
 
 把`html`文件在浏览器中打开，点击一次图标中间的圆环变成原点就代表可以实时预览了。`ST3`中的文件保存一次，浏览器就会刷新一次，实时预览，很方便
 
-![](http://image.codes51.com/Article/image/20151225/20151225164914_1563.jpg)
 
 
 - `sublime`配上美美的透明插件，是不是很酷呢，再也不用来回切换了
 
 - 透明插件：[SublimeTextTrans](https://github.com/vhanla/SublimeTextTrans)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/snapshot.png)
 
 
 ---

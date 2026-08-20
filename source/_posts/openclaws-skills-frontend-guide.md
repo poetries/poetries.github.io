@@ -1,5 +1,5 @@
 ---
-title: OpenClaw Skills 进阶实战：前端开发者的AI技能库搭建指南
+title: 'OpenClaw Skills 进阶实战：前端开发者的AI技能库搭建指南'
 date: 2026-03-07 15:40:10
 description: 从Skills安装到自定义开发，手把手教你为前端开发场景构建AI助手技能矩阵，包含React/Vue/UI设计/性能优化等实用Skills及来源地址
 tags:

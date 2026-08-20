@@ -1,51 +1,62 @@
 ---
-title: Next.js 15新特性完全指南：升级须知与核心变化解析
+title: Next.js 15 新特性完全指南 异步API与缓存策略的全部变化
 date: 2025-05-11 14:40:12
-description: 深入解析Next.js 15带来的重大更新，包括React 19支持、异步Request APIs、fetch默认不缓存等核心变化，提供详细的升级指南和代码示例。
+description: Next.js 15 升级要点全解析，React 19 全面支持、cookies/headers/params 异步化、fetch 默认不再缓存、客户端路由缓存策略调整，逐条给出改法、原因和迁移节奏建议。
 tags:
 - Next.js
 - React
 - 前端开发
 - React 19
 - 升级指南
+- 缓存
 categories: Front-End
 ---
 
-作为React生态中最流行的全栈框架，Next.js每次版本更新都牵动着无数开发者的心。Next.js 15带来了自App Router推出以来最重要的变化——全面拥抱React 19，同时对多个核心API进行了异步化改造。这些变化不仅影响着代码的编写方式，更深刻改变了我们对服务端渲染的认知。
+把一个 App Router 项目从 Next.js 14 升到 15，最先跳出来的往往不是报错，是数据库的监控曲线。原本靠 `fetch` 自动缓存扛住的列表接口，升级后每次请求都真的打到了后端，QPS 直接翻几倍。紧接着才是编辑器里那一片红，`cookies()` 拿不到值了，`params.slug` 变成了 `undefined`。
 
-本文将基于官方文档，系统性地解析Next.js 15的所有重要变化。无论你是正在考虑升级的现有项目开发者，还是准备学习Next.js的新人，这篇文章都将帮助你全面理解新版本的特性和升级策略。
+这两件事都不是 bug，是 Next.js 15 有意为之的行为变更。这篇把 15 的核心改动逐条拆开，讲清楚改法、背后的原因，以及哪些可以先放着不动。读完你会有一份能直接排期的迁移清单，而不是只知道「要加 await」。
 
-## 升级准备工作
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
 
-### 环境要求
+- 升级前的环境要求和官方 codemod 能覆盖的范围
+- React 19 带来的 `useActionState`、`useFormStatus` 增强和 Actions
+- 异步 Request API 的完整清单，以及 layout 里怎么用 `use` 保持同步
+- `fetch` 默认不缓存这一刀砍下去，你的项目该怎么补
+- 客户端路由缓存调整和 `staleTimes` 配置
+- `@next/font`、`experimental-edge`、`NextRequest.geo` 等一批 API 变更
+- 一套渐进式迁移的节奏建议
 
-在升级到Next.js 15之前，需要确保你的开发环境满足以下要求：
+## 一、升级前的准备工作
 
-- Node.js 18.17.0 或更高版本
-- 如果使用TypeScript，需要安装最新的`@types/react`和`@types/react-dom`
-- 建议使用pnpm 8+、npm 10+或yarn 1.22+
+Next.js 15 的环境要求比 14 高一档，但没到 16 那种「Node 18 直接不给跑」的程度：
+
+- Node.js 18.17.0 或更高
+- 用 TypeScript 的话，`@types/react` 和 `@types/react-dom` 要跟着升
+- 包管理器建议 pnpm 8+、npm 10+ 或 yarn 1.22+
+
+类型包这条别跳过。React 19 的类型定义变化不小，老版本 `@types/react` 配新版 React 会在 JSX 返回值、`ref` 类型这些地方报一堆看起来毫无道理的错，找半天原因才发现是类型包没动。
 
 ### 一键升级
 
-Next.js官方提供了Codemod工具，可以自动完成大部分迁移工作。在项目根目录下运行以下命令：
+官方 codemod 能吃掉大部分机械劳动：
 
 ```bash
-# 使用pnpm
+# 使用 pnpm
 pnpm dlx @next/codemod@canary upgrade latest
 
-# 使用npm
+# 使用 npm
 npx @next/codemod@canary upgrade latest
 
-# 使用yarn
+# 使用 yarn
 yarn dlx @next/codemod@canary upgrade latest
 
-# 使用bun
+# 使用 bun
 bunx @next/codemod@canary upgrade latest
 ```
 
-### 手动升级
+它主要处理三类事，异步 API 的 `await` 补全、`@next/font` 到 `next/font` 的导入替换、以及几个配置项的重命名。剩下的业务逻辑调整还是得人工过。
 
-如果你 prefer 手动升级，需要同时更新Next.js和React相关依赖：
+### 手动升级
 
 ```bash
 # pnpm
@@ -58,27 +69,20 @@ npm install next@latest react@latest react-dom@latest eslint-config-next@latest
 yarn add next@latest react@latest react-dom@latest eslint-config-next@latest
 ```
 
-> **注意**：如果遇到peer dependencies警告，可能需要手动指定React版本或使用`--force`/`--legacy-peer-deps`参数。这在Next.js 15和React 19正式稳定后将不再需要。
+> **注意**：升级过程中如果遇到 peer dependencies 报警，可能需要手动指定 React 版本，或者临时用 `--force` / `--legacy-peer-deps` 绕过。生态里的第三方库跟上 React 19 需要时间，这类警告在过渡期很常见。
 
-## React 19全面支持
+## 二、React 19 全面支持
 
-### 版本要求
+Next.js 15 把 React 和 ReactDOM 的最低版本抬到了 19，所以 19 的新能力可以直接用。对日常业务影响最大的是表单这一块。
 
-Next.js 15要求React和ReactDom的最低版本为19。这意味着你可以直接使用React 19带来的所有新特性，包括：
+### useFormState 换成 useActionState
 
-- **useActionState**：取代原来的useFormState，提供更强大的表单状态管理能力
-- **useFormStatus增强**：新增`data`、`method`、`action`等属性
-- **Actions**：支持在服务端定义可调用函数
-
-### useFormState迁移到useActionState
-
-`useFormState`已被`useActionState`替代，虽然前者仍然可用，但已标记为废弃。`useActionState`提供了更丰富的API，包括直接读取`pending`状态的能力：
+`useFormState` 被 `useActionState` 取代，前者还能用但已经标记废弃。新 API 最实用的改动是把 pending 状态直接返回出来了：
 
 ```tsx
 import { useActionState } from 'react'
 
 async function submitForm(prevState, formData) {
-  // 表单提交逻辑
   const result = await fetch('/api/submit', {
     body: formData
   })
@@ -99,9 +103,11 @@ export default function Form() {
 }
 ```
 
-### useFormStatus增强
+以前拿 pending 得往下再套一层组件用 `useFormStatus`，因为那个 Hook 必须在 `form` 的子树里才生效。现在同一层就能拿到，为了一个 loading 态而拆组件的日子结束了。
 
-在React 19中，`useFormStatus`增加了更多有用的属性：
+这个改动看着小，实际上它改变了表单组件的组织方式。
+
+### useFormStatus 拿到了更多信息
 
 ```tsx
 import { useFormStatus } from 'react-dom'
@@ -117,68 +123,71 @@ function SubmitButton() {
 }
 ```
 
-> **提示**：如果你还未升级到React 19，`useFormStatus`仍然只提供`pending`属性。
+多出来的 `data`、`method`、`action` 用在做通用提交按钮组件时很方便，比如根据 `method` 决定按钮文案，或者从 `data` 里读出正在提交的条目 ID 做局部高亮。
 
-## 异步Request APIs：重大架构变化
+> **提示**：如果还没升到 React 19，`useFormStatus` 依然只有 `pending` 一个属性。
 
-这是Next.js 15最重要的变化之一。原本同步的动态API（如cookies、headers、draftMode）现在需要异步调用。这些API依赖运行时信息，异步化后能更好地支持React 19的并发渲染能力。
+React 19 本身还有 `use`、`ref` 作为 prop、文档元数据托管这些改动，我在 [React 19 新特性](https://feinterview.poetries.top/blog/react-19-new-features) 那篇里单独写过。
 
-### cookies异步化
+## 三、异步 Request API
+
+这是 15 里最影响面积的改动。原本同步的动态 API 全部改成异步。
+
+### cookies
 
 ```tsx
 import { cookies } from 'next/headers'
 
-// Next.js 14（同步）
+// Next.js 14，同步
 const cookieStore = cookies()
 const token = cookieStore.get('token')
 
-// Next.js 15（异步）
+// Next.js 15，异步
 const cookieStore = await cookies()
 const token = cookieStore.get('token')
 ```
 
-如果你暂时不想修改所有代码，可以使用类型转换保持同步调用（仅作为过渡方案）：
+如果一时改不完，官方给了一个过渡用的类型转换：
 
 ```tsx
 import { cookies, type UnsafeUnwrappedCookies } from 'next/headers'
 
-// 临时同步用法（不推荐，仅作过渡）
+// 临时同步用法，开发模式会打警告
 const cookieStore = cookies() as unknown as UnsafeUnwrappedCookies
-// 开发模式下会收到警告
 const token = cookieStore.get('token')
 ```
 
-### headers异步化
+名字里带 `Unsafe` 就是在提醒你这是个临时口子。Next.js 16 已经把它彻底移除了，所以别把它当长期方案，升级到 15 的同时就该把这些点排进计划。
+
+### headers 和 draftMode
 
 ```tsx
 import { headers } from 'next/headers'
 
-// Next.js 14（同步）
+// Next.js 14
 const headersList = headers()
 const userAgent = headersList.get('user-agent')
 
-// Next.js 15（异步）
+// Next.js 15
 const headersList = await headers()
 const userAgent = headersList.get('user-agent')
 ```
 
-### draftMode异步化
-
 ```tsx
 import { draftMode } from 'next/headers'
 
-// Next.js 14（同步）
+// Next.js 14
 const { isEnabled } = draftMode()
 
-// Next.js 15（异步）
+// Next.js 15
 const { isEnabled } = await draftMode()
 ```
 
-### params和searchParams异步化
+那为什么非要改成异步呢？这几个 API 读的都是当次请求才存在的信息。同步读取意味着渲染必须停在这里等，整棵组件树被一个 UA 判断卡住。改成 Promise 之后，React 可以在等待请求信息落定的同时先去渲染不依赖它的分支，并发渲染和后来的 PPR 都建立在这个前提上。
 
-在Next.js 15中，layout和page组件的`params`和`searchParams`都变成了Promise类型。
+### params 和 searchParams
 
-#### 异步Page组件
+layout 和 page 组件里的 `params`、`searchParams` 也变成了 Promise：
 
 ```tsx
 // Next.js 14
@@ -211,9 +220,11 @@ export default async function Page(props: {
 }
 ```
 
-#### 同步Layout组件（使用use hook）
+这里有个容易漏的地方。TypeScript 不会拦住你写 `props.params.slug`，因为 Promise 上确实没有 `slug`，但如果你的类型标注还停在旧版本，编译期一片安静，运行时才拿到 `undefined`。所以类型包必须同步升级，这一条前面提过一次，这里再强调一遍。
 
-如果你需要保持Layout组件同步，可以使用React 19的`use` hook：
+### layout 里想保持同步就用 use
+
+不是所有组件都适合改成 async，尤其是 layout。React 19 的 `use` Hook 可以在同步组件里解开 Promise：
 
 ```tsx
 import { use } from 'react'
@@ -231,7 +242,7 @@ export default function Layout(props: {
 }
 ```
 
-#### Route Handlers中的params
+### Route Handler 里的 params
 
 ```tsx
 // Next.js 14
@@ -247,49 +258,53 @@ export async function GET(request: Request, segmentData: { params: Params }) {
 }
 ```
 
-## Fetch请求默认行为变化
+Route Handler 这块最容易被忘掉，因为它们通常没有页面那么频繁地被打开，问题往往在灰度期间才暴露。升级时直接全局搜 `params` 过一遍最稳。
 
-### 默认不再缓存
+## 四、fetch 默认不再缓存
 
-Next.js 15中，`fetch`请求默认不再自动缓存。这意味着你需要在使用时明确指定缓存策略：
+开头说的监控曲线异常就出在这里。
+
+Next.js 14 及以前，`fetch` 默认相当于 `cache: 'force-cache'`，写代码时不声明任何东西，框架也会帮你缓存。15 把这个默认值改成了不缓存：
 
 ```tsx
 export default async function RootLayout() {
-  // 不缓存（默认行为）
+  // 不缓存，这是 15 的新默认行为
   const a = await fetch('https://example.com/api/data')
 
-  // 强制缓存
+  // 想要缓存必须显式声明
   const b = await fetch('https://example.com/api/data', {
     cache: 'force-cache'
   })
 }
 ```
 
-### 批量启用缓存
+我一开始也觉得这是个倒退，缓存明明是好事，为什么要关掉。后来遇到过一次数据「明明改了但页面死活不更新」的排查，才理解官方的取舍。默认缓存最大的问题是它是隐式的，新人写了一个取实时数据的 `fetch`，框架悄悄给缓存住了，这类 bug 表现为「偶发的脏数据」，比多打几次接口难查得多。改成默认不缓存之后，性能问题会立刻反映在监控上，而正确性问题被消灭了。
 
-如果你希望整个layout或page中的fetch请求都默认缓存，可以使用`fetchCache`配置：
+用错误的性能换正确性，通常是划算的。
+
+### 整段批量开缓存
+
+如果某个 layout 或 page 下的请求确实都该缓存，不用一个个加参数：
 
 ```tsx
-// 根布局中设置默认缓存策略
+// 在根布局里设置默认缓存策略
 export const fetchCache = 'default-cache'
 
 export default async function RootLayout() {
-  // 默认缓存
+  // 走缓存
   const a = await fetch('https://example.com/api/data')
 
-  // 明确不缓存
+  // 单独声明不缓存
   const b = await fetch('https://example.com/api/data', {
     cache: 'no-store'
   })
 }
 ```
 
-### Route Handlers的GET请求
-
-GET请求默认不再缓存。如果需要缓存，需要显式设置：
+### Route Handler 的 GET 同样受影响
 
 ```tsx
-// 强制静态
+// 需要静态化就显式声明
 export const dynamic = 'force-static'
 
 export async function GET() {
@@ -297,25 +312,29 @@ export async function GET() {
 }
 ```
 
-## 客户端路由缓存策略调整
+顺便提一句，这条和 App Router 里另一个经典坑正好相反。以前是 GET handler 被意外静态化导致数据不更新，现在是默认动态导致缓存失效，两个方向的问题我在 [App Router 避坑指南](https://feinterview.poetries.top/blog/nextjs-app-router-pitfalls-challenges) 里都整理过。
 
-### 页面导航不再复用缓存
+升级时的实操建议是这样，先别急着到处加 `force-cache`。跑一遍压测或者看两天监控，把真正高频且能容忍延迟的接口挑出来，只给这些加缓存并配上合适的 `revalidate` 时间。无脑全开等于把 15 的改动又退回去了，那些「其实需要实时」的接口会再次埋雷。
 
-在使用`<Link>`或`useRouter`进行页面导航时，页面组件不再从客户端路由缓存中复用。这意味着每次导航都会获取最新数据。
+怎么找出哪些 `fetch` 受影响？最笨也最有效的办法是全局搜一遍裸调用，也就是第二个参数为空的那些。这类调用在 14 里全部走缓存，升级后全部变成实时请求，命中率的落差最大。搜出来之后按数据性质分三类处理，配置类和字典类直接加 `cache: 'force-cache'`；列表和详情这种会变但不要求秒级的，配 `next: { revalidate: 60 }` 之类的时间窗；账户余额、库存、消息未读数这些必须实时的，保持默认就对了。
 
-不过，浏览器后退前进导航和共享布局仍然会复用缓存。
+还有一类容易被忽略的是构建期取数。`generateStaticParams` 里的请求、以及被静态渲染的页面在构建时发的请求，这些不受运行时缓存策略影响，但它们的数量会随着页面数线性增长。如果你的站点有几千个静态页，升级后构建时长有没有变化值得单独量一下。
 
-### 配置缓存时间
+## 五、客户端路由缓存策略调整
 
-你可以通过`staleTimes`配置来控制页面缓存时间：
+用 `<Link>` 或 `useRouter` 做页面跳转时，页面组件不再从客户端路由缓存里复用，每次导航都会重新取数据。浏览器的前进后退，以及跳转前后共享的那部分 layout，仍然走缓存。
+
+这个改动的动机和上一节一致，都是在压缩「用户看到旧数据」的窗口。代价是频繁来回切换的页面会多发请求。
+
+需要调整就用 `staleTimes`：
 
 ```js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
     staleTimes: {
-      dynamic: 30,  // 动态路由30秒后过期
-      static: 180,  // 静态路由180秒后过期
+      dynamic: 30,  // 动态路由 30 秒内复用缓存
+      static: 180,  // 静态路由 180 秒内复用缓存
     },
   },
 }
@@ -323,13 +342,15 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
-> **注意**：Layouts和loading状态在导航时仍然会被复用。
+配上 `dynamic: 30` 相当于把 14 的行为找回来一部分。什么时候该配？后台管理系统这类「列表页和详情页之间来回横跳」的场景很值得配，用户一分钟内切二十次，每次都重新拉列表既浪费也卡手。而对内容型站点，保持默认更合适。
 
-## 其他重要API变更
+> **注意**：layout 和 loading 状态在导航时依然会被复用，这部分行为没变。
 
-### @next/font包移除
+## 六、其他 API 变更
 
-`@next/font`包已被移除，统一使用内置的`next/font`。Codemod会自动处理迁移：
+这一节都是小改动，但漏掉任何一条都会让构建或运行时报错。
+
+### @next/font 包被移除
 
 ```js
 // 旧写法
@@ -339,21 +360,19 @@ import { Inter } from '@next/font/google'
 import { Inter } from 'next/font/google'
 ```
 
-### runtime配置简化
+字体功能早就内置进 `next/font` 了，独立包只是历史遗留，codemod 会自动处理。
 
-`experimental-edge`运行时已被废弃，统一使用`edge`：
+### experimental-edge 废弃
 
 ```js
-// 旧写法（报错）
+// 旧写法，现在会报错
 export const runtime = 'experimental-edge'
 
 // 新写法
 export const runtime = 'edge'
 ```
 
-### 配置项重命名
-
-两个实验性配置项已正式稳定：
+### 两个实验配置转正
 
 ```js
 // bundlePagesExternals → bundlePagesRouterDependencies
@@ -377,9 +396,11 @@ const nextConfig = {
 }
 ```
 
-### NextRequest地理位置移除
+`serverExternalPackages` 这个平时用得不多，但只要你依赖了带原生模块的库，比如某些数据库驱动或者图像处理库，它就是刚需，写错名字的表现是构建时报一堆奇怪的模块解析错误。
 
-`NextRequest`上的`geo`和`ip`属性已被移除，因为这些值应由托管平台提供。使用Vercel时，可以改用`@vercel/functions`包：
+### NextRequest 上的 geo 和 ip 没了
+
+`NextRequest` 的 `geo` 和 `ip` 属性被移除，理由是这些值本来就该由托管平台提供，框架不该假设自己跑在哪。用 Vercel 的话改成这样：
 
 ```ts
 import { geolocation, ipAddress } from '@vercel/functions'
@@ -393,50 +414,49 @@ export function middleware(request: NextRequest) {
 }
 ```
 
-### Speed Insights自动埋点移除
+自建部署的项目就得自己从请求头里取了，通常是 `x-forwarded-for` 或者网关约定的自定义头。这里有个坑要注意，`x-forwarded-for` 是可以被伪造的，如果这个 IP 要用于风控或限流，必须在网关层做过滤，只信任最靠近你的那一跳。
 
-Next.js 15移除了Speed Insights的自动埋点功能。继续使用需要遵循[Vercel Speed Insights快速入门指南](https://vercel.com/docs/speed-insights/quickstart)进行配置。
+### Speed Insights 自动埋点移除
 
-## 升级建议与最佳实践
+Next.js 15 拿掉了 Speed Insights 的自动埋点，继续用需要按 [Vercel 的快速入门](https://vercel.com/docs/speed-insights/quickstart) 手动接。
 
-### 渐进式迁移
+## 七、迁移节奏建议
 
-由于异步API变化较大，建议采用以下策略：
+异步 API 的改动面积太大，一次性梭哈很容易做成一个几百文件的巨型 PR，review 不动也不敢合。我的建议是拆开走。
 
-1. **先运行Codemod**：官方提供的迁移工具可以自动处理大部分变更
-2. **逐个文件修改**：不要一次性修改所有文件，按需修改
-3. **使用过渡方案**：如`UnsafeUnwrappedCookies`类型可以在过渡期使用
-4. **充分测试**：特别是涉及cookies、headers的中间件和API路由
+**Step 1 先跑 codemod。** 让工具把机械替换做完，然后仔细看 diff，重点检查那些被工具改过但你不认识的文件。
 
-### 类型安全
+**Step 2 分模块提交。** 按路由分组，一次改一个业务模块，每组单独跑一遍构建和主流程测试。中间态用 `UnsafeUnwrappedCookies` 顶着，让主干始终可发布。
 
-升级时特别注意TypeScript类型的变化：
+**Step 3 重点测中间件和 API 路由。** 涉及 `cookies`、`headers` 的地方最容易出事，而且这类问题在页面上看不出来，得靠接口测试或者灰度流量。
+
+**Step 4 最后处理缓存策略。** 把 `fetch` 缓存和 `staleTimes` 放到最后，因为这一步需要参考真实流量数据，不看监控拍脑袋配没有意义。
+
+类型这块单独提醒一句：
 
 ```bash
-# 确保更新类型定义
 npm install @types/react@latest @types/react-dom@latest
 ```
 
-### 运行时选择
-
-如果你使用Edge Runtime，确保将`experimental-edge`改为`edge`，避免部署时报错。
+如果项目里用了 Edge Runtime，记得把 `experimental-edge` 全部改成 `edge`，这个在本地开发时不一定报错，部署时才炸。
 
 ## 总结
 
-Next.js 15是一次重要的版本迭代，带来了以下核心变化：
+Next.js 15 的改动可以归成三条主线：
 
-- **React 19全面支持**：可以使用所有React 19新特性
-- **异步API改造**：cookies、headers、params等改为异步模式
-- **Fetch默认不缓存**：需要显式指定缓存策略
-- **路由缓存调整**：页面导航行为有所变化
-- **配置项正式化**：多个实验性配置稳定可用
+- **异步化**。`cookies`、`headers`、`draftMode`、`params`、`searchParams` 全部变成 Promise，为并发渲染让路。层级浅的组件用 `async` 加 `await`，需要保持同步的 layout 用 React 19 的 `use`
+- **缓存默认值反转**。`fetch` 和 Route Handler 的 GET 默认不再缓存，客户端路由导航也不复用页面缓存。框架把「正确性」设成了默认，性能得你自己按需要加回来
+- **API 清理**。`@next/font`、`experimental-edge`、`NextRequest.geo` 这批老接口下线，两个实验配置转正
 
-虽然升级需要一定工作量，但这些变化都是为了更好地支持React 19的并发渲染能力，提升应用性能。建议尽快规划升级计划，享受新版本带来的改进。
+从升级成本看，异步化是工作量最大的一块，但它有 codemod 兜底；缓存策略调整工作量小，风险却最高，因为它不报错，只在监控曲线和账单上体现。
 
-如果在使用过程中遇到问题，可以查阅[官方升级指南](https://nextjs.org/docs/app/guides/upgrading/version-15)或参与社区讨论。
+还有一点要提前想到，15 里那个 `UnsafeUnwrappedCookies` 过渡方案在 Next.js 16 里已经彻底移除了。所以升 15 的时候留下的技术债，下一次升级会连本带利收回去，具体改了哪些可以看 [Next.js 16 升级指南](https://feinterview.poetries.top/blog/nextjs16-changes-overview)。能一次改干净就别留尾巴。
 
-## 参考资料
+## 参考
 
-- [Next.js 15 Official Upgrade Guide](https://nextjs.org/docs/app/guides/upgrading/version-15)
+- [Next.js 15 官方升级指南](https://nextjs.org/docs/app/guides/upgrading/version-15)
 - [React 19 Upgrade Guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide)
+- [useActionState - React 官方文档](https://react.dev/reference/react/useActionState)
+- [cookies - Next.js 官方文档](https://nextjs.org/docs/app/api-reference/functions/cookies)
 - [Vercel Speed Insights](https://vercel.com/docs/speed-insights/quickstart)
+- [前端进阶之旅](https://interview.poetries.top)

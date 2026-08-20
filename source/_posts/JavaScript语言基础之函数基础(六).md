@@ -29,4 +29,3 @@ categories: Front-End
 
 附录：思维导图总结
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/JavaScript%20%E5%87%BD%E6%95%B0%E5%9F%BA%E7%A1%80.gif)

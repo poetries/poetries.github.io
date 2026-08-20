@@ -1,9 +1,9 @@
 ---
 title: DOM编程之API学习总结篇
 date: 2016-09-22 17:10:43
-tags: 
-  - JavaScript
-  - DOM
+tags:
+- JavaScript
+- DOM
 categories: Front-End
 ---
 
@@ -21,10 +21,8 @@ categories: Front-End
 - `Node`有一个属性`nodeType`表示`Node`的类型，它是一个整数，其数值分别表示相应的`Node`类型
 
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d1.png)
 
 <!--more-->
-![](http://7xq6al.com1.z0.glb.clouddn.com/d2.png)
 
 - 假设我们要判断一个`Node`是不是元素，我们可以这样判断
 
@@ -40,7 +38,6 @@ console.log("Node is a element");
 ---
 
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d3.png)
 
 - `Element`提供了对元素标签名，子节点和特性的访问，我们常用`HTML`元素比如`div`，`span`，`a`等标签就是`element`中的一种。
 - **`Element`有下面几条特性：**
@@ -54,7 +51,6 @@ console.log("Node is a element");
 ##### 1.3 Text类型
 ---
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d4.png)
 
 - `Text`表示文本节点，它包含的是纯文本内容，不能包含`html`代码，但可以包含转义后的`html`代码。`Text`有下面的特性：
     - `nodeType`为`3`
@@ -66,7 +62,6 @@ console.log("Node is a element");
 ##### 1.4 Attr类型
 ---
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d5.png)
 
 - `Attr`类型表示元素的特性，相当于元素的`attributes`属性中的节点，它有下面的特性：
     - `nodeType`值为2
@@ -88,7 +83,6 @@ console.log("Node is a element");
 ---
 
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d6.png)
 
 - `Document`表示文档，在浏览器中，`document`对象是`HTMLDocument`的一个实例，表示整个页面，它同时也是`window`对象的一个属性。`Document`有下面的特性：
   - `nodeType`为`9`
@@ -134,7 +128,6 @@ element.childNodes
 </html>
 ```
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d7.png)
 
 - 每一个节点都有`nodeType`属性
 
@@ -155,7 +148,7 @@ description.firstChild.nodeValue = text;
 ---
 
 - `nodeValue`属性
-    - 如果想改变一个文本节点的值，那就使用`DOM`提供的`nodeValue`,它用来得到一个节点的值 `node.nodeValue` 
+    - 如果想改变一个文本节点的值，那就使用`DOM`提供的`nodeValue`,它用来得到一个节点的值 `node.nodeValue`
     - 需要注意：`nodeValue`属性获取对象的值时，得到的并不是包含在这个段落里的文本
     - nodeValue属性不仅可以用来检测节点的值，还可以设置节点的值
 
@@ -181,9 +174,9 @@ node.lastChild
 
  ### 三、节点创建型API
  ---
- 
+
  - 在这里，我将常用的`DOM`操作`api`进行分类，首先要介绍的是创建型的`api`。这一类型的`api`，简而言之就是用来创建节点的
- 
+
 #### 3.1 createElement
 ---
 
@@ -212,7 +205,7 @@ var textNode = document.createTextNode("一个TextNode");
 - `cloneNode`是用来返回调用方法的节点的一个副本，它接收一个`bool`参数，用来表示是否复制子元素，使用如下：
 
 ```javascript
-var parent = document.getElementById("parentElement"); 
+var parent = document.getElementById("parentElement");
 var parent2 = parent.cloneNode(true);// 传入true
 parent2.id = "parent2";
 ```
@@ -284,7 +277,7 @@ document.getElementById("btnAdd").onclick = function(){
 
 ```javascript
 document.getElementById("btnAdd").onclick = function(){
-	var list = document.getElementById("list");	
+	var list = document.getElementById("list");
 	var fragment = document.createDocumentFragment();
 
 	for(var i = 0;i < 100; i++){
@@ -302,7 +295,7 @@ document.getElementById("btnAdd").onclick = function(){
 ---
 
 - 创建型`api`主要包括`createElement`，`createTextNode`，`cloneNode`和`createDocumentFragment`四个方法，需要注意下面几点：
-    
+
     - 它们创建的节点只是一个孤立的节点，要通过`appendChild`添加到文档中
     - `cloneNode`要注意如果被复制的节点是否包含子节点以及事件绑定等问题
     - 使用`createDocumentFragment`来解决添加大量节点时的性能问题
@@ -334,7 +327,7 @@ parent.appendChild(child);
 <br/>
 <div id="parent">
     要移动的位置
-</div>		
+</div>
 <input id="btnMove" type="button" value="移动节点" />
 
 document.getElementById("btnMove").onclick = function(){
@@ -364,7 +357,7 @@ parentNode.insertBefore(newNode,refNode);
 ```html
 <div id="parent">
     父节点
-    <div id="child">				
+    <div id="child">
         子元素
     </div>
 </div>
@@ -385,7 +378,7 @@ document.getElementById("insertNode").onclick = function(){
 - **关于第二个参数参照节点还有几个注意的地方：**
   - `refNode`是必传的，如果不传该参数会报错
   - 如果`refNode`是`undefined`或`null`，则`insertBefore`会将节点添加到子元素的末尾
- 
+
 #### 4.3 removeChild
 ---
 
@@ -453,9 +446,9 @@ parent.replaceChild(newChild,oldChild);
 ```html
 <div>div1</div>
 <div>div2</div>
-		
+
 <input type="button" value="显示数量" id="btnShowCount"/>
-<input type="button" value="新增div" id="btnAddDiv"/>	
+<input type="button" value="新增div" id="btnAddDiv"/>
 
 var divList = document.getElementsByTagName("div");
 document.getElementById("btnAddDiv").onclick = function(){
@@ -463,7 +456,7 @@ document.getElementById("btnAddDiv").onclick = function(){
 	div.textContent ="div" + (divList.length+1);
 	document.body.appendChild(div);
 }
-	
+
 document.getElementById("btnShowCount").onclick = function(){
         alert(divList.length);
 }
@@ -475,7 +468,7 @@ document.getElementById("btnShowCount").onclick = function(){
   - 如果要对`HTMLCollection`集合进行循环操作，最好将其长度缓存起来，因为每次循环都会去计算长度，暂时缓存起来可以提高效率
   - 如果没有存在指定的标签，该接口返回的不`是null`，而是一个空的`HTMLCollection`
   - `“*”`表示所有标签
- 
+
 #### 5.3 document.getElementsByName
 ---
 
@@ -485,7 +478,7 @@ document.getElementById("btnShowCount").onclick = function(){
   - 返回对象是一个即时的`NodeList`，它是随时变化的
   - 在`HTML`元素中，并不是所有元素都有`name`属性，比如`div`是没有`name`属性的，但是如果强制设置`div的`name`属性，它也是可以被查找到的
   - 在`IE`中，如果`id`设置成某个值，然后传入`getElementsByName`的参数值和`id`值一样，则这个元素是会被找到的，所以最好不好设置同样的值给`id`和`name`
-  
+
 #### 5.4 document.getElementsByClassName
 ---
 
@@ -499,7 +492,7 @@ var elements = document.getElementsByClassName(names);
   - 返回结果是一个即时的`HTMLCollection`，会随时根据文档结构变化
   - `IE9`以下浏览器不支持
   - 如果要获取`2`个以上`classname`，可传入多个`classname`，每个用空格相隔，例如
-  
+
 ```javascript
 
 var elements = document.getElementsByClassName("test1 test2");
@@ -517,10 +510,10 @@ var elements = document.getElementsByClassName("test1 test2");
 ```html
 <div>
     <div>
-        <span class="test">第三级的span</span>	
+        <span class="test">第三级的span</span>
     </div>
 </div>
-<div class="test">			
+<div class="test">
     同级的第二个div
 </div>
 <input type="button" id="btnGet" value="获取test元素" />
@@ -545,10 +538,10 @@ document.getElementById("btnGet").addEventListener("click",function(){
 <input id="btnShow" type="button" value="显示内容" />
 
 document.getElementById("btnShow").addEventListener("click",function(){
-	var elements = document.querySelectorAll("#test,.test");	
+	var elements = document.querySelectorAll("#test,.test");
 	for(var i = 0,length = elements.length;i<length;i++){
 		alert(elements[i].textContent);
-	}	
+	}
 })
 ```
 - 这段代码通过`querySelectorAll`，使用`id`选择器和`class`选择器选择了两个元素，并依次输出其内容。要注意两点：
@@ -564,7 +557,6 @@ document.getElementById("btnShow").addEventListener("click",function(){
 ### 六、节点关系型API
 ---
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d8.png)
 
 - 在`html`文档中的每个节点之间的关系都可以看成是家谱关系，包含父子关系，兄弟关系等等
 
@@ -597,7 +589,6 @@ document.getElementById("btnShow").addEventListener("click",function(){
 </script>
 ```
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d9.png)
 
 
 - `nextSibling`：节点的后一个节点，如果该节点是最后一个节点，则为`null`。注意有可能拿到的节点是文本节点，与预期的不符，要进行处理一下
@@ -622,7 +613,6 @@ document.getElementById("btnShow").addEventListener("click",function(){
 </script>
 ```
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d10.png)
 
 - 从截图中可以看出 这段代码中`ul`的子节点有`9`个，这说明使用`childNodes`获取的节点包括了文本节点和元素节点
 
@@ -671,7 +661,6 @@ oUl.firstElementChild.style.background = 'red';
 oUl.lastElementChild.style.background = 'red';
 ```
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d11.png)
 
 - `hasChildNodes`方法：可以用来判断是否包含子节点
 
@@ -733,23 +722,19 @@ for(var i=0;i<para.lenght;i++){
 ###  八、表格操作
 ---
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d12.png)
 
 ### 九、样式操作
 ---
 
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d13.png)
 
 ### 十、大小和偏移
 ---
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d14.png)
 
 ###  十一、网上的一张思维导图总结
 ---
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/d15.png)
 
 ---
 - 参考

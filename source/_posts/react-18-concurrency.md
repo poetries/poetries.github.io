@@ -1,27 +1,38 @@
 ---
-title: React 18 并发机制深度解析
+title: React 18 并发机制深度解析，Fiber 可中断渲染与时间切片原理
 slug: react-18-concurrent-rendering
 date: 2024-12-28 17:00:00
-description: 深入解析React 18并发渲染机制，包含Lane模型、时间切片、源码分析，以及面试必备的简洁版本。帮你彻底理解React 18如何实现可中断渲染。
+description: 从 Fiber 可中断遍历、Lane 优先级模型、MessageChannel 时间切片讲到 startTransition 与 useDeferredValue 的调度差异，拆清楚 React 18 并发渲染怎么把一次长渲染切成能让出主线程的小片段。
 tags:
 - React
 - React 18
 - 并发渲染
+- Fiber
 - 前端进阶
 categories: Front-End
 ---
 
-## 导语
+搜索框里敲一个字，输入框要过半秒才把字显出来；点一下 Tab 切页签，整个界面像被冻住。打开 Chrome DevTools 的 Performance 面板录一段，看到的往往是一根几百毫秒的黄色长条，一个 Task 里塞满了 React 的 render 调用。这时候再去加 `memo`、加 `useMemo` 基本没用，因为问题不在渲染了几次，而在于这一次渲染太长，并且中途没有任何人能打断它。
 
-React 18 最重要的更新就是引入了**并发机制（Concurrent Features）**，这是 React 团队多年研发的结晶。简单来说，并发机制让 React 可以**同时准备多个版本的 UI**，根据用户设备的性能动态调整渲染优先级，从而提供更流畅的用户体验。
+React 18 的并发机制就是冲着这个场景来的。这篇不铺 API 清单，只讲一件事：React 是怎么把一次「一口气跑完」的渲染，改造成可以随时暂停、让出主线程、之后再接着跑的。读完你应该能自己解释清楚 Lane、时间切片、`startTransition` 三者是怎么串起来的。
 
-本文将深入浅出地讲解 React 18 并发渲染的核心原理，包括 **Lane 模型**、**时间切片**、**useTransition** 等关键技术，并通过源码分析帮助大家彻底理解这一革命性的架构升级。
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
 
-## 一、React 渲染流程与问题
+- React 18 之前的渲染为什么「不可中断」，卡的到底是哪一步
+- Fiber 架构把递归改成链表遍历，换来了什么
+- Lane 模型用二进制位表示优先级的设计动机和位运算技巧
+- React 为什么放弃 `requestIdleCallback`，改用 `MessageChannel` 自己实现调度器
+- 5ms 时间片、`shouldYieldToHost` 与浏览器一帧的关系
+- `startTransition` 和 `useDeferredValue` 在调度行为上的真实差别
+- 并发渲染带来的新坑，以及面试里怎么把这套机制讲明白
 
-### 1.1 传统渲染流程
+面向使用者的那一批新 API 和升级注意事项，比如 `createRoot`、自动批处理、`Suspense` SSR、`useId`、严格模式二次挂载，我拆到了另一篇里讲，见 [React 18 新特性与升级指南](https://feinterview.poetries.top/blog/react-18-new-features)。这篇只聚焦调度机制本身。
 
-在 React 18 之前，React 的渲染过程是**同步且不可中断**的。假设我们有这样一个组件树：
+## 一、卡顿卡在哪一步
+
+### 1.1 渲染是一次深度优先遍历
+
+假设我们有这样一棵组件树：
 
 ```jsx
 function App() {
@@ -39,30 +50,23 @@ function App() {
 }
 ```
 
-React 会以 **DFS（深度优先搜索）** 的顺序遍历整棵树：
+React 会以 DFS（深度优先搜索）的顺序走完整棵树：
 
 ```
 App -> Header -> Sidebar -> Content -> ComponentA -> ComponentB -> Footer
 ```
 
-对于每个组件，React 都会创建对应的 **Fiber Node**（Fiber 节点），用于保存渲染所需的信息如 props、key、ref、lanes 等。这就是 React 的 **Fiber 架构**。
+每走到一个组件，React 都会为它创建或复用一个 Fiber Node，把 props、key、ref、lanes 这些渲染需要的信息挂在上面。整棵树对应一张 Fiber 链表结构，这就是从 React 16 开始的 Fiber 架构。
 
-### 1.2 渲染触发时机
+触发这次遍历的场景只有两类。一类是 mount，也就是首次渲染，入口是 `ReactDOM.createRoot(document.querySelector('#root')).render(<App />)`；另一类是 update，由 `useState`、`useReducer` 这些 Hook 的 setter 触发。两类走的是同一套协调流程，区别只在于有没有可复用的老 Fiber。
 
-React 会在两种情况下触发渲染：
+### 1.2 真正的问题是这次遍历停不下来
 
-1. **mount**：首次渲染，例如 `ReactDOM.createRoot(document.querySelector('#root')).render(<App />)`
-2. **update**：状态更新，例如通过 `useState`、`useReducer` 等 Hook 触发重新渲染
+React 18 之前，这次遍历一旦开始就必须走到底。
 
-### 1.3 核心问题：渲染不可中断
+后果有三条。渲染开销大的组件（比如几百个列表项）会把主线程占满，用户看到的是页面完全没反应；遍历期间浏览器拿不到主线程，没法处理点击、没法重绘；哪怕这时候来了个明显更紧急的任务，比如用户点了另一个按钮，也只能排队等这一轮渲染跑完。
 
-在 React 18 之前，**整个渲染过程是不能被中断的**。这意味着：
-
-- 如果某个组件渲染开销较大（如包含大量列表项），用户会明显感觉到页面卡顿
-- 在渲染过程中，浏览器无法响应用户的交互操作
-- 即使有更高优先级的任务（如用户点击），也必须等待当前渲染完成
-
-React 官方提供了一个典型例子来展示这个问题：
+React 官方文档里有个很直白的例子，把这三条一次性演出来：
 
 ```jsx
 function App() {
@@ -98,23 +102,205 @@ function SlowPost({ index }) {
 }
 ```
 
-在这个例子中：
-- 点击 Posts 按钮后，页面会出现明显卡顿
-- 在渲染完成前，其他按钮点击无法响应
-- 用户体验非常糟糕
+500 个组件、每个 1ms，这一轮渲染就是 500ms 的同步任务。点 Posts 之后页面明显卡一下，卡住期间点 About 完全没反应，等前一次渲染结束才会一起处理。
 
-**这就是 React 18 并发机制要解决的核心问题。**
+我一开始也是这么想的：把 `SlowPost` 包一层 `React.memo` 不就好了？没用。`memo` 解决的是「不该渲染的组件被重渲染」，而这里的 500 个组件是第一次挂载，本来就得渲染一遍。要解决的是「这 500ms 能不能分几次跑」，这是调度问题，不是记忆化问题。
 
-## 二、并发渲染的核心解决方案
+这就是并发机制要处理的核心矛盾。
 
-React 18 通过两个核心技术实现了并发渲染：
+## 二、Fiber 让什么变成了可中断的
 
-1. **Lane 模型**：为每次渲染分配优先级
-2. **时间切片**：将连续渲染拆分为可中断的片段
+很多人可能没注意到，Fiber 架构本身（React 16）就已经为可中断做好了地基，只是 React 16、17 没把这个能力对外开放。
 
-### 2.1 解决方案一：useTransition
+React 15 的协调是递归的。父组件调子组件，子组件再调孙组件，整个过程压在 JS 调用栈上。调用栈这个东西的特点是，你没法在中间「存档退出」，一旦 return 回去，中间状态就丢了。所以老架构想中断也中断不了。
 
-React 18 提供了 `useTransition` Hook 来解决上述问题：
+Fiber 做的事情是把这棵树的遍历从「递归」改写成「循环 + 链表指针」。每个 Fiber 节点上有 `return`（指向父节点）、`child`（指向第一个子节点）、`sibling`（指向下一个兄弟节点）三根指针，遍历过程变成了一个 while 循环，当前进度就是一个全局变量 `workInProgress`。
+
+```javascript
+function workLoopConcurrent() {
+  while (workInProgress !== null && !shouldYield()) {
+    performUnitOfWork(workInProgress);
+  }
+
+  if (workInProgress !== null) {
+    // 还有工作没完成，让出主线程
+    return true;
+  }
+}
+```
+
+看这段循环的条件就懂了。跳出 while 之后，`workInProgress` 还留在原地指着下一个要处理的节点，下次调度进来接着从这里跑就行。进度存在堆上的一个变量里，而不是存在调用栈里，这就是「可中断」的物理基础。
+
+对照 React 15 的同步版本，循环条件里没有 `shouldYield()`，只有 `workInProgress !== null`，那就是一路跑到底。
+
+顺着上面聊，还有一个配套设计叫双缓存。React 同时维护 current 树（当前屏幕上的）和 workInProgress 树（正在构建的），中途放弃 workInProgress 树不会影响屏幕，因为屏幕上挂的一直是 current。只有构建完整、进入 commit 阶段的那一刻，才会把 current 指针切过去。所以 render 阶段可以被中断甚至被完全丢弃重来，commit 阶段则必须一次性同步跑完，不然用户会看到画到一半的界面。
+
+记住这条分界线，后面很多行为都能从这里推出来：render 可中断，commit 不可中断。
+
+## 三、Lane 模型，优先级怎么编码
+
+### 3.1 Lane 是什么
+
+有了可中断的能力还不够，得有人告诉 React「什么时候该中断」「先做哪个」。这就是 Lane 模型的职责。
+
+Lane 直译是赛道。React 给每一次更新分配一条或多条赛道，赛道的位置代表优先级高低，然后调度器按优先级决定这一轮先处理哪些更新。
+
+### 3.2 为什么用二进制位
+
+React 用二进制位来表示 Lane，源码里长这样（简化过）：
+
+```javascript
+// React 源码中的 Lane 定义（简化）
+const Lane = {
+  NoLane: 0b0000000000000000000000000000000,
+  SyncLane: 0b0000000000000000000000000000001,  // 最高优先级
+  InputContinuousLane: 0b0000000000000000000000000000100,
+  DefaultLane: 0b0000000000000000000000000010000,
+  IdleLane: 0b0000000000000000000001000000000,   // 最低优先级
+};
+```
+
+为什么非要用二进制，而不是 0 到 10 的数字？
+
+一个原因是 JS 的位运算跑在 32 位整数上，快且没有内存分配。更关键的原因是，一个 Fiber 上可能同时挂着好几种优先级的更新，用位掩码可以把「一组优先级」压进一个数字里，合并和判断都是一步位运算：
+
+```javascript
+// 合并多个 Lane
+export function mergeLanes(a, b) {
+  return a | b;  // 位运算 OR
+}
+
+// 移除某个 Lane
+export function removeLanes(set, subset) {
+  return set & ~subset;  // 位运算 AND NOT
+}
+```
+
+如果换成数组或者对象来存这一组优先级，每次合并都要遍历、去重、分配新对象，而这套逻辑在一次渲染里会被调用成千上万次。React 还有个叫 `getHighestPriorityLane` 的函数，实现就是 `lanes & -lanes`，取出最低位的那个 1，一行搞定「找出这组里最紧急的那条赛道」。这类小技巧是 Lane 用位表示的直接收益。
+
+### 3.3 事件类型决定初始优先级
+
+那一次 `setState` 的优先级是谁定的？答案是触发它的那个事件。React 在事件系统里维护了一张映射表：
+
+```javascript
+export function getEventPriority(domEventName) {
+  switch (domEventName) {
+    case 'click':
+    case 'input':
+    case 'keydown':
+      return DiscreteEventPriority;  // 最高优先级
+    case 'scroll':
+    case 'wheel':
+    case 'mouseenter':
+      return ContinuousEventPriority; // 中等优先级
+    default:
+      return DefaultEventPriority;    // 默认优先级
+  }
+}
+```
+
+优先级顺序是 `DiscreteEventPriority` 大于 `ContinuousEventPriority` 大于 `DefaultEventPriority`。
+
+背后的判断标准挺朴素的。点击、输入、按键这类离散事件，用户预期是「按下去立刻有反应」，慢一帧就能感知到，所以给最高优先级；滚动、滚轮、鼠标移入这类连续事件本来就会高频触发，中间丢几帧影响不大；剩下的网络回调、定时器里的更新，默认优先级就够。
+
+所以你在 `onClick` 里写的 `setState` 和在 `fetch().then()` 里写的 `setState`，走的调度路径是不一样的，哪怕代码看起来一模一样。这个点面试里问得挺多。
+
+## 四、时间切片，5ms 是怎么来的
+
+### 4.1 先看浏览器这一侧的约束
+
+时间切片（Time Slicing）就是把一段连续的渲染工作切成一小段一小段，每段跑完主动把主线程还给浏览器。
+
+为什么要还？因为 JS 执行和页面绘制共用同一根主线程。常见显示器刷新率是 60Hz、120Hz、144Hz，60Hz 意味着浏览器每约 16.7ms 要出一帧，这 16.7ms 里既要跑 JS，又要做样式计算、布局、绘制。你的 JS 占满了 16.7ms，这一帧就没了，用户看到的就是掉帧。
+
+React 定的时间片是 5ms，比一帧短得多。这个值留了足够余量给浏览器做剩下的事，同时又不会因为切得太碎导致调度本身的开销吃掉收益。
+
+### 4.2 为什么不用 requestIdleCallback
+
+`requestIdleCallback` 看起来就是为这个场景生的，浏览器空闲时回调，还给你 `timeRemaining()`。React 团队试过，最后没用，原因主要两条。
+
+一是兼容性，Safari 长期不支持，直到比较晚才跟上，React 不能把核心调度压在一个可能缺席的 API 上。二是执行不够积极，`requestIdleCallback` 只在浏览器认为「确实空闲」时才调，一帧里如果有别的活动，它可能几帧都不触发一次，对 React 来说太被动了。
+
+于是 React 在 `scheduler` 包里基于 `MessageChannel` 造了自己的调度器。选它是因为 `MessageChannel` 的回调是宏任务，会排在当前微任务队列清空、浏览器有机会渲染之后执行，而 `Promise.then` 是微任务，会在同一轮里连着跑完，起不到让出的效果；`setTimeout(fn, 0)` 则有最小 4ms 的钳制，白白浪费时间。
+
+### 4.3 调度器的核心循环
+
+```javascript
+// React Scheduler 源码简化版
+const channel = new MessageChannel();
+const port = channel.port2;
+channel.port1.onmessage = performWorkUntilDeadline;
+
+// 调度函数
+function requestHostCallback(callback) {
+  scheduledHostCallback = callback;
+  if (!isMessageLoopRunning) {
+    isMessageLoopRunning = true;
+    port.postMessage(null);  // 发送消息触发调度
+  }
+}
+```
+
+`postMessage` 之后，`onmessage` 回调会作为一个宏任务被排进队列。等这一轮同步代码和微任务都跑完、浏览器有机会渲染之后，`performWorkUntilDeadline` 才会执行，里面进入工作循环：
+
+```javascript
+// 核心工作循环
+function workLoop() {
+  let currentTask = taskQueue[0];
+  while (currentTask) {
+    if (shouldYieldToHost()) {  // 判断是否需要让出主线程
+      break;  // 让出主线程，等待下次调度
+    }
+    const callback = currentTask.callback;
+    callback();
+    taskQueue.shift();
+    currentTask = taskQueue[0];
+  }
+  return currentTask !== null;  // 是否还有任务
+}
+
+// 判断是否需要让出主线程
+function shouldYieldToHost() {
+  const timeElapsed = getCurrentTime() - startTime;
+  return timeElapsed >= 5;  // 默认5ms时间片
+}
+```
+
+整条链路串起来是这样：
+
+```
+1. 调用 unstable_scheduleCallback 添加任务
+2. 通过 port.postMessage 发送消息
+3. 消息被作为宏任务处理，执行 performWorkUntilDeadline
+4. 在 workLoop 中执行渲染任务
+5. 每执行 5ms 后判断 shouldYieldToHost()
+6. 如果需要让出主线程，停止渲染，等待下次调度
+```
+
+这里有个坑要注意。`shouldYieldToHost` 的检查发生在两个工作单元之间，不是发生在一个组件的 render 函数内部。也就是说，如果你单个组件的渲染函数就跑了 200ms（比如在 render 里做了一次大数组排序），时间切片救不了你，这 200ms 照样把主线程焊死。并发能拆的是「组件多」，拆不了「单个组件慢」。
+
+### 4.4 和 requestAnimationFrame 的位置关系
+
+浏览器一轮事件循环的大致顺序是这样的：
+
+```
+1. 取出宏任务执行
+2. 处理微任务队列
+3. 执行 requestAnimationFrame 回调
+4. 浏览器渲染
+5. 执行 requestIdleCallback（空闲时）
+6. 重复...
+```
+
+React 的时间切片任务是以宏任务身份排在第 1 步的，跑满 5ms 就退出，把第 2 到 5 步的机会让出去。所以你能观察到的现象是，长渲染期间页面仍然在正常重绘、动画仍然在走，因为每 5ms 就有一个空档。
+
+## 五、startTransition 与 useDeferredValue
+
+有了 Lane 和时间切片，还差最后一环：谁来告诉 React 哪些更新是可以晚一点的？React 18 把这个决定权交给了开发者，入口就是 `startTransition` 和 `useDeferredValue`。
+
+### 5.1 startTransition 做的事
+
+回到第一节那个 500 个 `SlowPost` 的例子，用 `useTransition` 改造之后：
 
 ```jsx
 import { useState, useTransition } from 'react';
@@ -140,262 +326,9 @@ function App() {
 }
 ```
 
-使用 `useTransition` 后：
-- 点击按钮会立即响应，页面不会卡顿
-- 低优先级的渲染任务可以被高优先级任务中断
-- 用户可以继续与其他元素交互
+点击按钮立刻有反应，页签内容的渲染在后台分片进行，期间再点别的按钮能被优先响应。
 
-这就是**并发更新**的典型应用场景。
-
-## 三、 Lane 模型详解
-
-### 3.1 什么是 Lane
-
-**Lane**（中文意为"赛道"）是 React 18 引入的优先级管理机制。简单来说，Lane 模型会给每次渲染分配一个**优先级**，React 根据这些优先级决定哪些更新应该优先处理。
-
-### 3.2 二进制表示的优势
-
-React 使用**二进制**来表示不同的 Lane：
-
-```javascript
-// React 源码中的 Lane 定义（简化）
-const Lane = {
-  NoLane: 0b0000000000000000000000000000000,
-  SyncLane: 0b0000000000000000000000000000001,  // 最高优先级
-  InputContinuousLane: 0b0000000000000000000000000000100,
-  DefaultLane: 0b0000000000000000000000000010000,
-  IdleLane: 0b0000000000000000000001000000000,   // 最低优先级
-};
-```
-
-为什么采用二进制？
-
-1. **性能**：计算机底层对二进制的处理效率更高
-2. **位运算**：可以轻松完成合并、比较等操作
-
-```javascript
-// 合并多个 Lane
-export function mergeLanes(a, b) {
-  return a | b;  // 位运算 OR
-}
-
-// 移除某个 Lane
-export function removeLanes(set, subset) {
-  return set & ~subset;  // 位运算 AND NOT
-}
-```
-
-### 3.3 事件优先级映射
-
-不同的浏览器事件对应不同的 Lane 优先级：
-
-```javascript
-export function getEventPriority(domEventName) {
-  switch (domEventName) {
-    case 'click':
-    case 'input':
-    case 'keydown':
-      return DiscreteEventPriority;  // 最高优先级
-    case 'scroll':
-    case 'wheel':
-    case 'mouseenter':
-      return ContinuousEventPriority; // 中等优先级
-    default:
-      return DefaultEventPriority;    // 默认优先级
-  }
-}
-```
-
-优先级顺序：`DiscreteEventPriority` > `ContinuousEventPriority` > `DefaultEventPriority`
-
-这意味着：
-- 用户点击输入等操作会立即响应
-- 滚动、拖拽等连续事件次之
-- 数据渲染等后台任务优先级最低
-
-## 四、时间切片详解
-
-### 4.1 什么是时间切片
-
-**时间切片（Time Slicing）** 是将连续不可中断的渲染过程变成可中断的、离散的渲染片段。
-
-这样做的好处是：
-1. 在渲染间隙可以判断是否有更高优先级的任务
-2. 可以及时渲染 UI 界面
-3. 可以响应用户的交互操作
-
-### 4.2 为什么需要时间切片
-
-我们先理解浏览器的刷新机制：
-- 常见显示器刷新率有 60Hz、120Hz、144Hz
-- 60Hz 意味着每秒钟刷新 60 次，即每次间隔约 **16.7ms**
-- 浏览器需要在 16.7ms 内完成 JS 执行和 UI 渲染
-
-问题在于：React 的渲染和 JS 执行都运行在**主线程**上，当渲染时间过长时，会阻塞 UI 渲染导致卡顿。
-
-**时间切片的解决方案**：把连续的渲染过程切分成小块，每个小块执行时间不超过 5ms，执行完后让出主线程，让浏览器有机会渲染 UI。
-
-### 4.3 React 如何实现时间切片
-
-React 并没有直接使用 `requestIdleCallback`（因为 Safari 不兼容且浏览器执行不够积极），而是基于 `MessageChannel` 实现了自己的调度器。
-
-#### MessageChannel 实现原理
-
-```javascript
-// React Scheduler 源码简化版
-const channel = new MessageChannel();
-const port = channel.port2;
-channel.port1.onmessage = performWorkUntilDeadline;
-
-// 调度函数
-function requestHostCallback(callback) {
-  scheduledHostCallback = callback;
-  if (!isMessageLoopRunning) {
-    isMessageLoopRunning = true;
-    port.postMessage(null);  // 发送消息触发调度
-  }
-}
-
-// 核心工作循环
-function workLoop() {
-  let currentTask = taskQueue[0];
-  while (currentTask) {
-    if (shouldYieldToHost()) {  // 判断是否需要让出主线程
-      break;  // 让出主线程，等待下次调度
-    }
-    const callback = currentTask.callback;
-    callback();
-    taskQueue.shift();
-    currentTask = taskQueue[0];
-  }
-  return currentTask !== null;  // 是否还有任务
-}
-
-// 判断是否需要让出主线程
-function shouldYieldToHost() {
-  const timeElapsed = getCurrentTime() - startTime;
-  return timeElapsed >= 5;  // 默认5ms时间片
-}
-```
-
-#### 工作流程
-
-```
-1. 调用 unstable_scheduleCallback 添加任务
-2. 通过 port.postMessage 发送消息
-3. 消息被作为宏任务处理，执行 performWorkUntilDeadline
-4. 在 workLoop 中执行渲染任务
-5. 每执行 5ms 后判断 shouldYieldToHost()
-6. 如果需要让出主线程，停止渲染，等待下次调度
-```
-
-### 4.4 与 requestAnimationFrame 的关系
-
-时间切片与浏览器渲染时机的关系：
-
-```
-1. 取出宏任务执行
-2. 处理微任务队列
-3. 执行 requestAnimationFrame 回调
-4. 浏览器渲染
-5. 执行 requestIdleCallback（空闲时）
-6. 重复...
-```
-
-React 的时间切片就是在步骤 3-5 之间找到执行渲染任务的机会。
-
-## 五、并发模式下的渲染流程
-
-### 5.1 非并发模式 vs 并发模式
-
-**非并发模式**：
-```
-用户点击 About -> 渲染 PostsTab -> 渲染 AboutTab -> 完成
-                (阻塞等待)     (阻塞等待)
-```
-
-**并发模式**：
-```
-用户点击 About -> 渲染部分 PostsTab -> 检测到高优先级任务
-                -> 中断 -> 渲染 AboutTab -> 完成
-                -> 继续渲染剩余 PostsTab
-```
-
-### 5.2 React 18 的并发特性
-
-React 18 的并发机制包含以下特性：
-
-1. **自动批处理**：多个状态更新自动合并为一次渲染
-2. **useTransition**：标记非紧急更新为"过渡"
-3. **useDeferredValue**：延迟非关键 UI 更新
-4. **Suspense**：优雅处理异步加载
-5. **useId**：生成稳定的唯一 ID
-
-## 六、源码分析：完整的调度流程
-
-### 6.1 整体架构
-
-React 18 的调度流程可以分为以下几个层次：
-
-```
-用户触发更新
-    ↓
-调度中心（Scheduler）← Lane 优先级
-    ↓
-Fiber 协调器（Reconciler）
-    ↓
-渲染器（Renderer）
-```
-
-### 6.2 核心源码解析
-
-#### 1. 状态更新入口
-
-```javascript
-// useState 内部实现简化
-function useState(initialState) {
-  const dispatcher = resolveDispatcher();
-  return dispatcher.useState(initialState);
-}
-
-function updateState(initialState) {
-  return dispatchAction(fiber, queue, action);
-}
-```
-
-#### 2. 调度优先级计算
-
-```javascript
-function dispatchAction(fiber, queue, action) {
-  const lane = requestUpdateLane(fiber);  // 根据事件类型获取 Lane
-  const update = {
-    lane,
-    action,
-    eagerReducer: null,
-    next: null,
-  };
-
-  // 将更新加入队列
-  const root = scheduleUpdateOnFiber(fiber, lane);
-}
-```
-
-#### 3. 渲染阶段的让出机制
-
-```javascript
-function workLoopConcurrent() {
-  while (workInProgress !== null && !shouldYield()) {
-    performUnitOfWork(workInProgress);
-  }
-
-  if (workInProgress !== null) {
-    // 还有工作没完成，让出主线程
-    return true;
-  }
-}
-```
-
-### 6.3 useTransition 的实现
+它的实现比想象中朴素，核心就是往一个全局开关上打标记：
 
 ```javascript
 function useTransition() {
@@ -422,43 +355,67 @@ function mountTransition() {
 }
 ```
 
-核心原理：将 `callback` 的执行标记为**过渡优先级**，允许被高优先级任务中断。
+关键在 `ReactCurrentBatchConfig.transition` 这个全局变量。`callback` 执行期间它是有值的，这段时间里任何 `setState` 走到 `requestUpdateLane` 时，都会拿到 `TransitionLane` 而不是事件本身对应的高优先级 Lane：
 
-## 七、面试简洁版本
+```javascript
+function dispatchAction(fiber, queue, action) {
+  const lane = requestUpdateLane(fiber);  // 根据事件类型获取 Lane
+  const update = {
+    lane,
+    action,
+    eagerReducer: null,
+    next: null,
+  };
 
-### 7.1 一句话概括
+  // 将更新加入队列
+  const root = scheduleUpdateOnFiber(fiber, lane);
+}
+```
 
-**React 18 的并发机制通过 Lane 模型分配优先级、时间切片拆分渲染，实现了可中断的渲染能力，让高优先级任务（如用户交互）能够优先响应。**
+由此推出两条实用结论。第一，`startTransition` 的回调必须是同步的，因为标记只在 `callback()` 同步执行的那一段有效，你在里面写 `await` 或者 `setTimeout`，之后的 `setState` 已经丢了 transition 标记。第二，被包裹的更新走的是低优先级 Lane，所以受控输入框的 value 千万别包进去，包了就会出现「输入框跟不上手速」的诡异现象。
 
-### 7.2 核心概念
+### 5.2 useDeferredValue 差在哪
 
-1. **Lane 模型**：用二进制位表示渲染优先级，支持高效合并和比较
-2. **时间切片**：将渲染拆分为 5ms 的小片段，执行后让出主线程
-3. **useTransition**：将低优先级更新标记为"过渡"，可被中断
+两个 API 常被当成一回事，我自己的感受是差别就在「你能不能改到那次 setState」。
 
-### 7.3 常见面试题
+`startTransition` 作用于更新的产生端，你得能拿到那行 `setState` 并把它包起来。`useDeferredValue` 作用于消费端，它接一个值，返回一个「滞后版本」的值：
 
-**Q1: React 18 并发渲染是什么？**
+```jsx
+import { useDeferredValue } from 'react';
 
-A: 并发渲染是 React 18 引入的新能力，可以让 React 同时准备多个版本的 UI。它不是并行（同时执行多个），而是可中断的渲染——当有更高优先级的任务时，会暂停当前渲染先去处理高优先级任务。
+function SearchResults({ query }) {
+  // query 的变化会被标记为非紧急
+  const deferredQuery = useDeferredValue(query);
+  const results = useMemo(() => searchData(deferredQuery), [deferredQuery]);
 
-**Q2: 为什么需要时间切片？**
+  return <ResultsList results={results} />;
+}
+```
 
-A: 因为 JS 执行和 UI 渲染都在主线程，之前的渲染是同步且不可中断的，会阻塞页面响应。时间切片将渲染拆分成小片段，每片段执行后让出主线程，让浏览器有机会渲染 UI 和响应用户交互。
+`query` 一变，React 先用旧的 `deferredQuery` 快速渲染一遍（输入框立刻响应），然后在低优先级里用新值再渲染一遍。如果这期间 `query` 又变了，前一次低优先级渲染直接作废重来。
 
-**Q3: Lane 模型的优势？**
+所以 `useDeferredValue` 天然带防抖效果，但它不是 `debounce`。`debounce` 是按固定时间等，设备快也得等；`useDeferredValue` 是按「主线程有没有空」来决定，设备快的时候几乎察觉不到延迟，设备慢的时候自动多让几次。这个设计是真的舒服。
 
-A: 用二进制表示优先级，可以利用位运算高效地进行合并、比较操作。React 可以根据不同事件（点击 > 滚动 > 渲染）分配不同优先级。
+什么时候用哪个？值来自 props、或者来自你改不动的第三方 Hook，就用 `useDeferredValue`；值就在你自己的组件里、`setState` 那行你说了算，就用 `startTransition`，还能顺手拿到 `isPending` 画个加载态。
 
-**Q4: useTransition 和 useDeferredValue 的区别？**
+### 5.3 从卡顿到不卡的完整对照
 
-A: `useTransition` 用于状态更新场景，标记某次更新为低优先级；`useDeferredValue` 用于值变化场景，延迟子组件的渲染更新。两者都是处理"紧急更新"和"慢速更新"竞争的问题。
+非并发模式下的时间线是这样的：
 
-**Q5: React 18 自动批处理？**
+```
+用户点击 About -> 渲染 PostsTab -> 渲染 AboutTab -> 完成
+                (阻塞等待)     (阻塞等待)
+```
 
-A: React 18 之前只在事件处理函数中自动批处理，Promise、setTimeout 等场景需要手动处理。React 18 默认所有场景都自动批处理，减少不必要的渲染。
+并发模式下：
 
-### 7.4 代码示例
+```
+用户点击 About -> 渲染部分 PostsTab -> 检测到高优先级任务
+                -> 中断 -> 渲染 AboutTab -> 完成
+                -> 继续渲染剩余 PostsTab
+```
+
+对应到经典的搜索框场景，改造前后的代码差别很小，体感差别很大：
 
 ```jsx
 // 优化前：卡顿
@@ -466,37 +423,101 @@ function App() {
   const [query, setQuery] = useState('');
 
   return (
-    <input value={query} onChange={e => setQuery(e.target.value)} />
-    <Results query={query} />  // 大量数据渲染
-  );
-}
-
-// 优化后：使用 useTransition
-function App() {
-  const [query, setQuery] = useState('');
-  const [isPending, startTransition] = useTransition();
-
-  function handleChange(e) {
-    startTransition(() => {
-      setQuery(e.target.value);  // 低优先级，可中断
-    });
-  }
-
-  return (
-    <input value={query} onChange={handleChange} />
-    {isPending ? <Loading /> : <Results query={query} />}
+    <>
+      <input value={query} onChange={e => setQuery(e.target.value)} />
+      <Results query={query} />
+    </>
   );
 }
 ```
 
+```jsx
+// 优化后：query 走紧急更新，结果列表走过渡更新
+function App() {
+  const [query, setQuery] = useState('');
+  const [list, setList] = useState([]);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e) {
+    const value = e.target.value;
+    setQuery(value);                       // 紧急：输入框立刻更新
+    startTransition(() => {
+      setList(searchData(value));          // 过渡：可被中断
+    });
+  }
+
+  return (
+    <>
+      <input value={query} onChange={handleChange} />
+      {isPending ? <Loading /> : <Results list={list} />}
+    </>
+  );
+}
+```
+
+注意 `setQuery` 是留在 `startTransition` 外面的，这一点必须记牢，写反了整个输入体验反而更差。
+
+## 六、并发之后多出来的坑
+
+这套机制不是白拿的，它把一些以前不会暴露的假设变成了真 bug。
+
+最典型的是撕裂（tearing）。渲染可以被中断，就意味着一棵树的上半部分和下半部分可能是在两个不同时刻读到的数据。如果这份数据来自 React 之外，比如一个手写的全局单例 store，中间被别人改了，同一次渲染里就会出现两个组件显示不一致的值。React 18 给外部数据源准备的解法是 `useSyncExternalStore`，Redux、Zustand、MobX 这些库都已经接上了，我们自己写全局状态时也应该走这个 Hook 而不是 `useEffect` 加订阅。关于这几个状态库在并发下的表现差异，我在 [React 状态管理方案对比](https://feinterview.poetries.top/blog/react-state-management-comparison) 里展开过。
+
+第二个坑是 render 阶段的副作用。render 可能被丢弃重来，也可能被执行多次，所以在 render 函数里写计数器自增、写日志上报、改外部变量，行为都会变得不可预期。React 18 的严格模式在开发环境下故意二次调用组件函数和 effect，就是为了把这类问题提前炸出来。这块的具体表现和排查方式在 [React 18 新特性与升级指南](https://feinterview.poetries.top/blog/react-18-new-features) 里有更细的说明。
+
+第三个是心理预期上的坑。并发不是并行，React 依然只有一根线程在跑，它没有让你的代码变快，只是让长任务变得可以插队。如果你的 CPU 时间总量本来就超标，加 `startTransition` 只会让「一直卡」变成「一直转圈」。不是说 `startTransition` 不行，而是它治的是响应性，不是吞吐量，真要减少总耗时还得靠虚拟列表、按需渲染、把重计算挪到 Worker 这些老办法。
+
+还有一点值得提一句。React 19.2 之后有了 `<Activity>` 这类新的原语，可以把子树标记为隐藏并在后台以低优先级预渲染，底下复用的还是这套 Lane 调度。这块我只在 demo 里试过，没在生产项目上验证，具体行为建议以官方文档为准。
+
+## 七、面试里怎么答
+
+### 7.1 一句话概括
+
+React 18 的并发机制通过 Lane 模型给每次更新分配优先级、通过时间切片把渲染拆成 5ms 的片段并在片段之间让出主线程，从而实现了可中断的渲染，让用户交互这类高优先级任务能够插队优先响应。
+
+### 7.2 高频追问
+
+**Q1：并发渲染到底是什么？**
+
+它是一种可中断的渲染能力，不是并行。React 依然单线程，但它能在渲染中途暂停，先去处理更高优先级的任务，之后再继续或者干脆丢弃重来。能做到这一点，靠的是 Fiber 把递归改成了链表循环，渲染进度存在 `workInProgress` 变量里而不是调用栈里。
+
+**Q2：为什么需要时间切片？**
+
+JS 执行和页面绘制共用主线程，同步渲染一旦超过一帧的预算就会掉帧。时间切片把渲染拆成 5ms 的小块，每块跑完让出主线程，浏览器就有机会绘制和响应交互。
+
+**Q3：Lane 模型为什么用二进制？**
+
+因为一个 Fiber 上可能同时存在多个优先级的更新，位掩码可以把一组优先级压进一个 32 位整数，合并是 `a | b`，剔除是 `set & ~subset`，取最高优先级是 `lanes & -lanes`，全是单步位运算，没有内存分配。这套逻辑在一次渲染里会被调用极多次，常数开销很重要。
+
+**Q4：React 为什么不用 requestIdleCallback？**
+
+兼容性不够（Safari 长期缺席），并且触发不够积极，浏览器可能连续几帧都不给你回调。React 改用 `MessageChannel`，它的回调是宏任务，能保证在浏览器有机会渲染之后再执行，也不像 `setTimeout` 那样有 4ms 钳制。
+
+**Q5：`useTransition` 和 `useDeferredValue` 的区别？**
+
+`useTransition` 作用在更新产生端，把一段同步执行的 `setState` 标记成过渡优先级，还附赠 `isPending`；`useDeferredValue` 作用在值的消费端，返回一个滞后版本的值，适合你改不到源头 `setState` 的场景，比如值是从 props 传下来的。两者最终都落到同一条 TransitionLane 上。
+
+**Q6：并发模式下有什么新风险？**
+
+主要是撕裂和 render 阶段副作用。外部数据源要走 `useSyncExternalStore`，render 函数必须保持纯净，严格模式的二次执行就是用来暴露这类问题的。
+
 ## 总结
 
-React 18 并发机制的核心在于：
+把这套机制拆开看，其实是四层能力叠出来的。
 
-1. **Lane 模型**：用二进制位运算高效管理渲染优先级
-2. **时间切片**：基于 MessageChannel 实现可中断渲染
-3. **useTransition**：让开发者控制哪些更新可以被打断
+Fiber 把树的遍历从递归改成链表循环，让渲染进度可以存在变量里，这是可中断的物理前提；Lane 用二进制位给每次更新编码优先级，回答了「先做谁」；调度器基于 `MessageChannel` 实现 5ms 时间片，回答了「什么时候停」；`startTransition` 和 `useDeferredValue` 把「哪些更新可以晚点」的决定权交给开发者，回答了「谁说了算」。
 
-这套机制解决了 React 长年被诟病的"渲染阻塞交互"问题，让应用能够根据用户设备的性能动态调整，提供更流畅的用户体验。
+四层里，前三层是 React 内部的事，你升到 18 之后自动就有了；第四层要你自己动手，不写就没有并发效果。这也是为什么很多人升级完感觉「没什么变化」，因为并发特性在 React 18 里是渐进启用的，不主动用 `startTransition` 之类的 API，行为和以前基本一致。
 
-理解并发机制，对于深入掌握 React 架构和应对面试都至关重要。
+最后再强调一次，并发治的是响应性不是吞吐量。它让 500ms 的渲染从「卡死 500ms」变成「分 100 次跑、期间随时能插队」，总耗时并没有变短。搞清楚这条边界，才不会在错误的地方投入优化精力。
+
+## 参考
+
+- [React v18.0 发布公告](https://react.dev/blog/2022/03/29/react-v18)
+- [useTransition - React 官方文档](https://react.dev/reference/react/useTransition)
+- [useDeferredValue - React 官方文档](https://react.dev/reference/react/useDeferredValue)
+- [useSyncExternalStore - React 官方文档](https://react.dev/reference/react/useSyncExternalStore)
+- [React Fiber Architecture - acdlite](https://github.com/acdlite/react-fiber-architecture)
+- [React scheduler 包源码](https://github.com/facebook/react/tree/main/packages/scheduler)
+- [MessageChannel - MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/MessageChannel)
+- [前端进阶之旅](https://interview.poetries.top)

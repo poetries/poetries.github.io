@@ -1,9 +1,9 @@
 ---
 title: HTML5之API总结
 date: 2016-11-26 14:35:24
-tags: 
-  - HTML5
-  - API
+tags:
+- HTML5
+- API
 categories: Front-End
 ---
 
@@ -147,7 +147,7 @@ categories: Front-End
   - 不支持`canvas` 的浏览器可以看到的内容
 - `<canvas>` 绘制环境
   - `getContext("2d")`;目前支持`2d`的场景
-  
+
 
 - 绘制矩形
   - `rect(L,T,W,H)`:创建一个矩形
@@ -161,11 +161,11 @@ categories: Front-End
 - 绘制路径
   - `stroke` ：绘制，划线(黑色默认)
   - `fill` :填充(黑色默认)
-  - `rect(矩形区域)` 
+  - `rect(矩形区域)`
   - `clearRect` 擦除一个矩形区域
   - `save` 进入到XXX（高逼格）状态
   - `restore` 退出xxx（高逼格）状态
- 
+
 - 绘制圆形
   - `arc(x,y,半径,起始弧度,结束弧度,旋转方向)`
   - `x`，`y`起始位置
@@ -176,7 +176,7 @@ categories: Front-End
   - `fillText`：填充字体
   - `strokeText`：绘制字体
 
-	
+
 ### 二、视频音频
 ---
 
@@ -284,7 +284,7 @@ categories: Front-End
       - 关闭更新请求  :  `clearWatch`
 
   - 百度地图`API`
-  
+
 ```javascript
 <script src="http://api.map.baidu.com/api?v=2.0&ak=qZfInp9MaT9Qa0PoNy4Rmx3Y9W9ZXMfw"></script>
 ```
@@ -298,12 +298,12 @@ categories: Front-End
         - 窗口的临时存储，页面关闭，本地存储消失
     - `localStorage`
         - 永久存储（可以手动删除数据）
-        
+
 - `Storage`的特点
     - 存储量限制 ( 5M )
     - 客户端完成，不会请求服务器处理
     - `sessionStorage`数据是不共享、 `localStorage`共享
-    
+
 - `Storage API`
     - `setItem()`:
         - 设置数据，(`key`,`value`)类型，类型都是字符串
@@ -314,7 +314,7 @@ categories: Front-End
         - 删除数据，通过key来删除相应的`value`
     - `clear()`:
         - 删除全部存储的值
-        
+
 - 存储事件:
     - 当数据有修改或删除的情况下，就会触发`storage`事件
     - 在对数据进行改变的窗口对象上是不会触发的`
@@ -324,19 +324,19 @@ categories: Front-End
     - `storageArea` : 当前的`storage`对象
     - `url` :  触发该脚本变化的文档的url
     - 注：`session`同窗口才可以,例子：`iframe`操作
-    
-	
+
+
 ###  四、HTML5拖拽
 ---
 
 - 图片自带拖拽功能
 - 其他元素可设置`draggable`属性
 - `draggable ：true`
-    - 拖拽元素(被拖拽元素对象)事件 :  
-        - `ondragstart` : 拖拽前触发 
+    - 拖拽元素(被拖拽元素对象)事件 :
+        - `ondragstart` : 拖拽前触发
         - `ondrag` :拖拽前、拖拽结束之间，连续触发
         - `ondragend` :拖拽结束触发
-    - 目标元素(拖拽元素被拖到的对象)事件 :  
+    - 目标元素(拖拽元素被拖到的对象)事件 :
         - `ondragenter` :进入目标元素触发
         - `ondragover `:进入目标、离开目标之间，连续触发
         - `ondragleave` :离开目标元素触发
@@ -349,7 +349,7 @@ categories: Front-End
     - `setData()` : 设置数据 `key`和`value`(必须是字符串)
     - `getData()` : 获取数据，根据`key`值，获取对应的`value`
     - `effectAllowed` : 设置光标样式(`none`, `copy`, `copyLink`, `copyMove`, `link`, `linkMove`,` move`, `all` 和` uninitialized`)
-	
+
     - `setDragImage` ：三个参数（指定的元素，坐标`X`，坐标`Y`）
     - `files`： 获取外部拖拽的文件，返回一个`filesList`列表
         - `filesList`下有个`type`属性，返回文件的类型
@@ -372,7 +372,7 @@ categories: Front-End
 		- 新窗口页：
 			- 父页面操作子页面：`window.open`
 			- 子页面操作父页面：`window.opener`
-			
+
 - 不同域跨文档
 	- `postMessage（“发送的数据”,”接收的域”）`
 		- `message`事件监听
@@ -385,7 +385,7 @@ categories: Front-End
     - `XMLHttpRequest` 新增功能
 	 	- 跨域请求：修改服务端头信息
 		- I`E`兼容：`XDomaiRequest`
-		
+
     - 进度事件：
 		- `upload.onprogress(ev) ` 上传进度(实现文件上传进度条)
 			- `ev.total`  发送文件的总量

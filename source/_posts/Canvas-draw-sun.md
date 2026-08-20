@@ -1,9 +1,9 @@
 ---
 title: Canvas 绘制八大行星
 date: 2016-12-02 23:50:24
-tags: 
-  - HTML5
-  - Canvas
+tags:
+- HTML5
+- Canvas
 categories: Front-End
 ---
 
@@ -41,7 +41,7 @@ function Star(x,y,radius,cycle,sColor,eColor){
   //画出星球需要的属性
   //星球的坐标点 星球的半径 星球的颜色（开始颜色、结束颜色）
   //公转周期
-  
+
   //星球坐标点
   this.x = x;
   this.y = y;
@@ -49,33 +49,33 @@ function Star(x,y,radius,cycle,sColor,eColor){
   this.cycle = cycle;
   this.eColor = eColor;
   this.sColor = sColor;
-  
-  
+
+
   this.color = null;//渐变颜色空对象
   this.time = 0;//设置一个计时器
-  
+
   this.draw = function(){
     //save()可以这样理解 原来的画布内容不变 把save（）和restore()之间的内容画好了 在塞进来
     ctx.save();//保存之前的画布内容
     ctx.translate(500,500);//重置0,0坐标点
     ctx.rotate(this.time * (360/this.cycle) * Math.PI / 180);//设置旋转角度
-    
+
     //画星球
     ctx.beginPath();
     ctx.arc(this.x,this.y,this.radius,0,360,false);
     ctx.closePath();
-    
+
     //设置星球的填充颜色
-    
+
     this.color = ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.radius);
     this.color.addColorStop(0,this.sColor);//渐变颜色开始点
     this.color.addColorStop(0,this.eColor);//渐变颜色结束点
     ctx.fillStyle = this.color;
     ctx.fill();//执行填充命令
-    
+
     //填充星球
-    
-    
+
+
     ctx.restore();//恢复之前保存的画布内容
     this.time +=1;
   }

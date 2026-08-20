@@ -276,17 +276,17 @@ const SimpleButton = props => <button>{props.text}</button>
 
 > 比如说设置了`value`的`<input>` 是一个受控组件。对于受控的`<input>`，渲染出来的`html`元素始终保持着`value`属性的值，如以下代码
 
-![](https://poetries1.gitee.io/img-repo/2019/10/470.png)
+![](https://s.poetries.top/gitee/2019/10/470.png)
 
 - 此时如果想要更新用户的值。需要使用`onChange`事件
 
-![](https://poetries1.gitee.io/img-repo/2019/10/471.png)
+![](https://s.poetries.top/gitee/2019/10/471.png)
 
 **非受控组件**
 
 > 即没有设置`value`或者设置为`null`的是一个非受控组件，对于非受控的`input`组件，用户的输入会直接反映在页面上
 
-![](https://poetries1.gitee.io/img-repo/2019/10/472.png)
+![](https://s.poetries.top/gitee/2019/10/472.png)
 
 - 上面的代码渲染出一个空值的输入框，用户的输入立即会反映在元素上
 - 和受控组件一样，使用`onChange`事件来监听值的变化，如果想要给组件设置一个非空的初始值。可以使用`defaultValue`属
@@ -456,8 +456,8 @@ class Counter extends React.Component {
 - `shouldComponentUpdate `组件判断是否重新渲染时调用
 
 
-![](https://poetries1.gitee.io/img-repo/2019/10/473.png)
-![](https://poetries1.gitee.io/img-repo/2019/10/474.png)
+![](https://s.poetries.top/gitee/2019/10/473.png)
+![](https://s.poetries.top/gitee/2019/10/474.png)
 
 
 **componentDidMount**
@@ -572,7 +572,7 @@ class ControlledInput extends React.Component {
 
 ## 八、redux-router
 
-![](https://poetries1.gitee.io/img-repo/2019/10/475.png)
+![](https://s.poetries.top/gitee/2019/10/475.png)
 
 ### 8.1、基本用法
 
@@ -1236,11 +1236,10 @@ const reducer = combineReducers(reducers)
 ### 9.4 工作流程
 
 
-![](https://poetries1.gitee.io/img-repo/2019/10/478.png)
-![](https://poetries1.gitee.io/img-repo/2019/10/479.png)
-![](https://poetries1.gitee.io/img-repo/2019/10/480.png)
-![](https://poetries1.gitee.io/img-repo/2019/10/481.png)
-![](https://poetries1.gitee.io/img-repo/2019/10/482.png)
+![](https://s.poetries.top/gitee/2019/10/479.png)
+![](https://s.poetries.top/gitee/2019/10/480.png)
+![](https://s.poetries.top/gitee/2019/10/481.png)
+![](https://s.poetries.top/gitee/2019/10/482.png)
 
 
 - 首先，用户发出 `Action`
@@ -1315,7 +1314,6 @@ store.subscribe(render);
 
 - 怎么才能 `Reducer` 在异步操作结束后自动执行呢？这就要用到新的工具：中间件（`middleware`）
 
-![](https://poetries1.gitee.io/img-repo/2019/10/477.png)
 
 
 ### 10.1 中间件的概念
@@ -1430,7 +1428,6 @@ class AsyncApp extends Component {
 
 - 下面就是`fetchPosts`的代码，关键之处就在里面
 
-![](https://poetries1.gitee.io/img-repo/2019/10/476.png)
 
 ```javascript
 const fetchPosts = postTitle => (dispatch, getState) => {
@@ -1862,5 +1859,5 @@ ReactDOM.render(
 
 ## 十二、思维导图总结
 
-![](https://poetries1.gitee.io/img-repo/2019/10/483.png)
+![](https://s.poetries.top/gitee/2019/10/483.png)
 

@@ -134,4 +134,3 @@ child.innerHTML = 'pppppp';
 
 ### 附录：思维导图总结
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/DOM%20%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C.gif)

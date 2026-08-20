@@ -11,7 +11,7 @@ categories: Front-End
 
 > https://github.com/settings/applications/new
 
-![](https://poetries1.gitee.io/img-repo/2019/10/226.png)
+![](https://s.poetries.top/gitee/2019/10/226.png)
 
 - `Application name`： # 应用名称，随意
 - `Homepage URL`： # 网站URL，如http://blog.poetries.top

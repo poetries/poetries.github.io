@@ -55,7 +55,6 @@ categories: Front-End
 
 > `bootstrap`里`active`/`success`/`info`/`warning`/`danger`对应的背景颜色
 
-![](http://img.blog.csdn.net/20160530130233175)
 
 表单
 ---

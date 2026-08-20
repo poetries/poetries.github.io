@@ -1,9 +1,9 @@
 ---
 title: Canvas 绘制粒子动画背景
 date: 2016-12-02 20:30:24
-tags: 
-  - HTML5
-  - Canvas
+tags:
+- HTML5
+- Canvas
 categories: Front-End
 ---
 
@@ -114,7 +114,7 @@ window.requestAnimFrame = ( function() {
 				dot.draw();
 			}
 		}
-		
+
 		//drawDots();
 		//移动
 		function moveDots(){
@@ -155,7 +155,7 @@ window.requestAnimFrame = ( function() {
 							cxt.closePath();
 							cxt.stroke();
 						}
-						
+
 					}
 				}
 			}
@@ -170,7 +170,7 @@ window.requestAnimFrame = ( function() {
 			requestAnimFrame(animateDots);
 		}
 		animateDots();
-		
+
 		can.onmousemove = function(ev){
 			var ev = ev || window.event;
 			mousePosition.x = ev.pageX;

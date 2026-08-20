@@ -5,7 +5,6 @@ tags: Taro
 categories: Front-End
 ---
 
-
 > 来自掘金小册笔记
 
 ## 一、Taro 的安装与使用
@@ -28,8 +27,6 @@ taro -V
 $ taro init myApp
 ```
 
-![](https://user-gold-cdn.xitu.io/2018/9/2/1659a045be8713ca)
-
 
 #### 1.2.1 微信小程序
 
@@ -46,7 +43,6 @@ $ npm run build:weapp
 #### 1.2.2 百度小程序
 
 > 选择百度小程序模式，需要自行下载并打开[百度开发者工具](https://smartprogram.baidu.com/docs/develop/devtools/show_sur/)，然后在项目编译完后选择项目根目录下 dist 目录进行预览
-
 
 百度小程序编译预览及打包
 
@@ -80,7 +76,6 @@ $ npm run dev:h5
 $ taro build --type h5 --watch
 ```
 
-
 #### 1.2.5 React Native
 
 > `React Native` 端运行需执行如下命令，`React Native` 端相关的运行说明请参见 `React Native` [教程](https://nervjs.github.io/taro/docs/react-native.html)
@@ -94,13 +89,12 @@ $ npm run dev:rn
 
 > `Taro` 提供了更新命令来更新 `CLI `工具自身和项目中 `Taro` 相关的依赖。
 
-
 更新 `taro-cli` 工具
 
 ```bash
 # taro
 $ taro update self
-# npm 
+# npm
 ```
 
 > 更新项目中 `Taro` 相关的依赖，这个需要在你的项目下执行
@@ -119,15 +113,12 @@ $ taro update project
 - 设置关闭上传代码时样式自动补全
 - 设置关闭代码压缩上传
 
-![](https://user-gold-cdn.xitu.io/2018/10/7/1664ea0616676b32)
 
 ### 2.2 Taro 与 React 的差异
 
 > 由于微信小程序的限制，`React` 中某些写法和特性在 `Taro` 中还未能实现，后续将会逐渐完善。 截止到本小册发布前，`Taro` 的最新版本为 `1.1`，因此以下讲解默认版本为 `1.1`
 
-
 #### 2.2.1 暂不支持在 render() 之外的方法定义 JSX
-
 
 > 由于微信小程序的 `template` 不能动态传值和传入函数，`Taro` 暂时也没办法支持在类方法中定义 `JSX`
 
@@ -156,7 +147,6 @@ class App extends Component {
 **解决方案**
 
 在 `render` 方法中定义
-
 
 ```jsx
 class App extends Component {
@@ -288,7 +278,6 @@ const element = array.map(item => {
 
 > 微信小程序组件要求每一个传入组件的参数都必须预先设定好，而对象展开符则是动态传入不固定数量的参数。所以 `Taro` 没有办法支持该功能
 
-
 无效情况
 
 ```jsx
@@ -309,7 +298,6 @@ render () {
     return <View id={id} title={title} />
 }...
 ```
-
 
 #### 2.2.6 不允许在 JSX 参数（props）中传入 JSX 元素
 
@@ -333,7 +321,6 @@ render () {
 
 #### 2.2.7 不支持无状态组件（Stateless Component)
 
-
 > 由于微信的 `template` 能力有限，不支持动态传值和函数，`Taro` 暂时只支持一个文件自定义一个组件。为了避免开发者疑惑，暂时不支持定义 `Stateless Component`
 
 无效情况
@@ -356,17 +343,14 @@ const Test = function () {
 }...
 ```
 
-
 **解决方案**
 
 使用 `class` 定义组件。
 
 ```js
 class App extends Component {
-  render () {
-    return (
-      <View />
-    )
+  render() {
+    return <View />
   }
 }
 ```
@@ -375,26 +359,17 @@ class App extends Component {
 
 > Taro 函数命名使用驼峰命名法，如`onClick`，由于微信小程序的 WXML 不支持传递函数，函数名编译后会以字符串的形式绑定在 WXML 上，囿于 WXML 的限制，函数名有三项限制
 
-
 - 方法名不能含有数字
 - 方法名不能以下划线开头或结尾
 - 方法名的长度不能大于 `20`
 
-
 请遵守以上规则，否则编译后的代码在微信小程序中会报以下错误
-
-
-![](https://user-gold-cdn.xitu.io/2018/10/7/1664ea05f7c23984)
 
 
 ### 2.4 推荐安装 ESLint 编辑器插件
 
 > Taro 有些写法跟 React 有些差异，可以通过安装 ESLint 相关的编辑器插件来获得人性化的提示。由于不同编辑器安装的插件有所不同，具体安装方法请自行搜索，这里不再赘述。 如下图，就是安装插件后获得的提示
 
-
-![](https://user-gold-cdn.xitu.io/2018/10/7/1664ea06098d0a4c)
-
-![](https://user-gold-cdn.xitu.io/2018/10/7/1664ea0608d0d42e)
 
 
 ### 2.5 最佳编码方式
@@ -430,17 +405,15 @@ class Parent extends Component {
 
 > 所以 `Taro`中约定组件传递函数属性名以 `on` 开头，同时这也和内置组件的事件绑定写法保持一致了...
 
-
 **小程序端不要在组件中打印传入的函数**
 
 > 前面已经提到小程序端的组件传入函数的原理，所以在小程序端不要在组件中打印传入的函数，因为拿不到结果，但是 `this.props.onXxx && this.props.onXxx()` 这种判断函数是否传入来进行调用的写法是完全支持的...
-
 
 **小程序端不要将在模板中用到的数据设置为 undefined**
 
 - 由于小程序不支持将 `data` 中任何一项的 `value` 设为 `undefined` ，在 `setState` 的时候也请避免这么用。你可以使用 `null` 来替代。
 - 小程序端不要在组件中打印 `this.props.children`
-在微信小程序端是通过` <slot />` 来实现往自定义组件中传入元素的，而 `Taro` 利用 `this.props.children` 在编译时实现了这一功能， `this.props.children` 会直接被编译成 `<slot />` 标签，所以它在小程序端属于语法糖的存在，请不要在组件中打印它...
+  在微信小程序端是通过` <slot />` 来实现往自定义组件中传入元素的，而 `Taro` 利用 `this.props.children` 在编译时实现了这一功能， `this.props.children` 会直接被编译成 `<slot />` 标签，所以它在小程序端属于语法糖的存在，请不要在组件中打印它...
 
 **组件 state 与 props 里字段重名的问题**
 
@@ -494,7 +467,6 @@ if (process.env.NODE_ENV === 'development') {
 }...
 ```
 
-
 **预加载**
 
 > 在微信小程序中，从调用 `Taro.navigateTo`、`Taro.redirectTo` 或 `Taro.switchTab` 后，到页面触发` componentWillMount` 会有一定延时。因此一些网络请求可以提前到发起跳转前一刻去请求
@@ -523,36 +495,25 @@ class Index extends Component {
 }...
 ```
 
-
 ## 三、Taro 设计思想及架构
 
 > 在 Taro 中采用的是编译原理的思想，所谓编译原理，就是一个对输入的源代码进行语法分析，语法树构建，随后对语法树进行转换操作再解析生成目标代码的过程。
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/1665182480dfc020)
 
 ### 3.1 抹平多端差异
 
-
 > 基于编译原理，我们已经可以将 Taro 源码编译成不同端上可以运行的代码了，但是这对于实现多端开发还是远远不够。因为不同的平台都有自己的特性，每一个平台都不尽相同，这些差异主要体现在不同的组件标准与不同的 API 标准以及不同的运行机制上
-
 
 以小程序和 Web 端为例
 
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/1665182486f397d9)
-
-![](https://user-gold-cdn.xitu.io/2018/10/8/1665182487386fef)
 
 - 可以看出小程序和 Web 端上组件标准与 API 标准有很大差异，这些差异仅仅通过代码编译手段是无法抹平的，例如你不能直接在编译时将小程序的 `<view />` 直接编译成 `<div />`，因为他们虽然看上去有些类似，但是他们的组件属性有很大不同的，仅仅依靠代码编译，无法做到一致，同理，众多 `API` 也面临一样的情况。针对这样的情况，`Taro` 采用了定制一套运行时标准来抹平不同平台之间的差异。
 - 这一套标准主要以三个部分组成，包括标准运行时框架、标准基础组件库、标准端能力 API，其中运行时框架和 API 对应 `@taro/taro`，组件库对应 `@tarojs/components`，通过在不同端实现这些标准，从而达到去差异化的目的...
 
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/16651824884a5682)
-
-![](https://user-gold-cdn.xitu.io/2018/10/8/16651824b8ac59a4)
 
 ## 四、CLI 原理及不同端的运行机制
-
 
 ### 4.1 taro-cli 包
 
@@ -581,9 +542,7 @@ class Index extends Component {
 
 ```
 
-
 里面包含了 Taro 所有命令用法及作用。
-
 
 #### 4.1.2 包管理与发布
 
@@ -629,7 +588,6 @@ class Index extends Component {
 > `Taro` 项目主要是由一系列 `NPM` 包组成，位于工程的 `Packages` 目录下。它的包管理方式和 `Babel` 项目一样，将整个项目作为一个 `monorepo` 来进行管理，并且同样使用了包管理工具 `Lerna`
 
 `Packages` 目录下十几个包中，最常用的项目初始化与构建的命令行工具 `Taro CLI` 就是其中一个。在 `Taro` 工程根目录运行 `lerna publish` 命令之后，`lerna.json` 里面配置好的所有的包会被发布到 `NPM` 上
-
 
 #### 4.1.3 taro-cli 包的目录结构如下
 
@@ -685,7 +643,6 @@ class Index extends Component {
 
 ### 4.3 Taro Init
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/16651547b6ddebe1)
 
 > 当我们全局安装 `taro-cli` 包之后，我们的命令行里就有了 Taro 命令
 
@@ -738,7 +695,7 @@ program
   .parse(process.argv)...
 ```
 
-> 通过上面代码可以发现，`init`，`build`	，`update`等命令都是通过`.command(name, description)`方法定义的，然后通过 `.parse(arg)` 方法解析参数
+> 通过上面代码可以发现，`init`，`build` ，`update`等命令都是通过`.command(name, description)`方法定义的，然后通过 `.parse(arg)` 方法解析参数
 
 #### 4.3.2 参数解析及与用户交互
 
@@ -773,9 +730,9 @@ if (typeof conf.description !== 'string') {
 ```
 
 - `prompt()`接受一个问题对象的数据，在用户与终端交互过程中，将用户的输入存放在一个答案对象中，然后返回一个`Promise`，通过`then()`获取到这个答案对象。
-借此，新项目的名称、版本号、描述等信息可以直接通过终端交互插入到项目模板中，完善交互流程。
+  借此，新项目的名称、版本号、描述等信息可以直接通过终端交互插入到项目模板中，完善交互流程。
 - 当然，交互的问题不仅限于此，可以根据自己项目的情况，添加更多的交互问题。`inquirer.js `强大的地方在于，支持很多种交互类型，除了简单的input，还有`confirm`、`list`、`password`、`checkbox`等，具体可以参见项目的工程 README。
-此外，你在执行异步操作的过程中，还可以使用 `sindresorhus/ora` 来添加一下 `Loading` 效果。使用 `chalk/chalk` 给终端的输出添加各种样式...
+  此外，你在执行异步操作的过程中，还可以使用 `sindresorhus/ora` 来添加一下 `Loading` 效果。使用 `chalk/chalk` 给终端的输出添加各种样式...
 
 #### 4.3.3 模版文件操作
 
@@ -786,7 +743,7 @@ if (typeof conf.description !== 'string') {
 - 更新已存在文件内容
 
 > 这些操作基本都是在 `/template/index.js` 文件里。
-这里还用到了 `shelljs/shelljs` 执行 `shell` 脚本，如初始化 `Git： git init`，项目初始化之后安装依赖 `npm install`等
+> 这里还用到了 `shelljs/shelljs` 执行 `shell` 脚本，如初始化 `Git： git init`，项目初始化之后安装依赖 `npm install`等
 
 **拷贝模板文件**
 
@@ -805,13 +762,10 @@ this.fs.copyTpl(
 - `taro build` 命令是整个 `Taro` 项目的灵魂和核心，主要负责多端代码编译（H5，小程序，`React Native `等）。
 - `Taro` 命令的关联，参数解析等和 `taro init` 其实是一模一样的，那么最关键的代码转换部分是怎样实现的呢？...
 
-
 #### 4.4.1 编译工作流与抽象语法树（AST）
 
 > Taro 的核心部分就是将代码编译成其他端（H5、小程序、React Native 等）代码。一般来说，将一种结构化语言的代码编译成另一种类似的结构化语言的代码包括以下几个步骤
 
-
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515483b7fa7c0)
 
 首先是 `Parse`，将代码解析（`Parse`）成抽象语法树（Abstract Syntex Tree），然后对 `AST `进行遍历（`traverse`）和替换(`replace`)（这对于前端来说其实并不陌生，可以类比 `DOM` 树的操作），最后是生成（`generate`），根据新的 `AST` 生成编译后的代码...
 
@@ -825,7 +779,7 @@ this.fs.copyTpl(
 
 ```js
 // 1. babel-traverse方法， 遍历和更新节点
-traverse(ast, {  
+traverse(ast, {
   ClassProperty(astPath) { // 遍历类的属性声明
     const node = astPath.node
     if (node.key.name === 'config') { // 类的属性名为 config
@@ -860,7 +814,6 @@ function traverseObjectNode(node, obj) {
  ...
 ```
 
-
 ## 五、Taro 组件库及 API 的设计与适配
 
 ### 5.1 多端差异
@@ -889,8 +842,6 @@ function traverseObjectNode(node, obj) {
 
 H5 端使用官方提供的 WEUI 进行适配，React Native 端则在组件内添加样式，并通过脚本来控制一些状态类的样式，框架核心在编译的时候把源代码的 class 所指向的样式通过 css-to-react-native 进行转译，所得 StyleSheet 样式传入组件的 style 参数，组件内部会对样式进行二次处理，得到最终的样式...
 
-
-![](https://user-gold-cdn.xitu.io/2018/10/8/1665155932b630fe)
 
 **为什么需要对样式进行二次处理？**
 
@@ -935,12 +886,10 @@ H5 端使用官方提供的 WEUI 进行适配，React Native 端则在组件内�
 - 除了属性支持外，事件回调的参数也需要进行统一，为此，需要在内部进行处理，比如 Input 的 `onInput` 事件，需要给它造一个类似小程序相同事件的回调参数，比如 `{ target: { value: text }`, `detail: { value: text }` }，这样，开发者们就可以像下面这样处理回调事件，无需关心中间发生了什么...
 
 ```js
-function onInputHandler ({ target, detail }) {
+function onInputHandler({ target, detail }) {
   console.log(target.value, detail.value)
 }
 ```
-
-
 
 ## 六、JSX 转换微信小程序模板的实现
 
@@ -950,7 +899,6 @@ function onInputHandler ({ target, detail }) {
 
 - 它们都是由字符串构成的文本
 - 它们都要遵循自己的语言规范
-
 
 第一点很好理解，既然代码是字符串构成的，我们要修改/编译代码的最简单的方法就是使用字符串的各种正则表达式。例如我们要将 `JSON` 中一个键名 `foo` 改为 `bar`，只要写一个简单的正则表达式就能做到：
 
@@ -967,7 +915,7 @@ jsonStr.replace(/(?<=")foo(?="\s*:)/i, 'bar')...
 - `Babel` 可以解析还没有进入 ECMAScript 规范的语法。例如装饰器这样的提案，虽然现在没有进入标准但是已经广泛使用有一段时间了；
 - `Babel` 提供插件机制解析 `TypeScript`、`Flow`、`JSX `这样的 `JavaScript` 超集，不必单独处理这些语言；
 - `Babel` 拥有庞大的生态，有非常多的文档和样例代码可供参考；
-除去 `parser` 本身，`Babel` 还提供各种方便的工具库可以优化、生成、调试代码...
+  除去 `parser` 本身，`Babel` 还提供各种方便的工具库可以优化、生成、调试代码...
 
 **Babylon（ @babel/parser）**
 
@@ -985,10 +933,8 @@ babylon.parse(code);...
 
 最终 `Babylon` 会解析成这样的数据结构：
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/1665157669296bc1)
 
 > 你也可以使用 [ASTExploroer](https://astexplorer.net/) 快速地查看代码的 `AST`
-
 
 **Babel-traverse (@babel/traverse)**
 
@@ -1082,7 +1028,6 @@ class Home extends Component {
 - Taro 的结构主要分两个方面：运行时和编译时。运行时负责把编译后到代码运行在本不能运行的对应环境中，你可以把 Taro 运行时理解为前端开发当中 `polyfill`。举例来说，小程序新建一个页面是使用 `Page` 方法传入一个字面量对象，并不支持使用类。如果全部依赖编译时的话，那么我们要做到事情大概就是把类转化成对象，把 `state` 变为 `data`，把生命周期例如 componentDidMount 转化成 `onReady`，把事件由可能的类函数（`Class method`）和类属性函数(`Class property function`) 转化成字面量对象方法（Object `property function`）等等。
 - 但这显然会让我们的编译时工作变得非常繁重，在一个类异常复杂时出错的概率也会变高。但我们有更好的办法：实现一个 `createPage` 方法，接受一个类作为参数，返回一个小程序 `Page` 方法所需要的字面量对象。这样不仅简化了编译时的工作，我们还可以在 `createPage` 对编译时产出的类做各种操作和优化。通过运行时把工作分离了之后，再编译时我们只需要在文件底部加上一行代码 `Page(createPage(componentName))` 即可...
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/1665157cb5a81196)
 
 - 回到一开始那段代码，我们定义了一个类属性 `config`，`config` 是一个对象表达式（Object Expression），这个对象表达式只接受键值为标识符（Identifier）或字符串，而键名只能是基本类型。这样简单的情况我们只需要把这个对象表达式转换为 `JSON` 即可。另外一个类属性 `state` 在 `Page` 当中有点像是小程序的 `data`，但它在多数情况不是完整的 `data`。这里我们不用做过多的操作，`babel`的插件 `transform-class-proerties` 会把它编译到类的构造器中。函数 `handleClick` 我们交给运行时处理，有兴趣的同学可以跳到 Taro 运行时原理查看具体技术细节。
 - 再来看我们的 `render() `函数，它的第一行代码通过 `filter` 把数字数组的所有偶数项都过滤掉，真正用来循环的是 `oddNumbers`，而 `oddNumbers` 并没有在 `this.state` 中，所以我们必须手动把它加入到 `this.state`。和 `React 一样，Taro 每次更新都会调用 render 函数，但和 React 不同的是，React 的 render` 是一个创建虚拟 DOM 的方法，而 Taro 的 render 会被重命名为 `_createData`，它是一个创建数据的方法：在 `JSX` 使用过的数据都在这里被创建最后放到小程序 `Page` 或 `Component` 工厂方法中的 `data `。最终我们的 `render` 方法会被编译为...
@@ -1116,7 +1061,6 @@ oddNumbers.map(number => <Text onClick={this.handleClick}>{number}</Text>)
 
 Text 的父元素是一个 map 函数（CallExpression），我们可以把函数的 callee: oddNumbers 作为 wx:for 的值，并把它放到 state 中，匿名函数的第一个参数是 wx:for-item的值，函数的第二个参数应该是 wx:for-index 的值，但代码中没有传所以我们可以不管它。然后我们把这两个 wx: 开头的参数作为 attribute 传入 Text 元素就完成了循环的处理。而对于 onClick 而言，在 Taro 中 on 开头的元素参数都是事件，所以我们只要把 this. 去掉即可。Text 元素的 children 是一个 JSXExpressionContainer，我们按照之前的处理方式处理即可。最后这行我们生成出来的数据结构应该是这样...
 
-
 ```js
 {
   type: 'element',
@@ -1144,15 +1088,12 @@ numbers.map(number => number % 2 === 0 && <Text onClick={this.handleClick}>{numb
 
 这里我们可以思考一下 `this.props.text || this.props.children` 的解决方案。当用户在 JSX 中使用 || 作为逻辑表达式时很可能是 this.props.text 和 this.props.children 都有可能作为结果返回。这里 Taro 将它编译成了 `this.props.text ? this.props.text: this.props.children`，按照条件表达式（三元表达式）的逻辑，也就是说会生成两个 block，一个 `wx:if` 和一个 `wx:else`：
 
-
 ```js
 <block wx:if="{{text}}">{{text}}</block>
 <block wx:else>
     <slot></slot>
 </block>
 ```
-
-
 
 ## 七、小程序运行时
 
@@ -1166,11 +1107,10 @@ numbers.map(number => number % 2 === 0 && <Text onClick={this.handleClick}>{numb
 Component({
   data: {},
   methods: {
-    handleClick () {}
+    handleClick() {}
   }
 })
 ```
-
 
 而在 `Taro `里，它们都是一个组件类：
 
@@ -1195,20 +1135,20 @@ Component(createComponent(customComponent))
 
 **createComponent 方法主要做了这样几件事情**：
 
-- 将组件的` state `转换成小程序组件配置对象的 `data`
+- 将组件的`state`转换成小程序组件配置对象的 `data`
 - 将组件的生命周期对应到小程序组件的生命周期
 - 将组件的事件处理函数对应到小程序的事件处理函数
 
 ### 7.2 组件 state 转换
 
-其实在 Taro（React） 组件里，除了组件的 `state`，`JSX` 里还可以访问` props` 、`render` 函数里定义的值、以及任何作用域上的成员。而在小程序中，与模板绑定的数据均来自对应页面（或组件）的 `data `。因此 `JSX` 模板里访问到的数据都会对应到小程序组件的 `data` 上。接下来我们通过列表渲染的例子来说明` state `和 `data `是如何对应的...
+其实在 Taro（React） 组件里，除了组件的 `state`，`JSX` 里还可以访问` props` 、`render` 函数里定义的值、以及任何作用域上的成员。而在小程序中，与模板绑定的数据均来自对应页面（或组件）的 `data `。因此 `JSX` 模板里访问到的数据都会对应到小程序组件的 `data` 上。接下来我们通过列表渲染的例子来说明`state`和 `data `是如何对应的...
 
 **在 JSX 里访问 state**
 
 > 在小程序的组件上使用 `wx:for` 绑定一个数组，就可以实现循环渲染。例如，在 Taro 里你可能会这么写：
 
 ```js
-{ 
+{
   state = {
     list: [1, 2, 3]
   }
@@ -1226,13 +1166,12 @@ Component(createComponent(customComponent))
 
 ```
 <view>
-  <view wx:for="{{list}}" wx:for-item="item">{{item}}</view> 
+  <view wx:for="{{list}}" wx:for-item="item">{{item}}</view>
 </view>
 
 ```
 
 其中 `state.list` 只需直接对应到小程序（页面）组件的 `data.list` 上即可...
-
 
 **在 render 里生成了新的变量**
 
@@ -1257,16 +1196,16 @@ Component(createComponent(customComponent))
 
 ```
 <view>
-  <view wx:for="{{$anonymousCallee__1}}" wx:for-item="item">{{item}}</view> 
+  <view wx:for="{{$anonymousCallee__1}}" wx:for-item="item">{{item}}</view>
 </view>...
 ```
 
-> 在编译时会给 Taro 组件创建一个 `_createData `的方法，里面会生成 `$anonymousCallee__1` 这个变量， $`anonymousCallee__1` 是由编译器生成的，对 `this.state.list` 进行相关操作后的变量。 `$anonymousCallee__1` 最终会被放到组件的 data 中给模板调用：
+> 在编译时会给 Taro 组件创建一个 `_createData `的方法，里面会生成 `$anonymousCallee__1` 这个变量， $`anonymousCallee__1` 是由编译器生成的，对 `this.state.list` 进行相关操作后的变量。 `$anonymousCallee\_\_1` 最终会被放到组件的 data 中给模板调用：
 
 ```js
 var $anonymousCallee__1 = this.state.list.map(function (item) {
-  return ++item;
-});
+  return ++item
+})
 ```
 
 > `render` 里 `return `之前的所有定义变量或者对 `props`、`state` 计算产生新变量的操作，都会被编译到 `_createData` 方法里执行，这一点在前面 JSX 编译成小程序模板的相关文章中已经提到。每当 Taro 调用 `this.setState` API 来更新数据时，都会调用生成的 `_createData `来获取最新数据...
@@ -1275,13 +1214,11 @@ var $anonymousCallee__1 = this.state.list.map(function (item) {
 
 > 初始化过程里的生命周期对应很简单，在小程序的生命周期回调函数里调用 Taro 组件里对应的生命周期函数即可，例如：小程序组件 `ready` 的回调函数里会调用 Taro 组件的 `componentDidMount` 方法。它们的执行过程和对应关系如下图...
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515c132121443)
 
 > 小程序页面的` componentWillMount` 有一点特殊，会有两种初始化方式。由于小程序的页面需要等到 `onLoad` 之后才可以获取到页面的路由参数，因此如果是启动页面，会等到 `onLoad` 时才会触发。而对于小程序内部通过 `navigateTo `等 API 跳转的页面，Taro 做了一个兼容，调用 `navigateTo` 时将页面参数存储在一个全局对象中，在页面 `attached` 的时候从全局对象里取到，这样就不用等到页面 `onLoad` 即可获取到路由参数，触发 `componentWillMount `生命周期...
 
 **状态更新**
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515c132336584)
 
 - Taro 组件的 `setState` 行为最终会对应到小程序的` setData`。Taro 引入了如 `nextTick` ，编译时识别模板中用到的数据，在 setData 前进行数据差异比较等方式来提高 `setState `的性能。
 - 如上图，组件调用 `setState` 方法之后，并不会立刻执行组件更新逻辑，而是会将最新的 `state` 暂存入一个数组中，等 `nextTick` 回调时才会计算最新的 `state` 进行组件更新。这样即使连续多次的调用`setState` 并不会触发多次的视图更新。在小程序中 `nextTick` 是这么实现的...
@@ -1295,7 +1232,6 @@ const nextTick = (fn, ...args) => {
 ```
 
 > 除了计算出最新的组件 `state` ，在组件状态更新过程里还会调用前面提到过的 `_createData` 方法，得到最终小程序组件的 `data`，并调用小程序的 `setData` 方法来进行组件的更新
-
 
 ### 7.4 事件处理函数对应
 
@@ -1318,10 +1254,10 @@ const nextTick = (fn, ...args) => {
 在运行时通过 `processEvent` 这个方法来处理事件的对应，省略掉处理过程，就是这样的...
 
 ```js
-function processEvent (eventHandlerName, obj) {
+function processEvent(eventHandlerName, obj) {
   obj[eventHandlerName] = function (event) {
     // ...
-	scope[eventHandlerName].apply(callScope, realArgs)
+    scope[eventHandlerName].apply(callScope, realArgs)
   }
 }
 ```
@@ -1367,7 +1303,7 @@ Taro['getStorage'] = options => {
 Taro.getStorage({
   key: 'test',
   success() {
-	
+
   }
 })
 // 在 Taro 里也可以这样调用
@@ -1377,7 +1313,6 @@ Taro.getStorage({
   // success
 })...
 ```
-
 
 ## 八、H5 运行时
 
@@ -1389,14 +1324,10 @@ Taro.getStorage({
 
 使用Taro之后，我们书写的是类似于下图的代码...
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515ae12e8fe10)
 
 > 我们注意到，就算是转换过的代码，也依然存在着`view`、`button`等在 `Web` 开发中并不存在的组件。如何在 `Web` 端正常使用这些组件？这是我们碰到的第一个问题
 
-
 #### 8.1.1 组件实现
-
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515ae12d7da84)
 
 
 作为开发者，你第一反应或许会尝试在编译阶段下功夫，尝试直接使用效果类似的 Web 组件替代：用`div`替代`view`，用`img`替代`image`，以此类推。
@@ -1407,7 +1338,6 @@ Taro.getStorage({
 
 我们不妨去`babel`的 `playground` 看一看代码在转译前后的对比：在使用了`@babel/preset-env`的`BUILT-INS`之后，简单的一句源码`new Map()`，在`babel`编译后却变成了好几行代码...
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515ae12e9969d)
 
 注意看这几个文件：`core-js/modules/web.dom.iterable`，`core-js/modules/es6.array.iterator`，`core-js/modules/es6.map`。我们可以在`core-js`的 `Git` 仓库找到他们的真身。很明显，这几个模块就是对应的 es 特性运行时的实现。
 
@@ -1451,17 +1381,14 @@ render() {
 }...
 ```
 
-> 再稍加修饰，我们就能得到一个功能完整的` Web `版 `View `组件
+> 再稍加修饰，我们就能得到一个功能完整的`Web`版 `View `组件
 
 `view`可以说是小程序最简单的组件之一了。`text`的实现甚至比上面的代码还要简单得多。但这并不说明组件的实现之路上就没有障碍。复杂如`swiper`，`scroll-view`，`tabbar`，我们需要花费大量的精力分析小程序原生组件的 `API`，交互行为，极端值处理，接受的属性等等，再通过 Web 技术实现。...
-
 
 ### 8.2 API 适配
 
 > 除了组件，小程序下有一些 API 也是 Web 开发中所不具备的。比如小程序框架内置的`wx.request/wx.getStorage`等 API；但在 Web 开发中，我们使用的是`fetch/localStorage`等内置的函数或者对象
 
-
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515ae12c9ef95)
 
 小程序的 API 实现是个巨大的黑盒，我们仅仅知道如何使用它，使用它会得到什么结果，但对它内部的实现一无所知。
 
@@ -1473,13 +1400,12 @@ render() {
 
 `wx.setStorage`是一个异步接口，可以把`key: value`数据存储在本地缓存。很容易联想到，在 Web 开发中也有类似的数据存储概念，这就是`localStorage`。到这里，我们的目标已经十分明确：我们需要借助`于localStorage`，实现一个与`wx.setStorage`相同的 API。...
 
-
 > 而在 Web 中，如果我们需要往本地存储写入数据，使用的 API 是`localStorage.setItem(key, value)`。我们很容易就可以构思出这个函数的雏形
 
 ```js
 /* 示例代码 */
 function setStorage({ key, value }) {
-  localStorage.setItem(key, value);
+  localStorage.setItem(key, value)
 }
 ```
 
@@ -1515,7 +1441,6 @@ function setStorage({ key, value, success, fail, complete }) {
 
 当然，也有一些 API 是 Web 端无论如何无法实现的，比如`wx.login`，又或者`wx.scanCode`。我们维护了一个 API 实现情况的列表，在实际的多端项目开发中应该尽可能避免使用它们...
 
-
 ### 8.3 路由
 
 > 作为小程序的一大能力，小程序框架中以栈的形式维护了当前所有的页面，由框架统一管理。用户只需要调用`wx.navigateTo`,`wx.navigateBack`,`wx.redirectTo`等官方 API，就可以实现页面的跳转、回退、重定向，而不需要关心页面栈的细节。但是作为多端项目，当我们...
@@ -1545,15 +1470,13 @@ function setStorage({ key, value, success, fail, complete }) {
 - 具体到`Taro`，为了保持跟小程序的行为一致，我们不需要细致到组件级别的路由方案，但需要为每次路由保存完整的页面栈。
 - 实现形式上，我们参考`react-router`：监听页面路径变化，再触发` UI` 更新。这是`React`的精髓之一，单向数据流...
 
-![](https://user-gold-cdn.xitu.io/2018/10/8/166515ae12fc3d2c)
 
 > `@tarojs/router`包中包含了一个轻量的`history`实现。`history`中维护了一个栈，用来记录页面历史的变化。对历史记录的监听，依赖两个事件：`hashchange`和`popstate`。
 
 ```js
 /* 示例代码 */
-window.addEventListener('hashchange', () => {});
+window.addEventListener('hashchange', () => {})
 window.addEventListener('popstate', () => {})
-
 ```
 
 - 对于使用 `Hash `模式的页面路由，每次页面跳转都会依次触发`popstate`和`hashchange`事件。由于在`popstate`的回调中可以取到当前页面的 `state`，我们选择它作为主要跳转逻辑的容器。
@@ -1578,13 +1501,11 @@ class Index extends Nerv.Componnet {
 }...
 ```
 
-
 - 回想一下前面讲的`componentDidShow`的实现：我们继承，并且改写 `componentDidMount`。
 - 但是对于使用Redux的页面来说，我们继承的类，是经过`@connect`修饰过的一个高阶组件。
 - 问题就出在这里：这个高阶组件的签名里并没有`componentDidShow`这一个函数。所以我们的 `componentDidMount` 内，理所当然是取不到`componentDidShow`的。
 - 为了解决这个问题，我们对`react-redux`代码进行了一些小改装，这就是`@taro/redux-h5`的由来...
 
-
 ## 九、更多参考
 
-- [Taro官方文档](https://nervjs.github.io/taro/docs/GETTING-STARTED.html)
+- [Taro官方文档](https://docs.taro.zone/docs/)

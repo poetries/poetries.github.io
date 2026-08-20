@@ -23,36 +23,24 @@ categories: Designed
   - 保存：`Ctrl+shift+Alt+s`
 - 配置工作环境：
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps1.png)
 
 ---
 
 #### 基本图片的切法
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps2.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps3.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps4.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps5.png)
 
 #### icon图标切法
 
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps6.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps7.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps8.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps9.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps10.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps11.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps12.png)
 
 ---
 
@@ -92,11 +80,9 @@ categories: Designed
 
 - 方法一：通过浏览器的插件定位图片的具体位置
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps13.png)
 
 - 方法二：在ps原稿中测量图片的位置
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/ps14.png)
 
 
 （完）

@@ -1,9 +1,9 @@
 ---
 title: 居中解决方案荟萃
 date: 2016-11-12 17:55:24
-tags: 
-    - CSS
-    - 居中
+tags:
+- CSS
+- 居中
 categories: Front-End
 ---
 

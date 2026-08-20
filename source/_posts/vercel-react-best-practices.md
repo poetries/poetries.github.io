@@ -118,7 +118,7 @@ async function DataDisplay() {
 }
 ```
 
-`Sidebar` 和 `Footer` 立即上屏，数据流式补进中间区域。注意清单里也写明了不适用场景：影响布局定位的关键数据、首屏 `SEO` 内容、以及快到不值得付出布局抖动代价的小请求。关于 `Suspense` 与并发渲染的底层机制，可以搭配我之前写的 [React 18 并发机制详解](https://blog.poetries.top/react-18-concurrency/) 一起看。
+`Sidebar` 和 `Footer` 立即上屏，数据流式补进中间区域。注意清单里也写明了不适用场景：影响布局定位的关键数据、首屏 `SEO` 内容、以及快到不值得付出布局抖动代价的小请求。关于 `Suspense` 与并发渲染的底层机制，可以搭配我之前写的 [React 18 并发机制详解](https://feinterview.poetries.top/blog/react-18-concurrency) 一起看。
 
 ## 三、包体积 一行import偷走你200-800ms
 
@@ -167,7 +167,7 @@ const authors = await Promise.all(
 )
 ```
 
-最后是 `after()`：日志、埋点、通知这类副作用放进 `after(() => ...)`，响应先发出去，副作用在后台跑。这些能力在 `Next.js 15` 之后已经稳定，相关背景我在 [Next.js 15 如何让 React 应用更快](https://blog.poetries.top/nextjs-15-performance-react-apps/) 里写过。
+最后是 `after()`：日志、埋点、通知这类副作用放进 `after(() => ...)`，响应先发出去，副作用在后台跑。这些能力在 `Next.js 15` 之后已经稳定，相关背景我在 [Next.js 15 如何让 React 应用更快](https://feinterview.poetries.top/blog/nextjs-15-performance-react-apps) 里写过。
 
 ## 五、re-render优化 一半的useMemo本该删掉
 
@@ -193,7 +193,7 @@ const isLoading = user.isLoading || notifications.isLoading
 
 **第四条：functional setState 换稳定回调。** `setItems([...items, newItem])` 迫使 `useCallback` 依赖 `items`，回调随状态一起重建；写成 `setItems(curr => [...curr, newItem])` 后依赖数组清空，回调终身稳定，还顺手消灭了 stale closure。
 
-其余规则可以归成一句话：**高频瞬时值用 `useRef`（鼠标坐标、interval 句柄），非紧急更新用 `startTransition` / `useDeferredValue`，交互逻辑放事件处理器而不是 effect。** 值得注意的是清单在多处标注：如果项目开了 `React Compiler`，手动 `memo` / `useMemo` 大部分可以不写了——这也是 [React 19 新特性](https://blog.poetries.top/react-19-new-features/) 之后官方一直在推的方向。
+其余规则可以归成一句话：**高频瞬时值用 `useRef`（鼠标坐标、interval 句柄），非紧急更新用 `startTransition` / `useDeferredValue`，交互逻辑放事件处理器而不是 effect。** 值得注意的是清单在多处标注：如果项目开了 `React Compiler`，手动 `memo` / `useMemo` 大部分可以不写了——这也是 [React 19 新特性](https://feinterview.poetries.top/blog/react-19-new-features) 之后官方一直在推的方向。
 
 ## 六、渲染与JS微优化 速查表
 

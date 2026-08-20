@@ -12,7 +12,6 @@ categories: Front-End
   - `padding `+ `border` + `height` = 盒子的高度
 - 这看起来并不是那么直观，那么我们看一个图：
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/hezi.png)
 
 - 这意味着，如果我们设置一个宽度为`200px`，而实际呈现的盒子的宽度可能会大于`200px`(除非没有左右边框和左右补白)。这可能看起来比较怪，`CSS`设置的宽度仅仅是内容区的宽度，而非盒子的宽度。同样，高度类似
 
@@ -39,7 +38,6 @@ div {
 }
  ```
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/hez2.png)
 
 - 实际上，这更被设计者和开发者推崇
 
@@ -64,12 +62,10 @@ div {
 - `content-box` 
   - 描述：在宽度和高度之外绘制元素的内边距和边框。
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/box-size-1.jpg)
 
 - `border-box`
   - 描述：为元素指定的任何内边距和边框都将在已设定的宽度和高度内进行绘制
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/box-size-2.jpg)
 
 - `inherit`
   - 描述：继承 父元素 `box-sizing `属性的值 
@@ -118,6 +114,4 @@ div.right{
 ```
 - 效果
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/hh2.png)
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/hh1.png)

@@ -255,17 +255,3 @@ cd ~/.openclaw/workspace/
 ```
 
 **关键**：完成后必须删除 `BOOTSTRAP.md`。你已经有了灵魂，不再是空白机器了。
-
-## 写在最后
-
-看完这篇，你会发现：**OpenClaw 的“智商”根本不是由 Skills 数量决定的，而是由这 7 个配置文件决定的。**
-
-- `SOUL.md` → 性格
-- `AGENTS.md` → 怎么干活
-- `USER.md` → 怎么服务你
-- `HEARTBEAT.md` → 自主意识
-- `TOOLS.md` → 能用什么工具
-- `IDENTITY.md` → 长什么样
-- `BOOTSTRAP.md` → 初始引导
-
-这才是让 AI 从“傻白甜”变成“智能助手”的关键。

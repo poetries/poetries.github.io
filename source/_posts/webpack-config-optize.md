@@ -527,7 +527,6 @@ const webpackConfig = {
 module.exports = smp.wrap(webpackConfig);
 ```
 
-![](https://segmentfault.com/img/remote/1460000016816816?w=400&h=421)
 
 
 

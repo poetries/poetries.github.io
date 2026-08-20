@@ -1,63 +1,80 @@
 ---
-title: 深入理解TanStack Query核心价值与实战技巧
+title: TanStack Query 实战指南 缓存机制与 Next.js 集成
 date: 2025-10-06 16:20:00
-description: 深度解读React Query数据获取库的核心价值，详解useQuery/useMutationHooks、缓存策略、乐观更新等高级特性，带你全面掌握现代React应用数据管理。
+description: 讲清 TanStack Query 的 QueryKey 设计、staleTime 与 gcTime 的区别、useMutation 乐观更新回滚，以及 Next.js App Router 下的预取和水合写法。
 tags:
-- React Query
-- TanStack Query
-- 数据获取
-- 状态管理
-- 前端工程化
+  - React Query
+  - TanStack Query
+  - 数据获取
+  - 状态管理
+  - 前端工程化
 categories: Front-End
 ---
 
-在前端开发中，数据获取与状态管理一直是核心难题。当你的React应用需要从后端API获取数据时，你是否曾被这些问题困扰过：重复请求导致性能浪费、缓存数据难以维护、加载状态处理繁琐、乐观更新实现困难？如果你正在寻找解决方案，那么React Query（现更名为TanStack Query）正是为你而设计的。
+一个列表页写到第三遍，你会发现自己一直在重复同样的四段代码，`useState` 存数据、`useState` 存 loading、`useState` 存 error、`useEffect` 里发请求外加一个取消标志位。等到产品说「切回这个页面别再转圈了，先显示旧数据」，这套手写方案就开始崩。TanStack Query（原名 React Query）做的就是把这一整套接管掉，同时把缓存、去重、重试、后台刷新一并给你。这篇按 QueryKey、缓存时间、变更与乐观更新、Next.js 集成这个顺序走一遍，重点讲那些默认值背后的取舍。
 
-本文将深度解读React Query的核心价值，通过大量实战代码帮助读者全面掌握这个现代React应用不可或缺的数据获取库。
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
 
-## 一、为什么React应用需要React Query
+- 服务端状态和客户端状态到底差在哪，为什么不能用同一套工具管
+- QueryKey 的设计规则，以及顺序敏感这个容易踩的点
+- `status` 和 `fetchStatus` 两套状态的分工
+- `staleTime` 与 `gcTime` 的区别，这是最容易搞混的一对
+- `useMutation` 的乐观更新三段式和失败回滚
+- 依赖查询、并行查询、分页与无限滚动的写法
+- Next.js App Router 下的服务端预取加客户端水合
+- 结构化共享、保持查询活跃、窗口焦点刷新这几个优化点
 
-### 1.1 服务端状态的特殊性
+## 一、服务端状态凭什么要单独管
 
-在理解React Query之前，我们需要先认识一个核心概念：服务端状态（Server State）与客户端状态（Client State）的本质区别。大多数传统状态管理库（如Redux、Zustand）在处理客户端状态时表现出色，但在处理服务端状态时却显得力不从心。这是因为服务端状态具有以下独特特性：
+先把概念摆清楚。Zustand、Redux 这些库管的是客户端状态，它们的隐含前提是「这份数据归你所有，你改了它就是改了」。
 
-首先，服务端状态是远程持久化的，数据存储在你不一定拥有或控制的服务器上。其次，获取和更新数据需要异步API调用，无法像本地状态那样即时获取。第三，服务端状态是共享的，可能被其他人悄然改变。第四，如果不主动管理，服务端数据很容易变得过时。
+服务端状态不满足这个前提，它有四个特性是客户端状态没有的。数据存在你不控制的服务器上；读写都得走异步接口，没法同步拿到；它是共享的，别人随时可能改掉；你手上这份不主动刷新就会过期，而且你不知道它什么时候过期的。
 
-正是这些特性，使得服务端状态管理成为前端开发中最具挑战性的领域之一。
+正是这四条，让服务端状态成了前端里最难处理的一块。
 
-### 1.2 传统方案的时代局限
+在没有专门工具之前，常见的做法有三种。一种是组件里 `useEffect` 加 `useState` 手撸；一种是把接口数据往 Redux 这类通用状态库里塞；还有一种是用 SWR 这样的轻量方案。
 
-在没有专门的数据获取库时，开发者通常采用以下几种方式管理服务端状态：第一种是直接在组件中useEffect配合useState，第二种是使用Redux等通用状态管理库存储异步数据，第三种是借助SWR等轻量级数据获取工具。
+三种都能跑，但代价不一样。手撸意味着加载态、错误处理、缓存、重试、请求竞态这些逻辑每个页面写一遍，写十遍就有十种不同的写法。塞进 Redux 的问题是 store 会长满 `userListLoading`、`userListError` 这种伴生字段，而且 Redux 本身对异步没有任何内建支持，得靠 thunk 或者 saga 补。关于客户端状态该怎么选库，可以看这篇 [React 状态管理库选型指南](https://feinterview.poetries.top/blog/react-state-management-comparison)，这里就不展开了。
 
-这些方案虽然可行，但都存在明显缺陷。手动管理数据获取意味着你需要自己处理加载状态、错误处理、缓存逻辑、重试机制等大量重复性代码。Redux虽然功能强大，但为服务端状态编写异步逻辑过于繁琐，且性能开销较大。即便是相对轻量的SWR，在复杂场景下也缺乏React Query的灵活性。
+TanStack Query 是专门为服务端状态设计的，零配置就有一套合理的默认行为，同时几乎每个行为都能改。
 
-React Query的出现彻底改变了这一局面。它专门为服务端状态设计，开箱即用，拥有零配置即可使用的默认行为，同时支持高度定制以适应项目增长。
+## 二、QueryKey 和两套状态
 
-## 二、React Query核心概念解析
+### QueryKey 是缓存的身份证
 
-### 2.1 QueryKey查询键的重要性
+每个查询都要有一个唯一的 key，这个 key 决定了缓存命中、数据共享和失效范围。
 
-QueryKey是React Query的核心理念之一。每个查询都需要一个唯一的键来标识数据，这个键不仅用于缓存管理，还决定了数据的依赖关系和自动刷新时机。
+基础写法很直接，取待办列表用 `['todos']`，取某个用户用 `['user', userId]`，带筛选条件的用 `['todos', { status: 'done', page: 1 }]`。TanStack Query 会对 key 做确定性哈希，相同 key 的查询共享同一份缓存，同时同一时刻只会发出一个请求。
 
-基础查询键的写法简单直接，例如获取待办事项列表可以使用`['todos']`，获取某个具体用户可以用`['user', userId]`。更复杂的查询可以包含多个参数，如`['todos', { status: 'done', page: 1 }]`。React Query会自动对查询键进行哈希处理，确保相同键的查询共享同一份缓存数据。
+数组元素的顺序是敏感的。`['todos', status, page]` 和 `['todos', page, status]` 会被当成两个不同的查询。但 key 里的对象是顺序无关的，`{ a: 1, b: 2 }` 和 `{ b: 2, a: 1 }` 哈希结果一样，这个设计挺贴心的。
 
-值得注意的是，查询键的顺序是敏感的。`['todos', status, page]`与`['todos', page, status]`会被视为不同的查询，因为数组元素的顺序会影响最终的哈希值。
+这里有个坑要注意，很多人第一次用会把 key 写死成 `['user']`，然后靠 `queryFn` 里的闭包变量去取不同的 userId。结果就是切换用户时缓存永远命中同一条，界面不更新。凡是 `queryFn` 里用到的外部变量，都要放进 key 里。
 
-### 2.2 查询状态与获取状态
+按层级组织 key 还有一个附带好处，失效的时候可以按前缀批量处理。
 
-理解React Query返回的状态是正确使用库的关键。`useQuery`返回的结果对象包含两个维度的状态信息。
+```tsx
+// 只失效第一页
+queryClient.invalidateQueries({ queryKey: ['todos', 'list', 1] })
 
-第一个维度是查询状态（status），反映数据是否存在或是否成功获取：`isPending`表示数据仍在加载中，`isError`表示查询失败并可通过`error`属性获取错误信息，`isSuccess`表示查询成功数据可通过`data`属性获取。
+// 失效所有 todos 相关查询
+queryClient.invalidateQueries({ queryKey: ['todos'] })
+```
 
-第二个维度是获取状态（fetchStatus），反映查询函数是否正在执行：`fetching`表示正在发起网络请求，`paused`表示请求因网络中断等原因暂停，`idle`表示当前没有进行任何请求。
+### 两个维度的状态
 
-这两个维度可以组合出多种状态，例如一个处于`success`状态且`fetchStatus`为`fetching`的查询，表示当前既有缓存数据可用，又在后台进行刷新请求。这正是React Query强大的stale-while-revalidate机制的体现。
+`useQuery` 返回的状态有两套，搞混了会写出很奇怪的加载逻辑。
 
-## 三、快速上手与基础用法
+第一套是 `status`，回答的是「数据有没有」。`isPending` 表示还没有数据，`isError` 表示查询失败可以从 `error` 拿错误，`isSuccess` 表示数据在 `data` 里。
 
-### 3.1 环境安装配置
+第二套是 `fetchStatus`，回答的是「请求在不在跑」。`fetching` 表示正在发请求，`paused` 表示因为断网之类的原因暂停了，`idle` 表示当前没有请求。
 
-React Query的安装非常简单，通过npm、pnpm或yarn均可完成：
+两套是正交的，所以会出现 `status` 为 `success` 同时 `fetchStatus` 为 `fetching` 的组合，含义是「有缓存数据可以先渲染，同时后台正在拉新的」。这正是 stale-while-revalidate 的样子，也是 TanStack Query 体验好的核心原因。
+
+所以判断「首次加载中」用 `isPending`，判断「有没有请求在跑」用 `isFetching`。用 `isFetching` 控制全屏 loading，页面每次后台刷新都会闪一下。这个我踩过。
+
+## 三、上手
+
+### 安装和 Provider
 
 ```bash
 npm install @tanstack/react-query
@@ -67,7 +84,7 @@ pnpm add @tanstack/react-query
 yarn add @tanstack/react-query
 ```
 
-安装完成后，需要在应用根组件中包裹`QueryClientProvider`并传入`QueryClient`实例：
+根组件包一层 `QueryClientProvider`。
 
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -83,11 +100,9 @@ export default function App() {
 }
 ```
 
-这一步骤只需执行一次，之后整个应用中的组件都可以使用useQuery和useMutationHooks。
+`QueryClient` 实例在纯客户端应用里可以放模块作用域，SSR 场景不行，第七节会说原因。
 
-### 3.2 第一个查询用例
-
-让我们看一个完整的查询示例，获取GitHub仓库信息：
+### 第一个查询
 
 ```tsx
 import { useQuery } from '@tanstack/react-query'
@@ -103,39 +118,64 @@ function RepoInfo() {
   if (isPending) return <div>加载中...</div>
 
   if (isError) {
-    return <div>错误: {error.message}</div>
+    return <div>错误 {error.message}</div>
   }
 
   return (
     <div>
       <h1>{data.name}</h1>
       <p>{data.description}</p>
-      <div>⭐ {data.stargazers_count} Stars</div>
-      <div>🍴 {data.forks_count} Forks</div>
+      <div>{data.stargazers_count} Stars</div>
+      <div>{data.forks_count} Forks</div>
     </div>
   )
 }
 ```
 
-这个示例展示了useQuery的基本用法：通过`queryKey`指定查询标识，通过`queryFn`定义获取数据的异步函数。React Query会自动处理加载状态、错误处理和数据缓存。
+`queryKey` 指定身份，`queryFn` 负责取数，剩下的加载态、错误态、缓存全是库在管。
 
-### 3.3 重要默认配置项
+用 `fetch` 时有个细节，`fetch` 对 4xx 和 5xx 不会 reject，所以上面这段代码在接口返回 404 时会把错误 JSON 当成正常数据渲染。正确做法是在 `queryFn` 里检查 `res.ok` 并手动 throw，或者干脆用 axios，它默认会对非 2xx 抛错。
 
-React Query采用激进但合理的默认配置，在深入使用前理解这些默认值至关重要。
+## 四、默认配置里那几个关键值
 
-`staleTime`默认为0，意味着数据一旦获取就被视为过时。这会导致组件挂载时自动重新获取数据。若想避免频繁请求，可将`staleTime`设置为较长的时间，例如5分钟：`staleTime: 5 * 60 * 1000`。
+TanStack Query 的默认值挺激进，不理解它们就会觉得「怎么老在发请求」。
 
-`gcTime`默认为5分钟，用于控制没有活跃观察者时缓存数据的存活时间。超过这个时间，数据将被垃圾回收。
+`staleTime` 默认是 0。数据一拿到就被标记为过时，之后只要组件重新挂载、窗口重新获得焦点、网络重连，就会触发一次后台刷新。想少发请求就把它调大。
 
-`retry`默认为3次，失败的请求会自动以指数退避策略重试。这对于临时性网络错误非常有用。
+```tsx
+useQuery({
+  queryKey: ['todos'],
+  queryFn: fetchTodos,
+  staleTime: 5 * 60 * 1000 // 5 分钟内不主动刷新
+})
+```
 
-`refetchOnWindowFocus`默认为true，当用户切换回应用窗口时会自动重新获取数据，确保展示最新的服务器状态。
+`gcTime` 默认 5 分钟，管的是「没有组件在用这份数据之后，缓存还留多久」。超时之后被垃圾回收。这个值和 `staleTime` 经常被搞混。
 
-## 四、useMutation与数据修改
+先说结论，`staleTime` 决定「要不要重新请求」，`gcTime` 决定「缓存什么时候删掉」。数据 stale 了缓存还在，所以重新进页面时会先渲染旧数据再后台刷新，界面不会空白。数据被 gc 掉了缓存就没了，重新进页面会走完整的 pending 状态。
 
-### 4.1 基础Mutations用法
+我一开始也是这么想的，以为把 `staleTime` 设长就够了。结果用户切走五分钟再回来，页面还是白了一下。原因就是 `gcTime` 到期把缓存清了。两个值要一起调，一般让 `gcTime` 大于等于 `staleTime`。
 
-与查询不同，数据的创建、更新、删除操作应该使用`useMutation`。它提供了专门的状态管理来处理服务端修改：
+`retry` 默认 3 次，指数退避。这对偶发的网络抖动很有用，但对 404 这种确定性错误是浪费。建议按状态码定制。
+
+```tsx
+useQuery({
+  queryKey: ['user', id],
+  queryFn: fetchUser,
+  retry: (failureCount, error) => {
+    if (error.status === 404) return false
+    return failureCount < 3
+  }
+})
+```
+
+`refetchOnWindowFocus` 默认 true，用户切回标签页时自动刷新。对看板、消息这类数据是加分项，对一个正在填的长表单页面就是干扰。
+
+## 五、useMutation 与乐观更新
+
+### 基础用法
+
+增删改走 `useMutation`，它和 `useQuery` 最大的区别是不会自动执行，得你手动 `mutate`。
 
 ```tsx
 function CreateTodo() {
@@ -147,7 +187,7 @@ function CreateTodo() {
   return (
     <button
       onClick={() => {
-        mutation.mutate({ title: '学习React Query', completed: false })
+        mutation.mutate({ title: '学习 TanStack Query', completed: false })
       }}
       disabled={mutation.isPending}
     >
@@ -157,11 +197,11 @@ function CreateTodo() {
 }
 ```
 
-useMutation返回的状态包括：`isIdle`（初始状态）、`isPending`（执行中）、`isSuccess`（成功）、`isError`（失败）。你可以通过这些状态向用户展示不同的UI反馈。
+状态有四个，`isIdle` 还没触发过、`isPending` 执行中、`isSuccess` 成功、`isError` 失败。另外 `mutate` 不返回 Promise，需要 await 结果的话用 `mutateAsync`，但记得自己 try catch，不然会有未处理的 rejection。
 
-### 4.2 乐观更新实现
+### 乐观更新的三段式
 
-乐观更新是提升用户体验的关键技术，允许在服务器响应前就更新界面。React Query通过`onMutate`、`onError`、`onSettled`三个生命周期钩子完美支持这一模式：
+乐观更新就是在服务端响应之前先把界面改掉。`onMutate`、`onError`、`onSettled` 这三个钩子刚好对应「先改、失败回滚、最后对齐」。
 
 ```tsx
 const queryClient = useQueryClient()
@@ -169,56 +209,56 @@ const queryClient = useQueryClient()
 useMutation({
   mutationFn: updateTodo,
   onMutate: async (newTodo) => {
-    // 取消所有正在进行的同名查询，防止覆盖乐观更新
+    // 先把在飞的同名请求取消掉，否则它的响应会盖掉乐观值
     await queryClient.cancelQueries({ queryKey: ['todos'] })
 
-    // 快照更新前的数据，用于回滚
+    // 存一份旧数据，失败时用来回滚
     const previousTodos = queryClient.getQueryData(['todos'])
 
-    // 立即乐观更新缓存
+    // 直接改缓存，界面立刻更新
     queryClient.setQueryData(['todos'], (old) =>
       old.map((todo) =>
         todo.id === newTodo.id ? newTodo : todo
       )
     )
 
-    // 返回上下文对象，包含快照数据
+    // 返回值会作为 context 传给 onError 和 onSettled
     return { previousTodos }
   },
   onError: (err, newTodo, context) => {
-    // 失败时回滚到之前的状态
     queryClient.setQueryData(['todos'], context.previousTodos)
   },
   onSettled: () => {
-    // 最终总是重新获取最新数据
+    // 不管成功失败，最后都跟服务端对一次
     queryClient.invalidateQueries({ queryKey: ['todos'] })
   }
 })
 ```
 
-这段代码完整展示了乐观更新的流程：首先在`onMutate`中保存旧数据并更新缓存，然后如果请求失败在`onError`中回滚，最后无论成功失败都在`onSettled`中确保数据同步。
+`onMutate` 里那句 `cancelQueries` 特别容易被漏掉。少了它，如果乐观更新发生时正好有一个 `['todos']` 的请求在路上，那个请求返回后会把你刚改好的缓存覆盖回旧值，界面就会出现「先变了又变回去」的诡异效果。
 
-### 4.3 失效查询与数据同步
+`onSettled` 里的 `invalidateQueries` 也别省。乐观更新写进去的是你猜的值，服务端实际存的可能不一样，比如后端会补 `updatedAt` 字段。最后拉一次真实数据，界面才算真的和服务端对齐了。
 
-mutation完成后，通常需要使相关查询失效以触发数据刷新。最简单的方式是使用`onSettled`回调：
+### 只做失效不做乐观更新
+
+大部分场景其实不需要乐观更新，改完直接失效就够了。
 
 ```tsx
 const mutation = useMutation({
   mutationFn: addTodo,
   onSettled: () => {
-    // 添加完成后使todos查询失效，自动触发重新获取
     queryClient.invalidateQueries({ queryKey: ['todos'] })
   }
 })
 ```
 
-这种方式的优点是代码简洁，且能确保界面显示最新的服务端数据。
+代码短，也不会有回滚逻辑写错的风险。我的判断是，只有在交互频次高、等待感明显的地方才上乐观更新，比如点赞、勾选待办、拖拽排序这类。
 
-## 五、高级特性与最佳实践
+## 六、依赖查询、并行、分页
 
-### 5.1 查询依赖与并行查询
+### 依赖查询
 
-当某个查询需要依赖另一个查询的结果时，可以在查询函数中直接使用await获取依赖数据：
+第二个查询需要第一个的结果时，用 `enabled` 控制它什么时候开跑。
 
 ```tsx
 function UserProfile({ userId }) {
@@ -228,23 +268,32 @@ function UserProfile({ userId }) {
   })
 
   const { data: posts } = useQuery({
-    queryKey: ['posts', userId],
-    queryFn: () => fetchUserPosts(user?.id),
-    enabled: !!user // 只有当user数据存在时才执行
-  })
-
-  // 另一种方式是在queryFn中等待
-  const { data: userPosts } = useQuery({
-    queryKey: ['posts', userId],
-    queryFn: async () => {
-      const userData = await fetchUser(userId)
-      return fetchUserPosts(userData.id)
-    }
+    queryKey: ['posts', user?.id],
+    queryFn: () => fetchUserPosts(user.id),
+    enabled: !!user?.id // user 没到位之前不发请求
   })
 }
 ```
 
-对于需要同时发起多个无关查询的场景，可以使用`useQueries`批量处理：
+`enabled` 为 false 时查询处于 `pending` 且 `fetchStatus` 为 `idle`，所以判断「是不是在等依赖」要看 `fetchStatus`，光看 `isPending` 会误以为在加载。
+
+另一种写法是在一个 `queryFn` 里串起来。
+
+```tsx
+const { data: userPosts } = useQuery({
+  queryKey: ['userPosts', userId],
+  queryFn: async () => {
+    const userData = await fetchUser(userId)
+    return fetchUserPosts(userData.id)
+  }
+})
+```
+
+区别在缓存粒度。拆成两个查询，`user` 这份数据别的地方也能复用；串在一起就是一份不可拆的缓存。多数情况下我倾向拆开。
+
+### 并行查询
+
+数量固定的话直接写多个 `useQuery` 就行，它们天然并行。数量动态的时候用 `useQueries`。
 
 ```tsx
 const results = useQueries({
@@ -256,22 +305,36 @@ const results = useQueries({
 })
 ```
 
-### 5.2 分页与无限滚动
+为什么数量动态时必须用 `useQueries`？因为 `useQuery` 是 Hook，不能写在循环或者条件里。`useQueries` 把这个限制绕开了，它内部只占一个 Hook 槽位。
 
-React Query对分页和无限滚动提供了原生支持。分页查询的核心是将页码作为查询键的一部分：
+### 分页
+
+把页码放进 key 里，每页各自缓存。
 
 ```tsx
 function PaginatedList({ page }) {
-  const { data, isLoading } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: ['posts', 'list', page],
     queryFn: () => fetchPosts({ page, limit: 10 })
   })
-
-  // 渲染逻辑...
 }
 ```
 
-对于无限滚动，React Query提供了专门的`useInfiniteQuery`Hook：
+这么写翻页时会闪一下，因为新页码是全新的 key，走的是完整的 pending。加上 `placeholderData` 就能保留上一页内容。
+
+```tsx
+import { keepPreviousData } from '@tanstack/react-query'
+
+const { data, isPlaceholderData } = useQuery({
+  queryKey: ['posts', 'list', page],
+  queryFn: () => fetchPosts({ page, limit: 10 }),
+  placeholderData: keepPreviousData
+})
+```
+
+翻页时旧数据继续显示，`isPlaceholderData` 为 true，可以拿它给列表加个半透明效果表示正在加载。这个设计是真的舒服。
+
+### 无限滚动
 
 ```tsx
 function InfinitePosts() {
@@ -282,13 +345,14 @@ function InfinitePosts() {
     isFetchingNextPage
   } = useInfiniteQuery({
     queryKey: ['posts', 'infinite'],
-    queryFn: ({ pageParam = 1 }) => fetchPosts({ page: pageParam }),
-    getNextPageParam: (lastPage) => lastPage.nextPage
+    queryFn: ({ pageParam }) => fetchPosts({ page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined
   })
 
   return (
     <div>
-      {data.pages.map((page) =>
+      {data?.pages.map((page) =>
         page.posts.map((post) => <PostCard key={post.id} post={post} />)
       )}
 
@@ -303,46 +367,13 @@ function InfinitePosts() {
 }
 ```
 
-### 5.3 SSR服务端渲染支持
+v5 里 `initialPageParam` 是必填的，不能再靠 `pageParam = 1` 这种默认参数。`getNextPageParam` 返回 `undefined` 表示没有下一页了，`hasNextPage` 会变成 false。
 
-在Next.js等SSR框架中使用React Query时，需要处理服务端数据预取和客户端水合。React Query提供了`HydrationBoundary`和`dehydrate`工具：
+## 七、Next.js App Router 集成
 
-```tsx
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
+### QueryClient 实例的处理
 
-export async function getServerSideProps() {
-  const queryClient = new QueryClient()
-
-  await queryClient.prefetchQuery({
-    queryKey: ['posts'],
-    queryFn: fetchPosts
-  })
-
-  return {
-    props: {
-      dehydratedState: dehydrate(queryClient)
-    }
-  }
-}
-
-export default function PostsPage({ dehydratedState }) {
-  return (
-    <HydrationBoundary state={dehydratedState}>
-      <PostsList />
-    </HydrationBoundary>
-  )
-}
-```
-
-这种方案确保服务端预取的数据能够传递到客户端，避免页面加载时的闪烁问题。
-
-### 5.4 React Query结合Next.js 16最佳实践
-
-Next.js 16引入了App Router架构，React Query在其中的使用方式与传统Pages Router有所不同。下面详细讲解如何在Next.js 16中最佳实践React Query。
-
-#### 5.4.1 QueryClientProvider全局配置
-
-首先需要在应用根布局中配置QueryClientProvider。为了避免服务端和客户端使用不同的实例，我们需要使用React的useState来确保客户端只创建一个QueryClient：
+服务端和客户端都要有 QueryClient，但不能共用一个模块级实例，否则不同用户的请求会共享缓存。客户端这边用 `useState` 保证只创建一次。
 
 ```tsx
 // app/providers.tsx
@@ -357,7 +388,7 @@ export default function Providers({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // SSR场景下，默认 staleTime 设置更长避免额外请求
+            // SSR 下 staleTime 设成 0 会在水合后立刻重发一次请求
             staleTime: 60 * 1000,
           },
         },
@@ -372,7 +403,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 }
 ```
 
-然后在根布局中使用：
+根布局里挂上。
 
 ```tsx
 // app/layout.tsx
@@ -393,12 +424,14 @@ export default function RootLayout({
 }
 ```
 
-#### 5.4.2 服务端组件预取 + 客户端水合
+那个 `staleTime: 60 * 1000` 不是随手写的。默认值 0 的情况下，服务端预取的数据一到客户端就被判定为过时，水合完立刻又发一遍请求，服务端预取白做了。
 
-在App Router中，我们可以在服务端组件中预取数据，然后传递给客户端组件进行水合：
+### 服务端预取加客户端水合
+
+服务端组件里预取，`dehydrate` 序列化，客户端 `HydrationBoundary` 接住。
 
 ```tsx
-// app/posts/page.tsx (服务端组件)
+// app/posts/page.tsx，服务端组件
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query'
 import PostsList from './PostsList'
 import { getPosts } from '@/api/posts'
@@ -412,7 +445,6 @@ export default async function PostsPage() {
   })
 
   return (
-    // 将预取的数据传递给客户端组件
     <HydrationBoundary state={dehydrate(queryClient)}>
       <PostsList />
     </HydrationBoundary>
@@ -421,20 +453,20 @@ export default async function PostsPage() {
 ```
 
 ```tsx
-// app/posts/PostsList.tsx (客户端组件)
+// app/posts/PostsList.tsx，客户端组件
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
 import { getPosts } from '@/api/posts'
 
 export default function PostsList() {
-  const { data, isLoading, error } = useQuery({
+  const { data, isPending, error } = useQuery({
     queryKey: ['posts'],
     queryFn: getPosts,
   })
 
-  if (isLoading) return <div>加载中...</div>
-  if (error) return <div>错误: {error.message}</div>
+  if (isPending) return <div>加载中...</div>
+  if (error) return <div>错误 {error.message}</div>
 
   return (
     <ul>
@@ -446,22 +478,19 @@ export default function PostsList() {
 }
 ```
 
-#### 5.4.3 静态页面预取优化
+两边的 `queryKey` 必须一模一样，差一个字符就命中不了，客户端会重新发请求，你还不容易发现，因为页面看起来是正常的。排查这类问题最快的办法是打开 Network 面板看水合之后有没有多余请求。
 
-对于博客、文档等静态内容页面，可以利用React Query的缓存策略减少服务端请求：
+对博客、文档这种静态内容，`staleTime` 可以设得很长。
 
 ```tsx
 // app/blog/[slug]/page.tsx
 export default async function BlogPost({ params }: { params: { slug: string } }) {
   const queryClient = new QueryClient()
 
-  // 针对静态内容，可以设置较长的 staleTime
   await queryClient.prefetchQuery({
     queryKey: ['blog', params.slug],
     queryFn: () => getBlogPost(params.slug),
-    queryOptions: {
-      staleTime: 60 * 60 * 1000, // 1小时内视为新鲜
-    },
+    staleTime: 60 * 60 * 1000, // 1 小时内视为新鲜
   })
 
   return (
@@ -472,9 +501,11 @@ export default async function BlogPost({ params }: { params: { slug: string } })
 }
 ```
 
-#### 5.4.4 结合Server Actions使用Mutation
+`staleTime` 是 `prefetchQuery` 的顶层选项，直接和 `queryKey`、`queryFn` 平级写，别嵌到别的对象里去。
 
-Next.js 16的Server Actions是处理数据修改的强大工具，React Query可以与其完美配合：
+### 配合 Server Actions
+
+Server Actions 负责写，TanStack Query 负责读，两边通过失效连起来。
 
 ```tsx
 // app/actions.ts
@@ -485,12 +516,11 @@ import { revalidatePath } from 'next/cache'
 export async function createPost(formData: FormData) {
   const title = formData.get('title')
 
-  const res = await fetch('/api/posts', {
+  const res = await fetch('https://api.example.com/posts', {
     method: 'POST',
     body: JSON.stringify({ title }),
   })
 
-  // 使posts查询失效，触发重新获取
   revalidatePath('/posts')
 
   return res.json()
@@ -508,15 +538,19 @@ export function CreatePost() {
   const queryClient = useQueryClient()
 
   const mutation = useMutation({
-    mutationFn: createPost,
+    mutationFn: (formData: FormData) => createPost(formData),
     onSuccess: () => {
-      // 手动使缓存失效，确保列表更新
       queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
   })
 
   return (
-    <form action={mutation.mutate}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        mutation.mutate(new FormData(e.currentTarget))
+      }}
+    >
       <input name="title" placeholder="输入标题" />
       <button type="submit" disabled={mutation.isPending}>
         {mutation.isPending ? '提交中...' : '创建'}
@@ -526,29 +560,9 @@ export function CreatePost() {
 }
 ```
 
-#### 5.4.5 路由切换时的自动刷新
+这里有两套缓存要各自处理。`revalidatePath` 清的是 Next.js 的服务端路由缓存，`invalidateQueries` 清的是 TanStack Query 的客户端缓存。它们互不感知，只清一边就会出现「刷新页面数据对了，不刷新还是旧的」这种情况。
 
-在Next.js App Router中，结合React Query可以轻松实现路由切换时的数据刷新：
-
-```tsx
-// app/posts/[id]/page.tsx
-import { getPost } from '@/api/posts'
-
-export default async function PostPage({ params }: { params: { id: string } }) {
-  const queryClient = new QueryClient()
-
-  await queryClient.prefetchQuery({
-    queryKey: ['post', params.id],
-    queryFn: () => getPost(params.id),
-  })
-
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <PostDetail postId={params.id} />
-    </HydrationBoundary>
-  )
-}
-```
+说到这个，路由参数变化会自动触发新查询，因为 key 变了。
 
 ```tsx
 // app/posts/[id]/PostDetail.tsx
@@ -558,23 +572,23 @@ import { useQuery } from '@tanstack/react-query'
 import { getPost } from '@/api/posts'
 
 export default function PostDetail({ postId }: { postId: string }) {
-  // 当postId变化时，React Query会自动触发新的请求
-  const { data, isLoading } = useQuery({
+  // postId 一变，queryKey 就变，自动发新请求
+  const { data, isPending } = useQuery({
     queryKey: ['post', postId],
     queryFn: () => getPost(postId),
   })
-
-  // 渲染逻辑...
 }
 ```
 
-Next.js 16与React Query的结合，使得服务端预取、客户端水合、数据变更都变得非常优雅。这种方案既保留了服务端渲染的SEO优势和首屏加载速度，又充分利用了React Query强大的客户端状态管理能力。
+不是说这套组合没缺点，服务端组件预取加客户端组件订阅意味着同一份取数逻辑在两个文件里都要写一遍。抽成共享的 query options 对象能缓解，但样板代码是省不掉的。
 
-## 六、性能优化策略
+## 八、几个性能相关的点
 
-### 6.1 结构化共享与引用稳定性
+### 结构化共享
 
-React Query默认启用结构化共享（Structural Sharing）来优化性能。当服务端返回的数据与缓存相同时，Query会保持原有引用不变，这使得配合useMemo和useCallback使用时能有效避免不必要的重渲染：
+TanStack Query 默认开启结构化共享。接口返回的数据如果和缓存里的内容一样，它会保持原来的引用不变，只替换真正变化的那部分。
+
+好处是 `data` 的引用稳定，传给子组件时 `React.memo` 能生效，`useMemo` 和 `useCallback` 的依赖数组也不会无谓失效。
 
 ```tsx
 function PostList() {
@@ -583,7 +597,6 @@ function PostList() {
     queryFn: fetchPosts
   })
 
-  // 依赖data的回调函数
   const handleClick = useCallback((id) => {
     console.log('Clicked:', id)
   }, [])
@@ -591,58 +604,77 @@ function PostList() {
   return (
     <ul>
       {data?.map((post) => (
-        <PostItem
-          key={post.id}
-          post={post}
-          onClick={handleClick}
-        />
+        <PostItem key={post.id} post={post} onClick={handleClick} />
       ))}
     </ul>
   )
 }
 ```
 
-在大多数场景下，默认的结构化共享已经足够高效。如果确实需要禁用此特性，可以将`structuralSharing`设置为false。
+代价是每次响应回来都要做一次深比较。数据量特别大的时候这个比较本身有成本，可以把 `structuralSharing` 设成 false 关掉。默认开着适合绝大多数场景。
 
-### 6.2 保持查询活跃
+### 让查询保持活跃
 
-默认情况下，当所有使用该查询的组件都卸载后，查询会进入非活跃状态并在5分钟后被垃圾回收。但在某些场景下，我们希望查询数据继续保持活跃状态：
+所有用到某个查询的组件卸载之后，查询变成非活跃状态，`gcTime` 到期就被回收。有些场景我们希望它别被回收。
 
 ```tsx
-// 方式一：使用keepPreviousData保持上一页数据
+// 数据永不过期，只在手动 invalidate 时刷新
 const { data } = useQuery({
-  queryKey: ['posts', page],
-  queryFn: () => fetchPosts({ page }),
-  placeholderData: keepPreviousData
-})
-
-// 方式二：设置较长的staleTime避免自动失效
-const { data } = useQuery({
-  queryKey: ['posts'],
-  queryFn: fetchPosts,
-  staleTime: Infinity // 数据永不过期，需要手动invalidate
+  queryKey: ['config'],
+  queryFn: fetchConfig,
+  staleTime: Infinity
 })
 ```
 
-### 6.3 窗口焦点重新获取
+配置项、字典表这类几乎不变的数据适合这么写。但 `staleTime: Infinity` 只管「不主动刷新」，不管「不被回收」，要真正留住缓存还得把 `gcTime` 也调大。
 
-用户切换浏览器标签页后再返回时，自动刷新数据是一个常见需求。React Query默认启用这一行为，但可以根据场景调整：
+### 窗口焦点刷新的取舍
 
 ```tsx
-const { data } = useQuery({
+// 全局关掉
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { refetchOnWindowFocus: false }
+  }
+})
+
+// 或者单个查询关
+useQuery({
   queryKey: ['posts'],
   queryFn: fetchPosts,
-  // 禁用窗口焦点刷新
-  refetchOnWindowFocus: false,
-  // 或者只在数据过时时才刷新
-  refetchOnWindowFocus: (query) => query.state.dataUpdatedAt > 0
+  refetchOnWindowFocus: false
 })
 ```
 
-## 七、常见应用场景总结
+我自己的做法是全局关掉，然后在真正需要实时性的查询上单独打开。默认全开的话，用户切个窗口回来，页面上十几个查询同时往服务端发请求，接口压力和体验都不太好看。
 
-React Query几乎能解决现代React应用中的所有数据获取需求。在用户个人资料展示场景中，可以用useQuery获取用户信息并设置较长的缓存时间减少请求。在待办事项管理场景中，create、update、delete操作配合乐观更新能带来流畅的用户体验。在实时数据看板场景中，配置合适的refetchInterval实现数据定时刷新。在搜索功能实现中，结合debounce和enabled选项避免不必要的请求。
+## 九、常见场景速查
 
-总的来说，React Query已经成为React生态中数据获取的事实标准。它不仅大幅简化了数据获取的代码量，更重要的是提供了专业级的缓存管理、错误处理和性能优化能力。无论是小型项目还是大型企业应用，React Query都能提供显著的开发体验提升和性能改进。
+用户资料展示，`useQuery` 加长 `staleTime`，这类数据变化频率低。
 
-掌握React Query，将让你在处理服务端状态时更加得心应手，构建出更优质的React应用。
+待办事项管理，增删改用 `useMutation` 配乐观更新，操作反馈即时。
+
+实时看板，配 `refetchInterval` 做定时轮询，配合 `refetchIntervalInBackground` 决定标签页不可见时要不要继续轮。
+
+搜索框，输入做 debounce，再用 `enabled` 控制关键词为空时不发请求。
+
+分页表格，`placeholderData: keepPreviousData` 保留上一页，翻页不闪。
+
+## 总结
+
+TanStack Query 真正值钱的地方不是省掉了几个 `useState`，是它把「服务端数据会过期」这件事变成了框架层的默认假设。你不用再手写 stale-while-revalidate，也不用担心两个组件同时请求同一个接口。
+
+几个我认为必须记住的点。QueryKey 里要放进 `queryFn` 用到的所有变量，漏一个就是缓存串号。`staleTime` 管请求、`gcTime` 管缓存生命周期，两个要一起调。乐观更新的 `onMutate` 里 `cancelQueries` 不能省。SSR 场景下 `staleTime` 默认 0 会让服务端预取失效。
+
+`fetch` 不会对 4xx 抛错这一条也顺手记一下，它跟 TanStack Query 无关，但会让你的错误处理整个失灵。
+
+最后提一句，这些结论我主要是在 Next.js App Router 的项目里验证的，Pages Router 和纯 CSR 应用在水合环节的细节会有出入，用之前对着官方文档确认一遍更稳妥。
+
+## 参考
+
+- [TanStack Query 官方文档](https://tanstack.com/query/latest)
+- [Important Defaults](https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults)
+- [Optimistic Updates](https://tanstack.com/query/latest/docs/framework/react/guides/optimistic-updates)
+- [Advanced Server Rendering](https://tanstack.com/query/latest/docs/framework/react/guides/advanced-ssr)
+- [Practical React Query](https://tkdodo.eu/blog/practical-react-query)
+- [前端进阶之旅](https://interview.poetries.top)

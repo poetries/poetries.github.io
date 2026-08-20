@@ -1,9 +1,9 @@
 ---
 title: Ajax总结篇
 date: 2016-11-26 14:35:24
-tags: 
-  - JavaScript
-  - Ajax
+tags:
+- JavaScript
+- Ajax
 categories: Front-End
 ---
 
@@ -50,22 +50,22 @@ categories: Front-End
 
 在上面几中技术中，除了`XmlHttpRequest`对象以外，其它所有的技术都是基于`web`标准并且已经得到了广泛使用的，`XMLHttpRequest`虽然目前还没有被`W3C`所采纳，但是它已经是一个事实的标准，因为目前几乎所有的主流浏览器都支持它
 
-![](https://poetries1.gitee.io/img-repo/20191001/11.png)
+![](https://s.poetries.top/gitee/20191001/11.png)
 
 - 第一张图尤其说明了传统` Web` 应用程序的结构与采用了 `AJAX` 技术的 `Web`
 应用程序的结构上的差别
 - 主要的差别，其实不是 `JavaScript`，不是 `HTML/XHTML `和 `CSS`，而是采用
 了 `XMLHttpRequest` 来向服务器异步的请求 `XML` 数据
 
-![](https://poetries1.gitee.io/img-repo/20191001/12.png)
+![](https://s.poetries.top/gitee/20191001/12.png)
 
 
 - 再来看第二张图，传统的 `Web` 应用模式，用户的体验是割裂的，点击->等待->
 看到新的页面->再点击->再等待。而采用了`AJAX`技术之后，大部分的计算工作，都是在用户不察觉的情况下，交由服务器去完成了
 
-![](https://poetries1.gitee.io/img-repo/20191001/13.png)
+![](https://s.poetries.top/gitee/20191001/13.png)
 
-![](https://poetries1.gitee.io/img-repo/20191001/14.png)
+![](https://s.poetries.top/gitee/20191001/14.png)
 
 
 ### 二、创建ajax的步骤
@@ -128,7 +128,7 @@ xhr.open("POST",demo.php,true);
 ```
 - 第二个参数是要作为请求发送目标的URL。
 - 第三个参数是`true`或`false`，表示请求是以异步还是同步的模式发出。（默认为`true`，一般不建议为`false`）
-  - `false`：同步模式发出的请求会暂停所有javascript代码的执行，知道服务器获得响应为止，如果浏览器在连接网络时或者在下载文件时出了故障，页面就会一直挂起。 
+  - `false`：同步模式发出的请求会暂停所有javascript代码的执行，知道服务器获得响应为止，如果浏览器在连接网络时或者在下载文件时出了故障，页面就会一直挂起。
   - `true`：异步模式发出的请求，请求对象收发数据的同时，浏览器可以继续加载页面，执行其他javascript代码
 
 #### 3、发送请求
@@ -201,7 +201,7 @@ var sales = JSON.parse(responseText);
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/20191001/15.png)
+![](https://s.poetries.top/gitee/20191001/15.png)
 
 
 #### 5、封装例子
@@ -271,7 +271,7 @@ function ajax(url, success, fail){
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/20191001/16.png)
+![](https://s.poetries.top/gitee/20191001/16.png)
 
 ##### 谈谈JSONP
 
@@ -290,23 +290,23 @@ function ajax(url, success, fail){
 - 简单实例
 
 ```html
-<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />  
-<script type="text/javascript">  
-    function jsonpCallback(result) {  
-        alert(result.a);  
-        alert(result.b);  
-        alert(result.c);  
-        for(var i in result) {  
-            alert(i+":"+result[i]);//循环输出a:1,b:2,etc.  
-        }  
-    }  
-</script>  
-<script type="text/javascript" src="http://crossdomain.com/services.php?callback=jsonpCallback"></script>  
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<script type="text/javascript">
+    function jsonpCallback(result) {
+        alert(result.a);
+        alert(result.b);
+        alert(result.c);
+        for(var i in result) {
+            alert(i+":"+result[i]);//循环输出a:1,b:2,etc.
+        }
+    }
+</script>
+<script type="text/javascript" src="http://crossdomain.com/services.php?callback=jsonpCallback"></script>
 <!--callback参数指示生成JavaScript代码时要使用的函数jsonpcallback-->
 ```
 - 注意浏览器的缓存问题
   - 在末尾增加一个随机数可避免频繁请求同一个链接出现的缓存问题
-  - `<script type="text/javascript" src="http://crossdomain.com/services.php?callback=jsonpCallback&random=(new Date()).getTime()"></script>  
+  - `<script type="text/javascript" src="http://crossdomain.com/services.php?callback=jsonpCallback&random=(new Date()).getTime()"></script>`
 
 
 **原生JavaScript实现完整的Ajax、JSONP例子**
@@ -482,7 +482,7 @@ ajax({
 
 			}
 		</script>
-```      
+```
 
 - 原生js简洁实现
 
@@ -510,7 +510,7 @@ var script = document.createElement("script");
 //ajax请求后台数据
 var btn =  document.getElementsByTagName("input")[0];
 btn.onclick = function(){
-	
+
 	ajax({//json格式
 		type:"post",
 		url:"post.php",
@@ -529,7 +529,7 @@ function ajax(aJson){
 	var url = aJson.url;		// url 接收 传输位置
 	var success = aJson.success;// success 接收 传输完成后的回调函数
 	var data = aJson.data || '';// data 接收需要附带传输的数据
-	
+
 	if(window.XMLHttpRequest){//兼容处理
 		ajx = new XMLHttpRequest();//一般浏览器
 	}else
@@ -540,35 +540,35 @@ function ajax(aJson){
 	{
 		url +="/?"+data+"&"+Math.random();
 	}
-	
+
 	//初始化ajax请求
 	ajx.open( type , url , asyn );
 	//规定传输数据的格式
 	ajx.setRequestHeader('content-type','application/x-www-form-urlencoded');
 	//发送ajax请求（包括post数据的传输）
 	type == "get" ?ajx.send():ajx.send(aJson.data);
-	
+
 	//处理请求
 	ajx.onreadystatechange = function(aJson){
-		
+
 	if(ajx.readState == 4){
-			
+
 		if (ajx.status == 200 && ajx.status<300)//200是HTTP 请求成功的状态码
 		{
 			//请求成功处理数据
 			success && success(ajx.responseText);
 		}else{
 			alert("请求出错"+ajx.status);
-			
+
 		}
 	}
-		
+
 	}
 ```
 
 #### jQuery中的Ajax的一些方法
 
-`jquery`对`Ajax`操作进行了封装，在`jquery`中的`$.ajax()`方法属于最底层的方法，第`2`层是`load()`、`$.get()`、`$.post();`第`3`层是`$.getScript()`、`$.getJSON()`，第`2`层使用频率很高 
+`jquery`对`Ajax`操作进行了封装，在`jquery`中的`$.ajax()`方法属于最底层的方法，第`2`层是`load()`、`$.get()`、`$.post();`第`3`层是`$.getScript()`、`$.getJSON()`，第`2`层使用频率很高
 
 ##### `load()`方法
 
@@ -584,7 +584,7 @@ function ajax(aJson){
 $("#testTest").load("test.html",function(responseText,textStatus,XMLHttpRequest){
     //respnoseText 请求返回的内容
     //textStatus 请求状态 ：sucess、error、notmodified、timeout
-    //XMLHttpRequest 
+    //XMLHttpRequest
 })
 ```
 - **load方法参数**
@@ -609,7 +609,7 @@ $("#testTest").load("test.html",function(responseText,textStatus,XMLHttpRequest)
 |参数|类型|说明|
 |---|---|---|
 |`url`|`String`|请求`HTML`页的地址|
-|`data(可选)`|`Object`|发送至服务器的`key`/ `value` 数据会作为`QueryString`附加到请求URL中|  
+|`data(可选)`|`Object`|发送至服务器的`key`/ `value` 数据会作为`QueryString`附加到请求URL中|
 |`callback(可选)`|`Function`|载入成功的回调函数（只有当`Response`的返回状态是success才调用该方法）|
 |`type(可选)`|`String`|服务器返回内容的格式，包括`xml`、`html`、`script`、`json`、`text`和`_default`|
 
@@ -618,7 +618,7 @@ $("#testTest").load("test.html",function(responseText,textStatus,XMLHttpRequest)
       - `GET`请求会将参数跟张乃URL后进行传递，而`POST`请求则是作为`Http`消息的实体内容发送给web服务器，在`ajax`请求中，这种区别对用户不可见
     - `GET`方式对传输数据有大小限制（通常不能大于`2KB`），而使用`POST`方式传递的数据量要比`GET`方式大得多（理论不受限制）
     - `GET`方式请求的数据会被浏览器缓存起来，因此其他人可以从浏览器的历史纪录中读取这些数据，如：账号、密码。在某种情况下，`GET`方式会带来严重的安全问题，而`POST`相对来说可以避免这些问题
-    - `GET`和`POST`方式传递的数据在服务端的获取也不相同。在`PHP`中，`GET`方式用`$_GET[]`获取；`POST`方式用`$_POST[]`获取;两种方式都可用`$_REQUEST[]`来获取 
+    - `GET`和`POST`方式传递的数据在服务端的获取也不相同。在`PHP`中，`GET`方式用`$_GET[]`获取；`POST`方式用`$_POST[]`获取;两种方式都可用`$_REQUEST[]`来获取
 
 - **总结**
   - 使用`load()`、`$.get()`和`$.post()`方法完成了一些常规的`Ajax`程序，如果还需要复杂的`Ajax`程序，就需要用到`$.ajax()`方式

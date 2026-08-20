@@ -1,46 +1,79 @@
 ---
-title: docker-compose/微信云托管/serverless之部署Egg项目
+title: Egg 项目部署实战 docker-compose 微信云托管 serverless 三种方案
+description: 一份 Egg.js 项目的完整部署笔记，从本地 Docker 起 node/mysql/redis/nginx 四个容器，到 docker-compose 编排上云服务器，再到微信云托管流水线和腾讯云 serverless，每一步都有截图和踩坑记录。
 date: 2022-06-17 22:35:24
-tags: 
+tags:
   - 部署
   - Egg
+  - Docker
+  - Serverless
 categories: Front-End
 ---
 
-# 一、本地docker环境搭建
+Egg 项目写完，接口在本地 7001 端口跑得好好的，接下来就卡在同一个地方，这玩意儿到底往哪儿放。有人说买台云服务器 `pm2` 起起来就行，有人说上 Docker，有人说直接 serverless 一把梭。我把这三条路都真跑了一遍，从本地起容器开始，一直到线上接口能被前端页面调通，中间该踩的坑基本都踩到了。
 
-mac下安装docker: `brew install docker`
+这篇是那次的完整记录，命令、配置文件、每一步该看到什么界面全在里面。你可以当手册翻，也可以顺着读一遍，理解为什么部署这件事会从「一条 `docker run`」慢慢演化成「一个 compose 文件」再到「一次 git push」。
+
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
+
+- 本地用 Docker 把 node、MySQL、Redis、Nginx 四个环境一个个装起来，搞清楚每个参数在干嘛
+- 用 docker-compose 把这四个服务编排成一组，靠自定义网桥让容器之间用容器名互相通信
+- Nginx 容器里怎么放前端静态资源，怎么把接口反向代理到 Egg 服务
+- 把整套 docker-compose 搬到云服务器上，包括 CentOS 装 Docker、放行端口、Redis 持久化配置
+- 用微信云托管做流水线部署，push 代码自动构建
+- 把 Egg 部署到腾讯云 serverless，包括 CLI 部署和控制台自定义部署两种姿势
+- 这套 2022 年的流程，放到今天有哪些地方要改
+
+## 一、本地 Docker 环境搭建
+
+先说清楚，这一节手动做的所有事情，到了第二节都会被一条 `docker-compose up -d` 替代。那还有必要一个一个手动装吗？我的答案是有必要。只有自己敲过一遍 `docker run`，你才知道 compose 文件里的 `ports`、`volumes`、`environment` 分别对应命令行的哪个参数，线上出问题的时候才知道该去哪儿看。
+
+mac 下装 Docker 用 `brew install docker` 就行。这里有个坑要注意，这条命令只装了 CLI，本机没有 daemon，光敲 `docker ps` 会报 `Cannot connect to the Docker daemon`。要跑容器还得装 Docker Desktop，也就是 `brew install --cask docker`，装完打开一次让它把守护进程拉起来。
 
 > https://hub.docker.com 拉取镜像速度比较慢，我们推荐使用国内的镜像源访问速度较快 https://hub.daocloud.io
 
-## 1.1 设置国内镜像源
+### 1.1 设置国内镜像源
 
-![](https://s.poetries.top/uploads/2022/06/82cdc649caaa9a4d.png)
+Docker Desktop 的偏好设置里有个 Docker Engine 面板，改的其实就是 `daemon.json` 这个文件，写完点 Apply & Restart 就生效。
+
+![Docker Desktop 中配置 registry-mirrors 镜像加速地址](https://s.poetries.top/uploads/2022/06/82cdc649caaa9a4d.png)
+
+`registry-mirrors` 是一个数组，Docker 拉镜像的时候会先走这里配的地址，拉不到才回源到官方仓库。配它的目的很单纯，就是让 `docker pull` 别卡在 0%。
 
 ```json
 {
-  "registry-mirrors": [
-    "https://register.docker-cn.com/"
-  ],
+  "registry-mirrors": ["https://registry.docker-cn.com/"]
 }
 ```
 
-进入该网站`https://hub.daocloud.io`获取镜像的下载地址
+改完之后可以用 `docker info` 确认一下，输出最下面会多一段 `Registry Mirrors`，能看到你刚才填的地址才算配上了。至于镜像地址本身，这两年国内的公共加速源变动特别频繁，当年能用的今天不一定还在，遇到拉不动别急着怀疑网络，先确认这个源本身是不是已经废了，用你云厂商控制台给的专属加速地址通常最稳。
 
-## 1.2 docker命令基础
+进入该网站`https://hub.daocloud.io`获取镜像的下载地址。
+
+### 1.2 docker 命令基础
+
+后面每一节都会反复用到这几条命令，先过一遍，混熟了排查问题会快很多。
 
 - `docker images` 查看镜像
 - `docker ps` 查看启动的容器 (`-a` 查看全部)
 - `docker rmi 镜像ID` 删除镜像
 - `docker rm 容器ID` 删除容器
 - `docker exec -it 1a8eca716169(容器ID:docker ps获取) sh` 进入容器内部
-- `docker inspect bf70019da487(容器ID)` 查看容器内的信息 
+- `docker inspect bf70019da487(容器ID)` 查看容器内的信息
+
+这里面最值得单独说的是 `docker inspect`。它吐出来的是一大坨 JSON，包含容器的网络配置、挂载点、环境变量、启动命令，Node 连不上 MySQL 的时候我一般第一个看它，确认容器到底挂在哪个网络上、IP 是多少。`docker exec -it 容器ID sh` 则是进容器内部，注意有些精简镜像（比如 alpine）里没有 `bash`，只能用 `sh`。
+
+镜像列表里那些 `<none>` 的悬空镜像，是重复构建留下的中间产物，占空间还看着乱。
 
 > 删除none的镜像，要先删除镜像中的容器。要删除镜像中的容器，必须先停止容器。
+
+顺序反了会报 `image is being used by stopped container`，所以下面这条得在容器清干净之后再跑。
 
 ```
 $ docker rmi $(docker images | grep "none" | awk '{print $3}')
 ```
+
+完整的清理三连是这样，停容器、删容器、删镜像，一步都不能跳。
 
 ```
 $ docker stop $(docker ps -a | grep "Exited" | awk '{print $1 }') //停止容器
@@ -50,56 +83,68 @@ $ docker rm $(docker ps -a | grep "Exited" | awk '{print $1 }') //删除容器
 $ docker rmi $(docker images | grep "none" | awk '{print $3}') //删除镜像
 ```
 
-## 1.3 环境准备
+这三条都是靠 `grep` 匹配文字来筛 ID 的，属于比较糙的写法，好处是任何版本的 Docker 都能跑。现在的 Docker 其实自带了更安全的清理命令，`docker image prune` 专门清悬空镜像，`docker system prune` 连停掉的容器、没在用的网络一起清，用它们不会误伤名字里刚好带 `none` 的镜像。
 
-这里拉取`nginx`、`node`、`redis`、`mysql`镜像
+### 1.3 环境准备
 
-### 1、安装node镜像
+一个完整的 Egg 服务跑起来要四样东西，Node 运行时、MySQL、Redis、Nginx。这里拉取`nginx`、`node`、`redis`、`mysql`镜像，一个一个来。
 
-进入`https://hub.daocloud.io` 搜索node，切换到版本获取下载地址
+#### 1、安装 node 镜像
+
+进入`https://hub.daocloud.io` 搜索node，切换到版本获取下载地址。
 
 - `docker pull daocloud.io/library/node:12.18`
 - `docker tag 28faf336034d node` 重命名镜像
 
-重命名镜像后IMAGE ID都是一样的
+`docker tag` 干的事情其实只是给同一个镜像挂一个新名字，不会复制一份数据，所以重命名镜像后IMAGE ID都是一样的。
 
-![](https://s.poetries.top/uploads/2022/06/59d83f0139c878de.png)
+![docker images 中重命名前后两条记录的 IMAGE ID 完全相同](https://s.poetries.top/uploads/2022/06/59d83f0139c878de.png)
 
-也可以导出镜像到本地备份 `docker save -o node.image(导出镜像要起的名称) 28faf336034d(要导出的镜像的ID)`
+拉一次镜像动辄几百兆，网络不好的时候拉一次要好几分钟。所以我习惯把常用镜像导出到本地存着，换机器或者重装 Docker 直接导回来。也可以导出镜像到本地备份 `docker save -o node.image(导出镜像要起的名称) 28faf336034d(要导出的镜像的ID)`。
 
-![](https://s.poetries.top/uploads/2022/06/7b993abfdc8f07b6.png)
+![docker save 把 node 镜像导出成本地文件](https://s.poetries.top/uploads/2022/06/7b993abfdc8f07b6.png)
 
-我们先删除之前的镜像 `docker rmi 28faf336034d -f` 强制删除
+导完验证一下确实能用，我们先删除之前的镜像 `docker rmi 28faf336034d -f` 强制删除。加 `-f` 是因为这个镜像上还挂着 tag 和容器引用，不强制删会被拒绝。
 
-![](https://s.poetries.top/uploads/2022/06/df79f11b704aae4d.png)
+![强制删除本地 node 镜像](https://s.poetries.top/uploads/2022/06/df79f11b704aae4d.png)
 
 再次导入本地镜像
 
 `docker load -i node.image(导入的镜像名称)`
 
-![](https://s.poetries.top/uploads/2022/06/566d2f2270c40840.png)
+导入完你会发现镜像的 REPOSITORY 和 TAG 都是 `<none>`，这是正常的，`docker save` 存的是镜像层数据，标签信息没跟着回来。
+
+![docker load 导入后镜像列表里出现一条无标签记录](https://s.poetries.top/uploads/2022/06/566d2f2270c40840.png)
 
 然后再次重命名镜像即可
 
 `docker tag 28faf336034d node:v1.0(版本v1.0)`
 
-![](https://s.poetries.top/uploads/2022/06/129f0a59b6d7c5d4.png)
+![重新给导入的镜像打上 node:v1.0 标签](https://s.poetries.top/uploads/2022/06/129f0a59b6d7c5d4.png)
 
-### 2、安装MySQL镜像
+补一句时效性的话，Node 12 这条线早就结束维护了，当年写这篇的时候它还是可用的 LTS，今天再起新项目不要再挑这个版本，直接用当前的 LTS 大版本，安全补丁和 npm 生态兼容性都会好很多。下面所有出现 `node:12.18` 的地方，思路照搬，版本号换成你项目实际用的就行。
 
-进入`https://hub.daocloud.io` 搜索mysql，切换到版本获取下载地址
+#### 2、安装 MySQL 镜像
 
-![](https://s.poetries.top/uploads/2022/06/a6a34ed8d66f7cdc.png)
+进入`https://hub.daocloud.io` 搜索mysql，切换到版本获取下载地址。
+
+![在镜像站搜索 mysql 并选择 8.0.20 版本](https://s.poetries.top/uploads/2022/06/a6a34ed8d66f7cdc.png)
 
 - `docker pull daocloud.io/library/mysql:8.0.20`
 
-![](https://s.poetries.top/uploads/2022/06/f7e34f9ea2331ffb.png)
+拉取过程会一层一层往下走，每一层对应 Dockerfile 里的一条指令，已经存在的层会直接显示 `Already exists` 跳过。
+
+![docker pull 拉取 mysql 镜像的分层下载过程](https://s.poetries.top/uploads/2022/06/f7e34f9ea2331ffb.png)
 
 **启动MySQL镜像**
+
+这条命令里参数不少，逐个看一下就明白了。`-p 3307:3306` 是把宿主机的 3307 映射到容器里的 3306，之所以不用 3306 对 3306，是因为很多人本机早就装过一个 MySQL 占着 3306，撞端口会直接启动失败。`-e` 注入的环境变量是官方镜像约定好的，容器第一次启动时会读它来初始化 root 密码。
 
 ```
 docker run -d(后台运行) -p 3307:3306(本机端口:MySQL运行端口) --name mysql(容器名称) -e MYSQL_ROOT_PASSWORD=123456(设置mysql密码) be0dbf01a0f3(mysql镜像ID)
 ```
+
+这里有个坑要注意，`MYSQL_ROOT_PASSWORD` 只在数据目录为空、也就是容器第一次初始化的时候生效。如果你挂载了 volume 之后再改这个变量，密码是不会变的，重来一次得先把挂载出来的数据目录删干净。
 
 **查看当前正在运行的镜像**
 
@@ -107,11 +152,13 @@ docker run -d(后台运行) -p 3307:3306(本机端口:MySQL运行端口) --name 
 docker ps -a(正在运行和停止的镜像-a都可见)
 ```
 
-![](https://s.poetries.top/uploads/2022/06/5ba00266271ef558.png)
+不带 `-a` 只能看到运行中的容器，容器起不来直接挂掉的时候你会看到一片空白，误以为命令没执行。加上 `-a` 才能看到那条 `Exited (1)` 的记录，再去 `docker logs` 里翻原因。
+
+![docker ps -a 列出运行中和已退出的容器](https://s.poetries.top/uploads/2022/06/5ba00266271ef558.png)
 
 **删除容器**
 
-删除之前需要stop：`docker stop bac2692e2b9a(容器ID)`
+删除之前需要 stop，也就是 `docker stop bac2692e2b9a(容器ID)`，运行中的容器是删不掉的。
 
 ```
 docker rm bac2692e2b9a(容器ID：docker ps获取)
@@ -123,24 +170,29 @@ docker rm bac2692e2b9a(容器ID：docker ps获取)
 docker exec -it bac2692e2b9a(容器ID) sh(指定进入方式)
 ```
 
-![](https://s.poetries.top/uploads/2022/06/16c4541cf84b6e48.png)
+`-it` 这两个参数经常被一起写，`-i` 保持标准输入打开，`-t` 分配一个伪终端，少了任意一个你都敲不了交互式命令。进去之后就是一个普通的 shell，可以直接 `mysql -uroot -p` 登进数据库确认服务是活的。
 
-我们使用Navicat新建一个连接测试一下
+![进入 MySQL 容器内部并登录数据库](https://s.poetries.top/uploads/2022/06/16c4541cf84b6e48.png)
 
-![](https://s.poetries.top/uploads/2022/06/65357b17bf38f12e.png)
+容器内部能连上只说明服务起来了，还得验证端口映射有没有真的通到宿主机。我们使用Navicat新建一个连接测试一下，主机填 `127.0.0.1`，端口填映射出来的 3307。
 
-说明我们使用docker安装MySQL的方式是没问题的
+![Navicat 通过 127.0.0.1:3307 成功连接容器里的 MySQL](https://s.poetries.top/uploads/2022/06/65357b17bf38f12e.png)
+
+能连上，说明我们使用docker安装MySQL的方式是没问题的。
 
 **查看MySQL容器日志**
 
 ```
-docker logs -f(查看最后几条)  bac2692e2b9a(容器ID)
+docker logs -f(持续跟随输出)  bac2692e2b9a(容器ID)
 ```
-![](https://s.poetries.top/uploads/2022/06/639c44fb75dfe354.png)
+
+`-f` 是 follow，效果类似 `tail -f`，会挂在那里持续打印新日志，按 `Ctrl + C` 退出。如果你只想看最后几条，用的是 `--tail 100` 这个参数，两个别记混了。容器起不来的时候，答案九成写在这里面。
+
+![docker logs 输出 MySQL 容器的启动日志](https://s.poetries.top/uploads/2022/06/639c44fb75dfe354.png)
 
 **重启容器**
 
-如果修改了容器配置，我们需要重新启动容器
+如果修改了容器配置，我们需要重新启动容器。
 
 ```
 docker restart bac2692e2b9a(容器ID)
@@ -150,10 +202,12 @@ docker restart bac2692e2b9a(容器ID)
 
 > mysql8.0后，需要设置，否则node连接不上
 
+这个我踩过，而且排查了挺久。现象是 Navicat 能连、容器里能登，唯独 Egg 里的 `mysql2` 驱动报 `ER_NOT_SUPPORTED_AUTH_MODE`。原因是 MySQL 8 把默认认证插件从 `mysql_native_password` 换成了 `caching_sha2_password`，老一点的 Node 驱动不认这套握手。解法就是把 root 用户的认证方式改回去。
+
 ```
 docker exec -it bac2692e2b9a sh
 
-mysql -uroot -p 
+mysql -uroot -p
 ```
 
 ```bash
@@ -173,11 +227,24 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 FLUSH PRIVILEGES;
 ```
 
-![](https://s.poetries.top/uploads/2022/06/2ce28bda82ab01d4.png)
+五条命令跑完，`FLUSH PRIVILEGES` 让改动立刻生效，不用重启容器。
 
-### 3、安装redis镜像
+![在容器内执行授权和修改加密规则的 SQL](https://s.poetries.top/uploads/2022/06/2ce28bda82ab01d4.png)
 
-![](https://s.poetries.top/uploads/2022/06/b38b5f228f3bcafe.png)
+这里我要补一个原文没写清楚的点。上面 `GRANT` 授权的对象是 `'root'@'%'`，但两条 `ALTER USER` 改的却是 `'root'@'localhost'`。在 MySQL 里这是两个独立的账号记录，改了 localhost 的认证插件，对远程连接一点用都没有。官方镜像默认会创建 `root@'%'`，所以从容器外面连进来的 Node 客户端，实际匹配到的是它。要真正解决驱动握手失败，得对 `%` 这条也执行一次。
+
+```sql
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+FLUSH PRIVILEGES;
+```
+
+再说一句现在的做法。`mysql_native_password` 属于向后兼容的老插件，安全性不如 `caching_sha2_password`，能升级驱动就优先升级驱动，`mysql2` 这些年早就支持新握手了，实在改不动依赖再退回来用这一招。
+
+#### 3、安装 redis 镜像
+
+Egg 这边 Redis 主要拿来放会话和接口缓存，镜像挑的是 alpine 版本，体积小很多。
+
+![在镜像站选择 redis 6.0.3-alpine3.11 版本](https://s.poetries.top/uploads/2022/06/b38b5f228f3bcafe.png)
 
 ```
 docker pull daocloud.io/library/redis:6.0.3-alpine3.11
@@ -185,15 +252,19 @@ docker pull daocloud.io/library/redis:6.0.3-alpine3.11
 
 **启动Redis镜像**
 
+注意 `--requirepass 123456` 的位置，它写在镜像 ID 后面。这个位置的参数不是给 `docker run` 的，而是覆盖容器启动命令、直接传给 `redis-server` 的，等价于在配置文件里写了一行 `requirepass`。很多人把它写到镜像 ID 前面，然后收到一个 `unknown flag` 的报错，问题就出在这。
+
 ```
 docker run -d -p 6380:6379 --name redis 29c713657d31(镜像ID) --requirepass 123456(redis登录密码)
 ```
 
-![](https://s.poetries.top/uploads/2022/06/57a4ce88939753b0.png)
+启动之后 `docker ps` 能看到 redis 容器在跑，端口映射是 6380 到 6379。
 
-或进入redis镜像后在输入密码
+![docker ps 中 redis 容器处于运行状态](https://s.poetries.top/uploads/2022/06/57a4ce88939753b0.png)
 
-![](https://s.poetries.top/uploads/2022/06/b6183fc0a23c353d.png)
+密码也可以不在启动时传，或进入redis镜像后在输入密码，进到 `redis-cli` 里执行 `auth 123456` 是一样的效果。
+
+![在 redis-cli 中用 auth 命令输入密码](https://s.poetries.top/uploads/2022/06/b6183fc0a23c353d.png)
 
 **交互式进入redis容器**
 
@@ -201,20 +272,25 @@ docker run -d -p 6380:6379 --name redis 29c713657d31(镜像ID) --requirepass 123
 docker exec -it 9751cbc96861(容器ID) sh
 ```
 
-![](https://s.poetries.top/uploads/2022/06/ab4cf5d68cdd846b.png)
+进去之后敲 `redis-cli`，随手 `set` 一个键再 `get` 出来，能读到就说明服务是健康的。
 
+![进入 redis 容器执行 redis-cli 验证读写](https://s.poetries.top/uploads/2022/06/ab4cf5d68cdd846b.png)
 
-### 4、安装Nginx镜像
+#### 4、安装 Nginx 镜像
 
-![](https://s.poetries.top/uploads/2022/06/49bb3cc9f49c2dd1.png)
+Nginx 在这套架构里承担两件事，托管前端打包出来的静态文件，以及把 `/api` 这类路径反向代理到 Egg 的 7001 端口。
+
+![在镜像站选择 nginx 1.13.0-alpine 版本](https://s.poetries.top/uploads/2022/06/49bb3cc9f49c2dd1.png)
 
 ```
 docker pull daocloud.io/library/nginx:1.13.0-alpine
 ```
 
-![](https://s.poetries.top/uploads/2022/06/1f9aea9f1c9a18fc.png)
+![nginx 镜像拉取完成](https://s.poetries.top/uploads/2022/06/1f9aea9f1c9a18fc.png)
 
 **启动Nginx镜像**
+
+Nginx 这条 `docker run` 比前面几个都长，因为它挂了四个目录出来。这么做的理由很实际，容器是随时可以销毁重建的，配置和静态文件如果只存在容器里，容器一删全没了。挂载到宿主机之后，改配置、换前端产物都在宿主机上操作，容器本身保持干净。
 
 服务器上启动
 
@@ -230,18 +306,24 @@ docker run --name nginx -d -p 8666:80 -v /Users/poetry/Downloads/docker/nginx/lo
 
 > 把docker容器中的Nginx服务配置映射本地方便管理
 
-![](https://s.poetries.top/uploads/2022/06/691129b326f9fb23.png)
+有一点得提前确认，`-v` 挂载的宿主机目录必须先存在，`nginx.conf` 这个文件也得先准备好。你要是挂一个不存在的路径，Docker 会当成目录给你新建一个空文件夹，Nginx 读到一个空的 `nginx.conf` 直接启动失败，日志里报 `no "events" section in configuration`。
 
-访问docker暴露的8666端口即可
+![宿主机上映射出来的 nginx 目录结构](https://s.poetries.top/uploads/2022/06/691129b326f9fb23.png)
 
-![](https://s.poetries.top/uploads/2022/06/6d9b07b85c22e0b5.png)
+访问docker暴露的8666端口即可，浏览器打开 `http://localhost:8666` 应该能看到 Nginx 默认欢迎页。
 
-当我们修改了html中的文件，无需重启容器即可看到效果
+![浏览器访问 localhost:8666 看到 Nginx 欢迎页](https://s.poetries.top/uploads/2022/06/6d9b07b85c22e0b5.png)
 
-![](https://s.poetries.top/uploads/2022/06/d0ded5a28d96ce59.png)
-![](https://s.poetries.top/uploads/2022/06/cb0109ef19b551e4.png)
+当我们修改了html中的文件，无需重启容器即可看到效果。这就是挂载带来的好处，宿主机目录和容器目录指向的是同一份数据，改哪边都一样。
 
-## 1.4 部署egg代码
+![修改宿主机 html 目录下的文件](https://s.poetries.top/uploads/2022/06/d0ded5a28d96ce59.png)
+![刷新浏览器立刻看到修改后的页面](https://s.poetries.top/uploads/2022/06/cb0109ef19b551e4.png)
+
+要区分一下的是，静态文件改了刷新就行，`nginx.conf` 改了还是得让 Nginx 重新加载配置，`docker exec -it nginx nginx -s reload` 或者干脆 `docker restart nginx`。
+
+### 1.4 部署 egg 代码
+
+四个基础环境都就位了，轮到主角。Egg 项目要变成一个能跑的容器，中间隔着一个 Dockerfile，它描述的是「从一个 node 镜像开始，怎么一步步把我的代码装进去」。
 
 > 构建egg镜像，进入到egg目录
 
@@ -249,6 +331,8 @@ docker run --name nginx -d -p 8666:80 -v /Users/poetry/Downloads/docker/nginx/lo
 # 构建egg镜像，版本v1.0
 docker build -t egg:v1.0 .
 ```
+
+末尾那个点是构建上下文，指的是当前目录。Docker 会把这个目录整个打包发给守护进程，所以项目里一定要写 `.dockerignore` 把 `node_modules`、`.git`、`logs` 排掉，不然构建的第一步就要传几百兆，慢得莫名其妙。
 
 `Dockerfile文件如下`
 
@@ -262,7 +346,7 @@ WORKDIR /egg
 # 将 package.json 复制默认工作目录
 COPY package.json /egg/package.json
 # 安装依赖
-RUN yarn config set register https://registry.npm.taobao.org
+RUN yarn config set registry https://registry.npmmirror.com
 # 只安装dependencies的包
 RUN yarn --production
 # 再copy代码至容器
@@ -273,94 +357,114 @@ EXPOSE 7001
 CMD yarn prod
 ```
 
-### 启动egg镜像
+这个 Dockerfile 里藏着一个很关键的顺序设计，值得单独讲。为什么先单独 `COPY package.json`、装完依赖再 `COPY ./ /egg` 整个项目？因为 Docker 的构建是分层缓存的，只要某一层的输入没变，这一层就直接复用缓存。业务代码天天改，`package.json` 一周未必动一次。把安装依赖放在拷贝代码之前，你改一行 controller 重新构建时，`yarn --production` 那一层是直接命中缓存的，构建时间能差出一个数量级。要是把 `COPY ./ /egg` 提到前面，每次改代码都要重装一遍依赖。
+
+顺带说两个我修掉的地方。原来这行写的是 `yarn config set register`，`register` 少了一个 y，yarn 的配置项叫 `registry`，写错了这条命令不会报错但也完全不生效，属于那种最难发现的静默失败。另外 `registry.npm.taobao.org` 这个域名已经迁到 `registry.npmmirror.com` 了，老域名的证书早就过期，继续用会在构建时卡住或者直接报 TLS 错误。
+
+`EXPOSE 7001` 这行经常被误解，它只是声明容器会监听哪个端口，起到文档和 compose 自动组网的作用，并不会真的把端口开到宿主机。要从外面访问，还是得靠 `docker run -p`。
+
+#### 启动 egg 镜像
 
 ```
 docker run -d(后台启动) -p 7001:7001(本机:容器) --name server(容器名称) af9360186a24(镜像ID)
 ```
 
-![](https://s.poetries.top/uploads/2022/06/1332f6a87ae0879f.png)
+![egg 容器启动成功并可以访问 7001 接口](https://s.poetries.top/uploads/2022/06/1332f6a87ae0879f.png)
 
+到这一步，四个容器全是手动 `docker run` 起来的，各自为政。问题马上就来了，Egg 里怎么写 MySQL 的连接地址？填 `127.0.0.1` 是不行的，那指的是 Egg 容器自己。这就引出了下一节。
 
-# 二、docker-compose部署
+## 二、用 docker-compose 把服务编排起来
 
-## 2.1 编写docker-compose.yml文件
+手动起容器最难受的两点，一是每次重启都要翻笔记找那一长串参数，二是容器之间的网络得自己想办法打通。docker-compose 解决的就是这两件事，一个 YAML 文件把所有服务的定义写死，再声明一个共享网桥，容器之间直接用服务名当主机名互相访问。
+
+### 2.1 编写 docker-compose.yml 文件
+
+下面这份是本地版本，四个服务加一个网桥，结构很清楚。
 
 ```yml
-version: "3.0"
+version: '3.0'
 
-services: 
-    redis: # 服务名称
-        container_name: redis # 容器名称
-        image: daocloud.io/library/redis:6.0.3-alpine3.11 # 使用官方镜像
-        ports: 
-            - 6380:6379 # 本机端口:容器端口
-        restart: on-failure # 自动重启
-        networks: 
-            - my-server
+services:
+  redis: # 服务名称
+    container_name: redis # 容器名称
+    image: daocloud.io/library/redis:6.0.3-alpine3.11 # 使用官方镜像
+    ports:
+      - 6380:6379 # 本机端口:容器端口
+    restart: on-failure # 自动重启
+    networks:
+      - my-server
 
-    mysql:
-        container_name: mysql
-        image: daocloud.io/library/mysql:8.0.20 # 使用官方镜像
-        ports: 
-            - 3307:3306 # 本机端口:容器端口
-        restart: on-failure
-        environment: 
-            - MYSQL_ROOT_PASSWORD=123456 # root用户密码
-        volumes:
-            - ./deploy/mysql/db:/var/lib/mysql # 用来存放了数据库表文件
-            - ./deploy/mysql/conf/my.cnf:/etc/my.cnf # 存放自定义的配置文件
-            # 我们在启动MySQL容器时自动创建我们需要的数据库和表
-            # mysql官方镜像中提供了容器启动时自动docker-entrypoint-initdb.d下的脚本的功能
-            - ./deploy/mysql/init:/docker-entrypoint-initdb.d/ # 存放初始化的脚本
-        networks: 
-            - my-server
+  mysql:
+    container_name: mysql
+    image: daocloud.io/library/mysql:8.0.20 # 使用官方镜像
+    ports:
+      - 3307:3306 # 本机端口:容器端口
+    restart: on-failure
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456 # root用户密码
+    volumes:
+      - ./deploy/mysql/db:/var/lib/mysql # 用来存放了数据库表文件
+      - ./deploy/mysql/conf/my.cnf:/etc/my.cnf # 存放自定义的配置文件
+      # 我们在启动MySQL容器时自动创建我们需要的数据库和表
+      # mysql官方镜像中提供了容器启动时自动docker-entrypoint-initdb.d下的脚本的功能
+      - ./deploy/mysql/init:/docker-entrypoint-initdb.d/ # 存放初始化的脚本
+    networks:
+      - my-server
 
-    server: # egg服务
-        container_name: server
-        build: # 根据Dockerfile构建镜像
-            context: .
-            dockerfile: Dockerfile
-        ports: 
-            - 7001:7001
-        restart: on-failure # 设置自动重启，这一步必须设置，主要是存在mysql还没有启动完成就启动了node服务
-        networks: 
-            - my-server
-        depends_on: # node服务依赖于mysql和redis
-            - redis
-            - mysql
+  server: # egg服务
+    container_name: server
+    build: # 根据Dockerfile构建镜像
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 7001:7001
+    restart: on-failure # 设置自动重启，这一步必须设置，主要是存在mysql还没有启动完成就启动了node服务
+    networks:
+      - my-server
+    depends_on: # node服务依赖于mysql和redis
+      - redis
+      - mysql
 
-    nginx:
-        container_name: nginx
-        image: daocloud.io/library/nginx:1.13.0-alpine # 使用官方镜像
-        ports: 
-            - 8900:80 # 本地端口:容器端口
-        restart: on-failure
-        volumes: # 映射本地目录到容器目录
-            - ./deploy/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
-            - ./deploy/nginx/conf.d:/etc/nginx/conf.d
-            - ./deploy/nginx/html:/usr/share/nginx/html
-            - ./deploy/nginx/log:/var/log/nginx
-        networks:
-            - my-server
-        depends_on: 
-            - redis
-            - mysql
-            - server
+  nginx:
+    container_name: nginx
+    image: daocloud.io/library/nginx:1.13.0-alpine # 使用官方镜像
+    ports:
+      - 8900:80 # 本地端口:容器端口
+    restart: on-failure
+    volumes: # 映射本地目录到容器目录
+      - ./deploy/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d
+      - ./deploy/nginx/html:/usr/share/nginx/html
+      - ./deploy/nginx/log:/var/log/nginx
+    networks:
+      - my-server
+    depends_on:
+      - redis
+      - mysql
+      - server
 
 # 声明一下网桥  my-server。
 # 重要：将所有服务都挂载在同一网桥即可通过容器名来互相通信了
 # 如egg连接mysql和redis，可以通过容器名来互相通信
 networks:
-    my-server:
+  my-server:
 ```
 
+这份配置里有三个点决定了它能不能跑通，挨个说。
 
-## 2.2 启动服务
+`networks` 声明的自定义网桥是整套东西的地基。Compose 会给这个网桥内置一套 DNS，服务名就是主机名。所以 Egg 的配置里连 MySQL 写 `host: 'mysql'`、连 Redis 写 `host: 'redis'` 就能通，端口用的是容器内部端口 3306 和 6379，不是映射到宿主机的 3307 和 6380。这块最容易搞混，映射端口只服务于「从容器外面进来」，容器之间互访走的是内网，跟映射没关系。
+
+`depends_on` 只保证启动顺序，不保证服务真的可用。MySQL 容器进程起来了，但初始化数据库还得几十秒，这段时间 Egg 连过去必然被拒。所以 `restart: on-failure` 这行不是可有可无的装饰，它才是真正兜底的那个，Egg 连不上崩了就自动重启，重试到 MySQL 就绪为止。生产环境更规范的做法是给依赖加健康检查，或者在应用层做连接重试，但对个人项目来说 `on-failure` 已经够用了。
+
+MySQL 那三条 `volumes` 分别对应数据、配置和初始化脚本。最后一个 `/docker-entrypoint-initdb.d/` 是官方镜像约定的目录，容器第一次初始化时会自动执行里面的 `.sql` 和 `.sh`，建库建表的语句丢进去就不用手动导了。同样只在第一次生效，数据目录非空之后就不会再跑。
+
+### 2.2 启动服务
 
 **修改egg服务代码**
 
-![](https://s.poetries.top/uploads/2022/06/a799a68a83398d4b.png)
+改的就是上面说的连接地址，把原来指向 `127.0.0.1` 的 host 换成容器名。
+
+![Egg 配置中把 MySQL 和 Redis 的 host 改成容器名](https://s.poetries.top/uploads/2022/06/a799a68a83398d4b.png)
 
 **常用命令**
 
@@ -373,54 +477,73 @@ networks:
 - 下载镜像过程 `docker-compose pull`
 - 重启服务 `docker-compose restart`
 
+这几条里最需要拎出来讲的是 `build --no-cache`。前面提过 Docker 有分层缓存，平时它帮你省时间，但偶尔也会坑你。比如你改了 `.dockerignore`，或者镜像源地址变了，Docker 认为那一层输入没变继续吃缓存，结果构建出来的镜像还是老样子。这种时候就得 `--no-cache` 强制全量重来。第一次调试的时候我建议直接用 `docker-compose up` 不带 `-d`，日志全在前台滚，哪个服务起不来一眼就看到，跑通了再切后台。
+
 后台启动服务 `docker-compose up -d`
 
-![](https://s.poetries.top/uploads/2022/06/e8a4d267eb9342c1.png)
+![docker-compose up -d 依次创建网络和四个容器](https://s.poetries.top/uploads/2022/06/e8a4d267eb9342c1.png)
 
 查看应用状态 `docker-compose ps`
 
-![](https://s.poetries.top/uploads/2022/06/85c0f4122baf860d.png)
+这一步要确认每个服务的 State 都是 `Up`。如果某个服务在 `Restarting` 之间反复横跳，多半就是它依赖的服务还没好，去 `docker-compose logs 服务名` 里看具体报错。
 
-停止服务 `docker-compose down`
+![docker-compose ps 显示四个服务全部处于 Up 状态](https://s.poetries.top/uploads/2022/06/85c0f4122baf860d.png)
 
+停止服务 `docker-compose down`。它会把容器和网络一起删掉，挂载出去的数据目录还留在宿主机上，所以下次 `up` 起来数据是还在的。
 
-# 三、Nginx容器内部署前端
+## 三、Nginx 容器内部署前端
 
-把前端打包的文件放到Nginx目录下访问
+后端通了，前端也得有地方放。前面 Nginx 容器已经把 `html` 目录挂到宿主机了，所以这一步简单得有点反高潮，把前端打包的文件放到Nginx目录下访问就行。
 
-![](https://s.poetries.top/uploads/2022/06/8ec0512b8a2a0652.png)
+前端项目 `npm run build` 之后产出一堆静态文件。
 
-![](https://s.poetries.top/uploads/2022/06/4a710e9a2a883e24.png)
+![前端项目打包产出的 dist 目录](https://s.poetries.top/uploads/2022/06/8ec0512b8a2a0652.png)
 
-![](https://s.poetries.top/uploads/2022/06/0bb97a6d629301ac.png)
+把它们整个丢进宿主机上映射出去的那个 html 目录。
 
-# 四、docker部署到云服务器
+![把打包产物复制到 Nginx 挂载的 html 目录](https://s.poetries.top/uploads/2022/06/4a710e9a2a883e24.png)
 
-## 4.1 安装docker环境
+浏览器访问 Nginx 映射出来的端口，页面就出来了，不需要重启容器。
 
-### 安装工具包
+![浏览器访问 Nginx 端口正常渲染前端页面](https://s.poetries.top/uploads/2022/06/0bb97a6d629301ac.png)
+
+这里有两个坑值得提前打招呼。一个是单页应用的路由，Vue 和 React 用 history 模式的话，直接访问子路由会 404，得在 `nginx.conf` 里加 `try_files $uri $uri/ /index.html;` 兜底。另一个是接口跨域，前端直接请求 `http://ip:7001` 会被浏览器拦，正经做法是在 Nginx 里配一段 `location /api { proxy_pass http://server:7001; }`，让前后端在同一个域下，`server` 就是 compose 里 Egg 的服务名。
+
+## 四、把 Docker 部署到云服务器
+
+本地跑通只是彩排，真正要交付还得搬到服务器上。好消息是 compose 文件基本不用改，需要重做的只有环境这一层。下面这套是在 CentOS 上操作的。
+
+### 4.1 安装 docker 环境
+
+#### 安装工具包
+
+这三个包是 Docker 官方仓库的前置依赖，`yum-utils` 提供 `yum-config-manager` 命令，后面两个是存储驱动要用的。少了它们，下一步加仓库的命令会直接提示找不到。
 
 ```
 yum install yum-utils device-mapper-persistent-data lvm2 -y
 ```
 
-![](https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png)
+![yum 安装 Docker 所需的工具包](https://s.poetries.top/uploads/2022/06/e0f4f8f2621b11c0.png)
 
-### 设置阿里镜像源
+#### 设置阿里镜像源
+
+Docker 官方的 yum 源在国内下载很慢，换成阿里的镜像能快不少。这一步换的是「装 Docker 这个软件」的源，和后面 `daemon.json` 里换「拉容器镜像」的源是两码事，别混在一起。
 
 ```
 yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 ```
 
-![](https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png)
+![添加阿里云 docker-ce 仓库成功](https://s.poetries.top/uploads/2022/06/0b017f9a76914c6e.png)
 
-### 安装docker
+#### 安装 docker
 
 ```
 yum install docker-ce docker-ce-cli containerd.io -y
 ```
 
-### 启动docker
+这三个包分别是守护进程、命令行客户端和底层容器运行时。装完敲 `docker version` 会看到 Client 有输出但 Server 报连接错误，那是正常的，服务还没启动。
+
+#### 启动 docker
 
 ```
 systemctl start docker
@@ -429,7 +552,9 @@ systemctl start docker
 systemctl enable docker
 ```
 
-### 设置docker镜像源
+`enable` 这行别漏。服务器难免要重启，忘了设开机自启，重启之后所有容器都不会回来，等你发现的时候站点已经挂了半天。
+
+#### 设置 docker 镜像源
 
 ```
 vi /etc/docker/daemon.json
@@ -437,13 +562,13 @@ vi /etc/docker/daemon.json
 
 ```json
 {
-  "registry-mirrors": [
-    "https://register.docker-cn.com/"
-  ],
+  "registry-mirrors": ["https://registry.docker-cn.com/"]
 }
 ```
 
-后续拉取镜像直接从 https://hub.docker.com 网站拉取速度更快
+这个文件默认是不存在的，直接新建就行。写的时候注意它是严格 JSON，多一个逗号 Docker 就起不来了，改完先 `systemctl status docker` 确认服务还活着。
+
+后续拉取镜像直接从 https://hub.docker.com 网站拉取速度更快。
 
 **重启docker**
 
@@ -451,13 +576,15 @@ vi /etc/docker/daemon.json
 systemctl restart docker
 ```
 
-### 安装mysql镜像测试
+#### 安装 mysql 镜像测试
+
+环境装完先别急着上业务，拉个镜像跑一下确认整条链路是通的。这一步的价值是把「Docker 装没装好」和「我的项目配置对不对」两类问题隔开，省得后面出错分不清是谁的锅。
 
 ```
 docker pull daocloud.io/library/mysql:8.0.20
 ```
 
-![](https://s.poetries.top/uploads/2022/06/dad88a1878a7a12f.png)
+![服务器上拉取 mysql 镜像](https://s.poetries.top/uploads/2022/06/dad88a1878a7a12f.png)
 
 **运行mysql镜像**
 
@@ -465,23 +592,32 @@ docker pull daocloud.io/library/mysql:8.0.20
 docker run -d -p 3307:3306 --name mysql -e MYSQL_ROOT_PASSWORD=123456(设置登录密码) be0dbf01a0f3(镜像ID)
 ```
 
-![](https://s.poetries.top/uploads/2022/06/fb606d9823c4f0ff.png)
+![mysql 容器在服务器上正常运行](https://s.poetries.top/uploads/2022/06/fb606d9823c4f0ff.png)
 
 **进入mysql容器内部**
 
-![](https://s.poetries.top/uploads/2022/06/3a9f7618e1baf34f.png)
+能登进去，说明服务器上的 Docker 环境没问题了。
+
+![在服务器上进入 mysql 容器并登录数据库](https://s.poetries.top/uploads/2022/06/3a9f7618e1baf34f.png)
+
+顺便提醒一句，把数据库端口直接映射到公网、密码还用 `123456`，这在真实环境里是会被扫爆的。我这台是纯测试机才这么写，正经项目要么只在内网监听不做端口映射，要么至少把安全组限制到固定 IP。
 
 > 至此mysql镜像搭建成功，下面我们使用`docker-compose`来管理docker容器，不在单独一个个安装MySQL、redis、nginx
 
+### 4.2 安装 docker-compose
 
-## 4.2 安装docker-compose
+当年的 docker-compose 是个独立的 Python 程序，得单独下二进制文件放到 `/usr/local/bin` 下面。
 
 ```
 # 使用国内源安装
 curl -L https://get.daocloud.io/docker/compose/releases/download/1.22.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
 ```
 
+命令里那两段反引号是 shell 命令替换，`uname -s` 出系统名、`uname -m` 出 CPU 架构，拼起来正好是官方发布包的文件名，这样同一条命令在不同机器上都能拿到对的包。
+
 **设置docker-compose执行权限**
+
+下载下来的文件默认没有执行位，不加这一步敲命令会报 `Permission denied`。
 
 ```
 chmod +x /usr/local/bin/docker-compose
@@ -489,11 +625,13 @@ chmod +x /usr/local/bin/docker-compose
 
 **创建软链**
 
+有些系统的默认 PATH 里不含 `/usr/local/bin`，软链到 `/usr/bin` 是为了确保任何用户、任何 shell 下都能直接调用。
+
 ```
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 ```
 
-**测试是否安装成功：**
+**测试是否安装成功**
 
 ```
 $ docker-compose --version
@@ -501,106 +639,122 @@ $ docker-compose --version
 docker-compose version 1.22.0, build f46880fe
 ```
 
-## 4.3 开放服务器端口
+这块的时效性变化比较大，得单独说一下。现在的 Docker 已经把 Compose 做成了 CLI 插件，装完 Docker 就自带，命令从带横杠的 `docker-compose` 变成了空格分隔的 `docker compose`，功能上是 Compose V2 这一代。用新版本的话，上面这一整节都可以跳过，直接敲 `docker compose version` 确认就行。另外 V2 已经不再需要文件开头的 `version: '3.0'`，留着它会收到一条 obsolete 的告警，删掉即可，不影响运行。文中所有 `docker-compose xxx` 的命令，换成 `docker compose xxx` 都能对上。
 
-登录服务器后台放行对应端口
+### 4.3 开放服务器端口
 
-![](https://s.poetries.top/uploads/2022/06/e4657b28bcea9b61.png)
+登录服务器后台放行对应端口。这一步漏了，是新手部署最常见的翻车点，容器明明在跑、`curl 127.0.0.1:7001` 在服务器上也通，就是外网死活打不开。
 
-## 4.4 部署egg项目
+![云服务器控制台安全组放行 7001 等端口](https://s.poetries.top/uploads/2022/06/e4657b28bcea9b61.png)
 
-### 修改代码和配置
+要注意的是可能有两道墙。云厂商控制台的安全组是一道，服务器系统里的 `firewalld` 或 `iptables` 是另一道。CentOS 7 默认开着 firewalld，安全组放行了系统防火墙没放照样不通，用 `firewall-cmd --list-ports` 查一下当前放了哪些。
+
+### 4.4 部署 egg 项目
+
+#### 修改代码和配置
+
+搬到服务器上，有几处配置得跟着改。
 
 **修改Nginx配置**
 
-![](https://s.poetries.top/uploads/2022/06/bcaf72ea48991732.png)
-![](https://s.poetries.top/uploads/2022/06/1bf0445f94a779a6.png)
+主要是把 `server_name` 换成服务器 IP 或者域名，再把接口的反向代理指向 Egg 的服务名。
+
+![服务器上的 nginx.conf 配置](https://s.poetries.top/uploads/2022/06/bcaf72ea48991732.png)
+![nginx 反向代理到 egg 服务的 location 配置](https://s.poetries.top/uploads/2022/06/1bf0445f94a779a6.png)
 
 **修改config/config.prod.js**
 
-![](https://s.poetries.top/uploads/2022/06/2744890d4980cfc8.png)
+Egg 按 `EGG_SERVER_ENV` 加载不同的配置文件，生产环境读的是 `config.prod.js`，数据库和 Redis 的连接信息在这里改成容器名。这也是为什么前面 Dockerfile 里 `CMD yarn prod`，那条 script 背后跑的就是带 prod 环境变量的启动命令。
+
+![config.prod.js 中的数据库与 Redis 连接配置](https://s.poetries.top/uploads/2022/06/2744890d4980cfc8.png)
 
 **docker-compose.yml**
 
+服务器版的 compose 文件比本地版多了 Redis 的持久化和配置挂载，其余结构一致。
+
 ```yml
-version: "3.0"
+version: '3.0'
 
-services: 
-    # docker容器启动的redis默认是没有redis.conf的配置文件，所以用docker启动redis之前，需要先去官网下载redis.conf的配置文件
-    redis: # 服务名称
-        container_name: redis # 容器名称
-        image: daocloud.io/library/redis:6.0.3-alpine3.11 # 使用官方镜像
-        command: redis-server /usr/local/etc/redis/redis.conf --requirepass 123456 --appendonly yes # 设置redis登录密码 123456、--appendonly yes：这个命令是用于开启redis数据持久化
-        # command: redis-server --requirepass 123456 --appendonly yes # 设置redis登录密码 123456
-        ports:
-            - 6380:6379 # 本机端口:容器端口
-        restart: on-failure # 自动重启
-        volumes:
-            - ./deploy/redis/db:/data # 把持久化数据挂载到宿主机
-            - ./deploy/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf  # 把redis的配置文件挂载到宿主机
-            - ./deploy/redis/logs:/logs # 用来存放日志
-        environment:
-            - TZ=Asia/Shanghai  # 解决容器 时区的问题
-        networks:
-            - my-server
+services:
+  # docker容器启动的redis默认是没有redis.conf的配置文件，所以用docker启动redis之前，需要先去官网下载redis.conf的配置文件
+  redis: # 服务名称
+    container_name: redis # 容器名称
+    image: daocloud.io/library/redis:6.0.3-alpine3.11 # 使用官方镜像
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass 123456 --appendonly yes # 设置redis登录密码 123456、--appendonly yes：这个命令是用于开启redis数据持久化
+    # command: redis-server --requirepass 123456 --appendonly yes # 设置redis登录密码 123456
+    ports:
+      - 6380:6379 # 本机端口:容器端口
+    restart: on-failure # 自动重启
+    volumes:
+      - ./deploy/redis/db:/data # 把持久化数据挂载到宿主机
+      - ./deploy/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf # 把redis的配置文件挂载到宿主机
+      - ./deploy/redis/logs:/logs # 用来存放日志
+    environment:
+      - TZ=Asia/Shanghai # 解决容器 时区的问题
+    networks:
+      - my-server
 
-    mysql:
-        container_name: mysql
-        image: daocloud.io/library/mysql:8.0.20 # 使用官方镜像
-        ports: 
-            - 3307:3306 # 本机端口:容器端口
-        restart: on-failure
-        environment: 
-            - MYSQL_ROOT_PASSWORD=123456 # root用户密码
-        volumes:
-            - ./deploy/mysql/db:/var/lib/mysql # 用来存放了数据库表文件
-            - ./deploy/mysql/conf/my.cnf:/etc/my.cnf # 存放自定义的配置文件
-            # 我们在启动MySQL容器时自动创建我们需要的数据库和表
-            # mysql官方镜像中提供了容器启动时自动docker-entrypoint-initdb.d下的脚本的功能
-            - ./deploy/mysql/init:/docker-entrypoint-initdb.d/ # 存放初始化的脚本
-        networks: 
-            - my-server
+  mysql:
+    container_name: mysql
+    image: daocloud.io/library/mysql:8.0.20 # 使用官方镜像
+    ports:
+      - 3307:3306 # 本机端口:容器端口
+    restart: on-failure
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456 # root用户密码
+    volumes:
+      - ./deploy/mysql/db:/var/lib/mysql # 用来存放了数据库表文件
+      - ./deploy/mysql/conf/my.cnf:/etc/my.cnf # 存放自定义的配置文件
+      # 我们在启动MySQL容器时自动创建我们需要的数据库和表
+      # mysql官方镜像中提供了容器启动时自动docker-entrypoint-initdb.d下的脚本的功能
+      - ./deploy/mysql/init:/docker-entrypoint-initdb.d/ # 存放初始化的脚本
+    networks:
+      - my-server
 
-    server: # egg服务
-        container_name: server
-        build: # 根据Dockerfile构建镜像
-            context: .
-            dockerfile: Dockerfile
-        ports: 
-            - 7001:7001
-        restart: on-failure # 设置自动重启，这一步必须设置，主要是存在mysql还没有启动完成就启动了node服务
-        networks: 
-            - my-server
-        depends_on: # node服务依赖于mysql和redis
-            - redis
-            - mysql
+  server: # egg服务
+    container_name: server
+    build: # 根据Dockerfile构建镜像
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 7001:7001
+    restart: on-failure # 设置自动重启，这一步必须设置，主要是存在mysql还没有启动完成就启动了node服务
+    networks:
+      - my-server
+    depends_on: # node服务依赖于mysql和redis
+      - redis
+      - mysql
 
-    nginx:
-        container_name: nginx
-        image: daocloud.io/library/nginx:1.13.0-alpine # 使用官方镜像
-        ports: 
-            - 8900:80 # 本地端口:容器端口
-        restart: on-failure
-        volumes: # 映射本地目录到容器目录
-            - ./deploy/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
-            - ./deploy/nginx/conf.d:/etc/nginx/conf.d
-            - ./deploy/nginx/html:/usr/share/nginx/html
-            - ./deploy/nginx/log:/var/log/nginx
-        networks:
-            - my-server
-        depends_on: 
-            - redis
-            - mysql
-            - server
+  nginx:
+    container_name: nginx
+    image: daocloud.io/library/nginx:1.13.0-alpine # 使用官方镜像
+    ports:
+      - 8900:80 # 本地端口:容器端口
+    restart: on-failure
+    volumes: # 映射本地目录到容器目录
+      - ./deploy/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d
+      - ./deploy/nginx/html:/usr/share/nginx/html
+      - ./deploy/nginx/log:/var/log/nginx
+    networks:
+      - my-server
+    depends_on:
+      - redis
+      - mysql
+      - server
 
 # 声明一下网桥  my-server。
 # 重要：将所有服务都挂载在同一网桥即可通过容器名来互相通信了
 # 如egg连接mysql和redis，可以通过容器名来互相通信
 networks:
-    my-server:
+  my-server:
 ```
 
+和本地那份对比，Redis 这个服务改动最大。多出来的 `command` 指定了用挂载进去的 `redis.conf` 启动，`--appendonly yes` 打开 AOF 持久化，容器重建之后数据还在。`TZ=Asia/Shanghai` 这个环境变量看着不起眼，但很关键，容器默认是 UTC 时区，不设的话 Redis 的过期时间、日志时间戳全都和你预期差八小时，排查问题的时候能把人绕晕。
+
 **egg Dockerfile**
+
+服务器上用的 Dockerfile 和本地那份是同一份，不用改。这也是容器化最舒服的地方，构建产物在哪台机器上都一样。
 
 ```yml
 # 使用node镜像
@@ -612,7 +766,7 @@ WORKDIR /egg
 # 将 package.json 复制默认工作目录
 COPY package.json /egg/package.json
 # 安装依赖
-RUN yarn config set register https://registry.npm.taobao.org
+RUN yarn config set registry https://registry.npmmirror.com
 # 只安装dependencies的包
 RUN yarn --production
 # 再copy代码至容器
@@ -625,7 +779,11 @@ CMD yarn prod
 
 **./deploy/redis/conf/redis.conf**
 
-需要设置的地方
+Redis 官方镜像里是不带 `redis.conf` 的，容器起来跑的是一份内置默认值。想改配置就得自己去 Redis 官网下一份对应版本的样例配置，挂载进容器，再用 `command` 指定它启动。这也是前面 compose 文件里 `command: redis-server /usr/local/etc/redis/redis.conf` 那行的由来。
+
+版本要对上，不同大版本的配置项有增有减，拿 6.x 的容器读 7.x 的配置文件可能会因为不认识某个指令直接启动失败。
+
+需要设置的地方就两处，日志级别和日志文件位置。
 
 ```
 #指定日志级别，notice适用于生产环境
@@ -640,7 +798,14 @@ loglevel verbose
 logfile /logs/redis.log
 ```
 
-全部配置
+`logfile` 这个路径是容器内的路径，对应 compose 里挂出去的 `./deploy/redis/logs:/logs`，所以最后日志会落到宿主机的 `deploy/redis/logs/redis.log`。注意这里如果 `logfile` 填了空字符串，Redis 会把日志打到标准输出，那样 `docker logs` 能看到但文件里就没有了，两种方式各有各的用法，别以为配置没生效。
+
+还有一处在 compose 里已经处理了，就是 `bind` 和 `protected-mode`。样例配置默认 `bind 127.0.0.1`，那样容器只监听回环地址，别的容器根本连不上，容器化场景下要么注释掉 `bind`，要么改成 `0.0.0.0` 并且务必配上 `requirepass`。
+
+下面是完整的样例配置，内容很长，主要留作对照查阅，平时改的就是上面那几行。
+
+<details>
+<summary>展开查看完整的 redis.conf 样例配置</summary>
 
 ```yml
 # Redis configuration file example.
@@ -794,7 +959,7 @@ tcp-keepalive 300
 # server to connected clients, masters or cluster peers.  These files should be
 # PEM formatted.
 #
-# tls-cert-file redis.crt 
+# tls-cert-file redis.crt
 # tls-key-file redis.key
 
 # Configure a DH parameters file to enable Diffie-Hellman (DH) key exchange:
@@ -1413,7 +1578,7 @@ replica-priority 100
 # ACL LOG
 #
 # The ACL Log tracks failed commands and authentication events associated
-# with ACLs. The ACL Log is useful to troubleshoot failed commands blocked 
+# with ACLs. The ACL Log is useful to troubleshoot failed commands blocked
 # by ACLs. The ACL Log is stored in and consumes memory. There is no limit
 # to its length.You can reclaim memory with ACL LOG RESET or set a maximum
 # length below.
@@ -1957,18 +2122,18 @@ lua-time-limit 5000
 # cluster-replica-no-failover no
 
 # This option, when set to yes, allows nodes to serve read traffic while the
-# the cluster is in a down state, as long as it believes it owns the slots. 
+# the cluster is in a down state, as long as it believes it owns the slots.
 #
-# This is useful for two cases.  The first case is for when an application 
+# This is useful for two cases.  The first case is for when an application
 # doesn't require consistency of data during node failures or network partitions.
 # One example of this is a cache, where as long as the node has the data it
-# should be able to serve it. 
+# should be able to serve it.
 #
-# The second use case is for configurations that don't meet the recommended  
-# three shards but want to enable cluster mode and scale later. A 
+# The second use case is for configurations that don't meet the recommended
+# three shards but want to enable cluster mode and scale later. A
 # master outage in a 1 or 2 shard configuration causes a read/write outage to the
 # entire cluster without this option set, with it set there is only a write outage.
-# Without a quorum of masters, slot ownership will not change automatically. 
+# Without a quorum of masters, slot ownership will not change automatically.
 #
 # cluster-allow-reads-when-down no
 
@@ -2507,13 +2672,19 @@ jemalloc-bg-thread yes
 # bgsave_cpulist 1,10-11
 ```
 
-### 上传本地egg服务端代码到服务器
+</details>
+
+#### 上传本地 egg 服务端代码到服务器
+
+配置都改完了，把代码传上去。这里用的是最朴素的 `scp`，把本地打好的压缩包丢到服务器的 `/home` 下。
 
 ```
 scp -rp egg.zip root@43.138.12.18:/home
 ```
 
-![](https://s.poetries.top/uploads/2022/06/0327d670f6d365a3.png)
+`-p` 保留文件的时间戳和权限位，`-r` 递归。传的是 zip 而不是整个目录，一是快，二是省得 `node_modules` 那几万个小文件把传输拖死。
+
+![scp 上传代码压缩包到服务器](https://s.poetries.top/uploads/2022/06/0327d670f6d365a3.png)
 
 **解压**
 
@@ -2521,9 +2692,11 @@ scp -rp egg.zip root@43.138.12.18:/home
 unzip -u -d server egg.zip
 ```
 
-![](https://s.poetries.top/uploads/2022/06/1b6745e93aa9117b.png)
+`-d server` 是指定解压到 `server` 目录，`-u` 是只覆盖更新的文件。后续每次发版重新传一次包再解压，就能只更新变化的部分。
 
-### 启动egg服务
+![解压后得到完整的 egg 项目目录](https://s.poetries.top/uploads/2022/06/1b6745e93aa9117b.png)
+
+#### 启动 egg 服务
 
 ```
 # cd egg
@@ -2532,15 +2705,21 @@ unzip -u -d server egg.zip
 docker-compose up -d
 ```
 
-![](https://s.poetries.top/uploads/2022/06/bc579093039d5dff.png)
-![](https://s.poetries.top/uploads/2022/06/e0867be8b406e212.png)
-![](https://s.poetries.top/uploads/2022/06/b2cacc63e98f5a06.png)
+第一次跑这条会比较久，因为要拉四个镜像还要 build 一遍 Egg 的镜像，网络一般的话十几分钟很正常。中途别 `Ctrl + C`，让它跑完。
 
-### 测试服务
+![compose 在服务器上依次拉取镜像](https://s.poetries.top/uploads/2022/06/bc579093039d5dff.png)
+![egg 镜像构建过程中的日志输出](https://s.poetries.top/uploads/2022/06/e0867be8b406e212.png)
+![四个容器全部启动完成](https://s.poetries.top/uploads/2022/06/b2cacc63e98f5a06.png)
+
+#### 测试服务
+
+服务起来了不等于能用，得一层一层验过去。我的习惯是从最底下的数据库开始，一层通了再验上一层，这样出问题能立刻定位到是哪一环。
 
 **vscode本地连接线上数据库测试**
 
-![](https://s.poetries.top/uploads/2022/06/1f3bfb1ae436d23a.png)
+先验最外层的连通性，用本地工具连线上 MySQL 的映射端口。这一步通了说明容器起来了、端口映射对了、安全组也放行了。
+
+![VS Code 数据库插件成功连上线上 MySQL](https://s.poetries.top/uploads/2022/06/1f3bfb1ae436d23a.png)
 
 **redis服务连接测试**
 
@@ -2550,8 +2729,10 @@ docker-compose up -d
 redis-cli -h 43.23.121.12 -p 6380
 ```
 
-![](https://s.poetries.top/uploads/2022/06/eda7643690d38f9d.png)
-![](https://s.poetries.top/uploads/2022/06/52c4f5f008df9f52.png)
+`-h` 后面跟服务器公网 IP，`-p` 是映射出来的 6380。没设密码的时候直接就能进。
+
+![redis-cli 连接线上 Redis](https://s.poetries.top/uploads/2022/06/eda7643690d38f9d.png)
+![在 redis-cli 中查看键值](https://s.poetries.top/uploads/2022/06/52c4f5f008df9f52.png)
 
 设置密码后的登录方式
 
@@ -2562,90 +2743,116 @@ keys *
 auth [username] password
 ```
 
-![](https://s.poetries.top/uploads/2022/06/ca3f547b33538895.png)
+这里的顺序其实是反着演示的。配了 `requirepass` 之后连进去也能连上，但敲任何命令都会返回 `NOAUTH Authentication required`，所以上面 `keys *` 是会失败的，得先 `auth 你的密码` 通过认证，后面的命令才正常。Redis 6 之后支持 ACL 多用户，`auth` 可以带用户名，用默认的 `default` 用户就只传密码。
+
+![认证通过后 redis 命令正常执行](https://s.poetries.top/uploads/2022/06/ca3f547b33538895.png)
 
 > 缓存服务测试
 
-![](https://s.poetries.top/uploads/2022/06/575fadaac0763dc6.png)
-![](https://s.poetries.top/uploads/2022/06/54f7c259eaf6172c.png)
+调一次带缓存的接口，再回 `redis-cli` 里 `keys *` 看有没有对应的键写进来，能看到就说明 Egg 到 Redis 这条链路是通的。
+
+![调用接口后 Redis 中出现缓存键](https://s.poetries.top/uploads/2022/06/575fadaac0763dc6.png)
+![再次请求命中缓存](https://s.poetries.top/uploads/2022/06/54f7c259eaf6172c.png)
 
 **测试egg接口**
 
-![](https://s.poetries.top/uploads/2022/06/dc8e99cf5574f3fd.png)
+![Postman 直接请求 Egg 接口返回正常数据](https://s.poetries.top/uploads/2022/06/dc8e99cf5574f3fd.png)
 
 **访问前端项目测试接口**
 
-![](https://s.poetries.top/uploads/2022/06/64b59c23ed0cc0d7.png)
+最后一层，前端页面通过 Nginx 访问接口。这一步和上一步的区别在于，它验的是 Nginx 反向代理那段配置对不对。前一步通、这一步不通，问题百分之百在 `nginx.conf` 里。
 
-# 五、部署到云托管
+![前端页面通过 Nginx 正常拿到接口数据](https://s.poetries.top/uploads/2022/06/64b59c23ed0cc0d7.png)
+
+到这里，自建服务器这条路就完整走通了。它的好处是掌控力最强，想装什么装什么；代价是运维的活儿全归你，服务器要自己续费、系统要自己打补丁、监控告警要自己搭。如果你更想要「push 完就不管了」的体验，往下看。
+
+关于 PM2 和 Docker 两种进程管理方式的取舍，我在 [Node 项目用 PM2 和 Docker 部署的对比记录](https://feinterview.poetries.top/blog/pm2-docker-node-deploy) 里单独写过，这里就不展开了。
+
+## 五、部署到微信云托管
 
 > 云托管流水线部署更方便
 
-## 5.1 redis服务
+云托管这条路的核心区别在于，你不用管服务器了。它接管的是「构建镜像、跑容器、扩缩容、给你一个域名」这一整段，你需要提供的只有一个 Dockerfile。对于要在小程序里调接口的场景，它还省掉了备案和 HTTPS 证书这些麻烦事。
 
-这里我们上面部署使用的自建服务器上docker搭建的redis服务作为演示
+### 5.1 redis 服务
 
-![](https://s.poetries.top/uploads/2022/06/c74e6e89043a20d6.png)
+云托管本身也提供托管的数据库和缓存，不过要额外付费。这里我们上面部署使用的自建服务器上docker搭建的redis服务作为演示，让云托管的 Egg 连回自建服务器上那套。
 
-## 5.2 mysql服务
+![云托管服务中配置 Redis 连接信息](https://s.poetries.top/uploads/2022/06/c74e6e89043a20d6.png)
 
-这里我们上面部署使用的自建服务器上docker搭建的mysql服务作为演示
+### 5.2 mysql 服务
 
-![](https://s.poetries.top/uploads/2022/06/1e17df55d9c3634f.png)
+这里我们上面部署使用的自建服务器上docker搭建的mysql服务作为演示，同理。
 
-## 5.3 egg部署
+![云托管服务中配置 MySQL 连接信息](https://s.poetries.top/uploads/2022/06/1e17df55d9c3634f.png)
 
-### 修改代码
+这么搭有个前提得说清楚，自建服务器上的 MySQL 和 Redis 端口必须对公网开放，云托管的容器才连得进来。这也意味着安全组一定要收紧到只放行云托管的出口 IP，不然等于把数据库挂在公网上裸奔。真要上生产，还是老老实实用云托管自己的数据库实例走内网。
 
-![](https://s.poetries.top/uploads/2022/06/144606d89bc20359.png)
+### 5.3 egg 部署
 
-然后上传代码到github，通过云托管流水线构建
+#### 修改代码
 
-### 新建服务
+主要就是把配置里的数据库地址从容器名换回服务器的公网地址，毕竟这时候 Egg 和 MySQL 已经不在同一个网桥里了。
 
-![](https://s.poetries.top/uploads/2022/06/c09974e946ab3075.png)
+![修改 Egg 配置中的数据库连接地址](https://s.poetries.top/uploads/2022/06/144606d89bc20359.png)
 
-![](https://s.poetries.top/uploads/2022/06/71c1f38043c67c1b.png)
+然后上传代码到github，通过云托管流水线构建。
 
-点击发布后，云托管会执行Dockerfile构建流水线，到日志可以查看构建进度
+#### 新建服务
 
-![](https://s.poetries.top/uploads/2022/06/2c6ce688f421ef04.png)
+在云托管控制台新建服务，关键的几项是代码仓库、Dockerfile 路径和监听端口。端口一定要和 Dockerfile 里 `EXPOSE` 的、以及 Egg 实际监听的对上，填错了平台的健康检查过不去，服务会一直显示部署中然后失败。
 
-![](https://s.poetries.top/uploads/2022/06/0f3919c9924b6071.png)
+![云托管控制台新建服务并关联代码仓库](https://s.poetries.top/uploads/2022/06/c09974e946ab3075.png)
 
-**微信云托管部署成功后，可以在实例列表，点击进入容器看到代码**，这里里面的内容不能修改，在容器启动后会覆盖
+![填写构建配置和端口信息](https://s.poetries.top/uploads/2022/06/71c1f38043c67c1b.png)
 
-![](https://s.poetries.top/uploads/2022/06/3e1b91db0e2b0718.png)
-![](https://s.poetries.top/uploads/2022/06/d0dd17b85fd1e305.png)
+点击发布后，云托管会执行Dockerfile构建流水线，到日志可以查看构建进度。构建失败的话日志里能看到卡在 Dockerfile 的哪一条指令上，和你本地 `docker build` 看到的输出是一样的。
 
-### 调试接口
+![流水线执行 Dockerfile 构建](https://s.poetries.top/uploads/2022/06/2c6ce688f421ef04.png)
 
-![](https://s.poetries.top/uploads/2022/06/e3a9c648993208d2.png)
+![构建完成后服务进入运行状态](https://s.poetries.top/uploads/2022/06/0f3919c9924b6071.png)
+
+**微信云托管部署成功后，可以在实例列表，点击进入容器看到代码**，这里里面的内容不能修改，在容器启动后会覆盖。
+
+这一点是容器化的基本原则，容器是无状态的、随时可替换的。你在里面改的任何东西，下次扩容或者重启拉起新实例时全部消失。要改就改代码重新构建，这也是为什么日志、上传文件这类需要持久化的东西必须往外存。
+
+![进入云托管容器实例查看代码](https://s.poetries.top/uploads/2022/06/3e1b91db0e2b0718.png)
+![容器内的项目目录结构](https://s.poetries.top/uploads/2022/06/d0dd17b85fd1e305.png)
+
+#### 调试接口
+
+![云托管控制台的接口调试面板](https://s.poetries.top/uploads/2022/06/e3a9c648993208d2.png)
 
 **postman测试**
 
-![](https://s.poetries.top/uploads/2022/06/713c1e6256b93b9a.png)
+![Postman 请求云托管服务的公网地址](https://s.poetries.top/uploads/2022/06/713c1e6256b93b9a.png)
 
 **测试redis服务**
 
-![](https://s.poetries.top/uploads/2022/06/c3b97b3e633cb928.png)
-![](https://s.poetries.top/uploads/2022/06/91202ab620ae6b65.png)
+![云托管服务写入 Redis 缓存](https://s.poetries.top/uploads/2022/06/c3b97b3e633cb928.png)
+![在自建 Redis 中查到云托管写入的键](https://s.poetries.top/uploads/2022/06/91202ab620ae6b65.png)
 
-至此部署到微信云托管完成，后续修改代码提交到github会自动触发云托管部署
+至此部署到微信云托管完成，后续修改代码提交到github会自动触发云托管部署。
 
-# 六、egg部署到腾讯serverless
+这个体验是真的舒服，你本地写完代码 push 上去，剩下的全自动。代价是灵活性，平台怎么构建、怎么调度你说了不算，遇到平台特有的限制只能按它的规矩来。
 
-需要注意，云函数的代码包不能超过500M
+## 六、egg 部署到腾讯云 serverless
 
-![](https://s.poetries.top/uploads/2022/06/41b9fcbf9242921f.png)
+第三条路是 serverless。它和前两种最大的差别是计费和生命周期，没有常驻进程，请求来了才拉起一个实例，没请求就缩到零，按调用次数和运行时长收钱。对于流量小、有明显波峰波谷的服务，成本能降很多。
 
-## 6.1 修改egg配置
+代价也很明确，冷启动。长时间没人访问之后的第一个请求会明显变慢，因为要现场把运行环境和代码加载起来。另外文件系统是只读的，这一点直接影响 Egg 的配置，下面就会讲到。
+
+需要注意，云函数的代码包不能超过500M。这个限制看着很宽松，但 Egg 加上完整 `node_modules` 是很容易超的，超了的话就得用「层」把依赖单独拆出去托管。
+
+![腾讯云 serverless 应用控制台](https://s.poetries.top/uploads/2022/06/41b9fcbf9242921f.png)
+
+### 6.1 修改 egg 配置
 
 > 由于云函数在执行时，只有 `/tmp` 可读写的，所以我们需要将 egg.js 框架运行尝试的日志写到该目录下，为此需要修改 `config/config.default.js` 中的配置如下：
 
 ```js
 const config = (exports = {
-  env: "prod", // 推荐云函数的 egg 运行环境变量修改为 prod
+  env: 'prod', // 推荐云函数的 egg 运行环境变量修改为 prod
   rundir: '/tmp',
   logger: {
     dir: '/tmp'
@@ -2653,16 +2860,22 @@ const config = (exports = {
 })
 ```
 
-## 6.2 命令行部署
+这段配置是 serverless 环境下的必改项。云函数的运行环境里，除了 `/tmp` 之外整个文件系统都是只读的，而 Egg 启动时要往 `run` 目录写配置快照、往 `logs` 目录写日志，不改的话启动阶段就会因为写权限失败直接挂掉，日志还打不出来，排查起来非常懵。
+
+顺带提一句 `/tmp` 的性质，它是实例级别的临时目录，实例被回收就没了，多个并发实例之间也不共享。所以日志真要留存得往日志服务推，别指望从 `/tmp` 里捞。
+
+### 6.2 命令行部署
+
+Serverless Framework 提供了封装好的 Egg 组件，几行 YAML 就能把函数、API 网关一起创建出来，不用手动去控制台点。
 
 ```js
 // 安装Serverless 框架
 npm i -g serverless
 ```
 
-### 配置 YAML
+#### 配置 YAML
 
-**在 egg 项目根目录,新建 Serverless 配置文件 serverless.yml**
+**在 egg 项目根目录，新建 Serverless 配置文件 serverless.yml**
 
 ```
 app: appDemo
@@ -2682,24 +2895,32 @@ inputs:
     environment: release
 ```
 
-### 部署到腾讯云
+几个字段解释一下。`component: egg` 指定用官方的 Egg 组件，它内部封装了打包、上传、创建函数、绑定网关这一串动作。`src` 是要上传的代码目录。`region` 选离用户近的地域，跨地域访问数据库延迟会很难看。`apigatewayConf` 里同时开 http 和 https，`environment: release` 是网关的发布环境，另外还有 test 和 prepub 可选。
+
+`runtime` 那行写的是 `Nodejs10.15`，这是当年可选的版本，现在这个运行时早就下线了，实际部署要去控制台看当前支持的运行时列表再填。
+
+#### 部署到腾讯云
 
 - 部署命令： `sls deploy`(意: `sls` 是 `serverless` 命令的简写。)
 - 更多配置参考 https://github.com/serverless-components/tencent-egg/tree/v2
 
-![](https://s.poetries.top/uploads/2022/06/bdea8f2beb76abc4.png)
-![](https://s.poetries.top/uploads/2022/06/471ac2511396e898.png)
-![](https://s.poetries.top/uploads/2022/06/51a5bdc6a3e2ee10.png)
+第一次执行会弹出二维码让你用腾讯云 App 扫码授权，之后凭证会缓存下来。
 
-### 移除
+![sls deploy 执行中的部署进度输出](https://s.poetries.top/uploads/2022/06/bdea8f2beb76abc4.png)
+![部署完成后输出函数名和网关地址](https://s.poetries.top/uploads/2022/06/471ac2511396e898.png)
+![浏览器访问 API 网关地址看到 Egg 返回内容](https://s.poetries.top/uploads/2022/06/51a5bdc6a3e2ee10.png)
 
-通过以下命令移除部署的 Egg 服务资源，包括云函数和 API 网关。
+部署成功后终端会打印出一个 API 网关的地址，直接在浏览器里打开就能看到 Egg 的响应。这个地址是带随机前缀的临时域名，要正式用得去控制台绑自定义域名。
+
+#### 移除
+
+serverless 按量计费，但 API 网关这类资源就算没流量也可能产生少量费用，测试完记得清理。通过以下命令移除部署的 Egg 服务资源，包括云函数和 API 网关。
 
 ```
 $ sls remove
 ```
 
-### 账号配置（可选）
+#### 账号配置（可选）
 
 > 当前默认支持 CLI 扫描二维码登录，如您希望配置持久的环境变量/秘钥信息，也可以在项目根目录 `serverless-egg` 中创建 `.env` 文件：
 
@@ -2711,32 +2932,41 @@ TENCENT_SECRET_KEY=XXX
 
 > 如果已有腾讯云账号，可以在 API [密钥管理](https://console.cloud.tencent.com/cam/capi) 中获取 SecretId 和SecretKey.
 
-### 注意！！！
+这个 `.env` 千万记得写进 `.gitignore`，密钥泄露到公开仓库会被扫号机器人在几分钟内捡走。要是给 CI 用，更推荐建一个只有云函数相关权限的子账号密钥，别直接拿主账号的。
+
+#### 注意！！！
 
 > 通常初始化的 egg 项目，会自动创建 `app/public` 目录。但是在打包压缩时，如果该目录为空，则部署后，该目录不会存在。所以 egg 项目启动时会自动创建，但是云函数是没有操作权限的，建议可以在 `app/public` 目录下创建一个空文件 `.gitkeep`，来解决此问题。
 
+这个坑很典型，值得多说两句。Git 和 zip 都不记录空目录，只记录文件，所以一个空的 `app/public` 在打包这一步就悄无声息地消失了。到了云函数里，Egg 发现目录不存在想去创建，又撞上只读文件系统，于是启动直接失败。放一个 `.gitkeep` 进去，目录里有了文件就能被打包带上，问题就绕过去了。
 
-## 6.3 控制台创建部署-模板部署
+### 6.3 控制台创建部署（模板部署）
+
+如果你只是想先看看效果，控制台的模板部署最快，不用装任何东西，几次点击就能跑起来一个示例应用。
 
 1. 登录控制台 https://console.cloud.tencent.com/sls
-2. 单击新建应用，选择Web 应用>Egg 框架，如下图所示：
+2. 单击新建应用，选择Web 应用>Egg 框架，如下图所示
 
-![](https://s.poetries.top/uploads/2022/06/fbf0b03c839cd73e.png)
+![控制台新建应用时选择 Egg 框架模板](https://s.poetries.top/uploads/2022/06/fbf0b03c839cd73e.png)
 
-3. 单击“下一步”，完成基础配置选择。
+3. 单击「下一步」，完成基础配置选择。
 
-![](https://s.poetries.top/uploads/2022/06/58b123659a00b194.png)
+![填写应用的基础配置](https://s.poetries.top/uploads/2022/06/58b123659a00b194.png)
 
 4. 上传方式，选择示例代码直接部署，单击完成，即可开始应用的部署。
 5. 部署完成后，您可在应用详情页面，查看示例应用的基本信息，并通过 API 网关生成的访问路径 URL 进行访问，查看您部署的 Egg 项目。
 
-![](https://s.poetries.top/uploads/2022/06/c4c3e330b1a6af68.png)
+![应用详情页展示访问地址和运行状态](https://s.poetries.top/uploads/2022/06/c4c3e330b1a6af68.png)
 
-## 6.4 控制台创建部署-自定义部署
+### 6.4 控制台创建部署（自定义部署）
+
+模板部署跑通之后，真实项目肯定要用自己的代码，那就走自定义部署这条路。
 
 > 如果除了代码部署外，您还需要更多能力或资源创建，如自动创建层托管依赖、一键实现静态资源分离、支持代码仓库直接拉取等，可以通过应用控制台，完成 Web 应用的创建工作
 
-### 初始化项目
+这里提到的「层托管依赖」正好能解上面说的 500M 限制。层是一份独立打包、可以被多个函数共享的依赖包，把 `node_modules` 放进层里，代码包本身就只剩几百 KB，部署速度也快很多。
+
+#### 初始化项目
 
 ```
 mkdir egg-example && cd egg-example
@@ -2744,26 +2974,28 @@ npm init egg --type=simple
 npm i
 ```
 
-### 部署上云
+#### 部署上云
 
-> 接下来执行以下步骤，对本地已创建完成的项目进行简单修改，使其可以通过 Web Function 快速部署，对于 Egg 框架，具体改造说明如下：
+> 接下来执行以下步骤，对本地已创建完成的项目进行简单修改，使其可以通过 Web Function 快速部署，对于 Egg 框架，具体改造说明如下
 
 - 修改监听地址与端口为 `0.0.0.0:9000`。
 - 修改写入路径，serverless 环境下只有 `/tmp` 目录可读写。
 - 新增 `scf_bootstrap` 启动文件。
 
+这三条一条都不能少，原因各不相同。监听 `0.0.0.0` 是因为平台要从容器外面转发请求进来，只监听 `127.0.0.1` 收不到；9000 是 Web Function 约定的默认端口。写入路径的问题前面讲过。`scf_bootstrap` 则是 Web Function 的入口约定，平台拉起实例时执行的就是它。
+
 **1. (可选)配置 scf_bootstrap 启动文件**
 
 您也可以在控制台完成该模块配置。
 
-![](https://s.poetries.top/uploads/2022/06/85b3d73ea922f0ea.png)
+![控制台中配置 scf_bootstrap 启动命令](https://s.poetries.top/uploads/2022/06/85b3d73ea922f0ea.png)
 
 > 在项目根目录下新建 `scf_bootstrap` 启动文件，在该文件添加如下内容（用于配置环境变量和启动服务，此处仅为示例，具体操作请以您实际业务场景来调整）：
 
 ```js
 #!/var/lang/node12/bin/node
 
-'use strict';
+'use strict'
 
 /**
  * docker 中 node 路径：/var/lang/node12/bin/node
@@ -2772,33 +3004,39 @@ npm i
  * EGG_APP_CONFIG 是为了修改 egg 应有的默认当前目录 -> /tmp
  */
 
-process.env.EGG_SERVER_ENV = 'prod';
-process.env.NODE_ENV = 'production';
-process.env.NODE_LOG_DIR = '/tmp';
-process.env.EGG_APP_CONFIG = '{"rundir":"/tmp","logger":{"dir":"/tmp"}}';
+process.env.EGG_SERVER_ENV = 'prod'
+process.env.NODE_ENV = 'production'
+process.env.NODE_LOG_DIR = '/tmp'
+process.env.EGG_APP_CONFIG = '{"rundir":"/tmp","logger":{"dir":"/tmp"}}'
 
-const { Application } = require('egg');
+const { Application } = require('egg')
 
 // 如果通过层部署 node_modules 就需要修改 eggPath
 Object.defineProperty(Application.prototype, Symbol.for('egg#eggPath'), {
-  value: '/opt',
-});
+  value: '/opt'
+})
 
 const app = new Application({
   mode: 'single',
-  env: 'prod',
-});
+  env: 'prod'
+})
 
 app.listen(9000, '0.0.0.0', () => {
-  console.log('Server start on http://0.0.0.0:9000');
-});
+  console.log('Server start on http://0.0.0.0:9000')
+})
 ```
 
-> 新建完成后，还需执行以下命令修改文件可执行权限，默认需要 777 或 755 权限才可正常启动。示例如下：
+这个文件里最值得盯一眼的是那三行环境变量。`NODE_LOG_DIR` 改的是 `egg-scripts` 默认往 `~/logs` 写日志的行为，`EGG_APP_CONFIG` 用一段 JSON 覆盖了 Egg 的 `rundir` 和 `logger.dir`，两个都指向 `/tmp`。这是在启动阶段就把写入路径掰过来，比改 `config.default.js` 更早生效，能覆盖到框架自身初始化那一段。
+
+`Object.defineProperty` 那段改 `eggPath` 是为层部署准备的，把依赖放到层里之后 `node_modules` 会挂在 `/opt` 下，不改这个 Egg 找不到框架本体。如果你没用层，这段可以不要。
+
+> 新建完成后，还需执行以下命令修改文件可执行权限，默认需要 777 或 755 权限才可正常启动。示例如下
 
 ```
 chmod 777 scf_bootstrap
 ```
+
+这一步在 Windows 上开发的同学特别容易翻车，因为 Windows 文件系统没有 Unix 权限位这个概念，打包上去权限就丢了，函数启动会报 permission denied。碰到这种情况，用控制台那种在线配置启动命令的方式更省事。
 
 **2. 控制台上传**
 
@@ -2806,24 +3044,67 @@ chmod 777 scf_bootstrap
 
 启动文件以项目内文件为准，如果您的项目里已经包含 `scf_bootstrap` 文件，将不会覆盖该内容。
 
-![](https://s.poetries.top/uploads/2022/06/a96ce1c3799f5951.png)
-![](https://s.poetries.top/uploads/2022/06/ce48d9dd73af824f.png)
-![](https://s.poetries.top/uploads/2022/06/9a0e3dfa25a6ed3d.png)
+![控制台选择本地上传项目代码](https://s.poetries.top/uploads/2022/06/a96ce1c3799f5951.png)
+![填写启动文件和运行环境配置](https://s.poetries.top/uploads/2022/06/ce48d9dd73af824f.png)
+![确认部署配置](https://s.poetries.top/uploads/2022/06/9a0e3dfa25a6ed3d.png)
 
-![](https://s.poetries.top/uploads/2022/06/e9dd1225bf0d37cd.png)
+![应用创建完成](https://s.poetries.top/uploads/2022/06/e9dd1225bf0d37cd.png)
 
-查看函数，修改代码查看日志等
+查看函数，修改代码查看日志等。在线编辑器改完记得点部署，不然改的只是草稿。函数的运行日志也在这个页面，冷启动耗时、内存占用这些指标都能看到。
 
-![](https://s.poetries.top/uploads/2022/06/ca238c35541dd8df.png)
+![云函数详情页可以在线查看代码和日志](https://s.poetries.top/uploads/2022/06/ca238c35541dd8df.png)
 
 **高级配置管理**
 
-> 您可在“高级配置”里进行更多应用管理操作，如创建层、绑定自定义域名、配置环境变量等。
+> 您可在「高级配置」里进行更多应用管理操作，如创建层、绑定自定义域名、配置环境变量等。
 
-![](https://s.poetries.top/uploads/2022/06/4ab13bbb74bcdf89.png)
+数据库密码这类敏感信息就该放在这里的环境变量里，别硬编码进 `config.prod.js` 跟着代码一起提交。
 
-## 6.5 测试接口
+![高级配置面板中的层和环境变量设置](https://s.poetries.top/uploads/2022/06/4ab13bbb74bcdf89.png)
 
-![](https://s.poetries.top/uploads/2022/06/5a4f88d78a4740fb.png)
-![](https://s.poetries.top/uploads/2022/06/692ad2fc22a7721d.png)
-![](https://s.poetries.top/uploads/2022/06/38120fb475238537.png)
+### 6.5 测试接口
+
+![请求 serverless 部署的 Egg 接口返回数据](https://s.poetries.top/uploads/2022/06/5a4f88d78a4740fb.png)
+![接口在浏览器中正常返回](https://s.poetries.top/uploads/2022/06/692ad2fc22a7721d.png)
+![云函数调用日志中可以看到本次请求记录](https://s.poetries.top/uploads/2022/06/38120fb475238537.png)
+
+第一次请求的耗时会明显高于后面几次，那就是冷启动。它在测试的时候只是「慢了一下」，但如果你的服务是低频调用的后台接口，用户每次点进来都要吃这个延迟，体验上是能感知到的。有预置并发这类手段可以缓解，代价是要为常驻实例付费，那就又回到成本和体验的取舍上了。
+
+## 七、这套流程放到今天要改哪些地方
+
+这篇写于 2022 年 6 月，隔了这么久，思路没变，但几个具体的东西确实变了，一并说清楚，免得你照着敲卡在半路。
+
+Compose 从独立程序变成了 Docker CLI 的内置插件，命令由 `docker-compose` 改成 `docker compose`，第 4.2 节那套单独下载二进制文件的步骤可以整个跳过。同时 compose 文件顶部的 `version` 字段已经废弃，写了会有告警，删掉最省事。
+
+Node 12 早已结束维护，`node:12.18` 这类基础镜像不该再出现在新项目里，换成当前的 LTS 大版本。npm 的淘宝源域名也换了，`registry.npm.taobao.org` 停用，现在是 `registry.npmmirror.com`。文中所有 Dockerfile 我都已经按新域名改过了。
+
+Docker Hub 的国内加速地址这几年被动过好几轮，公共的第三方加速源不太靠得住，文中 `daocloud.io` 那套地址你不一定还能拉通。稳妥的做法是去自己云厂商的容器镜像服务里申请一个专属加速地址，或者干脆把常用镜像推到自己的私有 registry。
+
+腾讯云 serverless 那边，`Nodejs10.15` 这个运行时已经下线，`serverless.yml` 里的 `runtime` 得按控制台当前支持的列表填。Serverless Framework 本身的版本和组件也有变化，跑之前建议先翻一眼官方仓库的 README。
+
+至于 Egg 框架本身，我最近的新项目更多是用 Nest，写法和生态更贴近现在的 TypeScript 习惯，部署思路其实是完全一样的，我在 [Nest 项目部署完整记录](https://feinterview.poetries.top/blog/nest-deploy-summary) 里写过一份对照，感兴趣可以对着看。
+
+## 总结
+
+这三条路我都跑通了，选哪条其实取决于你在意什么。
+
+自建服务器加 docker-compose，掌控力最强，四个服务怎么编排、日志往哪存、配置怎么改全是你说了算，适合有多个服务要互相通信、或者对数据存放位置有要求的项目。代价是运维成本，从装 Docker 到放行端口到续费打补丁，全归你。
+
+云托管胜在流水线，push 代码就自动构建部署，还省掉了域名备案和证书这些事，小程序后端这类场景很合适。但平台怎么构建、怎么调度不由你控制，遇到平台限制只能按它的规矩来。
+
+serverless 适合流量小、有明显波峰波谷的服务，不用为闲置资源付钱。冷启动和只读文件系统是它的两个硬约束，Egg 那几处 `/tmp` 的改造就是被逼出来的。
+
+真正通用的东西其实不是这三套流程，而是中间这些不变的部分。Dockerfile 里先拷 `package.json` 再装依赖的分层顺序，容器之间靠服务名而不是 IP 通信，需要持久化的东西一律往容器外挂，敏感配置走环境变量不进代码库。这几条不管你最后选哪条路都用得上。
+
+如果你现在正准备把手上的 Node 服务往线上搬，我的建议是从 docker-compose 那条路先跑一遍。它不是最省事的，但它会逼你把每一层的连通性都亲手验一遍，等你以后用托管平台遇到问题，至少知道该从哪儿开始查。
+
+## 参考
+
+- [Docker 官方文档](https://docs.docker.com/)
+- [Docker Compose 文件规范](https://docs.docker.com/reference/compose-file/)
+- [Egg.js 官方文档](https://www.eggjs.org/)
+- [Redis 配置文件说明](https://redis.io/docs/latest/operate/oss_and_stack/management/config/)
+- [MySQL 8.0 可插拔认证说明](https://dev.mysql.com/doc/refman/8.0/en/pluggable-authentication.html)
+- [tencent-egg serverless 组件](https://github.com/serverless-components/tencent-egg/tree/v2)
+- [微信云托管文档](https://cloud.weixin.qq.com/cloudrun)
+- [前端进阶之旅](https://interview.poetries.top)

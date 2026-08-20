@@ -981,8 +981,8 @@ server {
     # 这个方式使用场景，你在写React或者Vue项目的时候，没有真实路由
     location / {
         try_files $uri $uri/ /index.html =404;
-        #                               ^ 空格很重要
-    }
+        #                               ^ 空格很重要
+    }
 }
 ```
 
@@ -1058,7 +1058,7 @@ configure arguments: --prefix=/usr/local/nginx-1.7.8 --with-http_ssl_module --wi
 
 ```bash
 # 备份nginx的二进制文件
-cp -rf /usr/local/nginx/sbin/nginx　 /usr/local/nginx/sbin/nginx.bak
+cp -rf /usr/local/nginx/sbin/nginx   /usr/local/nginx/sbin/nginx.bak
 # 覆盖nginx的二进制文件
 cp -rf objs/nginx   /usr/local/nginx/sbin/
 ```

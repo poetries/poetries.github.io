@@ -59,7 +59,7 @@ digraph abc{
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/208.png)
+![](https://s.poetries.top/gitee/2019/10/208.png)
 
 
 **定义顶点和边的样式**
@@ -99,7 +99,7 @@ digraph abc{
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/209.png)
+![](https://s.poetries.top/gitee/2019/10/209.png)
 
 其他例子
 
@@ -123,7 +123,7 @@ digraph demo{
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/210.png)
+![](https://s.poetries.top/gitee/2019/10/210.png)
 
 ### 2.2 带标签
 
@@ -137,7 +137,7 @@ digraph {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/211.jpg)
+![](https://s.poetries.top/gitee/2019/10/211.jpg)
 
 ### 2.3 子视图
 
@@ -164,7 +164,7 @@ digraph {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/212.jpg)
+![](https://s.poetries.top/gitee/2019/10/212.jpg)
 
 ### 2.4 结构视图
 
@@ -180,7 +180,7 @@ digraph {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/213.jpg)
+![](https://s.poetries.top/gitee/2019/10/213.jpg)
 
 ### 2.5 树形结构
 
@@ -209,7 +209,7 @@ digraph tree {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/214.jpg)
+![](https://s.poetries.top/gitee/2019/10/214.jpg)
 
 ### 2.6 时序图
 
@@ -254,7 +254,7 @@ digraph time {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/215.jpg)
+![](https://s.poetries.top/gitee/2019/10/215.jpg)
 
 ### 2.7 一个hash表的数据结构
 
@@ -307,7 +307,6 @@ digraph st2{
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/216.jpg)
 
 ### 2.8 模块的生命周期图
 
@@ -341,7 +340,6 @@ digraph module_lc{
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/217.jpg)
 
 ### 2.9 简单的UML类图
 
@@ -371,7 +369,6 @@ digraph G{
 ```
 
 
-![](https://poetries1.gitee.io/img-repo/2019/10/218.jpg)
 
 
 ### 2.10 有限状态机
@@ -391,7 +388,6 @@ digraph finite_state_machine {
 
 ```
 
-![](http://img2.tuicool.com/yEze6z.png%21web)
 
 
 
@@ -440,7 +436,7 @@ digraph {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/219.jpg)
+![](https://s.poetries.top/gitee/2019/10/219.jpg)
 
 > 注：需要用命令行`dot test.dot -T png -o test.png`生成，前提是用`brew`安装了`GraphViz`
 
@@ -458,4 +454,4 @@ digraph {
 }
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/220.jpg)
+![](https://s.poetries.top/gitee/2019/10/220.jpg)

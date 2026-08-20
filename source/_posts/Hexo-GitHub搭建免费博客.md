@@ -13,7 +13,7 @@ categories: Hexo
 为什么要搭建博客呢?
 
  - 想有个属于自己的博客空间
- - 世面上的平台不够好看 
+ - 世面上的平台不够好看
  - 佩服那些有博客的人,所以自己也想搞一个
  - 独立的才是自己的。
  - 但是不懂服务器,没有空间,不懂前端怎么破?
@@ -62,7 +62,7 @@ categories: Hexo
   - 首先注册一个『GitHub』帐号，已有的默认默认请忽略
   - 建立与你用户名对应的仓库，仓库名必须为『your_user_name.github.com』
   - 添加SSH公钥到『Account settings -> SSH Keys -> Add SSH Key』
- 
+
 - 首先设置你的用户名密码：
     `git config --global user.email "4353@qq.com"`
     `git config --global user.name "653b"`
@@ -71,7 +71,7 @@ categories: Hexo
     `ssh-keygen -t rsa -C "faa@qq.com"`
 
   最后可以验证一下`：ssh -T git@github.com`
- 
+
 
 - **安装**
 
@@ -107,7 +107,7 @@ cd 到你的init目录，执行如下命令
 `hexo new [layout] "postName" #新建文章`
 
     其中layout是可选参数，默认值为post。有哪些layout呢，请到scaffolds目录下查看，这些文件名称就是layout名称。当然你可以添加自己的layout，方法就是添加一个文件即可，同时你也可以编辑现有的layout，比如post的layout默认是hexo\scaffolds\post.md
-    
+
 ```css
 title: { { title } }
 date: { { date } }
@@ -119,8 +119,8 @@ tags:
 ```css
 title: { { title } }
 date: { { date } }
-categories: 
-tags: 
+categories:
+tags:
 ---
 ```
 
@@ -147,8 +147,8 @@ photos:
 >layout: { { layout } }
 title: { { title } }
 date: { { date } }
-tags: 
-photos: 
+tags:
+photos:
 ```
 
 然后每次可以执行带layout的new命令生成照片文章：
@@ -192,7 +192,7 @@ git clone https://github.com/heroicyang/hexo-theme-modernist.git themes/modernis
  - `hexo generate` #生成网页，可以在 public 目录查看整个网站的文件
  - `hexo server` #本地预览，'Ctrl+C'关闭
  - `hexo deploy` #部署.deploy目录
- - `hexo clean` #清除缓存，**强烈建议每次执行命令前先清理缓存，每次部署前先删除 .deploy 
+ - `hexo clean` #清除缓存，**强烈建议每次执行命令前先清理缓存，每次部署前先删除 .deploy
 
 **简写：**
 
@@ -280,7 +280,7 @@ git clone https://github.com/heroicyang/hexo-theme-modernist.git themes/modernis
 |   ├── _partial       #局部的布局，此目录下的*.ejs是对头尾等局部的控制
 |   └── _widget        #小挂件的布局，页面下方小挂件的控制
 ├── source             #源码
-|   ├── css            #css源码 
+|   ├── css            #css源码
 |   |   ├── _base      #*.styl基础css
 |   |   ├── _partial   #*.styl局部css
 |   |   ├── fonts      #字体
@@ -335,7 +335,7 @@ hexo支持从其他类型站点迁移，如通用RSS，Jekyll，Octopress，Word
  - 搭建博客才是第一步,坚持写好文章才是关键,路还很长.
 
 
-** 参考：**
+**参考**
 ---
 
  - [Hexo官网][22]
@@ -346,7 +346,7 @@ hexo支持从其他类型站点迁移，如通用RSS，Jekyll，Octopress，Word
  - [Themes · hexojs/hexo Wiki][27]
  - [Hexo 主题开发指南](https://gold.xitu.io/entry/576d662b0a2b580058f9c5d5)
 
- 
+
 
 
   [1]: http://notes.iissnan.com/

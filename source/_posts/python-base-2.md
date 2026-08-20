@@ -1,131 +1,299 @@
 ---
-title: Python基础小结(二)
+title: Python基础小结(二) 用思维导图梳理语法到并发
+description: 用 45 张思维导图把 Python 的语法基础、字符串与序列、类、高级特性、自带模块和并发串成一条线，每张图都配了重点说明和易错点，适合系统性回顾。
 date: 2019-12-11 21:40:39
-tags: python
+tags:
+  - python
+  - 思维导图
 categories: Back-end
 ---
 
+学 Python 的时候我记了一堆零散的笔记，后来发现真正卡住我的不是某个语法怎么写，而是脑子里没有一张地图。比如知道 `list` 能改、`tuple` 不能改，但说不清为什么字典的 key 必须用不可变类型；知道装饰器加个 `@` 就能用，但换个带参数的场景就懵了。这篇是把当时画的一整套思维导图重新串了一遍，从初识 Python 一路走到并发和应用领域，每张图前面说清楚它在讲什么，后面补一句最容易记混的地方在哪。
 
-## 一、初识Python
+这篇偏「结构」，配套的[Python基础小结(一)](https://feinterview.poetries.top/blog/python-base-1)偏「细节」，那篇里有可以直接跑的代码、内建函数表和标准库清单，两篇搭配着看效率会高一些。
 
-![初识Python](https://poetries1.gitee.io/img-repo/2019/12/136.png)
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
+
+- Python 是什么语言，它的执行方式和别的语言差在哪
+- 变量、运算符这些语法地基，以及缩进为什么被写进语法
+- 字符串的创建、拼接、转义和切片，为什么它是不可变类型
+- 列表、元组、字典这三种容器分别适合什么场景
+- 函数与流程控制的写法，以及 Python 里没有 `switch` 这件事
+- 类的定义、属性和方法，私有成员到底私有到什么程度
+- 高级特性六件套：切片、迭代、生成器、`yield`、闭包、装饰器
+- 标准库里最常用的几个模块和它们的典型用途
+- Python 并发的三条路和 GIL 带来的限制
+- Python 在爬虫、数据分析这些方向上的实际落点
+
+## 一、初识 Python
+
+先从最外层说起。Python 是解释型语言，源码交给解释器逐行翻译执行，不像 C 那样先编译成机器码再跑。好处是改完就能跑、跨平台成本低，代价是执行速度比编译型语言慢一截。
+
+这张图把 Python 的身世、特点和适用范围一次讲完。
+
+![初识Python](https://s.poetries.top/gitee/2019/12/136.png)
+
+图里最该记住的是「胶水语言」这个定位。Python 自己跑得不快，但它能很轻松地把 C/C++ 写的高性能模块包起来调用，所以做数据分析时你写的是 Python，底下真正干活的是 NumPy 里的 C 代码。这也解释了一个初学者常见的困惑，既然 Python 慢，为什么机器学习都用它？因为慢的那部分早就被换掉了。
 
 ## 二、语法基础
 
-![语法基础](https://poetries1.gitee.io/img-repo/2019/12/155.png)
+### 2.1 变量与运算符
 
-![变量](https://poetries1.gitee.io/img-repo/2019/12/156.png)
+语法这一层没什么捷径，就是把地基铺平。先看整体轮廓。
 
-![运算符](https://poetries1.gitee.io/img-repo/2019/12/157.png)
+![语法基础](https://s.poetries.top/gitee/2019/12/155.png)
 
-### 2.1 字符串处理
+这张图里的缩进部分值得多看两眼。别的语言用花括号划分代码块，Python 直接把缩进写进了语法，缩进错了就是语法错误而不是风格问题。好处是所有人写出来的代码长得差不多，坏处是复制粘贴代码时特别容易踩到 Tab 和空格混用的坑，官方推荐统一用 4 个空格。
 
-![创建字符串](https://poetries1.gitee.io/img-repo/2019/12/158.png)
+接下来是变量。
 
-![字符串连接](https://poetries1.gitee.io/img-repo/2019/12/159.png)
+![变量的定义与赋值](https://s.poetries.top/gitee/2019/12/156.png)
 
-![字符串运算](https://poetries1.gitee.io/img-repo/2019/12/160.png)
+Python 的变量不用声明类型，`a = 1` 之后再写 `a = 'hello'` 也完全合法。这里有个坑要注意，Python 里的变量更像是贴在对象上的标签，而不是一块装着值的内存。所以 `b = a` 之后改 `a` 指向的可变对象，`b` 看到的也变了，很多人第一次被列表「莫名其妙」修改就是栽在这。
 
-![字符串转译](https://poetries1.gitee.io/img-repo/2019/12/161.png)
+再看运算符。
 
-![切片](https://poetries1.gitee.io/img-repo/2019/12/162.png)
+![运算符分类](https://s.poetries.top/gitee/2019/12/157.png)
 
-![常用函数](https://poetries1.gitee.io/img-repo/2019/12/163.png)
+算术运算符里最容易记混的是 `/` 和 `//`。在 Python 3 里 `1 / 2` 得到的是 `0.5`，类型是 `float`，哪怕两边都是整数；要取整必须用 `1 // 2`，结果是 `0`。Python 2 的行为和这个不一样，网上老教程里抄来的代码在这一点上经常翻车。
 
-### 2.2 列表
+### 2.2 字符串处理
 
-![](https://poetries1.gitee.io/img-repo/2019/12/164.png)
+字符串是用得最多的类型，图也最多，一张张过。
 
-![](https://poetries1.gitee.io/img-repo/2019/12/165.png)
+先是创建。
 
-### 2.3 元组
+![创建字符串的几种引号写法](https://s.poetries.top/gitee/2019/12/158.png)
 
-![](https://poetries1.gitee.io/img-repo/2019/12/166.png)
+单引号和双引号在 Python 里没有区别，选哪个纯看内容里有没有引号需要躲开。三引号可以跨行，既能写长文本也常被当成多行注释用。
 
-### 2.4 字典
+然后是拼接。
 
-![](https://poetries1.gitee.io/img-repo/2019/12/173.png)
-![](https://poetries1.gitee.io/img-repo/2019/12/174.png)
+![字符串连接的几种方式](https://s.poetries.top/gitee/2019/12/159.png)
 
-### 2.5 函数
+`+` 拼接直观，但在循环里拼几万次会很慢。原因是字符串不可变，每次 `+` 都在生成一个新对象，旧的当垃圾扔掉。要拼大量片段就用 `''.join(列表)`，一次性分配。
 
-![](https://poetries1.gitee.io/img-repo/2019/12/167.png)
+![字符串的常用运算](https://s.poetries.top/gitee/2019/12/160.png)
 
-![](https://poetries1.gitee.io/img-repo/2019/12/168.png)
+`*` 号重复这个写法挺舒服的，画分隔线时 `'-' * 40` 比循环干净多了。
 
-### 2.6 流程控制
+![字符串转义字符](https://s.poetries.top/gitee/2019/12/161.png)
 
-![](https://poetries1.gitee.io/img-repo/2019/12/169.png)
-![](https://poetries1.gitee.io/img-repo/2019/12/170.png)
-![](https://poetries1.gitee.io/img-repo/2019/12/171.png)
-![](https://poetries1.gitee.io/img-repo/2019/12/172.png)
+转义这块和正则一起用的时候最容易出问题。写正则时习惯性在字符串前加 `r` 变成原始字符串，`r'\d+'` 里的反斜杠就不会被当成转义符先吃掉一层。
+
+![字符串切片](https://s.poetries.top/gitee/2019/12/162.png)
+
+切片是 Python 里最舒服的设计之一，`s[start:end:step]` 三个参数都可以省。记住区间是左闭右开，`s[0:3]` 拿的是前三个字符不含下标 3。负数下标从右往左数，`s[::-1]` 是反转字符串的常见写法。
+
+![字符串常用函数](https://s.poetries.top/gitee/2019/12/163.png)
+
+这些方法全都返回新字符串，不会在原地改。所以 `s.upper()` 单独写一行是没用的，必须接住返回值。这个我踩过，调试半天才发现是自己没赋值回去。
+
+### 2.3 列表
+
+列表是可变的有序容器，日常用得最多。
+
+![列表的定义与常用操作](https://s.poetries.top/gitee/2019/12/164.png)
+
+![列表的增删改查方法](https://s.poetries.top/gitee/2019/12/165.png)
+
+这两张图里的方法分两类要分清楚。`append`、`insert`、`remove`、`sort` 这些是原地修改，返回 `None`；`sorted(列表)` 才是返回新列表。写 `a = a.sort()` 之后发现 `a` 变成 `None`，是新手最经典的一次翻车。
+
+另外一个坑是在遍历列表的同时删元素，下标会错乱，正确做法是新建一个列表装筛选结果，或者用列表推导式。
+
+### 2.4 元组
+
+元组和列表长得像，区别只有一个字：不可变。
+
+![元组的定义与特性](https://s.poetries.top/gitee/2019/12/166.png)
+
+不可变带来两个实际好处。一是可以当字典的 key 和集合的元素，列表就不行；二是函数返回多个值时天然用元组打包，`return x, y` 拿到的就是一个元组。
+
+写单元素元组必须带逗号，`(1,)` 才是元组，`(1)` 只是一个加了括号的整数。这个语法看着别扭，但确实没有更好的写法。
+
+### 2.5 字典
+
+字典是 key-value 结构，查找是哈希表，速度和数据量基本无关。
+
+![字典的定义与基本操作](https://s.poetries.top/gitee/2019/12/173.png)
+![字典的常用方法](https://s.poetries.top/gitee/2019/12/174.png)
+
+这两张图配合着看。取值的时候优先用 `d.get('key')` 而不是 `d['key']`，前者取不到返回 `None`，后者直接抛 `KeyError`，`get` 还能带一个默认值。
+
+那为什么字典的 key 必须是不可变类型呢？因为字典靠 key 的哈希值定位存储位置，如果 key 存进去之后还能被改，哈希值就变了，之前存的那条数据再也找不回来。所以 `str`、`int`、`tuple` 能当 key，`list`、`dict` 不行。
+
+顺带一提，从 Python 3.7 开始，字典正式保证按插入顺序遍历，这一点写进了语言规范。3.6 版本其实已经是这个行为了，但当时只算实现细节，不保证。
+
+### 2.6 函数
+
+![函数的定义与调用](https://s.poetries.top/gitee/2019/12/167.png)
+
+![函数参数的几种形式](https://s.poetries.top/gitee/2019/12/168.png)
+
+参数这张图信息量最大。位置参数、默认参数、`*args`、`**kwargs` 的顺序是固定的，写反了直接语法错误。
+
+这里有个非常经典的陷阱：默认参数不要用可变对象。`def f(items=[])` 这种写法，默认的空列表只在函数定义时创建一次，后续每次调用共享同一个列表，调三次就会发现里面的元素在累加。正确写法是默认值给 `None`，进函数体再判断赋值。
+
+### 2.7 流程控制
+
+![if 条件判断](https://s.poetries.top/gitee/2019/12/169.png)
+![for 循环](https://s.poetries.top/gitee/2019/12/170.png)
+![while 循环](https://s.poetries.top/gitee/2019/12/171.png)
+![break 与 continue](https://s.poetries.top/gitee/2019/12/172.png)
+
+四张图覆盖了分支和循环。几个和别的语言不一样的地方：多分支用 `elif` 而不是 `else if`；Python 没有 `switch` 语句，历史上都用字典映射或者一串 `elif` 代替（3.10 之后有了 `match` 语句，但和 C 系的 `switch` 不是一回事，它是结构化模式匹配）。
+
+`for` 循环在 Python 里是「遍历可迭代对象」，不是 C 那种计数循环，要按下标走得配 `range()`，要同时拿到下标和值就用 `enumerate()`。
+
+还有一个别的语言基本没有的语法，`for` 和 `while` 都可以带 `else` 分支，循环正常跑完才执行，被 `break` 中断就跳过。用在「找不到就报错」这种场景挺顺手，但可读性一般，团队里不熟悉的人多就别用。
 
 ## 三、类
 
-![](https://poetries1.gitee.io/img-repo/2019/12/175.png)
+面向对象这块 Python 的语法比 Java 松得多，但概念是齐的。
+
+![类的整体概念](https://s.poetries.top/gitee/2019/12/175.png)
 
 ### 3.1 创建类
 
-![](https://poetries1.gitee.io/img-repo/2019/12/176.png)
-![](https://poetries1.gitee.io/img-repo/2019/12/177.png)
+![类的定义语法](https://s.poetries.top/gitee/2019/12/176.png)
+![类的实例化与构造函数](https://s.poetries.top/gitee/2019/12/177.png)
+
+`__init__` 是初始化方法，实例创建之后被调用，用来给对象挂属性。它的第一个参数 `self` 必须显式写出来，这一点常被吐槽啰嗦，但好处是「实例方法就是第一个参数为实例的普通函数」这件事变得非常直白。
+
+继承写在类名后面的括号里，调用父类构造建议用 `super().__init__(...)`，比直接写 `父类名.__init__(self, ...)` 更好维护，多重继承时也只有 `super()` 能走对方法解析顺序。
 
 ### 3.2 属性
 
-![](https://poetries1.gitee.io/img-repo/2019/12/178.png)
+![类属性与实例属性](https://s.poetries.top/gitee/2019/12/178.png)
+
+类属性和实例属性的区别是这一节的重点。类属性写在 `class` 下面、方法外面，所有实例共享；实例属性挂在 `self` 上，各归各的。
+
+要小心的是，如果类属性是列表这类可变对象，某个实例把它改了，所有实例都会看到变化，因为大家指向的是同一个对象。但如果直接给实例的同名属性赋值，Python 会在实例上新建一个属性把类属性遮住，不影响别人。这两种行为长得像，结果完全不同。
 
 ### 3.3 方法
 
-![](https://poetries1.gitee.io/img-repo/2019/12/180.png)
-![](https://poetries1.gitee.io/img-repo/2019/12/179.png)
+![实例方法与静态方法](https://s.poetries.top/gitee/2019/12/180.png)
+![类方法与私有方法](https://s.poetries.top/gitee/2019/12/179.png)
 
+方法分三类。实例方法第一个参数是 `self`，类方法用 `@classmethod` 装饰、第一个参数是 `cls`，静态方法用 `@staticmethod` 装饰、什么都不接。需要访问类本身（比如做工厂方法）就用类方法，纯工具函数只是逻辑上归属这个类就用静态方法。
+
+私有成员这块要说清楚。Python 里以双下划线开头的名字（比如 `__name`）并不是真的私有，解释器只是做了名字改写，把它变成 `_类名__name`。外部照样能访问，只是得绕一下。所以它更像是一个「别碰我」的约定，而不是编译期强制。单下划线开头就更弱了，纯粹靠自觉。
 
 ## 四、高级特性
 
-![函数式编程](https://poetries1.gitee.io/img-repo/2019/12/147.png)
+这一节是 Python 相对好用的地方，也是面试爱问的地方。
 
-![切片](https://poetries1.gitee.io/img-repo/2019/12/148.png)
+![函数式编程概览](https://s.poetries.top/gitee/2019/12/147.png)
 
-![迭代](https://poetries1.gitee.io/img-repo/2019/12/149.png)
+`map`、`filter`、`reduce` 加上 `lambda` 构成了 Python 的函数式那一小块。在 Python 3 里 `map` 和 `filter` 返回的是迭代器不是列表，要看到内容得套一层 `list()`。日常写代码其实列表推导式更常见，可读性更好，`map`/`filter` 主要用在配合已有函数的场景。
 
-![生成器](https://poetries1.gitee.io/img-repo/2019/12/150.png)
+![切片操作](https://s.poetries.top/gitee/2019/12/148.png)
 
-![yield关键字](https://poetries1.gitee.io/img-repo/2019/12/151.png)
+切片这里再强调一次，`a[:]` 是浅拷贝一份列表，改副本不影响原来的；但如果列表里装的是嵌套列表，改内层还是会串，那时候得用 `copy.deepcopy`。
 
-![迭代器Iterator](https://poetries1.gitee.io/img-repo/2019/12/152.png)
+![迭代与可迭代对象](https://s.poetries.top/gitee/2019/12/149.png)
 
-![闭包](https://poetries1.gitee.io/img-repo/2019/12/153.png)
+只要实现了 `__iter__` 就是可迭代对象，`for` 就能遍历。列表、字符串、字典、文件对象都在这个范围里，所以「按行读文件」可以直接 `for line in f`，不用先 `readlines()` 把整个文件读进内存。
 
-![装饰器](https://poetries1.gitee.io/img-repo/2019/12/154.png)
+![生成器](https://s.poetries.top/gitee/2019/12/150.png)
+
+生成器是我觉得 Python 最值钱的特性之一。它按需产出值，不把结果一次性堆在内存里。处理几个 G 的日志文件时，列表推导式会直接把内存打满，换成生成器表达式（把方括号换成圆括号）就稳稳跑完。
+
+![yield 关键字](https://s.poetries.top/gitee/2019/12/151.png)
+
+函数里只要出现 `yield`，它就不再是普通函数，调用后返回的是生成器对象，函数体一行都没执行。每次 `next()` 才往下跑到下一个 `yield` 处暂停，把当前状态原地冻结。这个「能暂停能恢复」的能力，后来直接长成了 Python 的协程和 `async/await`。
+
+![迭代器 Iterator](https://s.poetries.top/gitee/2019/12/152.png)
+
+迭代器和可迭代对象要分清。可迭代对象能生成迭代器，迭代器自己带 `__next__`，能被 `next()` 推着走。列表是可迭代对象但不是迭代器，`iter(列表)` 之后才是。生成器则天生就是迭代器。
+
+![闭包](https://s.poetries.top/gitee/2019/12/153.png)
+
+闭包是「函数加上它捕获的外层变量」。内层函数引用了外层函数的局部变量，外层返回内层之后，那个变量不会随着外层退出而销毁。要在闭包里修改外层变量得加 `nonlocal`，要改模块级变量得加 `global`，不加的话赋值会被当成新建局部变量。
+
+![装饰器](https://s.poetries.top/gitee/2019/12/154.png)
+
+装饰器就是闭包的一个应用。它接收一个函数、返回一个新函数，`@decorator` 只是 `f = decorator(f)` 的语法糖。日志、计时、权限校验、缓存这些横切逻辑都适合往这放。
+
+写装饰器时记得加 `functools.wraps`，否则被装饰函数的 `__name__` 和文档字符串会被替换成内层 `wrapper` 的，调试和自动生成文档时会很难受。这块我一开始也没在意，直到用 Flask 注册路由时撞上重名报错才明白它的必要性。
 
 ## 五、自带模块
 
-![自带模块概览](https://poetries1.gitee.io/img-repo/2019/12/140.png)
+Python 常被说「自带电池」，指的就是标准库的覆盖面。
 
-![urllib](https://poetries1.gitee.io/img-repo/2019/12/137.png)
+![自带模块概览](https://s.poetries.top/gitee/2019/12/140.png)
 
-![正则表达式re](https://poetries1.gitee.io/img-repo/2019/12/138.png)
+这张图是个目录，重点看下面几个高频的。
 
-![random](https://poetries1.gitee.io/img-repo/2019/12/141.png)
+![urllib 网络请求](https://s.poetries.top/gitee/2019/12/137.png)
 
-![Math](https://poetries1.gitee.io/img-repo/2019/12/142.png)
+`urllib` 是标准库里的 HTTP 客户端，不用装第三方包。它够用但接口偏底层，写 POST、带 header、处理 cookie 都比较啰嗦，所以实际项目里大家基本都换成 `requests`。想零依赖跑个脚本，`urllib` 还是首选。
 
-## 六、Python并发
+![正则表达式 re 模块](https://s.poetries.top/gitee/2019/12/138.png)
 
-![python并发](https://poetries1.gitee.io/img-repo/2019/12/135.png)
+`re` 这块最容易记混的是四个函数的区别。`match` 只从字符串开头匹配，匹配不上直接返回 `None`；`search` 会扫描整个字符串找第一个匹配；`findall` 返回所有匹配组成的列表，日常用得最多；`sub` 做替换，第二个参数还可以传函数，按匹配结果动态生成替换内容。
 
+正则模式串前面记得加 `r`，理由前面讲转义时说过。
+
+![random 随机数](https://s.poetries.top/gitee/2019/12/141.png)
+
+`random` 用的是梅森旋转算法，属于伪随机。做抽奖、洗牌、造测试数据没问题，涉及密码、token、验证码这类安全场景必须换成 `secrets` 模块，这是官方明确写在文档里的提醒。
+
+调试时可以先 `random.seed(42)` 固定种子，这样每次跑出来的随机序列一样，问题好复现。
+
+![math 数学函数](https://s.poetries.top/gitee/2019/12/142.png)
+
+`math` 里的函数都只处理单个数值，要对整个数组做数学运算就该上 NumPy 了，性能差好几个量级。
+
+## 六、Python 并发
+
+![Python 并发的三种方式](https://s.poetries.top/gitee/2019/12/135.png)
+
+这张图把多线程、多进程、协程放在一起对比。选哪个的判断依据其实很简单，先看你的任务是卡在 CPU 上还是卡在等待上。
+
+CPython 有一把全局解释器锁（GIL），同一时刻只允许一个线程执行 Python 字节码。所以纯计算任务开再多线程也快不起来，得用 `multiprocessing` 开多进程，绕开 GIL。反过来，网络请求、读写文件这类时间都花在等待上的任务，线程在等待时会释放 GIL，多线程是有效的。
+
+协程走的是另一条路，单线程内靠事件循环切换，没有线程切换开销，适合海量 IO 并发，代价是整条链路上的库都得是异步的，中间混进一个同步阻塞调用就前功尽弃。
+
+说实话我在生产环境只认真用过多进程和线程池，`asyncio` 那套只在小 demo 里跑过，遇到过什么坑还说不上来。
 
 ## 七、应用领域
 
-![应用领域](https://poetries1.gitee.io/img-repo/2019/12/143.png)
+最后一节聊落地。学语法的过程很容易失去方向感，看看它到底被用在哪，动力会好一点。
 
-![网络爬虫](https://poetries1.gitee.io/img-repo/2019/12/144.png)
+![Python 的应用领域](https://s.poetries.top/gitee/2019/12/143.png)
 
-![数据存储、提取](https://poetries1.gitee.io/img-repo/2019/12/145.png)
+Web 后端、自动化运维、爬虫、数据分析、机器学习，这几个方向的共同点是都需要「快速把想法变成能跑的东西」，Python 的开发效率优势在这里被放大了。
 
-![数据预处理、模型分析、可视化](https://poetries1.gitee.io/img-repo/2019/12/146.png)
+![网络爬虫](https://s.poetries.top/gitee/2019/12/144.png)
 
+爬虫的技术栈是这么一条链：请求用 `requests`，解析用 `BeautifulSoup` 或者 `lxml` 的 XPath，规模上去了换 `Scrapy` 框架，页面是 JS 渲染的就上 `Selenium`。真正难的从来不是写解析代码，是反爬对抗和频率控制。写爬虫记得先看目标站的 `robots.txt` 和服务条款，别把自己写进去。
 
+![数据存储与提取](https://s.poetries.top/gitee/2019/12/145.png)
 
-## 八、更多
+爬下来的数据得有地方放。量小直接 CSV 或者 JSON 文件，结构化查询需求多就上 MySQL，字段不固定用 MongoDB。这一步选型看的是后面怎么查，不是数据量本身。
 
+![数据预处理、模型分析与可视化](https://s.poetries.top/gitee/2019/12/146.png)
+
+数据分析这条线上的分工很清楚：NumPy 管数值计算，Pandas 管表格清洗，Matplotlib 和 Seaborn 管画图，scikit-learn 管传统机器学习。日常花时间最多的其实是 Pandas 那一段的清洗，模型训练反而是最短的一步。
+
+## 总结
+
+这套图从头到尾其实回答了三个问题。
+
+语法层面，Python 用缩进定义代码块、变量是贴在对象上的标签、字符串不可变，这三点决定了大量写法上的细节，比如为什么字典 key 必须不可变、为什么循环里拼字符串要用 `join`。
+
+容器层面，列表、元组、字典、集合各有明确定位。要改就用列表，要当 key 就用元组，要按名字查就用字典，要去重就用集合，这个判断链几乎不用犹豫。
+
+进阶层面，切片、迭代、生成器、`yield`、闭包、装饰器是一条完整的链，前一个是后一个的基础。真正卡住大多数人的是生成器和 `yield`，把「函数可以暂停在某一行、下次从那里继续」这句话想明白，装饰器和协程都会顺很多。
+
+最容易踩的三个坑我再点一次：默认参数别用可变对象、原地修改的方法返回 `None`、双下划线的私有成员并不是真私有。
+
+## 参考
+
+- [Python 官方教程](https://docs.python.org/zh-cn/3/tutorial/index.html)
+- [Python 标准库文档](https://docs.python.org/zh-cn/3/library/index.html)
+- [Python 内置函数列表](https://docs.python.org/zh-cn/3/library/functions.html)
+- [secrets 模块 生成安全随机数](https://docs.python.org/zh-cn/3/library/secrets.html)
 - [Python完整思维导图](https://processon.com/mindmap/5df0e70ce4b0e2c298af0b11)
+- [前端进阶之旅](https://interview.poetries.top)

@@ -1,9 +1,9 @@
 ---
 title: 实用的60个CSS代码片段
 date: 2016-08-13 12:25:08
-tags: 
-   - CSS
-   - Snippet
+tags:
+- CSS
+- Snippet
 categories: Front-End
 ---
 
@@ -36,7 +36,7 @@ categories: Front-End
 我们需要伸展顶层元素：`html`和`body`:
 
 ```css
-html, 
+html,
 body {
     height: 100%;
 }
@@ -112,7 +112,7 @@ button {
     background-size: auto 200%;
     background-position: 0 100%;
     transition: background-position 0.5s;
-}    
+}
 button:hover {
     background-position: 0 0;
 }
@@ -253,7 +253,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 ol, ul { list-style: none; }
 blockquote, q { quotes: none; }
 blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
-strong { font-weight: bold; } 
+strong { font-weight: bold; }
 table { border-collapse: collapse; border-spacing: 0; }
 img { border: 0; max-width: 100%; }
 p { font-size: 1.2em; line-height: 1.0em; color: #333; }
@@ -349,7 +349,7 @@ blockquote p {
 
 ```css
 /* Smartphones (portrait and landscape) ----------- */
-@media only screen 
+@media only screen
 and (min-device-width : 320px) and (max-device-width : 480px) {
   /* Styles */
 }
@@ -506,8 +506,8 @@ a:active { color: yellow; }
 ---
 
 ```css
-html { 
-    background: url('images/bg.jpg') no-repeat center center fixed; 
+html {
+    background: url('images/bg.jpg') no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -651,7 +651,7 @@ p:first-letter{
 ---
 
 ```css
-#mydiv { 
+#mydiv {
     -moz-box-shadow: inset 2px 0 4px #000;
     -webkit-box-shadow: inset 2px 0 4px #000;
     box-shadow: inset 2px 0 4px #000;
@@ -663,7 +663,7 @@ p:first-letter{
 ---
 
 ```css
-#mydiv { 
+#mydiv {
     -webkit-box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.52);
     -moz-box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.52);
     box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.52);
@@ -680,7 +680,7 @@ ul {
     padding: 0 1em;
     list-style: none;
 }
-li:before { 
+li:before {
     content: "";
     border-color: transparent #111;
     border-style: solid;
@@ -883,7 +883,7 @@ body:before {
     -webkit-border-radius: 20px;
     -moz-box-shadow: 0 0 5px #888;
     -webkit-box-shadow: 0 0 5px #888;
-    font-family: 'Bangers', arial, serif; 
+    font-family: 'Bangers', arial, serif;
 }
 .chat-bubble-arrow-border {
     border-color: #666 transparent transparent transparent;
@@ -980,7 +980,7 @@ ol.continue {
 ---
 
 ```css
-a { 
+a {
     border-bottom:1px solid #bbb;
     color:#666;
     display:inline-block;
@@ -992,7 +992,7 @@ a:focus {
     color:#36c;
 }
 a:active {
-    top:1px; 
+    top:1px;
 }
 /* Tooltip styling */
 a[data-tooltip]:after {
@@ -1086,10 +1086,10 @@ a[data-tooltip]:active:before {
 ---
 
 ```css
-@media print   {  
-  a:after {  
-    content: " [" attr(href) "] ";  
-  }  
+@media print   {
+  a:after {
+    content: " [" attr(href) "] ";
+  }
 }
 ```
 
@@ -1127,7 +1127,7 @@ body {
 ```css
 body {
     background-color: white;
-    background-image: linear-gradient(45deg, black 25%, transparent 25%, transparent 75%, black 75%, black), 
+    background-image: linear-gradient(45deg, black 25%, transparent 25%, transparent 75%, black 75%, black),
     linear-gradient(45deg, black 25%, transparent 25%, transparent 75%, black 75%, black);
     background-size: 100px 100px;
     background-position: 0 0, 50px 50px;
@@ -1188,7 +1188,7 @@ ul.box {
     overflow: hidden;
     list-style: none;
     margin: 0;
-    padding: 0; 
+    padding: 0;
 }
 ul.box li {
     position: relative;
@@ -1200,8 +1200,8 @@ ul.box li {
     margin: 0 30px 30px 0;
     background: #fff;
     -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.06) inset;
-    -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.06) inset; 
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.06) inset; 
+    -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.06) inset;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.27), 0 0 40px rgba(0, 0, 0, 0.06) inset;
 }
 ul.box li:before,
 ul.box li:after {
@@ -1221,7 +1221,7 @@ ul.box li:after {
     -moz-transform: skew(-15deg) rotate(-6deg);
     -ms-transform: skew(-15deg) rotate(-6deg);
     -o-transform: skew(-15deg) rotate(-6deg);
-    transform: skew(-15deg) rotate(-6deg); 
+    transform: skew(-15deg) rotate(-6deg);
 }
 ul.box li:after {
     left: auto;
@@ -1230,7 +1230,7 @@ ul.box li:after {
     -moz-transform: skew(15deg) rotate(6deg);
     -ms-transform: skew(15deg) rotate(6deg);
     -o-transform: skew(15deg) rotate(6deg);
-    transform: skew(15deg) rotate(6deg); 
+    transform: skew(15deg) rotate(6deg);
 }
 ```
 

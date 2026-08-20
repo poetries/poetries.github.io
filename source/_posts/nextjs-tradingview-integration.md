@@ -1,16 +1,17 @@
 ---
 title: 在Next.js中接入TradingView图表实践总结
-slug: tradingview-nextjs-integration
 date: 2026-02-09 17:30:00
 description: 详细讲解如何在Next.js项目中接入TradingView Charts，包括环境配置、数据馈送实现、自定义指标、主题定制、性能优化等完整流程。
 tags:
-- TradingView
-- Next.js
-- K线图
-- 图表集成
-- React
+  - TradingView
+  - Next.js
+  - K线图
+  - 图表集成
+  - React
 categories: Front-End
 ---
+
+> 原文地址：https://feinterview.poetries.top/blog/nextjs-tradingview-integration
 
 ## 导语
 
@@ -125,22 +126,25 @@ const Tradingview = () => {
       setCSSCustomProperty({ tvWidget, theme })
 
       // 监听时间周期变化
-      tvWidget.activeChart().onIntervalChanged().subscribe(null, (interval, timeframeObj) => {
-        // 记录当前分辨率
-        STORAGE_SET_TRADINGVIEW_RESOLUTION(interval)
+      tvWidget
+        .activeChart()
+        .onIntervalChanged()
+        .subscribe(null, (interval, timeframeObj) => {
+          // 记录当前分辨率
+          STORAGE_SET_TRADINGVIEW_RESOLUTION(interval)
 
-        // 日周月级别使用 UTC 时区，分钟级别使用上海时区
-        if (['D', 'W', 'M', 'Y'].some((item) => interval.endsWith(item))) {
-          tvWidget.activeChart().getTimezoneApi().setTimezone('Etc/UTC')
-        } else {
-          tvWidget.activeChart().getTimezoneApi().setTimezone('Asia/Shanghai')
-        }
+          // 日周月级别使用 UTC 时区，分钟级别使用上海时区
+          if (['D', 'W', 'M', 'Y'].some((item) => interval.endsWith(item))) {
+            tvWidget.activeChart().getTimezoneApi().setTimezone('Etc/UTC')
+          } else {
+            tvWidget.activeChart().getTimezoneApi().setTimezone('Asia/Shanghai')
+          }
 
-        ws.activeSymbolInfo.onResetCacheNeededCallback?.()
-        setTimeout(() => {
-          tvWidget.activeChart().resetData()
-        }, 100)
-      })
+          ws.activeSymbolInfo.onResetCacheNeededCallback?.()
+          setTimeout(() => {
+            tvWidget.activeChart().resetData()
+          }, 100)
+        })
 
       // 默认显示 MACD 指标
       if (showBottomMACD === 1) {
@@ -157,13 +161,7 @@ const Tradingview = () => {
       }
 
       // 创建自定义 MA 指标
-      tvWidget.activeChart().createStudy(
-        'Customer Moving Average',
-        false,
-        false,
-        {},
-        { showLabelsOnPriceScale: false }
-      )
+      tvWidget.activeChart().createStudy('Customer Moving Average', false, false, {}, { showLabelsOnPriceScale: false })
 
       // 动态切换主题
       if (query.theme && !params.bgGradientStartColor) {
@@ -199,11 +197,7 @@ const Tradingview = () => {
 
   return (
     <div style={{ position: 'relative' }}>
-      <div
-        id="tradingview"
-        ref={chartContainerRef}
-        style={{ height: 'calc(100vh - 60px)', opacity: loading ? 0 : 1 }}
-      />
+      <div id="tradingview" ref={chartContainerRef} style={{ height: 'calc(100vh - 60px)', opacity: loading ? 0 : 1 }} />
       {isChartLoading && (
         <div className="loading-container">
           <div className="loading"></div>
@@ -296,9 +290,7 @@ class DataFeedBase {
       description: this.isZh ? currentSymbol.description : currentSymbol?.name,
       exchange: this.isZh ? currentSymbol?.exchange : '',
       session: '0000-0000|0000-0000:1234567;1',
-      timezone: ['D', 'W', 'M', 'Y'].some((item) => resolution.endsWith(item))
-        ? 'Etc/UTC'
-        : 'Asia/Shanghai'
+      timezone: ['D', 'W', 'M', 'Y'].some((item) => resolution.endsWith(item)) ? 'Etc/UTC' : 'Asia/Shanghai'
     } as LibrarySymbolInfo
 
     setTimeout(() => {
@@ -371,11 +363,7 @@ export default DataFeedBase
 // src/components/Tradingview/widgetOpts.tsx
 import ma from './customIndicators/ma'
 
-export default function getWidgetOpts(
-  props,
-  containerRef: any,
-  datafeedParams: any
-): ChartingLibraryWidgetOptions {
+export default function getWidgetOpts(props, containerRef: any, datafeedParams: any): ChartingLibraryWidgetOptions {
   const ENV = getEnv()
   const theme = props.theme
   const bgColor = theme === 'dark' ? ThemeConst.black : ThemeConst.white
@@ -430,10 +418,7 @@ export default function getWidgetOpts(
       'paneProperties.background': `${bgColor}`
     },
     disabled_features,
-    enabled_features: [
-      'hide_resolution_in_legend',
-      'display_legend_on_all_charts'
-    ],
+    enabled_features: ['hide_resolution_in_legend', 'display_legend_on_all_charts'],
     custom_css_url: ENV.isApp ? `./styles/index.css` : `/static/styles/index.css`,
     favorites: {
       intervals: ['1', '5', '15', '30', '60']
@@ -464,17 +449,18 @@ class WsStore {
 
   // HTTP 获取历史 K 线数据
   getHttpHistoryBars = async (symbolInfo, resolution, from, to, countBack, firstDataRequest) => {
-    const klineType = {
-      1: '1min',
-      5: '5min',
-      15: '15min',
-      30: '30min',
-      60: '60min',
-      240: '4hour',
-      '1D': '1day',
-      '1W': '1week',
-      '1M': '1mon'
-    }[resolution] || '1min'
+    const klineType =
+      {
+        1: '1min',
+        5: '5min',
+        15: '15min',
+        30: '30min',
+        60: '60min',
+        240: '4hour',
+        '1D': '1day',
+        '1W': '1week',
+        '1M': '1mon'
+      }[resolution] || '1min'
 
     const res = await request.get(`${url}/api/trade-market/marketApi/kline/symbol/klineList`, {
       params: {
@@ -488,18 +474,18 @@ class WsStore {
     })
 
     const list = res?.data || []
-    return list.map((item) => {
-      const [klineTime, open, high, low, close] = (item || '').split(',')
-      return {
-        open: Number(open),
-        close: Number(close),
-        high: Number(high),
-        low: Number(low),
-        time: resolution.includes('M')
-          ? Number(klineTime) + 8 * 60 * 60 * 1000
-          : Number(klineTime)
-      }
-    }).reverse()
+    return list
+      .map((item) => {
+        const [klineTime, open, high, low, close] = (item || '').split(',')
+        return {
+          open: Number(open),
+          close: Number(close),
+          high: Number(high),
+          low: Number(low),
+          time: resolution.includes('M') ? Number(klineTime) + 8 * 60 * 60 * 1000 : Number(klineTime)
+        }
+      })
+      .reverse()
   }
 
   // 更新最后一条 K 线
@@ -562,15 +548,14 @@ class WsStore {
   @action
   getDataFeedBarCallback = (obj = {}) => {
     const { symbolInfo, resolution, firstDataRequest, from, to, countBack, onHistoryCallback } = obj
-    this.getHttpHistoryBars(symbolInfo, resolution, from, to, countBack, firstDataRequest)
-      .then((bars) => {
-        if (bars?.length) {
-          onHistoryCallback(bars, { noData: false })
-          this.lastbar = bars.at(-1)
-        } else {
-          onHistoryCallback(bars, { noData: true })
-        }
-      })
+    this.getHttpHistoryBars(symbolInfo, resolution, from, to, countBack, firstDataRequest).then((bars) => {
+      if (bars?.length) {
+        onHistoryCallback(bars, { noData: false })
+        this.lastbar = bars.at(-1)
+      } else {
+        onHistoryCallback(bars, { noData: true })
+      }
+    })
   }
 }
 
@@ -672,7 +657,7 @@ export type ColorType = 1 | 2 // 1绿涨红跌 2红涨绿跌
 
 export function setChartStyleProperties(props: { colorType: ColorType; tvWidget: IChartingLibraryWidget }) {
   const { colorType, tvWidget } = props
-  const red = ThemeConst.red   // #C54747
+  const red = ThemeConst.red // #C54747
   const green = ThemeConst.green // #45A48A
 
   let upColor = Number(colorType) === 2 ? red : green
@@ -775,10 +760,10 @@ if (theme && defaultBgColor !== STORAGE_GET_CHART_PROPS('paneProperties.backgrou
 useEffect(() => {
   return () => {
     // 组件卸载时清理
-    tvWidget.remove()  // 销毁图表实例
-    mitt.off('symbol_change')  // 取消事件订阅
-    this.stopHeartbeat()  // 停止心跳
-    this.socket?.close()  // 关闭 WebSocket
+    tvWidget.remove() // 销毁图表实例
+    mitt.off('symbol_change') // 取消事件订阅
+    this.stopHeartbeat() // 停止心跳
+    this.socket?.close() // 关闭 WebSocket
   }
 }, [])
 ```
@@ -818,21 +803,19 @@ if (this.lastBarTime === bars[0]?.time / 1000) {
 ```typescript
 // 移动端禁用多余功能
 if (props.isMobile) {
-  disabled_features.push(
-    'header_symbol_search',
-    'context_menus',
-    'show_chart_property_page',
-    'header_screenshot',
-    'left_toolbar'
-  )
+  disabled_features.push('header_symbol_search', 'context_menus', 'show_chart_property_page', 'header_screenshot', 'left_toolbar')
 }
 
 // 禁止双指缩放
-document.body.addEventListener('touchstart', (e) => {
-  if (e.touches.length > 1) {
-    e.preventDefault()
-  }
-}, { passive: false })
+document.body.addEventListener(
+  'touchstart',
+  (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault()
+    }
+  },
+  { passive: false }
+)
 ```
 
 ## 八、完整调用示例
@@ -851,6 +834,7 @@ export default function ChartPage() {
 ```
 
 URL 参数说明：
+
 - `symbolName`: 交易品种，如 BTCUSDT
 - `theme`: 主题，light 或 dark
 - `locale`: 语言，如 en、zh_TW

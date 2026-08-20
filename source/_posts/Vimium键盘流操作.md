@@ -11,7 +11,6 @@ Vimium是一个Chrome的插件，可以在google的web app store中搜索并安�
 
 `shift+/` 显示命令帮助，记不得就按这个符号，弹出的窗口如下：
 
-![此处输入图片的描述][1]
 <!--more-->
 
 ### Vimium常用快捷键(注：区分大小写)
@@ -55,5 +54,4 @@ Vimium是一个Chrome的插件，可以在google的web app store中搜索并安�
 `i` : 进入输入模式 Enter insert mode
 `esc`：退出
 
-  [1]: http://img.blog.csdn.net/20140417142500437?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQveGlhamlhbjIwMTA=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center
   [2]: http://linxg-wordpress.stor.sinaapp.com/uploads/2014/04/viumclik.png

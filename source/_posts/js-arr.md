@@ -151,7 +151,6 @@ arr.forEach(function(item, index, arr){
 #### 数组常用的方法
 ---
 
-![](https://segmentfault.com/img/bVzkqq)
 
 ##### join() 将数值转换为字符串
 ---

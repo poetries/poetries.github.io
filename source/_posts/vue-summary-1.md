@@ -9,7 +9,7 @@ categories: Front-End
 
 ## 一、介绍
 
-![](https://poetries1.gitee.io/img-repo/2019/10/635.png)
+![](https://s.poetries.top/gitee/2019/10/635.png)
 
 
 - `Vue`是一套构建用户界面的 渐进式框架。`Vue` 的核心库只关注视图层，并且非常容易学习，非常容易与其它库或已有项目整合。
@@ -845,18 +845,15 @@ template: '<span>{{ message}}</span>
 
 各部分之间的通信方式
 
-![](http://image.beekka.com/blog/2015/bg2015020105.png)
 
 #### 互动模式
 ---
 
 - 接受用户指令时，MVC 可以分成两种方式。一种是通过 View 接受指令，传递给 Controller
 
-![](http://image.beekka.com/blog/2015/bg2015020106.png)
 
 - 另一种是直接通过controller接受指令
 
-![](http://image.beekka.com/blog/2015/bg2015020107.png)
 
 
 #### MVP
@@ -864,7 +861,6 @@ template: '<span>{{ message}}</span>
 
 - ` MVP` 模式将 `Controller 改名为 `Presenter`，同时改变了通信方向
 
-![](http://image.beekka.com/blog/2015/bg2015020109.png)
 
 - 各部分之间的通信，都是双向的。
 - `View` 与` Model` 不发生联系，都通过 `Presenter` 传递。
@@ -876,7 +872,6 @@ template: '<span>{{ message}}</span>
 - `MVVM` 模式将 `Presenter` 改名为 `ViewModel`，基本上与 `MVP` 模式完全一致
 - 唯一的区别是，它采用双向绑定（data-binding）：`View`的变动，自动反映在 `ViewModel`，反之亦然
 
-![](http://image.beekka.com/blog/2015/bg2015020110.png)
 
 ### 附录二 vue与其他框架的对比
 

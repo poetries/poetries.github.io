@@ -401,7 +401,6 @@ WakaTime可以做到精确地统计到你花在某个项     目上的时间;Wak
 
 **常用快捷键表**
 
-![此处输入图片的描述][69]
 
 ## 五、定制属于自己的个性化主题
 
@@ -542,7 +541,6 @@ Tomorrow 主题颜色丰富，有着强烈的对比
   [66]: https://wakatime.com/help/plugins/sublime-text
   [67]: https://luolei.org/track-your-time/
   [68]: http://blog.csdn.net/moyan_min/article/details/11530751
-  [69]: http://7xq6al.com1.z0.glb.clouddn.com/sublime%E5%BF%AB%E6%8D%B7%E9%94%AE.jpg
   [70]: http://kkga.github.io/spacegray/
   [71]: http://static.oschina.net/uploads/img/201409/12070241_RMc4.png
   [72]: http://ethanschoonover.com/solarized

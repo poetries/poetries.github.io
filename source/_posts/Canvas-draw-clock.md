@@ -1,9 +1,9 @@
 ---
 title: Canvas 绘制动画时钟
 date: 2016-12-02 19:35:24
-tags: 
-  - HTML5
-  - Canvas
+tags:
+- HTML5
+- Canvas
 categories: Front-End
 ---
 
@@ -30,11 +30,11 @@ function drawClock(){
 
   //小时必须获取浮点类型（小时 + 分数转换成的小时）
   hour = hour + min / 60;
-  
+
   //将24小时进制转换为12小时 不然就是 这样的形式不好了 18:30:10
   hour = hour > 12 ? hour - 12 : hour;
 
-  
+
   //表盘
 
   context.lineWidth = 10;
@@ -113,8 +113,8 @@ function drawClock(){
   context.lineTo(0,20);
   context.closePath();
   context.stroke();
-  
-  
+
+
   //画时针 分针 秒针的交叉点
   context.beginPath();
   context.arc(0,0,5,0,360,false);//FALSE 逆时针
@@ -122,16 +122,16 @@ function drawClock(){
   context.fillStyle = "gray";//设置填充样式
   context.fill();
   context.stroke();
- 
+
   //设置秒针的小圆点
-  
+
   context.beginPath();
   context.arc(0,-160,2,0,360,false);//FALSE 逆时针
   context.closePath();
   context.fillStyle = "blue";//设置填充样式
   context.fill();
   context.stroke();
-  
+
   context.restore();
 }
 drawClock(); //这一句必须加上 因为setInterval 第一秒不执行

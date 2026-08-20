@@ -1,59 +1,98 @@
 ---
-title: 微前端常见落地方案对比总结
+title: 微前端落地方案对比，qiankun 无界 Module Federation 怎么选
 date: 2024-02-25 16:40:12
-description: 本文对比微前端五大主流落地方案：iframe、qiankun、Module Federation、Web Components、EMP，从技术原理、优缺点、适用场景等维度进行全面分析，并深入讲解JS沙箱机制和CSS隔离方案。
+description: 对比 iframe、qiankun/single-spa、Module Federation、Bit、Web Components 五大微前端落地方案的原理与取舍，拆解 JS 沙箱与 CSS 隔离的实现代码，给出一条可执行的选型路径。
 tags:
 - 微前端
 - qiankun
 - Module Federation
 - Web Components
 - 前端架构
+- 技术选型
 categories: Front-End
 ---
 
-## 导语
+一个跑了三四年的中后台，前端仓库里堆着十几个业务模块，两个组改同一个 `package.json`，谁升级一次 `element-ui` 全公司都得跟着回归。这时候有人会说，上微前端吧。可微前端不是一个包，是二十多种互相打架的实现路子，选错了就是把巨石应用换成了一堆互相依赖的碎石头。
 
-在大型前端项目开发中，团队常常面临巨石应用的困境。随着业务迭代，项目代码量急剧膨胀，模块间耦合度高，开发效率低下，维护成本攀升。微前端作为一种将微服务理念拓展到前端开发的架构风格，能够将庞大的单体应用拆分为多个可独立开发、测试、部署的小型应用，从根本上解决团队协作和系统维护的难题。
+这篇把业界主流的五个流派挨个拆开讲，原理、代码、坑点、适用规模都写清楚，最后给一条能直接照着走的选型路径，帮你在动手前先判断「这个方案到底配不配我的项目」。
 
-本文将深入对比目前业界主流的五大微前端落地方案，包括基于 `iframe` 的传统方案、基于路由分发的 `qiankun` 与 `single-spa`、基于构建工具的 `Module Federation`、组件驱动的 `Bit` 方案，以及基于浏览器原生标准的 `Web Components` 方案。通过对各方案的**技术原理、核心特性、优缺点和适用场景**进行全方位剖析，并重点讲解 **JS 沙箱机制** 和 **CSS 隔离方案** 的实现原理，帮助技术团队快速建立对微前端的整体认知，并做出符合业务需求的技术选型决策。
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
 
-## 什么是微前端
+- 微前端到底在解决什么问题，什么情况下不该上
+- 一张图看懂主流微前端方案的运行链路
+- iframe 派、路由分发派、Module Federation 派、组件驱动派、Web Components 派的原理与取舍
+- 快照沙箱与 Proxy 沙箱的完整实现代码，以及各自的边界
+- CSS 隔离的四条路子，每条在什么场景会失效
+- 多维度对比表 + 一条可执行的选型决策路径
 
-微前端（Micro Frontends）这一概念由 Thoughtworks 于 2016 年 11 月在 Technology Radar 文章中率先提出。其核心定义是：**一种由独立交付的多个前端应用组成整体的架构风格，将前端应用分解成更小、更简单的能够独立开发、测试、部署的应用，而在用户看来仍然是内聚的单个产品。**
+## 一、先想清楚要不要上微前端
 
-Martin Fowler 给出了一个更为简洁的英文解释：*An architectural style where independently deliverable frontend applications are composed into a greater whole.* 微前端本质上借鉴了 2014 年提出的微服务（Microservices）架构思想，两者在解决的问题上高度相似——随着应用规模扩大，耦合度升高，导致缺乏灵活性，难以维护。
+微前端（Micro Frontends）这个词是 Thoughtworks 在 2016 年 11 月的 Technology Radar 里提出来的，定义是「一种由独立交付的多个前端应用组成整体的架构风格，把前端应用拆成更小、更简单、能独立开发测试部署的应用，而在用户看来仍然是内聚的单个产品」。Martin Fowler 的英文版更短：*An architectural style where independently deliverable frontend applications are composed into a greater whole.*
 
-需要特别澄清的是，微前端并非一门具体的技术，而是一套整合了技术、策略和方法的完整架构体系。它可能以脚手架、配套工具和规范约束等多种形式呈现，不同方案各有利弊，适合业务场景的就是好方案。此外，微前端本身没有技术栈约束，技术栈无关不是微前端的固有要求，各团队可以根据实际情况选择 `React`、`Vue` 或其他框架。微前端也不要求各应用必须能独立运行，拆分的粒度可以是应用级、页面级，甚至组件级。
+它借的是 2014 年微服务那套思路，解决的问题也高度重合，规模变大、耦合变高、改不动了。
 
-## 微前端的核心价值与适用场景
+先说结论，微前端不是一门技术，是一整套技术加策略加规范的组合。它可能表现为一个脚手架、一套构建插件、一份团队约定，不同方案各有各的取舍，适合业务场景的就是好方案。有两个常见误解需要先掰正。第一，技术栈无关不是微前端的强制要求，你完全可以做一个全 React 的微前端体系。第二，子应用也不一定要能独立运行，拆分粒度可以是应用级、页面级，甚至组件级。
 
-微前端的兴起主要源于三类业务需求。**遗留系统迁移**是最常见的原因——许多企业存在使用 Backbone.js、Angular.js 或 Vue.js 1 等老旧技术栈构建的应用，这些应用在线上稳定运行但缺乏新功能投入，在不重写原有系统的前提下接入新业务是极其诱人的选择。**后端解耦、前端聚合**是第二个重要需求，特别是 To B 应用场景，用户希望像使用单一产品一样使用企业提供的多个系统，聚合成为技术趋势。第三类需求是**系统需要支持动态插拔机制**，具备清晰的服务边界，支持不同团队独立演进。
+那什么情况下值得上？我自己的感受是，只有三类需求撑得起这个复杂度。
 
-然而，微前端并非万能解决方案。当团队具备系统内所有架构组件的话语权、有足够动力去治理和改造整个系统、或者系统本身已是不可分离的架构量子时，引入微前端可能带来不必要的复杂性。技术团队需要在引入微前端之前，充分评估收益与成本的平衡。
+**遗留系统迁移**是最硬的理由。手上有 Backbone.js、Angular.js 或者 Vue 1 写的老系统，线上跑得好好的，业务方不给重写预算，但新功能要用 React 18 写，这时候「不重写老系统直接接入新业务」的诱惑几乎无法拒绝。第二类是**后端解耦、前端聚合**，尤其 To B 场景，客户买了你五个系统，他要的是一个入口一次登录，而不是五个域名五套导航。第三类是**系统需要动态插拔**，服务边界清晰，不同团队要能各自演进各自发版。
 
-## 微前端五大主流方案对比
+反过来，如果你对系统里所有架构组件都有话语权，有人力也有动力去做统一治理，或者这个系统本身就是不可分割的一整块，那引入微前端只会白白多出一层运行时复杂度。技术团队要在动手之前先算一遍收益和成本，别被热度推着走。
 
-目前业界实现的微前端主流方案多达二十余种，按照技术实现方式可以划分为五大流派。接下来我们将逐一分析各流派的代表方案、技术原理和适用场景。
+## 二、主流方案的运行链路长什么样
 
-### 方案一：iframe 派
+除了 iframe 和 Module Federation，主流的运行时微前端方案链路都长得差不多，理解了这张图，后面各家的差异就只是细节：
 
-`iframe` 是最传统也是最简单的微前端实现方式。HTML 内联框架元素 `<iframe>` 表示嵌套的浏览上下文，能有效地将另一个 HTML 页面嵌入到当前页面中。这种方案的核心优势体现在三个方面：**即来即用**，开发者可以直接使用，无需引入额外依赖；**隔离完美**，`iframe` 可以创建全新独立的宿主环境，子应用之间互不干扰；**组合灵活**，支持在一个页面放置多个应用。
+```
+                    ┌─────────────────────────────┐
+   URL 变化  ─────► │  基座应用 (Container)        │
+                    │  路由监听 / 注册表 / 公共依赖 │
+                    └──────────────┬──────────────┘
+                                   │ 命中 activeRule
+                                   ▼
+                    ┌─────────────────────────────┐
+                    │  资源加载 (import-html-entry)│
+                    │  取 entry HTML → 抽 JS / CSS │
+                    └──────────────┬──────────────┘
+                                   │
+                 ┌─────────────────┴─────────────────┐
+                 ▼                                   ▼
+        ┌──────────────────┐               ┌──────────────────┐
+        │  JS 沙箱          │               │  CSS 隔离         │
+        │  Proxy / 快照     │               │  动态样式表       │
+        │  劫持 window      │               │  Shadow DOM      │
+        └────────┬─────────┘               └────────┬─────────┘
+                 └─────────────────┬─────────────────┘
+                                   ▼
+                    ┌─────────────────────────────┐
+                    │  子应用 mount(props)         │
+                    │  Vue2 / React18 / 老 jQuery  │
+                    └─────────────────────────────┘
+```
 
-然而，`iframe` 方案存在多个致命缺陷。**视窗大小不同步**是典型问题，例如在 `iframe` 内的弹窗想要居中展示就非常困难。**子应用间通信受限**，只能通过 `postMessage` 传递序列化的消息，增加了开发复杂度。**性能开销显著**，加载速度慢、构建 `iframe` 环境会导致白屏时间过长。**路由状态丢失**也是常见痛点，刷新页面后 `iframe` 的 URL 状态会丢失，用户体验不佳。
+链路上有四个必须解决的问题，各家方案的差异全在这四点上：路由怎么分发、子应用资源怎么加载、JS 全局环境怎么隔离、样式怎么不互相污染。你在评估任何一个新框架时，直接拿这四个问题去问它就行。
 
-**无界（Wujie）** 是腾讯在 2021 年推出的创新方案，定位为「基于 iframe 的全新微前端方案」。它继承 `iframe` 的优点同时补足其缺点，核心思路是：利用 `iframe` 的隔离性把 JS 代码放到 `iframe` 里执行（通过 Proxy），利用 Shadow DOM 的隔离性把子应用的 DOM 写到 ShadowRoot 中实现样式隔离。无界的主要优点包括单页面中多应用同时激活、隔离机制优雅、组件式使用方便；缺点是 Shadow DOM 和 Proxy 导致兼容性一般。
+## 三、iframe 派，隔离最好但体验最差
 
-### 方案二：路由分发 + 资源处理派
+`<iframe>` 是嵌套的浏览上下文，能把另一个 HTML 页面完整塞进当前页面。用它做微前端有三个别的方案给不了的好处。
 
-这一流派是业界最主流的微前端实现方式，突出特点是 **production-ready**，提供完整的基座应用与子应用的主从关系、路由分发机制、子应用资源处理、JS 沙箱隔离、样式隔离支持以及完善的配套体系。代表方案包括基于 `single-spa` 的 `qiankun`、字节的 `Garfish`、阿里巴巴的 `icestark` 等。
+即来即用，不引任何依赖，今天下午就能上线。隔离完美，`iframe` 创建的是全新的宿主环境，JS 全局变量、CSS、路由全都天然隔开，你不用写一行沙箱代码。组合灵活，一个页面里放三个 `iframe` 挂三个子应用，互不干扰。
 
-#### 2.1 single-spa 原理与实战
+问题也很直接。视窗大小不同步，`iframe` 里弹一个 Modal 想相对整个浏览器窗口居中，你得靠 `postMessage` 通知父页面来画遮罩，这个我踩过，弹层多起来之后代码会非常难维护。子应用通信受限，只能传可序列化的消息，传函数、传 Proxy 对象一律不行。性能开销显著，每个 `iframe` 都要重新建一整套浏览器环境，白屏时间躲不掉。路由状态丢失，用户在 `iframe` 里点了三层，一刷新回到首页。
 
-**single-spa** 是这一流派的开山鼻祖，核心定位是「为实现前端微服务化的 js 路由」。它实现了主应用通过路由匹配实现对子应用生命周期的管理。
+**无界（Wujie）** 是腾讯开源的一个思路很聪明的方案，定位是「基于 iframe 的全新微前端方案」。它把 `iframe` 的隔离性和 Shadow DOM 的隔离性拆开用，JS 放进 `iframe` 里执行并通过 Proxy 接管全局对象，DOM 写进主文档的 ShadowRoot 里做样式隔离。这样既拿到了原生 JS 隔离，又绕开了 `iframe` 视窗和渲染层面的那些老问题。
 
-**核心原理**：single-spa 通过监听浏览器 URL 的变化，在路由切换时判断是否需要加载或卸载某个子应用。核心思想是将整个应用视为一个 SPA，但在内部根据路由规则加载不同的子应用。每个子应用需要导出标准的生命周期方法供主应用调用。
+无界的优点是单页面多应用可以同时激活、隔离机制干净、组件式接入很省事。代价是它同时依赖 Shadow DOM 和 Proxy，兼容性一般，要支持老浏览器的项目得先掂量一下。
 
-single-spa 的核心 API 简洁明了：
+## 四、路由分发 + 资源处理派，生产环境的主力
+
+这一派是目前落地量最大的，突出特点就是 production-ready，基座和子应用的主从关系、路由分发、资源加载、JS 沙箱、样式隔离、配套调试工具，一整套都给你备齐了。代表是基于 `single-spa` 的 `qiankun`、字节的 `Garfish`、阿里的 `icestark`。
+
+### 4.1 single-spa，这一派的地基
+
+`single-spa` 把自己定义成「为实现前端微服务化的 js 路由」，它做的事情非常克制：监听浏览器 URL 变化，在路由切换时判断该加载还是卸载哪个子应用，然后调子应用导出的生命周期函数。
+
+主应用侧只有两个 API，注册和启动：
 
 ```javascript
 // 主工程注册子应用
@@ -67,7 +106,9 @@ singleSpa.registerApplication({
 singleSpa.start();
 ```
 
-子应用需要导出三个核心生命周期方法：
+注意 `app` 这个字段，`single-spa` 自己不管你怎么把子应用的代码弄下来，它只要求你返回一个 Promise。这也是它和 `qiankun` 最大的分工差异，后面会讲到。
+
+子应用这边要导出三个生命周期，主应用按需调用：
 
 ```javascript
 // 子应用导出生命周期
@@ -89,7 +130,9 @@ export const unmount = (props) => {
 };
 ```
 
-使用 `single-spa-vue` 封装 Vue 子应用的示例：
+`bootstrap` 只跑一次，`mount` 和 `unmount` 每次切换都跑。写子应用时最容易出事的就是 `unmount`，定时器、全局事件监听、第三方 SDK 实例，这些在 `unmount` 里没清干净，切几次应用内存就上去了。
+
+Vue 子应用可以用官方适配包 `single-spa-vue` 省掉样板代码：
 
 ```javascript
 // main.js
@@ -119,18 +162,15 @@ export const unmount = vueLifeCycle.unmount;
 export default vueLifeCycle;
 ```
 
-**single-spa 的优势与局限**：
+`window.singleSpaNavigate` 这个判断是关键，它让同一份代码既能被基座加载，又能自己 `npm run dev` 独立跑起来，日常开发不用每次都起基座。
 
-- 优势：轻量级（小于 5kb gzip）、框架无关、路由劫持机制完善
-- 局限：**不支持 JS 沙箱隔离**、**不支持 CSS 隔离**，这也是众多框架基于它做二次封装的原因
+`single-spa` 的账很好算。优势是轻量（gzip 后不到 5kb）、框架无关、路由劫持做得完善。局限是它**不做 JS 沙箱，也不做 CSS 隔离**。这就是为什么国内几乎没人直接用裸的 `single-spa` 上生产，大家用的都是基于它二次封装的框架。
 
-#### 2.2 qiankun 原理与实战
+### 4.2 qiankun，国内落地量最大的一个
 
-**qiankun** 是蚂蚁金服基于 `single-spa` 孵化的微前端实现库，定位为「快速、简单、完整的微前端解决方案」，口号是「可能是你见过最完善的微前端解决方案」。`qiankun` 是目前国内影响力最大的面向生产的微前端方案，也是唯一得到 `single-spa` 官方推荐的方案。
+`qiankun` 是蚂蚁基于 `single-spa` 孵化的实现，口号是「可能是你见过最完善的微前端解决方案」，也是 `single-spa` 官方推荐名单上的方案。它在 `single-spa` 上补了两块最缺的东西：用 `import-html-entry` 负责子应用 HTML/JS/CSS 资源的加载与执行，再加上一套完整的 JS 沙箱和样式隔离。
 
-**核心原理**：qiankun 在 `single-spa` 基础上引入了 `import-html-entry` 库来加载和处理子应用的 HTML、JS、CSS 资源，并实现了完整的 JS 沙箱和 CSS 隔离机制。
-
-**主应用配置示例**：
+主应用配置长这样：
 
 ```javascript
 import { registerMicroApps, start } from 'qiankun';
@@ -165,7 +205,9 @@ start({
 });
 ```
 
-**子 Vue 应用配置**：
+这里有个坑要注意，`entry` 填的是一个 HTML 地址而不是 JS 地址。`qiankun` 会把这个 HTML 抓下来，正则抽出里面的 `<script>` 和 `<link>`，再逐个取回来在沙箱里执行。所以子应用的开发服务器**必须开跨域**，否则你连 HTML 都拿不到，控制台里会是一片 CORS 报错。
+
+子应用侧，Vue 2 的写法是这样：
 
 ```javascript
 // src/main.js
@@ -198,6 +240,10 @@ export async function unmount(props) {
 }
 ```
 
+`__webpack_public_path__` 那一行很多人会漏。子应用被基座加载时，页面地址是基座的域名，如果不动态改 publicPath，子应用去请求自己的异步 chunk、图片、字体时会打到基座域名上，全部 404。
+
+构建配置也得配合，输出格式必须是 UMD，`library` 名字要能被 `qiankun` 从 window 上取到：
+
 ```javascript
 // vue.config.js
 module.exports = {
@@ -216,7 +262,7 @@ module.exports = {
 };
 ```
 
-**子 React 应用配置**：
+React 子应用是同一套逻辑，只是挂载和卸载换成了 `ReactDOM` 的 API：
 
 ```javascript
 // index.js
@@ -244,6 +290,8 @@ export async function unmount() {
 }
 ```
 
+用 CRA 起的项目改不了 webpack 配置，得靠 `react-app-rewired` 配合 `config-overrides.js` 打补丁：
+
 ```javascript
 // config-overrides.js
 module.exports = {
@@ -265,23 +313,21 @@ module.exports = {
 };
 ```
 
-#### 2.3 Garfish 原理
+上面这几段代码合在一起，就是 `qiankun` 接入的全部必做项：基座注册、子应用导出生命周期、publicPath 动态化、UMD 输出、跨域头。少一条都跑不通。
 
-**Garfish** 是字节跳动完全自研的微前端框架，与 `qiankun` 的不同在于它没有基于 `single-spa` 和 `import-html-entry`，完全自研。其主要特点包括：
+### 4.3 Garfish，字节完全自研的那个
 
-- 支持任意框架技术体系接入
-- 强大的预加载能力（自动记录用户应用加载习惯增加加载权重）
-- 支持依赖共享，降低整体包体积
-- 支持多实例能力（页面中同时运行多个子应用）
-- 提供业务插件满足定制需求
+`Garfish` 和 `qiankun` 最大的区别是它没有基于 `single-spa`，也没用 `import-html-entry`，整条链路自己写的。它的特点集中在几个工程化能力上：支持任意框架接入、预加载会自动记录用户的应用加载习惯来调整权重、支持依赖共享降低整体体积、支持多实例同时运行、提供业务插件机制。
 
-在样式隔离方面，Garfish 处理得更为细致，劫持各种事件和资源，把插入的样式全部收集起来统一隔离管理，同时也支持 Shadow DOM。
+样式隔离这块 `Garfish` 做得更细，它会劫持各种事件和资源加载，把插入的样式统一收集起来管理，同时也支持 Shadow DOM 模式。如果你的场景是一个页面里同时挂多个子应用而且样式冲突严重，它值得优先试。
 
-### 方案三：Module Federation 派
+## 五、Module Federation 派，构建时就把依赖接上
 
-Module Federation（以下简称 MF）是 Webpack 5 引入的新特性，官方定义是「多个独立的构建可以组成一个应用程序，这些独立的构建之间不应该存在依赖关系，因此可以单独开发和部署。这通常被称作微前端，但并不仅限于此。」这一流派的核心特点是**去中心化**——每个应用既可以是暴露模块供其它应用调用的 remote，也可以是使用其它应用模块的 host。
+Module Federation（下面简称 MF）是 Webpack 5 带来的新能力，官方的说法是「多个独立的构建可以组成一个应用程序，这些独立的构建之间不应该存在依赖关系，因此可以单独开发和部署」。
 
-**配置示例**：
+它和上面那一派的思路完全不同。前面几个方案是运行时把一个完整的子应用挂进 DOM，MF 是构建时约定好模块契约，运行时按需去远端拉一个模块回来执行。所以这一派最大的特征是**去中心化**，没有基座和子应用的主从关系，每个应用既可以是暴露模块的 remote，也可以是消费模块的 host。
+
+提供方这样配：
 
 ```javascript
 // App1 - 提供方
@@ -309,6 +355,8 @@ module.exports = {
 };
 ```
 
+消费方声明 remote 地址，之后就像 import 本地文件一样用：
+
 ```javascript
 // App2 - 消费方
 module.exports = {
@@ -329,30 +377,40 @@ module.exports = {
 import Button from 'app1/Button';
 ```
 
-**EMP（Enterprise Micro Frontends）** 是欢聚时代业务中台前端团队基于 Module Federation 实现的微前端解决方案，核心特点包括：通过 MF 实现第三方依赖共享、每个微应用独立部署运行并通过 CDN 引入主程序、动态更新微应用、去中心化弱化中心应用概念、跨技术栈组件式调用。
+`shared` 是 MF 的灵魂，也是最容易翻车的地方。它让多个应用共用一份 `vue`，包体积一下就下来了，但共享的前提是版本能对上。两边一个用 Vue 2.6 一个用 Vue 2.7，运行时会按 semver 规则协商，协商不成就各加载各的，你会发现体积优化根本没生效。给 `shared` 显式写上 `singleton: true` 和 `requiredVersion` 是必要的自我保护。
 
-### 方案四：Component-driven 派
+**EMP（Enterprise Micro Frontends）** 是欢聚时代业务中台前端团队基于 MF 做的方案，把第三方依赖共享、微应用独立部署走 CDN、动态更新、去中心化、跨技术栈组件式调用这几件事包装成了完整工具链。
 
-这一流派将微前端的粒度从应用级延伸到了组件级，代表方案是 **Bit**。Bit 在 GitHub 上有超过 17k 的 star，已被 eBay、Dell、Tesla 等大公司采用。
+需要认清的是，MF 派没有 JS 沙箱也没有 CSS 隔离，共享的模块是直接跑在同一个全局环境里的。它更适合技术栈统一的团队做代码复用和构建提速，不适合用来接管一个 jQuery 老系统。Webpack 5 的其他能力我在另一篇里写得更细，可以配合看：[Webpack 5 核心特性与构建性能优化](https://feinterview.poetries.top/blog/webpack-5-build-optimization)。
 
-### 方案五：Web Components 派
+## 六、Component-driven 派，把粒度做到组件级
 
-**MicroApp** 是京东推出的基于类 WebComponent 进行渲染的微前端框架，接入成本极低：
+这一派把微前端的拆分粒度从应用级一路推到了组件级，代表是 **Bit**，GitHub 上 17k+ star，官网列出的使用方里有 eBay、Dell、Tesla 这类公司。
+
+它的思路是每个组件独立版本、独立构建、独立发布，跨项目按组件复用，配套一整套组件市场和依赖分析工具。用它的团队通常诉求不是「把几个系统聚合到一个入口」，而是「几十个产品线之间怎么共享同一套业务组件」。这个定位和其他四派差得比较远，评估时不用硬放在一起比。
+
+## 七、Web Components 派，赌浏览器原生标准
+
+**MicroApp** 是京东的方案，基于类 Web Components 渲染，接入成本低到有点夸张：
 
 ```javascript
 // 只需用标签包裹即可
 <micro-app name="app1" url="http://localhost:3000" baseurl="/app1"></micro-app>
 ```
 
-**Magic Microservices** 是字节跳动开源的基于 Web Components 的轻量级微前端工厂函数。
+主应用侧一行标签，子应用侧几乎不用改造，这个设计是真的舒服。它内部用 CustomElement 结合自定义的 ShadowDom 实现渲染隔离，同时也提供了 JS 沙箱。
 
-## JS 沙箱机制详解
+**Magic Microservices** 是字节开源的基于 Web Components 的轻量工厂函数，更偏底层，适合自己搭轮子。
 
-JS 沙箱机制是微前端方案的核心技术之一，用于隔离不同子应用之间的 JavaScript 执行环境，防止子应用对全局环境造成污染。
+这一派的赌注是浏览器原生标准，长期看方向没错。眼下的问题在于 Shadow DOM 对第三方组件库不友好，很多 UI 库的弹层、Message、Tooltip 默认往 `document.body` 上挂，一挂就跑到 ShadowRoot 外面去了，样式全丢。所以用这一派之前，先拿你项目里的组件库做一次弹层实测，别等业务写完了才发现。
 
-### 快照沙箱
+## 八、JS 沙箱到底怎么实现的
 
-快照沙箱的原理是在应用激活时遍历 Window 上的变量并存储为一个"快照"，应用卸载时再次遍历对比，将不同的变量存储并将 Window 恢复。其核心实现如下：
+沙箱要解决的事情就一句话，子应用改了 `window.xxx`，卸载之后要能恢复原样，多个子应用同时跑还不能互相看见。
+
+### 8.1 快照沙箱
+
+思路很朴素，激活时把 `window` 上的属性全拍一遍照存下来，卸载时再遍历一遍，对比出哪些被改了，记下来并把 `window` 还原。
 
 ```javascript
 class SnapshotSandbox {
@@ -394,7 +452,7 @@ class SnapshotSandbox {
 }
 ```
 
-**使用示例**：
+用起来是把 `sandbox.proxy` 当 `window` 传进子应用的执行作用域：
 
 ```javascript
 let sandbox = new SnapshotSandbox();
@@ -409,11 +467,13 @@ let sandbox = new SnapshotSandbox();
 })(sandbox.proxy);
 ```
 
-**局限性**：快照沙箱只能针对单实例应用场景，如果是多个实例同时挂载的情况则无法解决，这时只能通过 Proxy 代理沙箱来实现。
+快照沙箱只能撑住单实例场景。你想想看，它的 `proxy` 直接就是真实 `window`，两个子应用同时挂载时都往同一个 `window` 上写，谁先 `inactive` 就把谁的值当成「变更」记下来，另一个的状态直接被冲掉。而且每次激活失活都要 `for...in` 遍历整个 `window`，属性上百个，切换频繁时这笔开销不算小。
 
-### Proxy 代理沙箱
+多实例场景只能靠 Proxy。
 
-Proxy 代理沙箱通过创建独立的代理对象来隔离每个子应用的执行环境，每个应用都在自己的代理对象上操作，不会影响全局 window。
+### 8.2 Proxy 代理沙箱
+
+Proxy 沙箱给每个子应用发一个假的 `fakeWindow`，写操作落在假对象上，读操作先看假对象再回退到真 `window`。
 
 ```javascript
 class ProxySandbox {
@@ -453,31 +513,27 @@ window.a = 1; // 全局变量
 console.log(window.a); // 1（全局 window 未受影响）
 ```
 
-**优势**：每个应用都创建独立的 Proxy 代理，好处是每个应用都是相对独立的，不需要直接更改全局的 `window` 属性，可以支持多实例同时运行。
+真实 `window` 一点没被污染，两个沙箱各写各的，多实例天然支持。
 
-### qiankun 的沙箱实现
+上面这版是教学用的最小实现，生产级实现要复杂得多。比如 `get` 里返回原生方法（`window.addEventListener`、`window.fetch`）时必须 `bind(rawWindow)`，否则会抛 Illegal invocation；`document`、`location` 这类不可写属性要单独处理；还得补 `has`、`deleteProperty`、`getOwnPropertyDescriptor` 这些陷阱。真要自己写一个能上生产的沙箱，坑比想象中多，我的建议是直接读 `qiankun` 的 `ProxySandbox` 源码而不是自己造。
 
-qiankun 同时支持快照沙箱和 Proxy 沙箱两种模式，通过配置选择：
+按 `qiankun` 2.x 的实现，浏览器支持 `Proxy` 时默认用 `ProxySandbox`（多实例），配置 `sandbox: { loose: true }` 会退回到单例的 `LegacySandbox`，浏览器不支持 `Proxy` 时才降级到 `SnapshotSandbox`。样式隔离开关也挂在同一个配置对象上：
 
 ```javascript
 start({
     sandbox: {
-        // true 开启代理沙箱（默认），'legacy' 开启快照沙箱
-        strictStyleIsolation: true, // 开启严格的样式隔离
-        experimentalStyleIsolation: true // 实验性的样式隔离
+        loose: false, // false 走多实例 ProxySandbox，true 走单例 LegacySandbox
+        strictStyleIsolation: true, // 开启严格的样式隔离（Shadow DOM）
+        experimentalStyleIsolation: true // 实验性的样式隔离（选择器前缀）
     }
 });
 ```
 
-Proxy 沙箱的优势在于天然支持多实例运行（一个页面同时挂多个子应用），对副作用的隔离控制权更高。
+## 九、CSS 隔离的四条路子
 
-## CSS 隔离方案详解
+CSS 隔离要分两个方向看：子应用之间互相污染，以及主应用和子应用互相污染。
 
-CSS 隔离是微前端的另一个核心技术难题，主要包括子应用之间的样式隔离和主应用与子应用之间的样式隔离。
-
-### 子应用之间样式隔离
-
-**Dynamic Stylesheet（动态样式表）** 是目前主流的解决方案。当应用切换时，移除老应用的样式表，再添加新应用的样式表，保证在一个时间点内只有一个应用的样式表生效。
+**动态样式表**是解决第一个方向的主流做法，也是 `qiankun` 的默认策略。应用切换时把老应用的 `<style>` 禁用掉，再启用新应用的，保证同一时刻只有一份样式生效：
 
 ```javascript
 // qiankun 中的实现原理
@@ -493,11 +549,11 @@ function patchLooseStyle(appName) {
 }
 ```
 
-### 主应用与子应用之间的样式隔离
+注意这个方案的前提是同一时刻只激活一个子应用。多实例同时挂载时它就失效了，得换 Shadow DOM 或者选择器前缀。
 
-#### 方案一：BEM 命名规范
+第二个方向，主应用和子应用之间，有四条路可走。
 
-通过约定项目前缀来避免样式冲突：
+**BEM 命名约定**最土也最可靠，各应用带各自的前缀，没有运行时开销，缺点是靠人守纪律：
 
 ```css
 /* 主应用 */
@@ -507,9 +563,7 @@ function patchLooseStyle(appName) {
 .child-app-button { }
 ```
 
-#### 方案二：CSS Modules
-
-打包时生成不冲突的选择器名：
+**CSS Modules** 把这件事交给构建工具，打包时生成带 hash 的类名：
 
 ```javascript
 // webpack 配置
@@ -520,15 +574,13 @@ function patchLooseStyle(appName) {
 }
 ```
 
-编译后的 class 名：
+编译产物是这个样子，冲突概率基本为零：
 
 ```css
 .App__button--abc12 { }
 ```
 
-#### 方案三：Shadow DOM
-
-Shadow DOM 可以实现真正意义上的样式隔离，其内部的元素始终不会影响到它的外部元素：
+**Shadow DOM** 是唯一能做到浏览器层面真隔离的，ShadowRoot 内部的样式出不去，外部的样式也进不来：
 
 ```html
 <!DOCTYPE html>
@@ -565,11 +617,9 @@ Shadow DOM 可以实现真正意义上的样式隔离，其内部的元素始终
 </html>
 ```
 
-**注意**：React 和 Vue 中的弹框等组件通常挂载到 body 上，使用 Shadow DOM 会导致样式无法应用到这些全局元素。
+那为什么大家开了 `strictStyleIsolation: true` 之后经常又关掉呢？因为 React 和 Vue 生态里的弹框、下拉、Tooltip 基本都往 `document.body` 上挂，一挂就跑到 ShadowRoot 外面，样式在里面元素在外面，直接裸奔。这是 Shadow DOM 在微前端里最真实的阻力。
 
-#### 方案四：CSS-in-JS
-
-使用 CSS-in-JS 方案如 styled-components、emotion 等，可以将样式封装在组件级别：
+**CSS-in-JS** 用 styled-components、emotion 这类库把样式绑到组件上，作用域天然收敛：
 
 ```javascript
 import styled from 'styled-components';
@@ -583,11 +633,9 @@ const Button = styled.button`
 // 每个组件的样式都是独立的
 ```
 
-#### qiankun 的样式隔离
+它的代价是运行时开销和 SSR 复杂度，而且只能管住你自己写的组件，管不住引入的第三方 UI 库。
 
-qiankun 支持两种样式隔离方式：
-
-1. **动态样式表隔离**：切换应用时移除旧应用的样式
+回到 `qiankun`，它给了两个开关。默认走动态样式表，切换应用时禁用旧样式：
 
 ```javascript
 // 内部实现简化版
@@ -603,7 +651,7 @@ function handleStyleElement(styleElement, appName) {
 }
 ```
 
-2. **Shadow DOM 隔离**（严格模式）：
+严格模式则直接上 Shadow DOM：
 
 ```javascript
 start({
@@ -613,9 +661,11 @@ start({
 });
 ```
 
-## 主流方案综合对比
+我的实践顺序是：先用 BEM 或 CSS Modules 把自家代码管住，再开 `experimentalStyleIsolation` 给子应用样式加前缀，`strictStyleIsolation` 留到确实有多实例强隔离需求时再考虑，并且上之前一定要把组件库的弹层挂载点全部改成子应用容器。
 
-下表从多个关键维度对比各主流微前端方案：
+## 十、主流方案横向对比
+
+下面这张表的 star 数是 2024 年初的量级，现在只会更多，看相对关系就好：
 
 | 方案 | 团队 | GitHub Star | JS 沙箱 | CSS 隔离 | 多实例支持 | 框架无关 | 独立部署 | 适用场景 |
 |------|------|-------------|---------|----------|-----------|---------|---------|---------|
@@ -629,16 +679,41 @@ start({
 | **Bit** | Bit | 17.3k | ❌ | ❌ | ✅ | ✅ | ✅ | 组件复用优先 |
 | **Module Federation** | Webpack | - | ❌ | ❌ | ✅ | ✅ | ✅ | 构建时集成 |
 
-## 选型建议与最佳实践
+## 十一、一条可执行的选型路径
 
-微前端选型需要综合考虑多个维度。**框架限制**是首要因素——如果后台只有一个前端框架，可选范围更大；如果需要兼容遗留系统，则需要选择跨技术栈能力强的方案。**浏览器兼容性**也很关键，如果需要支持 IE，很多现代方案将受限。**依赖独立**需求决定了各子应用的依赖是统一管理还是独立管理，统一管理可解决重复加载问题，独立管理会带来额外流量开销。
+选型别从「哪个 star 多」开始，从约束条件开始。我一般按这个顺序过一遍。
 
-对于**中大型企业级应用**，推荐 `qiankun` 或 `Garfish`，两者都经过大量生产环境验证，配套体系完善。对于**遗留系统迁移**场景，无界和 MicroApp 的接入成本较低。对于**组件复用优先**的场景，Bit 提供了更细粒度的解决方案。对于**同技术栈团队**且主要诉求是构建优化的场景，EMP 和 Module Federation 提供了更轻量的选择。
+**第一问，要不要兼容 IE 或者老 WebView。**要的话，Shadow DOM 和 Proxy 这两条路直接划掉，能选的只剩 `iframe` 和基于快照沙箱的降级方案。这一问能砍掉一半候选。
 
-最后需要强调的是，一切技术选型都是权衡。微前端带来了系统复杂度提升、性能开销（体积增大）、额外问题的不可预见性等副作用。技术团队应该根据业务实际需求而非技术热度来做决策，避免「热闹驱动开发」。只有适用于业务场景的方案才是最好的方案。
+**第二问，子应用技术栈是不是统一的。**全是 React 18 且都用 Webpack 5 或 Rspack，那 Module Federation 是成本最低的答案，不用引运行时框架，构建时就把依赖共享做了。有 jQuery、Angular.js 这类老系统要接，直接进运行时方案那一派。
+
+**第三问，一个页面里要不要同时挂多个子应用。**要的话，快照沙箱和动态样式表都撑不住，候选收敛到 `qiankun` 的 Proxy 沙箱、无界、`Garfish`、`MicroApp`。
+
+**第四问，依赖是统一管还是各管各的。**统一管能解决 React、UI 库重复加载的问题，代价是升级要全线一起升，任何一个子应用卡住整条线都动不了。各管各的最省心，代价是用户要下好几份 React。中大型团队我倾向各管各的，先保证独立发版的能力，体积问题用 CDN 和 HTTP 缓存去缓解。
+
+**第五问，团队有没有人能兜底。**微前端出问题时的排查链路比普通 SPA 长得多，样式为什么串了、子应用为什么白屏、路由为什么回退两次，这些都需要有人真的读过框架源码。没有这个人，就选社区最大、issue 最多的那个，出了问题至少能搜到。
+
+按这五问走下来，中大型企业级中后台大概率落到 `qiankun` 或 `Garfish`，两个都经过大量生产验证，配套齐全。遗留系统迁移场景，无界和 `MicroApp` 的接入成本更低。组件复用优先的选 Bit。同技术栈且主要诉求是构建提速的，Module Federation 和 EMP 更轻。
+
+最后说一句可能不太中听的话。微前端一定会让系统更复杂，产物体积会变大，问题会变得更难复现，出故障时的责任边界也会变模糊。不是说这些代价不值得付，而是你得知道自己在拿什么换什么。技术选型要跟着业务实际需求走，别跟着热度走。
 
 ## 总结
 
-本文系统梳理了微前端五大主流落地方案的核心原理和特性。`iframe` 方案简单直接但体验欠佳；`qiankun` 作为国内最成熟的方案提供了完整的沙箱和隔离机制；`Module Federation` 提供了构建时集成的新思路；`Web Components` 代表了面向未来的浏览器原生标准；`Bit` 则将微前端粒度延伸到组件级别。
+五个流派的定位其实各不相同。`iframe` 派隔离最彻底但交互体验最差，无界用 Proxy 加 Shadow DOM 把它救回来了一半。路由分发派是目前生产落地的绝对主力，`qiankun` 补齐了 `single-spa` 缺的沙箱和样式隔离，接入的必做项是基座注册、生命周期导出、publicPath 动态化、UMD 输出、跨域头这五条。Module Federation 派没有沙箱和隔离，它解决的是同技术栈下的依赖共享和构建提速。Bit 把粒度推到组件级，是另一个赛道。Web Components 派押注原生标准，眼下最大的阻力是第三方组件库的弹层挂载。
 
-在技术选型时，团队应该重点关注四个方面：业务是否真正需要微前端（避免过度设计）、各方案的隔离能力和性能开销是否可接受、技术团队是否具备维护能力、方案是否有完善的生态和社区支持。微前端架构虽然在带来灵活性的同时增加了系统复杂度，但只要运用得当，它能够有效支撑大规模前端项目的团队协作和持续演进。
+沙箱这块，快照沙箱只能单实例、切换时要遍历整个 `window`；Proxy 沙箱天然支持多实例，但要写到能上生产远比示例代码复杂。CSS 隔离没有银弹，我的顺序是 BEM 或 CSS Modules 打底，再叠 `experimentalStyleIsolation`，Shadow DOM 留到最后。
+
+选型按五个约束条件依次筛：浏览器兼容、技术栈是否统一、是否需要多实例、依赖统一还是独立、团队有没有人能读源码兜底。筛完通常只剩一两个候选，这时候再去看 star 数和文档质量就够了。
+
+## 参考
+
+- [Micro Frontends 官方站点](https://micro-frontends.org/)
+- [Martin Fowler - Micro Frontends](https://martinfowler.com/articles/micro-frontends.html)
+- [single-spa 官方文档](https://single-spa.js.org/)
+- [qiankun 官方文档](https://qiankun.umijs.org/zh)
+- [Webpack Module Federation 文档](https://webpack.js.org/concepts/module-federation/)
+- [无界 Wujie 官方文档](https://wujie-micro.github.io/doc/)
+- [MicroApp 官方文档](https://micro-zoe.github.io/micro-app/)
+- [Garfish 官方文档](https://www.garfishjs.org/)
+- [MDN - 使用 Shadow DOM](https://developer.mozilla.org/zh-CN/docs/Web/API/Web_components/Using_shadow_DOM)
+- [前端进阶之旅](https://interview.poetries.top)

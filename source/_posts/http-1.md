@@ -21,17 +21,14 @@ categories: Back-end
 
 > `URI` 包含 `URL` 和 `URN`，目前 `WEB` 只有 `URL` 比较流行，所以见到的基本都是 `URL`。
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-1.jpg)
 
 ## 1.3 请求和响应报文
 
 ### 1.3.1 请求报文
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http2.png)
 
 ### 1.3.2. 响应报文
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-3.png)
 
 # 二、HTTP 方法
 
@@ -114,7 +111,6 @@ DELETE /file.html HTTP/1.1
 CONNECT www.example.com:443 HTTP/1.1
 ```
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-4.jpg)
 
 ## 2.9 TRACE
 
@@ -352,7 +348,6 @@ Cache-Control: private, max-age=0, no-cache
 
 > 当浏览器访问一个包含多张图片的 `HTML` 页面时，除了请求访问 `HTML` 页面资源，还会请求图片资源，如果每进行一次 `HTTP` 通信就要断开一次 `TCP` 连接，连接建立和断开的开销会很大。持久连接只需要建立一次 `TCP` 连接就能进行多次 HTTP 通信。
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-5.png)
 
 - 持久连接需要使用 `Connection` 首部字段进行管理。`HTTP/1.1` 开始 `HTTP` 默认是持久化连接的，如果要断开 `TCP` 连接，需要由客户端或者服务器端提出断开，使用 `Connection : close`；而在 `HTTP/1.1` 之前默认是非持久化连接的，如果要维持持续连接，需要使用 `Connection : Keep-Alive`。
 
@@ -426,7 +421,6 @@ Content-Length: 1024
 - 使用代理的主要目的是：缓存、网络访问控制以及访问日志记录。
 - 代理服务器分为正向代理和反向代理两种，用户察觉得到正向代理的存在，而反向代理一般位于内部网络中，用户察觉不到。
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-6.png)
 
 ### 2. 网关
 
@@ -448,7 +442,6 @@ Content-Length: 1024
 
 - 通过使用 `SSL`，`HTTPs` 具有了加密、认证和完整性保护。
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-7.jpg)
 
 ## 6.1 加密
 
@@ -459,7 +452,6 @@ Content-Length: 1024
 - 优点：运算速度快；
 - 缺点：密钥容易被获取。
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-8.png)
 
 ### 6.1.2 公开密钥加密
 
@@ -468,14 +460,14 @@ Content-Length: 1024
 - 优点：更为安全；
 - 缺点：运算速度慢；
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-9.png)
 
 
 ### 6.1.3 HTTPs 采用的加密方式
 
+<div data-doc-demo="cross-origin-flow" data-demo-kind="tls-hybrid"></div>
+
 > `HTTPs` 采用混合的加密机制，使用公开密钥加密用于传输对称密钥，之后使用对称密钥加密进行通信。（下图中的 `Session Key `就是对称密钥）
 
-![](http://7xq6al.com1.z0.glb.clouddn.com/http-10.png)
 
 
 ## 6.2 认证
@@ -741,5 +733,4 @@ DELETE /idX/delete HTTP/1.1   -> Returns 404
 ### 9.2.4 二进制格式
 
 - `HTTP/1.1` 的解析是基于文本的，而 `HTTP/2.0` 采用二进制格式
-
 

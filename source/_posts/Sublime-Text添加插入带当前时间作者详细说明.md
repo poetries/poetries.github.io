@@ -44,5 +44,3 @@ Preference → Key Bindings - User:
 ```
 
 此时使用快捷键 ctrl+shift+, 即可在当前光标处插入当前时间，如下：
-
-![](http://img1.tuicool.com/ENvyIz.png!web)

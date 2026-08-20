@@ -1,25 +1,47 @@
 ---
-title: Nestjs学习总结
+title: Nestjs 学习总结 从控制器到 TypeORM 的后端实战笔记
+description: 一份完整的 NestJS 学习笔记，讲清控制器、服务、模块的分工，中间件守卫管道拦截器过滤器的执行顺序，以及 JWT 鉴权、RBAC 权限、Swagger 文档、TypeORM 增删改查与关系设计、Redis 单点登录。
 date: 2022-05-25 20:35:24
-tags: 
+tags:
   - Node
   - Nest
+  - TypeORM
 categories: Front-End
 ---
 
+前端写久了总想把一个接口从头到尾自己做完。Express 上手最快，可写到第三个模块就开始难受，路由、参数校验、数据库连接、异常处理各写各的，没有统一约定，换个人接手得重读一遍代码才敢改。NestJS 给的正是这层约定，控制器收请求，服务干活，模块负责组装，中间还塞了五种切面能力去接管横切逻辑。这篇是我把 NestJS 从建项目一路做到接 MySQL 和 Redis 之后攒下来的完整笔记，配置、代码、踩坑点都在里面，需要哪块直接翻到哪块抄走。
 
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
 
+- NestJS 的项目结构，控制器、服务、模块分别在解决什么问题
+- 静态资源、模板引擎、Cookie 与 Session 这几个 Express 老熟人在 Nest 里怎么配
+- 中间件、守卫、拦截器、管道、异常过滤器的职责边界和真实执行顺序
+- 用 DTO 配合 class-validator 做参数校验，把校验规则从业务代码里摘出去
+- 配置抽离、多环境变量、文件上传下载、图片验证码、邮件服务、定时任务
+- passport + JWT 登录鉴权、密码加密方案、RBAC 角色权限的表设计和守卫实现
+- 接入 Swagger 自动生成可调试的接口文档
+- MongoDB 与 TypeORM 操作 MySQL，实体设计、五种访问方式、三种增删改查写法
+- 事务的三种用法，一对一、一对多、多对多关系怎么设计和增删改查
+- 接入 Redis，以及用它实现单点登录
+
+先把 Nest 是个什么东西说清楚。
 
 > Nest (NestJS) 是一个用于构建高效、可扩展的 Node.js 服务器端应用程序的开发框架。它利用 JavaScript 的渐进增强的能力，使用并完全支持 TypeScript （仍然允许开发者使用纯 JavaScript 进行开发），并结合了 OOP （面向对象编程）、FP （函数式编程）和 FRP （函数响应式编程）。
 
 - 在底层，Nest 构建在强大的 HTTP 服务器框架上，例如 Express （默认），并且还可以通过配置从而使用 Fastify ！
 - Nest 在这些常见的 Node.js 框架 (Express/Fastify) 之上提高了一个抽象级别，但仍然向开发者直接暴露了底层框架的 API。这使得开发者可以自由地使用适用于底层平台的无数的第三方模块。
 
-本文基于nest8演示
+我一直觉得 Nest 最值钱的地方不是某个 API，而是它把「一个后端项目该怎么分层」这件事变成了框架级别的强制约定。你写了三个月，别人接手也知道去哪找登录逻辑。
 
-# 基础
+本文基于 nest8 演示。这里必须提前说一句，这篇写于 2022 年 5 月，之后 NestJS 又发过大版本，TypeORM 也从 0.2 升到了 0.3，一些 API 的签名有变化，最典型的就是 `findOne` 从接受裸 id 改成必须传 `where` 对象、`Connection` 相关的一批全局函数被重新组织过。下文我把原始写法原样保留了，因为很多人手上的老项目还跑在这套 API 上，但如果你是新起项目，装完包之后请以官方文档的当前版本为准，不要照抄我这里的旧签名。
 
-## 创建项目
+## 一、基础篇 项目结构与请求生命周期
+
+这一部分解决的是「怎么把一个 Nest 项目跑起来并且组织好」。控制器、服务、模块是三个必须先分清的角色，之后的静态资源、模板引擎、Cookie 和 Session 都是把 Express 的能力接进 Nest 的写法，最后那一大块中间件守卫管道过滤器拦截器，是 Nest 区别于裸 Express 最核心的东西。
+
+### 创建项目
+
+Nest 的 CLI 不是可选项，是这个框架的一部分。手写目录结构当然也行，但控制器、服务、模块、DTO 之间有一套固定的文件命名和注册关系，用 CLI 生成能省掉一堆「忘了在 module 里注册」的低级错误。所以第一步先全局装它。
 
 ```
 $ npm i -g @nestjs/cli
@@ -48,6 +70,8 @@ $ tree
 2 directories, 12 files
 ```
 
+目录很干净，真正要看的就三个文件。
+
 **以下是这些核心文件的简要概述**：
 
 - `app.controller.ts`   带有单个路由的基本控制器示例。
@@ -59,7 +83,7 @@ $ tree
 ```js
 import { NestFactory } from '@nestjs/core';
 import { ApplicationModule } from './app.module';
-        
+
 async function bootstrap() {
   const app = await NestFactory.create(ApplicationModule);
   await app.listen(3000);
@@ -70,20 +94,30 @@ bootstrap();
 - `NestFactory` 暴露了一些静态方法用于创建应用实例
 - `create()` 方法返回一个实现 `INestApplication` 接口的对象, 并提供一组可用的方法
 
+`main.ts` 这个 `app` 实例后面会被反复用到。全局管道、全局守卫、全局过滤器、静态资源目录、Swagger 挂载，全都是在这里往 `app` 上挂，所以看一个 Nest 项目，先翻 `main.ts` 基本就知道它开了哪些全局能力。
+
+底层跑的是谁也可以换。
+
 > `nest`有两个支持开箱即用的 HTTP 平台：`express` 和 `fastify`。 您可以选择最适合您需求的产品
 
 
 - `platform-express` Express 是一个众所周知的 node.js 简约 Web 框架。 这是一个经过实战考验，适用于生产的库，拥有大量社区资源。 默认情况下使用 `@nestjs/platform-express` 包。 许多用户都可以使用 `Express` ，并且无需采取任何操作即可启用它。
-- `platform-fastify` `Fastify` 是一个高性能，低开销的框架，专注于提供最高的效率和速度。 
+- `platform-fastify` `Fastify` 是一个高性能，低开销的框架，专注于提供最高的效率和速度。
+
+这里有个坑要注意。选 Express 还是 Fastify，会影响到后面 Cookie、Session、静态资源、文件上传这些能力的写法，因为它们说到底就是在调底层平台的 API。下文所有例子都是 Express 平台的写法，如果你换了 Fastify，对应的中间件包和调用方式要跟着换。我自己只在 Express 平台上完整跑过，Fastify 那条线没验证过。
 
 
-## Nest控制器
+### Nest控制器
 
 Nest中的控制器层负责处理传入的请求, 并返回对客户端的响应。
 
-![](https://s.poetries.top/uploads/2022/05/8b2fcd207249cb37.png)
+下面这张图是 Nest 官方对控制器位置的示意，客户端请求先落到控制器，控制器再决定交给谁处理。
+
+![Nest 控制器在请求链路中的位置示意图](https://s.poetries.top/uploads/2022/05/8b2fcd207249cb37.png)
 
 > 控制器的目的是接收应用的特定请求。路由机制控制哪个控制器接收哪些请求。通常，每个控制器有多个路由，不同的路由可以执行不同的操作
+
+有一条纪律建议一开始就守住，控制器里不写业务逻辑。它只干三件事，声明路由、从请求里取参数、把结果 return 出去。查库、算数据、调第三方全部丢给 service。这条守住了，后面写单元测试和换数据源的时候会轻松很多。
 
 **通过NestCLi创建控制器：**
 
@@ -96,7 +130,11 @@ Nest中的控制器层负责处理传入的请求, 并返回对客户端的响�
 - 创建模块：`nest g mo user module`
 - 默认以src为根路径生成
 
-![](https://s.poetries.top/uploads/2022/05/1c412ef436a4a04d.png)
+执行 `nest -h` 之后能看到完整的命令列表，长这样。
+
+![nest -h 输出的 CLI 命令列表](https://s.poetries.top/uploads/2022/05/1c412ef436a4a04d.png)
+
+实际用起来，比如要建一个文章模块的控制器。
 
 ```
 nest g controller posts
@@ -120,7 +158,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsController } from './posts/posts.controller'
-    
+
 @Module({
     imports: [],
     controllers: [AppController, PostsController],
@@ -129,11 +167,17 @@ import { PostsController } from './posts/posts.controller'
 export class AppModule {}
 ```
 
-## nest配置路由请求数据
+CLI 自动改 `app.module.ts` 这个行为很关键。Nest 的依赖注入是靠模块元数据串起来的，控制器不写进 `controllers` 数组就不会被扫描到，路由自然也不存在。手写文件最容易漏的就是这一步。
+
+### nest配置路由请求数据
+
+路由声明完，下一个问题就是怎么把请求里的数据拿出来。Express 里是从 `req.query`、`req.body`、`req.params` 上手动抠，Nest 把这套包成了参数装饰器，写在形参上，框架帮你注进来。
 
 > Nestjs提供了其他HTTP请求方法的装饰器 `@Get()` `@Post()` `@Put()` 、 `@Delete()`、 `@Patch()`、 `@Options()`、 `@Head()`和 `@All()`
 
 在Nestjs中获取`Get`传值或者`Post提`交的数据的话我们可以使用Nestjs中的装饰器来获取。
+
+左边是 Nest 的装饰器，右边是它对应到 Express 原生对象上的哪个字段，对照着看就很清楚了。
 
 ```
 @Request()  req
@@ -183,15 +227,23 @@ export class PostsController {
 }
 ```
 
+上面这段是一个标准的 RESTful 控制器。注意 `@Param('id')` 拿到的永远是字符串，哪怕路径里写的是数字，这个在后面讲管道的时候还会再遇到一次。
+
 **注意**
 
 - `关于nest的return`： 当请求处理程序返回 JavaScript 对象或数组时，它将自动序列化为 JSON。但是，当它返回一个字符串时，Nest 将只发送一个字符串而不是序列化它
 
-## Nest服务
+这个 return 的行为差异，是后面要做「统一响应体」的直接原因。接口有的返对象有的返字符串，前端接起来就得写两套判断，所以正经项目都会加一个响应拦截器把结构拍平，这块下文会讲。
 
-> Nestjs中的服务可以是`service` 也可以是`provider`。他们都可以`通过 constructor 注入依赖关系`。服务本质上就是通过`@Injectable()` 装饰器注解的类。在Nestjs中服务相当于`MVC`的`Model`
+### Nest服务
 
-![](https://s.poetries.top/uploads/2022/05/1c607b98268d7707.png)
+控制器只管收发，真正的活在服务里。
+
+> Nestjs中的服务可以是`service` 也可以是`provider`。他们都可以`通过 constructor 注入依赖关系`。服务其实就是通过`@Injectable()` 装饰器注解的类。在Nestjs中服务相当于`MVC`的`Model`
+
+![Nest 服务作为提供者被注入控制器的示意图](https://s.poetries.top/uploads/2022/05/1c607b98268d7707.png)
+
+`@Injectable()` 这个装饰器做的事情是告诉 Nest 的 IoC 容器「这个类可以被托管」。之后你只要在别的类的构造函数里声明这个类型，容器就会自己把实例送进来，不需要手动 `new`。这也是为什么 Nest 里几乎看不到 `new SomeService()` 这种代码。
 
 **创建服务**
 
@@ -199,7 +251,7 @@ export class PostsController {
 nest g service posts
 ```
 
-创建好服务后就可以在服务中定义对应的方法
+创建好服务后就可以在服务中定义对应的方法。下面这段是一个完整的文章 CRUD 服务，包含了创建去重、分页模糊查询、按 ID 查详情、合并更新和删除，后面数据库那一节讲到的 TypeORM 用法基本都能在这里找到影子。先扫一眼有个印象，细节到下面再拆。
 
 ```js
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -239,7 +291,7 @@ export class PostsService {
     pageSize = Number(query.pageSize || 10);
     pageNum = Number(query.pageNum || 1);
     console.log('query', query);
-    
+
     const queryParams = {} as any;
     Object.keys(params).forEach((key) => {
       if (params[key]) {
@@ -301,11 +353,15 @@ export class PostsService {
 }
 ```
 
-## Nest模块
+这里插一句上面那段分页查询的写法。`Like('%' + value + '%')` 会让这个字段的索引失效，数据量小的时候无所谓，表大了就是慢查询。真做全字段模糊搜索，还是得上专门的搜索引擎，别指望 MySQL 的 LIKE。
+
+### Nest模块
+
+控制器和服务写完了，谁把它们装起来？模块。
 
 > 模块是具有 `@Module()` 装饰器的类。 `@Module()` 装饰器提供了元数据，Nest 用它来组织应用程序结构
 
-![](https://s.poetries.top/uploads/2022/05/fcc23bae4de7fa32.png)
+![Nest 模块树结构示意图，根模块下挂载多个功能模块](https://s.poetries.top/uploads/2022/05/fcc23bae4de7fa32.png)
 
 > 每个 Nest 应用程序至少有一个模块，即根模块。根模块是 Nest 开始安排应用程序树的地方。事实上，根模块可能是应用程序中唯一的模块，特别是当应用程序很小时，但是对于大型程序来说这是没有意义的。在大多数情况下，您将拥有多个模块，每个模块都有一组紧密相关的功能。
 
@@ -320,6 +376,8 @@ export class PostsService {
 // 创建模块 posts
 nest g module posts
 ```
+
+这四个字段里，`providers` 和 `exports` 的区别是最容易搞混的。`providers` 是「我这个模块内部能用哪些服务」，`exports` 是「我允许别的模块用我的哪些服务」。只写 providers 不写 exports，别的模块 import 了你也拿不到实例，会直接抛依赖解析失败。文末的 QA 那一节还专门聊了这个问题。
 
 **Nestjs中的共享模块**
 
@@ -340,9 +398,15 @@ export class PostsModule {}
 
 > 可以使用 `nest g res posts` 一键创建以上需要的各个模块
 
-![](https://s.poetries.top/uploads/2022/05/f63b444ed1c1d481.png)
+`nest g res` 是我用得最多的命令，一条命令把 controller、service、module、DTO、entity 全生成好并注册进去，生成结果如下。
 
-## 配置静态资源
+![nest g res 一键生成的资源模块文件结构](https://s.poetries.top/uploads/2022/05/f63b444ed1c1d481.png)
+
+到这里，控制器、服务、模块这三个角色就齐了。剩下的内容都是在这个骨架上往里填能力。
+
+### 配置静态资源
+
+接口写完，总有场景要直接吐文件出去，比如上传后的图片、导出的报表、给运营看的一个静态页。Nest 本身不管这个，得让底层的 Express 去挂目录。
 
 NestJS中配置静态资源目录完整代码
 
@@ -358,10 +422,10 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 async function bootstrap() {
   // 创建实例
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
    //使用方式一
   app.useStaticAssets('public')  //配置静态资源目录
-  
+
   // 使用方式二：配置前缀目录 设置静态资源目录
   app.useStaticAssets(join(__dirname, '../public'), {
     // 配置虚拟目录，比如我们想通过 http://localhost:3000/static/1.jpg 来访问public目录里面的文件
@@ -376,7 +440,13 @@ async function bootstrap() {
 bootstrap();
 ```
 
-## 配置模板引擎
+两种写法的区别在于有没有虚拟前缀。方式一直接把 `public` 挂到根路径，文件名容易和你的接口路由撞车。方式二加了 `prefix: '/static/'`，所有静态文件都在 `/static` 下面，接口和资源井水不犯河水。真实项目里我一律用第二种。
+
+注意 `join(__dirname, '../public')` 里的 `__dirname` 在编译后指向的是 `dist` 目录，所以这个相对路径是相对编译产物算的，不是相对源码。这个我踩过，本地 `nest start` 好好的，打包完就 404。
+
+### 配置模板引擎
+
+如果你要做的是服务端直出的页面，比如一个后台登录页、一个邮件预览页，就得挂模板引擎。Nest 支持 ejs、hbs、pug 这些，下面用 ejs 演示。
 
 ```
 npm i ejs --save
@@ -401,6 +471,8 @@ async function bootstrap() {
 bootstrap();
 ```
 
+`setBaseViewsDir` 指模板文件放哪，`setViewEngine` 指用哪个引擎渲染，两个都要设，少一个都渲不出来。
+
 项目根目录新建`views`目录然后新建`根目录 -> views -> default -> index.ejs`
 
 ```html
@@ -424,7 +496,7 @@ bootstrap();
 Nestjs中 `Render`装饰器可以渲染模板，**使用路由匹配渲染引擎**
 
 ```js
-mport { Controller, Get, Render } from '@nestjs/common';
+import { Controller, Get, Render } from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -437,7 +509,11 @@ export class AppController {
 }
 ```
 
-## Cookie的使用
+`@Render()` 的参数是模板相对 views 目录的路径，方法的返回值就是丢给模板的数据。这里有个坑，用了 `@Render()` 之后哪怕不传数据也得 return 一个空对象，直接不 return 会渲染失败。
+
+### Cookie的使用
+
+登录态要落地，绕不开 Cookie 和 Session 这一对。
 
 > cookie和session的使用**依赖**于当前使用的平台，如：express和fastify
 > 两种的使用方式不同，这里主要记录基于**express**平台的用法
@@ -445,9 +521,11 @@ export class AppController {
 cookie可以用来存储用户信息，存储购物车等信息，在实际项目中用的非常多
 
 ```js
-npm instlal cookie-parser --save 
+npm install cookie-parser --save
 npm i -D @types/cookie-parser --save
 ```
+
+`cookie-parser` 是 Express 生态的中间件，Nest 这边直接 `app.use()` 挂上去就行，不需要额外的 Nest 封装包。
 
 引入注册
 
@@ -460,14 +538,16 @@ import * as cookieParser from 'cookie-parser'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   //注册cookie
   app.use(cookieParser('dafgafa'));  //加密密码
-  
+
   await app.listen(3000);
 }
 bootstrap();
 ```
+
+`cookieParser('dafgafa')` 这个参数就是签名密钥。传了它才能用签名 Cookie，也就是下面那个 `signed: true`。签名不等于加密，Cookie 的值前端照样看得见，它防的是被人在浏览器里随手改掉。真要藏东西还得自己加密或者干脆别放前端。
 
 **接口中设置cookie 使用response**
 
@@ -479,13 +559,15 @@ index(@Response() res){
     //设置cookie, signed:true加密
     //参数：1：key, 2:value, 3:配置
     res.cookie('username', 'poetry', {maxAge: 1000 * 60 * 10, httpOnly: true, signed:true})
-    
+
     //注意：
     //使用res后，返回数据必须使用res
     //如果是用了render模板渲染，还是使用return
     res.send({xxx})
 }
 ```
+
+代码注释里那句「使用 res 后返回数据必须使用 res」很关键。一旦你用 `@Response()` 把原生响应对象拿出来了，Nest 就不再接管这个方法的返回值，你 return 什么它都不发，请求会一直挂着直到超时。这个我排查过一下午，接口在 Postman 里一直转圈，最后发现就是少了一行 `res.send()`。
 
 **cookie相关配置参数**
 
@@ -503,9 +585,9 @@ index(@Response() res){
 @Get()
 index(@Request() req){
       console.log(req.cookies.username)
-      
+
       //加密的cookie获取方式
-      console.log(req.signedCookies.username)  
+      console.log(req.signedCookies.username)
       return req.cookies.username
 }
 ```
@@ -522,12 +604,14 @@ app.use(cookieParser('123456'));
 res.cookie('userinfo','hahaha',{domain:'.ccc.com',maxAge:900000,httpOnly:true,signed:true});
 
 // signedCookies调用设置的cookie
-console.log(req.signedCookies);  
+console.log(req.signedCookies);
 ```
 
-## Session的使用
+这几个参数里，`httpOnly` 和 `secure` 是安全底线，生产环境的登录态 Cookie 这两个都该开。`maxAge` 单位是毫秒，`expires` 是具体时间点，两个都设的话 `maxAge` 优先。
 
+### Session的使用
 
+Cookie 存在浏览器，Session 存在服务端，这是它俩最根本的分工。
 
 - `session`是另一种记录客户状态的机制，不同的是Cookie保存在客户端浏览器中，而`session`保存在服务器上
 - 当浏览器访问服务器并发送第一次请求时，服务器端会创建一个session对象，生成一个类似于key,value的键值对， 然后将key(cookie)返回到浏览器(客户)端，浏览器下次再访问时，携带key(cookie)，找到对应的session(value)。 客户的信息都保存在session中
@@ -544,23 +628,25 @@ npm i -D @types/express-session --save
 
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import * as session from 'express-seesion'
+import * as session from 'express-session'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   //配置session
   app.use(session({
       secret: 'dmyxs',
       cookie: { maxAge: 10000, httpOnly: true },  //以cookie存储到客户端
       rolling: true //每次重新请求时，重新设置cookie
   }))
-  
+
   await app.listen(3000);
 }
 bootstrap();
 
 ```
+
+默认的 `express-session` 把数据存在 Node 进程的内存里。单机跑没问题，一旦上了 PM2 多实例或者多台机器，用户这次请求打到 A 进程、下次打到 B 进程，Session 就丢了。生产上要么配 Redis 作为 session store，要么干脆走 JWT 那条路，后面鉴权那一节会讲。
 
 **session相关配置参数**
 
@@ -589,12 +675,14 @@ bootstrap();
     //获取session：两种方式
     console.log(req.session.username)
     console.log(session.username)
-    
+
     return 'hello session'
 }
 ```
 
-## 跨域，前缀路径、网站安全、请求限速
+### 跨域，前缀路径、网站安全、请求限速
+
+这一节的四件事都在 `main.ts` 里，属于「项目起来第一天就该配好」的那类东西。放着不配，等到联调时前端一片 CORS 报错、上线后被扫描器扫出一堆头缺失，再回来补就很被动。
 
 **跨域，路径前缀，网络安全**
 
@@ -614,12 +702,13 @@ import * as csurf from 'csurf';
 import { AppModule } from './app.module';
 
 const PORT = process.env.PORT || 8000;
+const PREFIX = 'api/v1';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // 路径前缀：如：http://www.test.com/api/v1/user
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix(PREFIX);
 
   //cors：跨域资源共享，方式一：允许跨站访问
   app.enableCors();
@@ -630,7 +719,7 @@ async function bootstrap() {
 
   //CSRF保护：跨站点请求伪造
   app.use(csurf());
-  
+
   await app.listen(PORT, () => {
     Logger.log(
       `服务已经启动,接口请访问:localhost:${PORT}${PREFIX}`,
@@ -640,7 +729,13 @@ async function bootstrap() {
 bootstrap();
 ```
 
+四个东西的分工是这样的。`setGlobalPrefix` 给所有路由加统一前缀，配合网关做路径转发很省事。`enableCors()` 不带参数是全开，正式环境应该传 `origin` 白名单，别真的对全世界开放。`helmet` 帮你把一堆安全响应头补上，比如 `X-Content-Type-Options`、`X-Frame-Options`。`csurf` 是防 CSRF 的，注意它依赖 Session 或者 Cookie，纯 JWT 的前后端分离项目其实用不上，开了反而会让接口全挂。
+
+这里再多说一句，helmet 和 csurf 后来都改过导出方式，有的版本要写成 `helmet()` 有的要 `helmet.default()`，装完之后跑不起来先去看包的 README，以官方文档为准。
+
 **限速：限制客户端在一定时间内的请求次数**
+
+登录、发短信、发邮件这类接口不限速就是在等着被刷。
 
 ```
 yarn add @nestjs/throttler
@@ -676,9 +771,11 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 export class AppModule { }
 ```
 
+注意这里是通过 `APP_GUARD` 这个注入令牌把 `ThrottlerGuard` 注册成全局守卫的，而不是在 `main.ts` 里 `useGlobalGuards`。两种写法都能全局生效，区别在于用 `APP_GUARD` 注册的守卫可以正常注入其它依赖，`main.ts` 里 `new` 出来的那个不行，因为它没走 IoC 容器。这是很多人第一次写全局守卫时踩的坑，构造函数里注入的东西全是 `undefined`。
 
+### 管道、守卫、拦截器、过滤器、中间件
 
-## 管道、守卫、拦截器、过滤器、中间件
+到这里终于要说 Nest 最有辨识度的东西了。裸 Express 里，鉴权、日志、参数校验、异常处理全塞在中间件里，写着写着就成了一坨。Nest 把它们按职责拆成五种切面，每种有自己的接入时机和上下文对象。
 
 - **管道**：数据处理与转换，数据验证
 - **守卫**：验证用户登陆，保护路由
@@ -686,13 +783,17 @@ export class AppModule { }
 - **过滤器**：异常捕获
 - **中间件**：日志打印
 
+先记住这个分工，再看顺序。
+
 > 执行顺序（时机）
 
-从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: ‘xx’,password: ‘xx’}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤：
+从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: 'xx', password: 'xx'}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤。
 
-![](https://s.poetries.top/uploads/2022/05/1670837aa99d6cb8.png)
+下面这张流程图值得多看两眼，它把一次请求从进来到出去经过的所有关卡按顺序画出来了。
 
+![一次请求依次经过中间件、守卫、拦截器、管道、路由处理函数再回到拦截器的流程图](https://s.poetries.top/uploads/2022/05/1670837aa99d6cb8.png)
 
+从图里能读出一个很重要的结论，中间件最早，管道最晚，拦截器被劈成了前后两半。这个顺序决定了你的逻辑该放在哪一层。比如你想在鉴权之前打全量请求日志，就只能放中间件，放守卫里那些被拦掉的请求根本记不上。
 
 > 全局使用: 管道 - 守卫 - 拦截器 - 过滤器 - 中间件。统一在main.ts文件中使用，全局生效
 
@@ -715,23 +816,27 @@ async function bootstrap() {
 
   //全局使用中间件
   app.use(LoggerMiddleware)
-  
+
   //全局使用过滤器
   //这里使用的是自定义过滤器，先别管，先学会怎么在全局使用
-  app.useGlobalFilters(new HttpExceptionFilter());  
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   //全局使用守卫
   app.useGlobalGuards(new AuthGuard());
-  
+
   //全局使用拦截器
   app.useGlobalInterceptors(new AuthInterceptor());
-  
+
   await app.listen(3000);
 }
 bootstrap();
 ```
 
-### 管道
+这五个 `useGlobalXxx` 就是全局挂载的入口。下面把每一种单独拆开讲用法，最后再用一个完整例子把它们串起来跑一遍。
+
+#### 管道
+
+管道干两件事，转换和校验。控制器拿到的参数默认都是字符串，管道可以在参数进入方法之前把它变成你要的类型，或者直接判定不合法把请求打回去。
 
 常用内置管道，从`@nestjs/common`导出
 
@@ -778,7 +883,11 @@ export class UserController {
 }
 ```
 
+三种局部用法的粒度不一样。类上的 `@UsePipes` 管这个控制器的所有路由，方法上的只管这个方法，写在参数里的 `@Param('id', new ParseIntPipe())` 只管这一个参数。粒度越小越可控，我一般只在参数级用内置管道，全局那种大范围的留给 `ValidationPipe`。
+
 > 自定义管道
+
+内置的不够用就自己写。自定义管道的用武之地是那种业务特有的转换规则，比如把前端传的逗号分隔字符串转成数组。
 
 使用快捷命令生成：`nest g pi myPipe common/pipes`
 
@@ -817,11 +926,15 @@ export class myPipe implements PipeTransform<string> {
 
 
 
-### 守卫
+#### 守卫
+
+守卫只回答一个问题，这个请求能不能往下走。返回 `true` 放行，返回 `false` 直接 403。所有跟「你是谁、你有没有权限」相关的判断都应该落在这一层，而不是在控制器里写 `if (!user) return`。
 
 > 自定义守卫
 
 使用快捷命令生成：`nest g gu myGuard common/guards`
+
+下面这段代码要先说明一下，它把白名单、反射器取角色、读 token、读 session 四种用法堆在同一个 `canActivate` 里做展示，实际上第一个 `return` 之后的代码永远执行不到。抄的时候按你的场景挑一种留下，别整段复制。
 
 ```js
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
@@ -919,7 +1032,9 @@ export class UserController {
 }
 ```
 
-### 装饰器
+#### 装饰器
+
+守卫要知道「这个接口允许哪些角色访问」，这个信息得有地方写。Nest 的做法是用自定义装饰器把它塞进元数据，守卫再用 `Reflector` 读出来。这套组合是 Nest 做权限控制的标准姿势。
 
 自定义守卫中使用到了自定义装饰器
 
@@ -936,7 +1051,11 @@ import { SetMetadata } from '@nestjs/common';
 export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
 ```
 
-### 拦截器
+`SetMetadata` 的第一个参数是 key，守卫里 `reflector.get<string[]>('roles', context.getHandler())` 用的就是同一个 key。这两处必须写一致，写错了守卫读到 `undefined`，看起来像是装饰器没生效。上面示例里 CLI 生成的名字是 `Roles`，前面守卫代码里读的也是 `'roles'` 这个 key，对得上。
+
+#### 拦截器
+
+拦截器是唯一能同时管到「请求进来之前」和「响应出去之后」的切面。最常见的用途就是统一响应体，把所有接口的返回值包一层 `{ status, message, data }`，前端接起来省心。
 
 使用快捷命令生成：`nest g in auth common/intercepters`
 
@@ -974,7 +1093,11 @@ export class AuthInterceptor implements NestInterceptor {
 }
 ```
 
-### 过滤器
+`next.handle()` 之前的代码在路由函数执行前跑，`.pipe(map(...))` 里的代码在路由函数返回之后跑。拦截器基于 RxJS，所以你能用上 `map`、`tap`、`timeout`、`catchError` 这一整套操作符，做超时控制和响应缓存都很顺手。
+
+#### 过滤器
+
+过滤器管的是异常。业务代码里直接 `throw`，不用管怎么组织错误响应，全部交给过滤器统一格式化。这样 service 层就能写得很干净，一行 `if (!user) throw ...` 就结束了。
 
 > 局部使用过滤器
 
@@ -1012,6 +1135,8 @@ export class ExceptionController {
 **自定义过滤器**
 
 使用快捷命令生成：`nest g f myFilter common/filters`
+
+`@Catch(HttpException)` 括号里写什么，决定了这个过滤器管哪一类异常。写 `HttpException` 只接住 HTTP 异常，数据库连接失败这种非 HTTP 异常会漏出去变成 500 白屏。想全接住就写成不带参数的 `@Catch()`，但那样 `exception.getStatus()` 可能不存在，得先判断类型，后面完整例子里的写法就处理了这一点。
 
 ```js
 import {
@@ -1052,7 +1177,9 @@ export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
 
 
 
-### 中间件
+#### 中间件
+
+中间件就是 Express 那套原班人马，位置最靠前，拿到的是最原始的 `req` 和 `res`。它跑在守卫之前，所以做全量访问日志、请求体格式转换、把 traceId 塞进请求这类事最合适。反过来说，需要知道「这个请求最终会走到哪个控制器方法」的逻辑就别放这儿，那时候路由还没匹配完。
 
 > 局部使用中间件
 
@@ -1104,7 +1231,11 @@ export class LoggerMiddleware implements NestMiddleware {
 
 
 
+`exclude` 和 `forRoutes` 这一对很实用。`forRoutes('user')` 是「哪些路由要过这个中间件」，`exclude` 是从里面再刨掉几个。顺序是按 `.apply()` 里写的顺序执行的，多个中间件之间有依赖关系时要注意别写反。
+
 **函数式中间件**
+
+类中间件能注入依赖，函数式中间件不能，但胜在轻。只做一件小事、也不需要注入 service 的时候，写成函数更省事。
 
 ```js
 // 函数式中间件-应用于全局
@@ -1116,18 +1247,20 @@ export function logger(req, res, next) {
 async function bootstrap() {
   // 创建实例
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   // 设置全局日志函数中间件
   app.use(logger);
 }
 bootstrap();
 ```
 
-## 一例看懂中间件、守卫、管道、异常过滤器、拦截器
+### 一例看懂中间件、守卫、管道、异常过滤器、拦截器
 
-> 从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: ‘xx’,password: ‘xx’}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤：`
+上面把五种切面一个一个讲了，但分开看永远不如串起来跑一遍。这一节做一个完整的 `/user/login` 接口，五种切面全部挂上，每一层都打一句 log，然后从终端输出里直接看它们的真实执行顺序。这是我当初理解这块最有效的办法。
 
-![](https://s.poetries.top/uploads/2022/05/8bb8d3e0e2bdaebe.png)
+> 从客户端发送一个post请求，路径为：`/user/login`，请求参数为：`{userinfo: 'xx', password: 'xx'}`，到服务器接收请求内容，触发绑定的函数并且执行相关逻辑完毕，然后返回内容给客户端的整个过程大体上要经过如下几个步骤。
+
+![一次 POST /user/login 请求穿过五种切面的完整时序图](https://s.poetries.top/uploads/2022/05/8bb8d3e0e2bdaebe.png)
 
 项目需要包支持：
 
@@ -1144,7 +1277,9 @@ npm install --save rxjs xml2js class-validator class-transformer
 
 `nest g res user`
 
-![](https://s.poetries.top/uploads/2022/05/6b74e9b59b24a0fd.png)
+生成出来的目录长这样，controller、service、module、dto 一应俱全。
+
+![nest g res user 生成的 user 模块目录结构](https://s.poetries.top/uploads/2022/05/6b74e9b59b24a0fd.png)
 
 user.controller.ts文件
 
@@ -1198,20 +1333,20 @@ export class UserService {}
 
 
 
-user.login.dto.ts文件
+user.login.dto.ts文件。DTO 是这一整套的关键，校验规则写在这里，管道靠读它上面的装饰器来决定放不放行。
 
 ```js
 // user / dto / user.login.dto.ts
 
 import { IsNotIn, MinLength } from 'class-validator';
 export class UserLoginDTO{
-  /* 
+  /*
   * 账号
   */
   @IsNotIn(['',undefined,null],{message: '账号不能为空'})
   username: string;
 
-  /* 
+  /*
   * 密码
   */
   @MinLength(6,{
@@ -1237,14 +1372,11 @@ import { UserModule } from './user/user.module'
 export class AppModule {}
 ```
 
-> 新建common文件夹里面分别建立对应的文件夹以及文件：
-> 中间件(middleware) — xml.middleware.ts
-> 守卫(guard) — auth.guard.ts
-> 管道(pipe) — validation.pipe.ts
-> 异常过滤器(filters) — http-exception.filter.ts
-> 拦截器(interceptor) — response.interceptor.ts
+> 新建common文件夹里面分别建立对应的文件夹以及文件，中间件(middleware) 对应 xml.middleware.ts，守卫(guard) 对应 auth.guard.ts，管道(pipe) 对应 validation.pipe.ts，异常过滤器(filters) 对应 http-exception.filter.ts，拦截器(interceptor) 对应 response.interceptor.ts
 
-![](https://s.poetries.top/uploads/2022/05/b0bafbf19bde075f.png)
+按类型分目录放在 `common` 下面，结构如下。这套目录划分我一直沿用，跨模块复用的切面全在 `common`，业务模块目录里只留业务。
+
+![common 目录下按类型划分的中间件、守卫、管道、过滤器、拦截器文件结构](https://s.poetries.top/uploads/2022/05/b0bafbf19bde075f.png)
 
 ```js
 // main.ts
@@ -1282,7 +1414,11 @@ async function bootstrap() {
 bootstrap();
 ```
 
-### 中间件是请求的第一道关卡
+上面 `main.ts` 里五个全局注册的顺序，跟它们真正的执行顺序没有关系。执行顺序是框架定死的，写在代码里的先后只是登记，这点别搞混。下面按真实的执行顺序一关一关看。
+
+#### 中间件是请求的第一道关卡
+
+中间件能做的事：
 
 1. 执行任何代码。
 2. 对请求和响应对象进行更改。
@@ -1290,7 +1426,9 @@ bootstrap();
 4. 调用堆栈中的下一个中间件函数。
 5. 如果当前的中间件函数没有结束请求-响应周期, 它必须调用 next() 将控制传递给下一个中间件函数。否则, 请求将被挂起
 
-本例中：使用中间件让express支持xml请求并且将xml内容转换为json数组
+最后那条是最容易出事的。忘了调 `next()`，请求就卡在这一层，前端看到的现象是接口一直 pending 最后超时，而服务端一点错误日志都没有。
+
+本例中：使用中间件让express支持xml请求并且将xml内容转换为json数组。这是个很典型的中间件场景，改的是请求体本身的格式，跟具体业务无关，往下游走的每一层都直接受益。
 
 ```js
 // common/middleware/xml.middleware.ts
@@ -1330,11 +1468,15 @@ export class XMLMiddleware implements NestMiddleware {
 
 - 模块注册：在对应的模块中注册如：`user.module.ts`
 
-![](https://s.poetries.top/uploads/2022/05/7985e11265cdecc2.png)
+在模块里注册的写法是这样。
+
+![在 user.module.ts 中通过 configure 方法注册中间件的代码截图](https://s.poetries.top/uploads/2022/05/7985e11265cdecc2.png)
 
 > 同一路由注册多个中间件的执行顺序为，先是全局中间件执行，然后是模块中间件执行，模块中的中间件顺序按照`.apply`中注册的顺序执行
 
-### 守卫是第二道关卡
+顺带说一句这段代码里的坑。它在 `req.on('data')` 的回调里改 `req.body`，但 `next()` 是同步调用的，也就是说数据还没读完，请求就已经往下走了。演示原理没问题，真要在生产上做 XML 解析，得把 `next()` 放到 `end` 事件里再调，或者直接用现成的 body parser。
+
+#### 守卫是第二道关卡
 
 > 守卫控制一些权限内容，如：一些接口需要带上token标记，才能够调用，守卫则是对这个标记进行验证操作的。
 > 本例中代码如下：
@@ -1396,11 +1538,17 @@ export class AuthGuard implements CanActivate {
 - 全局注册：在`main.ts`中导入需要的守卫模块如：`AuthGuard`。然后使用 `app.useGlobalGuards(new AuthGuard())` 即可
 - 模块注册：在需要注册的`controller`控制器中导入`AuthGuard`。然后从`@nestjs/common`中导`UseGuards`装饰器。最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可
 
-![](https://s.poetries.top/uploads/2022/05/976e8bcbe31b38ce.png)
+控制器里挂守卫的写法如下。
+
+![在控制器上使用 UseGuards 装饰器注册守卫的代码截图](https://s.poetries.top/uploads/2022/05/976e8bcbe31b38ce.png)
 
 > 同一路由注册多个守卫的执行顺序为，先是全局守卫执行，然后是模块中守卫执行
 
-### 拦截器是第三道关卡
+守卫这一层要留意白名单的写法。上面用的是 `urlList.indexOf(url) >= 0` 做全等匹配，一旦接口带了 query 参数，比如 `/user/login?from=h5`，`request.url` 就不再是 `/user/login`，白名单直接失效，登录接口自己被自己的守卫拦住。稳妥点应该用 `request.path` 或者前缀匹配。
+
+#### 拦截器是第三道关卡
+
+守卫放行之后就到拦截器。为什么要它？因为接口的返回结构需要统一。
 
 想到自定义返回内容如
 
@@ -1433,7 +1581,7 @@ export class AuthGuard implements CanActivate {
 ```js
 // common/interceptor/response.interceptor.ts
 
-/* 
+/*
  * 全局响应拦截器，统一返回体内容
  *
 */
@@ -1477,16 +1625,22 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
 }
 ```
 
-![](https://s.poetries.top/uploads/2022/05/8d262c4c5dcad632.png)
+跑起来之后看终端输出，拦截器的两句 log 中间夹着管道和路由函数的 log，一眼就能看出它被劈成了前后两段。
+
+![终端日志显示拦截器进入、全局管道、路由函数、拦截器返回内容后的执行顺序](https://s.poetries.top/uploads/2022/05/8d262c4c5dcad632.png)
 
 > 中间多了个全局管道以及自定义逻辑，即只有路由绑定的函数有正确的返回值之后才会有`next.handle()`之后的内容
+
+这句话反过来读更有用。路由函数抛异常了，`next.handle()` 后面那段 `map` 根本不执行，响应会被异常过滤器接管。所以千万别把「统一成功响应」和「统一失败响应」都指望拦截器，失败那条线是过滤器的活。
 
 **注册方式**
 
 - 全局注册：在`main.ts`中导入需要的模块如：`ResponseInterceptor`。然后使用 `app.useGlobalInterceptors(new ResponseInterceptor()) `即可
 - 模块注册：在需要注册的`controller`控制器中导入`ResponseInterceptor`。然后从`@nestjs/common`中导入`UseInterceptors`装饰器。最后直接放置在对应的`@Controller()`或者`@Post/@Get`…等装饰器之下即可
 
-![](https://s.poetries.top/uploads/2022/05/099d67812f591bc5.png)
+控制器上挂拦截器的写法如下。
+
+![在控制器上使用 UseInterceptors 装饰器注册拦截器的代码截图](https://s.poetries.top/uploads/2022/05/099d67812f591bc5.png)
 
 > 同一路由注册多个拦截器时候，优先执行模块中绑定的拦截器，然后其拦截器转换的内容将作为全局拦截器的内容，即包裹两次返回内容如：
 
@@ -1497,39 +1651,43 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, Response<T>> {
     "path": "/user/login",
     "message": "请求成功",
     "data": {
-    	"pagenum": 1, // 模块中拦截器包裹效果
-    	“pageSize": 10
+        "pagenum": 1,
+        "pageSize": 10,
         "list": []
     }
 }
 ```
 
-### 管道是第四道关卡
+上面这个结构就是被包了两层的样子，外面那层来自全局拦截器，`data` 里面那层来自模块拦截器。这个我踩过，全局已经包了一次结构，模块里图省事又包了一次，前端拿到的是 `res.data.data.data`，找了半天才定位到是两个拦截器叠上了。
 
-- 管道是请求过程中的第四个内容，主要用于对请求参数的验证和转换操作。
+#### 管道是第四道关卡
 
-- 项目中使用`class-validator` `class-transformer`进行配合验证相关的输入操作内容
+管道是请求过程中的第四个环节，主要用于对请求参数的验证和转换操作。项目中用 `class-validator` 和 `class-transformer` 这两个包来配合，把校验规则写成装饰器挂在 DTO 字段上。
+
+管道排在这么靠后是有道理的。它拿到的是已经解析好的参数和参数的元类型，能知道这个值该是 `CreateUserDto` 还是一个裸字符串，前面几层都没有这个信息。
 
 **认识官方的三个内置管道**
 
-1. `ValidationPipe`：基于`class-validator`和`class-transformer`这两个npm包编写的一个常规的验证管道，可以从`class-validator`导入配置规则，然后直接使用验证(当前不需要了解`ValidationPipe`的原理，只需要知道从`class-validator`引规则，设定到对应字段，然后使用`ValidationPipe`即可)
-2. `ParseIntPipe`：转换传入的参数为数字
+`ValidationPipe` 是基于`class-validator`和`class-transformer`这两个npm包编写的一个常规的验证管道，可以从`class-validator`导入配置规则，然后直接使用验证。当前不需要了解`ValidationPipe`的原理，只需要知道从`class-validator`引规则，设定到对应字段，然后使用`ValidationPipe`即可。
 
-![](https://s.poetries.top/uploads/2022/05/9b73303097ddcf73.png)
+`ParseIntPipe` 负责把传入的参数转成数字，用法如下。
 
-如：传递过来的是/test?id=‘123’"这里会将字符串‘123’转换成数字123
-3. **ParseUUIDPipe**：验证字符串是否是 UUID(通用唯一识别码)
+![在参数上使用 ParseIntPipe 把字符串 id 转成数字的代码截图](https://s.poetries.top/uploads/2022/05/9b73303097ddcf73.png)
 
-![](https://s.poetries.top/uploads/2022/05/ea2ed3388b228548.png)
+比如请求 `/test?id=123`，这里会把字符串 `'123'` 转换成数字 `123`。转不动的时候它会直接抛 400，不用你自己写 `isNaN` 判断。
 
-如：传递过来的是/test?id=‘xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx’"这里会验证格式是否正确，不正确则抛出错误，否则调用findOne方法
+`ParseUUIDPipe` 则是验证字符串是否是 UUID(通用唯一识别码)。
+
+![在参数上使用 ParseUUIDPipe 校验 uuid 格式的代码截图](https://s.poetries.top/uploads/2022/05/ea2ed3388b228548.png)
+
+比如请求 `/test?id=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`，这里会验证格式是否正确，不正确则抛出错误，否则调用 `findOne` 方法。主键用 uuid 的表，加这个管道能挡掉一大批乱传 id 的请求，省得脏参数打到数据库上。
 
 本例中管道使用如下：
 
 ```js
 // common/pipe/validation.pipe.ts
 
-/* 
+/*
  * 全局dto验证管道
  *
 */
@@ -1571,9 +1729,15 @@ export class ValidationPipe implements PipeTransform<any>{
 - 全局注册：在`main.ts`中导入需要的模块如：`ValidationPipe`；然后使用 `app.useGlobalPipes(new ValidationPipe())` 即可
 - 模块注册：在需要注册的`controller`控制器中导入`ValidationPipe`；然后从`@nestjs/common`中导入`UsePipes`装饰器；最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可，管道还允许注册在相关的参数上如：`@Body/@Query… `等
 
-![](https://s.poetries.top/uploads/2022/05/d9c2b21c632c9baa.png)
+代码里长这样。
 
-> **注意：**同一路由注册多个管道的时候，优先执行全局管道，然后再执行模块管道：
+![在控制器上使用 UsePipes 装饰器注册验证管道的代码截图](https://s.poetries.top/uploads/2022/05/d9c2b21c632c9baa.png)
+
+> **注意：**同一路由注册多个管道的时候，优先执行全局管道，然后再执行模块管道
+
+上面那段自定义 `ValidationPipe` 里有个细节值得单独说。`toValidate` 判断的是元类型在不在 `String, Boolean, Number, Array, Object` 里，如果在，就直接放行不做校验。原因是这几个原生类型上根本挂不了 `class-validator` 的装饰器，只有你自己定义的 DTO 类才有校验元数据。所以 `@Param('id') id: string` 这种参数，`ValidationPipe` 是不管的，得靠 `ParseIntPipe` 之类的内置管道。
+
+最后一道是异常过滤器。
 
 - 异常过滤器是所有抛出的异常的统一处理方案
 - 简单来讲就是捕获系统抛出的所有异常，然后自定义修改异常内容，抛出友好的提示。
@@ -1582,26 +1746,28 @@ export class ValidationPipe implements PipeTransform<any>{
 
 > 系统提供了不少内置的系统异常类，需要的时候直接使用throw new XXX(描述,状态)这样的方式即可抛出对应的异常,一旦抛出异常，当前请求将会终止。
 
-**注意每个异常抛出的状态码有所不同**。如：
+**注意每个异常抛出的状态码有所不同**。常用的对照如下。
 
-```js
-BadRequestException — 400
-UnauthorizedException — 401
-ForbiddenException — 403
-NotFoundException — 404
-NotAcceptableException — 406
-RequestTimeoutException — 408
-ConflictException — 409
-GoneException — 410
-PayloadTooLargeException — 413
-UnsupportedMediaTypeException — 415
-UnprocessableEntityException — 422
-InternalServerErrorException — 500
-NotImplementedException — 501
-BadGatewayException — 502
-ServiceUnavailableException — 503
-GatewayTimeoutException — 504
-```
+| 内置异常类 | HTTP 状态码 |
+|------------|-------------|
+| `BadRequestException` | 400 |
+| `UnauthorizedException` | 401 |
+| `ForbiddenException` | 403 |
+| `NotFoundException` | 404 |
+| `NotAcceptableException` | 406 |
+| `RequestTimeoutException` | 408 |
+| `ConflictException` | 409 |
+| `GoneException` | 410 |
+| `PayloadTooLargeException` | 413 |
+| `UnsupportedMediaTypeException` | 415 |
+| `UnprocessableEntityException` | 422 |
+| `InternalServerErrorException` | 500 |
+| `NotImplementedException` | 501 |
+| `BadGatewayException` | 502 |
+| `ServiceUnavailableException` | 503 |
+| `GatewayTimeoutException` | 504 |
+
+用内置异常类比自己 `new HttpException(msg, 400)` 强，语义更清楚，读代码的人一眼知道这是什么错。业务里最常用的其实就是 400、401、403、404 这四个。
 
 本例中使用的是自定义的异常类，代码如下：
 
@@ -1620,7 +1786,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     // HttpException 属于基础异常类，可自定义内容
-    // 如果是自定义的异常类则抛出自定义的status 
+    // 如果是自定义的异常类则抛出自定义的status
     // 否则就是内置HTTP异常类，然后抛出其对应的内置Status内容
     const status =
       exception instanceof HttpException
@@ -1636,7 +1802,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode: status, // 系统错误状态
       timestamp: new Date().toISOString(), // 错误日期
       path: request.url, // 错误路由
-      message: '请求失败', 
+      message: '请求失败',
       data: message // 错误消息内容体(争取和拦截器中定义的响应体一样)
     }
      // 打印错误综合日志
@@ -1657,21 +1823,29 @@ export class HttpExceptionFilter implements ExceptionFilter {
 - 全局注册：在`main.ts`中导入需要的模块如：`HttpExceptionFilter` 然后使用 `app.useGlobalFilters(new HttpExceptionFilter())` 即可
 - 模块注册：在需要注册的`controller`控制器中导入`HttpExceptionFilter`然后从`@nestjs/common`中导入`UseFilters`装饰器；最后直接放置在对应的`@Controller()`或者`@Post/@Get…`等装饰器之下即可
 
+控制器上挂过滤器的写法如下。
 
-![](https://s.poetries.top/uploads/2022/05/0263be3b963d942b.png)
+![在控制器上使用 UseFilters 装饰器注册异常过滤器的代码截图](https://s.poetries.top/uploads/2022/05/0263be3b963d942b.png)
 
-> **注意：** 同一路由注册多个管道的时候，只会执行一个异常过滤器，优先执行模块中绑定的异常过滤器，如果模块中无绑定异常过滤则执行全局异常过滤器
+> **注意：** 同一路由注册多个过滤器的时候，只会执行一个异常过滤器，优先执行模块中绑定的异常过滤器，如果模块中无绑定异常过滤则执行全局异常过滤器
 
+这一点和拦截器的行为正好相反。拦截器是层层包裹全都执行，过滤器是就近命中只执行一个。记住这个差别，不然你会奇怪为什么模块里的过滤器生效了，全局那个的日志一句都没打出来。
 
-## 数据验证
+五道关卡到这里就走完了一遍。回过头看这套设计，它真正的价值在于把「跟业务无关但每个接口都要做」的事情从控制器里全部剥离出去了。控制器最后只剩下几行，读起来非常舒服。
+
+### 数据验证
+
+上面反复提到 DTO，这一节把它单独讲透。
 
 如何 限制 和 验证 前端传递过来的数据？
 
 常用：`dto`（data transfer object数据传输对象） + `class-validator`，自定义提示内容，还能集成swagger
 
+这套方案好在校验规则和业务逻辑彻底分家。service 里不用再写一堆 `if (!body.username) return xxx`，参数不合法的请求压根进不到 service。而且同一份 DTO 还能被 Swagger 读去生成接口文档，一份声明三处受益。
+
 **class-validator的验证项装饰器**
 
-https://github.com/typestack/class-validator#usage
+完整列表见官方仓库 https://github.com/typestack/class-validator#usage ，常用的这几个基本够覆盖八成场景。
 
 ```
 @IsOptional() //可选的
@@ -1690,11 +1864,13 @@ https://github.com/typestack/class-validator#usage
 @ValidateIf(o => o.username === ‘admin’) //条件判断，条件满足才验证，如：这里是传入的username是admin才验证
 ```
 
+`@ValidateIf` 是里面最容易被忽略的一个，它让校验变成有条件的。像「只有管理员账号才必须填邮箱」这种需求，不用它就得在 service 里写补充判断，用了它规则还是集中在 DTO 上。
+
 ```
 yarn add class-validator class-transformer
 ```
 
-全局使用内置管道`ValidationPipe` ，不然会报错，无法起作用
+装完之后有一步不能省，必须全局挂上内置管道`ValidationPipe`，不然 DTO 上的装饰器写了也不生效，参数照样能穿过去。这个是新手最常见的疑问，规则明明写了却一点用没有，原因就在这。
 
 ```js
 import { NestFactory } from '@nestjs/core';
@@ -1733,7 +1909,7 @@ export class CreateUserDto {
 }
 ```
 
-修改DTO：用户名，密码，手机号码，邮箱，性别，状态，都是**可选的**
+修改DTO：用户名，密码，手机号码，邮箱，性别，状态，都是**可选的**。创建和更新分成两个 DTO 是有必要的，创建时必填的字段，更新时往往允许只传其中一个，共用一份 DTO 会让规则互相打架。
 
 ```js
 import {
@@ -1800,13 +1976,13 @@ import { CreateUserDto } from './dto/create-user.dto';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
-  
+
   @Post()
   @HttpCode(HttpStatus.OK)
   async create(@Body() user: CreateUserDto) { //使用创建dto
     return await this.userService.create(user);
   }
-  
+
   @Patch(':id')
     async update(@Param('id') id: string, @Body() user: UpdateUserDto) {  //使用更新dto
       return await this.userService.update(id, user);
@@ -1838,17 +2014,32 @@ export class UserService {
 }
 ```
 
-![](https://s.poetries.top/uploads/2022/05/21f5a8f9dbfad1f0.png)
-![](https://s.poetries.top/uploads/2022/05/38a1ae106ec9638c.png)
+`@IsOptional()` 配合 `@Type(() => Number)` 这个组合值得留意。HTTP 传上来的东西全是字符串，`status=1` 到手是 `'1'`，直接进 `@IsEnum` 会挂。加了 `@Type` 之后 `class-transformer` 会先做类型转换再校验，前端传数字还是字符串都能过。
+
+参数不合法时接口的返回长这样，错误信息就是你在 DTO 的 `message` 里写的那句。
+
+![参数校验失败时接口返回的错误响应截图](https://s.poetries.top/uploads/2022/05/21f5a8f9dbfad1f0.png)
+
+换一个字段传错，提示也跟着变。
+
+![另一个字段校验失败时的错误提示截图](https://s.poetries.top/uploads/2022/05/38a1ae106ec9638c.png)
+
+`message` 里写中文提示这件事，前端会很感激你。默认的英文报错像 `password must be longer than or equal to 6 characters`，直接甩给用户看是不合适的。
 
 
-# 进阶
+## 二、进阶篇 配置、鉴权、权限与接口文档
 
-## 配置抽离
+基础那块跑通之后，真实项目里绕不开的就是这几件事。配置怎么按环境拆、文件怎么传、验证码和邮件怎么发、登录态怎么做、权限怎么控、接口文档怎么不用手写。这一节把它们一个一个过。
+
+### 配置抽离
+
+数据库地址、Redis 地址、JWT 密钥、邮箱账号，这些东西散在各个文件里写死，是老项目最常见的技术债。换个环境就要全局搜索改一遍，还很容易把测试库的地址带上生产。配置抽离要解决的就是这个，所有配置进 `src/config` 目录，用的时候统一从 `ConfigService` 里取。
 
 ```
 yarn add nestjs-config
 ```
+
+需要说明一下，`nestjs-config` 是当年的社区方案，Nest 官方后来提供了 `@nestjs/config`，用法思路一致但 API 不同。新项目建议直接用官方那个，具体以官方文档为准。下面这套写法给还在用老包的项目做参考。
 
 ```js
 app.module.ts
@@ -1866,11 +2057,11 @@ import { ConfigModule, ConfigService } from 'nestjs-config';
 @Module({
   imports: [
     //1.配置config目录
-    ConfigModule.load(path.resolve(__dirname, 'config', '**/!(*.d).{ts,js}')),  
-    
+    ConfigModule.load(path.resolve(__dirname, 'config', '**/!(*.d).{ts,js}')),
+
     //2.读取配置，这里读取的是数据库配置
 	TypeOrmModule.forRootAsync({
-      useFactory: (config: ConfigService) => config.get('database'), 
+      useFactory: (config: ConfigService) => config.get('database'),
       inject: [ConfigService],  // 获取服务注入
     })
   ],
@@ -1879,6 +2070,8 @@ import { ConfigModule, ConfigService } from 'nestjs-config';
 })
 export class AppModule {}
 ```
+
+`forRootAsync` 加 `useFactory` 这个组合是关键。数据库模块初始化的时候需要读配置，而配置本身也是一个模块，两者有先后依赖。用异步工厂就是在说「等 ConfigService 准备好了，再拿它的返回值来初始化我」，同步写法在这里会拿到 undefined。
 
 **配置数据库**
 
@@ -1900,13 +2093,17 @@ export default {
 
 
 
-## 环境配置
+这里有个必须提醒的点，`synchronize: true` 千万别带上生产环境。它会让 TypeORM 按实体定义自动改表结构，本地开发很爽，线上一次误改能把字段删掉。正确做法是本地开、生产关，靠 migration 走变更，下面 typeorm 配置那节的写法就是 `process.env.NODE_ENV !== 'production'`。
+
+### 环境配置
+
+配置抽出来之后，下一个问题是同一份配置在开发和生产要取不同的值。
 
 ```
 yarn add cross-env
 ```
 
-cross-env的作用是兼容window系统和mac系统来设置环境变量
+cross-env的作用是兼容window系统和mac系统来设置环境变量。Windows 上设置环境变量的语法和 macOS、Linux 不一样，团队里有人用 Win 就会踩到，加一层 cross-env 就统一了。
 
 **在package.json中配置**
 
@@ -1930,6 +2127,8 @@ yarn add dotenv
 
 **根目录创建 env.parse.ts**
 
+这个文件干的事很简单，根据 `NODE_ENV` 决定读哪个 `.env` 文件，然后把里面的键值对灌进 `process.env`。
+
 ```js
 import * as fs from 'fs';
 import * as path from 'path';
@@ -1952,6 +2151,10 @@ dotenv.config({ path: filePath });
 // main.ts
 import '../env.parse'; // 导入环境变量
 ```
+
+这行 import 必须放在 `main.ts` 的最顶上，比其它 import 都早。因为 `AppModule` 一被导入就会去读 `process.env`，那时候环境变量还没灌进去的话，拿到的全是 undefined。这个顺序问题很隐蔽，本地跑着跑着突然连不上数据库，多半是有人调整了 import 顺序。
+
+还有一条纪律，`.env.prod` 这类含真实密码的文件必须进 `.gitignore`，仓库里只留一份 `.env.example` 说明有哪些字段。
 
 
 
@@ -1977,9 +2180,13 @@ MYSQL_PASSWORD=1234
 MYSQL_DATABASE=test
 ```
 
-读取环境变量 `process.env.MYSQL_HOST`形式
+读取环境变量 `process.env.MYSQL_HOST`形式。
 
-## 文件上传与下载
+这套 env 拆分方式和部署是配套的，服务器上放一份 `.env.prod`，构建产物里不带任何密码。具体怎么把 Nest 应用发到服务器上，我另外写过一篇 [Nest 项目部署总结](https://feinterview.poetries.top/blog/nest-deploy-summary)，PM2、Docker、Nginx 那一套都在里面，这里就不重复了。
+
+### 文件上传与下载
+
+文件上传在 Nest 里是用拦截器实现的，这个设计初看有点意外，但想想也合理，`multer` 要在参数注入之前把 multipart 请求体解析完，正好是拦截器的位置。
 
 ```
 yarn add @nestjs/platform-express compressing
@@ -2029,6 +2236,10 @@ import { ConfigModule, ConfigService } from 'nestjs-config';
 export class AppModule implements NestModule {}
 ```
 
+`diskStorage` 里那个 `filename` 回调决定了落盘后的文件名。这里用时间戳加原始 mimetype 的后缀，避免了两个坑，一是中文文件名在某些系统上乱码，二是同名文件互相覆盖。真上生产的话我会再拼一段随机串，光靠毫秒时间戳，并发上传还是可能撞。
+
+单文件上传用 `FileInterceptor`，多文件用 `FilesInterceptor`，参数是前端 formData 里的字段名，前后端对不上就会拿到 undefined。
+
 ```js
 // upload.controller.ts
 import {
@@ -2074,6 +2285,8 @@ export class UploadController {
   }
 }
 ```
+
+下载那个接口值得单独看一眼。它用 `@Res()` 拿到原生响应对象，手动设了 `Content-Type` 和 `Content-Disposition`，然后把 tar 流直接 pipe 给响应。用流而不是先读进内存再发，是因为导出的文件可能很大，一次性读进内存等着被 OOM。
 
 ```js
 // upload.service.ts
@@ -2127,13 +2340,15 @@ import { UploadController } from './upload.controller';
 export class UploadModule {}
 ```
 
-## 实现图片随机验证码
+### 实现图片随机验证码
 
-nest如何实现图片随机验证码？
+登录接口做了限速还不够，验证码这一层能把脚本刷号的成本再抬一截。
 
-![](https://s.poetries.top/uploads/2022/05/58d3d8e7ca89835f.png)
+nest如何实现图片随机验证码？先看效果，就是这么一张歪歪扭扭的图。
 
-这里使用的是**svg-captcha**这个库，你也可以使用其他的库
+![svg-captcha 生成的四位随机图形验证码效果图](https://s.poetries.top/uploads/2022/05/58d3d8e7ca89835f.png)
+
+这里使用的是**svg-captcha**这个库，你也可以使用其他的库。选它的理由是输出的是 SVG 而不是位图，不依赖 `canvas` 那套原生编译，Docker 里装起来省心很多。
 
 ```
 yarn add svg-captcha
@@ -2180,8 +2395,8 @@ export class UserModule { }
 **使用**
 
 ```js
-import { Controller, Get, Post，Body } from '@nestjs/common';
-import { EmailService } from './email.service';
+import { Controller, Get, Post, Body, Req, Res, Session } from '@nestjs/common';
+import { ToolsService } from '../../utils/tools.service';
 
 @Controller('user')
 export class UserController{
@@ -2201,14 +2416,20 @@ export class UserController{
   	//验证验证码，由前端传递过来
   	const { code } = body;
   	if(code?.toUpperCase() === session.code?.toUpperCase()){
-		console.log(‘验证码通过’)
+		console.log('验证码通过')
 	}
     return 'hello authcode';
   }
 }
 ```
 
+这段代码有两个点要说。第一，比对的时候两边都 `toUpperCase()` 了，因为 svg-captcha 生成的字符大小写混排，让用户去分辨大小写属于自找麻烦。第二，验证码存在 session 里，所以这个方案依赖前面配好的 `express-session`，多实例部署的话 session 得放 Redis，不然验证码接口和登录接口打到不同进程就永远对不上。
+
+还有一件事这段代码没做，验证一次之后应该立刻把 session 里的 code 清掉。不清的话同一个验证码可以被反复提交，防刷的效果就打折了。
+
 **前端简单代码**
+
+前端就是一个 `img` 指向验证码接口，点击时给 URL 加个随机数强制刷新。
 
 ```html
 <!DOCTYPE html>
@@ -2250,7 +2471,9 @@ export class UserController{
 
 
 
-## 邮件服务
+### 邮件服务
+
+注册验证、找回密码、异常告警，这几个场景都得发邮件。Nest 这边用 `@nestjs-modules/mailer`，底层是 nodemailer，配置项基本可以照抄 nodemailer 的文档。
 
 > 邮件服务使用文档 https://nest-modules.github.io/mailer/docs/mailer
 
@@ -2306,6 +2529,10 @@ export default {
 };
 ```
 
+用 QQ 邮箱当发信服务器有个坑，`auth.pass` 填的不是你的登录密码，是在邮箱设置里单独生成的授权码。填登录密码会一直报认证失败，我第一次接就卡在这儿。另外 465 端口配套的是 `secure: true`，如果改用 587 端口，`secure` 要设成 false 走 STARTTLS。
+
+`template` 那一段是可选的，配上之后可以用 ejs 写邮件模板，比在代码里拼 HTML 字符串舒服太多。开发阶段把 `preview: true` 打开，发信前会自动在浏览器里弹出预览，不用真的发一封出去看效果。
+
 **邮件服务使用**
 
 ```js
@@ -2336,11 +2563,17 @@ export class EmailService {
 }
 ```
 
-## nest基于possport + jwt做登陆验证
+发信是个耗时操作，接口里直接 `await` 会把响应时间拉长到好几秒。量大的话建议丢队列异步发，接口只管入队。
+
+### nest基于passport + jwt做登陆验证
+
+终于到登录鉴权。这块是整篇里最值得花时间搞明白的部分，因为它把前面讲的守卫、装饰器、模块导出全用上了。
+
+passport 的核心概念叫策略。一种策略就是一种验证方式，本地账号密码是一种，JWT 是一种，微信扫码、GitHub OAuth 也各是一种。你要做的是实现策略里的 `validate` 方法，剩下的握手流程 passport 帮你走完。
 
 **方式与逻辑**
 
-- 基于possport的本地策略和jwt策略
+- 基于passport的本地策略和jwt策略
 - **本地策略**主要是验证账号和密码是否存在，如果存在就登陆，返回**token**
 - **jwt策略**则是验证用户**登陆时附带的token**是否匹配和有效，如果不匹配和无效则返回**401状态码**
 
@@ -2349,6 +2582,8 @@ yarn add @nestjs/jwt @nestjs/passport passport-jwt passport-local passport
 yarn add -D @types/passport @types/passport-jwt @types/passport-local
 ```
 
+
+两种策略的分工要分清。本地策略只在登录接口用一次，负责核对账号密码；JWT 策略在之后的每个受保护接口上用，负责验令牌。前者是发通行证，后者是查通行证。
 
 **jwt策略 jwt.strategy.ts**
 
@@ -2368,13 +2603,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: jwtConstants.secret, // 使用密钥解析
     } as StrategyOptions);
   }
-	
+
   //token验证, payload是super中已经解析好的token信息
   async validate(payload: any) {
     return { userId: payload.userId, username: payload.username };
   }
 }
 ```
+
+`jwtFromRequest` 决定从哪儿取 token。这里用的是 `ExtractJwt.fromHeader('token')`，也就是自定义请求头 `token`。更常见的是 `fromAuthHeaderAsBearerToken()`，走标准的 `Authorization: Bearer xxx`。选哪个都行，关键是前后端约定一致，我见过前端按 Bearer 传、后端按自定义头取，调了半天 401。
+
+`validate` 的返回值会被 passport 挂到 `request.user` 上，后面控制器里 `@Request() req` 拿到的 `req.user` 就是这个东西。所以这里 return 什么，下游就能拿到什么，需要用户角色做鉴权的话记得带上。
 
 **本地策略 local.strategy.ts**
 
@@ -2415,6 +2654,8 @@ export const jwtConstants = {
 };
 ```
 
+这个密钥是演示用的，真实项目里必须从环境变量读，也就是前面配好的 `process.env.JWT_SECRET`。硬编码在仓库里等于把签发权公开了，任何人都能伪造出合法的 token。
+
 **使用守卫 auth.controller.ts**
 
 ```js
@@ -2441,6 +2682,8 @@ export class AuthController {
   }
 }
 ```
+
+`AuthGuard('local')` 和 `AuthGuard('jwt')` 里那个字符串就是策略名。注意这个 `AuthGuard` 是从 `@nestjs/passport` 导入的，跟前面自己写的那个同名守卫不是一回事，两个都在项目里的话记得改个名字，不然 import 错了很难查。
 
 **在module引入jwt配置和数据库查询的实体 auth.module.ts**
 
@@ -2473,6 +2716,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 export class AuthModule {}
 ```
 
+`signOptions: { expiresIn: '10d' }` 这个有效期要按业务定。后台管理系统给 10 天太长了，token 一旦泄露十天内都有效；纯 App 端又不能太短，天天让用户重登会被骂。常见做法是短 token 加 refresh token，这篇没展开。
+
 **auth.service.ts**
 
 ```js
@@ -2488,7 +2733,7 @@ export class AuthService {
        private readonly usersRepository: Repository<UsersEntity>,
   	private jwtService: JwtService
     ) {}
-  
+
   validateUser(username: string, password: string) {
     const user = await this.usersRepository.findOne({
       where: { username },
@@ -2528,11 +2773,17 @@ import { AuthModule } from './modules/auth/auth.module';
 export class AppModule implements NestModule {}
 ```
 
+这里有两个细节。第一，查用户时写了 `select: ['username', 'password']`，因为实体里密码字段被标成了 `select: false` 默认不查出来，验证密码时得手动把它加回来。第二，无论是用户名不存在还是密码错误，返回的都是同一句「用户名或密码不正确」，这是刻意的，分开提示等于告诉攻击者哪些账号是存在的。
+
 **使用postman测试**
 
-![](https://s.poetries.top/uploads/2022/05/154d26405e7a471a.png)
+登录拿到 token，再带着 token 请求受保护接口，效果是这样。
 
-## 对数据库的密码加密：md5和bcryptjs
+![Postman 中登录获取 token 并携带 token 访问受保护接口的截图](https://s.poetries.top/uploads/2022/05/154d26405e7a471a.png)
+
+### 对数据库的密码加密：md5和bcryptjs
+
+上面登录流程里用到了 `compareSync`，这一节把密码存储单独说清楚。
 
 **密码加密**
 
@@ -2560,6 +2811,8 @@ const passwrod = '123456';
 const transP = md5(passwrod);  // 固定值：e10adc3949ba59abbe56e057f20f883e
 ```
 
+md5 的问题在于同样的输入永远得到同样的输出，网上的彩虹表把常见密码的 md5 值全存好了，一查就还原。上面那个 `e10adc3949ba59abbe56e057f20f883e` 就是 `123456` 的 md5，随便找个在线网站粘进去就能反查出来。
+
 给密码加点"盐"：目的是混淆密码，其实还是得到固定的值
 
 ```js
@@ -2577,6 +2830,8 @@ if (md5(passwrod) === databasePassword ) {
    console.log('密码通过');
 }
 ```
+
+加盐能挡住通用彩虹表，但全站共用一个固定盐还是不够。盐一旦泄露，攻击者针对这个盐重新算一遍表就行了。所以真正的答案是下面这个。
 
 **使用bcryptjs**
 
@@ -2609,17 +2864,23 @@ if (compareSync(password, databasePassword3)) {
 }
 ```
 
-推荐使用`bcryptjs`，算法要比`md5`高级
+为什么三个不一样的值都能验证通过？因为 bcrypt 每次哈希会自动生成一个随机盐，并且把盐直接编码进结果字符串里了。看 `$2a$10$` 这个前缀，`2a` 是算法版本，`10` 是计算成本因子，后面那一大串前 22 个字符就是盐。`compareSync` 拿到数据库里的值之后，先把盐抠出来，再用同样的盐去哈希你输入的密码做比对。
+
+所以 bcrypt 根本不需要你自己管盐，也不存在「盐泄露」这回事，每条记录的盐都不一样。那个成本因子还能调，数字越大算得越慢，暴力破解的成本就越高。
+
+推荐使用`bcryptjs`，算法要比`md5`高级。这条结论到今天依然成立，密码存储别用 md5，哪怕加了盐。
 
 
 
-## 角色权限
+### 角色权限
 
-### RBAC
+登录解决的是「你是谁」，权限解决的是「你能干什么」。后台管理系统里这块的复杂度往往超出预期，所以值得先把表结构想清楚再动手。
 
-- > - RBAC是基于角色的权限访问控制（Role-Based Access Control）一种数据库设计思想，根据设计数据库设计方案，完成项目的权限管理
-  >
-  > - 在RBAC中，有3个基础组成部分，分别是：`用户`、`角色`和`权限`，权限与角色相关联，用户通过成为适当角色而得到这些角色的权限
+#### RBAC
+
+> RBAC是基于角色的权限访问控制（Role-Based Access Control）一种数据库设计思想，根据设计数据库设计方案，完成项目的权限管理。在RBAC中，有3个基础组成部分，分别是`用户`、`角色`和`权限`，权限与角色相关联，用户通过成为适当角色而得到这些角色的权限。
+
+两个基本概念先定义清楚。
 
 - 权限：具备操作某个事务的能力
 - 角色：一系列权限的集合
@@ -2644,6 +2905,8 @@ if (compareSync(password, databasePassword3)) {
 
 **没有角色的设计**
 
+先看一个反面例子，理解为什么必须要有「角色」这一层。
+
 只有用户表，菜单表，两者是多对多关系，有一个关联表
 
 **缺点：**
@@ -2653,7 +2916,9 @@ if (compareSync(password, databasePassword3)) {
 - 每次新建一个用户需要添加1+N(关联几个)条数据
 - 如果有100个用户，每个用户100个权限，那需要添加10000条数据
 
-### 基于RBAC的设计
+数据量只是表象，真正致命的是改起来要命。产品说「所有销售都不能看利润字段了」，你得把每个销售账号的关联记录一条条改。加了角色这一层，改一次角色配置就完事了。
+
+#### 基于RBAC的设计
 
 用户表和角色表的关系设计：
 
@@ -2666,15 +2931,17 @@ if (compareSync(password, databasePassword3)) {
 
 **多对多关系设计**
 
-用户表与角色表是多对多关系，角色表与菜单表是多对多关系
+用户表与角色表是多对多关系，角色表与菜单表是多对多关系。落到表上是这个样子，中间两张关联表是 typeorm 自动生成的。
 
-![](https://s.poetries.top/uploads/2022/05/df5b0726d1260958.png)
-
-
+![用户表、角色表、菜单表以及两张中间关联表的 ER 关系图](https://s.poetries.top/uploads/2022/05/df5b0726d1260958.png)
 
 **更加复杂的设计**
 
-![](https://s.poetries.top/uploads/2022/05/58f62ca515da28df.png)
+大型系统还会再加上部门、用户组、数据权限这些维度，表就长成下面这样。
+
+![包含部门、用户组、数据权限的复杂 RBAC 表结构设计图](https://s.poetries.top/uploads/2022/05/58f62ca515da28df.png)
+
+不是说越复杂越好。表越多，联表查询越慢，后台配置界面也越难做，选哪个方案取决于你的系统真的有多少角色和多少人在用。
 
 **实现流程**
 
@@ -2699,7 +2966,9 @@ if (compareSync(password, databasePassword3)) {
 - 角色 - 部门：多对多关系，一个部门多个角色
 - 角色 - 权限：多对多关系，一个角色拥有多个权限，一个权限被多个角色使用
 
-### 数据库实体设计
+#### 数据库实体设计
+
+把上面的关系翻译成 typeorm 实体，一共四个。看的时候重点盯 `@ManyToMany` 和 `@JoinTable` 出现在哪一侧，`@JoinTable` 只写在关系的主导方，写两边会生成两张中间表。
 
 **用户**
 
@@ -2816,6 +3085,8 @@ export class DepartmentEntity {
 
 **权限**
 
+权限表这里用了 `@Tree('closure-table')`，因为权限天然是树形的，模块下面挂菜单，菜单下面挂按钮操作。闭包表这种存储方式查任意层级的子孙节点很快，代价是额外维护一张关系表。层级不深的话用 `materialized-path` 也行。
+
 ```js
 import {
   Entity,
@@ -2857,11 +3128,11 @@ export class AccessEntity {
 }
 ```
 
-### 接口实现
+#### 接口实现
 
-由于要实现很多接口，这里只说明一部分，其实都是数据库的操作，所有接口如下：
+由于要实现很多接口，这里只说明一部分，其实都是数据库的操作，所有接口如下。
 
-![](https://s.poetries.top/uploads/2022/05/ea6301b6c0da9373.png)
+![RBAC 权限系统涉及的全部接口列表截图](https://s.poetries.top/uploads/2022/05/ea6301b6c0da9373.png)
 
 **根据用户的id获取信息**：id，用户名，部门名，角色，这些信息在做用户登陆时传递到token中。
 
@@ -2877,19 +3148,20 @@ async getUserinfoByUid(uid: number) {
     if (!user) ToolsService.fail('用户ID不存在');
 
     const sql = `
-    select 
+    select
     user.id as user_id, user.username, user.department_id, department.departmentname, role.id as role_id, rolename
     from
     user, department, role, department_role as dr
-    where 
+    where
     user.department_id = department.id
     and department.id = dr.departmentId
     and role.id = dr.roleId
     and user.id = ${uid}`;
-    
+
     const result = await this.usersRepository.query(sql);
     const userinfo = result[0];
-    
+    if (!userinfo) ToolsService.fail('用户所属部门或角色数据异常');
+
     const userObj = {
       user_id: userinfo.user_id,
       username: userinfo.username,
@@ -2929,9 +3201,13 @@ async getUserinfoByUid(uid: number) {
 }
 ```
 
-**结合possport + jwt 做用户登陆授权验证**
+这段里那句拼接 SQL 必须提醒一下。`and user.id = ${uid}` 是字符串拼接，虽然这里 `uid` 已经被 `ParseIntPipe` 转成了数字风险不大，但这个写法本身是 SQL 注入的标准姿势，换个地方接了个字符串参数就出事了。TypeORM 的 `query` 支持参数占位，写成 `query(sql, [uid])` 并把 SQL 里改成 `?`，成本几乎为零。我把这条当成硬性纪律，任何时候都不在 SQL 里拼变量。
 
-> 在验证账户密码通过后，possport 返回用户，然后根据用户id获取用户信息，存储token，用于路由守卫，还可以使用redis存储，以作他用。
+另外原代码里 `result[0]` 直接取值，如果这个用户没配部门，联表查出来是空数组，下一行访问属性就是 `Cannot read property of undefined`，所以上面补了一句判空。
+
+**结合passport + jwt 做用户登陆授权验证**
+
+> 在验证账户密码通过后，passport 返回用户，然后根据用户id获取用户信息，存储token，用于路由守卫，还可以使用redis存储，以作他用。
 
 ```js
 async login(user: any): Promise<any> {
@@ -2951,9 +3227,13 @@ async login(user: any): Promise<any> {
 }
 ```
 
-### **后端的权限访问**
+把角色信息塞进 token 是这套设计的关键取舍。好处是每次鉴权不用再查库，守卫直接解 token 就知道你是谁、有什么角色。代价是角色变更不能实时生效，管理员刚把你降级，你手上的旧 token 在过期前还是有效的。要实时就得每次查 Redis 或者数据库，看你的业务能接受哪种。
+
+#### **后端的权限访问**
 
 > 使用守卫，装饰器，结合token，验证访问权限
+
+前面讲切面的时候埋的伏笔在这里收线，守卫加自定义装饰器加反射器，三个东西合起来才是一套可用的权限控制。
 
 **逻辑：**
 
@@ -3069,6 +3349,10 @@ export class AuthGuard implements CanActivate {
 }
 ```
 
+这个守卫里有一处设计值得学，`if (!authRoles) return true`。没被 `@Roles()` 装饰过的接口默认放行，只有明确声明了需要什么角色的接口才做校验。这样加权限是「加装饰器」而不是「改守卫」，新接口默认可访问，符合大多数后台系统的习惯。
+
+反过来如果你的系统是「默认全部禁止」，那这行就要改成 `return false`，然后给公开接口单独标白名单。两种策略没有绝对优劣，但必须在项目开始时就定下来，中途换会漏。
+
 **简单测试**
 
 > 两个用户，分别对应不同的角色，分别请求user的findOne接口
@@ -3129,7 +3413,11 @@ export class AuthGuard implements CanActivate {
 
 > 前端的权限访问则是通过权限表url和type来处理
 
-## 定时任务
+这里补一句我的看法。前端根据权限表隐藏菜单和按钮，那只是体验优化，不是安全措施。真正的防线永远在后端的守卫上，前端藏了按钮，接口地址照样能被直接调。两边都要做，但优先级不一样。
+
+### 定时任务
+
+有些活不是请求触发的，比如每天凌晨算一遍报表、每小时同步一次第三方数据、定时清理过期文件。
 
 nest如何开启定时任务？
 
@@ -3137,7 +3425,7 @@ nest如何开启定时任务？
 
 > 每天定时更新，定时发送邮件
 
-没有controller，因为定时任务是自动完成的
+没有controller，因为定时任务是自动完成的。这也是它和普通模块最大的区别，没有入口路由，模块被加载时任务就自动注册到调度器里了。
 
 ```
 yarn add @nestjs/schedule
@@ -3166,37 +3454,44 @@ import { Cron, Interval, Timeout } from '@nestjs/schedule';
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
 
-  @Cron('45 * * * * *')  每隔45秒执行一次
+  @Cron('45 * * * * *')  // 每分钟的第45秒执行一次
   handleCron() {
     this.logger.debug('Called when the second is 45');
   }
 
-  @Interval(10000)  每隔10秒执行一次
+  @Interval(10000)  // 每隔10秒执行一次
   handleInterval() {
     this.logger.debug('Called every 10 seconds');
   }
 
-  @Timeout(5000)  5秒只执行一次
+  @Timeout(5000)  // 服务启动5秒后执行一次，只执行这一次
   handleTimeout() {
     this.logger.debug('Called once after 5 seconds');
   }
 }
 ```
 
+三个装饰器的语义完全不同，别混着用。`@Cron` 按 cron 表达式在固定时刻触发，`@Interval` 按固定间隔重复，`@Timeout` 只在服务启动后延迟执行一次。做数据初始化预热用 `@Timeout`，做心跳用 `@Interval`，做「每天凌晨两点」这种用 `@Cron`。
+
 自定义定时时间
 
 ```js
-* * * * * * 分别对应的意思：
-第1个星：秒
-第2个星：分钟
-第3个星：小时
-第4个星：一个月中的第几天
-第5个星：月
-第6个星：一个星期中的第几天
+// * * * * * * 六位分别对应
+// 第1个星：秒
+// 第2个星：分钟
+// 第3个星：小时
+// 第4个星：一个月中的第几天
+// 第5个星：月
+// 第6个星：一个星期中的第几天
 
-如：
-45 * * * * *：每隔45秒执行一次
+// 如：
+// 45 * * * * *  每分钟走到第45秒时执行一次，一小时执行60次
+// 0 0 2 * * *   每天凌晨2点整执行一次
 ```
+
+这里更正一下原来笔记里的说法。`45 * * * * *` 不是「每隔 45 秒执行一次」，它是「每分钟的第 45 秒执行一次」，效果上是每 60 秒一次。cron 表达式描述的是时刻不是间隔，要表达真正的固定间隔应该用 `@Interval` 或者写成 `*/45 * * * * *` 这种步长语法。这个坑我一开始也踩过，以为配了个 45 秒的轮询，实际跑起来完全对不上。
+
+还有个更要紧的事，定时任务在多实例部署下会被重复执行。PM2 起了四个进程，凌晨两点的任务就跑四遍。要么用分布式锁（Redis 的 `SET NX` 就够），要么单独起一个只跑任务的实例。
 
 **挂载-使用**
 
@@ -3215,10 +3510,14 @@ imports: [
 
 
 
-## 接入Swagger接口文档
+### 接入Swagger接口文档
+
+手写接口文档这件事，写的时候烦，更烦的是改完代码忘了同步文档，前端照着过期文档联调，最后互相扯皮。Swagger 把文档从代码里直接生成出来，改了代码文档自动跟着变。
 
 - 优点：不用写接口文档，在线生成，自动生成，可操作数据库，完美配合`dto`
 - 缺点：多一些代码，显得有点乱，习惯就好
+
+我自己的感受是，缺点那条确实存在，控制器上会多出一堆 `@ApiOperation`，一眼看过去有点糊。但跟「文档和实现对不上」比起来，这点代码噪音完全能接受。
 
 ```
 yarn add @nestjs/swagger swagger-ui-express -D
@@ -3231,7 +3530,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   // 创建实例
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   // 创建接口文档服务
   const options = new DocumentBuilder()
     .addBearerAuth() // token认证，输入token才可以访问文档
@@ -3248,7 +3547,7 @@ async function bootstrap() {
   });
   // 启动swagger
   SwaggerModule.setup('api-docs', app, document); // 访问路径 http://localhost:9000/api-docs
-  
+
   // 启动端口
   const PORT = process.env.PORT || 9000;
   await app.listen(PORT, () =>
@@ -3260,9 +3559,13 @@ bootstrap();
 
 
 
+`addBearerAuth()` 加上之后，Swagger 页面右上角会出现一个 Authorize 按钮，把登录拿到的 token 填进去，后续所有接口调试都会自动带上，不用每个接口手动加请求头。`addServer` 可以配多个环境，在页面上切换就能对着不同的后端调。
+
+生产环境要不要暴露这个文档页，得想清楚。它把你所有接口的入参出参都写在明面上了，至少加个访问控制或者干脆按环境变量决定挂不挂。
+
 **swagger装饰器**
 
-https://swagger.io/
+规范本身见 https://swagger.io/ ，Nest 这边常用的装饰器就下面这些。
 
 ```js
 @ApiTags('user')   // 设置模块接口的分类，不设置默认分配到default
@@ -3328,9 +3631,9 @@ export class UserController {
   }
 
   @Get()
-  @ApiOperation({ summary: '查找全部用户', description: '创建用户' })
-  @ApiQuery({ name: 'limit', required: true })  请求参数
-  @ApiQuery({ name: 'offset', required: true }) 请求参数
+  @ApiOperation({ summary: '查找全部用户', description: '分页查询用户列表' })
+  @ApiQuery({ name: 'limit', required: true })  // 请求参数
+  @ApiQuery({ name: 'offset', required: true }) // 请求参数
   async findAll(@Query() query) {
     console.log(query);
     const [data, count] = await this.userService.findAll(query);
@@ -3345,8 +3648,8 @@ export class UserController {
 
   @Patch(':id')
   @ApiOperation({ summary: '更新用户' })
-  @ApiBody({ type: UpdateUserDto, description: '参数可选' })  请求体
-  @ApiResponse({   响应示例
+  @ApiBody({ type: UpdateUserDto, description: '参数可选' })  // 请求体
+  @ApiResponse({   // 响应示例
     status: 200,
     description: '成功返回200，失败返回400',
     type: UpdateUserDto,
@@ -3368,6 +3671,8 @@ export class UserController {
 
 **编写dto，引入@nestjs/swagger**
 
+这就是前面说的「一份 DTO 三处受益」。同一个类上，`class-validator` 的装饰器管校验，`@ApiProperty` 管文档，TypeScript 的类型管编译期检查。
+
 创建
 
 ```js
@@ -3375,7 +3680,7 @@ import { IsNotEmpty, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserDto {
-  @ApiProperty({ example: 'kitty', description: '用户名' })  添加这里即可
+  @ApiProperty({ example: 'kitty', description: '用户名' })  // 添加这里即可
   @IsNotEmpty({ message: '用户名不能为空' })
   username: string;
 
@@ -3407,7 +3712,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export class UpdateUserDto {
-  @ApiProperty({ description: '用户名', example: 'kitty', required: false })  不是必选的
+  @ApiProperty({ description: '用户名', example: 'kitty', required: false })  // 不是必选的
   @IsOptional()
   username: string;
 
@@ -3470,15 +3775,23 @@ export class UpdateUserDto {
 }
 ```
 
-打开：localhost:3000/api-docs，开始测试接口
+配置完打开 `localhost:3000/api-docs` 就能看到文档并直接测试接口。注意端口要和你 `main.ts` 里 `app.listen` 的实际端口对上。
 
-![](https://s.poetries.top/uploads/2022/05/dd04126877af210f.png)
+![Swagger 文档首页，按 ApiTags 分组展示所有接口](https://s.poetries.top/uploads/2022/05/dd04126877af210f.png)
 
-![](https://s.poetries.top/uploads/2022/05/98f40271e2f2ed11.png)
+展开某个接口，参数示例、字段说明、响应结构全是从 DTO 上的装饰器生成的，还能直接点 Try it out 发请求。
 
-# 数据库
+![Swagger 接口详情页，展示由 DTO 生成的请求参数和响应示例](https://s.poetries.top/uploads/2022/05/98f40271e2f2ed11.png)
 
-## nest连接Mongodb
+到这里，一个能跑的后端服务该有的东西基本齐了。剩下的就是数据怎么存。
+
+## 三、数据库篇 MongoDB、TypeORM 与 Redis
+
+后端最后都要落到数据上。这一节先过一遍 MongoDB 的接法，然后重点是 TypeORM 操作 MySQL，实体怎么设计、有几种访问数据库的姿势、增删改查有哪几种写法、事务怎么开、一对一一对多多对多的关系怎么落到表结构上，最后是 Redis 的接入和单点登录。
+
+### nest连接Mongodb
+
+先从简单的开始。MongoDB 不用建表、字段随时能加，做原型和存日志类数据很方便，Nest 这边通过 `@nestjs/mongoose` 接。
 
 mac中，直接使用`brew install mongodb-community`安装MongoDB，然后启动服务`brew services start mongodb-community` 查看服务已经启动`ps aux | grep mongo`
 
@@ -3503,7 +3816,7 @@ import { MongodbModule } from '../examples/mongodb/mongodb.module';
   imports: [
     // 加载配置文件目录
     ConfigModule.load(resolve(__dirname, 'config', '**/!(*.d).{ts,js}')),
-    
+
     // mongodb
     MongooseModule.forRootAsync({
       useFactory: async (configService: ConfigService) =>
@@ -3530,6 +3843,8 @@ export default {
 
 
 **配置Schema**
+
+Mongo 本身不校验结构，Schema 是 mongoose 在应用层加的一层约束。不定义也能存，但那样字段拼错了都没人告诉你，几个月后集合里就会出现 `autor` 和 `author` 并存的惨状。
 
 ```js
 // article.schema
@@ -3568,6 +3883,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 export class MongodbModule {}
 ```
 
+`forFeature` 和 `forRoot` 的分工要分清。`forRoot`（或 `forRootAsync`）在根模块里建连接，全局只做一次；`forFeature` 在业务模块里注册这个模块要用哪些 Model，做的是局部绑定。漏了 `forFeature` 的表现是注入时报「找不到 ArticleModel」。
+
 **在服务里面使用@InjectModel 获取数据库Model实现操作数据库**
 
 ```js
@@ -3603,11 +3920,13 @@ export class MongodbService {
 }
 ```
 
-浏览器测试 http://localhost:9000/api/mongodb/list
+浏览器测试 http://localhost:9000/api/mongodb/list ，能看到列表数据就说明连通了。
 
-![](https://s.poetries.top/uploads/2022/05/e14c1f5173139807.png)
+![浏览器访问 mongodb 列表接口返回的 JSON 数据截图](https://s.poetries.top/uploads/2022/05/e14c1f5173139807.png)
 
-## typeORM操作Mysql数据库
+### typeORM操作Mysql数据库
+
+Mongo 那套接完，重头戏才开始。国内绝大多数业务系统还是跑在 MySQL 上，Nest 官方推荐的 ORM 是 TypeORM，接下来几节都围绕它展开。
 
 mac中，直接使用`brew install mysql`安装mysql，然后启动服务`brew services start mysql` 查看服务已经启动`ps aux | grep mysql`
 
@@ -3618,6 +3937,8 @@ npm install --save @nestjs/typeorm typeorm mysql
 ```
 
 **配置数据库连接地址**
+
+下面这份配置里有几个选项是踩过坑才加上的，值得逐条看。
 
 ```js
 // src/config/typeorm.ts
@@ -3646,6 +3967,8 @@ const config = {
 export default config;
 ```
 
+`synchronize` 前面说过了，生产必关。`timezone: '+0800'` 不配的话，存进去的时间和查出来的时间会差八小时，这是国内项目百分之百会遇到的问题。`autoLoadEntities: true` 开了之后就不用手动维护 `entities` 数组，凡是 `forFeature` 注册过的实体自动加载。`retryAttempts` 和 `retryDelay` 是给容器化部署准备的，数据库容器比应用容器起得慢的时候，应用会重试而不是直接崩掉。
+
 ```js
 // app.module.ts中配置
 import { resolve, join } from 'path';
@@ -3672,6 +3995,8 @@ export class AppModule implements NestModule {}
 
 
 **配置实体entity**
+
+实体就是「一个 TS 类对应一张表」。类名映射表名，属性映射列，装饰器上的选项映射列定义。下面这段还顺带把 MySQL 支持的列类型和 `ColumnOptions` 的全部可用选项列了出来，当速查表用很方便。
 
 ```js
 // photo.entity.ts
@@ -3827,6 +4152,8 @@ export class CreatePostDto {
 }
 ```
 
+和 Mongo 那边一样，实体也要在业务模块里用 `forFeature` 注册一遍才能注入。
+
 **在控制器对应的Module中配置Model**
 
 ```js
@@ -3950,9 +4277,13 @@ export class PostsService {
 
 
 
-## nest统一处理数据库操作的查询结果
+### nest统一处理数据库操作的查询结果
 
-> 操作数据库时，如何做异常处异常？ 比如id不存在，用户名已经存在？如何统一处理请求失败和请求成功？
+数据库能连上、能读能写之后，第一个绕不开的工程问题就是错误怎么返回。
+
+> 操作数据库时，如何做异常处理？比如id不存在，用户名已经存在？如何统一处理请求失败和请求成功？
+
+前面讲过滤器和拦截器的时候埋的伏笔，在这里正式用起来。
 
 **处理方式**：
 
@@ -4029,6 +4360,10 @@ export class UserService {
   }
 }
 ```
+
+这套写法的好处，是 service 里再也不用写 `return { code: -1, msg: 'xxx' }` 这种东西。直接 throw，剩下的交给框架。controller 也干净了，一行 `return await this.userService.findOne(id)` 结束。
+
+不过每次都写六行 `throw new HttpException({...})` 太啰嗦，封装一下。
 
 > 可以将`HttpException`再简单封装一下，或者使用继承，这样代码更简洁一些
 
@@ -4167,22 +4502,30 @@ async function bootstrap() {
 bootstrap();
 ```
 
-失败
+封装成 `ToolsService.fail('用户名已存在')` 之后，一行搞定，可读性反而更好。这里用的是静态方法，不需要注入就能调，写业务的时候很顺手。
 
-![](https://s.poetries.top/uploads/2022/05/fe6da80fe7b316ce.png)
+配好之后，失败的响应长这样，格式来自过滤器。
 
-成功
+![请求失败时统一格式的错误响应截图](https://s.poetries.top/uploads/2022/05/fe6da80fe7b316ce.png)
 
-![](https://s.poetries.top/uploads/2022/05/e0c55c5a0e22af66.png)
+成功的响应长这样，格式来自拦截器。两条路径的结构对齐了，前端只需要判断 `status` 一个字段。
 
-## 数据库实体设计与操作
+![请求成功时统一格式的响应截图](https://s.poetries.top/uploads/2022/05/e0c55c5a0e22af66.png)
+
+这套「service 抛异常、过滤器管失败、拦截器管成功」的组合，是我从这篇笔记里带走的最实用的一个模式，后来的项目基本都是这么搭的。
+
+### 数据库实体设计与操作
 
 > typeorm的数据库实体如何编写？
 > 数据库实体的监听装饰器如何使用？
 
-### 实体设计
+实体写得好不好，直接决定了后面写查询有多痛苦。这一节把常用装饰器和列选项过一遍。
 
-简单例子：下面讲解
+#### 实体设计
+
+先看一个最简单的例子。
+
+
 
 ```js
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn} from "typeorm";
@@ -4197,13 +4540,13 @@ export class User {
 
     @Column()
     password: string;
-   
+
     @Column()
     status: boolean;
-   
+
     @CreateDateColumn()
     created_at:date;
-       
+
     @UpdateDateColumn()
     updated_at:date;
 
@@ -4221,6 +4564,8 @@ export class User {
 - `CreateDateColumn`          创建时间，自动填写
 - `UpdateDateColumn`          更新时间，自动填写
 - `DeleteDateColumn`          删除时间，自动填写
+
+`@DeleteDateColumn` 值得单独说，它开启的是软删除。加上这个字段之后，`softRemove` 删掉的记录还在表里，只是被打了删除时间，`find` 默认查不到，需要的时候还能 `recover` 回来。业务数据基本都该用软删，用户点了删除又后悔的情况太常见了。
 
 **列字段参数**
 
@@ -4243,13 +4588,13 @@ export class User {
 password:string;
 
 @Column({
-    type:'varchar',  
+    type:'varchar',
     unique: true,      // 将列标记为唯一列，唯一约束，比如账号不能有相同的
 })
 username:string;
 
 @Column({
-    type:'tinyint',  
+    type:'tinyint',
     default: () => 1,  // 默认值，创建时自动填写的值
     comment: '0：禁用，1：可用'
 })
@@ -4258,10 +4603,14 @@ status:number;
 @Column({
     type: 'enum',
     enum: ['male', 'female'],   // 枚举类型，只能是数组中的值
-    default: 'male'   默认值          
+    default: 'male'   默认值
 })
 gender:string;
 ```
+
+这几个选项里，`select: false` 是最容易被忽略但最该用的一个。密码、手机号、身份证这类字段设成 `false`，默认查询就不会带出来，从源头上避免了「接口不小心把密码返回给前端」这种事故。要用的时候再用 `addSelect` 显式加回来。
+
+`comment` 也建议每个字段都写。别人用 Navicat 直接看表结构时，中文注释比字段名管用多了。
 
 **完整例子**
 
@@ -4283,15 +4632,15 @@ export class UsersEntity {
     type: 'varchar',
     length: 30,
     nullable: false,
-    unique: true, 
+    unique: true,
   })
   username: string;
 
   @Column({
     type: 'varchar',
-    name: 'password', 
+    name: 'password',
     length: 100,
-    nullable: false, 
+    nullable: false,
     select: false,
     comment: '密码',
   })
@@ -4317,7 +4666,7 @@ export class UsersEntity {
 
   @Column({
     type: 'enum',
-    enum: ['male', 'female'], 
+    enum: ['male', 'female'],
     default: 'male',
   })
   gender: string;
@@ -4355,9 +4704,13 @@ export class UsersEntity {
 }
 ```
 
-![](https://s.poetries.top/uploads/2022/05/648cf1e9823e51c1.png)
+程序跑起来之后，`synchronize` 会按这份实体自动建表，在数据库里看到的结构是这样的，注释和默认值都对上了。
 
-### **抽离部分重复的字段：使用继承**
+![Navicat 中查看自动生成的 users 表结构，含中文注释和默认值](https://s.poetries.top/uploads/2022/05/648cf1e9823e51c1.png)
+
+#### **抽离部分重复的字段：使用继承**
+
+每张表都要写一遍 id、创建时间、更新时间、删除时间，抄四遍就烦了，而且哪天要改字段名得改一圈。
 
 > `baseEntity`：将id，创建时间，更新时间，删除时间抽离成`BaseEntity`
 
@@ -4401,7 +4754,9 @@ export class BaseEntity {
 }
 ```
 
-`users`表继承自`baseEntity`，就不需要写创建时间，修改时间，自增`ID`等重复字段了。其他的表也可以继承自`baseEntity`，减少重复代码
+`users`表继承自`baseEntity`，就不需要写创建时间，修改时间，自增`ID`等重复字段了。其他的表也可以继承自`baseEntity`，减少重复代码。
+
+这里有个细节要注意，基类上不应该加 `@Entity()`，否则 TypeORM 会把它也当成一张真表去建。正确的做法是基类只用普通类或者标 `@Entity()` 的抽象形式，具体以你所用版本的官方文档为准。原文这段代码基类上带了 `@Entity()`，跑起来数据库里会多一张空的 `base_entity` 表，去掉就好。
 
 ```js
 import { Column,Entity } from 'typeorm';
@@ -4413,15 +4768,15 @@ export class UsersEntity extends BaseEntity {  // 继承
     type: 'varchar',
     length: 30,
     nullable: false,
-    unique: true, 
+    unique: true,
   })
   username: string;
 
   @Column({
     type: 'varchar',
-    name: 'password', 
+    name: 'password',
     length: 100,
-    nullable: false, 
+    nullable: false,
     select: false,
     comment: '密码',
   })
@@ -4447,7 +4802,7 @@ export class UsersEntity extends BaseEntity {  // 继承
 
   @Column({
     type: 'enum',
-    enum: ['male', 'female'], 
+    enum: ['male', 'female'],
     default: 'male',
   })
   gender: string;
@@ -4461,7 +4816,9 @@ export class UsersEntity extends BaseEntity {  // 继承
 }
 ```
 
-### **实体监听装饰器**
+#### **实体监听装饰器**
+
+实体上还能挂生命周期钩子，在数据进出数据库的那一刻做点手脚。典型场景是插入前自动加密密码、查出后自动脱敏手机号，把这类逻辑固定在实体上，比散在每个 service 里可靠得多，不会有人忘了调。
 
 - 其实是typeorm在操作数据库时的生命周期，可以更方便的操作数据
 - 查找后：`@AfterLoad`
@@ -4519,12 +4876,16 @@ export class UsersEntity extends BaseEntity {
 }
 ```
 
-## typeorm增删改查操作
+用生命周期钩子有个前提，它只在通过实体对象操作时才触发。用 `QueryBuilder` 批量 update 或者直接跑原生 SQL，钩子是不会执行的。所以别把关键的业务约束只放在钩子里。
+
+### typeorm增删改查操作
+
+这一节信息量最大，也是最容易劝退的地方。TypeORM 提供的写法实在太多了，先建立一张地图，再挑两种常用的深入。
 
 > 访问数据库的方式有哪些？
 > typeorm增删改查操作的方式有哪些？
 
-### **多种访问数据库的方式**
+#### **多种访问数据库的方式**
 
 第一种：`Connection`
 
@@ -4656,7 +5017,11 @@ export class UserService {
 
 **简单总结**
 
-使用的方式太多，建议使用：`2，4`，比较方便
+使用的方式太多，建议使用第二种和第四种，比较方便。
+
+我的建议更明确一点，在 Nest 项目里就用第二种，也就是 `@InjectRepository` 注入。理由是它走的是依赖注入，测试时能轻松替换成 mock，而 `getConnection()` 这类全局函数是硬编码的模块级依赖，写单测的时候会很难受。
+
+顺便提醒，`getConnection`、`getRepository`、`getManager` 这批全局函数在 TypeORM 后来的版本里被标记废弃并做了调整，新项目别再用了。具体的替代方案以官方文档为准，思路上都是转向显式的 DataSource。
 
 **Connection核心类：**
 
@@ -4667,16 +5032,20 @@ export class UserService {
 - `connection.createQueryRunner`         开启事务
 
 
-1. `EntityManager` 和 `Repository`都封装了操作数据的方法，注意：两者的使用方式是不一样的，（实在不明白搞这么多方法做什么，学得头大）
-`getManager`是`EntityManager`的类型，`getRepository`是`Repository`的类型
-2. 都可以使用`createQueryBuilder`，但使用的方式略有不同
+`EntityManager` 和 `Repository`都封装了操作数据的方法，注意两者的使用方式是不一样的。`getManager`是`EntityManager`的类型，`getRepository`是`Repository`的类型。两者都可以使用`createQueryBuilder`，但使用的方式略有不同。
 
-### **增删改查的三种方式**
+区别其实就一条，`Repository` 是绑定了某个实体的，方法里不用再传实体；`EntityManager` 是不绑定的，每个方法第一个参数都得告诉它操作哪张表。日常写业务用 Repository，事务里跨多张表用 EntityManager，分工就这么简单。
+
+原作者在这里吐槽了一句「实在不明白搞这么多方法做什么，学得头大」，这个感受我完全共鸣。刚上手确实容易被这几套 API 绕晕，但记住上面那条区别之后就清楚了。
+
+#### **增删改查的三种方式**
 
 - 第一种：使用sql语句，适用于sql语句熟练的同学
 - 第二种：`typeorm`封装好的方法，增删改 + 简单查询
 - 第三种：`QueryBuilder`查询生成器，适用于关系查询，多表查询，复杂查询
 - 其实底层最终都会生成`sql`语句，只是封装了几种方式而已，方便人们使用。
+
+选哪种不是品味问题，是场景问题。单表简单查询用封装好的方法最省事，多表关联和动态条件拼接用 QueryBuilder，遇到复杂统计、窗口函数这种 ORM 表达不了的，老老实实写 SQL。三种混着用完全正常。
 
 **第一种：sql语句**
 
@@ -4692,6 +5061,8 @@ export class UserService {
   }
 }
 ```
+
+写原生 SQL 的时候再强调一遍，参数一律用占位符传，别拼字符串。`query('select * from users where id = ?', [id])` 和 `query('select * from users where id = ' + id)` 看起来只差几个字符，安全性差了一个数量级。
 
 **第二种：typeorm封装好的api方法**
 
@@ -4711,6 +5082,8 @@ export class UserService {
 ```
 
 **api方法**
+
+下面这份是 Repository 上常用方法的速查表，按增删改查分类整理。这块建议收藏，写业务的时候查起来比翻文档快。
 
 ```js
 增
@@ -4751,6 +5124,10 @@ findOneOrFail(id)              找不到直接报500错误，无法使用过滤�
 clear()                        清空该数据表，谨用！！！
 ```
 
+`save` 和 `insert` 的区别值得单独记一下。`save` 会先查一下这条记录在不在，在就更新不在就插入，还会级联处理关联关系，方便但慢；`insert` 直接执行 INSERT，不管关系也不做检查，快但你得自己保证数据是新的。批量导入用 `insert`，日常业务用 `save`。
+
+另外注意最后那两个「谨用」的方法。`findOneOrFail` 抛的是 TypeORM 自己的错误，绕过了我们前面配好的异常过滤器，最后会变成一个没有任何有用信息的 500。`clear()` 就更狠了，它是 TRUNCATE，一秒清空整张表且不可回滚，我建议直接在代码规范里禁掉。
+
 **find更多参数**
 
 ```js
@@ -4772,9 +5149,13 @@ this.userRepository.find({
 });
 ```
 
+`relations` 这个选项很方便，一行就把关联表带出来了，但它生成的是 LEFT JOIN，关联多了会让查询变重。列表接口尤其要克制，用户列表里带出每个人的所有订单，翻两页就卡住了。
+
+`cache: 60000` 是 TypeORM 自带的查询缓存，默认存在数据库的一张表里，也可以配成 Redis。字典类、配置类的查询开一下很划算。
+
 **find进阶选项**
 
-TypeORM 提供了许多内置运算符，可用于创建更复杂的查询
+TypeORM 提供了许多内置运算符，可用于创建更复杂的查询。这些运算符让你不用写字符串条件也能表达 `!=`、`BETWEEN`、`IN` 这类逻辑。
 
 ```js
 import { Not, Between, In } from "typeorm";
@@ -4801,7 +5182,7 @@ SELECT * FROM "users" WHERE "title" IN ('admin', 'admin2')
 
 **第三种**：`QueryBuilder`查询生成器
 
-使用链式操作
+使用链式操作。QueryBuilder 是三种方式里最灵活的，条件可以按业务动态往上加，也能拿到生成的 SQL 去核对。前面文章服务里那段分页查询就是用它写的。
 
 **QueryBuilder增，删，改**
 
@@ -4849,6 +5230,8 @@ return this.usersRepository
 }
 ```
 
+用 QueryBuilder 做增删改有一点要注意，它返回的不是实体对象而是原始执行结果，得看 `raw.affectedRows` 判断到底改动了几行。想拿到改完之后的完整数据，还得再查一次。
+
 **查询**
 
 简单例子
@@ -4872,6 +5255,8 @@ export class UserService {
 ```
 
 **QueryBuilder查询生成器说明**
+
+下面把 QueryBuilder 的各个环节拆开讲，从最基础的单表查询开始。
 
 查询单表
 
@@ -4899,7 +5284,9 @@ return await this.usersRepository
       .getOne();
 ```
 
-获取结果
+三种方式的差别只在于「实体是在哪一步指定的」，写法不同结果一样。用 Repository 注入的话就是方式三，最简洁。
+
+获取结果的方法有好几个，选错了拿到的数据结构完全不一样。
 
 ```js
 .getSql();          获取实际执行的sql语句，用于开发时检查问题
@@ -4942,6 +5329,10 @@ return await this.usersRepository
 }
 ```
 
+对比一下上面两个返回结果就明白了。`getOne` 出来的字段名是实体里定义的驼峰命名，`getRawOne` 出来的是「别名下划线数据库列名」这种原始形态。日常业务用 `getOne` 和 `getMany`，只有做聚合统计、返回的东西已经不是一个完整实体的时候才用 raw 系列。
+
+`getSql()` 强烈建议养成习惯。写复杂查询的时候先把它 log 出来，扔进数据库客户端跑一遍，比对着代码猜快多了。
+
 查询部分字段
 
 ```js
@@ -4952,7 +5343,7 @@ return await this.usersRepository
 .addSelect('user.password')
 ```
 
-`where`条件
+`where`条件是最常用的一块，注意这里用的是 `:name` 这种命名占位符，TypeORM 会做参数绑定，不存在注入问题。
 
 ```js
 .where("user.name = :name", { name: "joy" })
@@ -4993,7 +5384,9 @@ const posts = await connection
 实际执行的sql语句：select * from post where post.title in (select name from user where registered = true)
 ```
 
-`having`筛选
+这里有个坑我踩过，多个条件时 `.where()` 只能调一次，第二个条件之后要用 `.andWhere()` 或 `.orWhere()`。连着写两个 `.where()`，后面那个会把前面的覆盖掉，查出来的数据莫名其妙多了一堆，还很难发现。
+
+`having`筛选，注意它作用在分组之后，跟 `where` 的执行阶段不一样。
 
 ```js
 .having("user.firstName = :firstName", { firstName: "Timber" })
@@ -5022,19 +5415,19 @@ const posts = await connection
 .addGroupBy("user.id");
 ```
 
-关系查询（多表）
+关系查询（多表）是 QueryBuilder 真正比封装方法强的地方，join 的类型和附加条件都能自己控制。
 
 ```js
 1参：你要加载的关系，2参：可选，你为此表分配的别名，3参：可选，查询条件
 
 左关联查询
-.leftJoinAndSelect("user.profile", "profile")     
+.leftJoinAndSelect("user.profile", "profile")
 
 右关联查询
-.rightJoinAndSelect("user.profile", "profile")    
+.rightJoinAndSelect("user.profile", "profile")
 
 内联查询
-.innerJoinAndSelect("user.photos", "photo", "photo.isRemoved = :isRemoved", { isRemoved: false })         
+.innerJoinAndSelect("user.photos", "photo", "photo.isRemoved = :isRemoved", { isRemoved: false })
 
 
 例子：
@@ -5046,7 +5439,7 @@ const result = await this.usersRepository
   	.getOne();
 
 实际执行的sql语句：
-SELECT user.*, photo.* 
+SELECT user.*, photo.*
 FROM users user
 LEFT JOIN photos photo ON photo.user = user.id
 WHERE user.name = 'joy' AND photo.isRemoved = FALSE;
@@ -5072,7 +5465,11 @@ const result = await this.usersRepository
   .getOne();
 ```
 
-## typeorm使用事务的3种方式
+`leftJoinAndSelect` 和 `leftJoin` 差一个 `AndSelect`，效果差很多。带 `AndSelect` 的会把关联表的字段一起查出来放进结果，不带的只做连接用于筛选条件，结果里看不到关联数据。想「按订单状态筛用户但不需要订单详情」，就用不带 Select 的那个，能省不少传输量。
+
+到这里 TypeORM 的查询部分就过完了。接下来是写操作里最需要小心的东西。
+
+### typeorm使用事务的3种方式
 
 `typeorm`使用事务的方式有哪些？如何使用？
 
@@ -5089,11 +5486,13 @@ const result = await this.usersRepository
 
 > 多表的增，删，改操作
 
-**nest-typrorm事务的使用方式**
+**nest-typeorm事务的使用方式**
 
 1. 使用装饰器，在`controller`中编写，传递给`service`使用
 2. 使用`getManager` 或 `getConnection`，在`service`中编写与使用
 3. 使用`connection` 或 `getConnection`，开启`queryRunner`，在`service`中编写与使用
+
+先说结论，我推荐第二种。第一种把事务边界暴露到了 controller 层，controller 本不该知道底层有没有事务这回事，而且 `@Transaction()` 这套装饰器在 TypeORM 后续版本里已经被废弃了。第三种手动控制粒度最细，能自己选隔离级别，但要记得 commit、rollback、release 一个都不能漏，代码噪音大。第二种在灵活性和简洁度之间最平衡。
 
 **方式一：使用装饰器**
 
@@ -5128,9 +5527,11 @@ export class UserController {
 service
 
 - 这里处理的是1对1关系：保存头像地址到`avatar`表，同时关联保存用户的`id`
-- 如果你不会1对1关系，请先去学习对应的知识
+- 如果你不会1对1关系，请先去学习对应的知识，下一节就会讲
 
-![](https://s.poetries.top/uploads/2022/05/24be5e00069ab400.png)
+两张表的关系是这样的，`users` 是主表，`avatar` 带外键是副表。
+
+![users 表与 avatar 表的一对一关系示意，avatar 表持有 user 外键](https://s.poetries.top/uploads/2022/05/24be5e00069ab400.png)
 
 ```js
 import { Injectable } from '@nestjs/common';
@@ -5156,7 +5557,7 @@ export class UserService {
     };
     const user = await this.usersRepository.findOne({ id });                 先查找用户，因为要保存用户的id
     if (!user) ToolsService.fail('用户id不存在');                              找不到用户抛出异常
-    
+
     const avatarEntity = this.avatarRepository.create({ url: urlObj.url });  创建头像地址的实体
     const avatarUrl = await manager.save(avatarEntity);                      使用事务保存副表
     user.avatar = avatarUrl;                                                 主表和副表建立关系
@@ -5166,7 +5567,11 @@ export class UserService {
 }
 ```
 
+这里有个关键点很容易写错。事务里的所有数据库操作必须都走 `manager`，只要有一句用了外面注入的 `usersRepository`，那句就跑在事务之外，出错时不会回滚。上面代码里查用户用的是 `usersRepository`（只读，无所谓），保存全用的 `manager`，这个分寸要拿捏好。
+
 **方式二：使用getManager 或 getConnection**
+
+这种写法把事务边界收在了 service 内部，controller 完全不知情，我平时用的就是它。
 
 service
 
@@ -5225,7 +5630,11 @@ export class UserService {
 }
 ```
 
+回调函数正常返回就自动提交，抛异常就自动回滚，不用自己写 try catch。这个 API 设计得很省心。
+
 **方式三：使用 connection 或 getConnection**
+
+手动挡。粒度最细，也最容易出错，`release()` 忘了写会泄露连接，压测时表现为连接池被耗干。
 
 service
 
@@ -5264,7 +5673,7 @@ export class UserService {
         .save(avatarEntity);
 
       user.avatar = result;                                     主表和副表建立连接
- 
+
       const userResult = await queryRunner.manager              使用事务保存到副表
         .getRepository(UsersEntity)
         .save(user);
@@ -5281,7 +5690,11 @@ export class UserService {
 }
 ```
 
-## typeorm 一对一关系设计与增删改查
+注意方式三的 catch 分支里只做了回滚没有重新抛出异常，这样上层拿到的是 `undefined`，接口会返回一个空成功。实际项目里 catch 完应该 `throw` 出去，让异常过滤器接管，不然出了问题前端完全无感知。
+
+事务讲完，接下来三节是关系设计，这是 ORM 里最绕但也最有价值的部分。
+
+### typeorm 一对一关系设计与增删改查
 
 实体如何设计一对一关系？如何增删改查？
 
@@ -5292,6 +5705,8 @@ export class UserService {
 > - 有外键的表称之为副表，不带外键的表称之为主表
 > - 如：一个账户对应一个用户信息，主表是账户，副表是用户信息
 > - 如：一个用户对应一张用户头像图片，主表是用户信息，副表是头像地址
+
+判断谁是主表谁是副表，只看外键在哪边，外键在谁那儿谁就是副表。这个规则贯穿后面三节，记住能省很多事。
 
 **一对一实体设计**
 
@@ -5355,6 +5770,8 @@ export class AvatarEntity {
   userinfo: UsersEntity;
 }
 ```
+
+`@JoinColumn()` 是这里的关键，它只写在副表一侧，写了它 TypeORM 才知道该在哪张表上生成外键列。两边都写或者都不写都会出问题。
 
 **一对一增删改查**
 
@@ -5477,7 +5894,7 @@ export class UserService {
     };
     const user = await this.usersRepository.findOne({ id });      先查找用户
     if (!user) ToolsService.fail('用户id不存在');                  如果没找到，抛出错误，由过滤器捕获错误
-    
+
     创建实体的两种方式：new 和 create，new的方式方便条件判断
     创建实体方式一：
     const avatarEntity = this.avatarRepository.create({ url: urlObj.url });  创建实体
@@ -5485,7 +5902,7 @@ export class UserService {
 	创建实体方式二：
 	//const avatarEntity = new AvatarEntity();
 	//avatarEntity.url = urlObj.url;
-	
+
     const avatarUrl = await manager.save(avatarEntity);          使用事务保存副表
     user.avatar = avatarUrl;                                     主表和副表建立关系
     await manager.save(user);                                    使用事务保存主表
@@ -5499,14 +5916,14 @@ export class UserService {
       id: 18,
       url: `http://www.dmyxs.com/images/${id}-update.jpg`,
     };
-    
+
     const user = await this.usersRepository.findOne( { id } );       先查找用户
     if (!user) ToolsService.fail('用户id不存在');                      如果没找到id抛出错误，由过滤器捕获错误
-    
+
     const avatarEntity = this.avatarRepository.create({ url: urlObj.url });    创建要修改的实体
 
 	使用事务更新方法：1参：要修改的表，2参：要修改的id， 3参：要更新的数据
-    await manager.update(AvatarEntity, urlObj.id, avatarEntity);   
+    await manager.update(AvatarEntity, urlObj.id, avatarEntity);
     return '更新成功';
   }
 
@@ -5517,7 +5934,7 @@ export class UserService {
 
     只删副表的关联数据
     await manager.delete(AvatarEntity, { user: id });
-    
+
     如果连主表用户一起删，加下面这行代码
     //await manager.delete(UsersEntity, id);
     return '删除成功';
@@ -5525,7 +5942,11 @@ export class UserService {
 }
 ```
 
-## typeorm 一对多和多对一关系设计与增删改查
+这段 service 代码里有几个可以直接拿走的写法。查关联数据有两条路，`findOne(id, { relations: ['avatar'] })` 简洁，`leftJoinAndSelect` 灵活，看需求选。创建实体也有两条路，`repository.create({...})` 一行搞定，`new Entity()` 再逐个赋值适合有条件判断的场景。删除的时候注意，`manager.delete(AvatarEntity, { user: id })` 只删了副表数据，用户还在，这通常才是你想要的行为。
+
+### typeorm 一对多和多对一关系设计与增删改查
+
+一对多是实际项目里出现频率最高的关系，用户和订单、文章和评论、分类和商品，都是它。
 
 实体如何设计一对多与多对一关系，如何关联查询
 
@@ -5537,6 +5958,8 @@ export class UserService {
 > 如：一个用户拥有多个宠物，多个宠物只属于一个用户的（每个宠物只能有一个主人）
 > 如：一个用户拥有多张照片，多张照片只属于一个用户的
 > 如：一个角色拥有多个用户，多个用户只属于一个角色的（每个用户只能有一个角色）
+
+一对多和多对一其实是同一个关系的两个视角。从用户看是「一个用户多张照片」，从照片看是「多张照片属于一个用户」，数据库里只有一个外键，就在照片表上。
 
 **一对多和多对一实体设计**
 
@@ -5568,9 +5991,11 @@ export class UsersEntity {
   password: string;
 
   @OneToMany(() => PhotoEntity, (avatar) => avatar.userinfo)
-  photos: PhotoEntity;
+  photos: PhotoEntity[];
 }
 ```
+
+这里更正原文一处类型笔误，`@OneToMany` 修饰的属性应该是数组类型 `PhotoEntity[]`，写成单个实体在 TypeScript 层面就说不通了，运行时拿到的确实是数组。
 
 多对一
 
@@ -5666,7 +6091,11 @@ export class UserController {
 
 user.service.ts
 
-**令人头大的地方**：建立关系和查找使用实体，删除使用实体的id，感觉设计得不是很合理，违背人的常识
+**令人头大的地方**：建立关系和查找使用实体，删除使用实体的id，感觉设计得不是很合理，违背人的常识。
+
+这个吐槽很到位，我第一次写也别扭了半天。建立关系时 `photoEntity.userinfo = user` 要传整个实体对象，删除时 `manager.delete(PhotoEntity, { userinfo: id })` 又只要 id。原因是前者走的是 ORM 的对象关系映射，后者走的是直接生成 DELETE 语句，两条路径根本不是一套逻辑。知道原因之后就不别扭了，但确实不够直观。
+
+下面这段更新逻辑是全文最复杂的一块，值得慢慢看。它要处理的场景是前端传来一个新的图片列表，其中有的是老图（带 id）、有的是新图（无 id）、还有的老图被删掉了（不在列表里）。
 
 ```js
 import { Injectable } from '@nestjs/common';
@@ -5736,7 +6165,7 @@ export class UserService {
 	       // photo.url = urlList[i].url;
 	       // photo.user = user;
 	       // await manager.save(PhotoEntity, photo);
-	
+
 	       const photoEntity = this.photoRepository.create({
 	         url: urlList[i].url,
 	         userinfo: user,  注意：这里是使用实体建立关系，而不是实体id
@@ -5762,7 +6191,7 @@ export class UserService {
     ];
     const user = await this.usersRepository.findOne({ id });
     if (!user) ToolsService.fail('用户id不存在');
-    
+
     如果要修改主表，先修改主表用户信息，后修改副表图片信息
     修改主表
     const userEntity = this.usersRepository.create({
@@ -5777,14 +6206,14 @@ export class UserService {
     if (urlList.length !== 0) {
       查询数据库已经有的图片
       const databasePhotos = await manager.find(PhotoEntity, { userinfo: user });
-      
+
       如果有数据，则进行循环判断，先删除多余的数据
       if (databasePhotos.length >= 1) {
         for (let i = 0; i < databasePhotos.length; i++) {
-        
+
           以用户传递的图片为基准，数据库的图片id是否在用户传递过来的表里，如果不在，就是要删除的数据
           const exist = urlList.find((item) => item.id === databasePhotos[i].id);
-          
+
           if (!exist) {
             await manager.delete(PhotoEntity, { id: databasePhotos[i].id });
           }
@@ -5795,15 +6224,15 @@ export class UserService {
       for (let i = 0; i < urlList.length; i++) {
         const photoEntity = new PhotoEntity();
         photoEntity.url = urlList[i].url;
-        
+
         如果有id则是修改操作，因为前端传递的数据是从服务端获取的，会附带id，新增的没有
         if (!!urlList[i].id) {
-        
+
           修改则让id关联即可
           photoEntity.id = urlList[i].id;
           await manager.save(PhotoEntity, photoEntity);
         } else {
-        
+
           否则是新增操作,关联用户实体
           photoEntity.userinfo = user;
           await manager.save(PhotoEntity, photoEntity);
@@ -5832,7 +6261,13 @@ export class UserService {
 
 
 
-## typeorm 多对多关系设计与增删改查
+这段更新逻辑的思路可以总结成一句话，以前端传来的列表为基准，数据库里有但列表里没有的就删，列表里有 id 的就改，没 id 的就新增。这个模式在做「编辑带子表的表单」时会反复用到，图片列表、SKU 列表、附件列表都是这个套路。
+
+有个性能上的小提醒，这段代码在循环里逐条 `await`，图片多了就是 N 次数据库往返。数据量大的话可以攒成数组批量操作，或者用 `In()` 一次删掉所有多余的。
+
+### typeorm 多对多关系设计与增删改查
+
+最后一种关系，也是唯一需要中间表的。
 
 > 实体如何设计多对多关系？如何增删改查？
 
@@ -5848,9 +6283,9 @@ export class UserService {
 > 第一种：建立两张表，使用装饰器`@ManyToMany`建立关系，`typeorm`会自动生成三张表
 > 第二种：手动建立3张表
 
-这里使用第一种
+这里使用第一种。什么时候需要第二种？当中间表本身要带业务字段的时候，比如「关注时间」「是否特别关注」。这种情况下中间表其实已经变成了一个独立实体，得手动建，然后拆成两个一对多关系来处理。
 
-### **实体设计**
+#### **实体设计**
 
 这里将设计一个用户（粉丝） 与 明星的 多对多关系
 
@@ -5912,10 +6347,13 @@ export class StarEntity {
 
 > 程序运行后，将会默认在数据库中生成三张表，users，star，users_follows_star，users_follows_star是中间表，用于记录users和star之间的多对多关系，它是自动生成的。
 
-为了测试方便，你可以在users表和star表创建一些数据：这些属于单表操作
-![](https://s.poetries.top/uploads/2022/05/f9afb65f660699e8.png)
+为了测试方便，你可以在users表和star表创建一些数据，这些属于单表操作，直接在数据库客户端里插几行就行。
 
-### **多对多增删改查**
+![数据库中 users 表和 star 表的测试数据截图](https://s.poetries.top/uploads/2022/05/f9afb65f660699e8.png)
+
+`@JoinTable()` 写在哪一边，就决定了自动生成的中间表叫什么名字、字段顺序如何。写在 users 这边生成的是 `users_follows_star`。业务上通常把「主动方」当主表，粉丝主动关注明星，所以 `@JoinTable` 放在用户这一侧。
+
+#### **多对多增删改查**
 
 > 只要涉及两种表操作的，就需要开启事务：同时失败或同时成功，避免数据不统一
 注意：所有数据应该是由前端传递过来的，这里为了方便，直接硬编码了（写死）
@@ -6055,7 +6493,7 @@ export class UserService {
       重点：
       不指定id是创建新的用户，还需要填写username和password等必填的字段
       指定id就是更新某些字段：只关注明星，不创建新的用户，同样可用于修改
-      userEntity.id = id; 
+      userEntity.id = id;
       userEntity.follows = followList; 建立关联，数据表会自动更新
       await manager.save(userEntity);
     }
@@ -6123,7 +6561,17 @@ export class UserService {
 
 
 
-## nest连接Redis
+多对多的增删改在写法上反而是最统一的，全都是「构造一个只带 id 的主表实体，把 follows 数组设成你想要的最终状态，然后 save」。TypeORM 会自己算出中间表要加哪几行、删哪几行，不用你手动操作中间表。删除某一个关注就是先查出当前列表、filter 掉一个、再整体赋值回去，这个思路很好用。
+
+有一点要小心，`userEntity.follows = []` 会清空所有关联。如果你只是想更新用户名却顺手 `new` 了个实体没带 follows，TypeORM 不会动关联；但显式赋了空数组就是真的全删。这个边界搞错过一次，用户的关注列表全没了。
+
+数据库这块到这里就完整了。最后补上缓存。
+
+### nest连接Redis
+
+Redis 在后端项目里的位置很特殊，它不是「另一个数据库」，而是挡在数据库前面的一层。缓存热点数据、存登录 token、做分布式锁、做限流计数器，都靠它。
+
+先把常用命令过一遍，这些在 `redis-cli` 里直接敲就能验证。
 
 > Redis 字符串数据类型的相关命令用于管理 redis 字符串值
 
@@ -6157,7 +6605,7 @@ export class UserService {
 
 > Redis hash 是一个string类型的field和value的映射表，hash特别适合用于存储对象。
 
-- 设置值hmset ：`hmset zhangsan name "张三" age 20  sex “男”`
+- 设置值hmset ：`hmset zhangsan name "张三" age 20 sex "男"`
 - 设置值hset ： `hset zhangsan name "张三"`
 - 获取数据：`hgetall key`
 - 删除指定数据：`del key`
@@ -6175,6 +6623,10 @@ client.on('message', function(channel, msg){
 console.log('client.on message, channel:', channel, ' message:', msg);
 });
 ```
+
+这五种数据结构对应的场景很清楚。String 存序列化后的对象和 token，List 做简单队列，Set 做去重和标签，Hash 存对象的部分字段更新，发布订阅做跨进程通知。选对结构比写多少代码都管用。
+
+顺便强调一下，`flushall` 是清空所有数据库的所有 key，线上敲这个命令等于自杀，很多公司会在 redis 配置里直接把它 rename 掉。
 
 **Nestjs中使用redis**
 
@@ -6226,8 +6678,10 @@ export default {
 
 **创建一个cache.service.ts 服务 封装操作redis的方法**
 
+不建议在业务代码里到处直接调 redis client。封装一层 `CacheService`，把 JSON 序列化反序列化、client 未就绪的兜底都收在里面，业务侧只管 `set` 和 `get`。哪天要换 redis 客户端库，改一个文件就行。
+
 ```js
-// src/common/cache.service.ts 
+// src/common/cache.service.ts
 import { Injectable } from '@nestjs/common';
 import { RedisService } from 'nestjs-redis';
 
@@ -6281,6 +6735,8 @@ export class CacheService {
   }
 }
 ```
+
+这段封装里 `set` 方法做了 `JSON.stringify`，所以 `get` 出来必须 `JSON.parse`。看起来是小事，但它决定了后面单点登录那段代码里为什么要写 `JSON.parse(cacheToken)`，两边必须成对，少一边就永远比不上。
 
 > 使用redis服务
 
@@ -6342,7 +6798,9 @@ import { Injectable } from '@nestjs/common';
 export class RedisTestService {}
 ```
 
-## 集成redis实现单点登录
+### 集成redis实现单点登录
+
+Redis 接好了，来看一个真实场景。JWT 本身是无状态的，服务端不存任何东西，这是它的优点也是它的短板，你没法主动让一个已签发的 token 失效。想做「一个账号只能在一处登录」，就必须借助一个有状态的存储，Redis 正合适。
 
 **在要使用的controller或service中使用redis**
 
@@ -6405,15 +6863,21 @@ export class AuthService {
     const { id, username } = user;
     const payload = { id, username };
     const access_token = this.jwtService.sign(payload);
-    await this.redisService.set(`user-token-${id}`, access_token, 60 * 60 * 24);  在这里使用redis
+    await this.redisService.set(`user-token-${id}`, access_token, 60 * 60 * 24);  // 在这里使用redis
     return access_token;
   }
 }
 ```
 
-![](https://s.poetries.top/uploads/2022/05/f134cb6419f34607.png)
+登录之后去 Redis 里看，`user-token-1` 这个 key 里存的就是刚签发的 token，过期时间设成了 24 小时，和 JWT 的有效期保持一致。
+
+![Redis 中存储的 user-token 键值以及过期时间截图](https://s.poetries.top/uploads/2022/05/f134cb6419f34607.png)
+
+有了这个 key，踢人下线就变成了一件很简单的事，删掉对应的 key 就行。
 
 **验证token**
+
+关键在 JWT 策略的 `validate` 里加一次比对。
 
 ```js
 import { Strategy, ExtractJwt, StrategyOptions } from 'passport-jwt';
@@ -6440,10 +6904,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     console.log('payload', payload);
     const { id } = payload;
     const token = ExtractJwt.fromHeader('token')(req);
-    const cacheToken = await this.redisService.get(`user-token-${id}`);  获取redis的key
+    const cacheToken = await this.redisService.get(`user-token-${id}`);  // 获取redis的key
 
     //单点登陆验证
-    if (token !== JSON.parse(cacheToken)) {
+    if (!cacheToken || token !== JSON.parse(cacheToken)) {
       ToolsService.fail('您账户已经在另一处登陆，请重新登陆', 401);
     }
     return { username: payload.username };
@@ -6451,9 +6915,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 }
 ```
 
+注意这里必须加 `passReqToCallback: true`，不然 `validate` 的第一个参数拿不到 `req`，也就没法把请求头里的原始 token 抠出来做比对。这是我实现这套东西时卡住的地方，`validate(payload)` 里只有解出来的载荷，没有原文。
 
+思路本身很直白，同一个账号第二次登录会覆盖 Redis 里的 token，第一处登录的客户端下次请求时，本地 token 和 Redis 里的对不上，就被判定为「已在别处登录」。两个 token 都是合法有效的 JWT，区分它们的唯一依据就是 Redis 里那份。
 
-# QA
+这套方案我只在单机 Redis 上验证过，主从或集群模式下有没有主从延迟导致的边界问题，我没实测过。
+
+## 四、常见问题
+
+这些是我自己学的时候真的卡住过、翻了半天文档才想明白的点。
 
 ### Q：nestJS注入其他依赖时为什么还需要导入其module
 
@@ -6493,11 +6963,15 @@ export class AModule {}
 
 **A**
 
-为啥"为什么还需要在A的module.ts中导入B模块呢"？
+先回答「为什么还需要在A的module.ts中导入B模块」。
 
 因为 `BService`的作用域只在 `BModule`里，所以你要在 `AController`里直接用，就会报错拿不到实例。
 
-再来说，"有什么办法可以让 `BService`随处直接用么？"，参考如下手段：
+这里的关键是要把两件事分开看。`@Injectable()` 只是给这个类打了个标记，说「我可以被容器管理」，它不负责决定谁能拿到实例。真正决定可见性的是模块的 `exports` 和 `imports` 这一对。B 模块 `exports` 了 BService，A 模块 `imports` 了 BModule，A 的容器里才有 BService 这个 provider 可以注入。少任何一环，启动时就会报 `Nest can't resolve dependencies`。
+
+所以 TypeScript 层面 import 成功、编译也过，跟运行时能不能注入，完全是两回事。这一点想通了，Nest 的依赖注入基本就没什么坑了。
+
+再来说「有什么办法可以让 `BService`随处直接用」，参考如下手段。
 
 B 的module 声明时，加上`@Global`，如下：
 
@@ -6515,6 +6989,52 @@ export class BModule {}
 
 这样，你就不用在 `AModule`的声明里引入 `BModule`了。
 
-关于『你的理解』部分，貌似你把`@Inject` 和 `@Injectable` 搞混了，建议再读一读这个部分的文档，多做些练习/尝试，自己感受下每个api的特点。
+`@Global()` 好用但别滥用。全局模块适合的是那种真的到处都要用的基础设施，比如配置、日志、Redis 缓存服务。业务模块一旦标成全局，模块边界就形同虚设了，过半年再看这个项目，你根本说不清哪个模块依赖了哪个模块。我自己的原则是，全局模块不超过三个。
 
-最后，官网文档里其实有介绍 ，看`依赖注入`:https://docs.nestjs.com/modules#dependency-injection
+关于『你的理解』部分，`@Inject` 和 `@Injectable` 是两个不同的东西，很容易混。`@Injectable()` 装饰的是「被注入的那个类」，`@Inject()` 用在「注入的位置」上，一般配合自定义 token 使用。建议再读一读这个部分的文档，多做些练习和尝试，自己感受下每个 api 的特点。
+
+最后，官网文档里其实有介绍，看`依赖注入`这一节 https://docs.nestjs.com/modules#dependency-injection
+
+### Q：循环依赖怎么办
+
+A 模块要用 B 的服务，B 模块又要用 A 的服务，启动直接失败。这个我踩过，两个模块拆得不够干净就会撞上。Nest 提供了 `forwardRef()` 来打破这个环，两边的 imports 和构造函数注入都要包一层。
+
+不过我更建议先想想能不能不循环。大多数循环依赖是分层没分好的信号，把两个模块共用的那部分逻辑抽成第三个模块，环自然就断了。`forwardRef` 是止血，不是治本。
+
+### Q：为什么全局守卫里注入的依赖是 undefined
+
+这个在前面限速那一节提过一次，值得单独拎出来。用 `app.useGlobalGuards(new AuthGuard())` 注册的守卫是你手动 `new` 出来的，没有经过 IoC 容器，构造函数里声明的 `Reflector`、`JwtService` 一个都注不进来。
+
+解法是改用 `APP_GUARD` 这个注入令牌，在模块的 `providers` 里注册。过滤器、拦截器、管道也有对应的 `APP_FILTER`、`APP_INTERCEPTOR`、`APP_PIPE`。凡是全局切面里需要注入服务的，一律走这条路。
+
+### Q：数据存进去查出来差了 8 小时
+
+TypeORM 连接配置里加 `timezone: '+0800'`，同时确认 MySQL 服务端的时区设置。这两处对不上就会差八小时，几乎是国内每个项目都要处理一次的问题。
+
+更稳妥的做法是数据库统一存 UTC，展示层再按用户时区转换，但那需要前后端一起配合，改造成本不低。小项目直接锁东八区最省事。
+
+## 总结
+
+把这一整篇顺下来，NestJS 真正需要你转变思路的其实就三件事。
+
+第一件是分层。控制器只做收发，服务承载业务，模块负责组装和暴露边界。这套约定听起来像老生常谈，但 Nest 把它变成了框架层面的强制，你想违反都得费点劲。写惯了之后回头看裸 Express 项目，会很不适应。
+
+第二件是切面。中间件、守卫、拦截器、管道、异常过滤器，五个位置各司其职，顺序是框架定死的。理解这个顺序之后，很多问题都有了固定答案，鉴权放守卫、参数校验放管道、统一响应放拦截器、统一报错放过滤器、全量日志放中间件。业务代码因此能保持干净。
+
+第三件是数据层。TypeORM 提供的写法确实太多了，但真正日常要用的就是 `@InjectRepository` 注入加上 Repository 的封装方法，复杂查询上 QueryBuilder，跨表写操作套一层 `transaction`。关系设计记住那条判据就够了，外键在哪张表，哪张表就是副表。
+
+如果你只想带走一个可复用的模式，我推荐那套「service 抛异常、过滤器统一失败格式、拦截器统一成功格式」的组合。它让 service 层可以只关心业务，controller 层几乎不用写逻辑，前端拿到的响应结构永远一致。这是我从这次梳理里获益最大的一处。
+
+最后再提醒一遍时效性。这篇写于 2022 年，基于 nest8 和 TypeORM 0.2，之后两者都发过大版本，`getConnection` 这批全局函数、`@Transaction()` 装饰器、`findOne` 的参数形式都变过。文中保留的是当时的写法，老项目仍然适用，新项目请对照官方文档的当前版本调整。
+
+## 参考
+
+- [NestJS 官方文档](https://docs.nestjs.com/)
+- [NestJS 依赖注入](https://docs.nestjs.com/modules#dependency-injection)
+- [NestJS 数据库集成](https://docs.nestjs.com/techniques/database)
+- [NestJS MongoDB 集成](https://docs.nestjs.com/techniques/mongodb)
+- [TypeORM 中文文档](https://typeorm.biunav.com/zh/)
+- [class-validator 使用说明](https://github.com/typestack/class-validator#usage)
+- [nestjs-modules/mailer 邮件服务文档](https://nest-modules.github.io/mailer/docs/mailer)
+- [Swagger 官网](https://swagger.io/)
+- [前端进阶之旅](https://interview.poetries.top)

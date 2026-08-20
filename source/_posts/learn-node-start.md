@@ -40,7 +40,7 @@ categories: Back-end
 - 增加机器数
 - 增加每台机器CPU数-多核
 
-![](https://poetries1.gitee.io/img-repo/2019/10/347.png)
+![](https://s.poetries.top/gitee/2019/10/347.png)
 
 **进程、线程**
 

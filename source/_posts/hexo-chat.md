@@ -10,7 +10,7 @@ categories: Front-End
 效果
 
 
-![](https://poetries1.gitee.io/img-repo/2019/10/222.png)
+![](https://s.poetries.top/gitee/2019/10/222.png)
 
 ## 一、注册
 
@@ -18,7 +18,7 @@ categories: Front-End
 
 注册成功后，进入后台控制台，进入到 应用设置-->安装到网站 页面，可以得到一个 `app_id`
 
-![](https://poetries1.gitee.io/img-repo/2019/10/223.png)
+![](https://s.poetries.top/gitee/2019/10/223.png)
 
 ## 二、设置
 
@@ -46,9 +46,9 @@ daovoice_app_id: #这里输入前面获取的app_id
 
 > 应用设置--> 聊天设置修改主题
 
-![](https://poetries1.gitee.io/img-repo/2019/10/224.png)
+![](https://s.poetries.top/gitee/2019/10/224.png)
 
 
 也可以绑定微信
 
-![](https://poetries1.gitee.io/img-repo/2019/10/225.png)
+![](https://s.poetries.top/gitee/2019/10/225.png)

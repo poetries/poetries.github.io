@@ -1,9 +1,9 @@
 ---
 title: JavaScript常用的代码片段
 date: 2016-10-27 11:40:43
-tags: 
-  - JavaScript
-  - Snippet
+tags:
+- JavaScript
+- Snippet
 categories: Front-End
 ---
 
@@ -35,7 +35,7 @@ IsTel: function(str){
 },
 ```
 
- 
+
 - 判断是那种类型的浏览器
 
 
@@ -86,7 +86,7 @@ WhichBrowser: function(){
 	}
 },
 ```
- 
+
 - 获取客户端浏览器cookie
 
 
@@ -104,7 +104,7 @@ GetCookie: function(c_name){
 	return '';
 },
  ```
- 
+
 - 设置客户端浏览器cookie
 
 
@@ -163,7 +163,7 @@ String.prototype.trim = function() {
 - 清除左空格/右空格
 
 ```javascript
-function ltrim(s){ return s.replace( /^(\s*|　*)/, ""); } 
+function ltrim(s){ return s.replace( /^(\s*|　*)/, ""); }
 function rtrim(s){ return s.replace( /(\s*|　*)$/, ""); }
 ```
 
@@ -345,7 +345,7 @@ function appendscript(src, text, reload, charset) {
     if(reload && $(id)) {
         $(id).parentNode.removeChild($(id));
     }
- 
+
     evalscripts.push(id);
     var scriptNode = document.createElement("script");
     scriptNode.type = "text/javascript";
@@ -383,15 +383,15 @@ function $(id) {
 - 跨浏览器绑定事件
 
 ```javascript
-function addEventSamp(obj,evt,fn){ 
+function addEventSamp(obj,evt,fn){
     if(!oTarget){return;}
-    if (obj.addEventListener) { 
-        obj.addEventListener(evt, fn, false); 
-    }else if(obj.attachEvent){ 
-        obj.attachEvent('on'+evt,fn); 
+    if (obj.addEventListener) {
+        obj.addEventListener(evt, fn, false);
+    }else if(obj.attachEvent){
+        obj.attachEvent('on'+evt,fn);
     }else{
         oTarget["on" + sEvtType] = fn;
-    } 
+    }
 }
 ```
 
@@ -414,7 +414,7 @@ function delEvt(obj,evt,fn){
 
 ```javascript
 Element.prototype.on = Element.prototype.addEventListener;
- 
+
 NodeList.prototype.on = function (event, fn) {、
     []['forEach'].call(this, function (el) {
         el.on(event, fn);
@@ -435,7 +435,7 @@ Element.prototype.trigger = function (type, data) {
     this.dispatchEvent(event);
     return this;
 };
- 
+
 NodeList.prototype.trigger = function (event) {
     []['forEach'].call(this, function (el) {
         el['trigger'](event);
@@ -447,23 +447,23 @@ NodeList.prototype.trigger = function (event) {
 - 检验URL链接是否有效
 
 ```javascript
-function getUrlState(URL){ 
-    var xmlhttp = new ActiveXObject("microsoft.xmlhttp"); 
-    xmlhttp.Open("GET",URL, false);  
-    try{  
-            xmlhttp.Send(); 
+function getUrlState(URL){
+    var xmlhttp = new ActiveXObject("microsoft.xmlhttp");
+    xmlhttp.Open("GET",URL, false);
+    try{
+            xmlhttp.Send();
     }catch(e){
-    }finally{ 
-        var result = xmlhttp.responseText; 
+    }finally{
+        var result = xmlhttp.responseText;
         if(result){
-            if(xmlhttp.Status==200){ 
-                return(true); 
-             }else{ 
-                   return(false); 
-             } 
-         }else{ 
-             return(false); 
-         } 
+            if(xmlhttp.Status==200){
+                return(true);
+             }else{
+                   return(false);
+             }
+         }else{
+             return(false);
+         }
     }
 }
 ```
@@ -721,27 +721,27 @@ function chgCase(sStr,iCase){
     }
     var i,oRs=[],iCode;
     if(iCase){/*半->全*/
-        for(i=0; i<sStr.length;i+=1){ 
+        for(i=0; i<sStr.length;i+=1){
             iCode = sStr.charCodeAt(i);
             if(iCode == 32){
-                iCode = 12288;                                
+                iCode = 12288;
             }else if(iCode < 127){
                 iCode += 65248;
             }
-                oRs.push(String.fromCharCode(iCode)); 
-            }                
+                oRs.push(String.fromCharCode(iCode));
+            }
     }else{/*全->半*/
-        for(i=0; i<sStr.length;i+=1){ 
+        for(i=0; i<sStr.length;i+=1){
             iCode = sStr.charCodeAt(i);
             if(iCode == 12288){
                 iCode = 32;
             }else if(iCode > 65280 && iCode < 65375){
-                iCode -= 65248;                                
+                iCode -= 65248;
             }
-                oRs.push(String.fromCharCode(iCode)); 
-         }                
-    }                
-    return oRs.join("");                
+                oRs.push(String.fromCharCode(iCode));
+         }
+    }
+    return oRs.join("");
 }
 ```
 
@@ -793,16 +793,16 @@ alert(new Date().format("yyyy-MM-dd hh:mm:ss"));
 //负整数
 /^-[0-9]*[1-9][0-9]*$/;
 //正浮点数
-/^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;   
+/^(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*))$/;
 //负浮点数
-/^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/;  
+/^(-(([0-9]+\.[0-9]*[1-9][0-9]*)|([0-9]*[1-9][0-9]*\.[0-9]+)|([0-9]*[1-9][0-9]*)))$/;
 //浮点数
 /^(-?\d+)(\.\d+)?$/;
 //email地址
 /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/;
 //url地址
 /^[a-zA-z]+://(\w+(-\w+)*)(\.(\w+(-\w+)*))*(\?\S*)?$/;
-或：^http:\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"\"])*$ 
+或：^http:\/\/[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"\"])*$
 //年/月/日（年-月-日、年.月.日）
 /^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/;
 //匹配中文字符
@@ -826,27 +826,27 @@ alert(new Date().format("yyyy-MM-dd hh:mm:ss"));
 //sql 语句
 ^(select|drop|delete|create|update|insert).*$
 //提取信息中的网络链接
-(h|H)(r|R)(e|E)(f|F) *= *('|")?(\w|\\|\/|\.)+('|"| *|>)? 
+(h|H)(r|R)(e|E)(f|F) *= *('|")?(\w|\\|\/|\.)+('|"| *|>)?
 //提取信息中的邮件地址
-\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)* 
+\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*
 //提取信息中的图片链接
-(s|S)(r|R)(c|C) *= *('|")?(\w|\\|\/|\.)+('|"| *|>)? 
+(s|S)(r|R)(c|C) *= *('|")?(\w|\\|\/|\.)+('|"| *|>)?
 //提取信息中的 IP 地址
 (\d+)\.(\d+)\.(\d+)\.(\d+)
 //取信息中的中国手机号码
-(86)*0*13\d{9} 
+(86)*0*13\d{9}
 //提取信息中的中国邮政编码
-[1-9]{1}(\d+){5} 
+[1-9]{1}(\d+){5}
 //提取信息中的浮点数（即小数）
-(-?\d*)\.?\d+ 
+(-?\d*)\.?\d+
 //提取信息中的任何数字
 (-?\d*)(\.\d+)?
 //电话区号
 ^0\d{2,3}$
 //腾讯 QQ 号
-^[1-9]*[1-9][0-9]*$ 
+^[1-9]*[1-9][0-9]*$
 //帐号（字母开头，允许 5-16 字节，允许字母数字下划线）
-^[a-zA-Z][a-zA-Z0-9_]{4,15}$ 
+^[a-zA-Z][a-zA-Z0-9_]{4,15}$
 //中文、英文、数字及下划线
 ^[\u4e00-\u9fa5_a-zA-Z0-9]+$
 ```
@@ -880,7 +880,7 @@ backTop('goTop');
 
 ```javascript
 // 用法：如果地址是 test.htm?t1=1&t2=2&t3=3, 那么能取得：GET["t1"], GET["t2"], GET["t3"]
-function get_get(){ 
+function get_get(){
     querystr = window.location.href.split("?")
     if(querystr[1]){
         GETs = querystr[1].split("&");
@@ -899,7 +899,7 @@ function get_get(){
 
 ```javascript
 function openWindow(url,windowName,width,height){
-    var x = parseInt(screen.width / 2.0) - (width / 2.0); 
+    var x = parseInt(screen.width / 2.0) - (width / 2.0);
     var y = parseInt(screen.height / 2.0) - (height / 2.0);
     var isMSIE= (navigator.appName == "Microsoft Internet Explorer");
     if (isMSIE) {
@@ -958,7 +958,7 @@ function clear_script(){
     K1.value=K1.value.replace(/<script.*?>[\s\S]*?<\/script>|\s+on[a-zA-Z]{3,16}\s?=\s?"[\s\S]*?"|\s+on[a-zA-Z]{3,16}\s?=\s?'[\s\S]*?'|\s+on[a-zA-Z]{3,16}\s?=[^ >]+/ig,"");
 }
 动态执行JavaScript脚本
- 
+
 function javascript(){
     try{
       eval(K1.value);
@@ -977,7 +977,7 @@ function transform(tranvalue) {
         var dw2 = new Array("", "万", "亿"); //大单位
         var dw1 = new Array("拾", "佰", "仟"); //小单位
         var dw = new Array("零", "壹", "贰", "叁", "肆", "伍", "陆", "柒", "捌", "玖"); //整数部分用
-        //以下是小写转换成大写显示在合计大写的文本框中     
+        //以下是小写转换成大写显示在合计大写的文本框中
         //分离整数与小数
         var source = splits(tranvalue);
         var num = source[0];

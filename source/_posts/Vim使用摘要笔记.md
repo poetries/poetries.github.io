@@ -17,9 +17,7 @@ VIM 具有 6 种基本模式和 5 种派生模式。
 ----------
 
 
-![此处输入图片的描述][1]
 
-![此处输入图片的描述][2]
 
 
 ----------
@@ -27,11 +25,8 @@ VIM 具有 6 种基本模式和 5 种派生模式。
 
 ### 删除命令、数字的奥义、撤销和恢复命令
 
-![此处输入图片的描述][3]
 
-![此处输入图片的描述][4]
 
-![此处输入图片的描述][5]
 
 
 ----------
@@ -76,7 +71,6 @@ r 用于替换光标所在的字符，做法是先将光标移动到需要替换
 
 `motion` 依然表示范围，[数字]依然拥有奥义，同样是可选的，加上数字表示重复执行多次 motion 范围…
 
-![此处输入图片的描述][6]
 
 事实上，**修改 == 删除 + 进入插入模式**
 
@@ -126,7 +120,6 @@ VIM 有个按键可以帮你快速定位到另一半括号，就是 % 键。将�
 - **搜索命令**
 
 
-![此处输入图片的描述][9]
 
 最后提个醒：在搜索命令中，`.、*、[、]、^、%、/、?、~` 和 `$` 这 10 个字符有着特殊意义，所以在使用这些字符的时候要在前面加上一个反斜杠`（\）`，比如你要搜索问号，则输入 `/\?`
 
@@ -272,14 +265,12 @@ VIM 使用 `–o 或 –O` 选项打开多个文件，其中 `–o` 表示垂直
 
 **入门版**
 
-![此处输入图片的描述][12]
 
 
 ----------
 
 **经典版【推荐】**
 
-![此处输入图片的描述][15]
 
 
 ----------
@@ -287,29 +278,16 @@ VIM 使用 `–o 或 –O` 选项打开多个文件，其中 `–o` 表示垂直
 
 **进阶版**
 
-![此处输入图片的描述][13]
 
 
 ----------
 
 **增强版**
 
-![此处输入图片的描述][14]
 
 
 
-  [1]: http://7xq6al.com1.z0.glb.clouddn.com/vim-1.png
-  [2]: http://7xq6al.com1.z0.glb.clouddn.com/vim-2.png
-  [3]: http://7xq6al.com1.z0.glb.clouddn.com/vim-3.png
-  [4]: http://7xq6al.com1.z0.glb.clouddn.com/vim-4.png
-  [5]: http://7xq6al.com1.z0.glb.clouddn.com/vim-5.png
-  [6]: http://7xq6al.com1.z0.glb.clouddn.com/vim-6.png
   [7]: http://xxx.fishc.com/forum/201510/29/232631xzmv2mjpv9ii4vao.png
   [8]: http://xxx.fishc.com/forum/201511/06/162556ihjb5obhtgf5s6jm.png
-  [9]: http://7xq6al.com1.z0.glb.clouddn.com/vim-7.png
   [10]: https://github.com/ma6174/vim
   [11]: https://github.com/ma6174/vim/raw/master/screenshot.png
-  [12]: http://7xq6al.com1.z0.glb.clouddn.com/%E5%85%A5%E9%97%A8%E7%89%88--vim.png
-  [13]: http://7xq6al.com1.z0.glb.clouddn.com/%E8%BF%9B%E9%98%B6%E7%89%88--vim.png
-  [14]: http://7xq6al.com1.z0.glb.clouddn.com/%E5%A2%9E%E5%BC%BA%E7%89%88--vim.png
-  [15]: http://7xq6al.com1.z0.glb.clouddn.com/%E7%BB%8F%E5%85%B8%E7%89%88--vim.gif

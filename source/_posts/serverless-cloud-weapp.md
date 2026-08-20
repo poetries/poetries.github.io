@@ -1,20 +1,48 @@
 ---
-title: serverless及小程序云开发实践总结
+title: Serverless 架构与微信小程序云开发实践总结
+description: 从 FaaS/BaaS 概念、冷启动原理讲到微信小程序云开发实操，涵盖云函数部署、订阅消息、云数据库分页与模糊查询、腾讯云 Serverless Framework 部署前端项目与连接 MySQL 的完整流程。
 date: 2021-09-12 18:24:08
-tags: serverless
+tags:
+  - serverless
+  - 小程序云开发
+  - 云函数
 categories: Front-End
 ---
 
+接了一个小程序需求，页面写完只花了两天，真正卡住我的是后面那一半：买服务器、配 Nginx、申请域名、写登录鉴权、建数据库表。前端的活干完了，后端的活才刚开始。后来这个项目整体换成了小程序云开发，上面那堆步骤一个都没做，业务代码直接跑在云上，登录态还是平台白送的。
 
-# 一、Serverless 架构详解
+这篇是我把 Serverless 从概念到落地重新捋了一遍的笔记。里面既有原理部分，比如 FaaS 和 BaaS 的分工到底在哪、冷启动为什么慢；也有大量实操截图，从小程序云开发环境配置一路走到部署管理后台。跟着点基本能走通。
 
-## 1.1 什么是serverless
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
 
-![](https://blog.poetries.top/img/static/images/20210909143647.png)
-![](https://blog.poetries.top/img/static/images/20210909105911.png)
-![](https://blog.poetries.top/img/static/images/20210909174718.png)
-![](https://blog.poetries.top/img/static/images/20210909174744.png)
-![](https://blog.poetries.top/img/static/images/20210909174732.png)
+- Serverless 到底是什么，狭义和广义的两种说法分别指什么
+- FaaS 与 BaaS 的分工，以及事件驱动、单事件处理、自动伸缩、无状态这四个技术特点
+- 冷启动的来龙去脉，FaaS 的三层结构，以及 SFF 这种前端用法
+- 传统架构和 Serverless 架构的对比，优势在哪、什么场景不适合
+- 微信小程序云开发的环境创建、环境 ID 配置、云函数部署上传
+- 云函数实战场景：获取 openId、生成小程序码、图片上传、tcb-router 路由、订阅消息、定时触发器
+- 云数据库的 100 条限制突破、分页、模糊查询、权限管理、一对多建模
+- 云函数调试：控制台调试与 VS Code 本地调试
+- 用 HTTP API 从外部服务触发云函数，搭一个管理后台
+- 腾讯云 Web 函数、Serverless Framework 部署前后端项目、连接 MySQL
+- 云开发（CloudBase）和 Serverless Framework 的区别，以及阿里云、Vercel 的部署方式
+
+> 这篇写于 2021 年，微信开发者工具和云开发控制台后来都改过版，文中的截图和菜单位置可能和你现在看到的不完全一样。原文的截图我一张没删，操作思路是通用的，具体入口以你打开的实际界面为准。
+
+## 一、Serverless 到底是什么
+
+先看几张图，把这个词的边界圈出来。
+
+![Serverless 概念示意](https://blog.poetries.top/img/static/images/20210909143647.png)
+![Serverless 与传统服务的对照](https://blog.poetries.top/img/static/images/20210909105911.png)
+
+这两张图想说的是同一件事：你写的还是那份业务代码，变的是这份代码运行在谁的机器上、由谁负责把它拉起来。
+
+![Serverless 定义拆解](https://blog.poetries.top/img/static/images/20210909174718.png)
+![Serverless 的组成部分](https://blog.poetries.top/img/static/images/20210909174744.png)
+![Serverless 的调用链路](https://blog.poetries.top/img/static/images/20210909174732.png)
+
+看完这几张图，有个最容易踩的误解要先排掉：Serverless 不是「没有服务器」。
 
 我们使用函数的时候不用关心后端IP、域名，只需要调用函数，后端的服务是一个函数。serverless并不是没有服务器，只是服务器部署在云上面的，比我们去自己维护更方便多
 
@@ -24,20 +52,26 @@ categories: Front-End
 > - 第一种：`狭义 Serverless`（最常见）= `Serverless computing 架构` = `FaaS 架构` = `Trigger（事件驱动）+ FaaS（函数即服务）+ BaaS`（后端即服务，持久化或第三方服务）= `FaaS + BaaS`
 > - 第二种：广义 `Serverless` = `服务端免运维` = `具备 Serverless 特性的云服务`
 
-![](https://blog.poetries.top/img/static/images/20210909172246.png)
+平时大家嘴上说的基本都是第一种。第二种范围太宽，宽到对象存储、消息队列都能算进去，讨论的时候容易鸡同鸭讲，所以先约定好说的是哪一种再往下聊。
 
-> - FAAS：函数及服务，通俗来说就是我们可以写一个函数，在该函数内执行业务逻辑，函数由fas平台运行
-> - BAAS：后端及服务，通常指云服务，该云服务常指中间件服务，
+![狭义 Serverless 的构成：Trigger + FaaS + BaaS](https://blog.poetries.top/img/static/images/20210909172246.png)
+
+> - FAAS：函数即服务，通俗来说就是我们可以写一个函数，在该函数内执行业务逻辑，函数由 FaaS 平台运行
+> - BAAS：后端即服务，通常指云服务，该云服务常指中间件服务
 
 FAAS+BAAS 构成了Serverless架构
 
-![](https://blog.poetries.top/img/static/images/20210901173327.png)
+下面这张图把整条链路画完整了，可以对着看一遍请求是怎么走的。
+
+![Serverless 整体架构：FC 替代 Web 服务器](https://blog.poetries.top/img/static/images/20210901173327.png)
 
 整体架构十分简单明了, 用 FC 替代了 Web 服务器，但是换来的是免运维，弹性扩容，按需付费等一系列优点
 
+图里那个 FC 就是函数计算（Function Compute），它站在了原来 Nginx + Node 进程的位置上。少掉的不是服务器，是那台服务器带来的一整套活：装环境、配进程守护、盯 CPU 曲线、半夜起来扩容。
+
 > 目前，Serverless 的应用场景广泛，大部分传统业务均可以在 Serverless 云函数上完美支持
 
-## 1.2 Serverless要解决什么？
+### Serverless 要解决什么
 
 > 问题：前端和后端分离后，彼此独立，这样就导致前端需要关注一些后端关注的问题，如下。
 
@@ -48,19 +82,29 @@ FAAS+BAAS 构成了Serverless架构
 
 > 是不是触及了很多同学的知识盲区。作为一个前端，确实大多数人对于服务端的环境，部署基础设施等等东西并不了解。但是现在前端是独立的部署，前端必然面临这些东西。这就是serverless要解决的问题。
 
-## 1.3  Serverless做什么事？
+这几条我自己是真的一条条撞过来的。前后端分离之后，前端产物要独立部署，那域名、证书、CDN 回源、灰度就都落到前端头上了。再往前一步做 SSR 或者 BFF，限流和熔断也躲不掉。写业务的人被迫先变成半个运维，这才是痛点所在。
+
+### Serverless 做什么事
 
 > 问题：是不是可以弄一个工具，我们只需要关心前端代码，服务器的东西工具自动帮我们做好。
 
 这就是serverless做的事情。如下图，我们只需要关心业务代码，不需要关心服务器的基础设施。
 
-![](https://blog.poetries.top/img/static/images/20210909175241.png)
+![Serverless 让开发者只关心业务代码](https://blog.poetries.top/img/static/images/20210909175241.png)
 
-## 1.4 Serverless和函数计算的区别
+图里灰色的那部分是云厂商接管的边界。你交出去的是运维控制权，换回来的是不用管它。这笔交易划不划算，取决于你的业务是不是真的需要那些控制权，后面讲不足的时候会展开。
 
-![](https://blog.poetries.top/img/static/images/20210909174858.png)
+### Serverless 和函数计算的区别
 
-## 1.5 Serverless 的技术特点
+这两个词经常被混着用，其实不是一个层级的东西。函数计算是产品，Serverless 是理念。
+
+![Serverless 与函数计算的关系对比](https://blog.poetries.top/img/static/images/20210909174858.png)
+
+对着图记一句话就够了：函数计算是实现 Serverless 的一种方式，但用了函数计算不代表你的架构就是 Serverless 的，如果背后还挂着一台你自己运维的 MySQL，那运维成本只是挪了个位置。
+
+## 二、Serverless 的四个技术特点
+
+这四个特点不是并列的四条知识点，它们是一环扣一环推出来的：因为事件驱动，所以能做到单事件处理；因为单事件处理，弹性伸缩才好做；因为要弹性伸缩到 0，函数就必须无状态。理解了这条链，后面遇到的很多限制就都能自己推出来。
 
 **事件驱动**
 
@@ -68,7 +112,9 @@ FAAS+BAAS 构成了Serverless架构
 - Serverless 应用不会类似于原有的「监听 - 处理」类型的应用一直在线，而是按需启动
 - 事件的定义可以很丰富，一次 http 请求，一个文件上传，一次数据库条目修改，一条消息发送，都可以定义为事件
 
-![](https://blog.poetries.top/img/static/images/20210909215157.png)
+![事件驱动：有事件到来时云函数才启动](https://blog.poetries.top/img/static/images/20210909215157.png)
+
+和传统 Node 服务对比一下就很清楚了。`app.listen(3000)` 起来之后进程一直挂着，没请求也占内存；云函数是没事件的时候一个实例都不留。这也是为什么按调用次数计费在低频场景下能便宜到接近免费。
 
 **单事件处理**
 
@@ -76,7 +122,9 @@ FAAS+BAAS 构成了Serverless架构
 - 无需在代码内考虑高并发高可靠性，代码可以专注于业务，开发更简单
 - 通过云函数实例的高并发能力，实现业务高并发
 
-![](https://blog.poetries.top/img/static/images/20210909215226.png)
+![单事件处理：一个实例一次只处理一个事件](https://blog.poetries.top/img/static/images/20210909215226.png)
+
+这一条对写代码的人影响挺大。传统 Node 服务是单进程处理并发请求，你得小心模块级的可变变量被多个请求串改；云函数一个实例一次只吃一个事件，天然没有这个问题。但反过来也有坑：模块级缓存在实例复用的时候还在，实例销毁重建就没了，所以别拿它当可靠缓存用。
 
 **自动弹性伸缩**
 
@@ -84,8 +132,9 @@ FAAS+BAAS 构成了Serverless架构
 - 针对业务的实际事件或请求数，云函数自动弹性合适的处理实例来承载实际业务量
 - 在没有事件或请求时，无实例运行，不占用资源
 
-![](https://blog.poetries.top/img/static/images/20210909215252.png)
+![自动弹性伸缩：按实际请求数拉起实例](https://blog.poetries.top/img/static/images/20210909215252.png)
 
+这里有个坑要注意：并发实例是有账号级配额上限的，突然的流量尖峰不是无限扩容。后面讲小程序云函数计费的时候会看到具体的配额数字。
 
 **无状态开发**
 
@@ -93,28 +142,34 @@ FAAS+BAAS 构成了Serverless架构
 - 分布式应用开发中，均需要保持应用的无状态，以便于水平伸缩
 - 可以利用外部服务、产品，例如数据库或缓存，实现状态数据的保存
 
-![](https://blog.poetries.top/img/static/images/20210909215322.png)
+![无状态开发：状态交给外部数据库或缓存](https://blog.poetries.top/img/static/images/20210909215322.png)
 
-## 1.6 传统服务器架构 VS Serverless架构
+无状态这条最容易在写老代码迁移的时候翻车。像用 `express-session` 默认的 MemoryStore 存会话、往 `/tmp` 写文件当持久化、用全局变量做计数器，这些在云函数里全都不成立。状态要么进数据库，要么进 Redis，要么走对象存储。
 
-1. 传统的开发模式
+## 三、传统架构和 Serverless 架构的对比
 
-![](https://blog.poetries.top/img/static/images/20210909180123.png)
-![](https://blog.poetries.top/img/static/images/20210909175657.png)
-![](https://blog.poetries.top/img/static/images/20210908093108.png)
+先看传统的开发模式长什么样。
 
-2. 新型的`serverless`开发模式
+![传统开发模式的分工与流程](https://blog.poetries.top/img/static/images/20210909180123.png)
+![传统开发模式的部署链路](https://blog.poetries.top/img/static/images/20210909175657.png)
+![传统架构下前端与服务器的关系](https://blog.poetries.top/img/static/images/20210908093108.png)
 
-![](https://blog.poetries.top/img/static/images/20210909180137.png)
-![](https://blog.poetries.top/img/static/images/20210908093115.png)
+三张图连起来看，重点是中间那一大段：买机器、装环境、部署、配负载均衡、上监控。这段活跟你的业务逻辑一点关系都没有，但每个项目都得重做一遍。
+
+再看换成 Serverless 之后的样子。
+
+![Serverless 开发模式的分工](https://blog.poetries.top/img/static/images/20210909180137.png)
+![Serverless 模式下前端直连云函数](https://blog.poetries.top/img/static/images/20210908093115.png)
 
 正常来说，用户开发 Server 端服务，常常面临开发效率，运维成本高，机器资源弹性伸缩等痛点，而使用 Serverless 架构可以很好的解决上述问题。下面是传统架构和 Serverless 架构的对比：
 
-![](https://blog.poetries.top/img/static/images/20210901173249.png)
+![传统架构与 Serverless 架构对比表](https://blog.poetries.top/img/static/images/20210901173249.png)
+
+这张对比表建议存下来。做技术方案评审的时候，甲方最关心的往往不是技术优雅不优雅，而是这两栏里的成本和上线周期。
 
 云函数计算是一个事件驱动的全托管计算服务。通过函数计算，您无需管理服务器等基础设施，只需编写代码并上传。函数计算会为您准备好计算资源，以弹性、可靠的方式运行您的代码，并提供日志查询，性能监控，报警等功能。借助于函数计算，您可以快速构建任何类型的应用和服务，无需管理和运维。
 
-## 1.7 使用serverless优缺点
+## 四、Serverless 的优势和不足
 
 **优势**
 
@@ -122,7 +177,11 @@ FAAS+BAAS 构成了Serverless架构
 2. **资源分配**: 在 `Serverless` 架构中，你不用关心应用运行的资源(比如服务配置、磁盘大小)只提供一份代码就行。
 3. **计费方式**: 在` Serverless` 架构中，计费方式按实际使用量计费(比如函数调用次数、运 行时长)，不按传统的执行代码所需的资源计费(比如固定 `CPU`)。计费粒度也精确到了毫 秒级，而不是传统的小时级别。个别云厂商推出了每个月的免费额度，比如腾讯云提供了每 个月 40 万 GBs 的资源使用额度和 100 万次调用次数的免费额度。中小企业的网站访问量不 是特别大的话完全可以免费使用。
 
-![](https://blog.poetries.top/img/static/images/20210908093139.png)
+计费这块的额度是会调整的，下面这张图是我当时截的，具体数字以你打开控制台看到的为准。
+
+![云函数计费方式与免费额度](https://blog.poetries.top/img/static/images/20210908093139.png)
+
+`GBs` 这个单位第一次看容易懵，它是「内存规格乘以运行时长」。一个配 128MB 内存的函数跑 1 秒，消耗的是 0.125 GBs。所以省钱的方向有两个，一是把函数内存调小，二是把执行时间压短，两者是相乘的关系。
 
 4. **弹性伸缩**:` Serverless` 架构的弹性伸缩更自动化、更精确，可以快速根据业务并发扩容更 多的实例，甚至允许缩容到零实例状态来实现零费用，对用户来说是完全无感知的。而传统 架构对服务器(虚拟机)进行扩容，虚拟机的启动速度也比较慢，需要几分钟甚至更久。
 
@@ -134,7 +193,13 @@ FAAS+BAAS 构成了Serverless架构
 - 同时 ServerLess 针对开发语言的可定制性和可开放性，ServerLess 会选择处于稳定版的语言且更新具有一定的滞后性，特别是 Node.JS 这样的版本更新帝，最新稳定版是10，但是提供的却是8。同时如果对语言有底层的修改而无法通过 Plugin 实现同样也无法适应相关场景。
 - 不适合长时间的进行计算处理的场景，ServerLess 是产生计算后按时间计费的，适合那些触发类短时间计算的，如果有长时间进行计算的场景就不适合。
 
-## 1.8 如何理解理解Serverless技术—FaaS和BaaS
+第二条的版本滞后是 2021 年的情况，那时候云函数运行时普遍还停在 Node 8 到 Node 12，社区里 Node 14 早就用上了。这几年各家追得快了不少，但滞后这个规律没变，选型前一定去运行时列表里确认支持的版本，别等代码写完了才发现顶层 `await` 或者某个新 API 跑不起来。
+
+第三条的时长限制更要提前算。云函数有单次执行的超时上限，跑视频转码、大批量数据清洗这类任务，正确做法是拆成多次触发，或者干脆换成容器服务。我一开始也想过用云函数硬扛一个几分钟的导出任务，结果就是稳定超时，最后改成了「云函数只负责投递任务、结果写对象存储」的异步模式。
+
+不是说 Serverless 不行，而是它擅长的是短平快的、事件触发的活。
+
+## 五、FaaS 和 BaaS 分别在做什么
 
 > Serverless由开发者实现的服务端逻辑运行在无状态的计算容器中，它由事件触发， 完全被第三方管理，其业务层面的状态则被开发者使用的数据库和存储资源所记录。Serverless涵盖了很多技术，分为两类：FaaS和BaaS。
 
@@ -143,9 +208,9 @@ FAAS+BAAS 构成了Serverless架构
 - FaaS意在无须自行管理服务器系统或自己的服务器应用程序，即可直接运行后端代码。其中所指的服务器应用程序，是该技术与容器和PaaS（平台即服务）等其他现代化架构最大的差异。
 - FaaS可以取代一些服务处理服务器（可能是物理计算机，但绝对需要运行某种应用程序），这样不仅不需要自行供应服务器，也不需要全时运行应用程序。
 - FaaS产品不要求必须使用特定框架或库进行开发。在语言和环境方面，FaaS函数就是常规的应用程序。例如AWS Lambda的函数可以通过Javascript、Python以及任何JVM语言（Java、Clojure、Scala）等实现。然而Lambda函数也可以执行任何捆绑有所需部署构件的进程，因此可以使用任何语言，只要能编译为Unix进程即可。FaaS函数在架构方面确实存在一定的局限，尤其是在状态和执行时间方面。
-- 迁往FaaS的过程中，唯一需要修改的代码是“主方法/启动”代码，其中可能需要删除顶级消息处理程序的相关代码（“消息监听器接口”的实现），但这可能只需要更改方法签名即可。在FaaS的世界中，代码的其余所有部分（例如向数据库执行写入的代码）无须任何变化。
+- 迁往FaaS的过程中，唯一需要修改的代码是「主方法/启动」代码，其中可能需要删除顶级消息处理程序的相关代码（「消息监听器接口」的实现），但这可能只需要更改方法签名即可。在FaaS的世界中，代码的其余所有部分（例如向数据库执行写入的代码）无须任何变化。
 
-> 相比传统系统，部署方法会有较大变化 – 将代码上传至FaaS供应商，其他事情均可由供应商完成。目前这种方式通常意味着需要上传代码的全新定义（例如上传zip或JAR文件），随后调用一个专有API发起更新过程。
+> 相比传统系统，部署方法会有较大变化，将代码上传至FaaS供应商，其他事情均可由供应商完成。目前这种方式通常意味着需要上传代码的全新定义（例如上传zip或JAR文件），随后调用一个专有API发起更新过程。
 
 FaaS中的函数可以通过供应商定义的事件类型触发。对于亚马逊AWS，此类触发事件可以包括S3（文件）更新、时间（计划任务），以及加入消息总线的消息（例如Kinesis）。通常你的函数需要通过参数指定自己需要绑定到的事件源。
 
@@ -155,10 +220,15 @@ FaaS中的函数可以通过供应商定义的事件类型触发。对于亚马�
 
 > BaaS（Backend as a Service，后端即服务）是指我们不再编写或管理所有服务端组件，可以使用领域通用的远程组件（而不是进程内的库）来提供服务
 
-## 1.9 Serverless计算如何工作？
+举个前端最熟的例子。以前做登录，你要自己建用户表、写注册接口、加盐存密码、签发 JWT、处理刷新。用 BaaS 的话，这一整块直接换成云厂商的身份认证服务，你调它的 SDK 就完事了。数据库、对象存储、推送、短信，全都是同一个套路：把原来跑在你进程里的库，换成跑在别人机房里的服务。
 
-![](https://blog.poetries.top/img/static/images/20210909175448.png)
+所以那句 `FaaS + BaaS = Serverless` 可以这么读：FaaS 管你自己那点业务逻辑，BaaS 管所有通用能力。两边都不用你运维，Serverless 才算成立。
 
+## 六、Serverless 计算是怎么跑起来的
+
+![Serverless 计算的同步与异步调用流程](https://blog.poetries.top/img/static/images/20210909175448.png)
+
+这张图的关键是分清同步调用和异步调用，两者的错误处理逻辑完全不一样，选错了会直接影响你要不要自己写重试。
 
 > 同步调用的特性是，客户端期待服务端立即返回计算结果。请求到达函数计算时，会立即分配执行环境执行函数。
 
@@ -170,39 +240,55 @@ FaaS中的函数可以通过供应商定义的事件类型触发。对于亚马�
 
 异步调用适用于数据的处理，比如 OSS 触发器触发函数处理音视频，日志触发器触发函数清洗日志，都是对延时不敏感，又需要尽可能保证任务执行成功的场景。如果用户需要了解失败的请求并对请求做自定义处理，可以使用 Destination 功能。函数计算是 Serverless 的，这不是说无服务器，而是开发者无需关心服务器，函数计算会为开发者分配实例执行函数。
 
-## 2.0 FAAS 冷启动
+## 七、冷启动，FaaS 绕不开的那道坎
+
+弹性伸缩到 0 听着很美，代价就在这里：请求来的时候实例是不存在的，得现造。
 
 FaaS 中的冷启动是指从调用函数开始到函数实例准备完成的整个过程。 冷启动我们关注的是启动时间，启动时间越短，我们对资源的利用率就越高。现在的云服务商，基于不同的语言特性，冷启动平均耗时基本在 100～700 毫秒之间。得益于 Google 的 JavaScript 引擎 Just In Time 特性，Node.js 在冷启动方面速度是最快的。
 
-![](https://blog.poetries.top/img/static/images/20210909175826.png)
+下面这张图把冷启动拆成了几个阶段，看清楚每一段谁在花时间，才知道该往哪儿优化。
+
+![FaaS 冷启动的完整阶段拆解](https://blog.poetries.top/img/static/images/20210909175826.png)
 
 请求第一次访问时，云服务商就可以利用构建好的缓存镜像，直接跳过冷启动的下载函数代码步骤，从镜像启动容器，这个也叫预热冷启动。所以如果我们有些业务场景对响应时间比较敏感，我们就可以通过预热冷启动或预留实例策略，加速或绕过冷启动时间。
 
-## 2.1 FAAS 分层
+那开发者自己能做什么？我实际用得上的就三条。第一是把函数包体积压下来，`node_modules` 里塞了一堆没用的包，下载代码那一步就会变慢。第二是别把耗时的初始化写在 handler 里面，数据库连接、SDK 初始化放到模块顶层，实例复用的时候就能省掉。第三是对延迟敏感的接口配预留实例，或者用定时触发器每隔几分钟打一次保活请求，土办法但有效。
+
+这块我要说实话，预留实例是要花钱的，等于放弃了「缩容到 0」这个最大的省钱优势。所以我一般只给用户点得到的核心接口配，后台任务类的函数就让它冷启动。
+
+## 八、FaaS 的三层结构与 SFF
+
+冷启动为什么慢，看完分层就明白了。
 
 - 容器
 - 运行时runtime
 - 具体函数代码
 
-![](https://blog.poetries.top/img/static/images/20210909175855.png)
+![FaaS 的三层结构：容器、运行时、函数代码](https://blog.poetries.top/img/static/images/20210909175855.png)
 
 云服务商负责的就是容器和 Runtime 的准备阶段了。而开发者自己负责的则是函数执行阶段。一旦容器 &Runtime 启动后，就会维持一段时间，这段时间内的这个函数实例就可以直接处理用户数据请求。当一段时间内没有用户请求事件发生（各个云服务商维持实例的时间和策略不同），则会销毁这个函数实例。
 
-![](https://blog.poetries.top/img/static/images/20210909175920.png)
+搞清楚这个边界很有用：你能优化的只有最上面那一层，下面两层的耗时是厂商的事，选语言的时候就已经决定了大半。
+
+![容器与运行时启动后维持一段时间供复用](https://blog.poetries.top/img/static/images/20210909175920.png)
 
 SFF（Serverless For Frontend）指前端数据请求过来，函数触发器触发我们的函数服务；我们的函数启动后，调用后端提供的元数据接口，并将返回的元数据加工成前端需要的数据格式；我们的 FaaS 函数完全就可以休息了。
 
-## 2.2 后端应用 BaaS 化
+SFF 其实就是 BFF 换了个跑法。以前 BFF 是前端团队自己维护一个 Node 服务，好处是数据聚合裁剪由前端自己说了算，坏处是这个服务的运维也归你。换成 SFF 之后，聚合裁剪的逻辑还是那份代码，但它不再是一个常驻进程，而是一个个按需触发的函数。你要是也在做 BFF，这条路值得试。
+
+## 九、后端应用 BaaS 化
 
 回到我们的进程模型，用完即毁型是天然的 Stateless，因为它执行完就销毁，你无法单纯用它持久化存储任何值；常驻进程型则是天然的 Stateful，因为它的主进程不退出，主进程可以存储部分值。
 
 BaaS 化的核心思想就是将后端应用转换成 NoOps 的数据接口，这样 FaaS 在 SFF 层就可以放开手脚，而不用再考虑冷启动时间了。
 
-![](https://blog.poetries.top/img/static/images/20210909180012.png)
+![后端应用 BaaS 化之后的分层结构](https://blog.poetries.top/img/static/images/20210909180012.png)
 
-## 2.3 Serverless使用场景
+这里的关键在于，SFF 层的函数必须足够薄。它只做协议转换和数据裁剪，真正重的计算和状态都推到下面的 BaaS 层。函数越薄，冷启动越快，出问题的时候排查范围也越小。
 
-![](https://blog.poetries.top/img/static/images/20210909175547.png)
+## 十、Serverless 适合放什么业务
+
+![Serverless 的典型使用场景](https://blog.poetries.top/img/static/images/20210909175547.png)
 
 **发送通知**
 
@@ -220,7 +306,11 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 数据统计本身只需要很少的计算量，但是生成图表，则可以定期生成。在接收数据的时候，我们不需要考虑任何延时带来的问题。50~200 ms 的延时，并不会对我们的系统造成什么影响。
 
-## 2.4 serverless的厂家
+把上面四类串起来看，规律其实很清楚：能容忍几百毫秒抖动、请求量波动大、单次执行时间短，这三条同时成立的业务最适合。反过来，长连接、实时音视频、需要持久内存态的服务，趁早别往上放。
+
+关于 Serverless 的基础概念，我在[Serverless 入门介绍](https://feinterview.poetries.top/blog/serverless-intro)里也写过一版更精简的梳理，可以对照着看。
+
+## 十一、Serverless 厂商怎么选
 
 * 链接地址
   * [亚马逊 AWS Lambda ](https://aws.amazon.com/cn/lambda/)
@@ -237,16 +327,19 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
   * 腾讯云和` serverless` 合作在腾讯云中集成了 `serverless Framework`用我们喜欢的框架开发 `serverless` 应用。也可以让我们快速部署老项目。
   * 价格更便宜
 
+选厂商这事我的判断是这样的：如果你的入口是微信生态，那基本没得选，腾讯云的云开发和小程序是打通的，`openId` 这种鉴权信息在云函数里一行代码就能拿到，换别家你得自己走一遍 `code2Session`。如果是纯 Web 项目，就看你团队已经在用谁家的对象存储和数据库，跟着走能少一堆跨云的网络延迟。下面的实操部分都是基于腾讯云写的。
 
-# 二、微信小程序云开发
+## 十二、微信小程序云开发解决了什么
 
-## 2.1 小程序传统开发模式
+### 小程序传统开发模式
 
 前后台联调时间有时候更多，等项目上线需要考虑更多运维的问题，买域名买服务器等
 
-![](https://blog.poetries.top/img/static/images/20210909110747.png)
+![小程序传统开发模式的协作流程](https://blog.poetries.top/img/static/images/20210909110747.png)
 
-## 2.2 云开发正在改变小程序的开发模式
+图里最长的那条是联调。一个功能，前端等接口、后端等需求确认，中间还夹着域名备案和服务器采购。个人开发者做小程序，卡住的往往不是代码。
+
+### 云开发正在改变小程序的开发模式
 
 **云开发是什么**
 
@@ -254,9 +347,13 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 简单的说，就是云开发是一套综合类服务的技术产品，通常开发一个完整的应用（小程序也好，Web、移动应用也好）都需要数据库、存储、CDN、后端函数、静态托管、用户登录等等，但是云开发将这些服务都集成到了一起，而且以一种全新的开发方式，让开发一个应用更加快速、方便、便宜且强大，引领未来技术开发的新趋势。
 
-![](https://blog.poetries.top/img/static/images/20210909144650.png)
+![云开发把数据库、存储、云函数、静态托管集成在一起](https://blog.poetries.top/img/static/images/20210909144650.png)
 
-我们不需要区分那部分是前端那部分是后端，我们只需要调用函数一样去哪里这个流程就可以，云函数也可以在本地调式，调式云函数就像调式我们的代码一样的
+我们不需要区分那部分是前端那部分是后端，我们只需要调用函数一样去调用这个流程就可以，云函数也可以在本地调试，调试云函数就像调试我们自己的代码一样
+
+最让我觉得舒服的是鉴权这块。传统方案里，小程序端 `wx.login` 拿到 `code`，传给自己的服务端，服务端再拿 `code` 去换 `openId`，中间还得防着 `code` 被中途替换。云开发里直接一行 `cloud.getWXContext().OPENID` 就拿到了，而且这个值是微信侧盖过章的，客户端伪造不了。少写代码是其次，少一个安全漏洞才是关键。
+
+如果你是第一次接触小程序云开发，可以先看[微信小程序云开发入门](https://feinterview.poetries.top/blog/wxcloud-intro)把基本概念过一遍，这篇偏实操。
 
 **云开发优势**
 
@@ -268,31 +365,45 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 **小程序云开发提供哪些基础能力**
 
-![](https://blog.poetries.top/img/static/images/20210909111446.png)
+![小程序云开发的基础能力清单](https://blog.poetries.top/img/static/images/20210909111446.png)
 
-## 2.3 小程序云函数计费
+这张图里的五块能力，后面的实操章节基本会挨个用一遍：云函数、云数据库、云存储、静态网站托管、云调用。
+
+## 十三、小程序云函数的计费和配额
+
+这一节容易被跳过，但真的建议先看。上线之后被账单教育，不如提前算清楚。
 
 **产品定价**
 
-![](https://blog.poetries.top/img/static/images/20210908110237.png)
+![云开发产品定价表](https://blog.poetries.top/img/static/images/20210908110237.png)
 
 **支持地域**
 
-![](https://blog.poetries.top/img/static/images/20210908110111.png)
+创建环境的时候要选地域，这个选完不能改，跟你的用户主要在哪没太大关系，但和后面能不能跟其他腾讯云产品内网互通有关。
+
+![云开发支持的地域列表](https://blog.poetries.top/img/static/images/20210908110111.png)
 
 **免费额度**
 
 每个月的免费额度，会在每月开始时刻重置，不会进行累积
 
-![](https://blog.poetries.top/img/static/images/20210908110147.png)
+![云开发每月免费额度](https://blog.poetries.top/img/static/images/20210908110147.png)
+
+不累积这一点要留意。上个月没用完的额度不会攒到这个月，所以别指望靠攒额度扛住一次活动流量。
 
 **配额限制说明**
 
-![](https://blog.poetries.top/img/static/images/20210908110721.png)
+![云开发的配额限制说明](https://blog.poetries.top/img/static/images/20210908110721.png)
 
-## 2.4 小程序云开发项目的创建与配置
+这张图里我最建议记住的是数据库单次查询返回条数的上限和云函数并发上限。前者在写列表接口的时候一定会撞上，后面「云数据库」那节会讲怎么绕；后者决定了你的小程序能扛多少同时在线。
 
-![](https://blog.poetries.top/img/static/images/20210830105322.png)
+以上数字都是 2021 年的，官方调整过几轮，实际以控制台和官方文档为准。
+
+## 十四、云开发项目的创建与配置
+
+![在开发者工具中开通云开发](https://blog.poetries.top/img/static/images/20210830105322.png)
+
+开通完成后先别急着写代码，有两个环境相关的配置要先搞对，否则后面云函数调用会莫名其妙报环境不存在。
 
 ### 云开发项目初始化
 
@@ -300,14 +411,24 @@ Serverless 特别适合于，轻量级快速变化地 API。其实，我一直�
 
 > 用户在开通云开发之后就创建了一个云开发环境，微信小程序可拥有最多两个环境，每个环境都对应一整套独立的云开发资源，包括数据库、云存储、云函数、静态托管等，各个环境是相互独立的。每个环境都有一个唯一的环境ID（环境名称不唯一）。
 
-![](https://blog.poetries.top/img/static/images/20210830110227.png)
-![](https://blog.poetries.top/img/static/images/20210830110241.png)
+两个环境这个数字很关键，正好够你分一个测试、一个正式。环境之间数据完全隔离，测试环境里怎么造脏数据都不会影响线上，这个设计是真的省心。
+
+打开设置面板，在环境变量标签页就能看到环境名称和环境 ID。
+
+![云开发控制台设置入口](https://blog.poetries.top/img/static/images/20210830110227.png)
+![环境变量标签页里的环境名称和环境 ID](https://blog.poetries.top/img/static/images/20210830110241.png)
+
+这里要注意别拿错：环境名称是给人看的，可以重复；环境 ID 才是代码里要填的那个，长得像 `cloud1-2g12nyjfdh7f4caed9`。这两个搞混是新手最常见的一个坑。
 
 **指定开发者工具的云开发环境**
 
-> 当云开发服务开通后，我们可以在小程序源代码cloudfunctions文件夹名看到你的环境名称。如果在cloudfunctions文件夹名显示的不是环境名称，而是“未指定环境”，可以鼠标右键该文件夹，可以看到弹窗的第一项为“当前环境”，有个小三角，在这里可以选择或切换已经建好的云开发环境。如果环境为空白，重启开发者工具，再来选择。
+> 当云开发服务开通后，我们可以在小程序源代码cloudfunctions文件夹名看到你的环境名称。如果在cloudfunctions文件夹名显示的不是环境名称，而是「未指定环境」，可以鼠标右键该文件夹，可以看到弹窗的第一项为「当前环境」，有个小三角，在这里可以选择或切换已经建好的云开发环境。如果环境为空白，重启开发者工具，再来选择。
 
-![](https://blog.poetries.top/img/static/images/20210830110613.png)
+![右键 cloudfunctions 文件夹切换当前环境](https://blog.poetries.top/img/static/images/20210830110613.png)
+
+做完这一步，`cloudfunctions` 文件夹后面应该跟着你的环境名称。如果还是显示未指定，多半是开发者工具的登录态或者缓存问题，重启一次基本就好了。
+
+这一步管的是「上传部署云函数时传到哪个环境」，和下面那一步管的事情不是一回事，两个都要配。
 
 **指定小程序的云开发环境**
 
@@ -324,7 +445,11 @@ wx.cloud.init({
 })
 ```
 
-![](https://blog.poetries.top/img/static/images/20210830110805.png)
+这段就是官方模板生成的原始样子，`env` 那行是被注释掉的。
+
+![app.js 中默认的 wx.cloud.init 代码](https://blog.poetries.top/img/static/images/20210830110805.png)
+
+不填 `env` 也能跑，因为会走默认环境。但只要你建了第二个环境，默认环境是哪个就开始变得不直观了，我的习惯是无论如何都显式写死。
 
 > 在 env: 'my-env-id'处改成你的环境ID，注意需要填入的是你的环境ID而不是环境名称哦，结果如下：
 
@@ -333,24 +458,34 @@ wx.cloud.init({
 wx.cloud.init({
   env: 'cloud1-2g12nyjfdh7f4caed9',
 
-  // 云开发能力全局只需要初始化一次即可，这里的traceUser属性设置为true，会将用户访问记录到用户管理中，在云开发控制台的运营分析—用户访问里可以看到访问记录。
+  // 云开发能力全局只需要初始化一次即可，这里的traceUser属性设置为true，会将用户访问记录到用户管理中，在云开发控制台的运营分析 / 用户访问里可以看到访问记录。
   traceUser: true,
 })
 ```
 
+`traceUser` 这个开关顺带说一句，开了之后能在控制台的运营分析里看到用户访问记录，做小程序初期看留存挺方便的，不需要额外接埋点 SDK。它记录的粒度比较粗，正经做数据分析还是得上专门的埋点。
+
 ### 小程序云开发资源的管理
+
+日常改数据、看日志、查存储，有两个入口，各有各的适用场景。
 
 **小程序云开发控制台**
 
-![](https://blog.poetries.top/img/static/images/20210830111520.png)
+![开发者工具内置的云开发控制台](https://blog.poetries.top/img/static/images/20210830111520.png)
+
+这个是开发者工具里内置的，好处是不用切窗口，改一条测试数据、看一眼云函数日志，随手就能干。
 
 **腾讯云云开发网页控制台**
 
 > 我们还可以使用腾讯云云开发网页控制台来管理云开发资源，需要注意两点，一个是登录方式需要选择其他登录方式里的微信公众号，点击然后使用手机微信扫码，在微信上选择你要登录的小程序；二是要进入腾讯云后台之后切换选择云开发Cloudbase。
 
-![](https://blog.poetries.top/img/static/images/20210830111557.png)
-![](https://blog.poetries.top/img/static/images/20210830111607.png)
-![](https://blog.poetries.top/img/static/images/20210830111625.png)
+登录方式这里是最容易卡住的一步，用账号密码登进去是看不到小程序那个环境的，一定要走微信公众号扫码。
+
+![腾讯云登录页选择其他登录方式](https://blog.poetries.top/img/static/images/20210830111557.png)
+![扫码后在微信中选择要登录的小程序](https://blog.poetries.top/img/static/images/20210830111607.png)
+![在腾讯云后台切换到云开发 CloudBase](https://blog.poetries.top/img/static/images/20210830111625.png)
+
+进来之后你会发现能操作的东西比开发者工具里多不少，比如更细的监控图表、告警配置、资源用量明细。我的分工是：日常开发用开发者工具，排查线上问题和看账单用网页控制台。
 
 ### 其他工具与方式
 
@@ -359,7 +494,11 @@ wx.cloud.init({
 - CloudBase CLI：我们可以使用云开发提供的命令行工具 [CloudBase CLI](https://docs.cloudbase.net/cli/intro.html) 对云开发环境里面的资源进行批量管理，比如云函数批量下载更新；云存储里面的文件夹批量下载和上传等等；
 - `Tencent CloudBase Toolkit`：Tencent CloudBase Toolkit是一款Visual Studio Code的云开发插件，使用这个插件可以更好地在本地进行云开发项目开发和代码调试，并且轻松将项目部署到云端；
 
-![](https://blog.poetries.top/img/static/images/20210830111817.png)
+![VS Code 中的 Tencent CloudBase Toolkit 插件](https://blog.poetries.top/img/static/images/20210830111817.png)
+
+CLI 这条路在两个场景下特别值：一是云存储里几百个文件要批量下载或者备份，靠控制台一个个点会疯；二是想把云函数部署接进 CI，开发者工具是 GUI，没法在流水线里跑，CLI 可以。
+
+VS Code 插件解决的是另一个问题，写云函数的时候不想在两个编辑器之间来回切。后面调试那节会看到它的本地调试能力。
 
 ### 部署并上传云函数
 
@@ -379,54 +518,84 @@ cloudfunctions里放的是云函数，miniprogram放的是小程序的页面，�
 **云函数部署与上传**
 
 - 右键云函数目录，选择在终端中打开，输入`npm install`命令下载依赖文件；
-- 然后再右键云函数目录，点击“创建并部署：所有文件”
-- 在云开发控制台–云函数–云函数列表查看云函数是否部署成功。
+- 然后再右键云函数目录，点击「创建并部署：所有文件」
+- 在云开发控制台、云函数、云函数列表查看云函数是否部署成功。
 
+这三步里最容易翻车的是第一步。右键菜单里有两个部署选项，一个是「创建并部署：所有文件」，一个是「创建并部署：云端安装依赖」。前者会把你本地的 `node_modules` 一起打包上传，包大传得慢，而且如果你本地装的是带二进制的包（比如 `sharp`、`bcrypt`），本地是 macOS 编译的，传上去在 Linux 环境根本跑不起来。后者只传源码和 `package.json`，依赖在云端装，环境是对的。
 
-## 2.5 小程序云函数场景
+我的经验是：纯 JS 依赖用哪个都行，只要 `package.json` 里出现了需要编译的包，就必须走云端安装依赖。这个坑我排查了大半天才想明白，报错信息只是干巴巴一句模块找不到。
 
-### 小程序云开发对比不同方式获取用户信息的应用场景
+## 十五、云函数的实战场景
 
-![](https://blog.poetries.top/img/static/images/20210909114318.png)
-![](https://blog.poetries.top/img/static/images/20210909115128.png)
-![](https://blog.poetries.top/img/static/images/20210909115658.png)
+概念讲完了，下面这几个是我实际项目里用得最多的场景。
 
-### 小程序码
+### 获取用户信息的几种方式对比
 
-![](https://blog.poetries.top/img/static/images/20210909115740.png)
+小程序的用户信息接口这几年变了好几轮，`wx.getUserInfo` 被废、`wx.getUserProfile` 顶上、头像昵称又改成组件填写。这三张图对比了不同方式的适用场景。
+
+![不同方式获取用户信息的对比一](https://blog.poetries.top/img/static/images/20210909114318.png)
+![不同方式获取用户信息的对比二](https://blog.poetries.top/img/static/images/20210909115128.png)
+![云函数中获取 openId 与 unionId](https://blog.poetries.top/img/static/images/20210909115658.png)
+
+抓住一条原则就不会错：凡是要用来做身份标识、写进数据库当主键的，必须从云函数的 `cloud.getWXContext()` 里取，不能信客户端传上来的。客户端拿到的昵称头像这类展示信息，改了也无所谓；`openId` 被改了，那就是越权。
+
+需要提醒的是，图里的接口名是 2021 年的状态，微信侧后续做过多次调整，写之前去官方文档确认一下当前推荐的接口。
+
+### 生成小程序码
+
+![云调用生成小程序码](https://blog.poetries.top/img/static/images/20210909115740.png)
+
+小程序码这个接口只能服务端调，客户端调不了。云开发的好处是可以用云调用，不需要自己维护 `access_token`，函数里直接 `cloud.openapi.wxacode.getUnlimited` 就出图了。生成的是 Buffer，一般顺手扔进云存储换个 `fileID` 返回给前端。
 
 ### 图片上传
 
-![](https://blog.poetries.top/img/static/images/20210905154352.png)
-![](https://blog.poetries.top/img/static/images/20210905154454.png)
+![小程序端调用 wx.cloud.uploadFile 上传](https://blog.poetries.top/img/static/images/20210905154352.png)
+![云存储中查看上传后的文件](https://blog.poetries.top/img/static/images/20210905154454.png)
 
+上传这块云开发省掉的活最多。传统方案要自己签临时 STS、处理跨域、限流防刷，云开发一个 `wx.cloud.uploadFile` 就完事，返回的 `fileID` 长这样 `cloud://xxx`。
 
-### 云函数路由优化tcb-router
+这里有个坑要注意：`fileID` 不是 HTTP 地址，直接丢给 `<image src>` 在小程序里能显示，但拿到 Web 端或者后台管理系统里就打不开了。要转成真正的 URL，得调 `getTempFileURL`，而且这个链接是有有效期的。后面搭管理后台那节会用到对应的 HTTP API 版本。
+
+### 云函数路由优化 tcb-router
+
+云函数有个隐性成本，每建一个函数就多一份 `node_modules`、多一次部署、多一个要维护的对象。业务一多，你会发现 `cloudfunctions` 下面躺着二三十个函数，改个公共方法要挨个部署。
+
+`tcb-router` 就是来解决这个的，它把 Koa 那套中间件和路由搬进了单个云函数里。
 
 ```
 npm i tcb-router
 ```
 
-![](https://blog.poetries.top/img/static/images/20210909112822.png)
-![](https://blog.poetries.top/img/static/images/20210909112915.png)
-![](https://blog.poetries.top/img/static/images/20210909112943.png)
+![tcb-router 的路由注册写法](https://blog.poetries.top/img/static/images/20210909112822.png)
+![tcb-router 中间件的执行顺序](https://blog.poetries.top/img/static/images/20210909112915.png)
+![小程序端通过 $url 参数调用指定路由](https://blog.poetries.top/img/static/images/20210909112943.png)
+
+用法上，小程序端调用时在 `data` 里多传一个 `$url` 字段指明要走哪条路由，云函数内部按这个字段分发。你还能用中间件统一做鉴权、统一包装返回格式，写起来跟写 Koa 没什么区别。
+
+代价也得说清楚：所有路由挤在一个函数里，冷启动的时候要加载全部依赖，包体积会变大；而且任何一条路由改动都要整体重新部署。我的做法是按业务域拆，一个业务域一个函数内部再分路由，不要全站一个巨型函数。
 
 ### 云函数超时时间
 
-![](https://blog.poetries.top/img/static/images/20210905143347.png)
+![云函数超时时间配置](https://blog.poetries.top/img/static/images/20210905143347.png)
 
+超时时间在函数配置里能改，默认值比较保守。改大它并不能真正解决问题，因为小程序端的 `wx.cloud.callFunction` 自己也有等待上限，函数跑再久用户那边也早就白屏了。真正的解法是把慢操作异步化，云函数收到请求立刻返回一个任务 ID，实际处理交给定时触发器或者数据库触发去做。
 
 ### 订阅消息
+
+订阅消息是小程序里少数能主动触达用户的通道，模板消息被下线之后基本只剩它了。规则比较严，先把三条限制记住。
 
 - 消息推送位置：服务通知
 - 消息下发条件：用户自主订阅
 - 消息卡片：查看详情可以跳转到小程序页面
+
+第二条是关键。用户订阅一次，你才能发一次，发完额度就清零了。想连续发多条，要么引导用户勾选「总是保持以上选择」，要么每次用户操作的时候再要一次授权。很多人做完发现只能发一条就没了，原因就在这。
 
 **使用步骤**
 
 1、在微信公众平台上获取消息模板的ID
 2、获取下发的权限：
 
+`wx.requestSubscribeMessage` 必须由用户点击等手势触发，直接在 `onLoad` 里调是弹不出来的。
 
 ```
 wx.requestSubscribeMessage({
@@ -439,6 +608,8 @@ wx.requestSubscribeMessage({
 
 > `subscribeNew`: 获取下发消息的权限，由用户自主选择订阅
 
+包成页面方法挂到按钮上就是下面这样：
+
 ```js
 subscribeNew:function(){
    wx.requestSubscribeMessage({
@@ -450,19 +621,31 @@ subscribeNew:function(){
 }
 ```
 
-![](https://blog.poetries.top/img/static/images/20210906134316.png)
+调用成功后 `res` 里每个模板 ID 对应一个 `accept` 或者 `reject`，一定要判断这个值。用户点了拒绝，你后面调发送接口是会失败的。
 
-![](https://blog.poetries.top/img/static/images/20210905171014.png)
-![](https://blog.poetries.top/img/static/images/20210905171103.png)
-![](https://blog.poetries.top/img/static/images/20210905171125.png)
+弹窗弹出来是这个样子。
 
-![](https://blog.poetries.top/img/static/images/20210909113952.png)
+![用户端弹出的订阅消息授权弹窗](https://blog.poetries.top/img/static/images/20210906134316.png)
 
-![](https://blog.poetries.top/img/static/images/20210905171621.png)
+模板要去微信公众平台的订阅消息里选，下面几张图是申请模板的完整流程。
+
+![公众平台订阅消息入口](https://blog.poetries.top/img/static/images/20210905171014.png)
+![从公共模板库中选择模板](https://blog.poetries.top/img/static/images/20210905171103.png)
+![勾选模板需要的关键词字段](https://blog.poetries.top/img/static/images/20210905171125.png)
+
+选关键词这一步要慎重，字段一旦定下来，代码里 `data` 的 key 就跟着它走了，后面想加字段得重新申请模板。
+
+![申请完成后得到的模板 ID 和字段名](https://blog.poetries.top/img/static/images/20210909113952.png)
+
+注意看字段名，它们长得像 `thing7`、`name1`、`phone_number5`，后面的数字是模板里的位置序号，不能自己编。每种类型对字符长度和格式还有限制，比如 `thing` 类最多 20 个字符，超了直接报错。
+
+![模板字段的类型与长度限制说明](https://blog.poetries.top/img/static/images/20210905171621.png)
 
 3、调用接口下发订阅消息：`subscribeMessage.send`
 
 这里是云调用订阅消息，首先要创建一个云函数
+
+云调用是云开发独有的能力，它让你在云函数里直接调微信开放接口，不用自己去换 `access_token`。前提是要在云函数目录下的 `config.json` 里把权限声明出来，没声明会报权限不足。
 
 需要在config.json中配置`subscribeMessage.send`权限
 
@@ -476,6 +659,7 @@ config.json:
 }
 ```
 
+改完 `config.json` 记得重新部署这个云函数，权限是随部署一起生效的，光改文件不上传是不起作用的。
 
 云函数编写
 
@@ -514,7 +698,11 @@ exports.main = async (event, context) => {
 }
 ```
 
-![](https://blog.poetries.top/img/static/images/20210909114130.png)
+这段代码里有三个点值得单独说。`touser` 直接用 `wxContext.OPENID`，也就是谁调的这个云函数就发给谁，不需要客户端传 openId 上来，安全性天然更好。`page` 是用户点消息卡片之后跳转的小程序页面路径，写错了会跳到首页。`data` 里每个 key 都必须和模板申请时的字段名一一对应，多一个少一个都会失败。
+
+![云调用下发订阅消息的执行结果](https://blog.poetries.top/img/static/images/20210909114130.png)
+
+如果这一步返回的 `errcode` 不是 0，先去查 `errmsg`。我遇到最多的两个是 43101（用户拒绝或者订阅额度已用完）和 47003（模板参数不合法，通常是某个字段超长了）。
 
 当用户订阅消息之后，就可以给用户下发消息了。
 
@@ -547,61 +735,104 @@ sendNew:function(){
 
 最后将云函数上传部署，使用手机测试，成功后，在微信的服务通知就会收到了订阅的消息
 
-![](https://blog.poetries.top/img/static/images/20210906134517.png)
+这里必须用真机测，开发者工具的模拟器收不到服务通知。
 
+![手机微信服务通知里收到的订阅消息](https://blog.poetries.top/img/static/images/20210906134517.png)
 
 ### 定时触发器
 
 每天指定时间执行云函数
 
-![](https://blog.poetries.top/img/static/images/20210905143230.png)
-![](https://blog.poetries.top/img/static/images/20210905143302.png)
+定时触发器适合放对账、清理过期数据、给云函数保活这类活。配置就是给云函数目录加一个 `config.json`，里面写 cron 表达式。
 
-## 2.6 云数据库
+![云函数定时触发器的配置入口](https://blog.poetries.top/img/static/images/20210905143230.png)
+![定时触发器的 cron 表达式与执行记录](https://blog.poetries.top/img/static/images/20210905143302.png)
+
+这里有个坑要注意：云开发的 cron 是七位的，秒在最前面，和 Linux 上常见的五位 crontab 不一样。照着 Linux 的写法填会直接报格式错误。另外触发时间用的是北京时间，但函数里 `new Date()` 拿到的是 UTC，跨时区算日期的时候很容易差一天，这个我踩过。
+
+## 十六、云数据库的几个实际问题
+
+云数据库是 NoSQL 的文档型数据库，用起来像 MongoDB。下面这几条是我实际写业务时一定会撞上的。
 
 **1. 云数据库获取100条数据突破**
 
-![](https://blog.poetries.top/img/static/images/20210905142630.png)
+小程序端单次查询最多返回 20 条，云函数端最多 100 条，这是硬限制。想一次拿全量数据，只能自己分批查了再拼。
+
+![突破单次查询条数限制的分批查询写法](https://blog.poetries.top/img/static/images/20210905142630.png)
+
+思路是先 `count()` 拿到总数，算出要查几批，然后用 `Promise.all` 并发把每批捞回来 concat 起来。数据量真的很大的时候别这么干，内存和执行时长都扛不住，那种场景应该做真正的分页或者导出。
 
 **2. 分页查询数据库**
 
-![](https://blog.poetries.top/img/static/images/20210905143553.png)
+![skip 和 limit 组合实现分页](https://blog.poetries.top/img/static/images/20210905143553.png)
+
+`skip(pageNum * pageSize).limit(pageSize)` 是最直白的写法，小数据量没问题。但 `skip` 的代价是随着页码线性增长的，翻到很后面会明显变慢。数据量大的列表建议改成游标分页，用上一页最后一条的 `_id` 或者时间戳当锚点去查。
 
 **3. 模糊查询**
 
-![](https://blog.poetries.top/img/static/images/20210909113505.png)
-![](https://blog.poetries.top/img/static/images/20210909113515.png)
+![使用正则实现模糊查询](https://blog.poetries.top/img/static/images/20210909113505.png)
+![db.RegExp 的构造方式与 options 参数](https://blog.poetries.top/img/static/images/20210909113515.png)
+
+模糊查询要用 `db.RegExp`，直接传 JavaScript 的字面量正则在跨端传输时会丢掉。`options: 'i'` 是忽略大小写。
+
+这里有个性能陷阱很多人没注意到：以 `.*` 开头的正则是走不了索引的，全表扫描。搜索需求真的重要的话，别硬用数据库正则，该上搜索服务就上。
 
 **4. 数据权限管理**
 
-![](https://blog.poetries.top/img/static/images/20210909113617.png)
+![云数据库集合的四种权限设置](https://blog.poetries.top/img/static/images/20210909113617.png)
+
+这一条是安全底线，上线前必须逐个集合检查一遍。默认的「所有用户可读，仅创建者可写」看着挺安全，但它意味着任何人都能在小程序端把你整张表拉走。存了手机号、订单信息的集合，权限一定要设成「仅管理端可读写」，让所有读写都走云函数。
+
+我见过不止一个小程序因为这个配置漏了，用户数据在开发者工具里随便就能翻出来。
 
 **5. 云数据库中1对N关系的三种设计方式**
 
-![](https://blog.poetries.top/img/static/images/20210905165740.png)
-![](https://blog.poetries.top/img/static/images/20210905170014.png)
-![](https://blog.poetries.top/img/static/images/20210905170132.png)
+关系型数据库里一对多就是加张外键表，NoSQL 里没那么直接，得按查询场景选。
 
-## 2.7 小程序云函数调试
+![一对多建模方案一：子文档内嵌](https://blog.poetries.top/img/static/images/20210905165740.png)
+![一对多建模方案二：数组存关联 ID](https://blog.poetries.top/img/static/images/20210905170014.png)
+![一对多建模方案三：独立集合加外键字段](https://blog.poetries.top/img/static/images/20210905170132.png)
+
+选型逻辑我是这么理解的：子项数量少、几乎总是和主文档一起被读出来的（比如订单里的商品明细），内嵌最省事，一次查询就完；子项数量会持续增长的（比如文章的评论），必须拆成独立集合，因为单个文档有大小上限，内嵌迟早爆；需要反向查询的（从子项找主项），也得独立集合加索引字段。
+
+顺便说一句，云数据库支持 `lookup` 做联表聚合，但只能在云函数端用，小程序端调不了。
+
+## 十七、云函数怎么调试
+
+云函数跑在云上，`console.log` 打在哪、断点怎么打，这是刚上手最难受的地方。
 
 ### 控制台调试
 
-![](https://blog.poetries.top/img/static/images/20210904213740.png)
-![](https://blog.poetries.top/img/static/images/20210904214040.png)
+![云开发控制台的云函数调试面板](https://blog.poetries.top/img/static/images/20210904213740.png)
+![在控制台构造测试事件并查看返回](https://blog.poetries.top/img/static/images/20210904214040.png)
 
-### vscode本地调试
+控制台调试就是手动构造一个 `event` 对象扔给函数，看返回和日志。适合快速验证一个参数组合，不用改小程序代码。日志有几十秒的延迟，别以为没打出来就是代码没跑到。
 
-选择“云端函数”列表右侧的 ，向云端函数发送触发事件。
+### VS Code 本地调试
 
-![](https://blog.poetries.top/img/static/images/20210908143618.png)
+选择「云端函数」列表右侧的按钮，向云端函数发送触发事件。
 
-## 2.8 小程序云开发部署管理后台演示-触发云函数的运用
+![VS Code CloudBase 插件的本地调试面板](https://blog.poetries.top/img/static/images/20210908143618.png)
 
-![](https://blog.poetries.top/img/static/images/20210909123158.png)
+本地调试是真能打断点的，函数跑在你本机的 Node 里，但访问的数据库和存储还是云上的那套。写复杂逻辑的时候这个比控制台好用太多。要注意本地 Node 版本和云端运行时版本可能对不上，本地能跑云上跑不了的情况我遇到过，最后是把本地 Node 切到和云端一致才排掉。
+
+## 十八、用 HTTP API 触发云函数搭管理后台
+
+这一节是我觉得整篇最实用的部分。小程序有了，接下来总要有个后台去管数据，但后台是个 Web 应用，它不在微信环境里，没法用 `wx.cloud.callFunction`。
+
+![管理后台通过 HTTP API 触发云函数的架构](https://blog.poetries.top/img/static/images/20210909123158.png)
+
+思路是这样：管理后台自己起一个 Koa 服务，通过微信开放的 HTTP API 去调云函数和云存储。这样业务逻辑还是那一份云函数代码，小程序和后台共用，不用写两遍。
+
+要走这条路，第一件事是解决 `access_token`。
 
 ### 接口调用凭证access_token的缓存与更新
 
 > https://developers.weixin.qq.com/miniprogram/dev/api-backend/open-api/access-token/auth.getAccessToken.html
+
+`access_token` 是调用所有微信服务端接口的通行证，有效期 7200 秒。微信对获取它的频率有限制，而且新 token 下发之后旧的会在一小段时间内同时有效，所以正确做法是缓存复用，不能每次调接口都去换一个。
+
+下面这段做的事情是：把 token 连同生成时间写进本地文件，读的时候判断有没有过期，过期了重新拉。
 
 ```js
 const fs = require('fs')
@@ -668,9 +899,23 @@ const getAccessToken2 = async ()=>{
 module.exports = getAccessToken2
 ```
 
+这段代码有几个地方要展开说。
+
+`getAccessToken` 里用了递归重试，拿不到就重新更新再读一次。这个写法在网络一直失败的时候会无限递归，生产环境建议加个重试次数上限，不然栈会爆。这是原文示例里偷懒的地方，照抄之前想一下。
+
+被注释掉的那个 `setInterval` 是另一种思路，用定时器提前 5 分钟主动刷新，让新旧 token 平滑过渡，不等到过期才换。两种做法各有取舍：文件缓存实现简单但多进程部署时会打架，定时刷新更平滑但要求进程常驻。
+
+最后 `module.exports` 导出的其实是 `getAccessToken2`，也就是每次都直接去微信换一个新的、完全不缓存的版本。这在本地调试的时候方便，正式环境千万别这么用，微信接口有调用频率限制，量一上来就会被限流。原文这里应该是调试完忘了改回去，我保留原样并把风险标出来。
+
+还有一点：Node 单机用文件存 token，一旦你把后台部署成多实例，两个实例各写各的文件，互相把对方的 token 顶掉。多实例场景要把 token 挪到 Redis 或者数据库里，加个分布式锁。
+
 ### HTTP API 触发云函数
 
+搞定 token 之后，调云函数就是一次普通的 POST 请求了。
+
 > https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-http-api/functions/invokeCloudFunction.html
+
+这个封装做的是：拼好 URL、带上环境 ID 和函数名，把业务参数塞进 body。
 
 ```js
 // utils/callCloudFn
@@ -700,6 +945,10 @@ const callCloudFn = async (ctx, fnName, params) =>{
 
 module.exports = callCloudFn
 ```
+
+注意最后那行 `JSON.parse(res.resp_data).data`。微信这个接口返回的 `resp_data` 是一个 JSON 字符串而不是对象，得手动再解一次，第一次用的人基本都会在这里卡一下。另外 `$url` 这个参数就是前面 `tcb-router` 用的路由字段，从 HTTP API 传进去一样生效，小程序端和后台端调的是同一个云函数、同一套路由。
+
+接下来是云存储。前面提过 `fileID` 不是 HTTP 地址，后台要展示图片就得先转换。
 
 ```js
 // utils/callCloudStorage
@@ -787,6 +1036,14 @@ const callCloudStorage = {
 module.exports = callCloudStorage
 ```
 
+上传那段是三步走，容易看漏：先调 `uploadfile` 拿到一个带签名的上传地址和一堆凭证，再用 `multipart/form-data` 把文件真正 POST 到那个地址，最后把返回的 `file_id` 存进数据库。中间那一步的 `formData` 里几个字段名是腾讯云对象存储要求的，`Signature`、`x-cos-security-token`、`x-cos-meta-fileid` 一个都不能少，顺序无所谓但缺一个就 403。
+
+另外 `download` 接口的 `max_age` 是链接有效期，示例里给的 7200 秒。这是个临时链接，别把它存进数据库当永久地址，过期之后图片就全挂了。数据库里存的永远应该是 `fileID`，用的时候现换。
+
+`delete` 那个方法里有段没用上的 `path` 拼接，是从上传方法复制过来的残留，实际删除只用到了 `fileid_list`，照抄的时候可以去掉。
+
+下面这段是把上面两个封装拼起来的实际用法，一个列表接口，查数据、把里面的 `cloud://` 图片批量转成可访问的 URL 再返回。
+
 ```js
 // 使用
 
@@ -830,24 +1087,29 @@ router.get('/day/list', async (ctx, next) => {
 })
 ```
 
+这段有个细节值得学：它先把所有需要转换的 `fileid` 收集成数组，再一次性调 `batchdownloadfile`，而不是在循环里逐条请求。列表 30 条数据就是 30 次网络往返和 1 次的区别，接口耗时差一个数量级。做批量转换的时候记得往这个方向想。
 
+写到这里，小程序云开发这一套就基本闭合了：小程序端直接调云函数，管理后台通过 HTTP API 调同一批云函数，数据和文件都在云开发这一套资源里，全程没碰过服务器。
 
+## 十九、腾讯云 Serverless 的几种部署方式
 
-# 三、不同厂商的serverless部署演示
+上面讲的是云开发，它是面向小程序场景打包好的。如果你要部署的是一个普通的 Koa、Express 或者 Vue 项目，走的是另一条路，云函数 SCF 加 Serverless Framework。
 
-## 3.1 腾讯serverless
+### Web 函数管理
 
-### 1、Web 函数管理
+传统云函数要求你把代码写成 `exports.main = async (event, context) => {}` 这种 handler 形式，老项目迁移就得大改。Web 函数是为了解决这个问题来的，它让你的 Koa 应用几乎原封不动跑上去。
 
 **Web 函数运行原理如下图所示：**
 
-![](https://blog.poetries.top/img/static/images/20210908112127.png)
+![Web 函数的请求转发原理](https://blog.poetries.top/img/static/images/20210908112127.png)
 
 用户发送的 HTTP 请求经过 API 网关后，网关侧将原生请求直接透传的同时，在请求头部添加了网关触发函数时需要的函数名、函数地域等内容，并一起传递到函数环境，触发后端函数执行。
 
 函数环境内，通过内置的 Proxy 实现 Nginx 转发，并去除头部非产品规范的请求信息，将原生 HTTP 请求通过指定端口发送给用户的 Web Server 服务。
 
 用户的 Web Server 配置好指定的监听端口9000和服务启动文件后部署到云端，通过该端口获取 HTTP 请求并进行处理。
+
+看懂这三段，Web 函数就没什么神秘的了。函数环境里塞了一个 Nginx 做反向代理，你的 Koa 只要老老实实监听 9000 端口，剩下的它替你转。对你的代码来说，唯一要改的就是端口号和监听地址。
 
 **Web 函数请求限制**
 
@@ -858,6 +1120,10 @@ router.get('/day/list', async (ctx, next) => {
 - 部署您的 Web 服务时，`必须监听指定的 9000 端口`，不可以监听内部回环地址 `127.0.0.1`。
 - 目前 HTTP 请求 Header 里的 Connection 字段不支持自定义配置。
 
+`127.0.0.1` 这条我一定要单独拎出来。本地开发习惯了写 `app.listen(3000, '127.0.0.1')`，传上去之后请求全部超时，日志里还什么都看不到，因为 Nginx 根本连不上你的服务。监听地址必须是 `0.0.0.0`，端口必须是 9000。这个坑排查起来特别费劲，因为它不报错，就是干等。
+
+body 6MB 那条限制也要提前想到，做文件下载或者大 JSON 导出的接口会撞上，正确做法是返回一个对象存储的临时链接让客户端自己去下。
+
 **启动文件作用**
 
 > scf_bootstrap 为 Web Server 的启动文件，保证您的 Web 服务正常启动并监听请求。除此之外，您还可以根据需要在 scf_bootstrap 中自定义实现更多个性化操作：
@@ -867,7 +1133,9 @@ router.get('/day/list', async (ctx, next) => {
 - 解析函数文件，并执行函数调用前所需的全局操作或初始化程序（如开发工具包客户端 HTTP CLIENT 等初始化、数据库连接池创建等），便于调用阶段复用。
 - 启动安全、监控等插件。
 
-![](https://blog.poetries.top/img/static/images/20210908113308.png)
+![scf_bootstrap 启动文件示例](https://blog.poetries.top/img/static/images/20210908113308.png)
+
+第三条那个「函数调用前的全局初始化」是性能关键点。数据库连接池、HTTP 客户端这些放在 bootstrap 阶段建好，后续每次请求就能直接复用，省掉的是每次几十毫秒的握手时间。放错位置写进了请求处理函数里，冷启动优化就白做了。
 
 **使用前提**
 
@@ -877,40 +1145,50 @@ router.get('/day/list', async (ctx, next) => {
 - 启动命令必须为绝对路径 `/var/lang/${specific_lang}${version}/bin/${specific_lang}`，否则无法正常调用，详情请参见 [标准语言环境绝对路径](https://cloud.tencent.com/document/product/583/56126#1)。
 - 建议使用监听地址为 `0.0.0.0`，不可以使用内部回环地址 `127.0.0.1`
 
+权限那条也是高频踩坑点。从 Windows 或者某些打包流程里传上去的 `scf_bootstrap` 经常丢掉执行位，本地记得 `chmod 755 scf_bootstrap` 再打包。
+
 **标准语言环境绝对路径**
 
-![](https://blog.poetries.top/img/static/images/20210908113549.png)
+启动命令不能写 `node app.js`，因为函数环境的 `PATH` 里没有你想的那个 node，必须写全路径。
+
+![各语言运行时的标准绝对路径](https://blog.poetries.top/img/static/images/20210908113549.png)
 
 **常见 Web Server 启动命令模版**
 
-![](https://blog.poetries.top/img/static/images/20210908113613.png)
+![常见框架的 scf_bootstrap 启动命令模板](https://blog.poetries.top/img/static/images/20210908113613.png)
 
-### 2、serverless fromework及控制台部署
+这张图可以直接抄，Koa、Express、Nest 的写法都在上面。抄完只需要改一下入口文件名。
+
+### Serverless Framework 及控制台部署
 
 > serverless文档 https://www.serverless.com/cn/framework/docs/
 
 **1. 控制台部署**
 
-部署koa2管理端接口
+先看最省事的方式，在控制台点几下把一个 Koa2 接口部署上去。
 
-![](https://blog.poetries.top/img/static/images/20210907164116.png)
-![](https://blog.poetries.top/img/static/images/20210907164233.png)
-![](https://blog.poetries.top/img/static/images/20210907164300.png)
-![](https://blog.poetries.top/img/static/images/20210907164312.png)
+![在控制台新建 Web 函数](https://blog.poetries.top/img/static/images/20210907164116.png)
+![选择 Koa 框架模板](https://blog.poetries.top/img/static/images/20210907164233.png)
+![确认函数配置与运行环境](https://blog.poetries.top/img/static/images/20210907164300.png)
+![部署完成后得到的访问地址](https://blog.poetries.top/img/static/images/20210907164312.png)
+
+部署完会给一个 API 网关的域名，直接浏览器打开就能看到 Koa 返回的内容。这一步跑通了，说明整条链路是通的，接下来才好排查自己业务代码的问题。
 
 > 官方demo https://github.com/tencentyun/serverless-demo/blob/master/WebFunc-KoaDemo/src/app.js
 
 仓库关联GitHub，提交git代码自动更新
 
-![](https://blog.poetries.top/img/static/images/20210907171452.png)
+![函数关联 GitHub 仓库实现自动部署](https://blog.poetries.top/img/static/images/20210907171452.png)
 
-**2. 命令行部署-Serverless Framework方式**
+关联仓库之后 push 就自动重新部署，等于白送一条 CI/CD。个人项目挺香的，团队项目还是建议自己写流水线，至少能控制什么分支才触发。
+
+**2. 命令行部署，Serverless Framework 方式**
 
 **云函数和serverless的区别**
 
 - `Serverless Framework` 是` Serverless `公司推出的一个开源的` Serverless` 应用开发框架。
 - `Serverless Framework`是由 `Serverless Framework Plugin` 和 `Serverless Framework Components` 组成。
-- `Serverless Framework Plugin` 实际上是一个函数的管理工具，使用这个工具，可以很轻松的<font color="#f00">**部署函数、删除函数、触发函数、查看函数信息、查看函数日志、回滚函数、查看函数**</font> 数据等。简单的概括就是`serverless`其实就云函数的集合体，使用`serverless`后我们创建的云函数不需要手动去创建触发器等操作。
+- `Serverless Framework Plugin` 实际上是一个函数的管理工具，使用这个工具，可以很轻松的**部署函数、删除函数、触发函数、查看函数信息、查看函数日志、回滚函数、查看函数数据**等。简单的概括就是`serverless`其实就云函数的集合体，使用`serverless`后我们创建的云函数不需要手动去创建触发器等操作。
 - 官方地址
   - [`serverless`官网地址](https://www.serverless.com/)
   - [`serverless`中文官网](https://www.serverless.com/cn)
@@ -923,7 +1201,9 @@ router.get('/day/list', async (ctx, next) => {
 - 基于云函数的命令行开发工具
   - 通过 `Serverless Framework`，开发者可以在命令行完成函数的开发、部署、调试。还可以结合前端服务、 API 网关、数据库等其它云上资源，实现全栈应用的快速部署。
 - 传统应用框架的快速迁移
-  - `Serverless Framework` 提供了一套通用的框架迁移方案，通过使用 `Serverless Framework `提供的框架组件(`Egg/Koa/Express` 等，<font color="#f00">[更多的框架支持可以参考](https://github.com/serverless)</font>)，原有应用仅需几行代码简单改造， 即可快速迁移到函数平台。同时支持命令行与控制台的开发方式。
+  - `Serverless Framework` 提供了一套通用的框架迁移方案，通过使用 `Serverless Framework `提供的框架组件(`Egg/Koa/Express` 等，[更多的框架支持可以参考](https://github.com/serverless))，原有应用仅需几行代码简单改造， 即可快速迁移到函数平台。同时支持命令行与控制台的开发方式。
+
+那段拿 jQuery 打的比方挺贴切。原生云函数能干的事 Serverless Framework 都能干，但后者帮你把触发器、API 网关、权限策略这些边角料一起声明在一个 yml 里，一条命令全建好。手动在控制台点这些资源，点一次还行，点三个环境就受不了了。
 
 > 使用`serverless`命令创建第一个应用
 
@@ -933,6 +1213,8 @@ router.get('/day/list', async (ctx, next) => {
 npm install -g serverless 
 serverless -v
 ```
+
+装完先跑一下 `serverless -v` 确认版本，这个 CLI 的大版本之间行为差别不小，出问题的时候版本号是第一手信息。
 
 创建项目
 
@@ -946,11 +1228,13 @@ serverless
 
 > 控制台输入 `serverless` 
 
+第一次运行会让你扫码授权腾讯云账号，授权信息会写到用户目录下的凭证文件里，后面就不用重复扫了。
+
 选择对应的模板
 
+![serverless 命令行的模板选择列表](https://blog.poetries.top/img/static/images/20210909134505.png)
 
-![](https://blog.poetries.top/img/static/images/20210909134505.png)
-
+模板列表里既有后端框架（Koa、Express、Egg、Nest），也有前端框架（Vue、React、Next.js）。选完它会在当前目录生成一份项目骨架和一个 `serverless.yml`。
 
 部署上线
 
@@ -958,61 +1242,74 @@ serverless
 serverless deploy
 ```
 
-![](https://blog.poetries.top/img/static/images/20210909135902.png)
-![](https://blog.poetries.top/img/static/images/20210909134955.png)
-![](https://blog.poetries.top/img/static/images/20210909135104.png)
+![serverless deploy 的执行过程输出](https://blog.poetries.top/img/static/images/20210909135902.png)
+![部署完成后输出的访问地址](https://blog.poetries.top/img/static/images/20210909134955.png)
+![在浏览器中访问部署好的服务](https://blog.poetries.top/img/static/images/20210909135104.png)
+
+deploy 输出的最后那几行是重点：应用名、环境名、访问域名。域名是 API 网关自动分配的，想用自己的域名要在 yml 里配 `customDomains`，需要域名已经备案。
 
 **serverless.yml配置详情**
 
-> > https://github.com/serverless-components/tencent-http/blob/master/docs/configure.md
+> https://github.com/serverless-components/tencent-http/blob/master/docs/configure.md
 
 部署上线后可以在这里查看你的项目
 
-![](https://blog.poetries.top/img/static/images/20210907222947.png)
+![Serverless 控制台中的应用列表](https://blog.poetries.top/img/static/images/20210907222947.png)
 
 测试部署的项目
 
-![](https://blog.poetries.top/img/static/images/20210907222956.png)
+![在控制台中测试已部署的接口](https://blog.poetries.top/img/static/images/20210907222956.png)
 
 删除部署的项目
 
-![](https://blog.poetries.top/img/static/images/20210909140209.png)
+![使用 serverless remove 删除已部署资源](https://blog.poetries.top/img/static/images/20210909140209.png)
 
+删除这一步建议养成习惯。学习阶段建的应用不删掉，对象存储桶和 API 网关会一直挂在那，虽然大多在免费额度里，但下个月看账单容易懵。`serverless remove` 会把这个应用相关的资源一起收掉。
 
-**3. 在vscode中配置插件来开发serverless**
+**3. 在 VS Code 中配置插件来开发 serverless**
 
 在`vscode`上安装插件
 
-![](https://blog.poetries.top/img/static/images/20210908093524.png)
+![在 VS Code 扩展市场安装 Serverless 插件](https://blog.poetries.top/img/static/images/20210908093524.png)
 
 在`vscode`安装后插件登录并且拉取应用
 
-![](https://blog.poetries.top/img/static/images/20210908093544.png)
+![插件登录腾讯云账号](https://blog.poetries.top/img/static/images/20210908093544.png)
 
 关于登录账号及密钥[查看地址](https://console.cloud.tencent.com/cam/capi)
 
+密钥这块提醒一句：`SecretId` 和 `SecretKey` 等同于账号密码，别提交进 Git 仓库。用子账号建一个权限收窄的密钥比直接用主账号密钥安全得多。
+
 远程拉取代码
 
-![](https://blog.poetries.top/img/static/images/20210908093655.png)
+![从云端拉取已部署的函数代码](https://blog.poetries.top/img/static/images/20210908093655.png)
 
 下载后的代码如果想上传也可以直接上传的
 
-![](https://blog.poetries.top/img/static/images/20210908093704.png)
+![修改后直接上传回云端](https://blog.poetries.top/img/static/images/20210908093704.png)
 
-**WebIDE创建云函数实践**
+这个「拉下来改完再传上去」的流程有个风险，云端代码不一定和你的 Git 仓库一致。有人在控制台手改过，你一拉一传就可能把别人的改动覆盖掉。正经项目还是应该以 Git 为唯一来源，云端只作为部署产物。
 
-![](https://blog.poetries.top/img/static/images/20210908094739.png)
-![](https://blog.poetries.top/img/static/images/20210908094748.png)
+**WebIDE 创建云函数实践**
 
-### 3、serverless部署前端项目
+![在腾讯云 WebIDE 中编辑云函数](https://blog.poetries.top/img/static/images/20210908094739.png)
+![WebIDE 中直接保存并部署](https://blog.poetries.top/img/static/images/20210908094748.png)
+
+WebIDE 适合的场景就一个：线上出问题了，你手边没有开发环境，浏览器打开改一行救急。日常开发别用它，改完不留 Git 记录，过两天就没人知道线上跑的是哪版代码了。
+
+## 二十、用 Serverless 部署前端项目
 
 > 建议使用 Serverless Framework CLI，可快速部署本地云函数
+
+前端项目和后端函数走的组件不一样。后端用的是 `http` 或者 `scf` 组件，前端静态站用的是 `website` 组件。区别在于 `website` 根本不涉及函数，它把构建产物推到对象存储，再挂上 CDN，你付的是存储和流量费，不是计算费。
 
 - 使用命令生成`vue`项目文件
 - 直接将代码推送到云端就可以
 - 也许你会好奇，我们正常的`vue`项目部署都要先`npm run build`,然后将打包后的`dist`目录传到服务器上的`nginx`静态目录下，这样才能访问
 - 注意前端的项目部署都是存储到`oss`中的
 - 使用`serverless`默认生成的项目是`vue2`版本的，如果你要部署`vue3`的项目需要手动构建
+
+那构建这一步去哪了？答案在 yml 的 `hook` 字段里，它会在推送前替你执行构建命令。
 
 ```yml
 # serverless.yml文件
@@ -1029,6 +1326,8 @@ inputs:
   bucketName: my-vue-starter
   protocol: https
 ```
+
+这份配置里三个字段最容易填错。`src` 是源码目录，`dist` 是构建产物目录，`bucketName` 是对象存储桶名字，它在整个地域内必须唯一，撞名了部署会直接失败，加个随机后缀最省心。
 
 **手动构建一个`vue3`的项目**
 
@@ -1058,6 +1357,8 @@ inputs:
   bucketName: my-website-starter
   protocol: https
 ```
+
+和 Vue 2 那份比，改动只有名字和 `region`。`region` 建议显式写出来，不写的话走默认地域，之后你在控制台按地域筛选资源会找不到东西。
 
 > 部署上线 `serverless deploy`
 
@@ -1089,32 +1390,39 @@ inputs:
   protocol: https
 ```
 
+React 这里唯一的差异是 `dist` 要写 `./build`，因为 CRA 的产物目录叫 build 不叫 dist。Vite 建的 React 项目产物又是 dist，照抄之前先看一眼自己的构建输出。
+
+还有一个 SPA 通用的坑，路由用 history 模式的话，直接访问二级路径会 404，因为对象存储上根本没有那个文件。解决办法是在存储桶的静态网站配置里把错误页也指向 `index.html`。
+
 > 推送到云端 `serverless deploy`
 
 **使用静态文件托管来部署前端项目**
 
+如果懒得写 yml，控制台上传也行，适合一次性的静态页面。
+
 - 先本地根据项目命令打包好
 - 在云产品中选择静态文件托管
 
-![](https://blog.poetries.top/img/static/images/20210908100907.png)
+![在云产品中找到静态网站托管](https://blog.poetries.top/img/static/images/20210908100907.png)
 
 - 直接将上传你打包后的代码
 
-![](https://blog.poetries.top/img/static/images/20210908100915.png)
+![上传本地打包好的静态文件](https://blog.poetries.top/img/static/images/20210908100915.png)
 
-### 4、在serverless中连接mysql
+上传完就有一个默认域名可以访问。缺点也很明显：没有版本记录，改一次传一次，回滚只能靠自己留备份。项目稍微正式一点还是走 CLI。
+
+## 二十一、在 Serverless 中连接 MySQL
 
 **数据库的准备**
 
 > 使用`serverless`开发与我们自己使用云服务器服务器`ECS`不一样的，因为我们不能在`serverless`上安装软件(我们不能安装第三方的`mysql`、`docker`、`redis`)等软件，因此我们在使用`serverless`开发的时候，如果我们项目中使用到了比如:`mysql`、`redis`、`rabbitMQ`、`RocketMQ`类的我们就需要自行解决。下面介绍几种方式
 
-1. 自己有一台备用的云服务器`ECS`，我们在上面安装了需要的软件，对外提供了`IP`或者域名，在安全组中开放了端口号以供我们在`serverless`中使用。<font color="#f00">其实如果你自己有云服务器`ECS`可能就不会考虑使用`serverless`来开发了</font>
+1. 自己有一台备用的云服务器`ECS`，我们在上面安装了需要的软件，对外提供了`IP`或者域名，在安全组中开放了端口号以供我们在`serverless`中使用。**其实如果你自己有云服务器`ECS`可能就不会考虑使用`serverless`来开发了**
 2. 单独使用第三方付费或者按量收费的数据库，比如:
   * 阿里云的[云数据库RDS MySQL](https://www.aliyun.com/product/rds/mysql)
   * 腾讯云的数据库[云数据库](https://buy.cloud.tencent.com/cdb?)
 3. 使用腾讯云官方自带的有免费额度的`NoSQL`数据库[参考文档](https://docs.cloudbase.net/database/data-type.html#date)，本训练营会介绍如何使用，但是在项目中不会使用。
-4. 我在自己的服务器上使用`docker`搭建了一个`mysql8`版本的数据库，以供大家学习使用，自己根据自己的名字来在上面创建自己的数据库。<font color="#f00">大家自行保存地址，如果自己有服务器的，可以自己服务器上搭建，就不需要用我这个</font>
-
+4. 我在自己的服务器上使用`docker`搭建了一个`mysql8`版本的数据库，以供大家学习使用，自己根据自己的名字来在上面创建自己的数据库。**大家自行保存地址，如果自己有服务器的，可以自己服务器上搭建，就不需要用我这个**
 
 ```
 # ip地址
@@ -1125,13 +1433,19 @@ root
 123456
 ```
 
+这是原文里当时用于教学的临时实例，现在肯定早就不在了，别指望能连上。真要练手就自己起一个 Docker 容器。顺带提醒一句，任何时候都别把 root 账号加弱密码的库直接暴露在公网上，扫描器几分钟就能找到你，挖矿脚本装得比你部署还快。
+
 **在`serverless`中连接`mysql`**
 
 本案例只是测试官方案例连接数据库，不涉及什么知识点，根据自身条件选择是否跳过
 
-> 在函数服务中选择`mysql`数据库模板来创建数据库云函数应用。<font color="#f00">注意选择的语音和区域</font>
+在展开之前先想清楚一个前提：云函数是弹性伸缩的，并发一高就是几十上百个实例同时向 MySQL 建连接，很容易把数据库的最大连接数打满。这和传统服务里一个进程维护一个连接池的模型完全不同，也是 Serverless 连关系型数据库最大的一道坎。缓解办法是用数据库代理或者连接池服务，别让函数直连。
 
-![](https://blog.poetries.top/img/static/images/20210908101905.png)
+> 在函数服务中选择`mysql`数据库模板来创建数据库云函数应用。**注意选择的语言和区域**
+
+![选择 MySQL 数据库模板创建云函数](https://blog.poetries.top/img/static/images/20210908101905.png)
+
+区域这个选项别随便点。函数和数据库如果在同一地域，可以走内网，延迟低还不花公网流量费；跨地域就只能走公网，慢且贵。
 
 > 在自己的数据库中创建数据库及数据表
 
@@ -1154,9 +1468,11 @@ insert into account(username, password) values('admin', '123456');
 insert into account(username, password) values('张三', '123456');
 ```
 
+建表语句里那三个时间字段值得学一下，`created_at` 默认当前时间、`updated_at` 自动更新、`deleted_at` 留给软删除。软删除比物理删除安全太多，误删了还能捞回来。至于示例里明文存密码，只是为了跑通流程，实际项目必须用 bcrypt 之类的算法加盐哈希。
+
 > 打开云函数的代码管理修改数据库的连接配置
 
-![](https://blog.poetries.top/img/static/images/20210908101915.png)
+![在控制台打开云函数的代码管理](https://blog.poetries.top/img/static/images/20210908101915.png)
 
 > 进入代码编辑界面的函数代码编辑代码
 
@@ -1192,41 +1508,57 @@ exports.main_handler = async (event, context, callback) => {
 }
 ```
 
+这段代码有两处值得说。`wrapPromise` 是在把 `mysql` 这个老库的回调式 API 包成 Promise，因为它比 `mysql2` 早，不带 Promise 接口。新项目直接用 `mysql2/promise` 就不用写这层了。
+
+另一处是 bug：`connection.query` 的回调里 `rej(error)` 之后没有 `return`，出错时会继续往下执行 `res(results)`。Promise 只认第一次 settle，所以行为上不会崩，但逻辑上是错的，读代码的人容易被绕进去，规范写法是 `return rej(error)`。
+
+还有连接管理。示例里每次调用都 `createConnection` 再 `end`，跑通没问题，但每次请求都要重新握手。前面讲过，把连接创建挪到模块顶层能让实例复用期间省掉这个开销，代价是要处理连接失效重连。
+
 > 修改完成后点击部署和测试
 
-![](https://blog.poetries.top/img/static/images/20210908101926.png)
+![在控制台点击部署并测试云函数](https://blog.poetries.top/img/static/images/20210908101926.png)
 
 出现下面界面表示你已经在云函数中连接`mysql`成功了
 
-![](https://blog.poetries.top/img/static/images/20210908101935.png)
+![云函数返回数据表查询结果](https://blog.poetries.top/img/static/images/20210908101935.png)
+
+如果这里超时了，八成是安全组没放行。云函数出网 IP 不固定，得把 MySQL 的 3306 对函数所在网段开放，或者干脆配到同一个 VPC 里。
 
 > 如果你想在浏览器上测试访问，可以点击**触发管理**
 
-![](https://blog.poetries.top/img/static/images/20210908101943.png)
+![在触发管理中配置 API 网关触发器](https://blog.poetries.top/img/static/images/20210908101943.png)
 
-### 5、云开发与serverless的区别
+配好 API 网关触发器之后会给一个 URL，浏览器直接打开就能看到 JSON。到这一步，一个「云函数读 MySQL 并对外提供 HTTP 接口」的最小链路就跑通了。
+
+## 二十二、云开发和 Serverless Framework 到底怎么选
 
 - `Serverless Framework` 是无服务器应用框架，提供将云函数` SCF`、`API` 网关、对象存储 `COS`、云数据库 `DB` 等资源组合的业务框架，开发者可以直接基于框架编写业务逻辑，而无需关注底层资源的配置和管理。
 - 云开发（`Tencent CloudBase，TCB`）是腾讯云提供的云原生一体化开发环境和工具平台，为开发者提供高可用、自动弹性扩缩的后端云服务，包含计算、存储、托管等 `serverless` 化能力，可用于云端一体化开发多种端应用（小程序、公众号、`Web` 应用、`Flutter` 客户端等），帮助开发者统一构建和管理后端服务和云资源，避免了应用开发过程中繁琐的服务器搭建及运维，开发者可以专注于业务逻辑的实现，开发门槛更低，效率更高。
 - **二者最大的区别是**：给开发者使用的平台支持不一样，云开发支持web端、QQ、微信小程序级静态网站托管等这些平台服务。
 
+我自己的判断是这样：云开发是一整套开箱即用的后端，数据库、存储、鉴权都给你配好了，代价是绑定腾讯云比较深，想搬走要重写数据访问层。Serverless Framework 更像一个部署编排工具，你的代码还是普通的 Koa 或者 Nest，理论上换个云也能跑，但数据库、缓存这些得自己张罗。
+
+小程序项目、个人项目、想快速验证想法的，选云开发。已有的 Node 服务要上云、团队有既定技术栈的，选 Serverless Framework。
+
 **使用云开发创建一个`nest`项目**
 
 在产品中选择云开发产品
 
-![](https://blog.poetries.top/img/static/images/20210908102916.png)
+![在腾讯云产品列表中找到云开发](https://blog.poetries.top/img/static/images/20210908102916.png)
 
 创建一个项目,注意点:这里要选择好区域，下次创建了项目，区域不一样，可能项目就看不到
 
-![](https://blog.poetries.top/img/static/images/20210908102926.png)
+![创建云开发环境时选择区域](https://blog.poetries.top/img/static/images/20210908102926.png)
+
+区域这一条真的会坑人。控制台是按地域筛选资源的，你在广州建的环境，切到上海地域就看不见了，很多人以为项目丢了。
 
 使用模板创建
 
-![](https://blog.poetries.top/img/static/images/20210908102935.png)
+![从模板创建 Nest 应用](https://blog.poetries.top/img/static/images/20210908102935.png)
 
 查看自己创建应用并且访问
 
-![](https://blog.poetries.top/img/static/images/20210908102946.png)
+![查看已创建的应用并访问](https://blog.poetries.top/img/static/images/20210908102946.png)
 
 **使用脚手架的方式创建**
 
@@ -1258,7 +1590,7 @@ tcb new nest-cloundbase nest-starter
 
 选择自己已经创建的环境,如果没有就 创建新环境,这时候会打开浏览器
 
-![](https://blog.poetries.top/img/static/images/20210908102958.png)
+![命令行中选择或创建云开发环境](https://blog.poetries.top/img/static/images/20210908102958.png)
 
 本地打开项目并且安装依赖包
 
@@ -1266,19 +1598,23 @@ tcb new nest-cloundbase nest-starter
 npm run dev
 ```
 
+本地跑起来之后先在本机验证一遍，别直接推上去调试。云端部署一次要一两分钟，改一行等一分钟，效率太低。
+
 部署到线上
 
 ```properties
 npm run deploy
 ```
 
-![](https://blog.poetries.top/img/static/images/20210908103013.png)
+![npm run deploy 的部署输出](https://blog.poetries.top/img/static/images/20210908103013.png)
 
 **在云开发中使用`NoSQL`**
 
 在面板上创建一个`NoSQL`的数据库，[参考地址](https://docs.cloudbase.net/database/introduce.html)
 
-![](https://blog.poetries.top/img/static/images/20210908103028.png)
+![在云开发面板中创建 NoSQL 集合](https://blog.poetries.top/img/static/images/20210908103028.png)
+
+这里的 NoSQL 和前面小程序云开发用的是同一套数据库，只是换了个入口进来。写法上小程序端用 `wx.cloud.database()`，Node 端用 `@cloudbase/node-sdk`，API 基本一致。
 
 在项目中安装连接数据库的`SDK`[参考文档](https://docs.cloudbase.net/api-reference/server/node-sdk/introduction.html)
 
@@ -1304,19 +1640,25 @@ const app = cloudbase.init({
 const db = app.database();
 ```
 
+代码注释里那句「文档上说是非必填，实际必填」是原作者踩出来的，我按官方文档核对过，`secretId` 和 `secretKey` 在云函数运行时里确实可以省略（平台会注入），但在本地或者自己的服务器上跑就必须显式传。文档没写清楚的是运行环境这个前提。
+
+`region` 那行注释说只有上海和广州，这是 2021 年的情况，后来支持的地域多了，以控制台创建环境时能选的为准。
+
 关于获取`secretId`、`secretKey`、`env`的地址
 
 - `env`的获取地址
 
-![](https://blog.poetries.top/img/static/images/20210908103040.png)
+![在云开发环境设置中找到环境 ID](https://blog.poetries.top/img/static/images/20210908103040.png)
 
 - `secretId` 和`secretKey`获取
 
-![](https://blog.poetries.top/img/static/images/20210908103051.png)
+![在访问管理中创建 API 密钥](https://blog.poetries.top/img/static/images/20210908103051.png)
 
 - 点击`test`用户进入
 
-![](https://blog.poetries.top/img/static/images/20210908103101.png)
+![进入子用户查看其密钥](https://blog.poetries.top/img/static/images/20210908103101.png)
+
+这里再强调一次密钥安全。用子账号建密钥，只给它需要的那几个云开发相关权限，别用主账号密钥，主账号密钥泄露等于整个云账号被拿下。密钥只在创建时能看到完整值，存好。
 
 根据文档，我们将插入一条数据(**同样先忽视类型检测**)
 
@@ -1331,6 +1673,8 @@ async createAccount(data: any): Promise<any> {
 ```
 
 **环境变量的配置**
+
+上面那份代码把密钥写死在了源码里，只能用来演示。真正要提交进仓库的代码，必须把这些值挪进环境变量。
 
 本地开发环境变量的配置
 
@@ -1352,6 +1696,8 @@ ENV = serverlxxim00f1a872
 REGION = ap-guangzhou
 ```
 
+第一件事是把 `.env` 加进 `.gitignore`，仓库里只留一份不含真值的 `.env.example` 给别人参考。密钥一旦推进过 Git，就算后面 commit 删掉了，历史里还躺着，正确处理是立刻去控制台把这对密钥禁用重建。
+
 在应用中使用使用环境变量的值
 
 ```typescript
@@ -1364,14 +1710,51 @@ const app = cloudbase.init({
 })
 ```
 
-## 3.2 阿里云函数部署
+线上环境不要靠 `.env` 文件，直接在云函数的环境变量配置里填。这样密钥不会跟着代码包一起被打上去，改密钥也不用重新部署代码。
 
-![](https://blog.poetries.top/img/static/images/20210907200749.png)
+## 二十三、阿里云和 Vercel
 
-## 3.3 vercel部署
+腾讯云讲得比较细，另外两家顺带提一下，思路是相通的。
+
+### 阿里云函数计算
+
+![阿里云函数计算的控制台部署界面](https://blog.poetries.top/img/static/images/20210907200749.png)
+
+阿里云这边对应的产品叫函数计算 FC，概念一一对得上：函数、触发器、层、预留实例。工具链上它主推 Serverless Devs，作用类似 Serverless Framework，配置文件是 `s.yaml`。如果你的其他资源已经在阿里云，选它能省掉跨云的网络绕行。
+
+### Vercel
 
 > 国外挺好用的一个serverless免费平台
 
-![](https://blog.poetries.top/img/static/images/20210909140036.png)
-![](https://blog.poetries.top/img/static/images/20210909140058.png)
+![Vercel 导入 Git 仓库部署](https://blog.poetries.top/img/static/images/20210909140036.png)
+![Vercel 部署完成后的项目面板](https://blog.poetries.top/img/static/images/20210909140058.png)
 
+Vercel 是这几个里上手最快的，关联 GitHub 仓库，push 就自动构建部署，每个 PR 还会给一个独立的预览地址，做前端项目这个体验确实舒服。Next.js 是它家的，跑在上面适配最好。
+
+要注意的是国内访问速度不稳定，正式面向国内用户的项目还是得放在境内并且备案。我一般拿它放个人项目、文档站和 demo。
+
+## 总结
+
+回头看这一路，Serverless 真正卖给你的不是「没有服务器」，而是「不用管服务器」。你交出去的是控制权，换回来的是不用买机器、不用配环境、不用半夜起来扩容，以及没人访问时不花钱。
+
+具体到落地，我的结论是分场景的。做微信小程序，云开发几乎是最优解，`openId` 直接可信、上传下载一行代码、两个免费环境够分测试和正式，写完业务就能上线。做普通的 Node 服务上云，走 Web 函数加 Serverless Framework，代码改动小，注意监听 `0.0.0.0:9000` 这一条就不会白折腾一下午。前端静态项目用 `website` 组件推对象存储，比自己配 Nginx 省事得多。
+
+几个坑值得单独记住：云函数带二进制依赖必须走云端安装依赖；数据库集合权限上线前逐个检查，默认配置会漏数据；云函数直连 MySQL 要考虑连接数被打满；`fileID` 不是 URL，存库存 `fileID` 不存临时链接；定时触发器的 cron 是七位不是五位。
+
+至于什么时候不该用，也很清楚：长时间计算、长连接、需要常驻内存态的服务，别硬塞。Serverless 擅长的是短平快、事件触发、流量有波峰波谷的活。
+
+最后再说一遍时效性。这篇写于 2021 年，微信开发者工具和云开发控制台后来都改过版，截图里的菜单位置、免费额度数字、支持的地域列表都可能对不上了。操作思路是通的，具体数值和入口以你打开的官方文档和控制台为准。
+
+## 参考
+
+- [微信小程序云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
+- [微信小程序云开发 HTTP API](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/reference-http-api/functions/invokeCloudFunction.html)
+- [小程序订阅消息接口文档](https://developers.weixin.qq.com/miniprogram/dev/api/open-api/subscribe-message/wx.requestSubscribeMessage.html)
+- [腾讯云 CloudBase 官方文档](https://docs.cloudbase.net/)
+- [CloudBase CLI 文档](https://docs.cloudbase.net/cli/intro.html)
+- [腾讯云云函数 SCF Web 函数文档](https://cloud.tencent.com/document/product/583/56124)
+- [Serverless Framework 中文文档](https://www.serverless.com/cn/framework/docs/)
+- [tencent-website 组件配置说明](https://github.com/serverless-components/tencent-website/)
+- [阿里云函数计算](https://www.aliyun.com/product/fc)
+- [Vercel 官方文档](https://vercel.com/docs)
+- [前端进阶之旅](https://interview.poetries.top)

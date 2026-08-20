@@ -1,23 +1,53 @@
 ---
-title: React设计模式和最佳实践总结
+title: React 设计模式和最佳实践总结，从组件拆分到 Hooks
+description: 一份完整的 React 设计模式和最佳实践笔记，覆盖组件拆分、高阶组件、render props、提供者模式、组合组件、单元测试、状态管理、React Router、服务端渲染、异步渲染和 Hooks，并逐节补上现在的对应写法。
 date: 2019-08-10 18:50:12
 tags: 
  - JavaScript
  - react
+ - 设计模式
+ - Hooks
 categories: Front-End
 ---
+
+这篇笔记最早是我 2019 年边读边整理出来的，那时候 React 的正式版还停在 16.x，class 组件是绝对主流，Hooks 才刚从 alpha 走出来。后来我把它翻出来过好几次，发现里面讲的那些东西，组件怎么拆、逻辑怎么复用、状态放在哪、服务端渲染卡在哪一步，跟版本号其实没多大关系，换到 React 19 一样成立。
+
+所以这次我没有把老内容删掉重写，而是原样保留 2019 年的判断和代码，再在每一节后面另起一段，补一句现在通常怎么做。你能看到的不只是一份最佳实践清单，还有 React 这几年是怎么一步步走到今天的。
+
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
+
+- 组件设计的三条原则，以及为什么 `renderXXXX` 这种拆法是个坑
+- 高阶组件、render props、提供者模式、组合组件四种经典模式的取舍
+- 为什么 React 单元测试选 Jest 而不是 Mocha，以及 shallow 和 mount 的区别
+- `setState` 为什么不同步，函数式 `setState` 到底解决了什么
+- Mobx 和 Redux 在数据处理哲学上的根本分歧
+- react-router v4 的「动态路由」到底动在哪里
+- 服务端渲染的脱水和注水，以及 Next.js 的 `getInitialProps` 为什么巧妙
+- Fiber 异步渲染怎么把生命周期切成两个阶段，哪些老生命周期因此被判了死刑
+- Suspense 用同步代码写异步操作的原理，以及 Hooks 带来的模式转变
+- 每一节对应的现代写法补注，从 React 16 到 React 19
 
 ## 一、组件实践
 
 ### 1.1 设计原则
 
+先说结论，组件设计上真正管用的就三条：
+
 - 保持接口小，`props` 数量要少
 - 根据数据边界来划分组件，充分利用组合
 - 把 state 往上层组件提取，让下层组件只需要实现为纯函数
 
+这三条看着很虚，但每一条背后都对应一类具体的痛。
+
+`props` 数量多了，第一个受伤的是调用方，每次用这个组件都要回去翻一遍它到底要哪些参数；第二个受伤的是重构，`props` 就是组件的对外接口，接口越宽，将来想改就越难。按数据边界拆，说的是别按视觉区块拆，而是看这块 UI 依赖哪几个字段，依赖同一份数据的放一起。至于把 state 往上提，好处是下层组件退化成纯函数之后，它的行为完全由入参决定，测试好写，`shouldComponentUpdate` 也好判断。
+
+这块我自己踩过的坑是第三条用力过猛，把所有 state 一股脑提到根组件，结果任何一个输入框敲一下字整棵树都要 re-render。state 提到「所有需要它的组件的最近公共父节点」就够了，再往上就是负担。
+
 ### 1.2 组件划分
 
 > 任何一个复杂组件都是从简单组件开始的，一开始我们在 render 函数里写的代码不多，但是随着逻辑的复杂，JSX 代码越来越多，于是，就需要拆分函数中的内容
+
+组件长大到什么程度该拆？我的经验是 `render` 里出现第二层视觉分组的时候就该动手了。但怎么拆很关键，下面这种拆法是最常见的错误示范。
 
 - 在 React 中，有一个误区，就是把 render 中的代码分拆到多个 renderXXXX 函数中去，比如下面这样
 
@@ -82,8 +112,13 @@ const SplitTimes = (props) => {
 
 > 我们创造了 `MajorClock`、`ControlButtons` 和 `SplitTimes` 这三个组件，目前，我们并不知道它们是否应该有自己的 `state`，但是从简单开始，首先假设它们没有自己的 `state`，定义为函数形式的无状态组件
 
+拆成独立组件之后，多出来的那层价值是「边界」。原来 `renderMajorClock` 想读什么就读什么，现在 `MajorClock` 只能拿到你显式传给它的 `props`，依赖关系一眼可见。顺带还多了两个好处，一是这三个组件可以单独写单元测试，二是它们各自有了独立的重渲染判断点。
+
+这里有个坑要注意，上面这段示例代码里 `<MajorClock>` 这些标签没有闭合，是原文顺手写的伪代码。实际项目里要写成 `<MajorClock />` 这种自闭合形式，不然 JSX 会把后面的内容当成 children 一路吃进去。
 
 **组件 props 的设计**
+
+`props` 定下来了，还得让别人知道每个 `props` 是什么类型、哪些是必填。老项目里这件事交给 `propTypes`。
 
 > 使用 propTypes 来定义组件的 props
 
@@ -94,21 +129,30 @@ const ControlButtons = (props) => {
 
 ControlButtons.propTypes = {
   activated: PropTypes.bool,
-  onStart: PropTypes.func.isRquired,
-  onPause: PropTypes.func.isRquired,
-  onSplit: PropTypes.func.isRquired,
-  onReset: PropTypes.func.isRquired,
+  onStart: PropTypes.func.isRequired,
+  onPause: PropTypes.func.isRequired,
+  onSplit: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
   splits: PropTypes.arrayOf(PropTypes.number)
 };
 
 ```
 
+这份 `propTypes` 写出来其实就是一份接口文档。`activated` 是可选的布尔量，四个 `on` 开头的回调都是必填，`splits` 是数字数组。开发环境下一旦传错类型，控制台会直接给出警告，能挡掉相当一部分低级错误。
+
+顺着上面聊，`propTypes` 只在开发环境生效，生产构建会被剥掉，所以它不是运行时校验，指望它挡住后端返回的脏数据是不行的。
+
+**现在的做法**：`prop-types` 这个包还能用，但主流已经换成 TypeScript，直接给组件的 props 定义 interface，在编译期就把类型问题拦掉，编辑器里还能自动补全。React 官方文档现在也把类型检查这一节的重心放在了 TypeScript 上。如果项目还没上 TS，`propTypes` 依然是有价值的兜底。
+
 ### 1.3 组件内部实现
 
+组件拆好、接口定好之后，剩下的是组件文件内部怎么组织。这三条是老项目里最容易被忽略的细节。
 
 - 尽量每个组件都有自己专属的源代码文件
 - 用解构赋值（destructuring assignment）的方法获取参数 props 的每个属性值
 - 利用属性初始化（property initializer）来定义 state 和成员函数
+
+一个文件一个组件，好处是文件名就是组件名，找代码不用全局搜索；解构赋值则是把这个组件用到哪些 `props` 摆在函数第一行，读代码的人不用往下扫二十行才拼出依赖列表。
 
 **属性初始化方法**
 
@@ -126,16 +170,47 @@ ControlButtons.propTypes = {
  
  > 当然，按照上面那种写法，也可以完成程序的功能，但是，会带来性能的代价。首先，每一次渲染这段 `JSX`，都会产生全新的函数对象，这是一种浪费；其次，因为每一次传给 `ControlButtons` 的都是新的 `props`，这样 `ControlButtons` 也无法通过 `shouldComponentUpdate` 对 `props` 的检查来避免重复渲染
 
+正确的写法是用类的属性初始化语法，把这些回调定义成组件的成员：
+
+```js
+class StopWatch extends React.Component {
+  state = {
+    isStarted: false
+  };
+
+  onStart = () => {
+    this.setState({ isStarted: true });
+  };
+
+  render() {
+    return (
+      <ControlButtons
+        activated={this.state.isStarted}
+        onStart={this.onStart}
+      />
+    );
+  }
+}
+```
+
+用箭头函数配合属性初始化定义成员方法，还顺手解决了 `this` 绑定问题，不用再在构造函数里写一堆 `this.onStart = this.onStart.bind(this)`。整个组件生命周期内 `this.onStart` 都是同一个函数对象，传给子组件的 `props` 就稳定了。
+
+那内联函数是不是一律不能写？也不是。如果子组件本来就不做 `props` 比较，或者这个子组件是个原生 `<button>`，内联函数带来的开销小到可以忽略，为了这点开销把代码写得七零八落反而得不偿失。真正要在意的是列表渲染里给上百个子项各挂一个新函数这种场景。
+
+**现在的做法**：函数组件里对应的手段是 `useCallback` 把回调缓存住，配合 `React.memo` 做 props 浅比较。React 19 之后官方推的 React Compiler 会自动做这类记忆化，理论上不用再手写 `useCallback`，不过它的启用方式和适用范围还在演进，具体以官方文档为准。我自己目前的做法还是老老实实手写。
+
 ## 二、组件设计模式
+
+这一章是整篇笔记里最值钱的部分。高阶组件、render props、提供者模式、组合组件这四个东西，回答的都是同一个问题，怎么在不同组件之间复用逻辑而不是复用 UI。理解了这四种模式的取舍，再去看 Hooks 为什么长成那个样子，会顺畅很多。
 
 ### 2.1 高阶组件
 
-- 在开发 React 组件过程中，很容易发现这样一种现象，某些功能是多个组件通用的，如果每个组件都重复实现这样的逻辑，肯定十分浪费，而且违反了“不要重复自己”（DRY，Don't Repeat Yourself)的编码原则，我们肯定想要把这部分共用逻辑提取出来重用
-- 我们说过，在 React 的世界里，组件是第一公民，首先想到的是当然是把共用逻辑提取为一个 React 组件。不过，有些情况下，这些共用逻辑还没法成为一个独立组件，换句话说，这些共用逻辑单独无法使用，它们只是对其他组件的功能加强
+- 在开发 React 组件过程中，很容易发现这样一种现象，某些功能是多个组件通用的，如果每个组件都重复实现这样的逻辑，肯定十分浪费，而且违反了「不要重复自己」（DRY，Don't Repeat Yourself)的编码原则，我们肯定想要把这部分共用逻辑提取出来重用
+- 我们说过，在 React 的世界里，组件是第一公民，首先想到的是当然是把共用逻辑提取为一个 React 组件。不过，有些情况下，这些共用逻辑还没法成为一个独立组件，它们单独拿出来没法用，它们只是对其他组件的功能加强
 
 **高阶组件的基本形式**
 
-> “高阶组件”名为“组件”，其实并不是一个组件，而是一个函数，只不过这个函数比较特殊，它接受至少一个 React 组件为参数，并且能够返回一个全新的 React 组件作为结果，当然，这个新产生的 React 组件是对作为参数的组件的包装，所以，有机会赋予新组件一些增强的“神力”
+> 「高阶组件」名为「组件」，其实并不是一个组件，而是一个函数，只不过这个函数比较特殊，它接受至少一个 React 组件为参数，并且能够返回一个全新的 React 组件作为结果，当然，这个新产生的 React 组件是对作为参数的组件的包装，所以，有机会赋予新组件一些增强的「神力」
 
 一个最简单的高阶组件是这样的形式
 
@@ -156,16 +231,18 @@ const withDoNothing = (Component) => {
 - 高阶组件返回的结果必须是一个新的 React 组件，这个新的组件的 JSX 部分肯定会包含作为参数的组件
 - 高阶组件一般需要把传给自己的 props 转手传递给作为参数的组件
 
+第三条那个 `{...props}` 别漏掉，它是高阶组件的礼貌所在。包装层如果把 props 吞了，被包装的组件就成了瞎子，外面传什么它都收不到，调用方还完全看不出问题出在哪。我一开始写高阶组件就吃过这个亏，排查了一下午才发现是包装层没往下透传。
+
 **用高阶组件抽取共同逻辑**
 
-> 接下来，我们对 withDoNothing 进行一些改进，让它实现“只有在登录时才显示”这个功能
+> 接下来，我们对 withDoNothing 进行一些改进，让它实现「只有在登录时才显示」这个功能
 
-假设我们已经有一个函数 getUserId 能够从 cookies 中读取登录用户的 ID，如果用户未登录，这个 getUserId 就返回空，那么“退出登录按钮“就需要这么写：
+假设我们已经有一个函数 getUserId 能够从 cookies 中读取登录用户的 ID，如果用户未登录，这个 getUserId 就返回空，那么「退出登录按钮「就需要这么写：
 
 ```js
 const LogoutButton = () => {
   if (getUserId()) {
-    return ...; // 显示”退出登录“的JSX
+    return ...; // 显示「退出登录」的JSX
   } else {
     return null;
   }
@@ -175,9 +252,9 @@ const LogoutButton = () => {
 同样，购物车的代码就是这样
 
 ```js
-const ShoppintCart = () => {
+const ShoppingCart = () => {
   if (getUserId()) {
-    return ...; // 显示”购物车“的JSX
+    return ...; // 显示「购物车」的JSX
   } else {
     return null;
   }
@@ -201,15 +278,15 @@ const withLogin = (Component) => {
 };
 ```
 
-> 如此一来，我们就只需要这样定义 LogoutButton 和 ShoppintCart：
+> 如此一来，我们就只需要这样定义 LogoutButton 和 ShoppingCart：
 
 ```js
 const LogoutButton = withLogin((props) => {
-  return ...; // 显示”退出登录“的JSX
+  return ...; // 显示「退出登录」的JSX
 });
 
 const ShoppingCart = withLogin(() => {
-  return ...; // 显示”购物车“的JSX
+  return ...; // 显示「购物车」的JSX
 });
 ```
 
@@ -226,7 +303,7 @@ const withLoginAndLogout = (ComponentForLogin, ComponentForLogout) => {
     if (getUserId()) {
       return <ComponentForLogin {...props} />;
     } else {
-      return <ComponentForLogout{...props} />;
+      return <ComponentForLogout {...props} />;
     }
   }
   return NewComponent;
@@ -269,6 +346,8 @@ const hoc = compose(withThree, withTwo, withOne);
 const SuperX = hoc(X);
 ```
 
+这里注意一下调用顺序，`compose(withThree, withTwo, withOne)` 展开是 `withThree(withTwo(withOne(X)))`，也就是列表里最右边的那个先作用于 X，最左边的在最外层。写 Redux 的 `applyMiddleware` 或者别的包装工具时，这个顺序搞反了行为会完全不一样。
+
 > 上面代码中使用的 compose，是函数式编程中很基础的一种方法，作用就是把多个函数组合为一个函数，在很多开源的代码库中都可以看到，下面是一个参考实现
 
 ```js
@@ -304,7 +383,7 @@ const withExample = (Component) => {
   
   NewComponent.displayName = `withExample(${Component.displayName || Component.name || 'Component'})`;
   
-  return NewCompoennt;
+  return NewComponent;
 };
 
 ```
@@ -338,7 +417,27 @@ const Example = () => {
 
 ```
 
-### render props 模式
+把高阶组件的调用提到组件外面，模块加载时执行一次，之后这个组件类的引用就固定了，React 才有机会复用之前的 Fiber 节点和 state。这条规则到今天依然成立，你在函数组件里 `const X = memo(...)` 或者 `const X = () => ...` 也是同样的问题。
+
+**现在的做法**：高阶组件这个模式没有被官方废弃，React Router、一些老的表单库里还能见到，但新代码基本不这么写了。同样是「抽取共用逻辑」，自定义 Hook 做得更干净，不产生额外组件层、不用处理 `displayName`、不会让 React DevTools 里叠出十几层 wrapper。上面 `withLogin` 的例子换成 Hook 大概就是这样：
+
+```js
+function useCurrentUser() {
+  const [userName, setUserName] = useState(() => getUserName());
+  // 这里可以订阅登录状态变化
+  return userName;
+}
+
+const LogoutButton = () => {
+  const userName = useCurrentUser();
+  if (!userName) return null;
+  return <button>退出登录</button>;
+};
+```
+
+逻辑复用的部分被抽进了 `useCurrentUser`，组件层级一层都没多。
+
+### 2.2 render props 模式
 
 > 所谓 render props，指的是让 React 组件的 props 支持函数这种模式。因为作为 props 传入的函数往往被用来渲染一部分界面，所以这种模式被称为 render props
 
@@ -409,7 +508,7 @@ const Login = (props) => {
 我们来扩展 Login，不光在用户登录时显示一些东西，也可以定制用户没有登录时显示的东西，我们把这个组件叫做 Auth，对应代码如下
 
 ```js
-const Auth= (props) => {
+const Auth = (props) => {
   const userName = getUserName();
 
   if (userName) {
@@ -420,12 +519,16 @@ const Auth= (props) => {
       </React.Fragment>
     );
   } else {
-    <React.Fragment>
-      {props.nologin(props)}
-    </React.Fragment>
+    return (
+      <React.Fragment>
+        {props.nologin(props)}
+      </React.Fragment>
+    );
   }
 };
 ```
+
+这里 `else` 分支必须写 `return`。原始笔记里这一段漏了 `return`，直接写了个 JSX 表达式，结果是未登录时组件返回 `undefined`，React 会抛出「Nothing was returned from render」的错误。这种漏 `return` 的坑，在带花括号的箭头函数里特别容易犯。
 
 使用 Auth 的话，可以分别通过 login 和 nologin 两个 props 来指定用户登录或者没登录时显示什么，用法如下
 
@@ -438,13 +541,13 @@ const Auth= (props) => {
 
 **依赖注入**
 
-- render props 其实就是 React 世界中的“依赖注入”
+- render props 其实就是 React 世界中的「依赖注入」
 - 所谓依赖注入，指的是解决这样一个问题：逻辑 A 依赖于逻辑 B，如果让 A 直接依赖于 B，当然可行，但是 A 就没法做得通用了。依赖注入就是把 B 的逻辑以函数形式传递给 A，A 和 B 之间只需要对这个函数接口达成一致就行，如此一来，再来一个逻辑 C，也可以用一样的方法重用逻辑 A
 - 在上面的代码示例中，Login 和 Auth 组件就是上面所说的逻辑 A，而传递给组件的函数类型 props，就是逻辑 B 和 C
 
 **render props 和高阶组件的比较**
 
-- 首先，render props 模式的应用，就是做一个 React 组件，而高阶组件，虽然名为“组件”，其实只是一个产生 React 组件的函数
+- 首先，render props 模式的应用，就是做一个 React 组件，而高阶组件，虽然名为「组件」，其实只是一个产生 React 组件的函数
 - render props 相对于高阶组件还有一个显著优势，就是对于新增的 props 更加灵活。还是以登录状态为例，假如我们扩展 withLogin 的功能，让它给被包裹的组件传递用户名这个 props，代码如
 
 ```js
@@ -480,36 +583,50 @@ const withLogin = (Component) => {
 > 所以，当需要重用 React 组件的逻辑时，建议首先看这个功能是否可以抽象为一个简单的组件；如果行不通的话，考虑是否可以应用 render props 模式；再不行的话，才考虑应用高阶组件模式。
 这并不表示高阶组件无用武之地，在后续章节，我们会对 render props 和高阶组件分别讲解具体的实例
 
+render props 也有它自己的代价，最直观的就是嵌套。一个组件同时需要主题、语言、用户信息三份数据的时候，JSX 里就会出现三层函数嵌套，缩进一路往右跑，社区里管这个叫「回调地狱的 JSX 版本」。另一个坑是把内联箭头函数直接写在 `render` 里当 render prop，每次渲染都是新函数，包装组件的 `shouldComponentUpdate` 又失效了，跟前面讲内联函数是同一个问题。
 
-### 2.2 提供者模式
+**现在的做法**：render props 依然是合法写法，一些需要把「渲染什么」交给调用方决定的库还在用，比如虚拟列表、拖拽库的 children 函数。但纯粹为了共享逻辑而用 render props 的场景，几乎都被自定义 Hook 取代了。判断标准我一般是这样，如果你要共享的是「一段状态和行为」，用 Hook；如果你要共享的是「一块 UI 的组装方式，但具体渲染什么由调用方决定」，render props 或者 children 函数依然合适。
+
+
+### 2.3 提供者模式
 
 **问题场景**
 
-> 在 React 中，props 是组件之间通讯的主要手段，但是，有一种场景单纯靠 props 来通讯是不恰当的，那就是两个组件之间间隔着多层其他组件，下面是一个简单的组件树示例图图
+> 在 React 中，props 是组件之间通讯的主要手段，但是，有一种场景单纯靠 props 来通讯是不恰当的，那就是两个组件之间间隔着多层其他组件
 
-![](https://user-gold-cdn.xitu.io/2018/9/30/16627df7e8c08232)
+设想这么一棵组件树：顶层是 A，A 下面挂着 B 和 C，B 下面挂着 D，D 下面才是我们关心的 X。
 
-在上图中，组件 A 需要传递信息给组件 X，如果通过 props 的话，那么从顶部的组件 A 开始，要把 props 传递给组件 B，然后组件 B 传递给组件 D，最后组件 D 再传递给组件 X。
+```
+A
+├── B
+│   └── D
+│       └── X
+└── C
+```
+
+组件 A 需要传递信息给组件 X，如果通过 props 的话，那么从顶部的组件 A 开始，要把 props 传递给组件 B，然后组件 B 传递给组件 D，最后组件 D 再传递给组件 X。
 
 其实组件 B 和组件 D 完全用不上这些 props，但是又被迫传递这些 props，这明显不合理，要知道组件树的结构会变化的，将来如果组件 B 和组件 D 之间再插入一层新的组件，这个组件也需要传递这个 props，这就麻烦无比。
 
+这个现象在社区里有个专门的名字，叫 props drilling，也叫 props 逐级钻透。它的真正代价不在于多敲几行代码，而在于中间那些组件的接口被污染了，`B` 明明不关心主题色，它的 props 类型定义里却不得不多出一个 `theme`。等到要重构组件树的时候，这些无谓的依赖会让你不敢动手。
+
 可见，对于跨级的信息传递，我们需要一个更好的方法。
 
-在 React 中，解决这个问题应用的就是“提供者模式”
+在 React 中，解决这个问题应用的就是「提供者模式」
 
 **提供者模式**
 
-- 虽然这个模式叫做“提供者模式”，但是其实有两个角色，一个叫“提供者”（Provider），另一个叫“消费者”（Consumer），这两个角色都是 React 组件。其中“提供者”在组件树上居于比较靠上的位置，“消费者”处于靠下的位置。在上面的组件树中，组件 A 可以作为提供者，组件 X 就是消费者
-- 既然名为“提供者”，它可以提供一些信息，而且这些信息在它之下的所有组件，无论隔了多少层，都可以直接访问到，而不需要通过 props 层层传递。
+- 虽然这个模式叫做「提供者模式」，但是其实有两个角色，一个叫「提供者」（Provider），另一个叫「消费者」（Consumer），这两个角色都是 React 组件。其中「提供者」在组件树上居于比较靠上的位置，「消费者」处于靠下的位置。在上面的组件树中，组件 A 可以作为提供者，组件 X 就是消费者
+- 既然名为「提供者」，它可以提供一些信息，而且这些信息在它之下的所有组件，无论隔了多少层，都可以直接访问到，而不需要通过 props 层层传递。
 - 避免 `props` 逐级传递，即是提供者的用途。
 
 **如何实现提供者模式**
 
 - 实现提供者模式，需要 React 的 Context 功能，可以说，提供者模式只不过是让 Context 功能更好用一些而已
-- 所谓 Context 功能，就是能够创造一个“上下文”，在这个上下文笼罩之下的所有组件都可以访问同样的数据
+- 所谓 Context 功能，就是能够创造一个「上下文」，在这个上下文笼罩之下的所有组件都可以访问同样的数据
 - 在 React v16.3.0 之前，React 虽然提供了 Context 功能，但是官方文档上都建议尽量不要使用，因为对应的 API 他们并不满意，觉得迟早要废弃掉。即使如此，依然有很多库和应用使用 Context 功能，可见对这个需求的呼声有多大
-- 当 React 发布 v16.3.0 时，终于提供了“正式版本”的 Context 功能 API，和之前的有很大不同，
-- 提供者模式的一个典型用例就是实现“样式主题”（Theme），由顶层的提供者确定一个主题，下面的样式就可以直接使用对应主题里的样式。这样，当需要切换样式时，只需要修改提供者就行，其他组件不用修改。
+- 当 React 发布 v16.3.0 时，终于提供了「正式版本」的 Context 功能 API，和之前的有很大不同，
+- 提供者模式的一个典型用例就是实现「样式主题」（Theme），由顶层的提供者确定一个主题，下面的样式就可以直接使用对应主题里的样式。这样，当需要切换样式时，只需要修改提供者就行，其他组件不用修改。
 
 > 为了方便比对，这里会介绍提供者模式用不同 Context API 的实现方法。不过，你如果完全不在意老版本 React 如何实现的，可以略过下面一段。
 
@@ -517,10 +634,10 @@ const withLogin = (Component) => {
 
 > 在 React v16.3.0 之前，要实现提供者，就要实现一个 React 组件，不过这个组件要做两个特殊处理
 
-- 需要实现 getChildContext 方法，用于返回“上下文”的数据
-- 需要定义 childContextTypes 属性，声明“上下文”的结构。
+- 需要实现 getChildContext 方法，用于返回「上下文」的数据
+- 需要定义 childContextTypes 属性，声明「上下文」的结构。
 
-下面就是一个实现“提供者”的例子，组件名为 ThemeProvider：
+下面就是一个实现「提供者」的例子，组件名为 ThemeProvider：
 
 ```js
 class ThemeProvider extends React.Component {
@@ -557,7 +674,7 @@ ThemeProvider.childContextTypes = {
 }
 ```
 
-接下来，我们来做两个消费（也就是使用）这个“上下文”的组件，第一个是 Subject，代表标题；第二个是 Paragraph，代表章节。
+接下来，我们来做两个消费（也就是使用）这个「上下文」的组件，第一个是 Subject，代表标题；第二个是 Paragraph，代表章节。
 
 我们把 Subject 实现为一个类，代码如下
 
@@ -579,17 +696,17 @@ Subject.contextTypes = {
 
 ```
 
-在 Subject 的 render 函数中，可以通过 this.context 访问到“上下文”数据，因为 ThemeProvider 提供的“上下文”包含 theme 字段，所以可以直接访问 this.context.theme。
+在 Subject 的 render 函数中，可以通过 this.context 访问到「上下文」数据，因为 ThemeProvider 提供的「上下文」包含 theme 字段，所以可以直接访问 this.context.theme。
 
 千万不要忘了 Subject 必须增加 contextTypes 属性，必须和 ThemeProvider 的 childContextTypes 属性一致，不然，this.context 就不会得到任何值。
 
-读者可能会问了，为什么这么麻烦呢？为什么要求“提供者”用 childContextTypes 定义一次上下文结构，又要求“消费者”再用 contextTypes 再重复定义一次呢？这不是很浪费吗？
+读者可能会问了，为什么这么麻烦呢？为什么要求「提供者」用 childContextTypes 定义一次上下文结构，又要求「消费者」再用 contextTypes 再重复定义一次呢？这不是很浪费吗？
 
-React 这么要求，是考虑到“上下文”可能会嵌套，就是一个“提供者”套着另一个“提供者”，这时候，底层的消费者组件到底消费哪一个“提供者”呢？通过这种显示的方式指定。
+React 这么要求，是考虑到「上下文」可能会嵌套，就是一个「提供者」套着另一个「提供者」，这时候，底层的消费者组件到底消费哪一个「提供者」呢？通过这种显示的方式指定。
 
 不过，实话实说，这样的 API 设计的确麻烦了一点，难怪 React 官方在最初就不建议使用。
 
-上面的 Subject 是一个类，其实也可以把消费者实现为一个纯函数组件，只不过访问“上下文”的方式有些不同，我们用纯函数的方式实现另一个消费者 Paragraph，代码如下：
+上面的 Subject 是一个类，其实也可以把消费者实现为一个纯函数组件，只不过访问「上下文」的方式有些不同，我们用纯函数的方式实现另一个消费者 Paragraph，代码如下：
 
 ```js
 const Paragraph = (props, context) => {
@@ -610,7 +727,7 @@ Paragraph.contextTypes = {
 
 当然，也不要忘了设定 Paragraph 的 contextTypes，不然参数 context 也不会是上下文。
 
-最后，我们看如何结合”提供者“和”消费者“。
+最后，我们看如何结合「提供者」和「消费者」。
 
 我们做一个组件来使用 Subject 和 Paragraph，这个组件不需要帮助传递任何 props，代码如下：
 
@@ -638,23 +755,23 @@ const Page = () => (
 
 **React v16.3.0 之后的提供者模式**
 
-- 到了 React v16.3.0 的时候，新的 Context API 出来了，这套 API 毫不掩饰自己就是“提供者模式”的实现，命名上就带 “Provider” 和 “Consumer”。
-- 还是上面的样式主题的例子，首先，要用新提供的 createContext 函数创造一个“上下文”对象
+- 到了 React v16.3.0 的时候，新的 Context API 出来了，这套 API 毫不掩饰自己就是「提供者模式」的实现，命名上就带 「Provider」 和 「Consumer」。
+- 还是上面的样式主题的例子，首先，要用新提供的 createContext 函数创造一个「上下文」对象
 
 ```
 const ThemeContext = React.createContext();
 ```
 
-这个“上下文”对象 ThemeContext 有两个属性，分别就是——对，你没猜错——Provider 和 Consumer。
+这个「上下文」对象 ThemeContext 有两个属性，分别就是 Provider 和 Consumer，你大概也猜到了。
 
 ```
 const ThemeProvider = ThemeContext.Provider;
 const ThemeConsumer = ThemeContext.Consumer;
 ```
 
-创造“提供者”极大简化了，都不需要我们创造一个 React 组件类。
+创造「提供者」极大简化了，都不需要我们创造一个 React 组件类。
 
-使用“消费者”也同样简单，而且应用了上一节我们介绍的 render props 模式，比如，Subject 的代码如下:
+使用「消费者」也同样简单，而且应用了上一节我们介绍的 render props 模式，比如，Subject 的代码如下:
 
 
 ```js
@@ -676,14 +793,14 @@ class Subject extends React.Component {
 
 ```
 
-上面的 ThemeConsumer 其实就是一个应用了 render props 模式的组件，它要求子组件是一个函数，会把“上下文”的数据作为参数传递给这个函数，而这个函数里就可以通过参数访问“上下文”对象。
+上面的 ThemeConsumer 其实就是一个应用了 render props 模式的组件，它要求子组件是一个函数，会把「上下文」的数据作为参数传递给这个函数，而这个函数里就可以通过参数访问「上下文」对象。
 
 在新的 API 里，不需要设定组件的 childContextTypes 或者 contextTypes 属性，这省了不少事。
 
 可以注意到，Subject 没有自己的状态，没必要实现为类，我们用纯函数的形式实现 Paragraph，代码如下：
 
 ```js
-const Paragraph = (props, context) => {
+const Paragraph = (props) => {
   return (
     <ThemeConsumer>
       {
@@ -698,6 +815,8 @@ const Paragraph = (props, context) => {
 };
 ```
 
+这里把第二个参数 `context` 去掉了，原始笔记里是从上一版代码复制过来忘了删的。新版 Context API 已经不通过函数第二个参数拿上下文，留着它只会误导人。
+
 实现 Page 的方式并没有变化，而应用 ThemeProvider 的代码和之前也完全一样
 
 ```html
@@ -709,13 +828,19 @@ const Paragraph = (props, context) => {
 **两种提供者模式实现方式的比较**
 
 - 通过上面的代码，可以很清楚地看到，新的 Context API 更简洁，但是，也并不是十全十美。
-- 在老版 Context API 中，“上下文”只是一个概念，并不对应一个代码，两个组件之间达成一个协议，就诞生了“上下文”。
-- 在新版 Context API 中，需要一个“上下文”对象（上面的例子中就是 ThemeContext)，使用“提供者”的代码和“消费者”的代码往往分布在不同的代码文件中，那么，这个 ThemeContext 对象放在哪个代码文件中呢？
-- 最好是放在一个独立的文件中，这么一来，就多出一个代码文件，而且所有和这个“上下文”相关的代码，都要依赖于这个“上下文”代码文件，虽然这没什么大不了的，但是的确多了一层依赖关系。
-- 为了避免依赖关系复杂，每个应用都不要滥用“上下文”，应该限制“上下文”的使用个数。
+- 在老版 Context API 中，「上下文」只是一个概念，并不对应一个代码，两个组件之间达成一个协议，就诞生了「上下文」。
+- 在新版 Context API 中，需要一个「上下文」对象（上面的例子中就是 ThemeContext)，使用「提供者」的代码和「消费者」的代码往往分布在不同的代码文件中，那么，这个 ThemeContext 对象放在哪个代码文件中呢？
+- 最好是放在一个独立的文件中，这么一来，就多出一个代码文件，而且所有和这个「上下文」相关的代码，都要依赖于这个「上下文」代码文件，虽然这没什么大不了的，但是的确多了一层依赖关系。
+- 为了避免依赖关系复杂，每个应用都不要滥用「上下文」，应该限制「上下文」的使用个数。
 - 不管怎么说，新版本的 Context API 才是未来，在 React v17 中，可能就会删除对老版 Context API 的支持，所以，现在大家都应该使用第二种实现方式。
 
-### 2.3 组合组件
+最后那条预测在时间点上猜错了。老版 Context（`childContextTypes` / `contextTypes` / `getChildContext` 那一套）并没有在 v17 被删掉，它一直带着废弃警告活了好几年，直到 React 19 才被正式移除。具体的移除清单以官方的升级指南为准，但方向是没错的，新代码不要再碰老 API。
+
+**现在的做法**：`React.createContext` 依然是官方推荐的跨层级传值方案，消费端从 `<Context.Consumer>` 换成了 `useContext(Context)`，写法比 render props 干净太多，后面 Hooks 那一节会展开讲。React 19 还允许直接把 context 对象当组件用，写 `<ThemeContext value={...}>` 而不必写 `.Provider`，语法糖而已，行为一致，以官方文档为准。
+
+另外要提醒的是，Context 不是状态管理方案。它解决的是「传递」，不解决「更新粒度」，只要 Provider 的 value 变了，所有消费者都会重渲染。真正的大型状态管理还是得交给 Redux、Zustand、Jotai 这类工具，或者把 value 做拆分。
+
+### 2.4 组合组件
 
 **问题描述**
 
@@ -752,7 +877,7 @@ const Paragraph = (props, context) => {
 
 如果能像上面一样写代码，那就达到目的了。
 
-> 像上面这样，Tabs 和 TabItem 不通过表面的 props 传递也能心有灵犀，二者之间有某种神秘的“组合”，就是我们所说的“组合组件”。
+> 像上面这样，Tabs 和 TabItem 不通过表面的 props 传递也能心有灵犀，二者之间有某种神秘的「组合」，就是我们所说的「组合组件」。
 
 **实现方式**
 
@@ -766,7 +891,7 @@ const Paragraph = (props, context) => {
 const TabItem = (props) => {
   const {active, onClick} = props;
   const tabStyle = {
-    'max-width': '150px',
+    maxWidth: '150px',
     color: active ? 'red' : 'green',
     border: active ? '1px red solid' : '0px',
   };
@@ -778,7 +903,9 @@ const TabItem = (props) => {
 };
 ```
 
-TabItem 有两个重要的 props：active 代表自己是否被激活，onClick 是自己被点击时应该调用的回调函数，这就足够了。TabItem 所做的就是根据这两个 props 渲染出 props.children，没有任何复杂逻辑，是一个活脱脱的“傻瓜组件”，所以，用一个纯函数实现就可以了。
+这里把原文的 `'max-width'` 改成了 `maxWidth`。React 的行内 `style` 对象要求属性名用小驼峰，写成短横线形式浏览器不会生效，控制台还会给一条 warning。同样的问题在后面 React Router 那一节的 `ulStyle` 里也有，一并修过来了。
+
+TabItem 有两个重要的 props：active 代表自己是否被激活，onClick 是自己被点击时应该调用的回调函数，这就足够了。TabItem 所做的就是根据这两个 props 渲染出 props.children，没有任何复杂逻辑，是一个活脱脱的「傻瓜组件」，所以，用一个纯函数实现就可以了。
 
 接下来要做的，就看 Tabs 如何把 active 和 onClick 传递给 TabItem。
 
@@ -821,12 +948,15 @@ class Tabs extends React.Component {
     });
 
     return (
-      <Fragment>
+      <React.Fragment>
         {newChildren}
-      </Fragment>
+      </React.Fragment>
     );
   }
+}
 ```
+
+原文这段代码少了类的收尾花括号，直接复制走会报语法错误，这里补上了。`<Fragment>` 也换成了 `<React.Fragment>`，避免让人以为不用 import 就能直接用。
 
 在 render 函数中，我们用了 React 中不常用的两个 API：
 
@@ -837,13 +967,19 @@ class Tabs extends React.Component {
 
 使用 React.cloneElement 可以复制某个元素。这个函数第一个参数就是被复制的元素，第二个参数可以增加新产生元素的 props，我们就是利用这个机会，把 active 和 onClick 添加了进去。
 
-这两个 API 双剑合璧，就能实现不通过表面的 props 传递，完成两个组件的“组合”
+这两个 API 双剑合璧，就能实现不通过表面的 props 传递，完成两个组件的「组合」
 
 **实际应用**
 
 - 从上面的代码可以看出来，对于组合组件这种实现方式，TabItem 非常简化；Tabs 稍微麻烦了一点，但是好处就是把复杂度都封装起来了，从使用者角度，连 props 都看不见。
 - 所以，应用组合组件的往往是共享组件库，把一些常用的功能封装在组件里，让应用层直接用就行。在 antd 和 bootstrap 这样的共享库中，都使用了组合组件这种模式。
 - 如果你的某两个组件并不需要重用，那么就要谨慎使用组合组件模式，毕竟这让代码复杂了一些。
+
+这里有个坑要注意，`React.Children.map` 加 `cloneElement` 这套只能处理直接子元素。一旦使用方在 `<Tabs>` 和 `<TabItem>` 之间套了一层 `<div>` 做布局，克隆就注入不进去了，`active` 和 `onClick` 全是 `undefined`，而且不会报错，只是点了没反应。我第一次遇到这个现象的时候完全没往这个方向想。
+
+所以真正健壮的组合组件，通常还是要退回到 Context 实现，让 `TabItem` 从上下文里拿状态，中间隔几层都无所谓。上面这套克隆写法胜在简单，代价就是对结构有隐含要求。
+
+**现在的做法**：组合组件这个模式活得很好，现在一般叫 compound components。shadcn/ui、Radix UI 里大量用它，`<Select>` 配 `<Select.Trigger>` 配 `<Select.Item>` 就是这个路子。实现上基本都用 Context 而不是 `cloneElement`，React 官方文档也提到 `cloneElement` 属于不常用的遗留 API，新代码优先考虑 Context 或者把渲染逻辑交给调用方。
 
 ## 三、React 单元测试
 
@@ -857,7 +993,11 @@ class Tabs extends React.Component {
 
 所以，事实上，测试是尽力发现软件中的 bug。当我们发现 bug 数量和严重程度呈稳定的下降趋势，直到低于一个门槛（无须降低为 0，只需要降低到可接受的程度），没有更多更严重的 bug 出现，就说明这个软件的质量可以接受，可以上线了。
 
-这样当然要比达到“零 bug 软件”要容易多了，但是，不要因此以为这就是一件没有困难的任务。为了让 bug 的数量和严重程度足够低，我们开发者必须严格要求自己，只有保证我们写的每一小块代码都经受住测试的考验，这些小块代码集合在一起的时候才可能（只是有可能）不会出很多 bug，如果我们写的小块代码质量都无法保证，那大项目的代码根本无法保证
+这样当然要比达到「零 bug 软件」要容易多了，但是，不要因此以为这就是一件没有困难的任务。为了让 bug 的数量和严重程度足够低，我们开发者必须严格要求自己，只有保证我们写的每一小块代码都经受住测试的考验，这些小块代码集合在一起的时候才可能（只是有可能）不会出很多 bug，如果我们写的小块代码质量都无法保证，那大项目的代码根本无法保证
+
+这段话我隔几年再读一次，感受都不太一样。刚工作的时候觉得「发现不了更多 bug 就算合格」是在降低标准，后来带过项目才明白，它说的是资源怎么分配，不是标准怎么放低。
+
+回到我们要解决的问题，测试真正的收益不在于「找出 bug」，而在于让你敢改代码。一个没有测试的模块，你每次动它都得靠人肉回归，久而久之就只敢往上加分支不敢重构，代码就是这么烂掉的。
 
 ## 四、单元测试
 
@@ -865,11 +1005,11 @@ class Tabs extends React.Component {
 
 在 JavaScript 的世界里，单元测试的框架很多，品牌最老名气最响的是 Mocha ，不过，不要纠结于名气，请使用 Jest 。你不会后悔的，接下来我告诉你为什么。
 
-我们先假设，作为开发者，你是在团队中工作。所谓团队，就是有很多人一起工作，而且随着业务和团队的发展，人会越来越多，潜台词就是——不确定因素越来越多。
+我们先假设，作为开发者，你是在团队中工作。所谓团队，就是有很多人一起工作，业务和团队都在往大了长，人会越来越多，潜台词就是不确定因素越来越多。
 
 人和人之间交流会出现偏差，人的水平有高低之分，人也会犯错，总之，你不能指望所有人都把事情做得尽善尽美。
 
-具体到单元测试这件事上来，“测试驱动”是开发喊了这么多年，为什么真正做到这一点的团队依然不多呢？因为，当团队变大之后，很多问题也就出现了
+具体到单元测试这件事上来，「测试驱动」是开发喊了这么多年，为什么真正做到这一点的团队依然不多呢？因为，当团队变大之后，很多问题也就出现了
 
 1、单元测试用例庞大，执行时间过长。
 
@@ -877,13 +1017,13 @@ class Tabs extends React.Component {
 
 2、 单元测试用例之间相互影响。
 
-你可能也有这样的体验，代码库中的单元测试突然失败了，但是你修改的代码根本不会取影响失败的那个单元测试用例，怎么回事？这往往是因为某个成员以前的代码写得不好，影响了一个全局变量。当然，谁都知道单元测试应该在 setup 时创建环境，在 teardown 时恢复环境，可是，总会有人有马虎大意的情况，这时候你怎么办？要么你只好去修复一个本不是你改坏的代码，要么你干脆删掉那段不可靠的单元测试代码，不管怎样，这都会打击你支持“测试驱动开发”的决心。
+你可能也有这样的体验，代码库中的单元测试突然失败了，但是你修改的代码根本不会影响失败的那个单元测试用例，怎么回事？这往往是因为某个成员以前的代码写得不好，影响了一个全局变量。当然，谁都知道单元测试应该在 setup 时创建环境，在 teardown 时恢复环境，可是，总会有人有马虎大意的情况，这时候你怎么办？要么你只好去修复一个本不是你改坏的代码，要么你干脆删掉那段不可靠的单元测试代码，不管怎样，这都会打击你支持「测试驱动开发」的决心。
 
 Jest 较好地解决了上面说的问题，因为 Jest 最重要的一个特性，就是支持并行执行
 
 Mocha 之类老牌单元测试框架，把所有的单元测试都放在一个环境中执行，这就使所有单元测试访问的是同样一个全局变量空间，所以只要测试代码没写好，就会互相影响。而且，为了保证执行正常，所有的单元测试必须一个接一个地执行，这是体系架构决定的，没有办法。
 
-Jest 不同，Jest 为每一个单元测试文件创造一个独立的运行环境，换句话说，Jest 会启动一个进程执行一个单元测试文件，运行结束之后，就把这个执行进程废弃了，这个单元测试文件即使写得比较差，把全局变量污染得一团糟，也不会影响其他单元测试文件，因为其他单元测试文件是用另一个进程来执行
+Jest 不同，Jest 为每一个单元测试文件创造一个独立的运行环境，也就是 Jest 会启动一个进程执行一个单元测试文件，运行结束之后，就把这个执行进程废弃了，这个单元测试文件即使写得比较差，把全局变量污染得一团糟，也不会影响其他单元测试文件，因为其他单元测试文件是用另一个进程来执行
 
 更妙的是，因为每个单元测试文件之间再无纠葛，Jest 可以启动多个进程同时运行不同的文件，这样就充分利用了电脑的多 CPU 多核，单进程 100 秒才完成的测试执行过程，8 核只需要 12.5 秒，速度快了很多。
 
@@ -891,7 +1031,7 @@ Jest 还有很多其他友好的特性，大家可以自己去发掘，这里废
 
 使用 create-react-app 产生的项目自带 Jest 作为测试框架，不奇怪，因为 Jest 和 React 一样都是出自 Facebook。
 
-运行下面的命令，就可以进入交互式的”测试驱动开发“模式：
+运行下面的命令，就可以进入交互式的「测试驱动开发」模式：
 
 ```
 npm test
@@ -899,9 +1039,9 @@ npm test
 
 **Enzyme**
 
-虽然最好的 React 测试框架出自 Facebook 家，最受欢迎的 React 测试工具库却出自 Airbnb，这个工具库叫做 Enzyme。Enzyme 这个单词的含义是“酶”，至于命名原因已经无法考据，可能寓意着快速分解。
+虽然最好的 React 测试框架出自 Facebook 家，最受欢迎的 React 测试工具库却出自 Airbnb，这个工具库叫做 Enzyme。Enzyme 这个单词的含义是「酶」，至于命名原因已经无法考据，可能寓意着快速分解。
 
-不过因为 Enzyme 不是 Facebook 家出品，所以使用 Enzyme 还真稍微有些麻烦——在 create-react-app 产生的应用中并不包含 Enzyme，需要我们自己来添加。
+不过因为 Enzyme 不是 Facebook 家出品，所以使用 Enzyme 还真稍微有些麻烦，在 create-react-app 产生的应用中并不包含 Enzyme，需要我们自己来添加。
 
 在项目目录下，通过下面的命令来安装 enzyme
 
@@ -944,19 +1084,20 @@ shallow 和 mount 的区别，就是 shallow 只会渲染被测试的 React 组�
 
 原则上，能用 shallow 就尽量用 shallow，首先是为了测试性能考虑，其次是可以减少组件之间的影响，比如，一个组件 Foo 有子组件 Bar，如下
 
-```
-const Foo = () => ()
+```js
+const Foo = () => (
     <div>
-       {/* other logic */
+       {/* other logic */}
        <Bar />
     </div>
 )
-
 ```
+
+原文这段示例的括号和注释都没闭合，这里补齐了，不然复制过去直接是语法错误。
 
 如果用 mount 去渲染 Foo，会连带 Bar 一起完全渲染，如果 Bar 出了什么毛病，那 Foo 的单元测试也过不了；如果用 shallow，只知道 Bar 曾经被用，即使 Bar 哪里出了问题，也不影响 Foo 的单元测试。
 
-这并不是说我们就不管 Bar，Bar 的质量会由它自己的单元测试来检验，这就引出下一个话题——代码覆盖率。
+这并不是说我们就不管 Bar，Bar 的质量会由它自己的单元测试来检验，这就引出下一个话题，代码覆盖率。
 
 **代码覆盖率**
 
@@ -989,6 +1130,27 @@ npm test -- --coverage
 
 只有四个方面都是 100%，才算真的 100%。
 
+关于「必须 100%」这条，我个人的感受是要分类型看。工具函数、状态计算、reducer 这类纯逻辑，100% 是合理的目标，成本也低。UI 组件的分支覆盖硬要凑到 100%，很多时候是在给不会出问题的代码写测试，投入产出比不划算。我一般给纯逻辑设 100%，给整体设一个 80% 左右的门槛，然后重点盯「新增代码的覆盖率」而不是全局数字，这样至少能保证债不会越滚越大。
+
+不是说 100% 这个要求不对，而是它更像是一种态度上的自律，落到具体项目上还得看这块代码值不值这个价。
+
+**现在的做法**：Enzyme 这条线基本已经断了，它的 adapter 长期跟不上 React 版本，社区从 React 17 之后就大规模迁走。现在的默认组合是 `@testing-library/react`（RTL）加 Jest 或者 Vitest。RTL 和 Enzyme 的哲学差别很大，Enzyme 让你去戳组件的内部实现（state、实例方法、浅渲染层级），RTL 则强制你只能通过用户能看见的东西去断言，比如按角色和文本找元素：
+
+```js
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+test('点击加号计数加一', async () => {
+  render(<Counter />);
+  await userEvent.click(screen.getByRole('button', { name: '+' }));
+  expect(screen.getByText('1')).toBeInTheDocument();
+});
+```
+
+这么写的直接好处是，你把 class 组件重构成函数组件、把 `setState` 换成 `useState`，测试一行都不用改，因为它压根不关心你内部怎么实现。上面提到的 `shallow` 和 `mount` 的取舍，在 RTL 里也就不存在了，它只有一种渲染方式，要隔离子组件就用 mock。
+
+构建工具这边，Vite 项目现在多数直接上 Vitest，API 和 Jest 基本兼容，跑得更快，配置也少。Jest 依然是完全可用的选择，不用为了换而换。
+
 ## 五、React 状态管理
 
 ### 5.1 组件状态
@@ -999,7 +1161,7 @@ React 其实就是这样一个公式
 UI = f(data)
 ```
 
-> f 的参数 data，除了 props，就是 state。props 是组件外传递进来的数据，state 代表的就是 React 组件的内部状
+> f 的参数 data，除了 props，就是 state。props 是组件外传递进来的数据，state 代表的就是 React 组件的内部状态
 
 **为什么要了解 React 组件自身状态管理**
 
@@ -1108,19 +1270,23 @@ setState 只是给任务队列里增加了一个修改 this.state 的任务，�
 
 为什么 setTimeout 能够强迫 setState 同步更新 state 呢？
 
-可以这么理解，当 React 调用某个组件的生命周期函数或者事件处理函数时，React 会想：“嗯，这一次函数可能调用多次 setState，我会先打开一个标记，只要这个标记是打开的，所有的 setState 调用都是往任务队列里放任务，当这一次函数调用结束的时候，我再去批量处理任务队列，然后把这个标记关闭。”
+可以这么理解，当 React 调用某个组件的生命周期函数或者事件处理函数时，React 会想：「嗯，这一次函数可能调用多次 setState，我会先打开一个标记，只要这个标记是打开的，所有的 setState 调用都是往任务队列里放任务，当这一次函数调用结束的时候，我再去批量处理任务队列，然后把这个标记关闭。」
 
-因为 setTimeout 是一个 JavaScript 函数，和 React 无关，对于 setTimeout 的第一个函数参数，这个函数参数的执行时机，已经不是 React 能够控制的了，换句话说，React 不知道什么时候这个函数参数会被执行，所以那个“标记”也没有打开。
+因为 setTimeout 是一个 JavaScript 函数，和 React 无关，对于 setTimeout 的第一个函数参数，这个函数参数的执行时机，已经不是 React 能够控制的了，React 根本不知道什么时候这个函数参数会被执行，所以那个「标记」也没有打开。
 
-当那个“标记”没有打开时，setState 就不会给任务列表里增加任务，而是强行立刻更新 state 和引发重新渲染。这种情况下，React 认为：“这个 setState 发生在自己控制能力之外，也许开发者就是想要强行同步更新呢，宁滥勿缺，那就同步更新了吧。”
+当那个「标记」没有打开时，setState 就不会给任务列表里增加任务，而是强行立刻更新 state 和引发重新渲染。这种情况下，React 认为：「这个 setState 发生在自己控制能力之外，也许开发者就是想要强行同步更新呢，宁滥勿缺，那就同步更新了吧。」
 
-知道这个“技巧”之后，可能会有开发者说：好啊，那么以后我就用 setTimeout 来调用 setState 吧，能够立刻更新 state，多好！
+知道这个「技巧」之后，可能会有开发者说：好啊，那么以后我就用 setTimeout 来调用 setState 吧，能够立刻更新 state，多好！
 
 我劝你不要这么做。
 
 就像上面所说，React 选择不同步更新 state，是一种性能优化，如果你用上 setTimeout，就没机会让 React 优化了。
 
-而且，每当你觉得需要同步更新 state 的时候，往往说明你的代码设计存在问题，绝大部分情况下，你所需要的，并不是“state 立刻更新”，而是，“确定 state 更新之后我要做什么”，这就引出了 setState 另一个功能
+这里必须插一句时效性说明，因为这是全篇里最过时的一段。上面描述的「在 setTimeout、Promise 回调、原生事件监听里 setState 会同步更新」，是 React 16 和 17 的行为，React 团队把它叫做 legacy mode 下的部分批处理。到了 React 18，只要用 `createRoot` 挂载应用，就开启了自动批处理（automatic batching），不管 `setState` 是在事件处理函数里、`setTimeout` 里还是 `fetch` 的 `.then` 里，同一轮宏任务内的多次更新都会被合并成一次渲染。
+
+所以上面那个「用 setTimeout 就能强制同步更新」的技巧，在 React 18 之后不成立了。如果你确实需要跳出批处理立刻拿到 DOM 结果，官方给了 `flushSync` 这个逃生口，但它会打断优化，用之前先想清楚是不是真的需要。这一块的完整背景可以看我另外写的 [React 18 新特性详解](https://feinterview.poetries.top/blog/react-18-new-features)，并发相关的部分在 [React 18 并发渲染](https://feinterview.poetries.top/blog/react-18-concurrency) 里讲得更细。
+
+而且，每当你觉得需要同步更新 state 的时候，往往说明你的代码设计存在问题，绝大部分情况下，你所需要的，并不是「state 立刻更新」，而是，「确定 state 更新之后我要做什么」，这就引出了 setState 另一个功能
 
 **setState 的第二个参数**
 
@@ -1152,7 +1318,7 @@ console.log(this.state.count); // 依然为0
 
 上面的代码表面上看会让 this.state.count 增加 3，实际上只增加了 1，因为 setState 没有同步更新 this.state 啊，所以给任务队列加的三个任务都是给 this.state.count 同一个值而已。
 
-面对这种情况，我们很自然地想到，如果任务列表中的任务不只是给 state 一个固定数据，如果任务列表里的“任务”是一个函数，能够根据当前 state 计算新的状态，那该多好！
+面对这种情况，我们很自然地想到，如果任务列表中的任务不只是给 state 一个固定数据，如果任务列表里的「任务」是一个函数，能够根据当前 state 计算新的状态，那该多好！
 
 实际上，setState 已经支持这种功能，到现在为止我们给 setState 的第一个参数都是对象，其实也可以传入一个函数。
 
@@ -1178,12 +1344,17 @@ function increment(state, props) {
 
 > 用这种函数式方式连续调用 setState，就真的能够让 this.state.count 增加 3，而不只是增加 1。
 
+判断什么时候必须用函数式写法，有个很简单的标准：新状态是否依赖旧状态。只要你在参数里写了 `this.state.xxx`，就该换成函数形式。这条规则跟 React 版本无关，到今天依然成立。
+
+**现在的做法**：函数组件里对应的是 `setCount(c => c + 1)`，形式变了，道理一模一样。React 19 之后还多了 `useOptimistic`、`useActionState` 这类跟表单和异步动作配合的状态 API，以及 `use` 这个可以在渲染中读取 Promise 和 Context 的钩子，具体的签名和限制以官方文档为准。这些我在 [React 19 新特性](https://feinterview.poetries.top/blog/react-19-new-features) 那篇里整理过。
+
+复杂一点的组件状态，现在更推荐 `useReducer`，把「有哪些动作」和「动作怎么改状态」显式写出来，比一堆 `useState` 互相牵制要好维护得多。
 
 ### 5.2 Mobx 使用模式
 
 **理解 Mobx**
 
-> 虽然 Mobx 和 Redux 有很大不同，但是至少还有一个共同点——这两个工具都和 React 没有任何直接关系，只不过凑巧 React 社区大量使用它们罢了。从技术上说，Mobx 和 Redux 都是中立的状态管理工具，他们能够应用于 React，也可以用于其他需要状态管理的场景
+> 虽然 Mobx 和 Redux 有很大不同，但是至少还有一个共同点，这两个工具都和 React 没有任何直接关系，只不过凑巧 React 社区大量使用它们罢了。从技术上说，Mobx 和 Redux 都是中立的状态管理工具，他们能够应用于 React，也可以用于其他需要状态管理的场景
 
 我们用 Mobx 来实现一个很简单的计数工具，首先，需要有一个对象来记录计数值，代码如下：
 
@@ -1198,7 +1369,7 @@ const counter = observable({
 
 在上面的代码中，counter 是一个对象，其实就是用 observable 函数包住一个普通 JavaScript 对象，但是 observable 的介入，让 counter 对象拥有了神力。
 
-我们用最简单的代码来展示这种“神力”，代码如下：
+我们用最简单的代码来展示这种「神力」，代码如下：
 
 ```js
 import {autorun} from 'mobx';
@@ -1214,11 +1385,10 @@ autorun(() => {
 
 在 Chrome 的开发者界面，我们可以直接访问 window.counter.count，神奇之处是，如果我们直接修改 window.counter.count 的值，可以直接触发 autorun 的函数参数！
 
-![](https://user-gold-cdn.xitu.io/2018/10/29/166bf8e6c419c97e)
 
-这个现象说明，mobx 的 observable 拥有某种“神力”，任何对这个对象的修改，都会立刻引发某些函数被调用。和 observable 这个名字一样，被包装的对象变成了“被观察者”，而被调用的函数就是“观察者”，在上面的例子中，autorun 的函数参数就是“观察者”。
+这个现象说明，mobx 的 observable 拥有某种「神力」，任何对这个对象的修改，都会立刻引发某些函数被调用。和 observable 这个名字一样，被包装的对象变成了「被观察者」，而被调用的函数就是「观察者」，在上面的例子中，autorun 的函数参数就是「观察者」。
 
-Mobx 这样的功能，等于实现了设计模式中的“观察者模式”（Observer Pattern），通过建立 observer 和 observable 之间的关联，达到数据联动。不过，传统的“观察者模式”要求我们写代码建立两者的关联，也就是写类似下面的代码：
+Mobx 这样的功能，等于实现了设计模式中的「观察者模式」（Observer Pattern），通过建立 observer 和 observable 之间的关联，达到数据联动。不过，传统的「观察者模式」要求我们写代码建立两者的关联，也就是写类似下面的代码：
 
 ```js
 observable.register(observer);
@@ -1226,14 +1396,14 @@ observable.register(observer);
 
 Mobx 最了不起之处，在于不需要开发者写上面的关联代码，Mobx自己通过解析代码就能够自动发现 observer 和 observable 之间的关系。
 
-我们很自然想到，如果让我们的数据拥有这样的“神力”，那我们就不用在修改完数据之后，再费心去调用某些函数使用这些数据了，数据管理会变得十分轻松。
+我们很自然想到，如果让我们的数据拥有这样的「神力」，那我们就不用在修改完数据之后，再费心去调用某些函数使用这些数据了，数据管理会变得十分轻松。
 
 
 **decorator**
 
-因为 Mobx 的作用就是把简单的对象赋予神力，总要有一种方法能够在不改变对象代码的前提，去改变对象的行为，这就用得上“装饰者模式”（Decorator Pattern）。
+因为 Mobx 的作用就是把简单的对象赋予神力，总要有一种方法能够在不改变对象代码的前提，去改变对象的行为，这就用得上「装饰者模式」（Decorator Pattern）。
 
-单独说“装饰者模式”，这只是面向对象编程思想下的一种模式，不过对 JavaScript 语言而言，就不只是一种模式，而是一种语言特性，它在语法上对这种模式提供了强大的支持，所谓强大，就是指使用起来代码极其简洁。
+单独说「装饰者模式」，这只是面向对象编程思想下的一种模式，不过对 JavaScript 语言而言，就不只是一种模式，而是一种语言特性，它在语法上对这种模式提供了强大的支持，所谓强大，就是指使用起来代码极其简洁。
 
 根据 JavaScript 语法，我们可以这样创造一个 decorator，叫做 log：
 
@@ -1247,7 +1417,7 @@ function log(target, name, descriptor) {
 
 ```
 
-当然，很明显这个 decorator 什么实质的事情都没做，只是用 console.log 输出了三个参数秀了一下存在感，最后返回的 descriptor，就是被这个『装饰者』所『装饰』的对象。
+当然，很明显这个 decorator 什么实质的事情都没做，只是用 console.log 输出了三个参数秀了一下存在感，最后返回的 descriptor，就是被这个「装饰者」所「装饰」的对象。
 
 下面是使用这个 decorator 的代码示例：
 
@@ -1261,9 +1431,13 @@ class Bar {
 }
 ```
 
-可以看到，@ 符号就是使用 decorator 的标志，将 @log 作用于一个类 Bar，那么最后得到的 Bar 其实是调用 log 函数返回的结果；将 @log 作用于一个类成员 @bar，最后得到的 bar 同样是调用 log 函数之后得到的结果。可见，如果我们巧妙地编写 log 函数，控制返回的结果，就可以操纵被『装饰』的类或者成员。
+可以看到，@ 符号就是使用 decorator 的标志，将 @log 作用于一个类 Bar，那么最后得到的 Bar 其实是调用 log 函数返回的结果；将 @log 作用于一个类成员 @bar，最后得到的 bar 同样是调用 log 函数之后得到的结果。可见，如果我们巧妙地编写 log 函数，控制返回的结果，就可以操纵被「装饰」的类或者成员。
 
 编写 decorator 是一个复杂的过程，也超出了这本小册的范围，有兴趣的读者可以自行研究。在这里，读者只需要知道，虽然使用 Mobx 并不是必须使用 decorator，但是使用 decorator 会让 Mobx 的应用代码简洁易读很多
+
+这里得补一条时间线上的说明。2019 年这套 `@observable` 写法依赖的是 Babel 的 legacy decorator 插件，它对应的是当时那版早就搁浅的提案，跟后来推进到 TC39 Stage 3 的装饰器提案在语义上并不一样。所以你如果拿一份老 Mobx 代码丢进新脚手架，很可能会遇到 `Support for the experimental syntax 'decorators' isn't currently enabled` 这类报错，得手动配 Babel 插件才行。
+
+Mobx 从 6 开始干脆把 decorator 从必选降成可选，官方推荐用 `makeObservable` 或者 `makeAutoObservable` 在构造函数里显式声明，理由就是不想再让用户为了装饰器去折腾编译配置。
 
 **用 decorator 来使用 Mobx**
 
@@ -1304,9 +1478,9 @@ class Counter extends React.Component {
 
 在上面的代码中，Counter 这个 React 组件自身是一个 observer，而 observable 是 Counter 的一个成员变量 count。
 
-注意 observer 这 个decorator 来自于 mobx-react，它是 Mobx 世界和 React 的桥梁，被它“装饰”的组件，只要用到某个被 Mobx 的 observable “装饰”过的数据，自然会对这样的数据产生反应。所以，只要 Counter 的 count 成员变量一变化，就会引发 Counter 组件的重新渲染。
+注意 observer 这 个decorator 来自于 mobx-react，它是 Mobx 世界和 React 的桥梁，被它「装饰」的组件，只要用到某个被 Mobx 的 observable 「装饰」过的数据，自然会对这样的数据产生反应。所以，只要 Counter 的 count 成员变量一变化，就会引发 Counter 组件的重新渲染。
 
-可以注意到，Counter 的代码中并没有自己的 state，其实，被 observer 修饰过之后，Counter 被强行"注入”了 state，只不过我们看不见而已。
+可以注意到，Counter 的代码中并没有自己的 state，其实，被 observer 修饰过之后，Counter 被强行"注入」了 state，只不过我们看不见而已。
 
 **独立的 Store**
 
@@ -1354,8 +1528,8 @@ class Counter extends React.Component {
 
 **总结**
 
-- Mobx 的基本功能就是“观察者模式”
-- decorator 是“装饰者模式”在 JavaScript 语言中的实现
+- Mobx 的基本功能就是「观察者模式」
+- decorator 是「装饰者模式」在 JavaScript 语言中的实现
 - Mobx 通常利用 decorator 来使用
 
 ### 5.3 不同方式对比
@@ -1366,7 +1540,7 @@ Mobx 和 Redux 的目标都是管理好应用状态，但是最根本的区别�
 
 Redux 认为，数据的一致性很重要，为了保持数据的一致性，要求Store 中的数据尽量范式化，也就是减少一切不必要的冗余，为了限制对数据的修改，要求 Store 中数据是不可改的（Immutable），只能通过 action 触发 reducer 来更新 Store。
 
-Mobx 也认为数据的一致性很重要，但是它认为解决问题的根本方法不是让数据范式化，而是不要给机会让数据变得不一致。所以，Mobx 鼓励数据干脆就“反范式化”，有冗余没问题，只要所有数据之间保持联动，改了一处，对应依赖这处的数据自动更新，那就不会发生数据不一致的问题。
+Mobx 也认为数据的一致性很重要，但是它认为解决问题的根本方法不是让数据范式化，而是不要给机会让数据变得不一致。所以，Mobx 鼓励数据干脆就「反范式化」，有冗余没问题，只要所有数据之间保持联动，改了一处，对应依赖这处的数据自动更新，那就不会发生数据不一致的问题。
 
 值得一提的是，虽然 Mobx 最初的一个卖点就是直接修改数据，但是实践中大家还是发现这样无组织无纪律不好，所以后来 Mobx 还是提供了 action 的概念。和 Redux 的 action 有点不同，Mobx 中的 action 其实就是一个函数，不需要做 dispatch，调用就修改对应数据，在上面的代码中，increment 和 decrement 就是 action。
 
@@ -1382,14 +1556,31 @@ configure({enforceActions: true});
 **总结一下 Redux 和 Mobx 的区别，包括这些方面：**
 
 - Redux 鼓励一个应用只用一个 Store，Mobx 鼓励使用多个 Store；
-- Redux 使用“拉”的方式使用数据，这一点和 React是一致的，但 Mobx 使用“推”的方式使用数据，和 RxJS 这样的工具走得更近；
+- Redux 使用「拉」的方式使用数据，这一点和 React是一致的，但 Mobx 使用「推」的方式使用数据，和 RxJS 这样的工具走得更近；
 - Redux 鼓励数据范式化，减少冗余，Mobx 容许数据冗余，但同样能保持数据一致。
+
+这三条对比放到今天看依然准确，它讲的是两种数据哲学，不是两个库的 API 差异。
+
+**现在的做法**：这几年状态管理的格局变化很大，最大的一个变化是大家先学会了拆问题。以前一个 Redux Store 塞进去两类东西，一类是服务端数据的缓存（列表、详情、用户信息），一类是真正的客户端状态（弹窗开没开、当前选中的 Tab）。现在主流做法是把它们分开：
+
+| 状态类型 | 典型方案 |
+|----------|----------|
+| 服务端数据缓存 | TanStack Query、SWR，或者框架自带的数据层 |
+| 全局客户端状态 | Zustand、Jotai、Redux Toolkit |
+| 局部 UI 状态 | `useState` / `useReducer` |
+| 跨层级传值 | Context |
+
+拆开之后你会发现，原来 Redux 里 70% 的样板代码，都是在手写「请求中 / 成功 / 失败」这三个状态和缓存失效逻辑，而这些恰好是 TanStack Query 一行 `useQuery` 就带走的东西。
+
+Redux 本身也没停在原地，Redux Toolkit 把 `createSlice`、`createAsyncThunk`、Immer 集成进来之后，样板代码少了一大截，官方现在也明确说不要再手写裸 Redux。Mobx 依然活跃，在偏面向对象、领域模型清晰的项目里很好用。至于本站这个项目，我用的是 Zustand，理由很简单，它足够小、不需要 Provider 包裹、心智负担最低。
+
+选型这件事没有标准答案，我的结论只在我这类项目规模下成立。
 
 ## 六、React Router
 
-随着 AJAX 技术的成熟，现在单页应用（Single Page Application）已经是前端网页界的标配，名为“单页”，其实在设计概念上依然是多页的界面，只不过从技术层面上页之间的切换是没有整体网页刷新的，只需要做局部更新。
+随着 AJAX 技术的成熟，现在单页应用（Single Page Application）已经是前端网页界的标配，名为「单页」，其实在设计概念上依然是多页的界面，只不过从技术层面上页之间的切换是没有整体网页刷新的，只需要做局部更新。
 
-要实现“单页应用”，一个最要紧的问题就是做好“路由”（Routing)，也就是处理好下面两件事：
+要实现「单页应用」，一个最要紧的问题就是做好「路由」（Routing)，也就是处理好下面两件事：
 
 - 把 URL 映射到对应的页面来处理；
 - 页面之间切换做到只需局部更新。
@@ -1397,8 +1588,8 @@ configure({enforceActions: true});
 **react router v4 的动态路由**
 
 - 我们现在说到 react-router，基本上都是在说 react-router 的第 4 版，也就是 v4。这个 v4 很有意思，它完全推翻了之前 v3 的做法。可以说，react-router 的 v3 和 v4 版完完全全是不同的两个工具，两者差距实在太大。
-- 其实当初 v3 也已经很优秀很热门了，但是 react-router 的开发者不满意，他们认为 v3 还是落入了“静态路由”的窠臼，所以在 v4 中 react-router 做到了“动态路由”的功能。
-- 所谓“静态路由”，就是说路由规则是固定的，无论 express、Angular 还是 Rails 等业界响当当的框架，都用的是静态路由。以 express 为例，路由规则差不多是这么写的：
+- 其实当初 v3 也已经很优秀很热门了，但是 react-router 的开发者不满意，他们认为 v3 还是落入了「静态路由」的窠臼，所以在 v4 中 react-router 做到了「动态路由」的功能。
+- 所谓「静态路由」，就是说路由规则是固定的，无论 express、Angular 还是 Rails 等业界响当当的框架，都用的是静态路由。以 express 为例，路由规则差不多是这么写的：
 
 ```js
 app.get('/', Home);
@@ -1406,13 +1597,13 @@ app.get('/product/:id', Product);
 app.get('/about', About);
 ```
 
-对于大部分应用，支持这样的路由规则真的是足够了，但是，react-router 的开发者觉得这样还不够好，要支持“动态路由”才是最好。
+对于大部分应用，支持这样的路由规则真的是足够了，但是，react-router 的开发者觉得这样还不够好，要支持「动态路由」才是最好。
 
 所谓动态路由，指的是路由规则不是预先确定的，而是在渲染过程中确定的。因为 react-router 的定位就是专供 React 应用服务，而 React 的世界中一切皆为组件，所以 react-router v4 就完全用 React 组件来实现路由功能。
 
 不得不承认，虽然 react-router 的开发者是挺折腾的，但是他们的确是领悟了 React 的精髓，而且在 react-router 中把 React 的哲学发挥到了极致。
 
-接下来，我们通过一个很简单的例子来说明 react-router v4 如何工作的，然后在这个例子的基础上介绍“动态路由”。
+接下来，我们通过一个很简单的例子来说明 react-router v4 如何工作的，然后在这个例子的基础上介绍「动态路由」。
 
 
 **React Router 实例**
@@ -1421,7 +1612,7 @@ app.get('/about', About);
 
 create-react-app 产生的应用默认为不支持多个页面，但还是在 README 文件中友情推荐了一下 react-router 来增强功能，可见 react-router 影响力之大。
 
-不过，我们并不需要安装 react-router 这个 npm 包，因为 react-router 为了支持 Web 和 React Native 出了两个包—— react-router-dom 和 react-router-native ，我们只关心 Web，所以只需要安装 react-router-dom 。这个 react-router-dom 依赖于 react-router ，所以 react-router 也会被自动安装上
+不过，我们并不需要安装 react-router 这个 npm 包，因为 react-router 为了支持 Web 和 React Native 出了两个包，react-router-dom 和 react-router-native ，我们只关心 Web，所以只需要安装 react-router-dom 。这个 react-router-dom 依赖于 react-router ，所以 react-router 也会被自动安装上
 
 ```
 npm install react-router-dom
@@ -1429,9 +1620,9 @@ npm install react-router-dom
 
 **HashRouter 还是 BrowserRouter**
 
-react-router 的工作方式，是在组件树顶层放一个 Router 组件，然后在组件树中散落着很多 Route 组件（注意比 Router 少一个“r”），顶层的 Router 组件负责分析监听 URL 的变化，在它保护伞之下的 Route 组件可以直接读取这些信息。
+react-router 的工作方式，是在组件树顶层放一个 Router 组件，然后在组件树中散落着很多 Route 组件（注意比 Router 少一个「r」），顶层的 Router 组件负责分析监听 URL 的变化，在它保护伞之下的 Route 组件可以直接读取这些信息。
 
-很明显，Router 和 Route 的配合，就是之前我们介绍过的“提供者模式”，Router 是“提供者”，Route是“消费者”。
+很明显，Router 和 Route 的配合，就是之前我们介绍过的「提供者模式」，Router 是「提供者」，Route是「消费者」。
 
 更进一步，Router 其实也是一层抽象，让下面的 Route 无需各种不同 URL 设计的细节，不要以为 URL 就一种设计方法，至少可以分为两种。
 
@@ -1460,10 +1651,25 @@ ReactDOM.render(
 
 把 Router 用在 React 组件树的最顶层，这是最佳实践。因为将来我们如果想把 HashRouter 换成 BrowserRouter，组件 App 以下几乎不用任何改变。
 
+这段挂载代码用的是 `ReactDOM.render`，那是 React 17 及以前的写法。React 18 之后要换成 `createRoot`，`ReactDOM.render` 在 React 18 会给废弃警告，到 React 19 已经被移除：
+
+```js
+import { createRoot } from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
+
+createRoot(document.getElementById('root')).render(
+  <HashRouter>
+    <App />
+  </HashRouter>
+);
+```
+
+这个改动看着只是换个 API，实际影响不小，`createRoot` 才会开启并发特性和自动批处理，前面 `setState` 那一节讲的行为变化就是从这里来的。
+
 
 **使用 Link**
 
-对于单页应用，需要在不同“页面”之间切换，往往需要一个“导航栏”，我们在这里也实现一个简单的导航栏。
+对于单页应用，需要在不同「页面」之间切换，往往需要一个「导航栏」，我们在这里也实现一个简单的导航栏。
 
 在App.js中，我们让网页由两个组件 Navigation 和 Content 组成， Navigation 就是导航栏，而 Content 是具体内容。
 
@@ -1480,12 +1686,12 @@ class App extends Component {
 }
 ```
 
-- 我们计划只增加两个页面，在 Navigation 中就应该有两个链接，但是，如果我们简单使用 HTML 的 <a> 标签那就错了，用户点击 <a> 标签缺省行为是网页跳转，这违背了“单页应用”的原则。虽然对于 HashRouter 使用的是没有网页跳转的 #，但是为了将来可以无缝切换为 BrowserRouter ，我们也不能使用 `<a href="#about">` 这样的标签。
+- 我们计划只增加两个页面，在 Navigation 中就应该有两个链接，但是，如果我们简单使用 HTML 的 <a> 标签那就错了，用户点击 <a> 标签缺省行为是网页跳转，这违背了「单页应用」的原则。虽然对于 HashRouter 使用的是没有网页跳转的 #，但是为了将来可以无缝切换为 BrowserRouter ，我们也不能使用 `<a href="#about">` 这样的标签。
 - 正确的解法是用 react-router 提供的 Link 组件，虽然 Link 最终还是渲染为 <a> 标签，但这是有神力的 <a> 标签，用户点击时，react-router 可以知晓这是一个单页应用的链接，不用网页跳转只做局部页面更新。
 
 ```js
 const ulStyle = {
-  'list-style-type': 'none',
+  listStyleType: 'none',
   margin: 0,
   padding: 0,
 };
@@ -1553,7 +1759,7 @@ switch (条件) {
 
 **动态路由**
 
-在了解了 react-router的基本路由功能之后，再来理解“动态路由”就容易了。
+在了解了 react-router的基本路由功能之后，再来理解「动态路由」就容易了。
 
 假设，我们增加一个新的页面叫 Product，对应路径为 /product，但是只有用户登录了之后才显示。如果用静态路由，我们在渲染之前就确定这条路由规则，这样即使用户没有登录，也可以访问 product，我们还不得不在 Product 组件中做用户是否登录的检查。
 
@@ -1574,7 +1780,24 @@ switch (条件) {
 
 > 可以用任何条件决定 `Route` 组件实例是否渲染，比如，可以根据页面宽度、设备类型决定路由规则，动态路由有了最大的自由度
 
+不过动态路由也有代价，这一点当年讨论得不多。路由规则散在组件树里，就意味着你没法在渲染之前拿到完整的路由表，做不了预加载、做不了权限的静态校验，服务端也没办法只看 URL 就知道该准备哪些数据。这个矛盾后来直接影响了 React Router 自己的演进方向。
 
+**现在的做法**：react-router-dom 从 v6 开始把 API 改了一轮，`Switch` 换成了 `Routes`，`component={Home}` 换成了 `element={<Home />}`，嵌套路由靠 `<Outlet />`，路径匹配算法也重写了，不再需要到处写 `exact`：
+
+```js
+import { Routes, Route } from 'react-router-dom';
+
+const Content = () => (
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/about" element={<About />} />
+  </Routes>
+);
+```
+
+更有意思的是 v6.4 之后引入的 data router，用 `createBrowserRouter` 配一份路由对象，每条路由可以挂 `loader` 和 `action`，数据在路由层就取好了，组件拿到的是已经就绪的数据。这其实是从「动态路由」往回走了半步，重新拥抱了一份可以提前分析的路由配置，因为只有这样才能做数据预取和并行加载。React Router v7 进一步把 Remix 的能力合了进来，同时支持纯客户端和带服务端渲染的模式。
+
+如果项目本来就在 Next.js 上，路由这件事更简单，App Router 直接用文件目录表达，`app/about/page.tsx` 对应 `/about`，不需要额外的路由库。本站用的就是这套。
 
 ## 七、服务器端渲染
 
@@ -1589,11 +1812,11 @@ switch (条件) {
 
 相比于浏览器端渲染，服务器端渲染的好处是：
 
-1、可以缩短“第一有意义渲染时间”（First-Meaningful-Paint-Time）。
+1、可以缩短「第一有意义渲染时间」（First-Meaningful-Paint-Time）。
 
 如果完全依赖于浏览器端渲染，那么服务器端返回的 HTML 就是一个空荡荡的框架和对 JavaScript 的应用，然后浏览器下载 JavaScript，再根据 JavaScript 中的 AJAX 调用获取服务器端数据，再渲染出 DOM 来填充网页内容，总共需要三个 HTTP 或 HTTPS 请求。
 
-如果使用服务器端渲染，第一个 HTTP/HTTPS 请求返回的 HTML 里就包含可以渲染的内容了，这样用户第一时间就会感觉到“有东西画出来了”，这样的感知性能更好。
+如果使用服务器端渲染，第一个 HTTP/HTTPS 请求返回的 HTML 里就包含可以渲染的内容了，这样用户第一时间就会感觉到「有东西画出来了」，这样的感知性能更好。
 
 2、更好的搜索引擎优化（Search-Engine-Optimization，SEO）
 
@@ -1607,7 +1830,7 @@ switch (条件) {
 
 因为 React 是声明式框架，所以，在渲染上对服务器端渲染非常友好。
 
-假设我们我们要渲染一个以 App 为最根节点的组件树，浏览器端渲染的代码如下：
+假设我们要渲染一个以 App 为最根节点的组件树，浏览器端渲染的代码如下：
 
 ```js
 import React from 'react';
@@ -1645,7 +1868,11 @@ ReactDOMServer.renderToNodeStream(<Hello />).pipe(response);
 
 renderToString 的功能是一口气同步产生最终 HTML，如果 React 组件树很庞大，这样一个同步过程可能比较耗时。假设渲染完整 HTML 需要 500 毫秒，那么一个 HTTP/HTTPS 请求过来，500 毫秒之后才返回 HTML，显得不大合适，这也是为什么 v16 提供了 renderToNodeStream 这个新 API 的原因。
 
-renderToNodeStream 把渲染结果以“流”的形式塞给 response 对象（这里的 response 是 express 或者 koa 的概念），这意味着不用等到所有 HTML 都渲染出来了才给浏览器端返回结果，也许 10 毫秒内就渲染出来了网页头部，那就没必要等到 500 毫秒全部网页都出来了才推给浏览器，“流”的作用就是有多少内容给多少内容，这样用户只需要 10 毫秒多一点的延迟就可以看到网页内容，进一步改进了“第一有意义渲染时间”
+renderToNodeStream 把渲染结果以「流」的形式塞给 response 对象（这里的 response 是 express 或者 koa 的概念），好处是不用等到所有 HTML 都渲染出来了才给浏览器端返回结果，也许 10 毫秒内就渲染出来了网页头部，那就没必要等到 500 毫秒全部网页都出来了才推给浏览器，「流」的作用就是有多少内容给多少内容，这样用户只需要 10 毫秒多一点的延迟就可以看到网页内容，进一步改进了「第一有意义渲染时间」
+
+**现在的做法**：这几个 API 在 React 18 之后换了一批。`renderToNodeStream` 被废弃，Node 环境换成 `renderToPipeableStream`，Deno、Cloudflare Workers 这类支持 Web Streams 的运行时用 `renderToReadableStream`。浏览器端的 `ReactDOM.hydrate` 换成了 `react-dom/client` 里的 `hydrateRoot`。
+
+新 API 不只是改名，它们真正带来的能力是「流式 SSR 配合 Suspense」，服务端可以先把外层骨架吐给浏览器，某个 `<Suspense>` 边界里的数据还没好就先发 fallback，数据好了再把真实 HTML 追加进来，浏览器那边自动替换。上面提到的「500 毫秒才能吐第一个字节」的问题，到这一步才算真的解决了。`renderToString` 依然存在，但它是同步阻塞的，除非有特殊需求，否则不建议在新项目里用。
 
 
 **服务器端渲染的难点**
@@ -1674,18 +1901,18 @@ callAPI().then(result => {
 解决了这个问题，才算真的解决了服务器端渲染的问题。
 
 
-**“脱水”和“注水”8**
+**「脱水」和「注水」**
 
 React 有一个特点，就是把内容展示和动态功能集中在一个组件中。比如，一个 Counter 组件既负责怎么画出内容，也要负责怎么响应按键点击，这当然符合软件高内聚性的原则，但是也给服务器端渲染带来更多的工作。
 
 设想一下，如果只使用服务器端渲染，那么产生的只有 HTML，虽然能够让浏览器端画出内容，但是，没有 JavaScript 的辅助是无法响应用户交互事件的。对应 Counter 的例子，一个 Counter 组件在浏览器中也就渲染出一个数字两个按钮，用户点击 + 按钮或者 - 按钮，什么都不会发生。
 
-很显然我们必须要在浏览器端赋予 Counter 组件一些“神力”，让它能够响应事件。那么怎么赋予 Counter 组件“神力”呢？其实我们已经做过这件事了，Counter 组件里面已经有对按钮事件的处理，我们所要做的只是让 Counter 组件在浏览器端重新执行一遍，也就是 mount 一遍就可以了。
+很显然我们必须要在浏览器端赋予 Counter 组件一些「神力」，让它能够响应事件。那么怎么赋予 Counter 组件「神力」呢？其实我们已经做过这件事了，Counter 组件里面已经有对按钮事件的处理，我们所要做的只是让 Counter 组件在浏览器端重新执行一遍，也就是 mount 一遍就可以了。
 
 
 > 也就是说，如果想要动态交互效果，使用 React 服务器端渲染，必须也配合使用浏览器端渲染。
 
-现在问题变得更加有趣了，在服务器端我们给 Counter 一个初始值（这个值可以不是缺省的 0），让 Counter 渲染产生 HTML，这些 HTML 要传递给浏览器端，为了让 Counter 的 HTML“活”起来点击相应事件，必须要在浏览器端重新渲染一遍 Counter 组件。在浏览器端渲染 Counter 之前，用户就可以看见 Counter 组件的内容，但是无法点击交互，要想点击交互，就必须要等到浏览器端也渲染一次 Counter 之后。
+现在问题变得更加有趣了，在服务器端我们给 Counter 一个初始值（这个值可以不是缺省的 0），让 Counter 渲染产生 HTML，这些 HTML 要传递给浏览器端，为了让 Counter 的 HTML「活」起来点击相应事件，必须要在浏览器端重新渲染一遍 Counter 组件。在浏览器端渲染 Counter 之前，用户就可以看见 Counter 组件的内容，但是无法点击交互，要想点击交互，就必须要等到浏览器端也渲染一次 Counter 之后。
 
 接下来的一个问题，如果服务器端塞给 Counter 的数据和浏览器端塞给 Counter 的数据不一样呢？
 
@@ -1695,11 +1922,14 @@ React 在 v16 之后，做了一些改进，不再要求整个组件树两端渲
 
 > 总之，如果用服务器端渲染，一定要让服务器端塞给 React 组件的数据和浏览器端一致。
 
-为了达到这一目的，必须把传给 React 组件的数据给保留住，随着 HTML 一起传递给浏览器网页，这个过程，叫做“脱水”（Dehydrate）；在浏览器端，就直接拿这个“脱水”数据来初始化 React 组件，这个过程叫“注水”（Hydrate）。
+为了达到这一目的，必须把传给 React 组件的数据给保留住，随着 HTML 一起传递给浏览器网页，这个过程，叫做「脱水」（Dehydrate）；在浏览器端，就直接拿这个「脱水」数据来初始化 React 组件，这个过程叫「注水」（Hydrate）。
 
-前面提到过 React v16 之后用 React.hydrate 替换 React.render，这个 hydrate 就是“注水”。
+前面提到过 React v16 之后用 React.hydrate 替换 React.render，这个 hydrate 就是「注水」。
 
-![](https://user-gold-cdn.xitu.io/2018/11/2/166d20bf04d0775d)
+脱水注水这套概念到今天一点没变，变的只是 API 名字和不匹配时的处理策略。React 18 之后，两端渲染结果对不上会在控制台打出 hydration mismatch 错误，并把那棵子树在客户端重渲染一遍；React 19 把这个报错信息做得更友好了，会直接把服务端和客户端的差异 diff 出来，排查起来省心不少。
+
+顺带说个我自己踩过的坑，hydration 不匹配最常见的元凶不是数据，是时间和随机数。在组件里直接 `new Date().toLocaleString()` 或者 `Math.random()`，服务端和客户端必然算出不同结果，页面看着没事但控制台一片红。正确做法是把这类值放到 `useEffect` 里在客户端算，或者从服务端把确定的值传下来。
+
 
 > 总之，为了实现React的服务器端渲染，必须要处理好这两个问题：
 
@@ -1708,7 +1938,7 @@ React 在 v16 之后，做了一些改进，不再要求整个组件树两端渲
 
 **Facebook 未使用服务器端渲染**
 
-值得一提的是，虽然 React 从最初版本就支持“服务器端渲染”，并且 React 的创建者 Facebook 也全力在自己的网站产品中使用 React，但他们自己却没有使用 React 的服务器端渲染功能。理由是，Facebook 已经在 PHP 上投入了很多资源，不打算放弃这些投入。
+值得一提的是，虽然 React 从最初版本就支持「服务器端渲染」，并且 React 的创建者 Facebook 也全力在自己的网站产品中使用 React，但他们自己却没有使用 React 的服务器端渲染功能。理由是，Facebook 已经在 PHP 上投入了很多资源，不打算放弃这些投入。
 
 这里我当然不是批评 Facebook，实际上，Facebook 对 React 的支持是真心的，它在自己的网站上大范围使用 React，而不只是做出来后让外部使用者当小白鼠，这种全力投入也给了 React 使用者很大信心。但另一方面，因为 Facebook 自己不用 React 的服务器端渲染，如何利用这个功能，就缺乏一个官方参考标准了。
 
@@ -1718,15 +1948,15 @@ React 在 v16 之后，做了一些改进，不再要求整个组件树两端渲
 ### 7.2 理解 Next.js
 
 
-我们已经知道了服务器端渲染的原理，你只需要搭建一个 Express 服务器，在服务器端手工打造『脱水』，在浏览器端做『注水』，完成某个页面的服务器端渲染并不难。
+我们已经知道了服务器端渲染的原理，你只需要搭建一个 Express 服务器，在服务器端手工打造「脱水」，在浏览器端做「注水」，完成某个页面的服务器端渲染并不难。
 
-不过，服务器端渲染的问题并不这么简单，一个最直接的问题，就是怎么处理多个页面的『单页应用』（Single-Page-Application）？
+不过，服务器端渲染的问题并不这么简单，一个最直接的问题，就是怎么处理多个页面的「单页应用」（Single-Page-Application）？
 
-所以单页应用，就是虽然用户感觉有多个页面，但是实现上只有一个页面，用户感觉到页面可以来回切换，但其实只是一个页面并没有完全刷新，只是局部界面更新而已。
+所谓单页应用，就是虽然用户感觉有多个页面，但是实现上只有一个页面，用户感觉到页面可以来回切换，但其实只是一个页面并没有完全刷新，只是局部界面更新而已。
 
-假设一个单页应用有三个页面 Home、Prodcut 和 About，分别对应的的路径是 /home、/product 和 /about，而且三个页面都依赖于 API 调用来获取外部数据。
+假设一个单页应用有三个页面 Home、Product 和 About，分别对应的的路径是 /home、/product 和 /about，而且三个页面都依赖于 API 调用来获取外部数据。
 
-现在我们要做服务器端渲染，如果只考虑用户直接在地址栏输入 /home、/product 和 /about 的场景，很容易满足，按照上面说的套路做就是了。但是，这是一个单页应用，用户可以在 Home 页面点击链接无缝切换到 Product，这时候 Product 要做完全的浏览器端渲染。换句话说，每个页面都需要既支持服务器端渲染，又支持完全的浏览器端渲染，更重要的是，对于开发者来说，肯定不希望为了这个页面实现两套程序，所以必须有同时满足服务器端渲染和浏览器端渲染的代码表示方式。
+现在我们要做服务器端渲染，如果只考虑用户直接在地址栏输入 /home、/product 和 /about 的场景，很容易满足，按照上面说的套路做就是了。但是，这是一个单页应用，用户可以在 Home 页面点击链接无缝切换到 Product，这时候 Product 要做完全的浏览器端渲染。也就是说，每个页面都需要既支持服务器端渲染，又支持完全的浏览器端渲染，更重要的是，对于开发者来说，肯定不希望为了这个页面实现两套程序，所以必须有同时满足服务器端渲染和浏览器端渲染的代码表示方式。
 
 读者可以思考一下什么样的代码表示合适，也可以直接往下，看看业界公认最科学的实现方式 Next.js 是如何做的。
 
@@ -1743,13 +1973,15 @@ React 在 v16 之后，做了一些改进，不再要求整个组件树两端渲
 npm install -g create-next-app
 ```
 
+这条命令现在不用了，全局装脚手架早就被 `npx` 取代，直接跑 `npx create-next-app@latest` 就行，每次都拿最新版，也不会在全局留一堆过期的包。
+
 然后，就可以在你专门存放项目的目录下执行 create-next-app，产生一个使用 Next.js 的 React 应用，下面的命令创建一个叫 next_demo 的应用：
 
 ```
 create-next-app next_demo
 ```
 
-进入新生成的项目目录 next_demo 里检查一下，可以看到文件结构非常简洁，pages 目录下是页面文件，package.json 中差不是下面这样，没有繁冗的 webpack 和 babel 依赖包，因为一切都被 Next.js 封装起来了
+进入新生成的项目目录 next_demo 里检查一下，可以看到文件结构非常简洁，pages 目录下是页面文件，package.json 差不多是下面这样，没有繁冗的 webpack 和 babel 依赖包，因为一切都被 Next.js 封装起来了
 
 
 ```json
@@ -1788,7 +2020,7 @@ npm run dev
 
 请注意，这一点上 Next.js 的习惯用法和 create-react-app 产生的应用不一样。在 create-react-app 产生的应用中， npm run start 启动是开发者模式，但在 Next.js 应用中，习惯上 npm run start 以产品模式启动，所以要先运行 npm run build 然后才能运行 npm run start。
 
-Next.js 遵从『协定优于配置』（convention over configuration）的设计原则，根据『协定』，在 pages 中每个文件对应一个网页文件，文件名对应的就是网页的路径名，比如 pages/home.js 文件对应的就是 /home 路径的页面，当然 pages/index.js 比较特殊，对应的是默认根路径 / 的页面。
+Next.js 遵从「协定优于配置」（convention over configuration）的设计原则，根据「协定」，在 pages 中每个文件对应一个网页文件，文件名对应的就是网页的路径名，比如 pages/home.js 文件对应的就是 /home 路径的页面，当然 pages/index.js 比较特殊，对应的是默认根路径 / 的页面。
 
 我们修改 pages/index.js，让它更简单一些，如下：
 
@@ -1836,13 +2068,13 @@ Home.getInitialProps = async () => {
 };
 ```
 
-这个 getiInitialProps 是 Next.js 最伟大的发明，它确定了一个规范，一个页面组件只要把访问 API 外部资源的代码放在 getInitialProps 中就足够，其余的不用管，Next.js 自然会在服务器端或者浏览器端调用 getInitialProps 来获取外部资源，并把外部资源以 props 的方式传递给页面组件。
+这个 getInitialProps 是 Next.js 最伟大的发明，它确定了一个规范，一个页面组件只要把访问 API 外部资源的代码放在 getInitialProps 中就足够，其余的不用管，Next.js 自然会在服务器端或者浏览器端调用 getInitialProps 来获取外部资源，并把外部资源以 props 的方式传递给页面组件。
 
 注意 getInitialProps 是页面组件的静态成员函数，可以用下面的方法定义：
 
 
 ```js
-Home.getInitialProps = async () = {...};
+Home.getInitialProps = async () => {...};
 ```
 
 也可以在组件类中加上 static 关键字定义：
@@ -1857,7 +2089,7 @@ class Home extends React.Component {
 
 ```
 
-通过上面的代码，我么也可以注意到，getInitialProps 是一个 async 函数，所以，在 getInitialProps 函数中可以使用 await 关键字，用同步的方式编写异步逻辑。
+通过上面的代码，我们也可以注意到，getInitialProps 是一个 async 函数，所以，在 getInitialProps 函数中可以使用 await 关键字，用同步的方式编写异步逻辑。
 
 我们可以这样来看待 getInitialProps，它就是 Next.js 对代表页面的 React 组件生命周期的扩充。React 组件的生命周期函数缺乏对异步操作的支持，所以 Next.js 干脆定义出一个新的生命周期函数 getInitialProps，在调用 React 原生的所有生命周期函数之前，Next.js 会调用 getInitialProps 来获取数据，然后把获得数据作为 props 来启动 React 组件的原生生命周期过程。
 
@@ -1869,9 +2101,9 @@ class Home extends React.Component {
 - getInitialProps 只负责获取数据的过程，开发者不用操心什么时候调用 getInitialProps，依然是 React 哲学的声明式编程方式；
 - getInitialProps 是 async 函数，可以利用 JavaScript 语言的新特性，用同步的方式实现异步功能。
 
-**Next.js 的“脱水”和“注水”**
+**Next.js 的「脱水」和「注水」**
 
-我们说过服务器端渲染的关键是如何“脱水”和“注水”，如果你对 Next.js 如何实现这两个关键点好奇（实际上你确实应该感到好奇），那么在浏览器中使用“显示网页源代码”就可以让你一目了然。
+我们说过服务器端渲染的关键是如何「脱水」和「注水」，如果你对 Next.js 如何实现这两个关键点好奇（实际上你确实应该感到好奇），那么在浏览器中使用「显示网页源代码」就可以让你一目了然。
 
 在网页的 HTML 中，可以看到类似下面的内容：
 
@@ -1885,7 +2117,7 @@ class Home extends React.Component {
 ```
 
 
-Next.js 在做服务器端渲染的时候，页面对应的 React 组件的 getInitialProps 函数被调用，异步结果就是“脱水”数据的重要部分，除了传给页面 React 组件完成渲染，还放在内嵌 script 的 __NEXT_DATA__ 中，这样，在浏览器端渲染的时候，是不会去调用 getInitialProps 的，直接通过 __NEXT_DATA__ 中的“脱水”数据来启动页面 React 组件的渲染。
+Next.js 在做服务器端渲染的时候，页面对应的 React 组件的 getInitialProps 函数被调用，异步结果就是「脱水」数据的重要部分，除了传给页面 React 组件完成渲染，还放在内嵌 script 的 __NEXT_DATA__ 中，这样，在浏览器端渲染的时候，是不会去调用 getInitialProps 的，直接通过 __NEXT_DATA__ 中的「脱水」数据来启动页面 React 组件的渲染。
 
 这样一来，如果 getInitialProps 中有调用 API 的异步操作，只在服务器端做一次，浏览器端就不用做了。
 
@@ -1897,9 +2129,23 @@ Next.js 在做服务器端渲染的时候，页面对应的 React 组件的 getI
 
 你可以发明自己的服务器端框架，但很可能最后你发现，如果要做得通用性好，最后都会做到和 Next.js 一样的模式上来。
 
-值得一提的是，getInitialProps 返回的应该是“纯数据”，也就是不要返回一个定制类的实例。比如，有一个类 Foo 有一个成员函数 bar，不要在 getInitialProps 返回一个 Foo 实例。不然，经过“脱水”和“注水”过程，网页组件获得的那个“Foo 实例”不再是你想的那个 Foo 实例了，它变成了一个纯粹的数据，不会包含成员函数 bar的。
+还得提一句，getInitialProps 返回的应该是「纯数据」，也就是不要返回一个定制类的实例。比如，有一个类 Foo 有一个成员函数 bar，不要在 getInitialProps 返回一个 Foo 实例。不然，经过「脱水」和「注水」过程，网页组件获得的那个「Foo 实例」不再是你想的那个 Foo 实例了，它变成了一个纯粹的数据，不会包含成员函数 bar 的。
 
+这条限制的根源是 `JSON.stringify`，脱水数据要塞进 HTML 里当文本传，能活下来的只有 JSON 能表达的东西。函数、`Date`、`Map`、`undefined`、循环引用统统会出问题。今天在 App Router 里从 Server Component 往 Client Component 传 props，受的是同一类约束，只不过 React 用的是自己的序列化协议，支持的类型比 JSON 多一些，但函数依然过不去。
 
+**现在的做法**：`getInitialProps` 在 Next.js 里已经是遗留 API，官方明确不推荐在新项目里用，因为它会让整个页面失去静态优化的机会。Pages Router 里的替代品是 `getStaticProps`（构建时取数）和 `getServerSideProps`（请求时取数），两者的区别就是数据在什么时候准备好。
+
+而 App Router 走得更远，它直接把「服务端组件」这个概念做进了 React 里，页面组件本身就可以是 `async` 函数，在里面 `await` 拿数据：
+
+```js
+// app/page.tsx
+export default async function Home() {
+  const user = await getUser();
+  return <h1>Hello {user.name}</h1>;
+}
+```
+
+这段代码只在服务端跑，组件代码本身不会打进客户端 bundle，也就没有脱水注水这一步了，你 `await` 出来的数据直接参与了 HTML 的生成。绕了一大圈，React 用 RSC 把「用同步的写法表达异步取数」这件事真正做成了，而这正是下一节 Suspense 当年想解决的问题。
 
 ## 八、React 的未来（1）： 拥抱异步渲染
 
@@ -1908,9 +2154,9 @@ Next.js 在做服务器端渲染的时候，页面对应的 React 组件的 getI
 
 长期以来，React 一直用的是同步渲染，这样对 React 实现非常直观方便，但是会带来性能问题。
 
-假设有一个超大的 React 组件树结构，有 1000 个组件，每个组件平均使用 1 毫秒，那么，要做一次完整的渲染就要花费 1000 毫秒也就是 1 秒钟，然而 JavaScript 运行环境是单线程的，也就是说，React 用同步渲染方式，渲染最根部组件的时候，会同步引发渲染子组件，再同步渲染子组件的子组件……最后完成整个组件树。在这 1 秒钟内，同步渲染霸占 JavaScript 唯一的线程，其他的操作什么都做不了，在这 1 秒钟内，如果用户要点击什么按钮，或者在某个输入框里面按键，都不会看到立即的界面反应，这也就是俗话说的“卡顿”。
+假设有一个超大的 React 组件树结构，有 1000 个组件，每个组件平均使用 1 毫秒，那么，要做一次完整的渲染就要花费 1000 毫秒也就是 1 秒钟，然而 JavaScript 运行环境是单线程的，也就是说，React 用同步渲染方式，渲染最根部组件的时候，会同步引发渲染子组件，再同步渲染子组件的子组件……最后完成整个组件树。在这 1 秒钟内，同步渲染霸占 JavaScript 唯一的线程，其他的操作什么都做不了，在这 1 秒钟内，如果用户要点击什么按钮，或者在某个输入框里面按键，都不会看到立即的界面反应，这也就是俗话说的「卡顿」。
 
-在同步渲染下，要解决“卡顿”的问题，只能是尽量缩小组件树的大小，以此缩短渲染时间，但是，应用的规模总是在增大的，不是说缩小就能缩小的，虽然我们利用定义 shouldComponentUpdate 的方法可以减少不必要的渲染，但是这也无法从根本上解决大量同步渲染带来的“卡顿”问题。
+在同步渲染下，要解决「卡顿」的问题，只能是尽量缩小组件树的大小，以此缩短渲染时间，但是，应用的规模总是在增大的，不是说缩小就能缩小的，虽然我们利用定义 shouldComponentUpdate 的方法可以减少不必要的渲染，但是这也无法从根本上解决大量同步渲染带来的「卡顿」问题。
 
 **异步渲染：两阶段渲染**
 
@@ -1921,7 +2167,7 @@ React Fiber 引入了异步渲染，有了异步渲染之后，React 组件的�
 
 两个阶段的分界点，就是 render 函数。render 函数之前的所有生命周期函数（包括 render)都属于第一阶段，之后的都属于第二阶段。
 
-开启异步渲染，虽然我们获得了更好的感知性能，但是考虑到第一阶段的的生命周期函数可能会被重复调用，不得不对历史代码做一些调整。
+开启异步渲染，虽然我们获得了更好的感知性能，但是考虑到第一阶段的生命周期函数可能会被重复调用，不得不对历史代码做一些调整。
 
 > 在 React v16.3 之前，render 之前的生命周期函数（也就是第一阶段生命周期函数）包括这些：
 
@@ -1932,13 +2178,18 @@ React Fiber 引入了异步渲染，有了异步渲染之后，React 组件的�
 - `componentWillMount`
 - `render`
 
-> 下图是 React v16.3 之前的完整的生命周期函数图：
+按两个阶段把 v16.3 之前的生命周期排一遍，大致是这样：
 
-![](https://user-gold-cdn.xitu.io/2018/11/14/1670f0f2d4d06575)
+| 阶段 | 挂载时 | 更新时 | 卸载时 |
+|------|--------|--------|--------|
+| 第一阶段（render 阶段，可被打断） | `constructor` → `componentWillMount` → `render` | `componentWillReceiveProps` → `shouldComponentUpdate` → `componentWillUpdate` → `render` | 无 |
+| 第二阶段（commit 阶段，不可中断） | `componentDidMount` | `componentDidUpdate` | `componentWillUnmount` |
+
+看这张表就明白了，三个 `componentWill` 开头的函数全在第一阶段，这也正是它们后来被判死刑的原因。
 
 React 官方告诫开发者，虽然目前所有的代码都可以照常使用，但是未来版本中会废弃掉，为了将来，使用 React 的程序应该快点去掉这些在第一阶段生命函数中有副作用的功能。不得不说 React 真的很够意思，提前这么久告诉大家这个事情，让大家有足够的时间去修改自己的代码。
 
-一个典型的错误用例，也是我被问到做多的问题之一：为什么不在 componentWillMount 里去做AJAX？componentWillMount 可是比 componentDidMount 更早调用啊，更早调用意味着更早返回结果，那样性能不是更高吗？
+一个典型的错误用例，也是我被问到最多的问题之一：为什么不在 componentWillMount 里去做 AJAX？componentWillMount 可是比 componentDidMount 更早调用啊，更早调用意味着更早返回结果，那样性能不是更高吗？
 
 首先，一个组件的 componentWillMount 比 componentDidMount 也早调用不了几微秒，性能没啥提高；而且，等到异步渲染开启的时候，componentWillMount 就可能被中途打断，中断之后渲染又要重做一遍，想一想，在 componentWillMount 中做 AJAX 调用，代码里看到只有调用一次，但是实际上可能调用 N 多次，这明显不合适。相反，若把 AJAX 放在 componentDidMount，因为 componentDidMount 在第二阶段，所以绝对不会多次重复调用，这才是 AJAX 合适的位置（当然，React 未来有更好的办法，在下一小节 Suspense 中可以讲到）。
 
@@ -1952,13 +2203,20 @@ static getDerivedStateFromProps(nextProps, prevState) {
 }
 ```
 
-到了 React v16.3，React 生命周期函数全图如下:
+到了 React v16.3，生命周期表就变成了下面这样：
 
-![](https://user-gold-cdn.xitu.io/2018/11/14/1670f0fc08e10440)
+| 阶段 | 挂载时 | 更新时 | 卸载时 |
+|------|--------|--------|--------|
+| 第一阶段（render 阶段，可被打断） | `constructor` → `getDerivedStateFromProps` → `render` | `getDerivedStateFromProps` → `shouldComponentUpdate` → `render` | 无 |
+| 第二阶段（commit 阶段，不可中断） | `componentDidMount` | `getSnapshotBeforeUpdate` → `componentDidUpdate` | `componentWillUnmount` |
 
-注意，上图中并包含全部React生命周期函数，在React v16发布时，还增加了一个componentDidCatch，当异常发生时，一个可以捕捉到异常的componentDidCatch就排上用场了。不过，很快React觉着这还不够，在v16.6.0又推出了一个新的捕捉异常的生命周期函数getDerivedStateFromError。
+多出来的 `getSnapshotBeforeUpdate` 也值得一提，它在 DOM 真正更新之前被调用，返回值会作为第三个参数传给 `componentDidUpdate`。典型用途是「更新前记下滚动条位置，更新后恢复回去」这类需要跨越 DOM 变更读取信息的场景，以前这种事只能在 `componentWillUpdate` 里做，现在有了正规出口。
 
-如果异常发生在第一阶段（render阶段），React就会调用getDerivedStateFromError，如果异常发生在第二阶段（commit阶段），React会调用componentDidCatch。这个区别也体现出两个阶段的区分对待。
+注意，上面这张表并不包含全部 React 生命周期函数。在 React v16 发布时，还增加了一个 `componentDidCatch`，当异常发生时，一个可以捕捉到异常的 `componentDidCatch` 就派上用场了。不过很快 React 觉着这还不够，在 v16.6.0 又推出了一个新的捕捉异常的生命周期函数 `getDerivedStateFromError`。
+
+如果异常发生在第一阶段（render 阶段），React 就会调用 `getDerivedStateFromError`；如果异常发生在第二阶段（commit 阶段），React 会调用 `componentDidCatch`。这个区别也体现出两个阶段的区分对待。
+
+实践中这两个一般是配套用的，`getDerivedStateFromError` 负责把 state 改成「出错了」好让 `render` 画降级 UI，`componentDidCatch` 负责把错误上报到日志平台，因为它在 commit 阶段，做副作用是安全的。到今天错误边界依然只能用 class 组件实现，React 官方还没有提供对应的 Hook，如果你在函数组件项目里需要它，要么自己留一个 class 组件当边界，要么用 `react-error-boundary` 这类封装。
 
 
 **适应异步渲染的组件原则**
@@ -1975,18 +2233,27 @@ static getDerivedStateFromProps(nextProps, prevState) {
 
 开发者中一个普遍的误区，就是总想把任务往前提，提到靠前的生命周期函数去，就像我前面说过的在 componentWillMount 中做 AJAX。正确的做法是根据各函数的语义来放置代码，并不是越往前越好。
 
+**这几年发生了什么**：2019 年这一节写的是「React 的未来」，现在这个未来已经变成了过去时，可以对着结果复盘一下。
+
+三个 `componentWill` 系列在 React 16.9 被正式加上废弃警告，同时提供了 `UNSAFE_componentWillMount` 这样带前缀的别名让老代码先活着，官方还给了 codemod 脚本批量改名。这个 `UNSAFE_` 前缀取得挺狠，就是要让你每次看到都膈应一下。这些别名当前仍然可用，但迟早会走，具体以官方文档为准。
+
+Fiber 铺的路，到 React 18 才真正开花。所谓「可中断的渲染」落地成了并发特性，`startTransition` 让你把一次更新标记成低优先级，用户敲键盘这类高优先级更新可以插队；`useDeferredValue` 让你拿到一个「慢半拍」的值，配合重列表渲染能明显改善输入卡顿。当年那个「1000 个组件渲染 1 秒钟阻塞主线程」的例子，解法就在这里。
+
+这块内容我单独写过一篇，感兴趣可以看 [React 18 并发渲染是怎么回事](https://feinterview.poetries.top/blog/react-18-concurrency)。
+
+还有一个当年没预料到的变化：随着 Hooks 普及，生命周期这套心智模型本身就被淡化了。函数组件里没有 `componentDidUpdate`，只有 `useEffect` 和它的依赖数组，你思考的单位从「组件处于哪个阶段」变成了「这个副作用依赖哪些值」。这个转变比任何一个 API 的增删都更影响写代码的方式。
 
 ## 九、React 的未来（2）：Suspense 带来的异步操作革命
 
-上一节我们介绍了 Fiber 架构下的异步渲染机制，我们知道生命周期函数的修改是势在必行，那么，接下来呢？接下来 React 会有什么“大事”呢？
+上一节我们介绍了 Fiber 架构下的异步渲染机制，我们知道生命周期函数的修改是势在必行，那么，接下来呢？接下来 React 会有什么「大事」呢？
 
-这个答案估计连 React 的核心开发者也在讨论中，不过从各种渠道信息看来，至少有两件“大事”在会在看得见的未来发生，那就是：
+这个答案估计连 React 的核心开发者也在讨论中，不过从各种渠道信息看来，至少有两件「大事」在会在看得见的未来发生，那就是：
 
 
 - `Suspense`
 - `Hooks`
 
-当然 React 增加的功能肯定远不止这点，将这两件“大事”在这里提出来，是因为它们对我们使用开发者的影响最大，会彻底改变我们的代码模式。
+当然 React 增加的功能肯定远不止这点，将这两件「大事」在这里提出来，是因为它们对我们使用开发者的影响最大，会彻底改变我们的代码模式。
 
 在写这本小册时，React 正式版是 v16.6.0，还只是 alpha 阶段，也许当你读到这本小册时，React 已经走得更远，但是你依然应该阅读这一小节，因为作为开发者你应该要明白技术演化的来龙去脉。
 
@@ -2006,7 +2273,7 @@ static getDerivedStateFromProps(nextProps, prevState) {
 > 常用的做法，需要组件的 render 和 componentDidMount 函数配合。
 
 - 在 componentDidMount 中使用 AJAX，在 AJAX 成功之后，通过 setState 修改自身状态，这会引发一次新的渲染过程。
-- 在 render 函数中，如果 state 中没有需要的数据，就什么都不渲染或者渲染一个“正在装载”之类提示；如果 state 中已经有需要的数据，就可以正常渲染了，但这也必定是在 componentDidMount 修改了 state 之后，也就是只有在第二次渲染过程中才可以。
+- 在 render 函数中，如果 state 中没有需要的数据，就什么都不渲染或者渲染一个「正在装载」之类提示；如果 state 中已经有需要的数据，就可以正常渲染了，但这也必定是在 componentDidMount 修改了 state 之后，也就是只有在第二次渲染过程中才可以。
 
 ```js
 class Foo extends React.Component {
@@ -2087,11 +2354,11 @@ try {
 
 Suspense 就是巧妙利用 componentDidCatch 来实现同步形式的异步处理。
 
-Suspense 提供的 createFetcher 函数会封装异步操作，当尝试从 createFetcher 返回的结果读取数据时，有两种可能：一种是数据已经就绪，那就直接返回结果；还有一种可能是异步操作还没有结束，数据没有就绪，这时候 createFetcher 会抛出一个“异常”。
+Suspense 提供的 createFetcher 函数会封装异步操作，当尝试从 createFetcher 返回的结果读取数据时，有两种可能：一种是数据已经就绪，那就直接返回结果；还有一种可能是异步操作还没有结束，数据没有就绪，这时候 createFetcher 会抛出一个「异常」。
 
 你可能会说，抛出异常，渲染过程不就中断了吗？
 
-的确会中断，不过，createFetcher 抛出的这个“异常”比较特殊，这个“异常”实际上是一个 Promise 对象，这个 Promise 对象代表的就是异步操作，操作结束时，也是数据准备好的时候。当 componentDidCatch 捕获这个 Promise 类型的“异常”时，就可以根据这个 Promise 对象的状态改变来重新渲染对应组件，第二次渲染，肯定就能够成功。
+的确会中断，不过，createFetcher 抛出的这个「异常」比较特殊，这个「异常」实际上是一个 Promise 对象，这个 Promise 对象代表的就是异步操作，操作结束时，也是数据准备好的时候。当 componentDidCatch 捕获这个 Promise 类型的「异常」时，就可以根据这个 Promise 对象的状态改变来重新渲染对应组件，第二次渲染，肯定就能够成功。
 
 下面是 createFetcher 的一个简单实现方式
 
@@ -2210,9 +2477,9 @@ const SuspenseDemo = () => {
 };
 ```
 
-在上面的代码中，我们使用 React 提供的 Suspense 组件，支持一个 fallback 属性，这个属性可以用于显示“装载中”界面。在上面的例子中，要等待 1 秒钟时间才得到模拟 API 的结果，这时候显示一个空白页面是肯定不合适的，在等待的这 1 秒钟里，显得就是一个“Loading...”字样。
+在上面的代码中，我们使用 React 提供的 Suspense 组件，支持一个 fallback 属性，这个属性可以用于显示「装载中」界面。在上面的例子中，要等待 1 秒钟时间才得到模拟 API 的结果，这时候显示一个空白页面肯定不合适，在等待的这 1 秒钟里，显示的就是一个「Loading...」字样。
 
-很显然，需要一个最佳实践来控制 Suspense 的范围。如果我们只在组件树最顶层放一个 Suspense 组件，那么在 API 返回之前，整个页面只显示“装载中”，这样的用户体验并不好。正确的做法，是将每一个独立依赖某个 API 调用的组件用一个 Suspense 包住。
+很显然，需要一个最佳实践来控制 Suspense 的范围。如果我们只在组件树最顶层放一个 Suspense 组件，那么在 API 返回之前，整个页面只显示「装载中」，这样的用户体验并不好。正确的做法，是将每一个独立依赖某个 API 调用的组件用一个 Suspense 包住。
 
 例如，一个页面中包括头部的 Header、左侧的导航栏 LeftPanel 和右侧的内容 Content，其中只有 Header 的渲染不依赖于 API，那么，JSX 可以这样写：
 
@@ -2250,7 +2517,27 @@ Suspense 被推出之后，可以极大地减少异步操作代码的复杂度�
 **总结**
 
 - Suspense 解决异步操作的问题；
-- 有了 Supsense 之后，依赖 AJAX 的组件也可以是函数形式，不需要是 class。
+- 有了 Suspense 之后，依赖 AJAX 的组件也可以是函数形式，不需要是 class。
+
+**后来怎么样了**：这一节的预测方向是对的，但路径跟预想的不太一样。
+
+`react-cache` 那个包最后没有走向正式版，`unstable_createResource` 也没变成 `createResource`，React 团队把它放弃了。所以你今天在项目里找不到官方的 `createFetcher` 或者 `createResource`。
+
+Suspense 组件本身活得很好，只是最早落地的场景不是数据请求，而是代码分割。`React.lazy` 配 `<Suspense fallback={...}>` 做路由级懒加载，这个组合从 React 16.6 一路用到现在，是最没有争议的用法：
+
+```js
+const About = React.lazy(() => import('./About'));
+
+<Suspense fallback={<Spin />}>
+  <About />
+</Suspense>
+```
+
+至于「用 Suspense 取数据」，React 官方长期的态度是这件事应该由框架和数据库来做，而不是让业务代码直接写 `throw promise`。所以真正把它用起来的是 Next.js 的 App Router、Relay，以及打开了 suspense 模式的 TanStack Query。React 19 提供的 `use` 这个 API 可以在渲染中读取一个 Promise 并挂起组件，算是把当年的设想收进了官方 API，不过它的使用条件和限制比较多，以官方文档为准。
+
+至于「Suspense 不支持服务器端渲染」这个遗憾，React 18 已经补上了，前面 SSR 那一节提到的流式渲染就是靠它，服务端遇到未就绪的 `<Suspense>` 边界会先发 fallback，数据好了再补发真实内容。这确实带来了革命性影响，只不过是以 RSC 的形式。
+
+那段用 `componentDidCatch` 捕获 Promise 类型异常的手写实现，今天当然不要拿去生产用，但它依然是理解 Suspense 工作原理最好的教具，把「抛出 Promise，捕获后重渲染」这个核心思路说透了。
 
 ## 十、函数化的 Hooks
 
@@ -2286,7 +2573,7 @@ const Counter = () => {
 
 ```
 
-注意看，Counter 拥有自己的“状态”，但它只是一个函数，不是 class。
+注意看，Counter 拥有自己的「状态」，但它只是一个函数，不是 class。
 
 useState 只接受一个参数，也就是 state 的初始值，它返回一个只有两个元素的数组，第一个元素就是 state 的值，第二个元素是更新 state 的函数。
 
@@ -2306,11 +2593,11 @@ const setCount = result[1];
 const [theCount, updateCount] = useState(0);
 ```
 
-因为 useState 在 Counter 这个函数体中，每次 Counter 被渲染的时候，这个 useState 调用都会被执行，useState 自己肯定不是一个纯函数，因为它要区分第一次调用（组件被 mount 时）和后续调用（重复渲染时），只有第一次才用得上参数的初始值，而后续的调用就返回“记住”的 state 值。
+因为 useState 在 Counter 这个函数体中，每次 Counter 被渲染的时候，这个 useState 调用都会被执行，useState 自己肯定不是一个纯函数，因为它要区分第一次调用（组件被 mount 时）和后续调用（重复渲染时），只有第一次才用得上参数的初始值，而后续的调用就返回「记住」的 state 值。
 
-读者看到这里，心里可能会有这样的疑问：如果组件中多次使用 useState 怎么办？React 如何“记住”哪个状态对应哪个变量？
+读者看到这里，心里可能会有这样的疑问：如果组件中多次使用 useState 怎么办？React 如何「记住」哪个状态对应哪个变量？
 
-React 是完全根据 useState 的调用顺序来“记住”状态归属的，假设组件代码如下：
+React 是完全根据 useState 的调用顺序来「记住」状态归属的，假设组件代码如下：
 
 
 ```js
@@ -2322,9 +2609,9 @@ const Counter = () => {
 }
 ```
 
-每一次 Counter 被渲染，都是第一次 useState 调用获得 count 和 setCount，第二次 useState 调用获得 foo 和 updateFoo（这里我故意让命名不用 set 前缀，可见函数名可以随意）。React 是渲染过程中的“上帝”，每一次渲染 Counter 都要由 React 发起，所以它有机会准备好一个内存记录，当开始执行的时候，每一次 useState 调用对应内存记录上一个位置，而且是按照顺序来记录的。React 不知道你把 useState 等 Hooks API 返回的结果赋值给什么变量，但是它也不需要知道，它只需要按照 useState 调用顺序记录就好了。
+每一次 Counter 被渲染，都是第一次 useState 调用获得 count 和 setCount，第二次 useState 调用获得 foo 和 updateFoo（这里我故意让命名不用 set 前缀，可见函数名可以随意）。React 是渲染过程中的「上帝」，每一次渲染 Counter 都要由 React 发起，所以它有机会准备好一个内存记录，当开始执行的时候，每一次 useState 调用对应内存记录上一个位置，而且是按照顺序来记录的。React 不知道你把 useState 等 Hooks API 返回的结果赋值给什么变量，但是它也不需要知道，它只需要按照 useState 调用顺序记录就好了。
 
-正因为这个原因，Hooks，千万不要在 if 语句或者 for 循环语句中使用！
+正因为这个原因，Hooks 千万不要在 if 语句或者 for 循环语句中使用！
 
 像下面的代码，肯定会出乱子的：
 
@@ -2343,6 +2630,10 @@ const Counter = () => {
 
 因为条件判断，让每次渲染中 useState 的调用次序不一致了，于是 React 就错乱了。
 
+这条规则今天有了正式的名字，叫 Rules of Hooks，官方还配了 `eslint-plugin-react-hooks` 这个 ESLint 插件在编码期就把违规写法标红。React 19 之后这套规则检查也被 React Compiler 依赖，你的组件如果不守规矩，编译器会直接跳过优化。所以「不要在条件和循环里调 Hook」不再只是一条口头约定，它已经变成了工具链能强制执行的东西。
+
+顺带说个例外，React 19 引入的 `use` 是可以写在条件分支里的，它是官方特意设计成不受这条规则约束的 API。别把它当成规则松动了，其它 Hook 该守的还是要守。
+
 
 **useEffect**
 
@@ -2350,9 +2641,9 @@ const Counter = () => {
 
 在 React 组件生命周期中如果要做有副作用的操作，代码放在哪里？
 
-当然是放在 componentDidMount 或者 componentDidUpdate 里，但是这意味着组件必须是一个 class。
+当然是放在 componentDidMount 或者 componentDidUpdate 里，但这就要求组件必须是一个 class。
 
-在 Counter 组件，如果我们想要在用户点击“+”或者“-”按钮之后把计数值体现在网页标题上，这就是一个修改 DOM 的副作用操作，所以必须把 Counter 写成 class，而且添加下面的代码
+在 Counter 组件，如果我们想要在用户点击「+」或者「-」按钮之后把计数值体现在网页标题上，这就是一个修改 DOM 的副作用操作，所以必须把 Counter 写成 class，而且添加下面的代码
 
 ```js
 componentDidMount() {
@@ -2391,7 +2682,7 @@ const Counter = () => {
 
 useEffect 的参数是一个函数，组件每次渲染之后，都会调用这个函数参数，这样就达到了 componentDidMount 和 componentDidUpdate 一样的效果。
 
-虽然本质上，依然是 componentDidMount 和 componentDidUpdate 两个生命周期被调用，但是现在我们关心的不是 mount 或者 update 过程，而是“after render”事件，useEffect 就是告诉组件在“渲染完”之后做点什么事。
+虽然底层跑的依然是 componentDidMount 和 componentDidUpdate 两个生命周期，但是现在我们关心的不是 mount 或者 update 过程，而是「after render」事件，useEffect 就是告诉组件在「渲染完」之后做点什么事。
 
 读者可能会问，现在把 componentDidMount 和 componentDidUpdate 混在了一起，那假如某个场景下我只在 mount 时做事但 update 不做事，用 useEffect 不就不行了吗？
 
@@ -2406,11 +2697,30 @@ useEffect 的参数是一个函数，组件每次渲染之后，都会调用这�
 
 > 在上面的代码中，useEffect 的第二个参数是 [123]，其实也可以是任何一个常数，因为它永远不变，所以 useEffect 只在 mount 时调用第一个函数参数一次，达到了 componentDidMount 一样的效果。
 
+这里得纠正一下，`[123]` 这个写法在 alpha 阶段能跑通，但正式版定下来的惯例是传空数组 `[]`。空数组表示「这个 effect 不依赖任何值」，语义清楚，ESLint 插件也认这个写法；塞一个 `[123]` 进去，插件会以为你依赖了某个东西，反而给你警告。
+
+```js
+useEffect(() => {
+  // 只在 mount 时执行一次
+}, []);
+```
+
+还有一件当年没讲的事，`useEffect` 的回调可以返回一个清理函数，在组件卸载前、以及下一次执行同一个 effect 之前被调用，对应的是 `componentWillUnmount`。订阅、定时器、事件监听都靠它收尾：
+
+```js
+useEffect(() => {
+  const timer = setInterval(tick, 1000);
+  return () => clearInterval(timer);
+}, []);
+```
+
+这个坑我见过太多人踩，写了 `addEventListener` 不写清理，组件反复挂载卸载之后监听器堆了一堆，表现出来就是「点一次触发了五回」。React 18 的 StrictMode 在开发环境会故意把 effect 执行两遍，就是为了把这类缺失清理的代码逼出来，第一次见到会以为是 bug，其实是在帮你。
+
 
 **useContext**
 
 
-在前面介绍“提供者模式”章节我们介绍过 React 新的 Context API，这个 API 不是完美的，在多个 Context 嵌套的时候尤其麻烦。
+在前面介绍「提供者模式」章节我们介绍过 React 新的 Context API，这个 API 不是完美的，在多个 Context 嵌套的时候尤其麻烦。
 
 比如，一段 JSX 如果既依赖于 ThemeContext 又依赖于 LanguageContext，那么按照 React Context API 应该这么写
 
@@ -2419,11 +2729,11 @@ useEffect 的参数是一个函数，组件每次渲染之后，都会调用这�
 <ThemeContext.Consumer>
     {
         theme => (
-            <LanguageContext.Cosumer>
+            <LanguageContext.Consumer>
                 language => {
-                    //可以使用theme和lanugage了
+                    // 这里可以使用 theme 和 language 了
                 }
-            </LanguageContext.Cosumer>
+            </LanguageContext.Consumer>
         )
     }
 </ThemeContext.Consumer>
@@ -2439,9 +2749,9 @@ const language = useContext(LanguageContext);
 // 这里就可以用theme和language了
 ```
 
-这个useContext把一个需要很费劲才能理解的 Context API 使用大大简化，不需要理解render props，直接一个函数调用就搞定。
+这个 useContext 把一个需要很费劲才能理解的 Context API 大大简化了，不需要理解 render props，直接一个函数调用就搞定。
 
-但是，useContext也并不是完美的，它会造成意想不到的重新渲染，我们看一个完整的使用useContext的组件。
+但是，useContext 也并不是完美的，它会造成意想不到的重新渲染，我们看一个完整的使用 useContext 的组件。
 
 ```js
 const ThemedPage = () => {
@@ -2457,18 +2767,26 @@ const ThemedPage = () => {
 };
 ```
 
-因为这个组件ThemedPage使用了useContext，它很自然成为了Context的一个消费者，所以，只要Context的值发生了变化，ThemedPage就会被重新渲染，这很自然，因为不重新渲染也就没办法重新获得theme值，但现在有一个大问题，对于ThemedPage来说，实际上只依赖于theme中的color属性，如果只是theme中的size发生了变化但是color属性没有变化，ThemedPage依然会被重新渲染，当然，我们通过给Header、Content和Footer这些组件添加shouldComponentUpdate实现可以减少没有必要的重新渲染，但是上一层的ThemedPage中的JSX重新渲染是躲不过去了。
+因为这个组件 ThemedPage 使用了 useContext，它很自然成为了 Context 的一个消费者，所以只要 Context 的值发生了变化，ThemedPage 就会被重新渲染。这本身很合理，因为不重新渲染也就没办法重新获得 theme 值。但现在有一个大问题，对于 ThemedPage 来说，实际上只依赖于 theme 中的 color 属性，如果只是 theme 中的 size 发生了变化而 color 没有变化，ThemedPage 依然会被重新渲染。当然，我们可以通过给 Header、Content 和 Footer 这些组件添加 shouldComponentUpdate 来减少没有必要的重新渲染，但是上一层 ThemedPage 里的 JSX 重新渲染是躲不过去了。
 
-说到底，useContext需要一种表达方式告诉React：“我没有改变，重用上次内容好了。”
+说到底，useContext 需要一种表达方式告诉 React，我没有改变，重用上次内容就好。
 
-希望Hooks正式发布的时候能够弥补这一缺陷。
+希望 Hooks 正式发布的时候能够弥补这一缺陷。
+
+这个缺陷到今天也没有被一个官方 API 直接解决掉，Hooks 正式版发布时它就在，现在还在。社区摸索出来的应对办法主要是三条：
+
+- 把一个大 Context 拆成几个小的，比如主题色一个、字号一个，谁变了只影响订阅它的那部分组件
+- 用 `useMemo` 把 Provider 的 value 缓存住，避免每次父组件渲染都生成新对象导致全体消费者重渲染
+- 把消费 Context 的组件做小，`React.memo` 包住不依赖 Context 的兄弟组件，把重渲染的范围圈起来
+
+如果状态真的复杂到需要「只订阅对象的某个字段」，那说明你要的不是 Context 而是状态管理库，Zustand 的 selector、Jotai 的原子化都是冲着这个问题去的。React 19 的 React Compiler 能自动做一部分记忆化，可能会缓解这个问题，但我还没在大型项目上验证过，先不下结论。
 
 
 **Hooks 带来的代码模式改变**
 
 上面我们介绍了 useState、useEffect 和 useContext 三个最基本的 Hooks，可以感受到，Hooks 将大大简化使用 React 的代码。
 
-首先我们可能不再需要 class了，虽然 React 官方表示 class 类型的组件将继续支持，但是，业界已经普遍表示会迁移到 Hooks 写法上，也就是放弃 class，只用函数形式来编写组件。
+首先我们可能不再需要 class 了，虽然 React 官方表示 class 类型的组件将继续支持，但是，业界已经普遍表示会迁移到 Hooks 写法上，也就是放弃 class，只用函数形式来编写组件。
 
 对于 useContext，它并没有为消除 class 做贡献，却为消除 render props 模式做了贡献。很长一段时间，高阶组件和 render props 是组件之间共享逻辑的两个武器，但如同我前面章节介绍的那样，这两个武器都不是十全十美的，现在 Hooks 的出现，也预示着高阶组件和 render props 可能要被逐步取代。
 
@@ -2508,3 +2826,38 @@ const Counter = () => {
 - Hooks 将改变重用组件逻辑的模式；
 - 在未来，Hooks 将是 React 使用的主流
 
+这三条预测全中了，而且中得比当年设想的还要彻底。
+
+Hooks 在 React 16.8 正式发布，之后几年函数组件基本吃掉了全部新代码。官方文档从 2023 年那次大改版开始，教程和 API 说明全部以函数组件为准，class 的部分被挪到了 Legacy API 分区。React 官方也一直说不会强制删除 class 组件，但现实是新项目已经几乎见不到它了，唯一还必须用 class 的场景就是前面说的错误边界。
+
+Hooks 家族这些年也扩了不少，除了最基础的这三个，常用的还有 `useReducer`、`useMemo`、`useCallback`、`useRef`、`useLayoutEffect`，React 18 加了 `useId`、`useTransition`、`useDeferredValue`、`useSyncExternalStore`，React 19 又带来了 `use`、`useOptimistic`、`useActionState` 这些偏异步和表单场景的 API。具体签名以官方文档为准，别背，用到再查。
+
+真正需要记住的其实还是那句话：Hooks 改变的不是 API，是复用逻辑的方式。高阶组件和 render props 曾经承担的职责，现在几乎全部由自定义 Hook 接管了，而自定义 Hook 说到底就是普通函数，没有魔法。
+
+## 总结
+
+从 2019 年这份笔记一路捋到现在，有几件事我觉得是真的沉淀下来了。
+
+组件设计的那三条原则一个字都不用改。接口要窄、按数据边界拆、state 往上提到最近的公共父节点，这些跟 class 还是函数组件没关系，跟版本号也没关系。
+
+四种设计模式里，高阶组件和 render props 作为「逻辑复用手段」这个身份已经被自定义 Hook 取代了，但它们背后的思路还在。提供者模式变成了 `useContext`，组合组件变成了 compound components，你在 Radix、shadcn/ui 里天天都在用。
+
+变化最大的是异步这条线。当年 `setState` 不同步是性能优化的副作用，你得靠回调和函数式写法绕；到了 React 18，自动批处理把这件事统一了。当年服务端渲染要手写脱水注水，到了 RSC，服务端组件直接 `await` 拿数据，这一步彻底消失了。当年 Suspense 是个 alpha 阶段的设想，现在流式 SSR 和 `React.lazy` 已经是标配。
+
+如果你正在维护一个 React 16 时代的老项目，我的建议是按这个顺序动：先把 `ReactDOM.render` 换成 `createRoot`，把 `UNSAFE_` 前缀的生命周期清掉，这两步能让你享受到自动批处理和并发的基础；再把 Enzyme 换成 Testing Library，把测试从「测实现」改成「测行为」，之后的重构才敢下手；最后才是组件从 class 迁到函数，这一步可以慢慢来，一个模块一个模块推。
+
+这套顺序我自己在跑，还没跑完，遇到新坑我会回来补。
+
+## 参考
+
+- [React 官方文档](https://react.dev)
+- [React v16.3.0 New lifecycles and context API](https://legacy.reactjs.org/blog/2018/03/29/react-v-16-3.html)
+- [Update on Async Rendering](https://legacy.reactjs.org/blog/2018/03/27/update-on-async-rendering.html)
+- [React v18.0 发布公告](https://react.dev/blog/2022/03/29/react-v18)
+- [React v19 发布公告](https://react.dev/blog/2024/12/05/react-19)
+- [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)
+- [Testing Library 官方文档](https://testing-library.com/docs/react-testing-library/intro/)
+- [Next.js 官方文档](https://nextjs.org/docs)
+- [React Router 官方文档](https://reactrouter.com/)
+- [MobX 官方文档](https://mobx.js.org/)
+- [前端进阶之旅](https://interview.poetries.top)

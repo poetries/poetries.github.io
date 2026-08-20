@@ -1,42 +1,63 @@
 ---
-title: 浅析redux-saga中间件及用法
+title: 浅析 redux-saga 中间件及用法，对比 redux-thunk
+description: 从 redux 的副作用处理讲起，拆 redux-thunk 十几行源码和它的局限，再逐个说清 redux-saga 的 take、call、put、select、fork、takeEvery 等 Effect，配登录登出完整案例和选型建议。
 date: 2018-08-29 19:20:20
 tags: 
  - Redux
  - 中间件
+ - redux-saga
+ - 异步处理
 categories: Front-End
 ---
 
+项目里第一次出现「点两下登录按钮发了两个请求」这种问题的时候，我用 redux-thunk 的写法是在 action 里加一个 `loading` 标记位挡住。挡是挡住了，但接着又来了「切页面时要取消上一个未完成的请求」「登录成功后自动拉一次列表，拉列表失败不影响登录状态」这类需求，标记位越加越多，一个 action 文件里塞满了 `if (loading) return`。
+
+那时候才意识到 thunk 解决的只是「redux 能不能接受异步」，没解决「异步流程怎么编排」。redux-saga 补的正是后面这块。这篇从 redux 为什么需要中间件讲起，拆 thunk 那十几行源码，再把 saga 的几个核心 Effect 逐个过一遍，最后配两个完整案例。文章写于 2018 年，末尾我另外补了一节现在的选型判断。
+
+在本篇文章中，我们将从浅入深，和大家一起学习以下知识：
+
+- redux 的数据流为什么装不下副作用，中间件插在哪个位置
+- redux-thunk 的完整源码，以及它为什么只有十几行
+- thunk 的局限：action 形式不统一、异步逻辑分散
+- redux-saga 的 watch / worker 工作模式和它的四个优点
+- `take`、`call`、`put`、`select`、`fork`、`takeEvery`、`takeLatest` 逐个拆
+- 阻塞调用和非阻塞调用的差别，以及它导致的真实体验问题
+- 一个登录登出加列表加载的完整案例，和一套工程化目录结构
+- thunk 和 saga 到今天该怎么选
+
 ## 一、redux-thunk
 
-### 1.1 redux的副作用处理
+### 1.1 redux 的副作用处理
 
-> redux中的数据流大致是
+先看 redux 原本的数据流长什么样：
 
 ```
 UI—————>action（plain）—————>reducer——————>state——————>UI
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/484.png)
+![redux 原始数据流示意图，从 UI 到 action 到 reducer 再回到 UI](https://s.poetries.top/gitee/2019/10/484.png)
 
-- `redux`是遵循函数式编程的规则，上述的数据流中，`action`是一个原始js对象（`plain object`）且`reducer`是一个纯函数，对于同步且没有副作用的操作，上述的数据流起到可以管理数据，从而控制视图层更新的目的
-- 如果存在副作用函数，那么我们需要首先处理副作用函数，然后生成原始的js对象。如何处理副作用操作，在`redux`中选择在发出`action`，到`reducer`处理函数之间使用中间件处理副作用
+`redux` 是遵循函数式编程规则的。上述数据流中，`action` 是一个原始 js 对象（plain object），`reducer` 是一个纯函数。对于同步且没有副作用的操作，这条流水线足以管理数据、控制视图层更新。
 
-> redux增加中间件处理副作用后的数据流大致如下：
+问题出在「纯函数」这三个字上。发请求、读 localStorage、setTimeout 这些都是副作用，塞进 reducer 就破坏了纯度，reducer 一旦不纯，时间旅行调试和可预测性就全废了。
+
+所以如果存在副作用函数，我们需要先处理副作用，然后生成原始的 js 对象。`redux` 的选择是在发出 `action` 到 `reducer` 处理函数之间插一层中间件来处理。
+
+增加中间件之后的数据流大致如下：
 
 ```
 UI——>action(side function)—>middleware—>action(plain)—>reducer—>state—>UI
 ```
 
-![](https://poetries1.gitee.io/img-repo/2019/10/485.png)
+![redux 加入中间件处理副作用后的数据流示意图](https://s.poetries.top/gitee/2019/10/485.png)
 
-> 在有副作用的`action`和原始的`action`之间增加中间件处理，从图中我们也可以看出，中间件的作用就是：
+在有副作用的 `action` 和原始的 `action` 之间增加中间件处理，从图里能看出中间件的职责只有一个：把异步操作转换掉，生成原始的 action。这样 `reducer` 函数就能处理相应的 action，从而改变 `state`、更新 `UI`。
 
-- 转换异步操作，**生成原始的action**，这样，`reducer`函数就能处理相应的`action`，从而改变`state`，更新`UI`
+这个设计我觉得挺聪明的。它没有去改 reducer 的规则，而是在 action 到达 reducer 之前加了一道「提纯」工序，脏活全在中间件里干完，reducer 那边看到的永远是干净的普通对象。中间件机制本身是怎么用 `compose` 串起来的，我在 [手写一个迷你版 Redux](https://feinterview.poetries.top/blog/react-redux) 里逐行实现过。
 
-### 1.2 redux-thunk源码
+### 1.2 redux-thunk 源码
 
-> 在redux中，thunk是redux作者给出的中间件，实现极为简单，10多行代码
+在 redux 中，thunk 是 redux 作者给出的中间件，实现极为简单，十几行代码：
 
 ```javascript
 function createThunkMiddleware(extraArgument) {
@@ -55,18 +76,23 @@ thunk.withExtraArgument = createThunkMiddleware;
 export default thunk;
 ```
 
-> 这几行代码做的事情也很简单，判别action的类型，如果action是函数，就调用这个函数，调用的步骤为
+这几行代码做的事情很简单：判别 action 的类型，如果 action 是函数，就调用这个函数，调用的形式为
 
 ```
 action(dispatch, getState, extraArgument);
 ```
 
-> 发现实参为`dispatch`和`getState`，因此我们在定义`action`为`thunk`函数是，一般形参为`dispatch`和`getState`
+传进去的实参是 `dispatch` 和 `getState`，所以我们定义 thunk 形式的 action 时，形参一般就写这两个。如果 action 不是函数，就 `next(action)` 原样往下传给下一个中间件，跟没装过一样。
 
+值得多看一眼的是这行嵌套箭头函数：`({ dispatch, getState }) => next => action => {}`。这就是 redux 中间件的标准签名，三层柯里化，第一层拿 store 的能力，第二层拿链条上的下一环，第三层才是真正处理 action 的地方。所有 redux 中间件都长这个样子，看懂这一个就都看懂了。
 
-### 1.3 redux-thunk的缺点
+`withExtraArgument` 是给依赖注入用的。比如你想在所有 thunk 里都能直接拿到 axios 实例，就 `applyMiddleware(thunk.withExtraArgument(api))`，之后每个 thunk 的第三个参数就是它，省得到处 import。
 
-> `thunk`的缺点也是很明显的，`thunk`仅仅做了执行这个函数，并不在乎函数主体内是什么，也就是说`thunk`使得`redux`可以接受函数作为`action`，但是函数的内部可以多种多样。比如下面是一个获取商品列表的异步操作所对应的`action`
+### 1.3 redux-thunk 的缺点
+
+thunk 的缺点也很明显。它仅仅做了「执行这个函数」这一件事，并不在乎函数主体内是什么。thunk 使得 redux 可以接受函数作为 action，但函数内部可以写成什么样完全没有约束。
+
+比如下面是一个获取商品列表的异步操作所对应的 action：
 
 ```javascript
 export default ()=>(dispatch)=>{
@@ -84,42 +110,43 @@ export default ()=>(dispatch)=>{
 };
 ```
 
-> 从这个具有副作用的`action`中，我们可以看出，函数内部极为复杂。如果需要为每一个异步操作都如此定义一个`action`，显然`action`不易维护
+从这个具有副作用的 action 里能看出，函数内部相当复杂：fetch 的配置、状态码判断、JSON 解析、错误处理全挤在一起。如果每一个异步操作都要这么定义一个 action，维护成本会飞快上涨。
 
-**action不易维护的原因**
+具体不易维护的地方有两处。一是 action 的形式不统一，同步的是对象，异步的是函数，处理它们的心智模型完全不同。二是异步操作太分散，散落在各个 action 文件里，你想知道这个项目一共发了多少种请求，只能靠全局搜索。
 
-- `action`的形式不统一
-- 就是异步操作太为分散，分散在了各个`action`中
+这里还有个更细的问题：这段代码基本没法做单元测试。要测它就得 mock 掉 `fetch`，而 `fetch` 是在函数内部直接调用的，你没有插手的余地。
 
 ## 二、redux-saga 简介
 
-> `redux-saga `是一个 `redux `中间件，它具有如下特性
+`redux-saga` 是一个 redux 中间件，它有四个特性：集中处理 redux 副作用问题；被实现为 generator；属于类 `redux-thunk` 的中间件；采用 watch / worker（监听到执行）的工作形式。
 
-- 集中处理 `redux` 副作用问题。
-- 被实现为 `generator` 。
-- 类 `redux-thunk` 中间件。
-- `watch`/`worker`（监听->执行） 的工作形式
+最后那条是它和 thunk 结构上最大的差别。thunk 是「你 dispatch 一个函数，我帮你执行」，saga 是「你正常 dispatch 普通对象，我在旁边一直盯着，看到感兴趣的就自己动手」。UI 那边根本不知道 saga 存在。
 
-**redux-saga的优点**
+**redux-saga 的优点**
 
 - 集中处理了所有的异步操作，异步接口部分一目了然
-- `action`是普通对象，这跟`redux`同步的`action`一模一样
-- 通过`Effect`，方便异步接口的测试
-- 通过`worker` 和`watcher`可以实现非阻塞异步调用，并且同时可以实现非阻塞调用下的事件监听
+- `action` 是普通对象，这跟 redux 同步的 action 一模一样
+- 通过 `Effect`，方便异步接口的测试
+- 通过 worker 和 watcher 可以实现非阻塞异步调用，同时还能实现非阻塞调用下的事件监听
 - 异步操作的流程是可以控制的，可以随时取消相应的异步操作
 
-> 基本用法
+第三条我想多说两句，因为它是 saga 最被低估的价值。saga 里所有副作用都不是直接执行的，而是先 `yield` 一个描述对象出来，由中间件负责真正执行。测试的时候你只要检查「它 yield 出来的描述对象对不对」，完全不用 mock 网络层。这个设计是真的舒服。
 
-- 使用`createSagaMiddleware`方法创建`saga` 的`Middleware`，然后在创建的`redux`的`store`时，使用`applyMiddleware`函数将创建的`saga Middleware`实例绑定到`store`上，最后可以调用`saga Middleware`的`run`函数来执行某个或者某些`Middleware`。
-- 在`saga`的`Middleware`中，可以使用`takeEvery`或者`takeLatest`等`API`来监听某个`action`，当某个`action`触发后，`saga`可以使用`call`发起异步操作，操作完成后使用`put`函数触发`action`，同步更新`state`，从而完成整个`State`的更新。
+**基本用法**
 
+使用 `createSagaMiddleware` 方法创建 saga 的 Middleware，然后在创建 redux 的 store 时，用 `applyMiddleware` 函数把 saga Middleware 实例绑定到 store 上，最后调用 saga Middleware 的 `run` 函数来执行某个或者某些 saga。
 
-## 三、redux-saga使用案例
+在 saga 里，可以使用 `takeEvery` 或者 `takeLatest` 等 API 监听某个 action。当某个 action 触发后，saga 用 `call` 发起异步操作，操作完成后使用 `put` 函数触发新的 action，同步更新 state，从而完成整个 State 的更新。
 
-- `redux-saga`是控制执行的`generator`，在`redux-saga`中`action`是原始的`js`对象，把所有的异步副作用操作放在了`saga`函数里面。这样既统一了`action`的形式，又使得异步操作集中可以被集中处理
-- `redux-saga`是通过`genetator`实现的，如果不支持`generator`需要通过插件`babel-polyfill`转义。我们接着来实现一个输出`hellosaga`的例子
+## 三、redux-saga 使用案例
 
-**创建一个helloSaga.js文件**
+`redux-saga` 是受控执行的 generator。在 redux-saga 中 action 是原始的 js 对象，所有异步副作用操作都放在 saga 函数里面。这样既统一了 action 的形式，又让异步操作能被集中处理。
+
+redux-saga 是通过 generator 实现的，如果运行环境不支持 generator，需要通过 `babel-polyfill` 转义。这一条在 2018 年还挺重要，那会儿要兼容的浏览器版本比现在低不少。
+
+先从一个输出 `hello saga` 的最小例子开始。
+
+**创建一个 helloSaga.js 文件**
 
 ```javascript
 export function * helloSaga() {
@@ -127,10 +154,11 @@ export function * helloSaga() {
 }
 ```
 
-**在redux中使用redux-saga中间件**
+这个 generator 现在什么都没做，只是打印一句话，用来验证 saga 确实被中间件跑起来了。
 
-> 在`main.js`中
+**在 redux 中使用 redux-saga 中间件**
 
+接下来在 `main.js` 里把中间件装上：
 
 ```javascript
 import { createStore, applyMiddleware } from 'redux'
@@ -145,145 +173,175 @@ sagaMiddleware.run(helloSaga);
 //会输出Hello, Sagas!
 ```
 
-> 和调用`redux`的其他中间件一样，如果想使用`redux-saga`中间件，那么只要在`applyMiddleware`中调用一个`createSagaMiddleware`的实例。唯一不同的是需要调用`run`方法使得`generator`可以开始执行
+和调用 redux 的其他中间件一样，想使用 redux-saga 中间件，只要在 `applyMiddleware` 中传入一个 `createSagaMiddleware` 的实例。唯一不同的是需要额外调用 `run` 方法，generator 才会开始执行。
 
-## 四、redux-saga使用细节
+这个 `run` 是必须的，忘了它就是新手最常见的「saga 一点反应都没有」。原因是 saga 不像别的中间件那样被动等 action，它需要主动启动一个根 generator 来铺开所有监听。
 
-### 4.1 声明式的Effect
+## 四、redux-saga 使用细节
 
-> 在`redux-saga`中提供了一系列的`api`，比如`take`、`put`、`all`、`select`等`API`，在`redux-saga`中将这一系列的`api`都定义为Effect。这些`Effect`执行后，当函数`resolve`时返回一个描述对象，然后`redux-saga`中间件根据这个描述对象恢复执行`generator`中的函数
+### 4.1 声明式的 Effect
 
-**redux-thunk的大体过程**
+redux-saga 提供了一系列 API，比如 `take`、`put`、`all`、`select` 等，这些 API 统称为 Effect。这些 Effect 执行后会返回一个描述对象，redux-saga 中间件根据这个描述对象去真正执行，执行完再恢复 generator 往下走。
 
-> `action1(side function)`—>`redux-thunk`监听—>执行相应的有副作用的方法—>`action2(plain object)`
+关键点在于「描述」两个字。`call(fetch, url)` 这行代码并不发请求，它只是造了一个对象说「请帮我调用 fetch，参数是 url」。真正发请求的是中间件。
 
-![](https://poetries1.gitee.io/img-repo/2019/10/486.png)
+**redux-thunk 的大体过程**
 
+`action1(side function)` -> `redux-thunk` 监听 -> 执行相应的有副作用的方法 -> `action2(plain object)`
 
-> 转化到`action2`是一个原始`js`对象形式的`action`，然后执行`reducer`函数就会更新`store`中的`state`
+![redux-thunk 处理副作用的流程示意图](https://s.poetries.top/gitee/2019/10/486.png)
 
-**redux-saga的大体过程**
+转化后的 `action2` 是一个原始 js 对象形式的 action，然后执行 reducer 函数就会更新 store 中的 state。
 
-> action1(plain object)——>redux-saga监听—>执行相应的Effect方法——>返回描述对象—>恢复执行异步和副作用函数—>action2(plain object)
+**redux-saga 的大体过程**
 
-![](https://poetries1.gitee.io/img-repo/2019/10/487.png)
+`action1(plain object)` -> redux-saga 监听 -> 执行相应的 Effect 方法 -> 返回描述对象 -> 恢复执行异步和副作用函数 -> `action2(plain object)`
 
-> 对比`redux-thunk`我们发现，`redux-saga`中监听到了原始`js`对象`action`，并不会马上执行副作用操作，会先通过`Effect`方法将其转化成一个描述对象，然后再将描述对象，作为标识，再恢复执行副作用函数
+![redux-saga 通过 Effect 描述对象处理副作用的流程示意图](https://s.poetries.top/gitee/2019/10/487.png)
 
-### 4.2 Effect提供的具体方法
+对比两张图能看出差别：redux-saga 监听到的是原始 js 对象 action，并且不会马上执行副作用操作，而是先通过 Effect 方法把它转化成一个描述对象，再拿这个描述对象作为标识，恢复执行副作用函数。
 
-> 下面来介绍几个`Effect`中常用的几个方法，从低阶的API，比如`take`，`call(apply)`，`fork`，`put`，`select`等，以及高阶`API`，比如`takeEvery`和`takeLatest`等
+那多这一层描述对象到底图什么呢？
 
-```
-import {take,call,put,select,fork,takeEvery,takeLatest} from 'redux-saga/effects'
+图的就是测试和可控。副作用不由你的代码直接触发，中间件就有机会在中间做取消、超时、竞态处理，测试时也可以只断言描述对象而不真的发请求。thunk 那边做不到这些，因为 `fetch` 已经在你的函数里被硬编码执行了。
+
+### 4.2 Effect 提供的具体方法
+
+下面介绍几个常用的 Effect，包括低阶 API（`take`、`call`、`apply`、`fork`、`put`、`select`）和高阶 API（`takeEvery`、`takeLatest`）。
+
+```javascript
+import { take, call, put, select, fork, takeEvery, takeLatest } from 'redux-saga/effects'
 ```
 
 #### 4.2.1 take
 
-> `take`这个方法，是用来监听`action`，返回的是监听到的`action`对象。比如
+`take` 用来监听 action，返回的是监听到的 action 对象。比如有这么一个 action：
 
-```
+```javascript
 const loginAction = {
-   type:'login'
+   type: 'login'
 }
 ```
 
-> 在`UI Component`中`dispatch`一个`action`
+在 `UI Component` 中 dispatch 一个 action：
 
-```
+```javascript
 dispatch(loginAction)
 ```
 
-在saga中使用：
+在 saga 中这样接：
 
-```
+```javascript
 const action = yield take('login');
 ```
 
-> 可以监听到UI传递到中间件的`Action`,上述`take`方法的返回，就是`dipath`的原始对象。一旦监听到`login`动作，返回的`action`为：
+它能监听到 UI 传递到中间件的 action，`take` 方法的返回值就是 dispatch 的那个原始对象。一旦监听到 `login` 动作，返回的 action 为：
 
-```
+```javascript
 {
-  type:'login'
+  type: 'login'
 }
 ```
 
-#### 4.2.2 call(apply)
+这里有个特点要留意：`take` 是一次性的。它拿到一个 action 之后就往下走了，想持续监听得自己套一个 `while(true)`。后面案例里满屏的 `while(true)` 就是这么来的，不是写错了。
 
-> `call`和`apply`方法与`js`中的`call`和`apply`相似，我们以`call`方法为例
+#### 4.2.2 call 和 apply
+
+`call` 和 `apply` 与 js 中的 `call`、`apply` 相似，我们以 `call` 为例：
 
 ```
 call(fn, ...args)
 ```
 
-> `call`方法调用`fn`，参数为`args`，返回一个描述对象。不过这里`call`方法传入的函数`fn`可以是普通函数，也可以是`generator`。`call`方法应用很广泛，在`redux-saga`中使用异步请求等常用`call`方法来实现
+`call` 调用 `fn`，参数为 `args`，返回一个描述对象。这里传入的 `fn` 可以是普通函数，也可以是 generator。`call` 应用很广泛，redux-saga 里发异步请求基本都靠它：
 
+```javascript
+yield call(fetch, '/userInfo', username)
 ```
-yield call(fetch,'/userInfo',username)
-```
+
+要记住的一点是 `call` 会阻塞。写在它后面的语句必须等它 resolve 之后才能执行，这个特性在 5.2 节会引出一个真实的体验问题。
 
 #### 4.2.3 put
 
-> redux-saga做为中间件，工作流是这样的
+redux-saga 作为中间件，工作流是这样的：
 
 ```
 UI——>action1————>redux-saga中间件————>action2————>reducer..
 ```
 
-> 从工作流中，我们发现`redux-saga`执行完副作用函数后，必须发出`action`，然后这个`action`被`reducer`监听，从而达到更新`state`的目的。相应的这里的`put`对应与`redux`中的`dispatch`，工作流程图如下
+从工作流能看出，redux-saga 执行完副作用函数后必须发出 action，这个 action 被 reducer 监听到，才能达到更新 state 的目的。这里的 `put` 对应的就是 redux 中的 `dispatch`，流程图如下：
 
-![](https://poetries1.gitee.io/img-repo/2019/10/488.png)
+![put 发出 action 到 reducer 的工作流程图](https://s.poetries.top/gitee/2019/10/488.png)
 
-> 可以看出`redux-saga`执行副作用方法转化`action`时，`put`这个`Effect`方法跟`redux`原始的`dispatch`相似，都是可以发出`action`，且发出的`action`都会被`reducer`监听到。`put`的使用方法
+redux-saga 执行副作用方法转化 action 时，`put` 这个 Effect 跟 redux 原始的 `dispatch` 相似，都能发出 action，且发出的 action 都会被 reducer 监听到。用法是：
 
-```
- yield put({type:'login'})
- ```
- 
- #### 4.2.4 select
- 
- > `put`方法与`redux`中的`dispatch`相对应，同样的如果我们想在中间件中获取`state`，那么需要使用`select`。`select`方法对应的是`redux`中的`getState`，用户获取`store`中的`state`，使用方法：
- 
- ```
- const id = yield select(state => state.id);
- ```
- 
- #### 4.2.5 fork
- 
- > `fork`方法相当于`web work`，`fork`方法不会阻塞主线程，在非阻塞调用中十分有用
- 
-#### 4.2.6 takeEvery和takeLatest
- 
- > `takeEvery`和`takeLatest`用于监听相应的动作并执行相应的方法，是构建在`take`和`fork`上面的高阶`api`，比如要监听`login`动作，好用`takeEvery`方法可以
- 
- ```
- takeEvery('login',loginFunc)
- ```
- 
-- `takeEvery`监听到`login`的动作，就会执行`loginFunc`方法，除此之外，`takeEvery`可以同时监听到多个相同的`action`。
-- `takeLatest`方法跟`takeEvery`是相同方式调用
-
-```
-takeLatest('login',loginFunc)
+```javascript
+yield put({ type: 'login' })
 ```
 
-> 与`takeLatest`不同的是，`takeLatest`是会监听执行最近的那个被触发的`action`
+差别在于 `put` 同样是声明式的，它返回描述对象，由中间件去 dispatch。所以在测试里你能直接断言「这个 saga 应该 put 出一个 type 为 login 的 action」。
+
+#### 4.2.4 select
+
+`put` 与 redux 中的 `dispatch` 相对应，同样地，如果我们想在中间件里获取 state，那就需要 `select`。`select` 对应的是 redux 中的 `getState`，用于获取 store 中的 state：
+
+```javascript
+const id = yield select(state => state.id);
+```
+
+用它的时候有个坑：`select` 拿到的是调用那一刻的快照。如果你在 `yield call(...)` 之前 select 了一个值，等请求回来再用它，中间这段时间 state 可能已经被别的 action 改过了。需要最新值就在用之前重新 select 一次。
+
+#### 4.2.5 fork
+
+`fork` 方法的效果类似 web worker 那种「另起一条线去跑」的感觉，它不会阻塞主线程，在非阻塞调用中十分有用。
+
+需要说清楚的是它并不是真的开线程，JS 还是单线程的。`fork` 做的事是启动一个子任务然后立刻返回，不等它完成，后面的语句照常往下执行。所以它更准确的说法是「非阻塞地派生一个任务」。
+
+和它配套的还有 `cancel`，可以主动取消一个 fork 出来的任务，这正是 thunk 完全做不到的那类能力。
+
+#### 4.2.6 takeEvery 和 takeLatest
+
+`takeEvery` 和 `takeLatest` 用于监听相应的动作并执行相应的方法，是构建在 `take` 和 `fork` 上面的高阶 API。比如要监听 `login` 动作，用 `takeEvery` 可以这么写：
+
+```javascript
+takeEvery('login', loginFunc)
+```
+
+`takeEvery` 监听到 `login` 动作就会执行 `loginFunc` 方法。它的特点是每一次触发都会派生一个新任务，多个同名 action 连着来，就会有多个 `loginFunc` 同时在跑。
+
+`takeLatest` 的调用方式完全一样：
+
+```javascript
+takeLatest('login', loginFunc)
+```
+
+与 `takeEvery` 不同的是，`takeLatest` 只保留最近一次被触发的那个任务，前面还没跑完的会被自动取消。
+
+原文这里把两个名字写反了（写成了「与 takeLatest 不同的是，takeLatest 会…」），这次顺手改对。这两个的区别在实际项目里很关键：搜索框联想、按钮防重复提交这类场景用 `takeLatest`，因为你只关心最后一次的结果；而埋点上报、消息推送这种每条都不能丢的，必须用 `takeEvery`。
+
+选错的表现挺隐蔽的。用 `takeEvery` 做搜索联想，网络抖动的时候先发的请求后回来，输入框里显示的会是旧关键词的结果，用户看不出哪里不对，只觉得「搜出来的东西不对」。
 
 ## 五、案例分析一
 
-> 接着我们来实现一个`redux-saga`样例，存在一个登陆页，登陆成功后，显示列表页，并且，在列表页，可以点击登出，返回到登陆页。例子的最终展示效果如下
+接着我们来实现一个 redux-saga 样例：有一个登录页，登录成功后显示列表页，并且在列表页可以点击登出返回到登录页。
 
-![](https://poetries1.gitee.io/img-repo/2019/10/489.png)
+这个例子看着简单，但它把 saga 的几个关键点都覆盖到了，包括受控输入、请求、流程串联，以及最后那个阻塞与非阻塞的对比。
 
-> 样例的功能流程图为
+例子的最终展示效果如下：
 
-![](https://poetries1.gitee.io/img-repo/2019/10/490.png)
+![登录页与登录成功后列表页的最终展示效果](https://s.poetries.top/gitee/2019/10/489.png)
 
-### 5.1 LoginPanel(登陆页)
+样例的功能流程图为：
 
-**输入时时保存用户名和密码**
+![登录、拉列表、登出三条链路的功能流程图](https://s.poetries.top/gitee/2019/10/490.png)
 
-- 用户名输入框和密码框onchange时触发的函数为
+对着流程图看代码会轻松很多。整条链路是 UI 发出大写的原始 action，saga 监听到之后执行副作用，再 put 出小写的 action 给 reducer。大写小写这个约定不是语法要求，是作者用来区分「UI 发出的意图」和「saga 处理完的结果」的一个习惯，实际项目里建议换成 `USER/LOGIN_REQUEST` 和 `USER/LOGIN_SUCCESS` 这种更明确的命名。
+
+### 5.1 LoginPanel 登录页
+
+**实时保存用户名和密码**
+
+用户名输入框和密码框 onchange 时触发的函数为：
 
 ```javascript
 changeUsername:(e)=>{
@@ -294,9 +352,9 @@ changePassword:(e)=>{
 }
 ```
 
-> 在函数中最后会`dispatch`两个`action：CHANGE_USERNAME和CHANGE_PASSWORD`
+这两个函数最后会 dispatch 两个 action，`CHANGE_USERNAME` 和 `CHANGE_PASSWORD`。注意它们都是普通对象，UI 层完全不知道 saga 的存在。
 
-- 在`saga.js`文件中监听这两个方法并执行副作用函数，最后`put`发出转化后的`action`，给`reducer`函数调用
+接着在 `saga.js` 文件中监听这两个动作并执行副作用函数，最后 `put` 发出转化后的 action，交给 reducer 处理：
 
 ```javascript
 function * watchUsername(){
@@ -315,11 +373,15 @@ function * watchPassword(){
 }
 ```
 
-> 最后在`reducer`中接收到`redux-saga`的`put`方法传递过来的`action：change_username`和`change_password`，然后更新`state`
+最后在 reducer 中接收到 redux-saga 的 `put` 方法传递过来的 action（`change_username` 和 `change_password`），然后更新 state。
 
-**监听登陆事件判断登陆是否成功**
+这两个 watcher 里的 `while(true)` 就是前面说的，`take` 只取一次，想一直监听就得循环。看着像死循环，实际上 `yield take(...)` 会把 generator 挂起，直到对应的 action 来了才继续，不会占 CPU。
 
-> 在UI中发出的登陆事件为
+顺着上面聊，受控输入这个场景其实没必要走 saga 绕一圈，直接 reducer 处理就好。这里这么写纯粹是为了演示 `take` 加 `put` 的最小闭环。真项目里这么干，每敲一个字符都要过一遍 saga，属于给自己找麻烦。
+
+**监听登录事件判断登录是否成功**
+
+在 UI 中发出的登录事件为：
 
 ```javascript
 toLoginIn:(username,password)=>{
@@ -327,34 +389,35 @@ toLoginIn:(username,password)=>{
 }
 ```
 
-> 登陆事件的`action`为：`TO_LOGIN_IN`.对于登入事件的处理函数为：
+登录事件的 action 是 `TO_LOGIN_IN`，对应的处理函数为：
 
 ```javascript
 while(true){
-    //监听登入事件
-    const action1=yield take('TO_LOGIN_IN');
-    const res=yield call(fetchSmart,'/login',{
-      method:'POST',
-      body:JSON.stringify({
-        username:action1.username,
-        password:action1.password
-    })
-    if(res){
-      put({type:'to_login_in'});
+    // 监听登入事件
+    const action1 = yield take('TO_LOGIN_IN');
+
+    const res = yield call(fetchSmart, '/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        username: action1.username,
+        password: action1.password
+      })
+    });
+
+    if (res) {
+      yield put({ type: 'to_login_in' });
     }
-});
+}
 ```
 
-> 在上述的处理函数中，首先监听原始动作提取出传递来的用户名和密码，然后请求是否登陆成功，如果登陆成功有返回值，则执行`put`的`action:to_login_in`
+原文这段代码括号是对不上的，而且 `put` 前面漏了 `yield`，这次一并改对了。漏掉 `yield` 是个很典型的错误，因为 `put(...)` 只返回描述对象，不 yield 出去中间件就收不到，表现是「代码看着执行了但 state 没变」，非常难查。
 
-### 5.2 LoginSuccess
+处理函数的逻辑是：先监听原始动作，提取出传递来的用户名和密码，然后发请求判断是否登录成功，如果登录成功有返回值，就 `put` 出 `to_login_in` 这个 action。
 
-> (登陆成功列表展示页)
+### 5.2 LoginSuccess 登录成功列表展示页
 
-- 登陆成功后的页面功能包括：
-  - 获取列表信息，展示列表信息
-  - 登出功能，点击可以返回登陆页面
-  
+登录成功后的页面有两个功能：获取并展示列表信息，以及登出后返回登录页面。
+
 **获取列表信息**
 
 ```javascript
@@ -374,16 +437,22 @@ function * getList(){
 }
 ```
 
-> 为了演示请求过程，我们在本地`mock`，通过`redux-saga`的工具函数`delay`，`delay`的功能相当于延迟xx秒，因为真实的请求存在延迟，因此可以用delay在本地模拟真实场景下的请求延迟
+这段有两个细节值得停一下。
+
+一是 `try / catch` 包住了整个流程。saga 里的错误处理就是普通的 try catch，这比 thunk 那种到处 `.catch()` 直观得多，因为 generator 让异步代码长得跟同步一样。
+
+二是那个 `delay(3000)`。为了演示请求过程，我们在本地 mock，通过 redux-saga 的工具函数 `delay` 延迟若干秒。真实请求本来就存在延迟，用 `delay` 可以在本地模拟出这种场景。
+
+补一句版本相关的：`delay` 在 redux-saga 早期版本从 `redux-saga` 主包导出，从 v1 开始它被移到了 `redux-saga/effects`，也就是 `import { delay } from 'redux-saga/effects'`。老代码升级到 v1 之后如果报找不到 `delay`，去改这行 import 就行。
 
 **登出功能**
 
-```
-const action2=yield take('TO_LOGIN_OUT');
-yield put({type:'to_login_out'});
+```javascript
+const action2 = yield take('TO_LOGIN_OUT');
+yield put({ type: 'to_login_out' });
 ```
 
-> 与登入相似，登出的功能从UI处接受`action:TO_LOGIN_OUT`,然后转发`action:to_login_out`
+与登入相似，登出功能从 UI 处接收 `TO_LOGIN_OUT`，然后转发 `to_login_out`。
 
 **完整的实现登入登出和列表展示的代码**
 
@@ -428,39 +497,49 @@ function * watchIsLogin(){
 }
 ```
 
-> 通过请求状态码判断登入是否成功，在登陆成功后，可以通过
+这段把整条业务流程串成了一个 generator，读起来是一条直线：等登录、发请求、判断状态码、通知 reducer、拉列表、等登出。这就是 saga 最大的卖点，流程可以写成顺序代码，而不是散在几个回调里。
 
-```
+通过请求状态码判断登录是否成功，登录成功后用这行拉列表：
+
+```javascript
 yield call(getList)
 ```
 
-> 注意call方法调用是会阻塞主线程的，具体来说
+**这里埋着一个真实的体验问题**：`call` 方法是会阻塞的。
 
-- 在call方法调用结束之前，call方法之后的语句是无法执行的
-- 如果`call(getList)`存在延迟，`call(getList)`之后的语句 `const action2=yieldtake('TO_LOGIN_OUT')`在`call`方法返回结果之前无法执行
-- 在延迟期间的登出操作会被忽略
+具体表现有三点。在 `call` 调用结束之前，它后面的语句无法执行；如果 `call(getList)` 存在延迟，后面那句 `const action2 = yield take('TO_LOGIN_OUT')` 在 `call` 返回结果之前根本不会被执行；结果就是延迟期间用户点的登出操作会被完全忽略。
 
-![](https://poetries1.gitee.io/img-repo/2019/10/491.png)
+![call 阻塞期间点击登出无响应的效果演示](https://s.poetries.top/gitee/2019/10/491.png)
+
+图里就是这个现象。列表还在转圈的三秒里，登出按钮点了没有任何反应，用户只会觉得页面卡死了。
 
 **无阻塞调用**
 
-```
+把这行
+
+```javascript
 yield call(getList)
 ```
 
-修改为
+改成
 
-```
+```javascript
 yield fork(getList)
 ```
 
-> 通过fork方法不会阻塞主线程，在白屏时点击登出，可以立刻响应登出功能，从而返回登陆页面
+`fork` 不会阻塞后续语句，`getList` 在后台跑，`take('TO_LOGIN_OUT')` 立刻就位。这时候在白屏期间点击登出，可以立刻响应并返回登录页面。
+
+这个 `call` 换 `fork` 的一行改动，是我认为整篇文章里最有价值的一处。它说明 saga 不只是「让异步能写进 redux」，而是把「这一步该不该等」这种流程控制决策显式地交到了你手里。thunk 里想实现同样的效果，你得自己维护一堆状态标记，还不一定做得对。
+
+选择标准也简单：后面的语句依赖这一步的结果，用 `call`；不依赖、可以并行跑的，用 `fork`。
 
 ## 六、案例分析二
 
-### 6.1 配置saga信息 
+上面那个例子是把 saga 写在一起讲逻辑，这一节看看真实项目里的目录结构怎么摆。
 
-> `src/store/configureStore.js`
+### 6.1 配置 saga 信息
+
+先在 `src/store/configureStore.js` 里把中间件装好：
 
 ```javascript
 import { createStore, applyMiddleware, compose } from 'redux'

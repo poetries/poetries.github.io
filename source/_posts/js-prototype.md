@@ -28,7 +28,6 @@ f.work(); // F is working..
 
 - `JS`的对象中都包含了一个`__proto__`属性，其指向的是创建该对象时的构造函数的原型对象`prototype`
 
-![](https://segmentfault.com/img/bVzPrk)
 
 - 从上面的输出结果看出，`f.__proto__`指向了其构造函数`F`的`prototype`，而`F.prototype`本身也是一个对象，其内部也有`__proto__`属性，其指向的是`Object.prototype`,直到最后`Object.prototype`指向`null`，这条原型链才结束
 - 因此，`__proto__`这个神秘的属性才是原型链形成的真正原因
@@ -38,7 +37,6 @@ f.work(); // F is working..
 
 - 由于原型对象本身也是对象，根据上边的定义，它也有自己的原型，而它自己的原型对象又可以有自己的原型，这样就组成了一条链，这个就是原型链，`JavaScritp`引擎在访问对象的属性时，如果在对象本身中没有找到，则会去原型链中查找，如果找到，直接返回值，如果整个链都遍历且没有找到属性，则返回`undefined`。原型链一般实现为一个链表，这样就可以按照一定的顺序来查找
 
-![](https://segmentfault.com/img/bVcXNb)
 
 - 从上图看出：
 
