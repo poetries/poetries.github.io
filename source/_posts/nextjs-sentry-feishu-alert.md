@@ -1,6 +1,6 @@
 ---
-title: 别等用户报 bug，让线上报错自己推到飞书群
-seoTitle: Next.js 16 接入 Sentry 与飞书告警实战，sentry-hook-signature 验签、堆栈渲染与踩坑排查
+title: Next.js 16 接入 Sentry 与飞书告警实战，sentry-hook-signature 验签、堆栈渲染与踩坑排查
+wechatTitle: 别等用户报 bug，让线上报错自己推到飞书群
 description: Next.js 16 接入 Sentry 与飞书告警的完整实战。覆盖 @sentry/nextjs 10.x 的 instrumentation 三端接线、beforeSend 脱敏层、Internal Integration 的 sentry-hook-signature HMAC 验签、飞书自建应用 tenant_access_token 推送交互卡片、把 exception.values 里的调用栈渲染进卡片，以及 next start 在 standalone 下不工作、Sentry 堆栈顺序是反的、Alert Action 不开就选不到集成等一串真实踩坑。附 webhook 路由完整实现代码。
 date: 2026-09-14 10:12:36
 tags:
@@ -27,7 +27,8 @@ categories: Front-End
 - Sentry 的 `exception.values[].stacktrace.frames` 为什么**顺序是反的**，渲染进卡片前要怎么处理
 - webhook 路由的**完整实现**：验签、payload 解析、堆栈渲染、推卡片，四段代码都给全
 - `sentry-hook-signature` 验签失败，为什么多半是因为你用了 `JSON.stringify(req.body)`
-- 飞书自建应用推交互卡片的两个必踩坑：`content` 必须是**字符串**、`tenant_access_token` 必须缓存
+- 飞书自建应用从建应用到发版怎么配：机器人能力、权限批量导入、事件订阅，以及**配了不发版不生效**
+- 飞书推交互卡片的两个代码坑：`content` 必须是**字符串**、`tenant_access_token` 必须缓存
 - 集成建好了却在告警规则里选不到，是漏了哪个开关
 - `next start` 在 `output: 'standalone'` 下直接不工作，本地怎么验生产行为
 - 上线后那两次「以为出事了其实没有」的误判，怎么用对照实验证伪
@@ -445,6 +446,12 @@ const card = {
 
 `truncateBlock` 是**按行**截断而不是按字符。直接 `slice` 会把最后一帧砍成半句，看起来像数据损坏；按行切至少每一帧都是完整的。上限我定在 1800 字符，不是因为飞书装不下（单条消息上限约 30KB），是因为群里刷过去二十屏堆栈和没推是一样的效果。
 
+拼出来的卡片长这样，这是线上真实告警，不是示意图：
+
+![飞书群里收到的 Sentry 告警卡片，含调用栈](https://s.poetries.top/uploads/2026/09/496cb77202d38353.jpg)
+
+级别、环境、版本（`commitHash`）、位置、触发的规则名、报错原文，然后一条分割线下面是从崩溃点往外的调用栈，最后一个按钮直达 Sentry。看到这张卡基本就能判断要不要立刻处理，不用先去开控制台。
+
 ### 怎么在本地验这整条
 
 不用等 Sentry 真的给你发告警。我的做法是**让应用真实报一次错，用第四节那个假接收端抓下它发出的 envelope，再把里面的 `exception` 原样塞进一条 webhook 报文重放**，这样堆栈是真的，不是手写的假数据：
@@ -510,9 +517,76 @@ Client Secret 在保存后的 Credentials 区域，**只显示一次**，页面�
 
 告警规则那边，我用规则名前缀做分级，`[P0] ` 开头的在中转服务里跳过节流、每次触发都推，其余走 30 分钟去重。还有一条容易忘的：**给「新错误」那条规则加一个排除条件**，把项目里那种「每次访问必抛错」的调试路由排掉，不然爬虫扫到就会一直推。
 
-## 八、飞书这边的两个必踩坑
+## 八、飞书自建应用怎么配，以及那个「配了不生效」的坑
 
 我用的是自建应用而不是群机器人 webhook。群机器人一个 URL 就能发，看起来更省事，但它有两个硬伤：webhook URL 本身就是凭据，泄露了谁都能往群里发；而且它只能发到创建它的那个群，以后想加一个「只收 P0」的群就得再申请一个。自建应用拿到的是 `tenant_access_token`，发给谁由 `receive_id` 决定，以后要分群、要私聊到人，都是换一个 id 的事。
+
+### 先给应用加「机器人」能力
+
+去[飞书开放平台](https://open.feishu.cn/app)建一个企业自建应用，然后在「添加应用能力」里把**机器人**加上。不加这个能力，后面所有发消息的接口都会拒你：
+
+![飞书开放平台添加机器人能力](https://s.poetries.top/uploads/2026/09/ea7f4a59da5f1ad9.jpg)
+
+### 权限用批量导入，别一个个点
+
+「开发配置 → 权限管理」里有个**批量导入/导出权限**，粘 JSON 进去比在几百个权限里翻快得多：
+
+![飞书权限批量导入 JSON](https://s.poetries.top/uploads/2026/09/8dcc7587163f3f86.jpg)
+
+我导的是这一份：
+
+```json
+{
+  "scopes": {
+    "tenant": [
+      "cardkit:card:write",
+      "contact:contact.base:readonly",
+      "contact:user.base:readonly",
+      "im:chat:readonly",
+      "im:message",
+      "im:message.group_at_msg:readonly",
+      "im:message.group_msg",
+      "im:message.p2p_msg:readonly",
+      "im:message.reactions:read",
+      "im:message:readonly",
+      "im:message:recall",
+      "im:message:send_as_bot",
+      "im:message:update",
+      "im:resource"
+    ],
+    "user": ["contact:contact.base:readonly"]
+  }
+}
+```
+
+**说明白一点：纯推告警用不了这么多。** 只发卡片的话，`im:message:send_as_bot`（以应用身份发消息）加上 `im:chat:readonly`（能拿到群信息）基本就够了。上面这份是按「以后这个机器人还要能收消息、能被 @、能撤回和更新自己发出去的卡片」准备的，比如出了故障之后想在群里 @ 机器人问一句、或者让它把已推的卡片改成「已处理」，那就得有 `im:message:receive` 相关和 `im:message:update`。
+
+按你的用途裁剪，权限给少点总是更安全。确认页会列出这次新增了哪些：
+
+![确认导入的 14 项权限](https://s.poetries.top/uploads/2026/09/f06d9f43ba9bed77.jpg)
+
+### 要双向交互才需要订阅事件
+
+只推告警的话这一步可以跳过。如果想让机器人能收消息，去「事件与回调」订阅这四个：
+
+| 事件 | 作用 |
+|------|------|
+| `im.message.receive_v1` | 接收消息 |
+| `im.message.message_read_v1` | 消息已读回执 |
+| `im.chat.member.bot.added_v1` | 机器人进群 |
+| `im.chat.member.bot.deleted_v1` | 机器人被移出群 |
+
+订阅方式推荐选**长连接**，不用注册公网域名、也不用配加密策略，跑官方 SDK 起个客户端就行：
+
+![飞书事件配置与长连接订阅](https://s.poetries.top/uploads/2026/09/9a1817c21ed39272.jpg)
+
+### 最容易翻车的一步：配完必须创建版本并发布
+
+页面顶部一直挂着一条橙色提示，**「应用发布后，当前配置方可生效」**：
+
+![创建版本并发布应用](https://s.poetries.top/uploads/2026/09/5edf2bcccc2ee172.jpg)
+
+权限也好、事件也好，在后台点完保存**都还没生效**，得去「版本管理与发布」创建一个版本、提交发布，个人版会走一次审核。我当时就是配完直接去调接口，返回的错误码指向权限不足，而后台明明显示「已开通」，绕了一圈才看到顶上那条提示。**配置保存 ≠ 生效**，这句话值得贴在屏幕上。
 
 **第一个坑，卡片的 `content` 必须是字符串。** 直接传对象会返回 `230001`：
 
@@ -583,6 +657,8 @@ async function getTenantAccessToken(): Promise<string | null> {
 - [ ] Internal Integration 的 **Alert Action 开关打开了**（不叫 Alert Rule Action），Webhooks 里的 `Errors` **没有勾**
 - [ ] 验签用的是 `await request.text()` 的原始字符串，不是 `JSON.stringify(body)`
 - [ ] 没配 `SENTRY_WEBHOOK_SECRET` 时端点返回 401（fail-closed），不是放行
+- [ ] 飞书应用加了**机器人能力**，权限至少有 `im:message:send_as_bot`
+- [ ] 飞书后台**创建了版本并发布**（配置保存不等于生效，顶上那条橙色提示说的就是这个）
 - [ ] 飞书 `content` 做了二次 `JSON.stringify`，`tenant_access_token` 有缓存和并发单飞锁
 - [ ] 告警规则里排除了「每次访问必抛错」的调试路由
 - [ ] 准备一个一键止血开关（我用的是 `NEXT_PUBLIC_SENTRY_DISABLED=true`），配额被刷爆时不用发版就能停
