@@ -7,7 +7,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>别等用户报 bug，让线上报错自己推到飞书群 | 前端进阶之旅</title>
+  <title>Next.js 16 接入 Sentry 与飞书告警实战，sentry-hook-signature 验签、堆栈渲染与踩坑排查 | 前端进阶之旅</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -17,16 +17,22 @@
 
   <meta name="description" content="Next.js 16 接入 Sentry 与飞书告警的完整实战。覆盖 @sentry&#x2F;nextjs 10.x 的 instrumentation 三端接线、beforeSend 脱敏层、Internal Integration 的 sentry-hook-signature HMAC 验签、飞书自建应用 tenant_access_token 推送交互卡片、把 exception.values 里">
 <meta property="og:type" content="article">
-<meta property="og:title" content="别等用户报 bug，让线上报错自己推到飞书群">
+<meta property="og:title" content="Next.js 16 接入 Sentry 与飞书告警实战，sentry-hook-signature 验签、堆栈渲染与踩坑排查">
 <meta property="og:url" content="http://blog.poetries.top/2026/09/14/nextjs-sentry-feishu-alert/index.html">
 <meta property="og:site_name" content="前端进阶之旅">
 <meta property="og:description" content="Next.js 16 接入 Sentry 与飞书告警的完整实战。覆盖 @sentry&#x2F;nextjs 10.x 的 instrumentation 三端接线、beforeSend 脱敏层、Internal Integration 的 sentry-hook-signature HMAC 验签、飞书自建应用 tenant_access_token 推送交互卡片、把 exception.values 里">
 <meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/496cb77202d38353.jpg">
 <meta property="og:image" content="https://s.poetries.top/uploads/2026/09/10827f0668914ec7.jpg">
 <meta property="og:image" content="https://s.poetries.top/uploads/2026/09/c034c3b544afbb99.jpg">
 <meta property="og:image" content="https://s.poetries.top/uploads/2026/09/0b4e62dd129fd5c6.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/ea7f4a59da5f1ad9.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/8dcc7587163f3f86.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/f06d9f43ba9bed77.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/9a1817c21ed39272.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/5edf2bcccc2ee172.jpg">
 <meta property="article:published_time" content="2026-09-14T02:12:36.000Z">
-<meta property="article:modified_time" content="2026-09-14T02:17:29.692Z">
+<meta property="article:modified_time" content="2026-09-14T02:28:26.360Z">
 <meta property="article:author" content="Poetry">
 <meta property="article:tag" content="Next.js">
 <meta property="article:tag" content="Sentry">
@@ -35,7 +41,7 @@
 <meta property="article:tag" content="可观测性">
 <meta property="article:tag" content="告警">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/09/10827f0668914ec7.jpg">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/09/496cb77202d38353.jpg">
 
   
 
@@ -213,7 +219,7 @@
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
-    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-text">一、整体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%8120-%E5%88%86%E9%92%9F%E8%B7%91%E9%80%9A%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E7%89%88%E6%9C%AC"><span class="toc-text">二、20 分钟跑通最小可用版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1%EF%BC%9A%E8%A3%85%E5%8C%85%EF%BC%8C%E6%B3%A8%E6%84%8F-yarn-%E7%BC%93%E5%AD%98%E8%BF%99%E4%B8%AA%E5%9D%91"><span class="toc-text">Step 1：装包，注意 yarn 缓存这个坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2%EF%BC%9A%E4%B8%89%E7%AB%AF%E6%8E%A5%E7%BA%BF%EF%BC%8C%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE%E4%B8%8D%E8%83%BD%E6%94%BE%E9%94%99"><span class="toc-text">Step 2：三端接线，文件位置不能放错</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3%EF%BC%9A%E5%8C%85%E4%B8%80%E5%B1%82%E5%86%8D%E7%BB%99%E4%B8%9A%E5%8A%A1%E7%94%A8"><span class="toc-text">Step 3：包一层再给业务用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%AC%E5%9C%B0-yarn-dev-%E6%94%B6%E4%B8%8D%E5%88%B0%E4%BB%BB%E4%BD%95%E4%B8%8A%E6%8A%A5"><span class="toc-text">三、为什么本地 yarn dev 收不到任何上报</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%84%B1%E6%95%8F%E8%BF%99%E5%B1%82%E4%B8%8D%E8%83%BD%E7%9C%81%EF%BC%8C%E6%88%91%E6%98%AF%E6%80%8E%E4%B9%88%E9%AA%8C%E7%9A%84"><span class="toc-text">四、脱敏这层不能省，我是怎么验的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%8F%91%E4%B8%80%E6%9D%A1%E6%95%B0%E6%8D%AE%E7%BB%99-Sentry%EF%BC%8C%E6%80%8E%E4%B9%88%E8%AF%81%E6%98%8E%E8%84%B1%E6%95%8F%E7%94%9F%E6%95%88%E4%BA%86"><span class="toc-text">不发一条数据给 Sentry，怎么证明脱敏生效了</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Sentry-%E7%9A%84%E8%B0%83%E7%94%A8%E6%A0%88%E6%98%AF%E5%8F%8D%E7%9A%84"><span class="toc-text">五、Sentry 的调用栈是反的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81webhook-%E8%B7%AF%E7%94%B1%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%A0%E7%9A%84%E9%AA%8C%E7%AD%BE%E4%B8%80%E7%9B%B4%E5%A4%B1%E8%B4%A5"><span class="toc-text">六、webhook 路由完整实现，以及为什么你的验签一直失败</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%8C%E6%8A%8A-payload-%E6%8B%8D%E5%B9%B3%E6%88%90%E4%B8%80%E4%B8%AA%E6%91%98%E8%A6%81"><span class="toc-text">第二步，把 payload 拍平成一个摘要</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%8C%E6%8B%BC%E5%8D%A1%E7%89%87%E6%8E%A8%E5%87%BA%E5%8E%BB"><span class="toc-text">第三步，拼卡片推出去</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E5%9C%A8%E6%9C%AC%E5%9C%B0%E9%AA%8C%E8%BF%99%E6%95%B4%E6%9D%A1"><span class="toc-text">怎么在本地验这整条</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%9B%86%E6%88%90%E5%BB%BA%E5%A5%BD%E4%BA%86%EF%BC%8C%E5%8D%B4%E5%9C%A8%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99%E9%87%8C%E9%80%89%E4%B8%8D%E5%88%B0"><span class="toc-text">七、集成建好了，却在告警规则里选不到</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%A3%9E%E4%B9%A6%E8%BF%99%E8%BE%B9%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%BF%85%E8%B8%A9%E5%9D%91"><span class="toc-text">八、飞书这边的两个必踩坑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8A%E7%BA%BF%E5%90%8E%E9%82%A3%E4%B8%A4%E6%AC%A1%E8%AF%AF%E5%88%A4"><span class="toc-text">九、上线后那两次误判</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E4%B8%8A%E7%94%9F%E4%BA%A7%E5%89%8D%E7%9A%84-checklist"><span class="toc-text">十、上生产前的 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-text">一、整体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%8120-%E5%88%86%E9%92%9F%E8%B7%91%E9%80%9A%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E7%89%88%E6%9C%AC"><span class="toc-text">二、20 分钟跑通最小可用版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1%EF%BC%9A%E8%A3%85%E5%8C%85%EF%BC%8C%E6%B3%A8%E6%84%8F-yarn-%E7%BC%93%E5%AD%98%E8%BF%99%E4%B8%AA%E5%9D%91"><span class="toc-text">Step 1：装包，注意 yarn 缓存这个坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2%EF%BC%9A%E4%B8%89%E7%AB%AF%E6%8E%A5%E7%BA%BF%EF%BC%8C%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE%E4%B8%8D%E8%83%BD%E6%94%BE%E9%94%99"><span class="toc-text">Step 2：三端接线，文件位置不能放错</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3%EF%BC%9A%E5%8C%85%E4%B8%80%E5%B1%82%E5%86%8D%E7%BB%99%E4%B8%9A%E5%8A%A1%E7%94%A8"><span class="toc-text">Step 3：包一层再给业务用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%AC%E5%9C%B0-yarn-dev-%E6%94%B6%E4%B8%8D%E5%88%B0%E4%BB%BB%E4%BD%95%E4%B8%8A%E6%8A%A5"><span class="toc-text">三、为什么本地 yarn dev 收不到任何上报</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%84%B1%E6%95%8F%E8%BF%99%E5%B1%82%E4%B8%8D%E8%83%BD%E7%9C%81%EF%BC%8C%E6%88%91%E6%98%AF%E6%80%8E%E4%B9%88%E9%AA%8C%E7%9A%84"><span class="toc-text">四、脱敏这层不能省，我是怎么验的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%8F%91%E4%B8%80%E6%9D%A1%E6%95%B0%E6%8D%AE%E7%BB%99-Sentry%EF%BC%8C%E6%80%8E%E4%B9%88%E8%AF%81%E6%98%8E%E8%84%B1%E6%95%8F%E7%94%9F%E6%95%88%E4%BA%86"><span class="toc-text">不发一条数据给 Sentry，怎么证明脱敏生效了</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Sentry-%E7%9A%84%E8%B0%83%E7%94%A8%E6%A0%88%E6%98%AF%E5%8F%8D%E7%9A%84"><span class="toc-text">五、Sentry 的调用栈是反的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81webhook-%E8%B7%AF%E7%94%B1%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%A0%E7%9A%84%E9%AA%8C%E7%AD%BE%E4%B8%80%E7%9B%B4%E5%A4%B1%E8%B4%A5"><span class="toc-text">六、webhook 路由完整实现，以及为什么你的验签一直失败</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%8C%E6%8A%8A-payload-%E6%8B%8D%E5%B9%B3%E6%88%90%E4%B8%80%E4%B8%AA%E6%91%98%E8%A6%81"><span class="toc-text">第二步，把 payload 拍平成一个摘要</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%8C%E6%8B%BC%E5%8D%A1%E7%89%87%E6%8E%A8%E5%87%BA%E5%8E%BB"><span class="toc-text">第三步，拼卡片推出去</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E5%9C%A8%E6%9C%AC%E5%9C%B0%E9%AA%8C%E8%BF%99%E6%95%B4%E6%9D%A1"><span class="toc-text">怎么在本地验这整条</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%9B%86%E6%88%90%E5%BB%BA%E5%A5%BD%E4%BA%86%EF%BC%8C%E5%8D%B4%E5%9C%A8%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99%E9%87%8C%E9%80%89%E4%B8%8D%E5%88%B0"><span class="toc-text">七、集成建好了，却在告警规则里选不到</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%A3%9E%E4%B9%A6%E8%87%AA%E5%BB%BA%E5%BA%94%E7%94%A8%E6%80%8E%E4%B9%88%E9%85%8D%EF%BC%8C%E4%BB%A5%E5%8F%8A%E9%82%A3%E4%B8%AA%E3%80%8C%E9%85%8D%E4%BA%86%E4%B8%8D%E7%94%9F%E6%95%88%E3%80%8D%E7%9A%84%E5%9D%91"><span class="toc-text">八、飞书自建应用怎么配，以及那个「配了不生效」的坑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%88%E7%BB%99%E5%BA%94%E7%94%A8%E5%8A%A0%E3%80%8C%E6%9C%BA%E5%99%A8%E4%BA%BA%E3%80%8D%E8%83%BD%E5%8A%9B"><span class="toc-text">先给应用加「机器人」能力</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%83%E9%99%90%E7%94%A8%E6%89%B9%E9%87%8F%E5%AF%BC%E5%85%A5%EF%BC%8C%E5%88%AB%E4%B8%80%E4%B8%AA%E4%B8%AA%E7%82%B9"><span class="toc-text">权限用批量导入，别一个个点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A6%81%E5%8F%8C%E5%90%91%E4%BA%A4%E4%BA%92%E6%89%8D%E9%9C%80%E8%A6%81%E8%AE%A2%E9%98%85%E4%BA%8B%E4%BB%B6"><span class="toc-text">要双向交互才需要订阅事件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%AE%B9%E6%98%93%E7%BF%BB%E8%BD%A6%E7%9A%84%E4%B8%80%E6%AD%A5%EF%BC%9A%E9%85%8D%E5%AE%8C%E5%BF%85%E9%A1%BB%E5%88%9B%E5%BB%BA%E7%89%88%E6%9C%AC%E5%B9%B6%E5%8F%91%E5%B8%83"><span class="toc-text">最容易翻车的一步：配完必须创建版本并发布</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8A%E7%BA%BF%E5%90%8E%E9%82%A3%E4%B8%A4%E6%AC%A1%E8%AF%AF%E5%88%A4"><span class="toc-text">九、上线后那两次误判</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E4%B8%8A%E7%94%9F%E4%BA%A7%E5%89%8D%E7%9A%84-checklist"><span class="toc-text">十、上生产前的 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
   </div>
   
 
@@ -242,7 +248,7 @@
 
 <article id="post-nextjs-sentry-feishu-alert" class="article article-type-post" itemprop="blogPost">
   <header class="article-header" style="position:relative;">
-    <h1 class="post-title">别等用户报 bug，让线上报错自己推到飞书群</h1>
+    <h1 class="post-title">Next.js 16 接入 Sentry 与飞书告警实战，sentry-hook-signature 验签、堆栈渲染与踩坑排查</h1>
 
     <div class="article-meta">
       <span>
@@ -278,12 +284,12 @@
        
           <span class="post-count">
             <i class="fa fa-file-word-o"></i>&nbsp
-            <span>字数统计 7.7k字</span>
+            <span>字数统计 8.5k字</span>
           </span>
 
           <span class="post-count">
             <i class="fa fa-columns"></i>&nbsp
-            <span>阅读时长 31分</span>
+            <span>阅读时长 34分</span>
           </span>
       
       
@@ -308,7 +314,8 @@
 <li>Sentry 的 <code>exception.values[].stacktrace.frames</code> 为什么<strong>顺序是反的</strong>，渲染进卡片前要怎么处理</li>
 <li>webhook 路由的<strong>完整实现</strong>：验签、payload 解析、堆栈渲染、推卡片，四段代码都给全</li>
 <li><code>sentry-hook-signature</code> 验签失败，为什么多半是因为你用了 <code>JSON.stringify(req.body)</code></li>
-<li>飞书自建应用推交互卡片的两个必踩坑：<code>content</code> 必须是<strong>字符串</strong>、<code>tenant_access_token</code> 必须缓存</li>
+<li>飞书自建应用从建应用到发版怎么配：机器人能力、权限批量导入、事件订阅，以及<strong>配了不发版不生效</strong></li>
+<li>飞书推交互卡片的两个代码坑：<code>content</code> 必须是<strong>字符串</strong>、<code>tenant_access_token</code> 必须缓存</li>
 <li>集成建好了却在告警规则里选不到，是漏了哪个开关</li>
 <li><code>next start</code> 在 <code>output: &#39;standalone&#39;</code> 下直接不工作，本地怎么验生产行为</li>
 <li>上线后那两次「以为出事了其实没有」的误判，怎么用对照实验证伪</li>
@@ -325,7 +332,7 @@
 
 <p>我第一次跑这条命令，终端最后打了 <code>exit code 0</code>，看起来是成功的。结果 <code>node_modules/@sentry/nextjs</code> 根本不存在，<code>package.json</code> 里也没有这一行。回头翻完整日志才看到藏在一堆 peer dependency warning 后面的这句：</p>
 <blockquote>
-<p>error Error: ENOENT: no such file or directory, open ‘&#x2F;Users&#x2F;mac&#x2F;Library&#x2F;Caches&#x2F;Yarn&#x2F;v6&#x2F;<a href="mailto:&#x6e;&#x70;&#x6d;&#45;&#x40;&#115;&#101;&#110;&#x74;&#114;&#121;&#x2d;&#x63;&#108;&#x69;&#45;&#100;&#97;&#114;&#x77;&#105;&#110;&#x2d;&#50;&#x2e;&#x35;&#x38;">npm-@sentry-cli-darwin-2.58</a>.6-...&#x2F;node_modules&#x2F;@sentry&#x2F;cli-darwin&#x2F;.yarn-metadata.json’</p>
+<p>error Error: ENOENT: no such file or directory, open ‘&#x2F;Users&#x2F;mac&#x2F;Library&#x2F;Caches&#x2F;Yarn&#x2F;v6&#x2F;<a href="mailto:&#x6e;&#112;&#x6d;&#45;&#64;&#x73;&#101;&#x6e;&#x74;&#x72;&#121;&#x2d;&#x63;&#x6c;&#105;&#x2d;&#x64;&#97;&#114;&#x77;&#105;&#110;&#45;&#50;&#x2e;&#x35;&#56;">npm-@sentry-cli-darwin-2.58</a>.6-...&#x2F;node_modules&#x2F;@sentry&#x2F;cli-darwin&#x2F;.yarn-metadata.json’</p>
 </blockquote>
 <p><code>@sentry/cli-darwin</code> 在 yarn 全局缓存里的那份元数据坏了。yarn 1.x 在这种情况下会<strong>报错但仍然退出 0</strong>，这个组合非常坑，你以为装好了其实什么都没发生。清掉那一份缓存重来就好：</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$HOME</span>/Library/Caches/Yarn/v6/npm-@sentry-cli-darwin-2.58.6-&quot;</span>*</span><br><span class="line">yarn add @sentry/nextjs</span><br></pre></td></tr></table></figure>
@@ -409,6 +416,9 @@
 <figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> card = &#123;</span><br><span class="line">  <span class="attr">config</span>: &#123; <span class="attr">wide_screen_mode</span>: <span class="literal">true</span> &#125;,</span><br><span class="line">  <span class="attr">header</span>: &#123;</span><br><span class="line">    <span class="attr">template</span>: <span class="variable constant_">TEMPLATE_BY_LEVEL</span>[level],     <span class="comment">// fatal/error 红，warning 橙，info 蓝</span></span><br><span class="line">    <span class="attr">title</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;plain_text&#x27;</span>, <span class="attr">content</span>: <span class="string">`<span class="subst">$&#123;EMOJI_BY_LEVEL[level]&#125;</span> <span class="subst">$&#123;input.title&#125;</span>`</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="number">140</span>) &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">elements</span>: [</span><br><span class="line">    &#123; <span class="attr">tag</span>: <span class="string">&#x27;div&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;lark_md&#x27;</span>, <span class="attr">content</span>: input.<span class="property">lines</span>.<span class="title function_">join</span>(<span class="string">&#x27;\n&#x27;</span>) &#125; &#125;,</span><br><span class="line">    ...(input.<span class="property">code</span>?.<span class="property">body</span></span><br><span class="line">      ? [</span><br><span class="line">          &#123; <span class="attr">tag</span>: <span class="string">&#x27;hr&#x27;</span> &#125;,</span><br><span class="line">          &#123; <span class="attr">tag</span>: <span class="string">&#x27;div&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;lark_md&#x27;</span>, <span class="attr">content</span>: <span class="string">`**<span class="subst">$&#123;input.code.title&#125;</span>**`</span> &#125; &#125;,</span><br><span class="line">          <span class="comment">// plain_text：原样渲染，不做 markdown 解析</span></span><br><span class="line">          &#123; <span class="attr">tag</span>: <span class="string">&#x27;div&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;plain_text&#x27;</span>, <span class="attr">content</span>: <span class="title function_">truncateBlock</span>(input.<span class="property">code</span>.<span class="property">body</span>) &#125; &#125;</span><br><span class="line">        ]</span><br><span class="line">      : []),</span><br><span class="line">    ...(input.<span class="property">link</span></span><br><span class="line">      ? [&#123; <span class="attr">tag</span>: <span class="string">&#x27;action&#x27;</span>, <span class="attr">actions</span>: [&#123; <span class="attr">tag</span>: <span class="string">&#x27;button&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;plain_text&#x27;</span>, <span class="attr">content</span>: input.<span class="property">link</span>.<span class="property">text</span> &#125;, <span class="attr">type</span>: <span class="string">&#x27;primary&#x27;</span>, <span class="attr">url</span>: input.<span class="property">link</span>.<span class="property">url</span> &#125;] &#125;]</span><br><span class="line">      : [])</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><code>truncateBlock</code> 是<strong>按行</strong>截断而不是按字符。直接 <code>slice</code> 会把最后一帧砍成半句，看起来像数据损坏；按行切至少每一帧都是完整的。上限我定在 1800 字符，不是因为飞书装不下（单条消息上限约 30KB），是因为群里刷过去二十屏堆栈和没推是一样的效果。</p>
+<p>拼出来的卡片长这样，这是线上真实告警，不是示意图：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/496cb77202d38353.jpg" alt="飞书群里收到的 Sentry 告警卡片，含调用栈"></p>
+<p>级别、环境、版本（<code>commitHash</code>）、位置、触发的规则名、报错原文，然后一条分割线下面是从崩溃点往外的调用栈，最后一个按钮直达 Sentry。看到这张卡基本就能判断要不要立刻处理，不用先去开控制台。</p>
 <h3 id="怎么在本地验这整条"><a href="#怎么在本地验这整条" class="headerlink" title="怎么在本地验这整条"></a>怎么在本地验这整条</h3><p>不用等 Sentry 真的给你发告警。我的做法是<strong>让应用真实报一次错，用第四节那个假接收端抓下它发出的 envelope，再把里面的 <code>exception</code> 原样塞进一条 webhook 报文重放</strong>，这样堆栈是真的，不是手写的假数据：</p>
 <figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> ev = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(fs.<span class="title function_">readFileSync</span>(<span class="string">&#x27;/tmp/real-event.json&#x27;</span>, <span class="string">&#x27;utf8&#x27;</span>))</span><br><span class="line"><span class="keyword">const</span> primary = ev.<span class="property">exception</span>.<span class="property">values</span>.<span class="title function_">at</span>(-<span class="number">1</span>)</span><br><span class="line"><span class="keyword">const</span> payload = &#123;</span><br><span class="line">  <span class="attr">action</span>: <span class="string">&#x27;triggered&#x27;</span>,</span><br><span class="line">  <span class="attr">data</span>: &#123;</span><br><span class="line">    <span class="attr">triggered_rule</span>: <span class="string">&#x27;[P1] 新错误&#x27;</span>,</span><br><span class="line">    <span class="attr">event</span>: &#123;</span><br><span class="line">      <span class="attr">issue_id</span>: <span class="string">&#x27;local-replay&#x27;</span>,</span><br><span class="line">      <span class="attr">title</span>: <span class="string">`<span class="subst">$&#123;primary.type&#125;</span>: <span class="subst">$&#123;primary.value&#125;</span>`</span>,</span><br><span class="line">      <span class="attr">level</span>: ev.<span class="property">level</span>,</span><br><span class="line">      <span class="attr">environment</span>: ev.<span class="property">environment</span>,</span><br><span class="line">      <span class="attr">exception</span>: ev.<span class="property">exception</span>          <span class="comment">// 关键：原样带上真实堆栈</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> body = <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(payload)</span><br><span class="line"><span class="keyword">const</span> sig = crypto.<span class="title function_">createHmac</span>(<span class="string">&#x27;sha256&#x27;</span>, <span class="variable constant_">SECRET</span>).<span class="title function_">update</span>(body, <span class="string">&#x27;utf8&#x27;</span>).<span class="title function_">digest</span>(<span class="string">&#x27;hex&#x27;</span>)</span><br><span class="line"><span class="keyword">await</span> <span class="title function_">fetch</span>(url, &#123; <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>, <span class="attr">headers</span>: &#123; <span class="string">&#x27;sentry-hook-signature&#x27;</span>: sig &#125;, body &#125;)</span><br></pre></td></tr></table></figure>
 
@@ -462,7 +472,47 @@
 </tbody></table>
 <p>Client Secret 在保存后的 Credentials 区域，<strong>只显示一次</strong>，页面上写着 “Your secret is only available briefly after integration creation”。我截图存了一份，下次刷新回去就只剩 <code>hidden</code> 了，丢了只能 Rotate 重新生成再改配置发版。</p>
 <p>告警规则那边，我用规则名前缀做分级，<code>[P0] </code> 开头的在中转服务里跳过节流、每次触发都推，其余走 30 分钟去重。还有一条容易忘的：<strong>给「新错误」那条规则加一个排除条件</strong>，把项目里那种「每次访问必抛错」的调试路由排掉，不然爬虫扫到就会一直推。</p>
-<h2 id="八、飞书这边的两个必踩坑"><a href="#八、飞书这边的两个必踩坑" class="headerlink" title="八、飞书这边的两个必踩坑"></a>八、飞书这边的两个必踩坑</h2><p>我用的是自建应用而不是群机器人 webhook。群机器人一个 URL 就能发，看起来更省事，但它有两个硬伤：webhook URL 本身就是凭据，泄露了谁都能往群里发；而且它只能发到创建它的那个群，以后想加一个「只收 P0」的群就得再申请一个。自建应用拿到的是 <code>tenant_access_token</code>，发给谁由 <code>receive_id</code> 决定，以后要分群、要私聊到人，都是换一个 id 的事。</p>
+<h2 id="八、飞书自建应用怎么配，以及那个「配了不生效」的坑"><a href="#八、飞书自建应用怎么配，以及那个「配了不生效」的坑" class="headerlink" title="八、飞书自建应用怎么配，以及那个「配了不生效」的坑"></a>八、飞书自建应用怎么配，以及那个「配了不生效」的坑</h2><p>我用的是自建应用而不是群机器人 webhook。群机器人一个 URL 就能发，看起来更省事，但它有两个硬伤：webhook URL 本身就是凭据，泄露了谁都能往群里发；而且它只能发到创建它的那个群，以后想加一个「只收 P0」的群就得再申请一个。自建应用拿到的是 <code>tenant_access_token</code>，发给谁由 <code>receive_id</code> 决定，以后要分群、要私聊到人，都是换一个 id 的事。</p>
+<h3 id="先给应用加「机器人」能力"><a href="#先给应用加「机器人」能力" class="headerlink" title="先给应用加「机器人」能力"></a>先给应用加「机器人」能力</h3><p>去<a href="https://open.feishu.cn/app">飞书开放平台</a>建一个企业自建应用，然后在「添加应用能力」里把<strong>机器人</strong>加上。不加这个能力，后面所有发消息的接口都会拒你：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/ea7f4a59da5f1ad9.jpg" alt="飞书开放平台添加机器人能力"></p>
+<h3 id="权限用批量导入，别一个个点"><a href="#权限用批量导入，别一个个点" class="headerlink" title="权限用批量导入，别一个个点"></a>权限用批量导入，别一个个点</h3><p>「开发配置 → 权限管理」里有个<strong>批量导入&#x2F;导出权限</strong>，粘 JSON 进去比在几百个权限里翻快得多：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/8dcc7587163f3f86.jpg" alt="飞书权限批量导入 JSON"></p>
+<p>我导的是这一份：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;scopes&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;tenant&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;cardkit:card:write&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;contact:contact.base:readonly&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;contact:user.base:readonly&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:chat:readonly&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message.group_at_msg:readonly&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message.group_msg&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message.p2p_msg:readonly&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message.reactions:read&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message:readonly&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message:recall&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message:send_as_bot&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:message:update&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;im:resource&quot;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;user&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;contact:contact.base:readonly&quot;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>说明白一点：纯推告警用不了这么多。</strong> 只发卡片的话，<code>im:message:send_as_bot</code>（以应用身份发消息）加上 <code>im:chat:readonly</code>（能拿到群信息）基本就够了。上面这份是按「以后这个机器人还要能收消息、能被 @、能撤回和更新自己发出去的卡片」准备的，比如出了故障之后想在群里 @ 机器人问一句、或者让它把已推的卡片改成「已处理」，那就得有 <code>im:message:receive</code> 相关和 <code>im:message:update</code>。</p>
+<p>按你的用途裁剪，权限给少点总是更安全。确认页会列出这次新增了哪些：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/f06d9f43ba9bed77.jpg" alt="确认导入的 14 项权限"></p>
+<h3 id="要双向交互才需要订阅事件"><a href="#要双向交互才需要订阅事件" class="headerlink" title="要双向交互才需要订阅事件"></a>要双向交互才需要订阅事件</h3><p>只推告警的话这一步可以跳过。如果想让机器人能收消息，去「事件与回调」订阅这四个：</p>
+<table>
+<thead>
+<tr>
+<th>事件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>im.message.receive_v1</code></td>
+<td>接收消息</td>
+</tr>
+<tr>
+<td><code>im.message.message_read_v1</code></td>
+<td>消息已读回执</td>
+</tr>
+<tr>
+<td><code>im.chat.member.bot.added_v1</code></td>
+<td>机器人进群</td>
+</tr>
+<tr>
+<td><code>im.chat.member.bot.deleted_v1</code></td>
+<td>机器人被移出群</td>
+</tr>
+</tbody></table>
+<p>订阅方式推荐选<strong>长连接</strong>，不用注册公网域名、也不用配加密策略，跑官方 SDK 起个客户端就行：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/9a1817c21ed39272.jpg" alt="飞书事件配置与长连接订阅"></p>
+<h3 id="最容易翻车的一步：配完必须创建版本并发布"><a href="#最容易翻车的一步：配完必须创建版本并发布" class="headerlink" title="最容易翻车的一步：配完必须创建版本并发布"></a>最容易翻车的一步：配完必须创建版本并发布</h3><p>页面顶部一直挂着一条橙色提示，<strong>「应用发布后，当前配置方可生效」</strong>：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/5edf2bcccc2ee172.jpg" alt="创建版本并发布应用"></p>
+<p>权限也好、事件也好，在后台点完保存<strong>都还没生效</strong>，得去「版本管理与发布」创建一个版本、提交发布，个人版会走一次审核。我当时就是配完直接去调接口，返回的错误码指向权限不足，而后台明明显示「已开通」，绕了一圈才看到顶上那条提示。<strong>配置保存 ≠ 生效</strong>，这句话值得贴在屏幕上。</p>
 <p><strong>第一个坑，卡片的 <code>content</code> 必须是字符串。</strong> 直接传对象会返回 <code>230001</code>：</p>
 <figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">  <span class="attr">receive_id</span>: chatId,</span><br><span class="line">  <span class="attr">msg_type</span>: <span class="string">&#x27;interactive&#x27;</span>,</span><br><span class="line">  <span class="attr">content</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(card)   <span class="comment">// 注意这里是二次 stringify，不是笔误</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
@@ -510,6 +560,8 @@
 <li><input disabled="" type="checkbox"> Internal Integration 的 <strong>Alert Action 开关打开了</strong>（不叫 Alert Rule Action），Webhooks 里的 <code>Errors</code> <strong>没有勾</strong></li>
 <li><input disabled="" type="checkbox"> 验签用的是 <code>await request.text()</code> 的原始字符串，不是 <code>JSON.stringify(body)</code></li>
 <li><input disabled="" type="checkbox"> 没配 <code>SENTRY_WEBHOOK_SECRET</code> 时端点返回 401（fail-closed），不是放行</li>
+<li><input disabled="" type="checkbox"> 飞书应用加了<strong>机器人能力</strong>，权限至少有 <code>im:message:send_as_bot</code></li>
+<li><input disabled="" type="checkbox"> 飞书后台<strong>创建了版本并发布</strong>（配置保存不等于生效，顶上那条橙色提示说的就是这个）</li>
 <li><input disabled="" type="checkbox"> 飞书 <code>content</code> 做了二次 <code>JSON.stringify</code>，<code>tenant_access_token</code> 有缓存和并发单飞锁</li>
 <li><input disabled="" type="checkbox"> 告警规则里排除了「每次访问必抛错」的调试路由</li>
 <li><input disabled="" type="checkbox"> 准备一个一键止血开关（我用的是 <code>NEXT_PUBLIC_SENTRY_DISABLED=true</code>），配额被刷爆时不用发版就能停</li>
