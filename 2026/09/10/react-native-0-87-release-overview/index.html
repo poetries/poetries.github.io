@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>React Native 0.87 解读与升级要点 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="TypeScript,React Native,移动端开发," />
+  
+
+  <meta name="description" content="React Native 0.87 版本分析，梳理严格 TypeScript API、Metro 性能改进、实验性 SwiftPM 和 AGP 9 支持，结合代码示例说明对现有项目的影响与升级评估重点。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="React Native 0.87 解读与升级要点">
+<meta property="og:url" content="http://blog.poetries.top/2026/09/10/react-native-0-87-release-overview/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="React Native 0.87 版本分析，梳理严格 TypeScript API、Metro 性能改进、实验性 SwiftPM 和 AGP 9 支持，结合代码示例说明对现有项目的影响与升级评估重点。">
+<meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/65381cfe1152d2f9.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/06b3cdb23742c247.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/32b98a499d2a2087.jpg">
+<meta property="article:published_time" content="2026-09-10T05:49:55.000Z">
+<meta property="article:modified_time" content="2026-09-14T09:07:09.624Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="TypeScript">
+<meta property="article:tag" content="React Native">
+<meta property="article:tag" content="移动端开发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/09/65381cfe1152d2f9.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/logo.webp">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%85%88%E6%8C%89%E5%BD%B1%E5%93%8D%E8%8C%83%E5%9B%B4%E7%9C%8B%E8%BF%99%E6%AC%A1%E6%9B%B4%E6%96%B0"><span class="toc-text">一、先按影响范围看这次更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E4%B8%A5%E6%A0%BC%E7%B1%BB%E5%9E%8B-API-%E6%8A%8A%E5%85%AC%E5%BC%80%E6%8E%A5%E5%8F%A3%E8%BE%B9%E7%95%8C%E8%90%BD%E5%88%B0%E4%BA%86%E5%B7%A5%E5%85%B7%E9%87%8C"><span class="toc-text">二、严格类型 API 把公开接口边界落到了工具里</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%8E%E6%BA%90%E7%A0%81%E7%94%9F%E6%88%90%E7%B1%BB%E5%9E%8B"><span class="toc-text">为什么需要从源码生成类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%84%E4%BB%B6%E5%BC%95%E7%94%A8%E8%AF%A5%E6%80%8E%E4%B9%88%E5%86%99"><span class="toc-text">组件引用该怎么写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%B4%E6%97%B6%E9%80%80%E5%87%BA%E5%8F%AA%E8%A7%A3%E5%86%B3%E7%B1%BB%E5%9E%8B%E6%A3%80%E6%9F%A5%E8%BF%99%E4%B8%80%E5%B1%82"><span class="toc-text">临时退出只解决类型检查这一层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Metro-%E7%9A%84%E6%94%B6%E7%9B%8A%E8%A6%81%E5%9C%A8%E5%BC%80%E5%8F%91%E6%B5%81%E7%A8%8B%E9%87%8C%E8%A1%A1%E9%87%8F"><span class="toc-text">三、Metro 的收益要在开发流程里衡量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81SwiftPM-%E5%80%BC%E5%BE%97%E8%AF%95%E9%AA%8C%EF%BC%8C%E7%8E%B0%E6%9C%89%E7%94%9F%E4%BA%A7%E5%B7%A5%E7%A8%8B%E4%BB%8D%E9%9C%80%E5%AE%A1%E6%85%8E%E8%AF%84%E4%BC%B0"><span class="toc-text">四、SwiftPM 值得试验，现有生产工程仍需审慎评估</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81AGP-9-%E6%94%AF%E6%8C%81%E9%9C%80%E8%A6%81%E8%BF%9E%E5%90%8C%E5%B7%A5%E5%85%B7%E9%93%BE%E4%B8%80%E8%B5%B7%E7%9C%8B"><span class="toc-text">五、AGP 9 支持需要连同工具链一起看</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81InteractionManager-%E7%9A%84%E6%9B%BF%E6%8D%A2%E8%A6%81%E4%BF%9D%E7%95%99%E4%B8%9A%E5%8A%A1%E8%AF%AD%E4%B9%89"><span class="toc-text">六、InteractionManager 的替换要保留业务语义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%8A%8A%E5%8D%87%E7%BA%A7%E8%AF%84%E4%BC%B0%E5%8F%98%E6%88%90%E5%8F%AF%E5%A4%8D%E6%9F%A5%E7%9A%84%E8%AE%B0%E5%BD%95"><span class="toc-text">七、把升级评估变成可复查的记录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-text">八、总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E5%8F%82%E8%80%83"><span class="toc-text">九、参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="/images/gongzhonghao.webp" alt="公众号：前端进阶之旅">
+  </div> 
+</div>
+
+<article id="post-react-native-0-87-release-overview" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">React Native 0.87 解读与升级要点</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.09.10</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 3.9k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 14分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <blockquote>
+<p>文章首发于: <a href="https://feinterview.poetries.top/blog/react-native-0-87-release-overview">https://feinterview.poetries.top/blog/react-native-0-87-release-overview</a></p>
+</blockquote>
+<p>本文围绕四个问题展开：</p>
+<ul>
+<li>严格 <code>TypeScript API</code> 成为默认后，哪些报错需要修改业务代码？</li>
+<li><code>Metro</code> 的性能提升落在哪一段开发流程，应该怎样验证？</li>
+<li><code>SwiftPM</code> 给 <code>iOS</code> 工程带来了什么，又有哪些试用边界？</li>
+<li>接入 <code>AGP 9</code> 时，为什么还要保留兼容配置？</li>
+</ul>
+<p>升级 <code>React Native</code> 时，真正占时间的往往是依赖和工程配置：一个旧的内部路径导入、一段原生构建脚本，都可能卡住整个过程。2026 年 8 月 11 日发布的 <code>React Native 0.87</code>，恰好集中调整了这些位置。这篇文章基于<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87">官方发布公告</a>做版本解读，并给出便于评估改动范围的小例子；侧重解释变化及其影响，不承诺一套命令就能迁移所有项目。</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/65381cfe1152d2f9.jpg" alt="React Native 0.87 的严格类型、Metro、SwiftPM 与 AGP 9 更新概览"></p>
+<h2 id="一、先按影响范围看这次更新"><a href="#一、先按影响范围看这次更新" class="headerlink" title="一、先按影响范围看这次更新"></a>一、先按影响范围看这次更新</h2><p>把公告里的变化映射到日常工作，可以得到这样一张表：</p>
+<table>
+<thead>
+<tr>
+<th>关注方向</th>
+<th>先检查什么</th>
+<th>谁更需要关注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类型与公开接口</td>
+<td>业务导入路径、组件引用、依赖暴露的类型</td>
+<td>应用开发者、组件库维护者</td>
+</tr>
+<tr>
+<td>开发工具</td>
+<td>配置文件、调试加载时间、开发机内存</td>
+<td>经常调试大体量应用的团队</td>
+</tr>
+<tr>
+<td><code>iOS</code> 依赖管理</td>
+<td>原生库的接入方式、工程定制、干净环境构建</td>
+<td>原生集成负责人</td>
+</tr>
+<tr>
+<td><code>Android</code> 工程</td>
+<td>插件版本、构建脚本、持续集成环境</td>
+<td>构建与发布负责人</td>
+</tr>
+</tbody></table>
+<p>这张表也是我建议的评估顺序：先找到项目实际依赖了什么，再决定要测试哪些变化。一个主要使用公开组件的小应用，和维护多个自定义原生模块的工程，即使从同一版本升级，工作量也会相差很大。</p>
+<p>尤其不要把“依赖安装成功”当作升级终点。类型检查、打包、原生编译、实际交互，各自只能验证一部分问题。把它们拆开记录，失败时才能知道应该找业务代码、第三方库，还是构建环境。</p>
+<h2 id="二、严格类型-API-把公开接口边界落到了工具里"><a href="#二、严格类型-API-把公开接口边界落到了工具里" class="headerlink" title="二、严格类型 API 把公开接口边界落到了工具里"></a>二、严格类型 API 把公开接口边界落到了工具里</h2><h3 id="为什么需要从源码生成类型"><a href="#为什么需要从源码生成类型" class="headerlink" title="为什么需要从源码生成类型"></a>为什么需要从源码生成类型</h3><p><code>React Native</code> 的实现使用 <code>Flow</code>，而大量应用使用 <code>TypeScript</code>。过去单独维护的类型声明，相当于在实现之外再维护一份接口说明：实现和说明更新不同步，就会出现“编辑器说能用，实际行为却对不上”的情况。从源码生成类型的方向，在 <code>0.80</code> 的<a href="https://reactnative.dev/blog/2025/06/12/moving-towards-a-stable-javascript-api">稳定 JavaScript API 设计说明</a>中已经提出。</p>
+<p>我的理解是，这项工作的价值在维护阶段更明显。开发者可以把类型错误当作检查接口使用方式的入口，库维护者也能更清楚地知道哪些东西属于公开契约。一个内部文件恰好能被导入，并不意味着它适合成为长期依赖。</p>
+<p><code>0.87</code> 默认启用严格类型接口。常见调整包括把深层路径导入改为根入口导入，以及为组件引用使用专门的实例类型。下面以 <code>TextInput</code> 为例，只展示导入路径的变化：</p>
+<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line"><span class="deletion">- import TextInput from &#x27;react-native/Libraries/Components/TextInput/TextInput&#x27;;</span></span><br><span class="line"><span class="addition">+ import &#123;TextInput&#125; from &#x27;react-native&#x27;;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个替换适用于根入口已有对应导出的情况。遇到只有内部实现、没有公开替代的能力，需要重新检查用途，不能把每个路径都机械地改成同名根导出。</p>
+<h3 id="组件引用该怎么写"><a href="#组件引用该怎么写" class="headerlink" title="组件引用该怎么写"></a>组件引用该怎么写</h3><p>下面是一个完整的组件示例：输入框引用使用 <code>TextInputInstance</code>，按钮点击时调用实例的 <code>focus()</code> 方法。</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;useRef&#125; <span class="keyword">from</span> <span class="string">&#x27;react&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123;<span class="title class_">Button</span>, <span class="title class_">TextInput</span>, <span class="title class_">View</span>&#125; <span class="keyword">from</span> <span class="string">&#x27;react-native&#x27;</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">type</span> &#123;<span class="title class_">TextInputInstance</span>&#125; <span class="keyword">from</span> <span class="string">&#x27;react-native&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> <span class="title function_">SearchField</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> inputRef = useRef&lt;<span class="title class_">TextInputInstance</span>&gt;(<span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    <span class="language-xml"><span class="tag">&lt;<span class="name">View</span>&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">TextInput</span> <span class="attr">ref</span>=<span class="string">&#123;inputRef&#125;</span> <span class="attr">placeholder</span>=<span class="string">&quot;输入关键词&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="language-xml">      <span class="tag">&lt;<span class="name">Button</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">title</span>=<span class="string">&quot;开始输入&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml">        <span class="attr">onPress</span>=<span class="string">&#123;()</span> =&gt;</span> inputRef.current?.focus()&#125;</span></span><br><span class="line"><span class="language-xml">      /&gt;</span></span><br><span class="line"><span class="language-xml">    <span class="tag">&lt;/<span class="name">View</span>&gt;</span></span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里明确区分了用于渲染的组件和用于调用方法的实例。已有的 <code>React.ComponentRef&lt;typeof TextInput&gt;</code> 也仍然有效，无须为了统一写法全部替换。具体规则见<a href="https://reactnative.dev/docs/strict-typescript-api#refs-now-use-instance-types">严格类型 API 的引用迁移说明</a>。</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/06b3cdb23742c247.jpg" alt="React Native 严格类型接口将内部路径导入迁移到公开入口和 TextInputInstance"></p>
+<p>迁移时，我建议先按错误所在文件分组：自己维护的业务组件直接修；依赖相关错误先找兼容版本；历史测试辅助代码单独检查。这样比先添加一批类型断言更容易留下可维护的结果。</p>
+<p>还要注意第三方包交付的内容。官方文档建议保留默认的 <code>skipLibCheck</code>，但它针对声明文件；如果依赖让应用直接导入原始 <code>TypeScript</code> 源文件，例如某个测试入口，这部分仍可能参与应用检查。<a href="https://reactnative.dev/docs/strict-typescript-api#before-you-start">迁移前准备说明</a>解释了这个边界。</p>
+<h3 id="临时退出只解决类型检查这一层"><a href="#临时退出只解决类型检查这一层" class="headerlink" title="临时退出只解决类型检查这一层"></a>临时退出只解决类型检查这一层</h3><p>确实被依赖阻塞时，可以在现有 <code>tsconfig.json</code> 中合并下面的配置；如果已有其他自定义条件，要一并保留：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;extends&quot;</span><span class="punctuation">:</span> <span class="string">&quot;@react-native/typescript-config&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;compilerOptions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;customConditions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;react-native&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;react-native-legacy-deep-imports&quot;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个开关会切回旧类型。严格类型模式本身不替换运行时的 <code>JavaScript</code>；<code>0.87</code> 对 <code>src/private/*</code> 导出的移除是另一项会影响运行时的变化，不能靠此配置恢复。参见<a href="https://reactnative.dev/docs/strict-typescript-api#faqs">官方常见问题</a>。</p>
+<p>公告给出的旧类型退出窗口覆盖 <code>0.88</code>，并计划在随后版本移除旧类型。若团队采用这个过渡方案，我建议在升级任务中记录具体阻塞依赖和退出条件，避免兼容开关被遗忘。<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#opting-out">退出窗口说明</a></p>
+<h2 id="三、Metro-的收益要在开发流程里衡量"><a href="#三、Metro-的收益要在开发流程里衡量" class="headerlink" title="三、Metro 的收益要在开发流程里衡量"></a>三、Metro 的收益要在开发流程里衡量</h2><p>本次 <code>Metro</code> 从 <code>0.84</code> 更新到 <code>0.87</code>。官方报告的收益包括：<code>source map</code> 生成速度约为此前两倍，因映射存储优化而使 <code>Metro</code> 内存占用约减半；<code>TypeScript</code> 和 <code>ESM</code> 配置支持也进入稳定状态。<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#faster-leaner-metro">Metro 更新说明</a></p>
+<p>这些数字描述的是工具链。它们没有给出应用滚动帧率、启动耗时或手机端内存的相同比例收益。写升级报告时，最好保留指标的对象：开发机上的打包进程，和用户设备上的应用进程，要分别观察。</p>
+<p>如果想判断团队是否从中受益，我会做三组对照：</p>
+<ol>
+<li>固定业务代码、机器和启动方式，记录冷缓存与热缓存下的打包时间。</li>
+<li>打开相同页面和调试工具，记录源码及映射加载完成的时间。</li>
+<li>固定一次调试操作路径，记录 <code>Metro</code> 进程的峰值内存，多跑几轮观察波动。</li>
+</ol>
+<p>这个方案是本文的测量建议，本文没有提供本地性能实测结果。对照时还应记录锁文件和配置差异，否则同时升级了插件或更换了缓存策略，就很难解释收益来自哪里。</p>
+<p>配置迁移同样值得单独安排。通用的 <a href="https://metrobundler.dev/docs/configuration/">Metro 配置文档</a>列出了 <code>metro.config.mjs</code>、<code>metro.config.mts</code> 等形式，并说明了原生加载 <code>TypeScript</code> 配置对 <code>Node.js</code> 的要求。选用新格式时，要把配置加载能力纳入开发机和持续集成检查。</p>
+<p>另外，通用配置页仍有将 <code>YAML</code> 标为弃用的文字，而 <code>0.87</code> 公告明确将 <code>YAML</code> 和 <code>.es6</code> 配置列为移除项。针对这次升级，应按版本公告检查旧配置，并在实际锁定的工具版本下验证加载结果。</p>
+<p>如果关注的是应用卡顿，可以接着看站内的<a href="./react-native-ios-android-device-performance-profiling.md">React Native 真机性能定位文章</a>，把调试效率和真机体验放在各自的测量环节里。</p>
+<h2 id="四、SwiftPM-值得试验，现有生产工程仍需审慎评估"><a href="#四、SwiftPM-值得试验，现有生产工程仍需审慎评估" class="headerlink" title="四、SwiftPM 值得试验，现有生产工程仍需审慎评估"></a>四、SwiftPM 值得试验，现有生产工程仍需审慎评估</h2><p><code>Swift Package Manager</code> 是 <code>0.87</code> 新增的实验性 <code>iOS</code> 接入路径，默认方案仍是 <code>CocoaPods</code>。官方明确要求暂不用于生产。<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#experimental-swift-package-manager-support-for-ios">SwiftPM 发布说明</a></p>
+<p>对团队来说，它值得观察的地方是原生依赖管理能否更贴近 <code>Xcode</code> 工作流。不过，工程是否更省心，最终取决于应用里那些原生依赖能否顺利接入，尤其是带自定义脚本和二进制资源的库。</p>
+<p>在已经保存改动的独立试验分支中，可以按官方入口尝试切换。注意 <code>--deintegrate</code> 会移除工程中的 <code>CocoaPods</code> 集成：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> ios</span><br><span class="line">npx react-native spm --deintegrate</span><br></pre></td></tr></table></figure>
+
+<p>这条命令会修改工程。试验后应检查版本差异、构建应用并验证原生能力；不要把命令退出成功当作所有依赖已经兼容。</p>
+<p>需要撤销集成时，官方提供了反向命令。在同一个 <code>ios</code> 目录执行：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npx react-native spm deinit</span><br></pre></td></tr></table></figure>
+
+<p>首次克隆和持续集成构建前仍需执行一次 <code>npx react-native spm</code>。社区库需要提供 <code>Package.swift</code>；缺失时可以尝试官方的 <code>scaffold</code> 工具，但生成清单之后仍要验证库的实际构建行为。<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#experimental-swift-package-manager-support-for-ios">SwiftPM 初始化与限制</a></p>
+<p>相关 <a href="https://github.com/react-native-community/discussions-and-proposals/pull/994">RFC #994</a>也讨论了已有原生应用集成、构建脚本和打包形式。它适合帮助理解设计背景；具体可用范围应以版本公告和实际工具输出为准。</p>
+<p>我的建议是选一条有代表性的验证路径，例如“启动应用、打开相机、获取权限、返回业务页”，再加一次全新环境构建。空白工程通过只能证明基础接入可行，加入关键原生依赖后，结果才更接近自己的项目。</p>
+<h2 id="五、AGP-9-支持需要连同工具链一起看"><a href="#五、AGP-9-支持需要连同工具链一起看" class="headerlink" title="五、AGP 9 支持需要连同工具链一起看"></a>五、AGP 9 支持需要连同工具链一起看</h2><p>先把 <code>React Native 0.87</code> 公告中的几个版本要求记清楚：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>公告给出的要求或版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Node.js</code></td>
+<td>至少 <code>22.13.0</code></td>
+</tr>
+<tr>
+<td><code>Kotlin</code></td>
+<td>最低 <code>2.0+</code>，随版本提供的是 <code>2.2.0</code></td>
+</tr>
+<tr>
+<td><code>Android minCompileSdk</code></td>
+<td><code>34</code></td>
+</tr>
+<tr>
+<td><code>Android compileSdk</code> &#x2F; <code>buildTools</code></td>
+<td>提升到 <code>37</code></td>
+</tr>
+</tbody></table>
+<p>这些数据来自<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#minimum-toolchain-requirements">最低工具链要求</a>。其中编译相关字段不能用来直接推断最低可安装系统版本；评估设备覆盖范围时还要检查应用自身的 <code>minSdk</code> 配置。</p>
+<p><code>AGP 9</code> 默认带来了内置 <code>Kotlin</code> 支持和新的构建配置接口，会影响已有插件如何接入构建过程。Android 官方要求在升级时选择迁移到内置支持或退出该行为，见 <a href="https://developer.android.com/build/releases/agp-9-0-0-release-notes">AGP 9 发布说明</a>。</p>
+<p><code>React Native 0.87</code> 当前建议在 <code>android/gradle.properties</code> 中保留下面两项过渡配置：</p>
+<figure class="highlight properties"><table><tr><td class="code"><pre><span class="line"><span class="attr">android.builtInKotlin</span>=<span class="string">false</span></span><br><span class="line"><span class="attr">android.newDsl</span>=<span class="string">false</span></span><br></pre></td></tr></table></figure>
+
+<p>它们用于退出 <code>AGP 9</code> 新增的默认行为。升级时应将这段配置与目标版本的工程差异一起检查，不要只更新插件版本号。<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#android-gradle-plugin-agp-v9">React Native 的 AGP 9 接入建议</a></p>
+<p>我会把构建结果按阶段保存：依赖解析、原生源码编译、资源处理、产物安装。假设本地能够生成调试包，但持续集成的发布包失败，优先比对的应是环境版本、构建变体和第三方插件输出。直接回到业务组件里改代码，通常会偏离报错发生的位置。</p>
+<h2 id="六、InteractionManager-的替换要保留业务语义"><a href="#六、InteractionManager-的替换要保留业务语义" class="headerlink" title="六、InteractionManager 的替换要保留业务语义"></a>六、InteractionManager 的替换要保留业务语义</h2><p>公告还包含若干接口清理，其中 <code>InteractionManager</code> 被移除，官方推荐使用 <code>requestIdleCallback</code>。但旧代码的用途值得先读一遍：它究竟只是推迟非紧急任务，还是依赖某个动画或交互完成的时机？<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#api-removals">接口移除清单</a></p>
+<p>旧版<a href="https://reactnative.dev/docs/0.86/interactionmanager">InteractionManager 文档</a>描述了等待交互结束的调度方式；<a href="https://reactnative.dev/docs/global-requestIdleCallback">requestIdleCallback 文档</a>对应的是空闲任务调度。对明确依赖动画结束的业务，我建议接到所用动画库的完成回调，而不是用空闲时机间接猜测。</p>
+<p>下面是可独立使用的非紧急任务队列示例。每个任务都应很短；回调检查剩余时间，在后续空闲时段继续处理：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">scheduleSmallTasks</span>(<span class="params"><span class="attr">tasks</span>: <span class="title class_">Array</span>&lt;() =&gt; <span class="built_in">void</span>&gt;</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> pending = [...tasks];</span><br><span class="line">  <span class="keyword">let</span> cancelled = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">let</span> <span class="attr">handle</span>: <span class="title class_">ReturnType</span>&lt;<span class="keyword">typeof</span> requestIdleCallback&gt; | <span class="literal">undefined</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> <span class="title function_">schedule</span> = (<span class="params"></span>) =&gt; &#123;</span><br><span class="line">    handle = <span class="title function_">requestIdleCallback</span>(<span class="function"><span class="params">deadline</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">while</span> (!cancelled &amp;&amp; pending.<span class="property">length</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (deadline.<span class="title function_">timeRemaining</span>() &lt;= <span class="number">1</span>) <span class="keyword">break</span>;</span><br><span class="line">        pending.<span class="title function_">shift</span>()?.();</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (!cancelled &amp;&amp; pending.<span class="property">length</span> &gt; <span class="number">0</span>) <span class="title function_">schedule</span>();</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (pending.<span class="property">length</span> &gt; <span class="number">0</span>) <span class="title function_">schedule</span>();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> <span class="function">() =&gt;</span> &#123;</span><br><span class="line">    cancelled = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (handle !== <span class="literal">undefined</span>) <span class="title function_">cancelIdleCallback</span>(handle);</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回函数用于页面卸载或任务作废时取消后续执行。这个示例没有设置超时，只适合允许延后的工作；持续繁忙时可能长时间没有进展。必须及时完成的任务，需要另行设计超时与处理预算。一个已经开始执行的长同步任务也不会被它切开，任务粒度仍要由业务控制。这些限制符合<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback">空闲回调的调度语义</a>。</p>
+<h2 id="七、把升级评估变成可复查的记录"><a href="#七、把升级评估变成可复查的记录" class="headerlink" title="七、把升级评估变成可复查的记录"></a>七、把升级评估变成可复查的记录</h2><p>对于已有项目，我建议先用 <a href="https://react-native-community.github.io/upgrade-helper/">React Native Upgrade Helper</a>选择当前版本和目标版本，阅读模板差异，然后列出项目自己的特殊配置。下面这份清单可以作为评估记录：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/32b98a499d2a2087.jpg" alt="React Native 升级从环境版本、类型检查到双端构建和真机验证的流程"></p>
+<ul>
+<li>开发机与持续集成使用的工具版本已经逐项记录。</li>
+<li>业务代码、测试代码和自定义原生模块中的内部导入已经检查。</li>
+<li>类型检查通过，或者每个临时兼容项都有明确的阻塞原因。</li>
+<li>两个平台分别完成实际使用的构建变体，关键原生依赖已验证。</li>
+<li>登录、输入、键盘、导航、权限请求等核心交互完成回归。</li>
+<li>性能记录区分开发工具数据和设备端应用数据。</li>
+<li>试验性依赖管理变更有独立记录，可单独撤销。</li>
+</ul>
+<p>这份清单是本文建议，不是官方承诺的完整升级流程。它的作用是让每次失败都能对应到一个已知环节，也让接手的人知道哪些结论已经验证，哪些只是暂时假设。</p>
+<p>如果项目通过 <code>Expo</code> 管理版本，则应先核对所用 <code>SDK</code> 对应的 <code>React Native</code> 版本。<code>0.87</code> 公告发布时提到的是 <code>expo@canary</code>，不能据此推断所有稳定 <code>SDK</code> 都已经支持。<a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87#expo">公告中的 Expo 说明</a></p>
+<h2 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h2><p>我对 <code>React Native 0.87</code> 的判断是：它值得认真评估，因为类型契约和原生工具链都会影响后续维护成本。实际安排升级时，先识别项目已有依赖，再逐层验证，会比一次性合并所有新选项更容易定位问题。</p>
+<p>对应用开发者，最直接的准备是整理导入、引用类型和旧接口调用；对构建负责人，则是核对环境与原生依赖。把这些工作留下可复查的记录，后续版本升级时就能复用，而不必重新摸索工程为什么能构建。</p>
+<h2 id="九、参考"><a href="#九、参考" class="headerlink" title="九、参考"></a>九、参考</h2><ul>
+<li><a href="https://reactnative.dev/blog/2026/08/11/react-native-0.87">React Native 0.87 官方发布公告</a></li>
+<li><a href="https://reactnative.dev/docs/strict-typescript-api">严格 TypeScript API 与迁移说明</a></li>
+<li><a href="https://reactnative.dev/blog/2025/06/12/moving-towards-a-stable-javascript-api">稳定 JavaScript API 的设计背景</a></li>
+<li><a href="https://metrobundler.dev/docs/configuration/">Metro 配置文档</a></li>
+<li><a href="https://github.com/react-native-community/discussions-and-proposals/pull/994">Swift Package Manager RFC #994</a></li>
+<li><a href="https://developer.android.com/build/releases/agp-9-0-0-release-notes">Android Gradle Plugin 9 官方发布说明</a></li>
+<li><a href="https://reactnative.dev/docs/global-requestIdleCallback">React Native requestIdleCallback</a></li>
+<li><a href="https://react-native-community.github.io/upgrade-helper/">React Native Upgrade Helper</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/07/26/vercel-react-best-practices/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2026/09/14/nextjs-sentry-feishu-alert/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
