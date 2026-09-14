@@ -1,6 +1,5 @@
 ---
 title: Next.js 16 接入 Sentry 与飞书告警实战，sentry-hook-signature 验签、堆栈渲染与踩坑排查
-wechatTitle: 别等用户报 bug，让线上报错自己推到飞书群
 description: Next.js 16 接入 Sentry 与飞书告警的完整实战。覆盖 @sentry/nextjs 10.x 的 instrumentation 三端接线、beforeSend 脱敏层、Internal Integration 的 sentry-hook-signature HMAC 验签、飞书自建应用 tenant_access_token 推送交互卡片、把 exception.values 里的调用栈渲染进卡片，以及 next start 在 standalone 下不工作、Sentry 堆栈顺序是反的、Alert Action 不开就选不到集成等一串真实踩坑。附 webhook 路由完整实现代码。
 date: 2026-09-14 10:12:36
 tags:
@@ -12,6 +11,8 @@ tags:
   - 告警
 categories: Front-End
 ---
+
+> 文章首发于: https://feinterview.poetries.top/blog/nextjs-sentry-feishu-alert
 
 服务端报错只落在容器的 `stdout` 里，而容器日志是轮转的（`--log-opt max-size`），等有人在群里说「你那个页面白屏了」，我再去 `docker logs`，那段往往已经被冲掉了。浏览器端更彻底，压根看不见。更尴尬的是代码里那个组件级 `ErrorBoundary`，`componentDidCatch` 里只有一句 `console.error`，而生产构建开着 `compiler.removeConsole`，所以线上那个分支**什么都没做**，组件静默消失，没有任何人知道。
 
@@ -642,30 +643,13 @@ async function getTenantAccessToken(): Promise<string | null> {
 
 这两件事我都写进了仓库的运维手册，省得下次自己或者别人再从这条链路开始查。顺带说一句，验证部署有没有生效我用了个很省事的办法：新加的 `/api/alerts/sentry-webhook` 路由在发版前是 `404`、发版后是 `401`（因为它 fail-closed），拿这个当部署标记，比盯着 CI 日志直观。这套 CI 流程我在[基于 GitHub Actions 构建 Docker 镜像部署到腾讯云私有仓库](https://feinterview.poetries.top/blog/github-actions-tencent-docker-registry)那篇里写过。
 
-## 十、上生产前的 checklist
-
-- [ ] `node -p "require('@sentry/nextjs/package.json').version"` 能打出版本号（别只看 `yarn add` 的 exit code）
-- [ ] `src/instrumentation-client.ts` 在 `src/` 下、两个 `sentry.*.config.ts` 在仓库根，位置错了不报错只是不生效
-- [ ] 三层错误边界都接了 `captureException`，并打了区分严重程度的 `boundary` tag
-- [ ] `error.tsx` 带上了 `digest`，否则生产环境服务端错误没有可用信息
-- [ ] `beforeSend` 真的挂上去了（用假接收端验一次，看 `?token=` 有没有被剥掉、`extra` 在不在）
-- [ ] `dataCollection.httpBodies` 设成了 `[]`，请求体里有用户数据的项目这条必做
-- [ ] `SENTRY_AUTH_TOKEN` / `SENTRY_ORG` / `SENTRY_PROJECT` 三个都配齐，否则堆栈是压缩后的
-- [ ] `deleteSourcemapsAfterUpload` 保持开启，别把 `.map` 留在 `.next/static`
-- [ ] Internal Integration 的 **Alert Action 开关打开了**（不叫 Alert Rule Action），Webhooks 里的 `Errors` **没有勾**
-- [ ] 验签用的是 `await request.text()` 的原始字符串，不是 `JSON.stringify(body)`
-- [ ] 没配 `SENTRY_WEBHOOK_SECRET` 时端点返回 401（fail-closed），不是放行
-- [ ] 飞书应用加了**机器人能力**，权限至少有 `im:message:send_as_bot`
-- [ ] 飞书后台**创建了版本并发布**（配置保存不等于生效，顶上那条橙色提示说的就是这个）
-- [ ] 飞书 `content` 做了二次 `JSON.stringify`，`tenant_access_token` 有缓存和并发单飞锁
-- [ ] 告警规则里排除了「每次访问必抛错」的调试路由
-- [ ] 准备一个一键止血开关（我用的是 `NEXT_PUBLIC_SENTRY_DISABLED=true`），配额被刷爆时不用发版就能停
-
 ## 总结
 
 整套东西从装包到线上跑通，纯动手时间大概三到四个小时，其中至少一半花在了那几个「不报错但不生效」的坑上：yarn 装了个寂寞、`beforeSend` 因为类型不兼容挂不上去、集成建好了在告警规则里选不到、验签永远失败。这类问题的共同点是**失败是静默的**，所以我后来每加一层都要求自己找到一个能直接看到结果的验证手段，假 Sentry 接收端和对照实验就是这么来的。
 
 收益也很直接。以前是用户告诉我出错了，现在是飞书群先弹一张红色卡片，里面有异常类型、报错原文、环境、版本号和从崩溃点往外的调用栈，点一下按钮跳到 Sentry 看完整上下文。中间那道脱敏层让我不用担心用户的 token 和简历被传出去。
+
+如果你也要接一遍，有五处是我认为最容易漏、而且漏了不会报错的。Sentry 那边要开的是 Internal Integration 的 **Alert Action** 开关，它不叫 Alert Rule Action，而 Webhooks 里的 `Errors` 恰恰**不能**勾；验签必须用 `await request.text()` 拿到的原始字符串，用 `JSON.stringify(body)` 重新序列化过的永远对不上；没配 `SENTRY_WEBHOOK_SECRET` 时端点要返回 401 而不是放行，这是 fail-closed 的底线；飞书那边配置保存不等于生效，必须**创建版本并发布**；最后给自己留一个一键止血开关，我用的是 `NEXT_PUBLIC_SENTRY_DISABLED=true`，配额被刷爆时不用发版就能停。
 
 还没做完的有两件。一是 source map 上传的 token 还没配，所以现在卡片里的函数名还是 `?`，这是下一步最值得补的。二是服务端那条链路到底有多少事件因为跨境网络丢了，我目前没有可靠的量化办法，如果你有好的思路欢迎在评论区告诉我。
 
