@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+
+
+  <html class="dark page-post">
+
+
+<head>
+  <meta charset="utf-8">
+  
+  <title>别等用户报 bug，让线上报错自己推到飞书群 | 前端进阶之旅</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="Next.js,Sentry,飞书,错误监控,可观测性,告警," />
+  
+
+  <meta name="description" content="Next.js 16 接入 Sentry 与飞书告警的完整实战。覆盖 @sentry&#x2F;nextjs 10.x 的 instrumentation 三端接线、beforeSend 脱敏层、Internal Integration 的 sentry-hook-signature HMAC 验签、飞书自建应用 tenant_access_token 推送交互卡片、把 exception.values 里">
+<meta property="og:type" content="article">
+<meta property="og:title" content="别等用户报 bug，让线上报错自己推到飞书群">
+<meta property="og:url" content="http://blog.poetries.top/2026/09/14/nextjs-sentry-feishu-alert/index.html">
+<meta property="og:site_name" content="前端进阶之旅">
+<meta property="og:description" content="Next.js 16 接入 Sentry 与飞书告警的完整实战。覆盖 @sentry&#x2F;nextjs 10.x 的 instrumentation 三端接线、beforeSend 脱敏层、Internal Integration 的 sentry-hook-signature HMAC 验签、飞书自建应用 tenant_access_token 推送交互卡片、把 exception.values 里">
+<meta property="og:locale">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/10827f0668914ec7.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/c034c3b544afbb99.jpg">
+<meta property="og:image" content="https://s.poetries.top/uploads/2026/09/0b4e62dd129fd5c6.jpg">
+<meta property="article:published_time" content="2026-09-14T02:12:36.000Z">
+<meta property="article:modified_time" content="2026-09-14T02:17:29.692Z">
+<meta property="article:author" content="Poetry">
+<meta property="article:tag" content="Next.js">
+<meta property="article:tag" content="Sentry">
+<meta property="article:tag" content="飞书">
+<meta property="article:tag" content="错误监控">
+<meta property="article:tag" content="可观测性">
+<meta property="article:tag" content="告警">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s.poetries.top/uploads/2026/09/10827f0668914ec7.jpg">
+
+  
+
+  
+    <link rel="icon" href="/images/logo.webp">
+  
+
+  <link href="/css/styles.css?v=c114cbeddx" rel="stylesheet">
+<link href="/css/other.css?v=c114cbeddx" rel="stylesheet">
+
+
+  
+    
+<link rel="stylesheet" href="/css/personal-style.css">
+
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?5081f3afc8d94338e79d319c8b632b31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+
+  <!-- 聊天系统 -->
+  
+    
+   <link type="text/css" rel="stylesheet" href="/renxi/default.css">
+   <style>
+      #modal {
+        position: static !important;
+      }
+      .filter {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #fe5757;
+        animation: colorChange 30s ease-in-out infinite;
+        animation-fill-mode: both;
+        mix-blend-mode: overlay;
+      }
+  
+      @keyframes colorChange {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: .9;
+        }
+      }
+   </style>
+<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="前端进阶之旅" type="application/atom+xml">
+</head>
+
+<body>
+  
+  
+    <span id="toolbox-mobile" class="toolbox-mobile">导航</span>
+  
+
+  <div class="post-header CENTER">
+   
+  <div class="toolbox">
+    <a class="toolbox-entry" href="/">
+      <span class="toolbox-entry-text">导航</span>
+      <i class="icon-angle-down"></i>
+      <i class="icon-home"></i>
+    </a>
+    <ul class="list-toolbox">
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/archives/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            博客
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/categories/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            分类
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/tags/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            标签
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/search/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            搜索
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/link/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            友链
+          </a>
+        </li>
+      
+        <li class="item-toolbox">
+          <a
+            class="CIRCLE"
+            href="/about/"
+            rel="noopener noreferrer"
+            target="_self"
+            >
+            关于
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录<i class="iconfont toc-title" style="display:inline-block;color:#87998d;width:20px;height:20px;">&#xf004b;</i></strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="toc-text">一、整体架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%8120-%E5%88%86%E9%92%9F%E8%B7%91%E9%80%9A%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E7%89%88%E6%9C%AC"><span class="toc-text">二、20 分钟跑通最小可用版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-1%EF%BC%9A%E8%A3%85%E5%8C%85%EF%BC%8C%E6%B3%A8%E6%84%8F-yarn-%E7%BC%93%E5%AD%98%E8%BF%99%E4%B8%AA%E5%9D%91"><span class="toc-text">Step 1：装包，注意 yarn 缓存这个坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-2%EF%BC%9A%E4%B8%89%E7%AB%AF%E6%8E%A5%E7%BA%BF%EF%BC%8C%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE%E4%B8%8D%E8%83%BD%E6%94%BE%E9%94%99"><span class="toc-text">Step 2：三端接线，文件位置不能放错</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Step-3%EF%BC%9A%E5%8C%85%E4%B8%80%E5%B1%82%E5%86%8D%E7%BB%99%E4%B8%9A%E5%8A%A1%E7%94%A8"><span class="toc-text">Step 3：包一层再给业务用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%AC%E5%9C%B0-yarn-dev-%E6%94%B6%E4%B8%8D%E5%88%B0%E4%BB%BB%E4%BD%95%E4%B8%8A%E6%8A%A5"><span class="toc-text">三、为什么本地 yarn dev 收不到任何上报</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E8%84%B1%E6%95%8F%E8%BF%99%E5%B1%82%E4%B8%8D%E8%83%BD%E7%9C%81%EF%BC%8C%E6%88%91%E6%98%AF%E6%80%8E%E4%B9%88%E9%AA%8C%E7%9A%84"><span class="toc-text">四、脱敏这层不能省，我是怎么验的</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E5%8F%91%E4%B8%80%E6%9D%A1%E6%95%B0%E6%8D%AE%E7%BB%99-Sentry%EF%BC%8C%E6%80%8E%E4%B9%88%E8%AF%81%E6%98%8E%E8%84%B1%E6%95%8F%E7%94%9F%E6%95%88%E4%BA%86"><span class="toc-text">不发一条数据给 Sentry，怎么证明脱敏生效了</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Sentry-%E7%9A%84%E8%B0%83%E7%94%A8%E6%A0%88%E6%98%AF%E5%8F%8D%E7%9A%84"><span class="toc-text">五、Sentry 的调用栈是反的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81webhook-%E8%B7%AF%E7%94%B1%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%EF%BC%8C%E4%BB%A5%E5%8F%8A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%A0%E7%9A%84%E9%AA%8C%E7%AD%BE%E4%B8%80%E7%9B%B4%E5%A4%B1%E8%B4%A5"><span class="toc-text">六、webhook 路由完整实现，以及为什么你的验签一直失败</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%8C%E6%8A%8A-payload-%E6%8B%8D%E5%B9%B3%E6%88%90%E4%B8%80%E4%B8%AA%E6%91%98%E8%A6%81"><span class="toc-text">第二步，把 payload 拍平成一个摘要</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%8C%E6%8B%BC%E5%8D%A1%E7%89%87%E6%8E%A8%E5%87%BA%E5%8E%BB"><span class="toc-text">第三步，拼卡片推出去</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E5%9C%A8%E6%9C%AC%E5%9C%B0%E9%AA%8C%E8%BF%99%E6%95%B4%E6%9D%A1"><span class="toc-text">怎么在本地验这整条</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E9%9B%86%E6%88%90%E5%BB%BA%E5%A5%BD%E4%BA%86%EF%BC%8C%E5%8D%B4%E5%9C%A8%E5%91%8A%E8%AD%A6%E8%A7%84%E5%88%99%E9%87%8C%E9%80%89%E4%B8%8D%E5%88%B0"><span class="toc-text">七、集成建好了，却在告警规则里选不到</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81%E9%A3%9E%E4%B9%A6%E8%BF%99%E8%BE%B9%E7%9A%84%E4%B8%A4%E4%B8%AA%E5%BF%85%E8%B8%A9%E5%9D%91"><span class="toc-text">八、飞书这边的两个必踩坑</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E4%B8%8A%E7%BA%BF%E5%90%8E%E9%82%A3%E4%B8%A4%E6%AC%A1%E8%AF%AF%E5%88%A4"><span class="toc-text">九、上线后那两次误判</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81%E4%B8%8A%E7%94%9F%E4%BA%A7%E5%89%8D%E7%9A%84-checklist"><span class="toc-text">十、上生产前的 checklist</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+  
+
+
+
+
+<div class="content content-post CENTER">
+   <!-- canvas 彩带 -->
+<canvas id="evanyou" width="1302" height="678" style="position: fixed;width: 100%;height: 100%;top: 0;left:0;z-index:-1;"></canvas>
+
+<div class="qrcode_container">
+  <a href="https://feinterview.poetries.top/" target="_blank" class="fe-guide-card">
+    <span class="fe-guide-badge">NEW</span>
+    <div class="fe-guide-card-inner">
+      <div class="fe-guide-icon">🚀</div>
+      <h4>前端系统进阶指南</h4>
+      <p class="fe-guide-desc">系统化学习前端知识</p>
+      <div class="fe-guide-arrow">→</div>
+    </div>
+  </a>
+  <div class="tencent_code">
+    <h4>关注公众号</h4> 
+    <img src="/images/gongzhonghao.webp" alt="公众号：前端进阶之旅">
+  </div> 
+</div>
+
+<article id="post-nextjs-sentry-feishu-alert" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header" style="position:relative;">
+    <h1 class="post-title">别等用户报 bug，让线上报错自己推到飞书群</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2026.09.14</span>
+      </span>
+
+      
+        <span class="article-author">
+          <i class="icon-user"></i>
+          <span>Poetry</span>
+        </span>
+      
+
+      
+  <span class="article-category">
+    <i class="icon-list"></i>
+    <a class="article-category-link" href="/categories/Front-End/">Front-End</a>
+  </span>
+
+
+
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+      
+       
+          <span class="post-count">
+            <i class="fa fa-file-word-o"></i>&nbsp
+            <span>字数统计 7.7k字</span>
+          </span>
+
+          <span class="post-count">
+            <i class="fa fa-columns"></i>&nbsp
+            <span>阅读时长 31分</span>
+          </span>
+      
+      
+    </div>
+
+    <i class="iconfont" id="toc-eye" style="display:inline-block;color:#b36619;position:absolute;top:20px;right:-11px;cursor:pointer;
+    font-size: 24px;">&#xe61c;</i>
+
+  </header>
+
+  <div class="article-content">
+    
+      <div id="container">
+        <p>我的站点跑了快两年，线上出没出错这件事，一直是靠用户来告诉我的。</p>
+<p>服务端报错只落在容器的 <code>stdout</code> 里，而容器日志是轮转的（<code>--log-opt max-size</code>），等有人在群里说「你那个页面白屏了」，我再去 <code>docker logs</code>，那段往往已经被冲掉了。浏览器端更彻底，压根看不见。更尴尬的是代码里那个组件级 <code>ErrorBoundary</code>，<code>componentDidCatch</code> 里只有一句 <code>console.error</code>，而生产构建开着 <code>compiler.removeConsole</code>，所以线上那个分支<strong>什么都没做</strong>，组件静默消失，没有任何人知道。</p>
+<p>这周把这件事补上了：<code>Sentry</code> 收错误，飞书群收告警，卡片里直接带调用栈。整条链路从装包到上线跑通，中间踩了七八个坑，有几个是真的把我卡住了一阵，比如「本地怎么试都收不到上报」和「验签永远失败」。这篇就按我实际走的顺序记下来。</p>
+<p>在本篇文章中，我们将从浅入深，和大家一起学习以下知识：</p>
+<ul>
+<li><code>@sentry/nextjs</code> 10.x 在 <code>Next.js 16</code> 里三端（client &#x2F; server &#x2F; edge）怎么接线，各自的入口文件放哪</li>
+<li>为什么<strong>本地 <code>yarn dev</code> 收不到任何上报</strong>，以及这是我刻意做的</li>
+<li><code>beforeSend</code> 脱敏层要防什么，以及怎么<strong>不发一条数据给 Sentry</strong> 就验证它生效了</li>
+<li>Sentry 的 <code>exception.values[].stacktrace.frames</code> 为什么<strong>顺序是反的</strong>，渲染进卡片前要怎么处理</li>
+<li>webhook 路由的<strong>完整实现</strong>：验签、payload 解析、堆栈渲染、推卡片，四段代码都给全</li>
+<li><code>sentry-hook-signature</code> 验签失败，为什么多半是因为你用了 <code>JSON.stringify(req.body)</code></li>
+<li>飞书自建应用推交互卡片的两个必踩坑：<code>content</code> 必须是<strong>字符串</strong>、<code>tenant_access_token</code> 必须缓存</li>
+<li>集成建好了却在告警规则里选不到，是漏了哪个开关</li>
+<li><code>next start</code> 在 <code>output: &#39;standalone&#39;</code> 下直接不工作，本地怎么验生产行为</li>
+<li>上线后那两次「以为出事了其实没有」的误判，怎么用对照实验证伪</li>
+</ul>
+<h2 id="一、整体架构"><a href="#一、整体架构" class="headerlink" title="一、整体架构"></a>一、整体架构</h2><p>先把链路画清楚，后面每个坑落在哪一段就有地方挂了：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">浏览器                      我们的 Next.js 容器                   外部服务</span><br><span class="line">┌──────────┐               ┌──────────────────────────────┐    ┌─────────────┐</span><br><span class="line">│ 页面 JS  │               │ instrumentation.ts           │    │   Sentry    │</span><br><span class="line">│          │──── 错误 ────▶│   register() 按 runtime 加载  │───▶│ (poetry-org)│</span><br><span class="line">│ instrume-│   (直连或经   │   onRequestError 钩子         │    │             │</span><br><span class="line">│ ntation- │   /monitoring │                              │    └──────┬──────┘</span><br><span class="line">│ client   │    隧道)      │ src/libs/sentry/             │           │</span><br><span class="line">└──────────┘               │   beforeSend 统一脱敏         │           │ 告警规则触发</span><br><span class="line">                           │                              │           │ event_alert</span><br><span class="line">                           │ /api/alerts/sentry-webhook   │◀──────────┘ (POST + 签名)</span><br><span class="line">                           │   HMAC 验签 → 解析堆栈        │</span><br><span class="line">                           │        │                     │    ┌─────────────┐</span><br><span class="line">                           │        ▼                     │    │  飞书自建应用 │</span><br><span class="line">                           │ server/notify/feishu.ts      │───▶│  告警群       │</span><br><span class="line">                           │   token 缓存 + 节流 + 卡片    │    └─────────────┘</span><br><span class="line">                           │ server/notify/alert.ts       │</span><br><span class="line">                           │   邮件 + 飞书 并行扇出         │    ┌─────────────┐</span><br><span class="line">                           │                              │───▶│  阿里企业邮   │</span><br><span class="line">                           └──────────────────────────────┘    └─────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>三件事值得先说清楚：</p>
+<p><strong>告警中转放在了自己的站点里</strong>，不是独立服务。少一套部署、少一份凭据，跟着现有 <code>Docker</code> 一起发版。代价是站点整个挂掉时这条通道也哑，但那个场景 Sentry 自带的邮件会兜底，而且站全挂通常比单个 issue 更早被别的方式发现。真正需要覆盖的是「站点活着但某个功能在报错」，那正是这条链路的主场。</p>
+<p><strong>邮件和飞书是并列的两条通道，不是替代关系。</strong> 飞书是「现在就有人看见」，邮件是「事后能翻到、能转发」。更关键的是它们的故障面不重叠，飞书挂了（换 token 失败、频控、应用被停用）邮件照发，<code>SMTP</code> 挂了飞书照发。告警系统最怕的就是出事的时候它自己也哑了，多一条独立通道比把单条做得更可靠划算。</p>
+<p><strong>卡片里必须有堆栈。</strong> 这是我第一版做漏的，当时卡片只有一行 <code>位置: app:///src/app/(web)/(routes)/blog/page.tsx</code>，看到告警还得去开 Sentry，那这条推送的价值就打了对折。</p>
+<h2 id="二、20-分钟跑通最小可用版本"><a href="#二、20-分钟跑通最小可用版本" class="headerlink" title="二、20 分钟跑通最小可用版本"></a>二、20 分钟跑通最小可用版本</h2><p>下面这套是我实际跑通的顺序，环境是 <code>Next.js 16.3.1</code> + <code>@sentry/nextjs 10.74.0</code> + <code>Node 22.23.1</code>，<code>output: &#39;standalone&#39;</code>，部署在腾讯云 Docker 容器里。</p>
+<h3 id="Step-1：装包，注意-yarn-缓存这个坑"><a href="#Step-1：装包，注意-yarn-缓存这个坑" class="headerlink" title="Step 1：装包，注意 yarn 缓存这个坑"></a>Step 1：装包，注意 yarn 缓存这个坑</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yarn add @sentry/nextjs</span><br></pre></td></tr></table></figure>
+
+<p>我第一次跑这条命令，终端最后打了 <code>exit code 0</code>，看起来是成功的。结果 <code>node_modules/@sentry/nextjs</code> 根本不存在，<code>package.json</code> 里也没有这一行。回头翻完整日志才看到藏在一堆 peer dependency warning 后面的这句：</p>
+<blockquote>
+<p>error Error: ENOENT: no such file or directory, open ‘&#x2F;Users&#x2F;mac&#x2F;Library&#x2F;Caches&#x2F;Yarn&#x2F;v6&#x2F;<a href="mailto:&#x6e;&#x70;&#x6d;&#45;&#x40;&#115;&#101;&#110;&#x74;&#114;&#121;&#x2d;&#x63;&#108;&#x69;&#45;&#100;&#97;&#114;&#x77;&#105;&#110;&#x2d;&#50;&#x2e;&#x35;&#x38;">npm-@sentry-cli-darwin-2.58</a>.6-...&#x2F;node_modules&#x2F;@sentry&#x2F;cli-darwin&#x2F;.yarn-metadata.json’</p>
+</blockquote>
+<p><code>@sentry/cli-darwin</code> 在 yarn 全局缓存里的那份元数据坏了。yarn 1.x 在这种情况下会<strong>报错但仍然退出 0</strong>，这个组合非常坑，你以为装好了其实什么都没发生。清掉那一份缓存重来就好：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">rm</span> -rf <span class="string">&quot;<span class="variable">$HOME</span>/Library/Caches/Yarn/v6/npm-@sentry-cli-darwin-2.58.6-&quot;</span>*</span><br><span class="line">yarn add @sentry/nextjs</span><br></pre></td></tr></table></figure>
+
+<p>装完记得 <code>node -p &quot;require(&#39;@sentry/nextjs/package.json&#39;).version&quot;</code> 确认一下，别只看 exit code。</p>
+<h3 id="Step-2：三端接线，文件位置不能放错"><a href="#Step-2：三端接线，文件位置不能放错" class="headerlink" title="Step 2：三端接线，文件位置不能放错"></a>Step 2：三端接线，文件位置不能放错</h3><p><code>@sentry/nextjs</code> 在 App Router 下有三个入口，位置是 Next 规定的，<strong>放错地方不会报错，只会静默不生效</strong>，这一点很要命。</p>
+<p>浏览器端是 <code>src/instrumentation-client.ts</code>（和 <code>src/app</code> 同级）：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> <span class="title class_">Sentry</span> <span class="keyword">from</span> <span class="string">&#x27;@sentry/nextjs&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &#123; initSentryClient &#125; <span class="keyword">from</span> <span class="string">&#x27;@/libs/sentry&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="title function_">initSentryClient</span>()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 不接这个的话，App Router 的软导航在 Sentry 里完全看不到，</span></span><br><span class="line"><span class="comment">// 所有页面的性能数据都会算到首次进站的那个 pageload 上</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> onRouterTransitionStart = <span class="title class_">Sentry</span>.<span class="property">captureRouterTransitionStart</span></span><br></pre></td></tr></table></figure>
+
+<p>服务端和 edge 各自是<strong>仓库根目录</strong>的 <code>sentry.server.config.ts</code> &#x2F; <code>sentry.edge.config.ts</code>，由 <code>src/instrumentation.ts</code> 按 runtime 动态加载：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">register</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="comment">// 必须动态 import：这两个配置文件分别只在对应 runtime 下可用，</span></span><br><span class="line">  <span class="comment">// server 那份会拉进 node: 内置模块，顶层引会让 edge 编译直接失败</span></span><br><span class="line">  <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NEXT_RUNTIME</span> === <span class="string">&#x27;nodejs&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">import</span>(<span class="string">&#x27;../sentry.server.config&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NEXT_RUNTIME</span> === <span class="string">&#x27;edge&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">import</span>(<span class="string">&#x27;../sentry.edge.config&#x27;</span>)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// …原有逻辑</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Next 15+ 提供的服务端请求出错钩子，RSC 和 route handler 都走它。</span></span><br><span class="line"><span class="comment">// 名字是 Next 约定的，不能改、也不能包一层</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> onRequestError = <span class="title class_">Sentry</span>.<span class="property">captureRequestError</span></span><br></pre></td></tr></table></figure>
+
+<p><code>onRequestError</code> 是我觉得最值回票价的一个。接上之前，服务端渲染阶段抛的错只有容器 <code>stdout</code> 知道；接上之后它和浏览器端错误进同一个项目，按 <code>runtime</code> tag 区分。</p>
+<h3 id="Step-3：包一层再给业务用"><a href="#Step-3：包一层再给业务用" class="headerlink" title="Step 3：包一层再给业务用"></a>Step 3：包一层再给业务用</h3><p>我没让业务代码直接 <code>from &#39;@sentry/nextjs&#39;</code>，而是全部收到 <code>@/libs/sentry</code> 后面。这层隔离换来两件事：未 init 时所有调用自动 no-op，业务侧一行防御都不用写；所有出站数据都过同一份脱敏规则，不会有哪条路径漏掉。</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">isInitialized</span>(<span class="params"></span>): <span class="built_in">boolean</span> &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> !!<span class="title class_">Sentry</span>.<span class="title function_">getClient</span>()</span><br><span class="line">  &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">captureException</span>(<span class="params"><span class="attr">error</span>: <span class="built_in">unknown</span>, <span class="attr">options</span>?: <span class="title class_">CaptureOptions</span></span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (!<span class="title function_">isInitialized</span>()) <span class="keyword">return</span></span><br><span class="line">  <span class="title class_">Sentry</span>.<span class="title function_">captureException</span>(error, &#123; <span class="attr">tags</span>: options?.<span class="property">tags</span>, <span class="attr">level</span>: options?.<span class="property">level</span> ?? <span class="string">&#x27;error&#x27;</span> &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后把三层错误边界都接上：路由级 <code>error.tsx</code>、根级 <code>global-error.tsx</code>、组件级 <code>ErrorBoundary</code>。三者打不同的 <code>boundary</code> tag，因为严重程度差很远，<code>global</code> 意味着整站白屏，<code>component</code> 只是黑掉一块。</p>
+<p><code>error.tsx</code> 里有个细节值得单独说：生产构建下服务端错误的 <code>message</code> 会被 Next 抹掉，只留一个 <code>digest</code>。不把它带上的话，Sentry 上就是一条光秃秃的 <code>An error occurred in the Server Components render</code>，等于没有信息。</p>
+<figure class="highlight tsx"><table><tr><td class="code"><pre><span class="line"><span class="title function_">useEffect</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">  <span class="title function_">captureException</span>(error, &#123;</span><br><span class="line">    <span class="attr">tags</span>: &#123; <span class="attr">boundary</span>: <span class="string">&#x27;route&#x27;</span>, ...(error?.<span class="property">digest</span> ? &#123; <span class="attr">digest</span>: error.<span class="property">digest</span> &#125; : &#123;&#125;) &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;, [error])</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、为什么本地-yarn-dev-收不到任何上报"><a href="#三、为什么本地-yarn-dev-收不到任何上报" class="headerlink" title="三、为什么本地 yarn dev 收不到任何上报"></a>三、为什么本地 yarn dev 收不到任何上报</h2><p>接完之后我本地跑 <code>yarn dev</code>，手动抛错，Sentry 上一条都没有。折腾了一会儿才想起来，这是我自己写的门禁：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">function</span> <span class="title function_">initSentryClient</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NODE_ENV</span> !== <span class="string">&#x27;production&#x27;</span>) <span class="keyword">return</span></span><br><span class="line">  <span class="keyword">if</span> (process.<span class="property">env</span>.<span class="property">NEXT_PUBLIC_SENTRY_DISABLED</span> === <span class="string">&#x27;true&#x27;</span>) <span class="keyword">return</span></span><br><span class="line">  <span class="keyword">const</span> dsn = process.<span class="property">env</span>.<span class="property">NEXT_PUBLIC_SENTRY_DSN</span></span><br><span class="line">  <span class="keyword">if</span> (!dsn) <span class="keyword">return</span></span><br><span class="line">  <span class="comment">// …</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这条门禁我建议你也加。理由不是「怕吵」那么简单：dev 下 React StrictMode 会双跑、HMR 会抛一堆模块替换期的临时错误，混进去之后线上真实错误的趋势图就没法看了。宁可本地验证麻烦一点。</p>
+<p>那本地怎么验？<strong>不能用 <code>yarn start</code>。</strong> 我一开始就是这么试的，得到的是：</p>
+<blockquote>
+<p>⚠ “next start” does not work with “output: standalone” configuration. Use “node .next&#x2F;standalone&#x2F;server.js” instead.</p>
+</blockquote>
+<p><code>output: &#39;standalone&#39;</code> 下必须跑 standalone 产物，而且要手动把 <code>.env</code>、<code>.next/static</code>、<code>public</code> 补进去，因为那三样构建时不会自动拷：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">yarn build</span><br><span class="line"><span class="built_in">cp</span> .<span class="built_in">env</span> .next/standalone/.env</span><br><span class="line"><span class="built_in">cp</span> -R .next/static .next/standalone/.next/static</span><br><span class="line"><span class="built_in">cp</span> -R public .next/standalone/public</span><br><span class="line"><span class="built_in">cd</span> .next/standalone &amp;&amp; PORT=3111 node server.js</span><br></pre></td></tr></table></figure>
+
+<p>这一串我后来直接写进了仓库的运维手册，省得下次再想。</p>
+<h2 id="四、脱敏这层不能省，我是怎么验的"><a href="#四、脱敏这层不能省，我是怎么验的" class="headerlink" title="四、脱敏这层不能省，我是怎么验的"></a>四、脱敏这层不能省，我是怎么验的</h2><p>这个站有几样东西绝对不能进第三方系统。最要命的是登录落地页会带 <code>?token=xxx&amp;_t=yyy</code>，而这个 URL 会<strong>同时出现在</strong> breadcrumb、<code>event.request.url</code>、navigation span 和 <code>transaction</code> 名里，只洗其中一处等于没洗。其次是 AI 助手和模拟面试的请求体，里面是用户写的简历和回答。</p>
+<p>所以三端 init 都挂同一组 hook，保证不管哪条路径产生的事件，出站前都被同一份规则洗过一遍：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="title class_">Sentry</span>.<span class="title function_">init</span>(&#123;</span><br><span class="line">  dsn,</span><br><span class="line">  <span class="attr">dataCollection</span>: &#123;</span><br><span class="line">    <span class="attr">userInfo</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">cookies</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">httpHeaders</span>: &#123; <span class="attr">request</span>: <span class="literal">false</span>, <span class="attr">response</span>: <span class="literal">false</span> &#125;,</span><br><span class="line">    <span class="attr">httpBodies</span>: [],        <span class="comment">// 空数组 = 一条 body 都不收，不是「用默认值」</span></span><br><span class="line">    <span class="attr">urlQueryParams</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">stackFrameVariables</span>: <span class="literal">false</span></span><br><span class="line">  &#125;,</span><br><span class="line">  beforeBreadcrumb,        <span class="comment">// console 类整条丢掉</span></span><br><span class="line">  <span class="attr">beforeSend</span>: sanitizeEvent,</span><br><span class="line">  <span class="attr">beforeSendTransaction</span>: sanitizeEvent,</span><br><span class="line">  <span class="attr">beforeSendSpan</span>: sanitizeSpan,</span><br><span class="line">  <span class="attr">beforeSendLog</span>: sanitizeLog</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><code>extra</code> 我是整个删掉的，不做逐字段清洗。它是最容易「顺手塞一整个对象」的字段（<code>extra: &#123; config, response &#125;</code>），而那个对象的形状是调用方决定的、随时会变，白名单在这里维护不住。需要额外上下文就用 <code>tags</code>。</p>
+<p>写 <code>beforeSend</code> 的时候踩了个 TypeScript 的坑。我一开始把堆栈帧类型写成 <code>Record&lt;string, unknown&gt;</code>，然后收到一屏几十行的类型错误，最后一句是：</p>
+<blockquote>
+<p>Type ‘StackFrame’ is not assignable to type ‘Record&lt;string, unknown&gt;’. Index signature for type ‘string’ is missing in type ‘StackFrame’.</p>
+</blockquote>
+<p>Sentry 的 <code>StackFrame</code> 是具名属性接口、没有索引签名，结构化类型检查会拒绝赋值。后果不是报个错那么简单，是整个 <code>beforeSend</code> 挂不上去，脱敏静默失效。改成具名的 <code>interface StackFrameLike &#123; filename?: string; abs_path?: string; vars?: unknown &#125;</code> 就好了。</p>
+<h3 id="不发一条数据给-Sentry，怎么证明脱敏生效了"><a href="#不发一条数据给-Sentry，怎么证明脱敏生效了" class="headerlink" title="不发一条数据给 Sentry，怎么证明脱敏生效了"></a>不发一条数据给 Sentry，怎么证明脱敏生效了</h3><p>这是我觉得这次最值得分享的一个小技巧。直接发到线上项目去看，既污染数据又慢。更好的办法是<strong>把 DSN 指向一个本地的假接收端</strong>，DSN 的 host 和端口本来就是可以随便改的：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 起一个假 Sentry，把收到的 envelope 打出来</span></span><br><span class="line">node -e <span class="string">&quot;require(&#x27;http&#x27;).createServer((q,r)=&gt;&#123;let b=&#x27;&#x27;;q.on(&#x27;data&#x27;,c=&gt;b+=c);\</span></span><br><span class="line"><span class="string">q.on(&#x27;end&#x27;,()=&gt;&#123;console.log(b);r.end(&#x27;&#123;&#125;&#x27;)&#125;)&#125;).listen(3222)&quot;</span> &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># key 随便填，路径最后那个数字是 project id</span></span><br><span class="line">SENTRY_DSN=<span class="string">&#x27;http://anykey@127.0.0.1:3222/1&#x27;</span> PORT=3111 node server.js</span><br></pre></td></tr></table></figure>
+
+<p>然后访问一个会抛错的页面，还故意在 URL 上挂个 <code>?token=SHOULD_BE_STRIPPED</code>。假接收端打出来的东西是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&gt;&gt;&gt; 收到上报: POST /api/1/envelope/?sentry_version=7&amp;sentry_key=...</span><br><span class="line">    type      : exception</span><br><span class="line">    title     : Error : dev-only: preview error page</span><br><span class="line">    tags      : &#123;&quot;site&quot;:&quot;feinterview&quot;,&quot;runtime&quot;:&quot;nodejs&quot;&#125;</span><br><span class="line">    request   : &#123;&quot;method&quot;:&quot;GET&quot;,&quot;url&quot;:&quot;http://127.0.0.1:3111/dev-error-preview&quot;&#125;</span><br><span class="line">    有 extra？: false</span><br></pre></td></tr></table></figure>
+
+<p><code>?token=SHOULD_BE_STRIPPED</code> 被整段剥掉了，<code>extra</code> 字段不存在，tag 也挂上了。三件事一次性验完，全程零网络请求发给 Sentry。这个方法后来我又用了一次，见第五节。</p>
+<h2 id="五、Sentry-的调用栈是反的"><a href="#五、Sentry-的调用栈是反的" class="headerlink" title="五、Sentry 的调用栈是反的"></a>五、Sentry 的调用栈是反的</h2><p>要把堆栈渲染进飞书卡片，得先从 webhook payload 里把它挖出来。告警触发的 <code>event_alert</code> 里，异常在 <code>data.event.exception.values[].stacktrace.frames</code>。</p>
+<p>我原本以为这就是个遍历拼字符串的活儿，直到把渲染结果打出来看了一眼。<strong>Sentry 的 frames 是按调用顺序存的，最外层在前、崩溃点在最后</strong>，和所有人读堆栈的习惯正好相反。不处理的话，群里看到的第一行是 <code>node:internal/...</code>，真正出错那行被挤到第八行开外。</p>
+<p>还有两个处理是实际看了真实数据才加的。我用上一节那个假接收端抓了一条应用真实发出的异常，<code>10</code> 帧里有 <code>5</code> 帧是 <code>in_app</code>，另外 <code>5</code> 帧全是 <code>next-server/app-page.runtime.prod.js</code>。这就是为什么要优先取 <code>in_app</code>：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">renderStack</span>(<span class="params"><span class="attr">exception</span>: <span class="title class_">SentryExceptionValue</span></span>): <span class="built_in">string</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> frames = exception.<span class="property">stacktrace</span>?.<span class="property">frames</span></span><br><span class="line">  <span class="keyword">if</span> (!<span class="title class_">Array</span>.<span class="title function_">isArray</span>(frames) || !frames.<span class="property">length</span>) <span class="keyword">return</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 优先 in_app；一帧都没标记时才退回全量。取最后 8 帧再倒过来</span></span><br><span class="line">  <span class="keyword">const</span> inApp = frames.<span class="title function_">filter</span>(<span class="function">(<span class="params">frame</span>) =&gt;</span> frame.<span class="property">in_app</span>)</span><br><span class="line">  <span class="keyword">const</span> picked = (inApp.<span class="property">length</span> ? inApp : frames).<span class="title function_">slice</span>(-<span class="variable constant_">MAX_FRAMES</span>).<span class="title function_">reverse</span>()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> picked</span><br><span class="line">    .<span class="title function_">map</span>(<span class="function">(<span class="params">frame, index</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">const</span> where = <span class="string">`<span class="subst">$&#123;frame.filename&#125;</span>:<span class="subst">$&#123;frame.lineno ?? <span class="string">&#x27;?&#x27;</span>&#125;</span>:<span class="subst">$&#123;frame.colno ?? <span class="string">&#x27;&#x27;</span>&#125;</span>`</span></span><br><span class="line">      <span class="keyword">const</span> head = <span class="string">`  at<span class="subst">$&#123;frame.<span class="keyword">function</span> ? <span class="string">&#x27; &#x27;</span> + frame.<span class="keyword">function</span> : <span class="string">&#x27;&#x27;</span>&#125;</span> (<span class="subst">$&#123;where&#125;</span>)`</span></span><br><span class="line">      <span class="comment">// 只给最靠近崩溃点的那一帧附源码原文，多了太吵</span></span><br><span class="line">      <span class="keyword">return</span> index === <span class="number">0</span> &amp;&amp; frame.<span class="property">context_line</span> ? <span class="string">`<span class="subst">$&#123;head&#125;</span>\n      → <span class="subst">$&#123;frame.context_line.trim()&#125;</span>`</span> : head</span><br><span class="line">    &#125;)</span><br><span class="line">    .<span class="title function_">join</span>(<span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第三个细节是异常链。<code>values</code> 是个数组，约定是最外层在前、最原始的在后，所以取的是 <code>values[values.length - 1]</code>。取第一个的话你拿到的往往是一句 <code>An error occurred in the Server Components render</code>，没有信息量。</p>
+<p>最后渲染出来是这样，这是真实跑出来的，不是我编的示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">【报错】Error: dev-only: preview error page</span><br><span class="line">【调用栈（从崩溃点往外）】</span><br><span class="line">  at ? (app:///_next/server/app/dev-error-preview/page.js:1:10383)</span><br><span class="line">  at ? (app:///_next/server/chunks/7688.js:5:45369)</span><br><span class="line">  at b.handleCallbackErrors (app:///_next/server/chunks/7688.js:12:91635)</span><br></pre></td></tr></table></figure>
+
+<p>函数名是 <code>?</code>、行号是 <code>:1:10383</code>，因为我当时还没配 source map 上传。配上 <code>SENTRY_AUTH_TOKEN</code> + <code>SENTRY_ORG</code> + <code>SENTRY_PROJECT</code> 之后这里会变成真实的文件名、函数名和行号。这三个缺任意一个就跳过上传，构建照常绿，所以很容易忘。</p>
+<p>顺带一提，<code>deleteSourcemapsAfterUpload</code> 千万别关。<code>.next/static</code> 里留着 <code>.map</code> 等于把源码公开，任何人都能从浏览器直接下载。</p>
+<h2 id="六、webhook-路由完整实现，以及为什么你的验签一直失败"><a href="#六、webhook-路由完整实现，以及为什么你的验签一直失败" class="headerlink" title="六、webhook 路由完整实现，以及为什么你的验签一直失败"></a>六、webhook 路由完整实现，以及为什么你的验签一直失败</h2><p>Sentry 的 webhook 签名算法本身很简单，<code>Sentry-Hook-Signature</code> &#x3D; <code>HMAC-SHA256(body, Client Secret)</code> 的 hex。官方文档给的示例是这样的：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> hmac = crypto.<span class="title function_">createHmac</span>(<span class="string">&#x27;sha256&#x27;</span>, secret)</span><br><span class="line">hmac.<span class="title function_">update</span>(<span class="title class_">JSON</span>.<span class="title function_">stringify</span>(request.<span class="property">body</span>), <span class="string">&#x27;utf8&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> digest = hmac.<span class="title function_">digest</span>(<span class="string">&#x27;hex&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>照抄这段大概率会验不过。</strong> <code>JSON.stringify(request.body)</code> 是把框架解析后的对象重新序列化，键顺序、空格、Unicode 转义都可能和 Sentry 发过来的原始字节不一样，签名自然对不上。而报错只会说「验签失败」，很难想到根因在这儿。</p>
+<p>正确做法是拿<strong>原始 body 字符串</strong>。Next.js 的 Route Handler 里就是 <code>await request.text()</code>：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">POST</span>(<span class="params"><span class="attr">request</span>: <span class="title class_">Request</span></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> secret = env.<span class="property">SENTRY_WEBHOOK_SECRET</span></span><br><span class="line">  <span class="comment">// 没配 secret 时拒绝而不是放行。这个端点会往内部群发消息，</span></span><br><span class="line">  <span class="comment">// 放行等于给了任何人一个免费的推送入口</span></span><br><span class="line">  <span class="keyword">if</span> (!secret) <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">NextResponse</span>(<span class="string">&#x27;not configured&#x27;</span>, &#123; <span class="attr">status</span>: <span class="number">401</span> &#125;)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> rawBody = <span class="keyword">await</span> request.<span class="title function_">text</span>()</span><br><span class="line">  <span class="keyword">const</span> signature = request.<span class="property">headers</span>.<span class="title function_">get</span>(<span class="string">&#x27;sentry-hook-signature&#x27;</span>)</span><br><span class="line">  <span class="keyword">if</span> (!<span class="title function_">verifySignature</span>(rawBody, signature, secret)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">NextResponse</span>(<span class="string">&#x27;unauthorized&#x27;</span>, &#123; <span class="attr">status</span>: <span class="number">401</span> &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// …</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>比较用 <code>timingSafeEqual</code> 而不是 <code>===</code>，成本只有两行。这里又碰到一个类型问题：<code>@types/node</code> 的 <code>Buffer</code> 和 TS 内置 lib 的 <code>ArrayBufferView</code> 在当前版本组合下对不上，<code>crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))</code> 会报 <code>TS2345</code>。换成 <code>TextEncoder</code> 产出的 <code>Uint8Array</code> 两边都认，行为完全一样：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> encoder = <span class="keyword">new</span> <span class="title class_">TextEncoder</span>()</span><br><span class="line"><span class="keyword">const</span> received = encoder.<span class="title function_">encode</span>(signature)</span><br><span class="line"><span class="keyword">const</span> expected = encoder.<span class="title function_">encode</span>(crypto.<span class="title function_">createHmac</span>(<span class="string">&#x27;sha256&#x27;</span>, secret).<span class="title function_">update</span>(rawBody, <span class="string">&#x27;utf8&#x27;</span>).<span class="title function_">digest</span>(<span class="string">&#x27;hex&#x27;</span>))</span><br><span class="line"><span class="comment">// 长度不同直接返回：timingSafeEqual 对长度不等会抛错，不是返回 false</span></span><br><span class="line"><span class="keyword">if</span> (received.<span class="property">length</span> !== expected.<span class="property">length</span>) <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line"><span class="keyword">return</span> crypto.<span class="title function_">timingSafeEqual</span>(received, expected)</span><br></pre></td></tr></table></figure>
+
+<p>返回码的语义也值得定清楚。验签失败回 <code>401</code>；payload 解析不出来、被去重、飞书没配，一律回 <strong><code>200</code></strong>。中间那档必须是 200，因为 Sentry 对非 2xx 会重试，而解析不了的 payload 重试多少次还是解析不了，只会变成一轮无意义的重试风暴。</p>
+<h3 id="第二步，把-payload-拍平成一个摘要"><a href="#第二步，把-payload-拍平成一个摘要" class="headerlink" title="第二步，把 payload 拍平成一个摘要"></a>第二步，把 payload 拍平成一个摘要</h3><p>Sentry 的 event 序列化形态不止一种，取决于这条是哪个资源发出来的。告警规则触发的走 <code>data.event</code>，issue 类的走 <code>data.issue</code>，指标告警又是另一套字段。与其在渲染的地方到处判空，不如先统一拍成一个自己的结构：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">interface</span> <span class="title class_">AlertSummary</span> &#123;</span><br><span class="line">  <span class="attr">title</span>: <span class="built_in">string</span></span><br><span class="line">  <span class="attr">level</span>: <span class="title class_">FeishuAlertLevel</span></span><br><span class="line">  <span class="attr">environment</span>: <span class="built_in">string</span></span><br><span class="line">  <span class="attr">release</span>: <span class="built_in">string</span></span><br><span class="line">  <span class="attr">culprit</span>: <span class="built_in">string</span></span><br><span class="line">  <span class="attr">url</span>: <span class="built_in">string</span></span><br><span class="line">  <span class="attr">ruleName</span>: <span class="built_in">string</span></span><br><span class="line">  <span class="attr">issueKey</span>: <span class="built_in">string</span>   <span class="comment">// 去重用，优先 issue id</span></span><br><span class="line">  <span class="attr">errorText</span>: <span class="built_in">string</span>  <span class="comment">// TypeError: xxx is not a function</span></span><br><span class="line">  <span class="attr">stack</span>: <span class="built_in">string</span>      <span class="comment">// 渲染好的调用栈</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">summarize</span>(<span class="params"><span class="attr">payload</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt;</span>): <span class="title class_">AlertSummary</span> | <span class="literal">null</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> data = payload?.<span class="property">data</span> <span class="keyword">as</span> <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">unknown</span>&gt; | <span class="literal">undefined</span></span><br><span class="line">  <span class="keyword">if</span> (!data) <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> event = data.<span class="property">event</span> <span class="keyword">as</span> <span class="title class_">SentryAlertEvent</span> | <span class="literal">undefined</span></span><br><span class="line">  <span class="keyword">if</span> (event) &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; errorText, stack &#125; = <span class="title function_">renderException</span>(<span class="title function_">extractExceptionValues</span>(event))</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">title</span>: event.<span class="property">title</span> || event.<span class="property">message</span> || <span class="string">&#x27;Sentry 告警&#x27;</span>,</span><br><span class="line">      <span class="attr">level</span>: <span class="title function_">toAlertLevel</span>(event.<span class="property">level</span>),</span><br><span class="line">      <span class="attr">environment</span>: event.<span class="property">environment</span> || <span class="string">&#x27;-&#x27;</span>,</span><br><span class="line">      <span class="attr">release</span>: event.<span class="property">release</span> || <span class="string">&#x27;-&#x27;</span>,</span><br><span class="line">      <span class="attr">culprit</span>: event.<span class="property">culprit</span> || <span class="string">&#x27;-&#x27;</span>,</span><br><span class="line">      <span class="attr">url</span>: event.<span class="property">web_url</span> || event.<span class="property">issue_url</span> || <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">      <span class="attr">ruleName</span>: <span class="title class_">String</span>(data.<span class="property">triggered_rule</span> ?? <span class="string">&#x27;&#x27;</span>),   <span class="comment">// 规则名，[P0] 前缀从这来</span></span><br><span class="line">      <span class="attr">issueKey</span>: <span class="title class_">String</span>(event.<span class="property">issue_id</span> ?? event.<span class="property">web_url</span> ?? event.<span class="property">title</span> ?? <span class="string">&#x27;&#x27;</span>),</span><br><span class="line">      errorText,</span><br><span class="line">      stack</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// …issue / metric_alert 两个分支同理，取不到堆栈就给空字符串</span></span><br><span class="line">  <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>tags</code> 有个小坑：它在 payload 里是 <code>[key, value][]</code> 的<strong>二元组数组</strong>，不是对象，直接 <code>event.tags.environment</code> 拿不到东西。我写了个 <code>tagOf(tags, key)</code> 去 <code>find</code>。</p>
+<h3 id="第三步，拼卡片推出去"><a href="#第三步，拼卡片推出去" class="headerlink" title="第三步，拼卡片推出去"></a>第三步，拼卡片推出去</h3><p>拿到摘要之后，剩下的就是组装。这里有个刻意的设计：<strong>报错原文放在最后一行</strong>，紧挨着下面的堆栈块，读起来是连贯的一段。标题里其实也有它，但标题会被截到 140 字，长 message 看不全。</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> isP0 = summary.<span class="property">ruleName</span>.<span class="title function_">startsWith</span>(<span class="string">&#x27;[P0]&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> lines = [</span><br><span class="line">  <span class="string">`**级别**：<span class="subst">$&#123;summary.level&#125;</span><span class="subst">$&#123;isP0 ? <span class="string">&#x27; · **P0**&#x27;</span> : <span class="string">&#x27;&#x27;</span>&#125;</span>`</span>,</span><br><span class="line">  <span class="string">`**环境**：<span class="subst">$&#123;summary.environment&#125;</span>`</span>,</span><br><span class="line">  <span class="string">`**版本**：<span class="subst">$&#123;summary.release&#125;</span>`</span>,</span><br><span class="line">  <span class="string">`**位置**：<span class="subst">$&#123;summary.culprit&#125;</span>`</span>,</span><br><span class="line">  summary.<span class="property">ruleName</span> ? <span class="string">`**规则**：<span class="subst">$&#123;summary.ruleName&#125;</span>`</span> : <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  summary.<span class="property">errorText</span> ? <span class="string">`**报错**：<span class="subst">$&#123;summary.errorText&#125;</span>`</span> : <span class="string">&#x27;&#x27;</span></span><br><span class="line">].<span class="title function_">filter</span>(<span class="title class_">Boolean</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ok = <span class="keyword">await</span> <span class="title function_">sendFeishuAlert</span>(&#123;</span><br><span class="line">  <span class="attr">alertKey</span>: <span class="string">`sentry:<span class="subst">$&#123;summary.issueKey&#125;</span>`</span>,     <span class="comment">// 按 issue 去重</span></span><br><span class="line">  <span class="attr">title</span>: summary.<span class="property">title</span>,</span><br><span class="line">  lines,</span><br><span class="line">  <span class="attr">level</span>: summary.<span class="property">level</span>,</span><br><span class="line">  <span class="comment">// 堆栈取不到时整块不渲染，卡片自动退化成没有堆栈那一版</span></span><br><span class="line">  <span class="attr">code</span>: summary.<span class="property">stack</span> ? &#123; <span class="attr">title</span>: <span class="string">&#x27;调用栈（从崩溃点往外）&#x27;</span>, <span class="attr">body</span>: summary.<span class="property">stack</span> &#125; : <span class="literal">undefined</span>,</span><br><span class="line">  <span class="attr">link</span>: summary.<span class="property">url</span> ? &#123; <span class="attr">text</span>: <span class="string">&#x27;在 Sentry 中查看&#x27;</span>, <span class="attr">url</span>: summary.<span class="property">url</span> &#125; : <span class="literal">undefined</span>,</span><br><span class="line">  <span class="attr">force</span>: isP0                                  <span class="comment">// P0 不吃节流</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// ok === false 有两种可能：被节流（正常）和推送失败（异常）。</span></span><br><span class="line"><span class="comment">// 这里不区分，统一回 200。回 502 会让 Sentry 重试，而被节流的那条</span></span><br><span class="line"><span class="comment">// 重试多少次都还是会被节流，纯属浪费</span></span><br><span class="line"><span class="keyword">return</span> <span class="title class_">NextResponse</span>.<span class="title function_">json</span>(&#123; ok, <span class="attr">deduped</span>: !ok &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>去重我没有单独维护一张表，直接复用了飞书那层按 <code>alertKey</code> 的 30 分钟节流。两套窗口会互相干扰，排查「为什么这条没发」时要同时看两处，而它们给出的答案还可能不一致。</p>
+<p>最后是飞书卡片本身。堆栈用 <code>plain_text</code> 渲染是关键的一处，<code>lark_md</code> 会把堆栈里的 <code>*</code>、<code>[</code>、<code>(</code> 当 markdown 吃掉：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> card = &#123;</span><br><span class="line">  <span class="attr">config</span>: &#123; <span class="attr">wide_screen_mode</span>: <span class="literal">true</span> &#125;,</span><br><span class="line">  <span class="attr">header</span>: &#123;</span><br><span class="line">    <span class="attr">template</span>: <span class="variable constant_">TEMPLATE_BY_LEVEL</span>[level],     <span class="comment">// fatal/error 红，warning 橙，info 蓝</span></span><br><span class="line">    <span class="attr">title</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;plain_text&#x27;</span>, <span class="attr">content</span>: <span class="string">`<span class="subst">$&#123;EMOJI_BY_LEVEL[level]&#125;</span> <span class="subst">$&#123;input.title&#125;</span>`</span>.<span class="title function_">slice</span>(<span class="number">0</span>, <span class="number">140</span>) &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">elements</span>: [</span><br><span class="line">    &#123; <span class="attr">tag</span>: <span class="string">&#x27;div&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;lark_md&#x27;</span>, <span class="attr">content</span>: input.<span class="property">lines</span>.<span class="title function_">join</span>(<span class="string">&#x27;\n&#x27;</span>) &#125; &#125;,</span><br><span class="line">    ...(input.<span class="property">code</span>?.<span class="property">body</span></span><br><span class="line">      ? [</span><br><span class="line">          &#123; <span class="attr">tag</span>: <span class="string">&#x27;hr&#x27;</span> &#125;,</span><br><span class="line">          &#123; <span class="attr">tag</span>: <span class="string">&#x27;div&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;lark_md&#x27;</span>, <span class="attr">content</span>: <span class="string">`**<span class="subst">$&#123;input.code.title&#125;</span>**`</span> &#125; &#125;,</span><br><span class="line">          <span class="comment">// plain_text：原样渲染，不做 markdown 解析</span></span><br><span class="line">          &#123; <span class="attr">tag</span>: <span class="string">&#x27;div&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;plain_text&#x27;</span>, <span class="attr">content</span>: <span class="title function_">truncateBlock</span>(input.<span class="property">code</span>.<span class="property">body</span>) &#125; &#125;</span><br><span class="line">        ]</span><br><span class="line">      : []),</span><br><span class="line">    ...(input.<span class="property">link</span></span><br><span class="line">      ? [&#123; <span class="attr">tag</span>: <span class="string">&#x27;action&#x27;</span>, <span class="attr">actions</span>: [&#123; <span class="attr">tag</span>: <span class="string">&#x27;button&#x27;</span>, <span class="attr">text</span>: &#123; <span class="attr">tag</span>: <span class="string">&#x27;plain_text&#x27;</span>, <span class="attr">content</span>: input.<span class="property">link</span>.<span class="property">text</span> &#125;, <span class="attr">type</span>: <span class="string">&#x27;primary&#x27;</span>, <span class="attr">url</span>: input.<span class="property">link</span>.<span class="property">url</span> &#125;] &#125;]</span><br><span class="line">      : [])</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>truncateBlock</code> 是<strong>按行</strong>截断而不是按字符。直接 <code>slice</code> 会把最后一帧砍成半句，看起来像数据损坏；按行切至少每一帧都是完整的。上限我定在 1800 字符，不是因为飞书装不下（单条消息上限约 30KB），是因为群里刷过去二十屏堆栈和没推是一样的效果。</p>
+<h3 id="怎么在本地验这整条"><a href="#怎么在本地验这整条" class="headerlink" title="怎么在本地验这整条"></a>怎么在本地验这整条</h3><p>不用等 Sentry 真的给你发告警。我的做法是<strong>让应用真实报一次错，用第四节那个假接收端抓下它发出的 envelope，再把里面的 <code>exception</code> 原样塞进一条 webhook 报文重放</strong>，这样堆栈是真的，不是手写的假数据：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> ev = <span class="title class_">JSON</span>.<span class="title function_">parse</span>(fs.<span class="title function_">readFileSync</span>(<span class="string">&#x27;/tmp/real-event.json&#x27;</span>, <span class="string">&#x27;utf8&#x27;</span>))</span><br><span class="line"><span class="keyword">const</span> primary = ev.<span class="property">exception</span>.<span class="property">values</span>.<span class="title function_">at</span>(-<span class="number">1</span>)</span><br><span class="line"><span class="keyword">const</span> payload = &#123;</span><br><span class="line">  <span class="attr">action</span>: <span class="string">&#x27;triggered&#x27;</span>,</span><br><span class="line">  <span class="attr">data</span>: &#123;</span><br><span class="line">    <span class="attr">triggered_rule</span>: <span class="string">&#x27;[P1] 新错误&#x27;</span>,</span><br><span class="line">    <span class="attr">event</span>: &#123;</span><br><span class="line">      <span class="attr">issue_id</span>: <span class="string">&#x27;local-replay&#x27;</span>,</span><br><span class="line">      <span class="attr">title</span>: <span class="string">`<span class="subst">$&#123;primary.type&#125;</span>: <span class="subst">$&#123;primary.value&#125;</span>`</span>,</span><br><span class="line">      <span class="attr">level</span>: ev.<span class="property">level</span>,</span><br><span class="line">      <span class="attr">environment</span>: ev.<span class="property">environment</span>,</span><br><span class="line">      <span class="attr">exception</span>: ev.<span class="property">exception</span>          <span class="comment">// 关键：原样带上真实堆栈</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> body = <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(payload)</span><br><span class="line"><span class="keyword">const</span> sig = crypto.<span class="title function_">createHmac</span>(<span class="string">&#x27;sha256&#x27;</span>, <span class="variable constant_">SECRET</span>).<span class="title function_">update</span>(body, <span class="string">&#x27;utf8&#x27;</span>).<span class="title function_">digest</span>(<span class="string">&#x27;hex&#x27;</span>)</span><br><span class="line"><span class="keyword">await</span> <span class="title function_">fetch</span>(url, &#123; <span class="attr">method</span>: <span class="string">&#x27;POST&#x27;</span>, <span class="attr">headers</span>: &#123; <span class="string">&#x27;sentry-hook-signature&#x27;</span>: sig &#125;, body &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>我用这个脚本验了四种情况：真实 secret 返回 <code>&#123;&quot;ok&quot;:true,&quot;deduped&quot;:false&#125;</code> 且卡片送达；同一个 issue 再发一次返回 <code>&#123;&quot;ok&quot;:false,&quot;deduped&quot;:true&#125;</code>；规则名换成 <code>[P0]</code> 开头能绕过节流重新推；故意改成错的 secret 返回 <code>401 unauthorized</code>。四条都对上了才敢发版。</p>
+<h2 id="七、集成建好了，却在告警规则里选不到"><a href="#七、集成建好了，却在告警规则里选不到" class="headerlink" title="七、集成建好了，却在告警规则里选不到"></a>七、集成建好了，却在告警规则里选不到</h2><p>Sentry 这边要建一个 <strong>Internal Integration</strong>。入口在组织 Settings → Developer Settings → Custom Integrations，右上角 Create New Integration，类型选 <code>Internal Integration</code>：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/10827f0668914ec7.jpg" alt="Sentry 新建 Internal Integration 选择类型"></p>
+<p><code>Public Integration</code> 是给要上架给所有 Sentry 用户装的场景用的，我们这种自己组织内部用的一律选 Internal。</p>
+<p>下一步的表单里，有一个开关是<strong>决定成败</strong>的，叫 <strong>Alert Action</strong>（注意不叫 Alert Rule Action，我一开始按后者去找找了半天）：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/c034c3b544afbb99.jpg" alt="Internal Integration 表单与 Alert Action 开关"></p>
+<p>不打开它，这个集成根本不会出现在告警规则的 action 列表里，而界面上看不出任何原因，你只会觉得「我明明建好了啊」。它还有个前置条件：得先填了 Webhook URL 才点得开，描述里那句 “The notification destination is the Webhook URL specified above” 说的就是这个依赖。</p>
+<p>往下是权限。收告警只需要两个 <code>Read</code>，其余一律 <code>No Access</code>：</p>
+<p><img src="https://s.poetries.top/uploads/2026/09/0b4e62dd129fd5c6.jpg" alt="Permissions 只给 Project 和 Issue &amp; Event 读权限"></p>
+<p><code>Alerts</code> 那一项特别容易误勾，它管的是「创建和修改告警规则」的写权限，接收告警根本用不到，保持 <code>No Access</code> 就行。</p>
+<p>另一个坑方向相反，是<strong>不该勾的勾了</strong>。表单再往下的 Webhooks 那一组里有个 <code>Errors → Created</code>，看名字很像我们要的东西，实际上它是 firehose，对<strong>每一条错误事件</strong>都推一次，既绕开告警规则、也绕开规则名分级。线上有真实流量时会把群刷爆。我们要的 <code>event_alert</code> 是由 Alert Action 开关提供的，跟那组勾选框没关系。</p>
+<p>所以正确配置是这样：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Name</td>
+<td><code>feinterview-feishu</code>（会出现在告警规则的 action 下拉里）</td>
+</tr>
+<tr>
+<td>Webhook URL</td>
+<td><code>https://你的域名/api/alerts/sentry-webhook</code></td>
+</tr>
+<tr>
+<td>Alert Action</td>
+<td>打开</td>
+</tr>
+<tr>
+<td>Permissions → Project</td>
+<td><code>Read</code></td>
+</tr>
+<tr>
+<td>Permissions → Issue &amp; Event</td>
+<td><code>Read</code></td>
+</tr>
+<tr>
+<td>其余 Permissions（含 Alerts）</td>
+<td><code>No Access</code></td>
+</tr>
+<tr>
+<td>Webhooks → Errors</td>
+<td><strong>不勾</strong></td>
+</tr>
+</tbody></table>
+<p>Client Secret 在保存后的 Credentials 区域，<strong>只显示一次</strong>，页面上写着 “Your secret is only available briefly after integration creation”。我截图存了一份，下次刷新回去就只剩 <code>hidden</code> 了，丢了只能 Rotate 重新生成再改配置发版。</p>
+<p>告警规则那边，我用规则名前缀做分级，<code>[P0] </code> 开头的在中转服务里跳过节流、每次触发都推，其余走 30 分钟去重。还有一条容易忘的：<strong>给「新错误」那条规则加一个排除条件</strong>，把项目里那种「每次访问必抛错」的调试路由排掉，不然爬虫扫到就会一直推。</p>
+<h2 id="八、飞书这边的两个必踩坑"><a href="#八、飞书这边的两个必踩坑" class="headerlink" title="八、飞书这边的两个必踩坑"></a>八、飞书这边的两个必踩坑</h2><p>我用的是自建应用而不是群机器人 webhook。群机器人一个 URL 就能发，看起来更省事，但它有两个硬伤：webhook URL 本身就是凭据，泄露了谁都能往群里发；而且它只能发到创建它的那个群，以后想加一个「只收 P0」的群就得再申请一个。自建应用拿到的是 <code>tenant_access_token</code>，发给谁由 <code>receive_id</code> 决定，以后要分群、要私聊到人，都是换一个 id 的事。</p>
+<p><strong>第一个坑，卡片的 <code>content</code> 必须是字符串。</strong> 直接传对象会返回 <code>230001</code>：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">  <span class="attr">receive_id</span>: chatId,</span><br><span class="line">  <span class="attr">msg_type</span>: <span class="string">&#x27;interactive&#x27;</span>,</span><br><span class="line">  <span class="attr">content</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(card)   <span class="comment">// 注意这里是二次 stringify，不是笔误</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二个坑，token 必须缓存，而且要防并发。</strong> <code>tenant_access_token</code> 有效期 7200 秒，飞书对换取接口有频控。每条告警都换一次的话，模型池挂掉那种告警风暴会先把换 token 这一步打挂。我加了个「单飞」锁，并发多少条都只换一次：</p>
+<figure class="highlight ts"><table><tr><td class="code"><pre><span class="line"><span class="keyword">let</span> <span class="attr">tokenInflight</span>: <span class="title class_">Promise</span>&lt;<span class="built_in">string</span> | <span class="literal">null</span>&gt; | <span class="literal">null</span> = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">function</span> <span class="title function_">getTenantAccessToken</span>(<span class="params"></span>): <span class="title class_">Promise</span>&lt;<span class="built_in">string</span> | <span class="literal">null</span>&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span> (cachedToken &amp;&amp; cachedToken.<span class="property">expiresAt</span> &gt; <span class="title class_">Date</span>.<span class="title function_">now</span>()) <span class="keyword">return</span> cachedToken.<span class="property">value</span></span><br><span class="line">  <span class="keyword">if</span> (tokenInflight) <span class="keyword">return</span> tokenInflight          <span class="comment">// 复用同一个在途请求</span></span><br><span class="line"></span><br><span class="line">  tokenInflight = (<span class="title function_">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// …换 token，expiresAt 提前 5 分钟过期，避开边界情况</span></span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      tokenInflight = <span class="literal">null</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)()</span><br><span class="line">  <span class="keyword">return</span> tokenInflight</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有个渲染上的选择：堆栈那一块我用的是 <code>plain_text</code> 而不是 <code>lark_md</code>。堆栈里满是 <code>*</code>、<code>[</code>、<code>(</code> 这类字符，交给 markdown 解析会被吃掉一部分，甚至把整段排版搞乱。<code>plain_text</code> 原样渲染，换行也保得住。</p>
+<p>节流键的命名也有讲究，要带上具体对象。<code>provider_quota:deepseek</code> 而不是笼统的 <code>error</code>，否则两家同时出问题你只会收到其中一条。</p>
+<h2 id="九、上线后那两次误判"><a href="#九、上线后那两次误判" class="headerlink" title="九、上线后那两次误判"></a>九、上线后那两次误判</h2><p>发版之后我盯着线上测，连着遇到两件「看起来出事了」的事，最后都是虚惊，但排查过程本身挺有参考价值。</p>
+<p><strong>第一件，Sentry 的 <code>/monitoring</code> 隧道一直返回 500。</strong> 这个隧道是为了绕开广告拦截器（uBlock 之类的默认规则会把 <code>*.ingest.sentry.io</code> 整个拦掉，表现是「线上明明在报错，Sentry 一条都没有」），开了之后上报走同源路径。我当时的第一反应是跨境网络被墙了，毕竟服务器在国内。</p>
+<p>结果连打三次是 <code>500 / 500 / 200</code>，第三次还成功了。等了两三分钟再打十次，<strong>10&#x2F;10 全成功</strong>。原因是冷启动：容器刚起来时 DNS 缓存和连接池都是空的，跨境那一跳第一次握手容易失败。所以别在容器刚重启那几分钟判定隧道坏了。</p>
+<p><strong>第二件，<code>/nav</code> 这个页面线上要 40 到 60 秒。</strong> 这个数字很难看，而且刚好在我发版之后测出来，第一直觉当然是「Sentry 的 OpenTelemetry 自动 instrumentation 把 fetch 都包了一层，拖慢了」。这个怀疑是有道理的，那一页确实要发很多外部请求。</p>
+<p>但我没直接去调采样率，而是做了个对照实验。同一份 standalone 产物，只改环境变量，跑三组：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>&#x2F;nav 耗时</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A：<code>NEXT_PUBLIC_SENTRY_DISABLED=true</code>（完全关闭）</td>
+<td>8.246s &#x2F; 8.017s &#x2F; 8.015s</td>
+</tr>
+<tr>
+<td>B：<code>SENTRY_TRACES_SAMPLE_RATE=0.1</code>（线上配置）</td>
+<td>8.234s &#x2F; 8.021s &#x2F; 8.018s</td>
+</tr>
+<tr>
+<td>C：<code>SENTRY_TRACES_SAMPLE_RATE=0</code>（只收错误）</td>
+<td>8.236s &#x2F; 8.023s &#x2F; 8.017s</td>
+</tr>
+</tbody></table>
+<p>三组数字几乎完全一样，连小数点后两位都对得上。<strong>Sentry 不是 <code>/nav</code> 慢的原因</strong>，那个 8 秒的固定值本身就像某处在等超时，是这一页自己的问题，接入之前就存在。线上的 40 到 60 秒则是服务器环境叠加上去的。</p>
+<p>这两件事我都写进了仓库的运维手册，省得下次自己或者别人再从这条链路开始查。顺带说一句，验证部署有没有生效我用了个很省事的办法：新加的 <code>/api/alerts/sentry-webhook</code> 路由在发版前是 <code>404</code>、发版后是 <code>401</code>（因为它 fail-closed），拿这个当部署标记，比盯着 CI 日志直观。这套 CI 流程我在<a href="https://feinterview.poetries.top/blog/github-actions-tencent-docker-registry">基于 GitHub Actions 构建 Docker 镜像部署到腾讯云私有仓库</a>那篇里写过。</p>
+<h2 id="十、上生产前的-checklist"><a href="#十、上生产前的-checklist" class="headerlink" title="十、上生产前的 checklist"></a>十、上生产前的 checklist</h2><ul>
+<li><input disabled="" type="checkbox"> <code>node -p &quot;require(&#39;@sentry/nextjs/package.json&#39;).version&quot;</code> 能打出版本号（别只看 <code>yarn add</code> 的 exit code）</li>
+<li><input disabled="" type="checkbox"> <code>src/instrumentation-client.ts</code> 在 <code>src/</code> 下、两个 <code>sentry.*.config.ts</code> 在仓库根，位置错了不报错只是不生效</li>
+<li><input disabled="" type="checkbox"> 三层错误边界都接了 <code>captureException</code>，并打了区分严重程度的 <code>boundary</code> tag</li>
+<li><input disabled="" type="checkbox"> <code>error.tsx</code> 带上了 <code>digest</code>，否则生产环境服务端错误没有可用信息</li>
+<li><input disabled="" type="checkbox"> <code>beforeSend</code> 真的挂上去了（用假接收端验一次，看 <code>?token=</code> 有没有被剥掉、<code>extra</code> 在不在）</li>
+<li><input disabled="" type="checkbox"> <code>dataCollection.httpBodies</code> 设成了 <code>[]</code>，请求体里有用户数据的项目这条必做</li>
+<li><input disabled="" type="checkbox"> <code>SENTRY_AUTH_TOKEN</code> &#x2F; <code>SENTRY_ORG</code> &#x2F; <code>SENTRY_PROJECT</code> 三个都配齐，否则堆栈是压缩后的</li>
+<li><input disabled="" type="checkbox"> <code>deleteSourcemapsAfterUpload</code> 保持开启，别把 <code>.map</code> 留在 <code>.next/static</code></li>
+<li><input disabled="" type="checkbox"> Internal Integration 的 <strong>Alert Action 开关打开了</strong>（不叫 Alert Rule Action），Webhooks 里的 <code>Errors</code> <strong>没有勾</strong></li>
+<li><input disabled="" type="checkbox"> 验签用的是 <code>await request.text()</code> 的原始字符串，不是 <code>JSON.stringify(body)</code></li>
+<li><input disabled="" type="checkbox"> 没配 <code>SENTRY_WEBHOOK_SECRET</code> 时端点返回 401（fail-closed），不是放行</li>
+<li><input disabled="" type="checkbox"> 飞书 <code>content</code> 做了二次 <code>JSON.stringify</code>，<code>tenant_access_token</code> 有缓存和并发单飞锁</li>
+<li><input disabled="" type="checkbox"> 告警规则里排除了「每次访问必抛错」的调试路由</li>
+<li><input disabled="" type="checkbox"> 准备一个一键止血开关（我用的是 <code>NEXT_PUBLIC_SENTRY_DISABLED=true</code>），配额被刷爆时不用发版就能停</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>整套东西从装包到线上跑通，纯动手时间大概三到四个小时，其中至少一半花在了那几个「不报错但不生效」的坑上：yarn 装了个寂寞、<code>beforeSend</code> 因为类型不兼容挂不上去、集成建好了在告警规则里选不到、验签永远失败。这类问题的共同点是<strong>失败是静默的</strong>，所以我后来每加一层都要求自己找到一个能直接看到结果的验证手段，假 Sentry 接收端和对照实验就是这么来的。</p>
+<p>收益也很直接。以前是用户告诉我出错了，现在是飞书群先弹一张红色卡片，里面有异常类型、报错原文、环境、版本号和从崩溃点往外的调用栈，点一下按钮跳到 Sentry 看完整上下文。中间那道脱敏层让我不用担心用户的 token 和简历被传出去。</p>
+<p>还没做完的有两件。一是 source map 上传的 token 还没配，所以现在卡片里的函数名还是 <code>?</code>，这是下一步最值得补的。二是服务端那条链路到底有多少事件因为跨境网络丢了，我目前没有可靠的量化办法，如果你有好的思路欢迎在评论区告诉我。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/">Sentry 官方文档 - Next.js 手动接入</a></li>
+<li><a href="https://docs.sentry.io/organization/integrations/integration-platform/webhooks/">Sentry 官方文档 - Integration Platform Webhooks</a></li>
+<li><a href="https://docs.sentry.io/organization/integrations/integration-platform/webhooks/issue-alerts/">Sentry 官方文档 - Issue Alert Webhook 载荷</a></li>
+<li><a href="https://docs.sentry.io/organization/integrations/integration-platform/internal-integration/">Sentry 官方文档 - Internal Integration</a></li>
+<li><a href="https://open.feishu.cn/document/server-docs/im-v1/message/create">飞书开放平台 - 发送消息</a></li>
+<li><a href="https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal">飞书开放平台 - 自建应用获取 tenant_access_token</a></li>
+<li><a href="https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation">Next.js 文档 - instrumentation</a></li>
+<li><a href="https://interview.poetries.top/">前端进阶之旅</a></li>
+</ul>
+
+      </div>
+    
+  </div>
+
+</article>
+
+<!-- <button class="assist-btn2 circle" id="assist_btn2" title="点亮屏幕" style="left: 27px; top: 152px;">
+  <i class="iconfont" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button>
+<button class="assist-btn1 circle" id="assist_btn1" title="关闭屏幕亮度" style="left: 27px; top: 152px;">
+  <i class="iconfont toc-title" style="display:inline-block;color:red;width:20px;height:20px;">&#xe61d;</i>
+</button> -->
+
+
+<script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>	
+
+<script src="https://my.openwrite.cn/js/readmore.js" type="text/javascript"></script>
+<script>
+  function getCookie(key) {
+    if (document.cookie.length > 0) {
+      var start = document.cookie.indexOf(key + "=");
+      if (start !== -1) {
+        start = start + key.length + 1;
+        var end = document.cookie.indexOf(";", start);
+        if (end === -1) end = document.cookie.length;
+        return unescape(document.cookie.substring(start, end));
+      }
+    }
+    return "";
+  }
+  const feToken = getCookie('fe-token');
+  const btw = new BTWPlugin();
+  console.log('ft', feToken)
+  if(!feToken) {
+    btw.init({
+      id: "container",
+      blogId: "22699-1592137983091-414",
+      name: "前端进阶之旅",
+      qrcode: "https://s.poetries.top/uploads/2025/09/0359871bf58e4c40.png",
+      keyword: "3a3b3c",
+    });
+  }
+</script>
+
+<script type="text/javascript">
+
+// white theme
+var body = {color: "#555", background: "#000"};
+var a_tag = {color: "#222"};
+var header = { background: "#222"};
+var logo_line_i = {background: "#222"};
+// var post_code = {background: "#eee", color: "#222"};
+
+function switch_theme() {
+ $("body").css(body);
+ $("a:not('.links-of-author-item a, .site-state-item a, .site-state-posts a, .feed-link a, .motion-element a, .post-tags a, .show-commit-cls a, #donate_board a')").css(a_tag);
+ $(".header, .footer").css(header);
+ $(".logo-line-before i, .logo-line-after i").css(logo_line_i);
+ //$(".post code").css(post_code);
+ $("#idhyt-surprise-ball #idhyt-surprise-ball-animation .drag").css(a_tag);
+ $(".post-title-link, .posts-expand .post-meta, .post-comments-count, .disqus-comment-count, .post-category a, .post-nav-next a, .post-nav-item a").css(a_tag);
+ 
+ // $("code").css({color: '#c5c8c6', background: '#1d1f21'});
+ //$("#assist_btn1").hide(1500);
+}
+
+$(function () {
+$("#assist_btn2").css("display","none");
+ $("#assist_btn1").click(function() {
+     switch_theme();
+$("div#toc.toc-article").css({
+ "background":"#eaeaea",
+ "opacity":1
+});
+$(".toc-article ol").show();
+$("#toc.toc-article .toc-title").css("color","#a98602");
+$("#assist_btn1").css("display","none");
+$("#assist_btn2").css("display","block");
+ });
+$("#assist_btn2").click(function() {
+$("#assist_btn2").css("display","none");
+$("#assist_btn1").css("display","block");
+$("body").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+     $(".header, .footer").css("background","url(http://www.miaov.com/static/ie/images/news/bg.png)")
+$(".toc-article ol").toggle(1000);
+ });
+});
+
+
+//背景随机
+
+var Y, O, E, L, B, C, T, z, N, S, A, I;
+!function() {
+var e = function() {
+for (O.clearRect(0, 0, L, B), T = [{
+x: 0,
+y: .7 * B + C
+}, {
+x: 0,
+y: .7 * B - C
+}]; T[1].x < L + C;) t(T[0], T[1])
+}, t = function(e, t) {
+O.beginPath(), O.moveTo(e.x, e.y), O.lineTo(t.x, t.y);
+var n = t.x + (2 * I() - .25) * C,
+ r = a(t.y);
+O.lineTo(n, r), O.closePath(), N -= S / -50, O.fillStyle = "#" + (127 * A(N) + 128 << 16 | 127 * A(N + S / 3) + 128 << 8 | 127 * A(N + S / 3 * 2) + 128).toString(16), O.fill(), T[0] = T[1], T[1] = {
+ x: n,
+ y: r
+}
+}, a = function n(e) {
+var t = e + (2 * I() - 1.1) * C;
+return t > B || t < 0 ? n(e) : t
+};
+Y = document.getElementById("evanyou"), O = Y.getContext("2d"), E = window.devicePixelRatio || 1, L = window.innerWidth, B = window.innerHeight, C = 90, z = Math, N = 0, S = 2 * z.PI, A = z.cos, I = z.random, Y.width = L * E, Y.height = B * E, O.scale(E, E), O.globalAlpha = .6, document.onclick = e, document.ontouchstart = e, e()
+}()
+
+   
+$("#toc-eye").click(function(){
+$("#toc.toc-article").toggle(1000);
+});
+
+</script>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持poetries</div>
+        <ul>
+        
+          <li class="item">
+            
+              <span>微信扫一扫</span>
+            
+            <img src="/images/weixin.jpg" alt="">
+          </li>
+        
+          <li class="item">
+            
+              <span>支付宝扫一扫</span>
+            
+            <img src="/images/zhifubao.jpg" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2026/07/26/vercel-react-best-practices/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/archives/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/categories/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/tags/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/search/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              搜索
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/link/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a
+              class="CIRCLE"
+              href="/about/"
+              rel="noopener noreferrer"
+              target="_self"
+              >
+              关于
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+
+    
+
+    
+    
+
+    
+
+    
+    
+
+    
+
+<!-- Gitalk评论插件通用代码 -->
+<div id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script>
+const gitalk = new Gitalk({
+  clientID: '5567a2c4abb858009d96',
+  clientSecret: 'b9039ec056cf5c2346b3cdb63308a28c163f91e5',
+  repo: 'poetries.github.io',
+  owner: 'poetries',
+  // 在这里设置一下截取前50个字符串, 这是因为 github 对 label 的长度有了要求, 如果超过
+  // 50个字符串则会报错.
+  // id: location.pathname.split('/').pop().substring(0, 49),
+  id: location.pathname,
+  admin: ['poetries'],
+  // facebook-like distraction free mode
+  distractionFreeMode: false
+})
+gitalk.render('gitalk-container')
+</script>
+<!-- Gitalk代码结束 -->
+
+
+
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+
+  <!-- 页面点击小红心 -->
+  <script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+  
+</body>
+</html>
